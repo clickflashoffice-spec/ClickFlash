@@ -1,0 +1,49 @@
+[Security] Using temporary JWT secret. Sessions will invalidate on restart. Set JWT_SECRET in .env
+[Security] Using temporary SESSION secret. Cookies will invalidate on restart. Set SESSION_SECRET in .env
+[WebRoot] Checking candidate 1: E:\ClickFlash\apps\master\backend\master
+[WebRoot] Checking candidate 2: E:\ClickFlash\apps\master\backend\dist\master
+[WebRoot] Checking candidate 3: E:\ClickFlash\apps\master\dist
+[WebRoot] Using default fallback: E:\ClickFlash\apps\master\backend\dist\master
+[WebRoot] Resolved WEB_ROOT: E:\ClickFlash\apps\master\backend\dist\master
+
+=== VectorIndex Benchmark: 10000 records ===
+[Database] Connected to E:\ClickFlash\apps\master\backend\pb_data\test_benchmark.db (WAL Mode Active)
+Generation: 28.942ms
+Build Tree: 101.237ms
+[INFO] [VectorIndex] Saved binary index: 10000 nodes, 5.53 MB 
+Persistence (Save Binary): 205.854ms
+Binary File Size: 5.53 MB
+[INFO] [VectorIndex] Loaded 10000 nodes from binary index. 
+Persistence (Load Binary): 57.41ms
+Search (Limit 20): 5.895ms
+Results found: 0
+Heap Used: 17.85 MB
+[Database] Connection closed
+
+=== VectorIndex Benchmark: 100000 records ===
+[Database] Connected to E:\ClickFlash\apps\master\backend\pb_data\test_benchmark.db (WAL Mode Active)
+Generation: 318.372ms
+Build Tree: 1.203s
+[INFO] [VectorIndex] Saved binary index: 100000 nodes, 55.31 MB 
+Persistence (Save Binary): 2.017s
+Binary File Size: 55.31 MB
+[INFO] [VectorIndex] Loaded 100000 nodes from binary index. 
+Persistence (Load Binary): 442.808ms
+Search (Limit 20): 48.569ms
+Results found: 0
+Heap Used: 99.60 MB
+[Database] Connection closed
+
+=== VectorIndex Benchmark: 500000 records ===
+[Database] Connected to E:\ClickFlash\apps\master\backend\pb_data\test_benchmark.db (WAL Mode Active)
+Generation: 1.706s
+Build Tree: 8.694s
+[INFO] [VectorIndex] Saved binary index: 500000 nodes, 276.57 MB 
+Persistence (Save Binary): 10.246s
+Binary File Size: 276.57 MB
+[INFO] [VectorIndex] Loaded 500000 nodes from binary index. 
+Persistence (Load Binary): 6.494s
+Search (Limit 20): 206.678ms
+Results found: 0
+Heap Used: 389.95 MB
+[Database] Connection closed

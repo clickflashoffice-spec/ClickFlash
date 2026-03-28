@@ -1,0 +1,182 @@
+src/components/AIIdeasModal.tsx(68,51): error TS2339: Property 'settings' does not exist on type 'ShootIdea'.
+src/components/AIIdeasModal.tsx(69,50): error TS2339: Property 'settings' does not exist on type 'ShootIdea'.
+src/components/AIIdeasModal.tsx(70,46): error TS2339: Property 'settings' does not exist on type 'ShootIdea'.
+src/components/albums/AlbumDetail.tsx(191,39): error TS2304: Cannot find name 'AlbumStatus'.
+src/components/albums/AlbumDetail.tsx(191,67): error TS2304: Cannot find name 'AlbumStatus'.
+src/components/albums/AlbumDetail.tsx(346,27): error TS2552: Cannot find name 'initialEdits'. Did you mean 'INITIAL_EDITS'?
+src/components/albums/AlbumDetail.tsx(347,21): error TS2552: Cannot find name 'initialEdits'. Did you mean 'INITIAL_EDITS'?
+src/components/albums/AlbumDetail.tsx(370,39): error TS2304: Cannot find name 'AlbumStatus'.
+src/components/albums/AlbumDetail.tsx(370,67): error TS2304: Cannot find name 'AlbumStatus'.
+src/components/albums/AlbumDetail.tsx(385,27): error TS2552: Cannot find name 'initialEdits'. Did you mean 'INITIAL_EDITS'?
+src/components/albums/AlbumDetail.tsx(386,21): error TS2552: Cannot find name 'initialEdits'. Did you mean 'INITIAL_EDITS'?
+src/components/albums/AlbumDetail.tsx(844,34): error TS2304: Cannot find name 'AlbumStatus'.
+src/components/albums/AlbumDetail.tsx(844,62): error TS2304: Cannot find name 'AlbumStatus'.
+src/components/albums/AlbumDetail.tsx(1427,38): error TS2345: Argument of type 'Photo' is not assignable to parameter of type 'ManualEdits'.
+  Type 'Photo' is missing the following properties from type 'ManualEdits': exposure, contrast, highlights, shadows, and 17 more.
+src/components/albums/Albums.tsx(12,8): error TS1192: Module '"E:/ClickFlash/apps/management/node_modules/react-window/dist/react-window"' has no default export.
+src/components/albums/editor/EditorSidebar.tsx(5,44): error TS2322: Type '"Beach & Pool"' is not assignable to type 'PhotoCategory'.
+src/components/albums/editor/EditorSidebar.tsx(5,60): error TS2322: Type '"Photo Session"' is not assignable to type 'PhotoCategory'.
+src/components/albums/editor/EditorSidebar.tsx(5,77): error TS2322: Type '"Evening"' is not assignable to type 'PhotoCategory'.
+src/components/albums/editor/EditorSidebar.tsx(5,88): error TS2322: Type '"Activities"' is not assignable to type 'PhotoCategory'.
+src/components/albums/editor/EditorSidebar.tsx(5,102): error TS2322: Type '"Restaurant"' is not assignable to type 'PhotoCategory'.
+src/components/albums/ImportAlbumModal.tsx(35,68): error TS2322: Type '"Photo Session"' is not assignable to type 'PhotoCategory'.
+src/components/albums/ImportAlbumModal.tsx(61,28): error TS2322: Type '"Photo Session"' is not assignable to type 'PhotoCategory'.
+src/components/albums/TetherMode.tsx(55,19): error TS2741: Property 'albumId' is missing in type '{ id: string; title: string; url: string; photographerId: number; }' but required in type 'Photo'.
+src/components/bookings/BookingCalendar.tsx(84,97): error TS2339: Property 'sessionId' does not exist on type 'Booking'.
+src/components/bookings/BookingEditModal.tsx(17,47): error TS2345: Argument of type 'Booking | { status: "Pending"; destinationId: string; }' is not assignable to parameter of type 'Partial<Booking> | (() => Partial<Booking>)'.
+  Object literal may only specify known properties, and 'destinationId' does not exist in type 'Partial<Booking> | (() => Partial<Booking>)'.
+src/components/bookings/BookingEditModal.tsx(24,58): error TS2345: Argument of type 'Booking | { status: "Pending"; destinationId: string; }' is not assignable to parameter of type 'SetStateAction<Partial<Booking>>'.
+  Object literal may only specify known properties, and 'destinationId' does not exist in type 'SetStateAction<Partial<Booking>>'.
+src/components/bookings/BookingEditModal.tsx(34,20): error TS2345: Argument of type '(prev: Partial<Booking>) => { photographerId: number; clientName?: string; email?: string; phone?: string; bookingDate?: string; sessionTypeId?: string; status?: "Pending" | "Cancelled" | "Confirmed"; ... 6 more ...; updated_at?: string; }' is not assignable to parameter of type 'SetStateAction<Partial<Booking>>'.
+  Type '(prev: Partial<Booking>) => { photographerId: number; clientName?: string; email?: string; phone?: string; bookingDate?: string; sessionTypeId?: string; status?: "Pending" | "Cancelled" | "Confirmed"; ... 6 more ...; updated_at?: string; }' is not assignable to type '(prevState: Partial<Booking>) => Partial<Booking>'.
+    Call signature return types '{ photographerId: number; clientName?: string; email?: string; phone?: string; bookingDate?: string; sessionTypeId?: string; status?: "Pending" | "Cancelled" | "Confirmed"; id?: string; created?: string; ... 4 more ...; updated_at?: string; }' and 'Partial<Booking>' are incompatible.
+      The types of 'photographerId' are incompatible between these types.
+        Type 'number' is not assignable to type 'string'.
+src/components/bookings/BookingEditModal.tsx(47,75): error TS2339: Property 'clientEmail' does not exist on type 'Partial<Booking>'.
+src/components/bookings/BookingEditModal.tsx(49,69): error TS2339: Property 'clientPhone' does not exist on type 'Partial<Booking>'.
+src/components/bookings/BookingEditModal.tsx(52,74): error TS2551: Property 'bookingTime' does not exist on type 'Partial<Booking>'. Did you mean 'bookingDate'?
+src/components/bookings/BookingEditModal.tsx(54,57): error TS2339: Property 'sessionId' does not exist on type 'Partial<Booking>'.
+src/components/bookings/Bookings.tsx(85,27): error TS2339: Property 'clientEmail' does not exist on type 'Booking'.
+src/components/bookings/Bookings.tsx(87,27): error TS2339: Property 'notes' does not exist on type 'Booking'.
+src/components/bookings/Bookings.tsx(98,27): error TS2551: Property 'bookingTime' does not exist on type 'Booking'. Did you mean 'bookingDate'?
+src/components/bookings/Bookings.tsx(98,62): error TS2551: Property 'bookingTime' does not exist on type 'Booking'. Did you mean 'bookingDate'?
+src/components/bookings/Bookings.tsx(108,21): error TS2345: Argument of type '(prev: Booking[]) => (Booking | { photographerId: number; status: BookingStatus; clientName: string; email: string; phone?: string; bookingDate: string; ... 7 more ...; updated_at?: string; })[]' is not assignable to parameter of type 'SetStateAction<Booking[]>'.
+  Type '(prev: Booking[]) => (Booking | { photographerId: number; status: BookingStatus; clientName: string; email: string; phone?: string; bookingDate: string; ... 7 more ...; updated_at?: string; })[]' is not assignable to type '(prevState: Booking[]) => Booking[]'.
+    Type '(Booking | { photographerId: number; status: BookingStatus; clientName: string; email: string; phone?: string; bookingDate: string; sessionTypeId: string; id: string; ... 5 more ...; updated_at?: string; })[]' is not assignable to type 'Booking[]'.
+      Type 'Booking | { photographerId: number; status: BookingStatus; clientName: string; email: string; phone?: string; bookingDate: string; sessionTypeId: string; id: string; ... 5 more ...; updated_at?: string; }' is not assignable to type 'Booking'.
+        Type '{ photographerId: number; status: BookingStatus; clientName: string; email: string; phone?: string; bookingDate: string; sessionTypeId: string; id: string; created?: string; updated?: string; collectionId?: string; collectionName?: string; created_at?: string; updated_at?: string; }' is not assignable to type 'Booking'.
+          Types of property 'photographerId' are incompatible.
+            Type 'number' is not assignable to type 'string'.
+src/components/bookings/Bookings.tsx(111,55): error TS2345: Argument of type '{ photographerId: number; status: BookingStatus; clientName: string; email: string; phone?: string; bookingDate: string; sessionTypeId: string; id: string; created?: string; updated?: string; collectionId?: string; collectionName?: string; created_at?: string; updated_at?: string; }' is not assignable to parameter of type 'Partial<Booking>'.
+  Types of property 'photographerId' are incompatible.
+    Type 'number' is not assignable to type 'string'.
+src/components/bookings/Bookings.tsx(299,93): error TS2339: Property 'sessionId' does not exist on type 'Booking'.
+src/components/bookings/Bookings.tsx(311,58): error TS2339: Property 'clientEmail' does not exist on type 'Booking'.
+src/components/bookings/Bookings.tsx(312,149): error TS2339: Property 'clientEmail' does not exist on type 'Booking'.
+src/components/bookings/Bookings.tsx(312,171): error TS2339: Property 'clientEmail' does not exist on type 'Booking'.
+src/components/bookings/Bookings.tsx(319,66): error TS2551: Property 'bookingTime' does not exist on type 'Booking'. Did you mean 'bookingDate'?
+src/components/bookings/Bookings.tsx(320,128): error TS2551: Property 'bookingTime' does not exist on type 'Booking'. Did you mean 'bookingDate'?
+src/components/Clients.tsx(10,10): error TS2305: Module '"react-window"' has no exported member 'FixedSizeList'.
+src/components/common/FileTransferDialog.tsx(38,29): error TS2554: Expected 1 arguments, but got 0.
+src/components/common/Skeleton.tsx(119,39): error TS2322: Type '{ className: string; style: { width: string; height: string; }; }' is not assignable to type 'IntrinsicAttributes & { className?: string; }'.
+  Property 'style' does not exist on type 'IntrinsicAttributes & { className?: string; }'.
+src/components/common/VirtualGrid.tsx(304,22): error TS2322: Type '({ columnIndex, rowIndex, style }: { columnIndex: number; rowIndex: number; style: React.CSSProperties; }) => JSX.Element' is not assignable to type 'ReactNode'.
+src/components/common/VirtualGrid.tsx(311,42): error TS2304: Cannot find name 'finalColumnCount'.
+src/components/common/VirtualGrid.tsx(312,39): error TS2304: Cannot find name 'finalRowCount'.
+src/components/common/VirtualGrid.tsx(313,36): error TS2304: Cannot find name 'finalWidth'.
+src/components/common/VirtualGrid.tsx(314,37): error TS2304: Cannot find name 'finalHeight'.
+src/components/common/VirtualList.tsx(161,18): error TS2322: Type '({ index, style }: { index: number; style: React.CSSProperties; }) => JSX.Element' is not assignable to type 'ReactNode'.
+src/components/customer/CheckoutScreen.tsx(33,31): error TS2551: Property 'photo' does not exist on type 'CartItem'. Did you mean 'photoId'?
+src/components/customer/CheckoutScreen.tsx(33,56): error TS2339: Property 'size' does not exist on type 'CartItem'.
+src/components/customer/CheckoutScreen.tsx(33,73): error TS2339: Property 'mode' does not exist on type 'CartItem'.
+src/components/customer/CheckoutScreen.tsx(34,29): error TS2551: Property 'photo' does not exist on type 'CartItem'. Did you mean 'photoId'?
+src/components/customer/CheckoutScreen.tsx(35,30): error TS2339: Property 'size' does not exist on type 'CartItem'.
+src/components/customer/CheckoutScreen.tsx(48,42): error TS2551: Property 'photo' does not exist on type 'CartItem'. Did you mean 'photoId'?
+src/components/customer/CheckoutScreen.tsx(102,89): error TS2551: Property 'photo' does not exist on type 'CartItem'. Did you mean 'photoId'?
+src/components/customer/CheckoutScreen.tsx(103,101): error TS2339: Property 'size' does not exist on type 'CartItem'.
+src/components/customer/CustomerLayout.tsx(208,21): error TS2322: Type 'string | number' is not assignable to type 'number'.
+  Type 'string' is not assignable to type 'number'.
+src/components/customer/ProductSelectionModal.tsx(32,19): error TS2741: Property 'albumId' is missing in type '{ id: string; title: string; url: string; photographerId: number; }' but required in type 'Photo'.
+src/components/dashboard/widgets/RecentGlobalActivityWidget.tsx(69,40): error TS2339: Property 'destinationId' does not exist on type 'Album'.
+src/components/dashboard/widgets/TopPhotographersWidget.tsx(19,22): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'number'.
+  Type 'string' is not assignable to type 'number'.
+src/components/dashboard/widgets/TopPhotographersWidget.tsx(19,58): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'number'.
+  Type 'string' is not assignable to type 'number'.
+src/components/dashboard/widgets/TopPhotographersWidget.tsx(26,34): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+src/components/DeviceSetup.tsx(3,10): error TS2614: Module '"../App.tsx"' has no exported member 'AppMode'. Did you mean to use 'import AppMode from "../App.tsx"' instead?
+src/components/inventory/InventoryPage.tsx(4,21): error TS2307: Cannot find module './common/Spinner' or its corresponding type declarations.
+src/components/management/AnalyticsDashboard.tsx(93,13): error TS2345: Argument of type '(acc: number, s: any) => any' is not assignable to parameter of type '(previousValue: MasterStation, currentValue: MasterStation, currentIndex: number, array: MasterStation[]) => MasterStation'.
+  Types of parameters 'acc' and 'previousValue' are incompatible.
+    Type 'MasterStation' is not assignable to type 'number'.
+src/components/management/AnalyticsDashboard.tsx(99,13): error TS2345: Argument of type '(acc: number, s: any) => any' is not assignable to parameter of type '(previousValue: MasterStation, currentValue: MasterStation, currentIndex: number, array: MasterStation[]) => MasterStation'.
+  Types of parameters 'acc' and 'previousValue' are incompatible.
+    Type 'MasterStation' is not assignable to type 'number'.
+src/components/management/BonusesPage.tsx(65,39): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+src/components/management/BonusesPage.tsx(65,88): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+src/components/management/BonusesPage.tsx(71,61): error TS2367: This comparison appears to be unintentional because the types 'string' and 'number' have no overlap.
+src/components/management/CapitalPage.tsx(57,26): error TS2339: Property 'createLoanPayment' does not exist on type '{ getCollection(collectionName: string, sort?: string): Promise<PaginatedList<any>>; createRecord(collectionName: string, data: any): Promise<any>; ... 92 more ...; deleteInventoryItem(id: string): Promise<...>; }'.
+src/components/management/CapitalPage.tsx(173,142): error TS2339: Property 'notes' does not exist on type '{ id: string; loanId: string; date: string; amount: number; }'.
+src/components/management/ManagementDashboard.tsx(231,58): error TS2367: This comparison appears to be unintentional because the types 'OrderStatus' and '"pending"' have no overlap.
+src/components/management/modals/AddAdjustmentModal.tsx(39,13): error TS2322: Type 'number' is not assignable to type 'string'.
+src/components/management/modals/AddBonusModal.tsx(37,13): error TS2322: Type 'number' is not assignable to type 'string'.
+src/components/management/modals/AddEquipmentModal.tsx(40,22): error TS2345: Argument of type '(prev: Partial<Equipment>) => { assignedToPhotographerId: number; name?: string; type?: string; status?: EquipmentStatus; destinationId?: string; id?: string; ... 5 more ...; updated_at?: string; }' is not assignable to parameter of type 'SetStateAction<Partial<Equipment>>'.
+  Type '(prev: Partial<Equipment>) => { assignedToPhotographerId: number; name?: string; type?: string; status?: EquipmentStatus; destinationId?: string; id?: string; ... 5 more ...; updated_at?: string; }' is not assignable to type '(prevState: Partial<Equipment>) => Partial<Equipment>'.
+    Call signature return types '{ assignedToPhotographerId: number; name?: string; type?: string; status?: EquipmentStatus; destinationId?: string; id?: string; created?: string; updated?: string; collectionId?: string; collectionName?: string; created_at?: string; updated_at?: string; }' and 'Partial<Equipment>' are incompatible.
+      The types of 'assignedToPhotographerId' are incompatible between these types.
+        Type 'number' is not assignable to type 'string'.
+src/components/management/modals/AddExpenseModal.tsx(60,13): error TS2322: Type 'number' is not assignable to type 'string'.
+src/components/management/modals/AddLoanModal.tsx(35,13): error TS2353: Object literal may only specify known properties, and 'destinationId' does not exist in type 'Omit<Loan, "id">'.
+src/components/management/NewManagementLayout.tsx(66,70): error TS2448: Block-scoped variable 'Calendar' used before its declaration.
+src/components/management/PayrollPage.tsx(134,25): error TS2367: This comparison appears to be unintentional because the types 'string' and 'number' have no overlap.
+src/components/management/PayrollPage.tsx(240,86): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+src/components/management/PayrollPage.tsx(272,21): error TS2322: Type 'string' is not assignable to type 'number'.
+src/components/management/website/PortfolioManager.tsx(279,56): error TS2322: Type '{ size: string; color: string; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'size' does not exist on type 'IntrinsicAttributes'.
+src/components/management/WebsiteControlPage.tsx(158,40): error TS2322: Type '{ size: string; color: string; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'size' does not exist on type 'IntrinsicAttributes'.
+src/components/modals/ExtensionCreateModal.tsx(83,13): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'EcommerceExtension'.
+src/components/modals/TransferCategoryModal.tsx(36,100): error TS2345: Argument of type 'string' is not assignable to parameter of type 'SetStateAction<"Uncategorized" | "Portrait" | "Landscape" | "Action" | "Candid" | "Product" | "Architecure">'.
+src/components/modals/TransferCategoryModal.tsx(49,94): error TS2345: Argument of type 'string' is not assignable to parameter of type 'SetStateAction<"Uncategorized" | "Portrait" | "Landscape" | "Action" | "Candid" | "Product" | "Architecure">'.
+src/components/MoneyTrashEmailMarketing.tsx(7,8): error TS2307: Cannot find module '../../services/moneyTrashEmailMarketing' or its corresponding type declarations.
+src/components/Orders.tsx(13,10): error TS2305: Module '"react-window"' has no exported member 'FixedSizeList'.
+src/components/orders/PrintLayout.tsx(5,39): error TS2307: Cannot find module '../settings/WatermarkSettings' or its corresponding type declarations.
+src/components/photographers/IncomeByPhotographerChart.tsx(24,30): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'number'.
+  Type 'string' is not assignable to type 'number'.
+src/components/photographers/IncomeByPhotographerChart.tsx(24,66): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'number'.
+  Type 'string' is not assignable to type 'number'.
+src/components/photographers/IncomeByPhotographerChart.tsx(30,33): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+src/components/photographers/ObjectivesModal.tsx(20,20): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+src/components/touch/BookingScreen.tsx(38,17): error TS2322: Type 'number' is not assignable to type 'string'.
+src/components/touch/CheckoutScreen.tsx(41,31): error TS2551: Property 'photo' does not exist on type 'CartItem'. Did you mean 'photoId'?
+src/components/touch/CheckoutScreen.tsx(41,56): error TS2339: Property 'size' does not exist on type 'CartItem'.
+src/components/touch/CheckoutScreen.tsx(41,73): error TS2339: Property 'mode' does not exist on type 'CartItem'.
+src/components/touch/CheckoutScreen.tsx(42,29): error TS2551: Property 'photo' does not exist on type 'CartItem'. Did you mean 'photoId'?
+src/components/touch/CheckoutScreen.tsx(43,30): error TS2339: Property 'size' does not exist on type 'CartItem'.
+src/components/touch/CheckoutScreen.tsx(60,38): error TS2551: Property 'photo' does not exist on type 'CartItem'. Did you mean 'photoId'?
+src/components/touch/CheckoutScreen.tsx(86,46): error TS2551: Property 'photo' does not exist on type 'CartItem'. Did you mean 'photoId'?
+src/components/touch/CheckoutScreen.tsx(147,89): error TS2551: Property 'photo' does not exist on type 'CartItem'. Did you mean 'photoId'?
+src/components/touch/CheckoutScreen.tsx(148,101): error TS2339: Property 'size' does not exist on type 'CartItem'.
+src/components/touch/CheckoutScreen.tsx(148,112): error TS2339: Property 'mode' does not exist on type 'CartItem'.
+src/components/touch/OrderConfigurationScreen.tsx(89,44): error TS2551: Property 'photo' does not exist on type 'CartItem'. Did you mean 'photoId'?
+src/components/touch/OrderConfigurationScreen.tsx(89,65): error TS2551: Property 'photo' does not exist on type 'CartItem'. Did you mean 'photoId'?
+src/components/touch/OrderConfigurationScreen.tsx(91,72): error TS2339: Property 'size' does not exist on type 'CartItem'.
+src/components/touch/OrderConfigurationScreen.tsx(92,89): error TS2551: Property 'photo' does not exist on type 'CartItem'. Did you mean 'photoId'?
+src/components/touch/OrderConfigurationScreen.tsx(93,39): error TS2339: Property 'mode' does not exist on type 'CartItem'.
+src/components/touch/PhotoPreviewScreen.tsx(9,39): error TS2307: Cannot find module '../settings/WatermarkSettings.tsx' or its corresponding type declarations.
+src/components/touch/PhotoPreviewScreen.tsx(133,13): error TS2561: Object literal may only specify known properties, but 'photo' does not exist in type 'CartItem'. Did you mean to write 'photoId'?
+src/components/touch/PhotoPreviewScreen.tsx(169,59): error TS2551: Property 'photo' does not exist on type 'CartItem'. Did you mean 'photoId'?
+src/components/touch/PhotoPreviewScreen.tsx(169,89): error TS2339: Property 'size' does not exist on type 'CartItem'.
+src/components/touch/PhotoPreviewScreen.tsx(170,50): error TS2339: Property 'mode' does not exist on type 'CartItem'.
+src/components/touch/PhotoPreviewScreen.tsx(171,46): error TS2339: Property 'mode' does not exist on type 'CartItem'.
+src/components/touch/PhotoSelectionScreen.tsx(59,82): error TS2345: Argument of type 'string' is not assignable to parameter of type 'PhotoCategory'.
+src/components/touch/PhotoSelectionScreen.tsx(173,85): error TS2551: Property 'photo' does not exist on type 'CartItem'. Did you mean 'photoId'?
+src/components/touch/WelcomeScreen.tsx(59,61): error TS2345: Argument of type '{ logoUrl: string; welcomeMessage: string; kioskId: string; enableRFID: true; enableFaceLogin: true; enableFaceSearch: true; }' is not assignable to parameter of type 'KioskSettings | (() => KioskSettings)'.
+  Property 'screensaverTimeout' is missing in type '{ logoUrl: string; welcomeMessage: string; kioskId: string; enableRFID: true; enableFaceLogin: true; enableFaceSearch: true; }' but required in type 'KioskSettings'.
+src/constants.ts(71,7): error TS2322: Type 'number' is not assignable to type 'string'.
+src/constants.ts(72,7): error TS2322: Type 'number' is not assignable to type 'string'.
+src/constants.ts(73,7): error TS2322: Type 'number' is not assignable to type 'string'.
+src/constants.ts(74,7): error TS2322: Type 'number' is not assignable to type 'string'.
+src/constants.ts(151,19): error TS2322: Type 'number' is not assignable to type 'string'.
+src/constants.ts(152,19): error TS2322: Type 'number' is not assignable to type 'string'.
+src/constants.ts(189,14): error TS2741: Property 'id' is missing in type '{ code: string; name: string; symbol: string; rate: number; }' but required in type 'Currency'.
+src/constants.ts(192,5): error TS2741: Property 'id' is missing in type '{ code: string; name: string; symbol: string; rate: number; }' but required in type 'Currency'.
+src/constants.ts(193,5): error TS2741: Property 'id' is missing in type '{ code: string; name: string; symbol: string; rate: number; }' but required in type 'Currency'.
+src/constants.ts(194,5): error TS2741: Property 'id' is missing in type '{ code: string; name: string; symbol: string; rate: number; }' but required in type 'Currency'.
+src/constants.ts(210,137): error TS2322: Type 'number' is not assignable to type 'string'.
+src/constants.ts(219,39): error TS2322: Type 'number' is not assignable to type 'string'.
+src/constants.ts(220,39): error TS2322: Type 'number' is not assignable to type 'string'.
+src/constants.ts(223,73): error TS2322: Type 'number' is not assignable to type 'string'.
+src/hooks/useOrders.ts(33,35): error TS2551: Property 'getOrder' does not exist on type '{ getCollection(collectionName: string, sort?: string): Promise<PaginatedList<any>>; createRecord(collectionName: string, data: any): Promise<any>; ... 92 more ...; deleteInventoryItem(id: string): Promise<...>; }'. Did you mean 'getOrders'?
+src/services/geminiService.ts(44,21): error TS2339: Property 'parsed' does not exist on type 'GenerateContentResponse'.
+src/services/geminiService.ts(144,33): error TS2339: Property 'parsed' does not exist on type 'GenerateContentResponse'.
+src/services/pbManagement.ts(425,129): error TS2554: Expected 1-2 arguments, but got 3.
+src/utils/ExtensionRegistry.ts(7,9): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'EcommerceExtension'.
+src/utils/ExtensionRegistry.ts(19,9): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'EcommerceExtension'.
+src/utils/ExtensionRegistry.ts(31,9): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'EcommerceExtension'.
+src/utils/ExtensionRegistry.ts(43,9): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'EcommerceExtension'.
+src/utils/ExtensionRegistry.ts(54,9): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'EcommerceExtension'.
+src/utils/ExtensionRegistry.ts(66,9): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'EcommerceExtension'.
+src/utils/sentry.ts(10,20): error TS2322: Type 'BrowserTracing' is not assignable to type 'Integration'.
+  Types of property 'setupOnce' are incompatible.
+    Type '(_: (callback: EventProcessor) => void, getCurrentHub: () => Hub) => void' is not assignable to type '() => void'.
+      Target signature provides too few arguments. Expected 2 or more, but got 0.

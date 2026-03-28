@@ -1,0 +1,5 @@
+src/components/common/ErrorBoundary.tsx(115,29): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+src/services/geminiService.ts(1,35): error TS2307: Cannot find module '@google/genai' or its corresponding type declarations.
+src/services/geminiService.ts(6,11): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+src/services/geminiService.ts(6,37): error TS2591: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+src/setupTests.ts(77,1): error TS2304: Cannot find name 'global'.

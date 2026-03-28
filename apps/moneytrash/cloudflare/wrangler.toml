@@ -1,0 +1,37 @@
+# MoneyTrash Cloudflare Configuration
+# Deploy with: wrangler deploy
+
+name = "moneytrash-api"
+main = "src/index.ts"
+compatibility_date = "2026-03-12"
+compatibility_flags = ["nodejs_compat"]
+
+# Cloudflare D1 Database (SQLite)
+[[d1_databases]]
+binding = "DB"
+database_name = "moneytrash-db"
+database_id = "c28e69b6-e2db-4582-a438-f0676a5f25f1"
+
+# Cloudflare R2 Storage (S3-compatible)
+[[r2_buckets]]
+binding = "UPLOADS_BUCKET"
+bucket_name = "moneytrash-uploads"
+
+# Cloudflare KV (Upload sessions & caching)
+[[kv_namespaces]]
+binding = "UPLOAD_SESSIONS"
+id = "bdb3683d7add4fd58df28ceebe75adb0"
+
+# Environment Variables
+[vars]
+ENVIRONMENT = "production"
+GALLERY_APP_URL = "https://gallery.clickflash.app"
+MAX_UPLOAD_SIZE = "52428800"  # 50MB
+CHUNK_SIZE = "1048576"        # 1MB
+MAX_CONCURRENT_UPLOADS = "5"
+ALLOWED_ORIGINS = "https://moneytrash.clickflash.app,https://gallery.clickflash.app"
+
+# Secrets (set via: wrangler secret put <name>)
+# JWT_SECRET - For API authentication
+# STRIPE_SECRET_KEY - For payment processing
+# WEBHOOK_SECRET - For securing webhooks

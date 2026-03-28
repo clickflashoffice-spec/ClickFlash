@@ -1,0 +1,48 @@
+{
+  "name": "clickflash-ecosystem",
+  "version": "4.2.0",
+  "description": "ClickFlash Photography Ecosystem - 6 apps for professional photographers",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:master\" \"npm run dev:touch\" \"npm run dev:management\" \"npm run dev:gallery\" \"npm run dev:website\" --names \"master,touch,management,gallery,website\" --prefix-colors \"blue,green,purple,pink,cyan\"",
+    "dev:master": "cd apps/master && npm run dev:full",
+    "dev:touch": "cd apps/touch && npm run dev:full",
+    "dev:management": "cd apps/management && npm run dev",
+    "dev:gallery": "cd apps/gallery && npm run dev",
+    "dev:website": "cd apps/website && npm run dev",
+    "install:all": "npm install && npm run install:apps",
+    "install:apps": "cd apps/master && npm install && cd ../touch && npm install && cd ../management && npm install && cd ../gallery && npm install && cd ../website && npm install && cd ../moneytrash && npm install",
+    "build:all": "npm run build:master && npm run build:touch && npm run build:management && npm run build:gallery && npm run build:website",
+    "build:master": "cd apps/master && npm run build && npm run build:backend",
+    "build:touch": "cd apps/touch && npm run build && npm run build:backend",
+    "build:management": "cd apps/management && npm run build",
+    "build:gallery": "cd apps/gallery && npm run build",
+    "build:website": "cd apps/website && npm run build",
+    "test:all": "npm run test:master && npm run test:touch && npm run test:management && npm run test:gallery && npm run test:website && npm run test:moneytrash",
+    "test:master": "cd apps/master && npm test",
+    "test:touch": "cd apps/touch && npm test",
+    "test:management": "cd apps/management && npm test",
+    "test:gallery": "cd apps/gallery && npm test",
+    "test:website": "cd apps/website && npm test",
+    "test:moneytrash": "cd apps/moneytrash && npm test",
+    "test:ecosystem": "cd apps/master && npm test && cd ../management && npm test && cd ../gallery && npm test && cd ../touch && npm test",
+    "test:ecosystem:coverage": "cd apps/master && npm run test:coverage && cd ../management && npm run test:coverage && cd ../gallery && npm run test:coverage && cd ../touch && npm run test:coverage",
+    "test:ecosystem:ci": "cd apps/master && npm run test:ci && cd ../management && npm run test:ci && cd ../gallery && npm run test:ci && cd ../touch && npm run test:ci",
+    "test:e2e": "npx tsx tests/ecosystem/reset.ts && npx playwright test --config=playwright.ecosystem.config.ts",
+    "lint:all": "cd apps/master && npm run lint && cd ../touch && npm run lint && cd ../management && npm run lint && cd ../gallery && npm run lint && cd ../website && npm run lint && cd ../moneytrash && npm install",
+    "typecheck:all": "cd apps/master && npx tsc --noEmit && cd ../touch && npm run typecheck && cd ../management && npm run typecheck && cd ../gallery && npm run typecheck && cd ../website && npm run typecheck && cd ../moneytrash && npm run typecheck",
+    "docker:up": "docker-compose -f docker-compose.dev.yml up -d",
+    "docker:down": "docker-compose -f docker-compose.dev.yml down",
+    "prepare": "husky install",
+    "test:ci-setup": "bash scripts/test-ci-setup.sh"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "better-sqlite3-multiple-ciphers": "^12.8.0",
+    "concurrently": "^9.2.1",
+    "husky": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

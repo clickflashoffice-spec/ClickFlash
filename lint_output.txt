@@ -1,0 +1,1156 @@
+
+> clickflash-master@4.2.0 lint
+> eslint src --ext .ts,.tsx --max-warnings 0
+
+(node:20112) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///E:/ClickFlash/apps/master/eslint.config.js?mtime=1772837065284 is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to E:\ClickFlash\apps\master\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+E:\ClickFlash\apps\master\src\components\AIIdeasModal.tsx
+   8:35  warning  'location' is defined but never used. Allowed unused args must match /^_/u   @typescript-eslint/no-unused-vars
+   8:53  warning  'theme' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   8:68  warning  'expertise' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  69:31  warning  Do not use Array index in keys                                               react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\AnalyticsView.tsx
+   45:8   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   47:31  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   92:32  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  283:35  warning  Do not use Array index in keys                                                                                react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\CampaignEditor.tsx
+   16:3   warning  'Grid' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  105:55  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\Clients.tsx
+  123:13  warning  'result' is never reassigned. Use 'const' instead  prefer-const
+  217:13  error    'alert' is not defined                             no-undef
+
+E:\ClickFlash\apps\master\src\components\Dashboard.tsx
+  222:59  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\FulfillmentView.tsx
+  39:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+  49:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+  63:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\GrowthPage.tsx
+    7:8   warning  'Spinner' is defined but never used. Allowed unused vars must match /^_/u                       @typescript-eslint/no-unused-vars
+    8:8   warning  'PageHeader' is defined but never used. Allowed unused vars must match /^_/u                    @typescript-eslint/no-unused-vars
+    9:10  warning  'UploadErrorBoundary' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+   47:12  warning  'marketingLoading' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+   54:12  warning  'marketingSaving' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+   55:12  warning  'deletingId' is assigned a value but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+   58:12  warning  'retentionLoading' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+   63:12  warning  'retentionSuccess' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+   64:12  warning  'retentionError' is assigned a value but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+   71:30  warning  'setWatermarkEnabled' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   72:30  warning  'setWatermarkOpacity' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   75:39  error    'NodeJS' is not defined                                                                         no-undef
+  123:13  error    'alert' is not defined                                                                          no-undef
+  135:13  error    'alert' is not defined                                                                          no-undef
+  136:18  warning  'error' is defined but never used                                                               @typescript-eslint/no-unused-vars
+  137:13  error    'alert' is not defined                                                                          no-undef
+  180:18  warning  'e' is defined but never used                                                                   @typescript-eslint/no-unused-vars
+  189:18  warning  'e' is defined but never used                                                                   @typescript-eslint/no-unused-vars
+  229:11  warning  'triggerRetention' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  234:18  warning  'e' is defined but never used                                                                   @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\LocalResortDashboard.tsx
+  287:22  warning  'i' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\Locations.tsx
+   56:16   warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+   57:9    error    'alert' is not defined                    no-undef
+   75:19   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   76:7    error    'alert' is not defined                    no-undef
+  173:104  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\Login.tsx
+   77:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  110:34  error    'Event' is not defined                    no-undef
+  111:32  error    'CustomEvent' is not defined              no-undef
+
+E:\ClickFlash\apps\master\src\components\MainLayout.tsx
+  365:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  367:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  602:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\MarketingAnalytics.tsx
+  172:31  warning  Do not use Array index in keys  react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\MarketingDashboard.tsx
+  14:66  warning  'currentUser' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  76:13  error    'alert' is not defined                                                         no-undef
+  88:13  error    'alert' is not defined                                                         no-undef
+  89:18  warning  'error' is defined but never used                                              @typescript-eslint/no-unused-vars
+  90:13  error    'alert' is not defined                                                         no-undef
+
+E:\ClickFlash\apps\master\src\components\MoneyTrash.tsx
+   58:39  error    'NodeJS' is not defined                   no-undef
+   59:38  error    'NodeJS' is not defined                   no-undef
+  123:18  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  151:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\Orders.tsx
+  132:89  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  427:34  error    'HTMLDivElement' is not defined           no-undef
+  516:44  error    'MouseEvent' is not defined               no-undef
+  517:90  error    'Node' is not defined                     no-undef
+  801:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  806:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  811:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  816:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  824:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  829:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  834:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  839:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  921:57  warning  Do not use Array index in keys            react/no-array-index-key
+  928:60  warning  Do not use Array index in keys            react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\PhotoEditModal.tsx
+   68:28  error  'HTMLDivElement' is not defined                                       no-undef
+  211:32  error  'KeyboardEvent' is not defined                                        no-undef
+  216:29  error  'HTMLTextAreaElement' is not defined                                  no-undef
+  519:18  error  Definition for rule 'react-dom/no-unsafe-inline-style' was not found  react-dom/no-unsafe-inline-style
+  538:18  error  Definition for rule 'react-dom/no-unsafe-inline-style' was not found  react-dom/no-unsafe-inline-style
+  555:16  error  Definition for rule 'react-dom/no-unsafe-inline-style' was not found  react-dom/no-unsafe-inline-style
+
+E:\ClickFlash\apps\master\src\components\Photographers.tsx
+    3:10  warning  'apiService' is defined but never used. Allowed unused vars must match /^_/u                                                @typescript-eslint/no-unused-vars
+   15:5   warning  'Filter' is defined but never used. Allowed unused vars must match /^_/u                                                    @typescript-eslint/no-unused-vars
+   17:5   warning  'MoreHorizontal' is defined but never used. Allowed unused vars must match /^_/u                                            @typescript-eslint/no-unused-vars
+   19:5   warning  'ChevronUp' is defined but never used. Allowed unused vars must match /^_/u                                                 @typescript-eslint/no-unused-vars
+  192:32  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render  react-hooks/rules-of-hooks
+  262:13  warning  'can' is assigned a value but never used. Allowed unused vars must match /^_/u                                              @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\Photos.tsx
+    9:10   warning  'logger' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  184:251  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  190:79   warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\ProductsPage.tsx
+  130:17  error  'alert' is not defined  no-undef
+  152:17  error  'alert' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\Sidebar.tsx
+  198:62  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  262:28  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  266:10  warning  'isSavingStats' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  269:33  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  320:21  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\SystemAudit.tsx
+   13:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   17:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  119:75  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  194:54  warning  Do not use Array index in keys            react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\albums\Albums.tsx
+    91:57  warning  Unexpected any. Specify a different type                                                                                                                                                                          @typescript-eslint/no-explicit-any
+   323:31  warning  Do not use Array index in keys                                                                                                                                                                                    react/no-array-index-key
+  1179:9   warning  The 'safePhotographers' conditional could make the dependencies of useCallback Hook (at line 1619) change on every render. To fix this, wrap the initialization of 'safePhotographers' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  1254:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                                                                                                                                 no-console
+  1272:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error                                                                                                                                 no-console
+  1339:32  warning  Unexpected any. Specify a different type                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  1497:23  warning  Unexpected any. Specify a different type                                                                                                                                                                          @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\albums\FileBrowserModal.tsx
+  62:7   error    'alert' is not defined          no-undef
+  89:39  warning  Do not use Array index in keys  react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\albums\ImportAlbumModal.tsx
+   92:6   warning  React Hook useEffect has a missing dependency: 'availableCategories'. Either include it or remove the dependency array                                                                                                                                                 react-hooks/exhaustive-deps
+  110:19  warning  The ref value 'blobUrlsRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'blobUrlsRef.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  139:18  warning  'e' is defined but never used                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  164:44  error    'FileList' is not defined                                                                                                                                                                                                                                              no-undef
+  178:21  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                               @typescript-eslint/no-explicit-any
+  231:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                                                                                                                                                                                      no-console
+  232:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                                                                                                                                                                                      no-console
+  236:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error                                                                                                                                                                                      no-console
+
+E:\ClickFlash\apps\master\src\components\albums\TetherMode.tsx
+  17:31  error  'HTMLDivElement' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\albums\components\AlbumActionHeader.tsx
+  22:5  warning  'saveStatus' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\albums\components\AlbumAnalytics.tsx
+   22:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   60:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  211:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\albums\components\CropOverlay.tsx
+   47:31  error    'HTMLDivElement' is not defined                    no-undef
+  178:11  warning  'newBox' is never reassigned. Use 'const' instead  prefer-const
+  272:63  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  275:68  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  363:68  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\albums\components\Filmstrip.tsx
+   60:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:27  error    'HTMLDivElement' is not defined           no-undef
+
+E:\ClickFlash\apps\master\src\components\albums\components\HiResImage.tsx
+  11:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  81:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\albums\components\PhotoViewer.tsx
+   6:32  error    'HTMLDivElement' is not defined                                                      no-undef
+  17:20  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+  19:39  error    'HTMLDivElement' is not defined                                                      no-undef
+  27:5   warning  'imageRef' is defined but never used. Allowed unused args must match /^_/u           @typescript-eslint/no-unused-vars
+  29:5   warning  'combinedTransform' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  30:5   warning  'cropClipPath' is defined but never used. Allowed unused args must match /^_/u       @typescript-eslint/no-unused-vars
+  34:5   warning  'zoomState' is defined but never used. Allowed unused args must match /^_/u          @typescript-eslint/no-unused-vars
+  74:38  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+  87:42  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\albums\components\SendingProgressOverlay.tsx
+  16:5  warning  'message' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\AlbumEditor.tsx
+  102:9   warning  'currentPhotographers' is assigned a value but never used. Allowed unused vars must match /^_/u                                     @typescript-eslint/no-unused-vars
+  136:6   warning  React Hook useEffect has missing dependencies: 'isCropping' and 'isRetouching'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  136:30  error    Definition for rule 'react-hooks/exhaustive-deps ΓÇö intentionally excludes tool state' was not found                                 react-hooks/exhaustive-deps ΓÇö intentionally excludes tool state
+  149:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error                                                   no-console
+  217:45  warning  Unexpected any. Specify a different type                                                                                            @typescript-eslint/no-explicit-any
+  255:27  warning  Unexpected any. Specify a different type                                                                                            @typescript-eslint/no-explicit-any
+  256:20  warning  Unexpected any. Specify a different type                                                                                            @typescript-eslint/no-explicit-any
+  258:46  warning  Unexpected any. Specify a different type                                                                                            @typescript-eslint/no-explicit-any
+  290:21  warning  Unexpected any. Specify a different type                                                                                            @typescript-eslint/no-explicit-any
+  349:31  error    'KeyboardEvent' is not defined                                                                                                      no-undef
+  353:29  error    'HTMLTextAreaElement' is not defined                                                                                                no-undef
+  577:39  warning  Unexpected any. Specify a different type                                                                                            @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\ImageExporter.tsx
+  32:21  error  'Image' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\canvas\EditorCanvas.tsx
+  54:30  error  'HTMLDivElement' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\components\Filmstrip.tsx
+  126:28  warning  'e' is defined but never used   @typescript-eslint/no-unused-vars
+  126:31  error    Empty block statement           no-empty
+  130:28  warning  Do not use Array index in keys  react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\components\FilterPanel.tsx
+  111:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  167:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  190:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  333:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\controls\CropTab.tsx
+  1:27  warning  'useEffect' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\controls\SliderControl.tsx
+  32:3  warning  'defaultValue' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\hooks\useAIEditor.ts
+  41:8  error  'confirm' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\hooks\useEditorTools.ts
+  10:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\hooks\useKioskEditor.ts
+   12:58  warning  Unexpected any. Specify a different type                                                                              @typescript-eslint/no-explicit-any
+   65:24  warning  Unexpected any. Specify a different type                                                                              @typescript-eslint/no-explicit-any
+   66:23  warning  Unexpected any. Specify a different type                                                                              @typescript-eslint/no-explicit-any
+  102:6   warning  React Hook useCallback has a missing dependency: 'availableKiosks'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\hooks\useZoomPan.ts
+   19:18  error  'React' is not defined          no-undef
+   20:22  error  'React' is not defined          no-undef
+   21:22  error  'React' is not defined          no-undef
+  158:9   error  'React' is not defined          no-undef
+  170:43  error  'React' is not defined          no-undef
+  184:9   error  'React' is not defined          no-undef
+  227:31  error  'KeyboardEvent' is not defined  no-undef
+  249:29  error  'KeyboardEvent' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\utils\CanvasFilterEngine.ts
+    8:45  error    'OffscreenCanvas' is not defined                    no-undef
+   11:7   error    'OffscreenCanvasRenderingContext2D' is not defined  no-undef
+   28:31  error    'OffscreenCanvas' is not defined                    no-undef
+   41:30  warning  Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+  105:14  warning  Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+  124:24  warning  Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+  182:18  warning  Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+  201:27  warning  Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+  225:26  warning  Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+  246:27  warning  Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\utils\ExportManager.ts
+   50:11  warning  'width' is never reassigned. Use 'const' instead   prefer-const
+   50:18  warning  'height' is never reassigned. Use 'const' instead  prefer-const
+   65:22  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  113:21  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  139:14  error    'Response' is not defined                          no-undef
+  219:20  error    'atob' is not defined                              no-undef
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\utils\KeyboardShortcuts.ts
+   11:18  error  'KeyboardEvent' is not defined  no-undef
+   81:43  error  'KeyboardEvent' is not defined  no-undef
+  106:29  error  'KeyboardEvent' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\albums\editor2\viewer\InteractiveViewport.tsx
+   29:33  error    'HTMLDivElement' is not defined                                                                                                                                                                                                                                                      no-undef
+   63:8   warning  React Hook useEffect has a missing dependency: 'getFitScale'. Either include it or remove the dependency array                                                                                                                                                                       react-hooks/exhaustive-deps
+   73:8   warning  React Hook useEffect has missing dependencies: 'fixedZoom', 'getFitScale', and 'onTransformChange'. Either include them or remove the dependency array. If 'onTransformChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+   90:35  error    'WheelEvent' is not defined                                                                                                                                                                                                                                                          no-undef
+  115:17  warning  Unused eslint-disable directive (no problems were reported from 'react/forbid-component-props')
+
+E:\ClickFlash\apps\master\src\components\albums\hooks\useAlbumActions.ts
+   12:15  error    'React' is not defined                    no-undef
+   12:30  error    'React' is not defined                    no-undef
+   14:23  error    'React' is not defined                    no-undef
+   15:7   error    'React' is not defined                    no-undef
+   17:20  error    'React' is not defined                    no-undef
+   18:7   error    'React' is not defined                    no-undef
+   22:26  error    'React' is not defined                    no-undef
+   22:41  error    'React' is not defined                    no-undef
+   24:26  error    'React' is not defined                    no-undef
+   24:41  error    'React' is not defined                    no-undef
+  127:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\albums\hooks\useAlbumSync.ts
+    8:15  error    'React' is not defined                    no-undef
+    8:30  error    'React' is not defined                    no-undef
+    9:23  error    'React' is not defined                    no-undef
+    9:38  error    'React' is not defined                    no-undef
+   16:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   77:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:22  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\albums\hooks\useKeyboardShortcuts.ts
+  20:43  error  'KeyboardEvent' is not defined        no-undef
+  25:33  error  'HTMLTextAreaElement' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\albums\hooks\useRetouch.ts
+    7:15  error    'React' is not defined                                                                                                      no-undef
+    8:16  error    'React' is not defined                                                                                                      no-undef
+   10:40  warning  Unexpected any. Specify a different type                                                                                    @typescript-eslint/no-explicit-any
+   16:56  warning  Unexpected any. Specify a different type                                                                                    @typescript-eslint/no-explicit-any
+   70:31  warning  Unexpected any. Specify a different type                                                                                    @typescript-eslint/no-explicit-any
+  107:8   warning  React Hook useEffect has a missing dependency: 'activePhoto.manualEdits'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\ClickFlash\apps\master\src\components\albums\hooks\useZoomAndPan.ts
+   4:16  error  'React' is not defined           no-undef
+   4:32  error  'HTMLDivElement' is not defined  no-undef
+   5:15  error  'React' is not defined           no-undef
+  27:39  error  'WheelEvent' is not defined      no-undef
+  74:45  error  'React' is not defined           no-undef
+  74:62  error  'HTMLDivElement' is not defined  no-undef
+  84:45  error  'React' is not defined           no-undef
+
+E:\ClickFlash\apps\master\src\components\bookings\BookingCalendar.tsx
+  78:31  warning  Do not use Array index in keys  react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\bookings\BookingEditModal.tsx
+  27:67  error  'HTMLSelectElement' is not defined  no-undef
+  32:60  error  'HTMLSelectElement' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\bookings\Bookings.tsx
+  145:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  190:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\common\BackgroundJobRunner.tsx
+  16:16  error  'NodeJS' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\common\Button.tsx
+  6:58  error  'HTMLButtonElement' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\common\Card.tsx
+  6:50  error  'HTMLDivElement' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\common\CloudStatusIndicator.tsx
+   9:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  37:13  error    'alert' is not defined                    no-undef
+  38:18  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  39:13  error    'alert' is not defined                    no-undef
+
+E:\ClickFlash\apps\master\src\components\common\ErrorBoundary.tsx
+  136:16  error  'process' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\common\FormField.tsx
+  61:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\common\GlobalErrorBoundary.tsx
+   9:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   9:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  10:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  12:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  42:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  42:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  52:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  52:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  53:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\common\GlobalSearch\GlobalSearch.tsx
+   3:105  warning  'Hash' is defined but never used. Allowed unused vars must match /^_/u                                           @typescript-eslint/no-unused-vars
+  20:28   error    'HTMLUListElement' is not defined                                                                                no-undef
+  49:80   warning  Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+  81:8    warning  React Hook useEffect has a missing dependency: 'setIsLoading'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\ClickFlash\apps\master\src\components\common\LazyImage.tsx
+  63:33  error  'HTMLDivElement' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\common\Modal.tsx
+  62:27  error  'HTMLDivElement' is not defined  no-undef
+  79:35  error  'KeyboardEvent' is not defined   no-undef
+
+E:\ClickFlash\apps\master\src\components\common\PasswordModal.tsx
+  54:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\common\SaveStateMachine.tsx
+   1:17  warning  'useState' is defined but never used. Allowed unused vars must match /^_/u                  @typescript-eslint/no-unused-vars
+   1:27  warning  'useEffect' is defined but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+  25:3   warning  'successDuration' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\common\Skeleton.tsx
+   79:16  warning  Do not use Array index in keys  react/no-array-index-key
+  106:17  warning  Do not use Array index in keys  react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\common\SkeletonLoader.tsx
+  41:30  warning  Do not use Array index in keys  react/no-array-index-key
+  74:26  warning  Do not use Array index in keys  react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\common\Spinner.tsx
+  2:21  warning  'ClassValue' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\common\SyncStatusIndicator.tsx
+  11:12  warning  'status' is assigned a value but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+  12:12  warning  'lastSyncTime' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\common\ThermalMonitor.tsx
+  32:22  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\common\Tooltip.tsx
+  16:31  error  'HTMLDivElement' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\common\VirtualGrid.tsx
+    3:45  warning  Unexpected any. Specify a different type                                                                                                                                                             @typescript-eslint/no-explicit-any
+   54:11  warning  The 'items' conditional could make the dependencies of useCallback Hook (at line 243) change on every render. To fix this, wrap the initialization of 'items' in its own useMemo() Hook              react-hooks/exhaustive-deps
+   70:26  error    React Hook "useRef" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?             react-hooks/rules-of-hooks
+   70:33  error    'HTMLDivElement' is not defined                                                                                                                                                                      no-undef
+   71:43  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?           react-hooks/rules-of-hooks
+   86:5   error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?          react-hooks/rules-of-hooks
+  103:28  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?            react-hooks/rules-of-hooks
+  197:18  error    React Hook "React.useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+  295:39  warning  Unexpected any. Specify a different type                                                                                                                                                             @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\common\VirtualList.tsx
+    3:45  warning  Unexpected any. Specify a different type                                                                                                                                                             @typescript-eslint/no-explicit-any
+   42:11  warning  The 'items' conditional could make the dependencies of useCallback Hook (at line 144) change on every render. To fix this, wrap the initialization of 'items' in its own useMemo() Hook              react-hooks/exhaustive-deps
+  119:17  error    React Hook "React.useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+  161:39  warning  Unexpected any. Specify a different type                                                                                                                                                             @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\culling\AICullingDashboard.tsx
+   13:8   warning  React Hook useEffect has a missing dependency: 'loadResults'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   43:14  error    'confirm' is not defined                                                                                        no-undef
+   49:13  error    'alert' is not defined                                                                                          no-undef
+  206:53  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  232:57  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\dashboard\DiagnosticMetrics.tsx
+  34:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\dashboard\widgets\ProductMixWidget.tsx
+  42:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\dashboard\widgets\SyncStatusWidget.tsx
+  4:10  warning  'logger' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\dashboard\widgets\TopAlbumsWidget.tsx
+  60:31  warning  Do not use Array index in keys  react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\dashboard\widgets\TrashRetentionWidget.tsx
+  70:38  warning  Do not use Array index in keys  react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\error-boundaries\FeatureErrorBoundary.tsx
+  67:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  72:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\marketing\CampaignEditor.tsx
+  259:67  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\modals\CategoryEditModal.tsx
+  22:13  error  'alert' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\modals\CreateOrderModal.tsx
+  166:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\modals\FaceScanModal.tsx
+  15:42  error    'MediaStream' is not defined                                                                                   no-undef
+  28:8   warning  React Hook useEffect has a missing dependency: 'stopCamera'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\ClickFlash\apps\master\src\components\modals\KioskEditModal.tsx
+  27:65  error  'HTMLSelectElement' is not defined  no-undef
+  36:7   error  'alert' is not defined              no-undef
+  40:7   error  'alert' is not defined              no-undef
+
+E:\ClickFlash\apps\master\src\components\modals\OrderEditModal.tsx
+   74:58  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   97:76  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  210:23  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  250:26  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  274:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  324:63  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\modals\PackEditModal.tsx
+  26:65  error  'HTMLTextAreaElement' is not defined  no-undef
+  37:7   error  'alert' is not defined                no-undef
+  41:7   error  'alert' is not defined                no-undef
+  45:7   error  'alert' is not defined                no-undef
+
+E:\ClickFlash\apps\master\src\components\modals\ProductEditModal.tsx
+  53:65  error  'HTMLSelectElement' is not defined  no-undef
+  65:7   error  'alert' is not defined              no-undef
+  69:7   error  'alert' is not defined              no-undef
+  73:7   error  'alert' is not defined              no-undef
+
+E:\ClickFlash\apps\master\src\components\modals\SessionTypeEditModal.tsx
+  47:13  error  'alert' is not defined  no-undef
+  51:13  error  'alert' is not defined  no-undef
+  55:13  error  'alert' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\modals\TransferCategoryModal.tsx
+  20:13  error  'alert' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\modals\UserEditModal.tsx
+   52:67  error    'HTMLSelectElement' is not defined        no-undef
+   54:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   80:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   94:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  145:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  159:13  error    'alert' is not defined                    no-undef
+
+E:\ClickFlash\apps\master\src\components\orders\CustomerReceipt.tsx
+  42:30  warning  Do not use Array index in keys  react/no-array-index-key
+  87:38  warning  Do not use Array index in keys  react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\orders\LabPrintFolder.tsx
+   23:13  error    'alert' is not defined                    no-undef
+   68:21  error    'alert' is not defined                    no-undef
+   73:13  error    'alert' is not defined                    no-undef
+  173:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  175:74  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\orders\OrderManagementView.tsx
+  130:13  error  'confirm' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\orders\OrderPrintCard.tsx
+  31:26  error    'HTMLDivElement' is not defined                                                                                                                                                                                                                              no-undef
+  33:46  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  55:14  warning  'e' is defined but never used                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+  91:35  warning  The ref value 'imgRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'imgRef.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+E:\ClickFlash\apps\master\src\components\orders\OrdersList.tsx
+  68:34  error    'HTMLDivElement' is not defined  no-undef
+  71:44  error    'MouseEvent' is not defined      no-undef
+  72:90  error    'Node' is not defined            no-undef
+  85:35  warning  Do not use Array index in keys   react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\orders\PrintLayout.tsx
+  54:30  warning  Do not use Array index in keys  react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\orders\ReprocessModal.tsx
+    4:10  warning  'Photo' is defined but never used. Allowed unused vars must match /^_/u                     @typescript-eslint/no-unused-vars
+    4:37  warning  'OrderItem' is defined but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+   33:26  warning  'setActiveItemId' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  132:25  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\photographers\IncomeByPhotographerChart.tsx
+  65:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\photographers\ObjectivesModal.tsx
+   5:10  warning  'MOCK_OBJECTIVES' is defined but never used. Allowed unused vars must match /^_/u                                     @typescript-eslint/no-unused-vars
+  18:44  warning  Unexpected any. Specify a different type                                                                              @typescript-eslint/no-explicit-any
+  25:8   warning  React Hook React.useEffect has a missing dependency: 'loadHistory'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  35:47  warning  Unexpected any. Specify a different type                                                                              @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\photographers\WorkingTimeModal.tsx
+   16:103  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   56:103  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   70:46   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   87:46   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:119  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\settings\BackupSettings.tsx
+  24:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  39:14  error    'confirm' is not defined           no-undef
+  48:13  error    'alert' is not defined             no-undef
+
+E:\ClickFlash\apps\master\src\components\settings\CategoryManagement.tsx
+  17:13  error  'alert' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\settings\CloudSettings.tsx
+   44:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  114:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  127:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  139:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  162:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  178:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\settings\CloudSync.tsx
+  55:21  warning  'hubEmail' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  90:19  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\settings\CustomerReceiptSettings.tsx
+  30:67  error  'HTMLTextAreaElement' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\settings\DataManagementSettings.tsx
+   15:7   error    'DataManagementSettings' is already defined  no-redeclare
+   69:75  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+   75:7   error    'alert' is not defined                       no-undef
+   78:7   error    'alert' is not defined                       no-undef
+   85:8   error    'confirm' is not defined                     no-undef
+   93:59  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+   97:7   error    'alert' is not defined                       no-undef
+  100:7   error    'alert' is not defined                       no-undef
+  106:8   error    'confirm' is not defined                     no-undef
+  111:7   error    'alert' is not defined                       no-undef
+  112:17  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  113:7   error    'alert' is not defined                       no-undef
+  120:14  warning  'e' is defined but never used                @typescript-eslint/no-unused-vars
+  120:17  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  121:7   error    'alert' is not defined                       no-undef
+  127:8   error    'confirm' is not defined                     no-undef
+  132:10  error    'confirm' is not defined                     no-undef
+  136:7   error    'alert' is not defined                       no-undef
+  138:17  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  139:7   error    'alert' is not defined                       no-undef
+
+E:\ClickFlash\apps\master\src\components\settings\DatabaseManagement.tsx
+   73:13  error    Empty block statement                     no-empty
+  103:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  290:26  warning  Do not use Array index in keys            react/no-array-index-key
+  349:24  warning  Do not use Array index in keys            react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\settings\GeneralSettings.tsx
+   81:7   warning  'Toggle' is assigned a value but never used. Allowed unused vars must match /^_/u                                    @typescript-eslint/no-unused-vars
+  136:12  warning  'detectingIP' is assigned a value but never used. Allowed unused vars must match /^_/u                               @typescript-eslint/no-unused-vars
+  136:25  warning  'setDetectingIP' is assigned a value but never used. Allowed unused vars must match /^_/u                            @typescript-eslint/no-unused-vars
+  156:8   warning  React Hook useEffect has a missing dependency: 'setMasterLocalIp'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  191:78  error    'HTMLSelectElement' is not defined                                                                                   no-undef
+  262:18  warning  'error' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\components\settings\KioskConnections.tsx
+   67:22  warning  'e' is defined but never used                                                                   @typescript-eslint/no-unused-vars
+   72:9   warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+  128:13  error    'alert' is not defined                                                                          no-undef
+  139:17  error    'alert' is not defined                                                                          no-undef
+
+E:\ClickFlash\apps\master\src\components\settings\KioskPairing.tsx
+   96:8   warning  React Hook useEffect has a missing dependency: 'initializePairing'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  130:64  warning  Unexpected any. Specify a different type                                                                              @typescript-eslint/no-explicit-any
+  175:24  warning  Unexpected any. Specify a different type                                                                              @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\settings\PermissionsMatrix.tsx
+   89:19  error  Empty block statement   no-empty
+  125:13  error  'alert' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\settings\PrintSettings.tsx
+   32:59  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   38:59  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   66:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   72:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:13  error    'alert' is not defined                    no-undef
+   95:17  error    'alert' is not defined                    no-undef
+  114:17  error    'alert' is not defined                    no-undef
+  118:13  error    'alert' is not defined                    no-undef
+
+E:\ClickFlash\apps\master\src\components\settings\ProductsAndPricing.tsx
+  124:17  error  'alert' is not defined  no-undef
+  146:17  error  'alert' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\settings\SessionTypesSettings.tsx
+  58:7  error  'alert' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\components\settings\SettingsPage.tsx
+    7:8  warning  'Spinner' is defined but never used. Allowed unused vars must match /^_/u                                                        @typescript-eslint/no-unused-vars
+   21:5  warning  'Wrench' is defined but never used. Allowed unused vars must match /^_/u                                                         @typescript-eslint/no-unused-vars
+  114:5  warning  'id' is defined but never used. Allowed unused args must match /^_/u                                                             @typescript-eslint/no-unused-vars
+  542:8  warning  React Hook useMemo has missing dependencies: 'GROUPS' and 'SETTINGS_CONFIG'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\ClickFlash\apps\master\src\components\settings\SetupGuide.tsx
+  41:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\settings\SetupWizard.tsx
+  157:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  181:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\settings\SystemStatusSettings.tsx
+   48:30  error    'HTMLDivElement' is not defined                                                           no-undef
+   53:40  error    'NodeJS' is not defined                                                                   no-undef
+   63:15  warning  'checkDuration' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  164:29  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  165:41  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  171:48  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  282:18  warning  'e' is defined but never used                                                             @typescript-eslint/no-unused-vars
+  289:24  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  291:28  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  293:22  warning  'e' is defined but never used                                                             @typescript-eslint/no-unused-vars
+  322:34  error    'Event' is not defined                                                                    no-undef
+  343:13  error    'alert' is not defined                                                                    no-undef
+  345:18  warning  'error' is defined but never used                                                         @typescript-eslint/no-unused-vars
+  346:13  error    'alert' is not defined                                                                    no-undef
+
+E:\ClickFlash\apps\master\src\components\settings\UserManagement.tsx
+  38:18  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+  63:74  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  70:13  error    'alert' is not defined                    no-undef
+  81:13  error    'alert' is not defined                    no-undef
+
+E:\ClickFlash\apps\master\src\components\settings\WatermarkSettings.tsx
+  107:100  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\components\settings\system\DiagnosticLog.tsx
+  32:30  error    'HTMLDivElement' is not defined  no-undef
+  97:39  warning  Do not use Array index in keys   react/no-array-index-key
+
+E:\ClickFlash\apps\master\src\components\settings\system\SafetyControls.tsx
+  50:37  error  'confirm' is not defined  no-undef
+  56:41  error  'alert' is not defined    no-undef
+
+E:\ClickFlash\apps\master\src\config.ts
+  12:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\context\SyncContext.tsx
+  201:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  271:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\context\ToastContext.tsx
+  12:36  error  'NodeJS' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\hooks\useIdlePreload.ts
+  13:49  error    'IdleDeadline' is not defined             no-undef
+  26:29  error    'Image' is not defined                    no-undef
+  34:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  39:22  error    'IdleDeadline' is not defined             no-undef
+  57:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  63:22  error    'IdleDeadline' is not defined             no-undef
+
+E:\ClickFlash\apps\master\src\hooks\useImageSpace.ts
+  10:19  error  'React' is not defined  no-undef
+  11:15  error  'React' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\hooks\useKeyboardShortcuts.ts
+  15:19  error  'KeyboardEvent' is not defined  no-undef
+  24:47  error  'KeyboardEvent' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\hooks\useOrders.ts
+  18:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\hooks\useSystemSetting.ts
+  45:8  warning  React Hook useEffect has a missing dependency: 'defaultValue'. Either include it or remove the dependency array. If 'setValue' needs the current value of 'defaultValue', you can also switch to useReducer instead of useState and read 'defaultValue' in the reducer  react-hooks/exhaustive-deps
+  75:8  warning  React Hook useCallback has an unnecessary dependency: 'value'. Either exclude it or remove the dependency array                                                                                                                                                         react-hooks/exhaustive-deps
+
+E:\ClickFlash\apps\master\src\hooks\useThermalStatus.ts
+  27:22  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\main.tsx
+  23:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  86:10  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\main\autoUpdater.ts
+   65:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   71:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   84:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   95:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  110:9   error    'process' is not defined                                                           no-undef
+  111:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  135:3   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  169:47  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\main\backupService.ts
+  22:17  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  33:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  53:17  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+E:\ClickFlash\apps\master\src\middleware\security.ts
+  29:10  warning  'req' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  29:18  error    'process' is not defined                                               no-undef
+
+E:\ClickFlash\apps\master\src\services\aiBatchService.ts
+  128:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\aiModelService.ts
+  68:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\api\albumService.ts
+  170:70  error  Parsing error: Unterminated regular expression literal
+
+E:\ClickFlash\apps\master\src\services\api\analyticsExportService.ts
+  33:63  warning  'days' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\services\api\analyticsService.ts
+  75:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\api\authService.ts
+  105:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  125:20  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  135:18  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\services\api\cloudConfigService.ts
+  115:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  158:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\api\cloudService.ts
+  44:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  50:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\api\configService.ts
+  17:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\api\dataExportService.ts
+   31:98  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   32:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   45:67  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   51:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  113:68  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:67  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  150:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  153:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  285:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  298:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  299:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\api\diagnosticsService.ts
+  160:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  161:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  208:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  211:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  234:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  248:18  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\services\api\kioskService.ts
+   29:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+   37:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   40:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   59:24  warning  'e2' is defined but never used            @typescript-eslint/no-unused-vars
+   67:26  warning  'e3' is defined but never used            @typescript-eslint/no-unused-vars
+  119:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  119:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:18  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  178:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  178:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  187:18  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  233:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  246:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\api\ledgerService.ts
+  17:33  error  'URLSearchParams' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\services\api\orderService.ts
+  33:28  error  'URLSearchParams' is not defined  no-undef
+  70:41  error  'PocketRecord' is not defined     no-undef
+
+E:\ClickFlash\apps\master\src\services\api\photoService.ts
+  25:23  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  25:53  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  35:9   warning  'url' is never reassigned. Use 'const' instead  prefer-const
+
+E:\ClickFlash\apps\master\src\services\api\productService.ts
+  63:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+E:\ClickFlash\apps\master\src\services\api\refreshService.ts
+  41:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  42:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  43:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  56:22  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  64:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  65:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\api\settingsService.ts
+  13:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\api\userService.ts
+  61:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\campaignScheduler.ts
+  21:25  error  'NodeJS' is not defined   no-undef
+  23:39  error  'process' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\services\cloudApiService.ts
+  34:52  warning  Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  35:26  warning  '_fallbackError' is defined but never used  @typescript-eslint/no-unused-vars
+  62:66  warning  Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  72:41  warning  Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  76:46  warning  Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  76:60  warning  Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\cloudSyncService.ts
+    1:23   warning  'PocketRecord' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  101:113  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\dataVersionManager.ts
+   81:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  386:9  error    Unexpected lexical declaration in case block                                       no-case-declarations
+  394:9  error    Unexpected lexical declaration in case block                                       no-case-declarations
+
+E:\ClickFlash\apps\master\src\services\db.ts
+  87:111  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\geminiService.ts
+  21:5  warning  'location' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  22:5  warning  'occasion' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  39:5  warning  'prompt' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  49:5  warning  'photoCount' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  50:5  warning  'eventType' is defined but never used. Allowed unused args must match /^_/u   @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\services\imageProcessingService.ts
+   2:32  warning  'ColorStats' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  30:29  error    'Image' is not defined                                                        no-undef
+
+E:\ClickFlash\apps\master\src\services\metricsAggregationService.ts
+  3:10  warning  'cloudSyncService' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\services\networkManager.ts
+  22:28  error  'NodeJS' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\services\pb.ts
+  131:29  error    'HeadersInit' is not defined                       no-undef
+  134:20  error    'HeadersInit' is not defined                       no-undef
+  143:14  error    'RequestInit' is not defined                       no-undef
+  145:14  error    'Response' is not defined                          no-undef
+  306:13  warning  'filter' is never reassigned. Use 'const' instead  prefer-const
+  319:25  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  320:25  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  354:51  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  428:24  warning  'parseError' is defined but never used             @typescript-eslint/no-unused-vars
+  432:22  warning  'e' is defined but never used                      @typescript-eslint/no-unused-vars
+  497:22  warning  'e' is defined but never used                      @typescript-eslint/no-unused-vars
+  542:20  warning  'e' is defined but never used                      @typescript-eslint/no-unused-vars
+  613:18  warning  'e' is defined but never used                      @typescript-eslint/no-unused-vars
+  743:12  warning  'error' is defined but never used                  @typescript-eslint/no-unused-vars
+  756:12  warning  'e' is defined but never used                      @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\services\pbManagement.ts
+  305:16  warning  'e' is defined but never used                                                      @typescript-eslint/no-unused-vars
+  346:14  warning  'e' is defined but never used                                                      @typescript-eslint/no-unused-vars
+  622:55  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  625:61  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  634:19  warning  'photos' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  641:19  warning  'photos' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  663:34  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  673:34  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  697:61  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  701:35  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  701:53  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\performanceMonitor.ts
+   29:23  error    'PerformanceObserver' is not defined          no-undef
+   44:37  error    'PerformanceObserver' is not defined          no-undef
+   47:54  error    'PerformanceEntry' is not defined             no-undef
+   49:59  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   55:22  warning  'e' is defined but never used                 @typescript-eslint/no-unused-vars
+   80:34  error    'PerformanceObserver' is not defined          no-undef
+   87:58  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   88:18  warning  'e' is defined but never used                 @typescript-eslint/no-unused-vars
+  100:81  error    'PerformanceNavigationTiming' is not defined  no-undef
+  115:37  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  150:42  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  151:24  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\sentryService.ts
+  113:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  143:73  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  176:27  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  192:65  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\services\serviceWorkerService.ts
+   21:25  error    'ServiceWorkerRegistration' is not defined  no-undef
+   22:27  error    'MessageChannel' is not defined             no-undef
+   45:22  error    'ServiceWorkerRegistration' is not defined  no-undef
+   52:71  warning  Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+   59:35  error    'MessageChannel' is not defined             no-undef
+  134:32  error    'caches' is not defined                     no-undef
+  137:15  error    'caches' is not defined                     no-undef
+  151:32  error    'caches' is not defined                     no-undef
+  154:15  error    'caches' is not defined                     no-undef
+  175:32  error    'caches' is not defined                     no-undef
+  184:29  error    'caches' is not defined                     no-undef
+
+E:\ClickFlash\apps\master\src\services\tokenRefreshService.ts
+  11:19  error  'NodeJS' is not defined       no-undef
+  85:42  error  'CustomEvent' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\services\webSocketService.ts
+  311:40  error  'MessageChannel' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\setupTests.ts
+   11:1   error  'jest' is not defined       no-undef
+   11:34  error  'require' is not defined    no-undef
+   14:1   error  'jest' is not defined       no-undef
+   14:48  error  'require' is not defined    no-undef
+   15:1   error  'jest' is not defined       no-undef
+   17:27  error  'jest' is not defined       no-undef
+   18:29  error  'jest' is not defined       no-undef
+   19:22  error  'jest' is not defined       no-undef
+   29:1   error  'afterEach' is not defined  no-undef
+   36:12  error  'jest' is not defined       no-undef
+   40:22  error  'jest' is not defined       no-undef
+   41:25  error  'jest' is not defined       no-undef
+   42:27  error  'jest' is not defined       no-undef
+   43:30  error  'jest' is not defined       no-undef
+   44:24  error  'jest' is not defined       no-undef
+   50:15  error  'jest' is not defined       no-undef
+   51:18  error  'jest' is not defined       no-undef
+   52:17  error  'jest' is not defined       no-undef
+   62:15  error  'jest' is not defined       no-undef
+   63:18  error  'jest' is not defined       no-undef
+   64:17  error  'jest' is not defined       no-undef
+   74:14  error  'jest' is not defined       no-undef
+   75:14  error  'jest' is not defined       no-undef
+   76:17  error  'jest' is not defined       no-undef
+   77:12  error  'jest' is not defined       no-undef
+   85:14  error  'jest' is not defined       no-undef
+   86:14  error  'jest' is not defined       no-undef
+   87:17  error  'jest' is not defined       no-undef
+   88:12  error  'jest' is not defined       no-undef
+   95:1   error  'global' is not defined     no-undef
+   95:16  error  'jest' is not defined       no-undef
+   99:5   error  'global' is not defined     no-undef
+   99:26  error  'require' is not defined    no-undef
+  102:5   error  'global' is not defined     no-undef
+  102:26  error  'require' is not defined    no-undef
+  107:1   error  'beforeAll' is not defined  no-undef
+  117:1   error  'afterAll' is not defined   no-undef
+
+E:\ClickFlash\apps\master\src\types\electron.d.ts
+  13:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\types\modules.d.ts
+   3:38  error  'EventTarget' is not defined     no-undef
+   4:20  error  'ConnectionType' is not defined  no-undef
+  10:15  error  'EventListener' is not defined   no-undef
+
+E:\ClickFlash\apps\master\src\types\search.ts
+  10:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\utils\aiBatchStressTest.ts
+  233:22  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  260:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  261:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\utils\canvas\EditEngine.ts
+   13:27  error    'OffscreenCanvas' is not defined                    no-undef
+   14:24  error    'OffscreenCanvasRenderingContext2D' is not defined  no-undef
+   20:37  error    'OffscreenCanvas' is not defined                    no-undef
+   24:94  warning  Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+  118:34  warning  Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\utils\consoleCleanup.ts
+  21:11  warning  'originalConsole' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  22:14  warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  25:15  warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  26:16  warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  31:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  33:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  34:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  45:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  64:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+  70:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error           no-console
+
+E:\ClickFlash\apps\master\src\utils\env.ts
+  18:25  error  'process' is not defined  no-undef
+  19:14  error  'process' is not defined  no-undef
+  20:15  error  'process' is not defined  no-undef
+  21:28  error  'process' is not defined  no-undef
+  22:25  error  'process' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\utils\hiResLoader.ts
+  127:17  error  'requestIdleCallback' is not defined  no-undef
+
+E:\ClickFlash\apps\master\src\utils\imageAnalyzer.ts
+   38:25  error    'Image' is not defined                                                          no-undef
+  210:19  warning  'lum' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\utils\imageOptimization.ts
+   82:21  error    'Image' is not defined                                                                  no-undef
+  138:23  error    'Image' is not defined                                                                  no-undef
+  192:21  error    'Image' is not defined                                                                  no-undef
+  221:20  warning  'setImageSrc' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\utils\imageUtils.ts
+  199:26  error    'atob' is not defined          no-undef
+  274:21  error    'Image' is not defined         no-undef
+  363:14  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  375:49  error    'MediaSource' is not defined   no-undef
+  407:21  error    'Image' is not defined         no-undef
+
+E:\ClickFlash\apps\master\src\utils\logger.ts
+  78:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  79:24  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  81:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+E:\ClickFlash\apps\master\src\utils\performanceMonitor.ts
+   20:7   warning  'SLOW_DB_THRESHOLD' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   88:14  warning  'e' is defined but never used                                                                 @typescript-eslint/no-unused-vars
+  124:24  warning  Unexpected console statement. Only these console methods are allowed: warn, error             no-console
+  125:24  warning  Unexpected console statement. Only these console methods are allowed: warn, error             no-console
+  126:24  warning  Unexpected console statement. Only these console methods are allowed: warn, error             no-console
+  127:24  warning  Unexpected console statement. Only these console methods are allowed: warn, error             no-console
+  128:26  warning  Unexpected console statement. Only these console methods are allowed: warn, error             no-console
+  135:46  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+  150:46  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+  168:45  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+  168:55  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\utils\safeStorage.ts
+  21:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  29:26  warning  'dexieError' is defined but never used    @typescript-eslint/no-unused-vars
+
+E:\ClickFlash\apps\master\src\utils\styleUtils.ts
+   31:3   warning  'isExport' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  163:11  warning  'originX' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  164:11  warning  'originY' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  262:44  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+E:\ClickFlash\apps\master\src\utils\testUtils.tsx
+  131:47  warning  'status' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  147:63  warning  'size' is assigned a value but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  152:68  error    'DragEvent' is not defined                                                         no-undef
+  153:23  error    'Event' is not defined                                                             no-undef
+  153:57  error    'DragEvent' is not defined                                                         no-undef
+
+E:\ClickFlash\apps\master\src\workers\imageProcessor.worker.ts
+   15:10  warning  'logger' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+   18:21  error    'DedicatedWorkerGlobalScope' is not defined                                        no-undef
+  152:29  error    'OffscreenCanvas' is not defined                                                   no-undef
+  157:28  error    'OffscreenCanvas' is not defined                                                   no-undef
+  202:26  error    'createImageBitmap' is not defined                                                 no-undef
+  216:24  error    'OffscreenCanvas' is not defined                                                   no-undef
+  247:26  error    'createImageBitmap' is not defined                                                 no-undef
+  274:24  error    'OffscreenCanvas' is not defined                                                   no-undef
+  302:26  error    'createImageBitmap' is not defined                                                 no-undef
+  315:24  error    'OffscreenCanvas' is not defined                                                   no-undef
+  358:19  warning  'length' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  384:26  error    'createImageBitmap' is not defined                                                 no-undef
+  386:24  error    'OffscreenCanvas' is not defined                                                   no-undef
+  429:28  warning  'imageBuffer' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  469:46  error    'createImageBitmap' is not defined                                                 no-undef
+  470:44  error    'OffscreenCanvas' is not defined                                                   no-undef
+  500:32  error    'MessageEvent' is not defined                                                      no-undef
+  536:38  error    'createImageBitmap' is not defined                                                 no-undef
+  537:36  error    'OffscreenCanvas' is not defined                                                   no-undef
+
+E:\ClickFlash\apps\master\src\workers\socketWorker.ts
+   7:1   error    'self' is not defined              no-undef
+   7:26  error    'MessageEvent' is not defined      no-undef
+  17:13  error    'self' is not defined              no-undef
+  21:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  22:13  error    'self' is not defined              no-undef
+
+Γ£û 760 problems (296 errors, 464 warnings)
+  0 errors and 8 warnings potentially fixable with the `--fix` option.
+

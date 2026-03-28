@@ -1,0 +1,14 @@
+NODE_ENV=production is not supported in the .env file. Only NODE_ENV=development is supported to create a development build of your project. If you need to set process.env.NODE_ENV, you can set it in the Vite config instead.
+[36mvite v7.2.7 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32m✓[39m 2 modules transformed.
+[31m✗[39m Build failed in 1.72s
+[31merror during build:
+[31m[vite:html-inline-proxy] Could not load E:/ClickFlash/apps/touch/index.html?html-proxy&inline-css&index=0.css (imported by index.html): No matching HTML proxy module found from E:/ClickFlash/apps/touch/index.html?html-proxy&inline-css&index=0.css[31m
+    at Object.handler (file:///e:/ClickFlash/apps/touch/node_modules/vite/dist/node/chunks/config.js:23740:17)
+    at Object.handler (file:///e:/ClickFlash/apps/touch/node_modules/vite/dist/node/chunks/config.js:33717:13)
+    at file:///e:/ClickFlash/apps/touch/node_modules/rollup/dist/es/shared/node-entry.js:22451:40
+    at async PluginDriver.hookFirstAndGetPlugin (file:///e:/ClickFlash/apps/touch/node_modules/rollup/dist/es/shared/node-entry.js:22333:28)
+    at async file:///e:/ClickFlash/apps/touch/node_modules/rollup/dist/es/shared/node-entry.js:21333:33
+    at async Queue.work (file:///e:/ClickFlash/apps/touch/node_modules/rollup/dist/es/shared/node-entry.js:22561:32)[39m
+Exit=0 

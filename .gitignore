@@ -1,0 +1,130 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+**/node_modules/
+
+# Build artifacts
+dist/
+build/
+out/
+.next/
+.wrangler/
+.turbo/
+.cache/
+.vercel/
+out_deploy*/
+unified-dist/
+playwright-report/
+test-results/
+release/
+release_v2/
+**/target/
+**/dist/
+**/build/
+**/out/
+**/.next/
+**/.turbo/
+
+# Database and Data
+pb_data/*.bin
+pb_data/*.json
+database.sqlite-journal
+database.sqlite-wal
+*.db
+!apps/master/database.sqlite
+**/pb_data/*.bin
+**/pb_data/*.json
+
+# Environment variables
+.env
+.env.local
+.env.*
+*.env
+**/.env
+**/*.env
+# Keep .env.example templates but exclude backend .env files with secrets
+**/backend/.env*
+!**/backend/.env.example
+
+# Logs and debug artifacts (Master App hygiene)
+*.log
+check_*.js
+debug_*.js
+verify_*.js
+crash.log
+tsc_errors.log
+build_master_exe_retry.log
+server_prod_test.log
+auth_test.log
+KioskGuardian.exe
+
+# IDEs
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+.idea/
+*.swp
+*.swo
+
+# Project Specific
+scren shots/
+test_uploads/
+*.log
+*.zip
+*.bak
+*.tmp
+_tmp_*/
+backup_project.ps1
+
+# Master app – compiled Windows binaries (distribute via release pipeline, not git)
+apps/master/KioskGuardian.exe
+apps/master/**/*.exe
+
+# Ad-hoc debug/audit scripts committed during development
+apps/master/check_*.js
+apps/master/debug_*.js
+apps/master/verify_*.js
+apps/master/inspect_*.js
+apps/master/diagnose_*.js
+apps/master/deep-*.js
+apps/master/robust_*.js
+apps/master/test_*.js
+apps/master/get_*.js
+apps/master/scan_*.js
+apps/master/dump_*.js
+apps/master/list_*.js
+
+# OS specific
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Agentic Ecosystem
+.agent/
+
+# Generated docs and reports
+*.patch
+_tmp_*
+*-audit*.md
+*-summary*.md
+*-complete*.md
+*-report*.md
+*-checklist*.md
+
+# Build logs
+*build_log*.txt
+*init_log.txt
+*startup_log.txt
+
+# Generated images
+apps/Gemini_Generated_Image_*.png
+
+# Stratus
+.stratus/
+.kilocodemodes
+.husky/
+node_modules
+node_modules
+apps/master/nul
+tmp/

@@ -1,0 +1,12 @@
+
+> star-master-management@4.1.0 typecheck
+> tsc --noEmit
+
+src/components/CurrencyContext.tsx(46,40): error TS2741: Property 'id' is missing in type '{ code: string; name: string; symbol: string; rate: number; }' but required in type 'Currency'.
+src/components/CurrencyContext.tsx(46,63): error TS2322: Type '{ code: string; name: string; symbol: string; rate: number; }[]' is not assignable to type 'Currency[]'.
+  Property 'id' is missing in type '{ code: string; name: string; symbol: string; rate: number; }' but required in type 'Currency'.
+src/components/CurrencyContext.tsx(46,84): error TS2741: Property 'id' is missing in type '{ code: string; name: string; symbol: string; rate: number; }' but required in type 'Currency'.
+src/constants.ts(28,14): error TS2322: Type '{ id: string; name: string; location: string; status: "Active"; country: string; type: "Hotel"; }[]' is not assignable to type 'Destination[]'.
+  Type '{ id: string; name: string; location: string; status: "Active"; country: string; type: "Hotel"; }' is not assignable to type 'Destination'.
+    Types of property 'type' are incompatible.
+      Type '"Hotel"' is not assignable to type '"Resort" | "City"'.

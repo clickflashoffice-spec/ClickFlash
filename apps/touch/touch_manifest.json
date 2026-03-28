@@ -1,0 +1,24 @@
+{
+  "app": "touch",
+  "version": "4.1.1",
+  "files": [
+    "main.js",
+    "preload.js",
+    "index.html",
+    "package.json",
+    "vite.config.ts",
+    "tsconfig.json",
+    "tailwind.config.js",
+    "postcss.config.js",
+    "backend/server.ts",
+    "src/main.tsx",
+    "public/favicon.ico"
+  ],
+  "directories": [
+    "src",
+    "backend",
+    "public",
+    "pb_data"
+  ],
+  "timestamp": "2025-12-18T10:47:00Z"
+}

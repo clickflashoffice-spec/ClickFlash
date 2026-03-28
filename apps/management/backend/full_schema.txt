@@ -1,0 +1,206 @@
+--- Database Audit ---
+Path: e:/ClickFlash/apps/management/pb_data/data.db
+Tables Found: users, sqlite_sequence, albums, photos, orders, products, kiosks, settings, destinations, session_types, packs, bookings, portfolio_items, inventory, equipment_categories, equipment, sync_conflicts
+
+--- Schema for users ---
+  id (INTEGER) PRIMARY
+  name (TEXT) 
+  email (TEXT) 
+  password (TEXT) 
+  role (TEXT) 
+  specialty (TEXT) 
+  avatarUrl (TEXT) 
+  monthlyTarget (INTEGER) 
+  dailyPhotoTarget (INTEGER) 
+  payrollType (TEXT) 
+  monthlySalary (REAL) 
+  commissionRate (REAL) 
+  destinationId (TEXT) 
+  workingHours (JSON) 
+  status (TEXT) 
+  created_at (DATETIME) 
+  updated_at (DATETIME) 
+
+--- Schema for sqlite_sequence ---
+  name () 
+  seq () 
+
+--- Schema for albums ---
+  id (TEXT) PRIMARY
+  title (TEXT) 
+  date (TEXT) 
+  photographerId (INTEGER) 
+  coverPhotoUrl (TEXT) 
+  source (TEXT) 
+  roomNumber (TEXT) 
+  status (TEXT) 
+  categories (JSON) 
+  pricePerPhoto (REAL) 
+  fullGalleryPrice (REAL) 
+  view_count (INTEGER) 
+  eventType (TEXT) 
+  desk_id (TEXT) 
+  original_id (TEXT) 
+  created_at (DATETIME) 
+  updated_at (DATETIME) 
+
+--- Schema for photos ---
+  id (TEXT) PRIMARY
+  albumId (TEXT) 
+  title (TEXT) 
+  url (TEXT) 
+  photographerId (INTEGER) 
+  category (TEXT) 
+  manualEdits (JSON) 
+  fileSize (INTEGER) 
+  width (INTEGER) 
+  height (INTEGER) 
+  fileHash (TEXT) 
+  mimeType (TEXT) 
+  thumbnailUrl (TEXT) 
+  originalFilename (TEXT) 
+  storagePath (TEXT) 
+  desk_id (TEXT) 
+  original_id (TEXT) 
+  created_at (DATETIME) 
+  updated_at (DATETIME) 
+
+--- Schema for orders ---
+  id (TEXT) PRIMARY
+  date (TEXT) 
+  clientName (TEXT) 
+  email (TEXT) 
+  status (TEXT) 
+  total (REAL) 
+  totalAmount (REAL) 
+  photographerId (INTEGER) 
+  destinationId (TEXT) 
+  paymentMethod (TEXT) 
+  appliedDiscount (REAL) 
+  items (JSON) 
+  albumId (TEXT) 
+  desk_id (TEXT) 
+  original_id (TEXT) 
+  created_at (DATETIME) 
+  updated_at (DATETIME) 
+
+--- Schema for products ---
+  id (TEXT) PRIMARY
+  name (TEXT) 
+  category (TEXT) 
+  price (REAL) 
+  stock (INTEGER) 
+  isFeatured (BOOLEAN) 
+  status (TEXT) 
+  created_at (DATETIME) 
+  updated_at (DATETIME) 
+
+--- Schema for kiosks ---
+  id (TEXT) PRIMARY
+  name (TEXT) 
+  status (TEXT) 
+  settings (JSON) 
+  lastHeartbeat (DATETIME) 
+  created_at (DATETIME) 
+  updated_at (DATETIME) 
+
+--- Schema for settings ---
+  id (TEXT) PRIMARY
+  key (TEXT) 
+  value (JSON) 
+  created_at (DATETIME) 
+  updated_at (DATETIME) 
+
+--- Schema for destinations ---
+  id (TEXT) PRIMARY
+  name (TEXT) 
+  country (TEXT) 
+  site_code (TEXT) 
+  type (TEXT) 
+  licenseKey (TEXT) 
+  featuresJSON (JSON) 
+  last_seen (DATETIME) 
+  status (TEXT) 
+  health_metrics (JSON) 
+  ip_address (TEXT) 
+  version (TEXT) 
+  created_at (DATETIME) 
+
+--- Schema for session_types ---
+  id (TEXT) PRIMARY
+  name (TEXT) 
+  numberOfPhotos (INTEGER) 
+  price (REAL) 
+  created_at (DATETIME) 
+  updated_at (DATETIME) 
+
+--- Schema for packs ---
+  id (TEXT) PRIMARY
+  name (TEXT) 
+  description (TEXT) 
+  price (REAL) 
+  productsJSON (JSON) 
+  created_at (DATETIME) 
+  updated_at (DATETIME) 
+
+--- Schema for bookings ---
+  id (TEXT) PRIMARY
+  clientName (TEXT) 
+  clientEmail (TEXT) 
+  clientPhone (TEXT) 
+  bookingDate (TEXT) 
+  bookingTime (TEXT) 
+  sessionId (TEXT) 
+  photographerId (INTEGER) 
+  status (TEXT) 
+  destinationId (TEXT) 
+  location (TEXT) 
+  message (TEXT) 
+  service_type (TEXT) 
+  detailsJSON (JSON) 
+  created_at (DATETIME) 
+  updated_at (DATETIME) 
+
+--- Schema for portfolio_items ---
+  id (INTEGER) PRIMARY
+  image_url (TEXT) 
+  thumbnail_url (TEXT) 
+  title (TEXT) 
+  category (TEXT) 
+  display_order (INTEGER) 
+  active (BOOLEAN) 
+  created_at (DATETIME) 
+
+--- Schema for inventory ---
+  id (TEXT) PRIMARY
+  name (TEXT) 
+  type (TEXT) 
+  current_count (INTEGER) 
+  low_stock_threshold (INTEGER) 
+  created (TEXT) 
+  updated (TEXT) 
+
+--- Schema for equipment_categories ---
+  id (TEXT) PRIMARY
+  label (TEXT) 
+  created (TEXT) 
+  updated (TEXT) 
+
+--- Schema for equipment ---
+  id (TEXT) PRIMARY
+  name (TEXT) 
+  type (TEXT) 
+  status (TEXT) 
+  assignedToPhotographerId (TEXT) 
+  destinationId (TEXT) 
+  created (TEXT) 
+  updated (TEXT) 
+
+--- Schema for sync_conflicts ---
+  id (INTEGER) PRIMARY
+  table_name (TEXT) 
+  record_id (TEXT) 
+  existing_desk_id (TEXT) 
+  incoming_desk_id (TEXT) 
+  detected_at (DATETIME) 
+  resolved (INTEGER) 

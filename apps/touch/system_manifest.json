@@ -1,0 +1,26 @@
+{
+    "name": "star-master-touch",
+    "version": "4.1.1",
+    "last_audit": "2025-12-18",
+    "valid_paths": [
+        "backend/",
+        "src/",
+        "public/",
+        "main.js",
+        "preload.js",
+        "package.json",
+        "vite.config.ts",
+        "tsconfig.json",
+        "build_touch.bat",
+        "cleanup.bat",
+        ".env"
+    ],
+    "ignored_paths": [
+        "node_modules/",
+        "dist/",
+        "release/",
+        "pb_data/",
+        "*.log",
+        ".tmp/"
+    ]
+}

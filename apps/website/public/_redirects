@@ -1,0 +1,3 @@
+# SPA Routing for Unified Deployment
+/gallery/* /gallery/index.html 200
+/manage/* /manage/index.html 200

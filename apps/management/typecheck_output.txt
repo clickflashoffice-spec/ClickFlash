@@ -1,0 +1,18 @@
+
+> star-master-management@4.1.0 typecheck
+> tsc --noEmit
+
+src/components/CurrencyContext.tsx(2,10): error TS2305: Module '"../constants.ts"' has no exported member 'AVAILABLE_CURRENCIES'.
+src/components/CurrencyContext.tsx(2,32): error TS2305: Module '"../constants.ts"' has no exported member 'BASE_CURRENCY'.
+src/components/management/ManagementLayout.tsx(16,41): error TS2307: Cannot find module './ManagementPhotographersPage.tsx' or its corresponding type declarations.
+src/components/management/ManagementLayout.tsx(18,27): error TS2307: Cannot find module './EquipmentPage.tsx' or its corresponding type declarations.
+src/components/management/ManagementLayout.tsx(19,27): error TS2307: Cannot find module './InventoryPage.tsx' or its corresponding type declarations.
+src/components/management/ManagementSettingsPage.tsx(4,28): error TS2307: Cannot find module './settings/UserManagement' or its corresponding type declarations.
+src/components/management/modals/AddEquipmentModal.tsx(9,10): error TS2305: Module '"../../../constants"' has no exported member 'MOCK_DESTINATIONS'.
+src/components/management/modals/AddLoanModal.tsx(4,10): error TS2305: Module '"../../../constants.ts"' has no exported member 'MOCK_DESTINATIONS'.
+src/components/management/OperationalCommandCenter.tsx(19,10): error TS2614: Module '"./ManagementLayout"' has no exported member 'ManagementContext'. Did you mean to use 'import ManagementContext from "./ManagementLayout"' instead?
+src/components/management/StationDashboardPage.tsx(16,27): error TS2307: Cannot find module './EquipmentPage' or its corresponding type declarations.
+src/components/management/StationDashboardPage.tsx(17,27): error TS2307: Cannot find module './InventoryPage' or its corresponding type declarations.
+src/components/modals/OrderEditModal.tsx(4,10): error TS2305: Module '"../../constants.ts"' has no exported member 'MOCK_PRODUCTS'.
+src/components/photographers/ConnexionHistoryModal.tsx(4,10): error TS2305: Module '"../../constants.ts"' has no exported member 'MOCK_LOGIN_HISTORY'.
+src/components/photographers/ObjectivesModal.tsx(4,10): error TS2305: Module '"../../constants.ts"' has no exported member 'MOCK_OBJECTIVES'.

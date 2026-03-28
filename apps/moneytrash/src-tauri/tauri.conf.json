@@ -1,0 +1,99 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "MoneyTrash Uploader",
+  "version": "0.1.0",
+  "identifier": "com.clickflash.moneytrash",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "MoneyTrash Uploader",
+        "width": 1400,
+        "height": 900,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "decorations": true,
+        "transparent": false,
+        "maximized": false
+      }
+    ],
+    "security": {
+      "csp": null,
+      "capabilities": [
+        {
+          "identifier": "default",
+          "description": "Default capabilities for the MoneyTrash Uploader",
+          "windows": [
+            "main"
+          ],
+          "permissions": [
+            "core:default",
+            "shell:allow-open",
+            "dialog:allow-open",
+            "dialog:allow-save",
+            "fs:allow-read-file",
+            "fs:allow-write-file",
+            "fs:allow-read-dir",
+            "fs:allow-copy-file",
+            "fs:allow-mkdir",
+            "fs:allow-remove",
+            "fs:allow-rename",
+            "fs:allow-exists",
+            "fs:allow-stat",
+            "fs:scope-appdata",
+            "fs:scope-home",
+            "fs:scope-desktop",
+            "fs:scope-document",
+            "fs:scope-download",
+            "fs:scope-picture",
+            "fs:scope-temp",
+            "http:default",
+            "http:allow-fetch",
+            "notification:default"
+          ]
+        }
+      ]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Productivity",
+    "copyright": "",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
+    },
+    "macOS": {
+      "entitlements": null,
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null
+    },
+    "linux": {
+      "deb": {
+        "depends": []
+      }
+    }
+  },
+  "plugins": {
+    "fs": {
+      "requireLiteralLeadingDot": false
+    }
+  }
+}

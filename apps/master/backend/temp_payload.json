@@ -1,0 +1,10 @@
+{
+    "title": "Curl Test Payload",
+    "status": "Draft",
+    "photographerId": "1",
+    "source": "manual_curl",
+    "date": "2026-02-15",
+    "categories": [
+        "Test"
+    ]
+}

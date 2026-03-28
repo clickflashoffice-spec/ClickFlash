@@ -1,0 +1,18 @@
+name = "management-hub"
+main = "src/server.ts"
+compatibility_date = "2024-10-01"
+compatibility_flags = [ "nodejs_compat" ]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "management-db"
+database_id = "983b7087-b6e9-4468-9c92-1965309ce2df"
+
+[[r2_buckets]]
+binding = "GALLERY_BUCKET"
+bucket_name = "clickflash-gallery-assets"
+
+[vars]
+JWT_SECRET = "<REDACTED:MANAGEMENT_JWT_SECRET>"
+ALLOWED_ORIGINS = "https://d1427606.management-hub.pages.dev,https://*.management-hub.pages.dev,https://*.clickflash-office.workers.dev,https://admin.clicketflash.com,https://www.clicketflash.com,https://clicketflash.com,http://localhost:5173"
+FROM_EMAIL = "support@clicketflash.com"

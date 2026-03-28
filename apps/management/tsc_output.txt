@@ -1,0 +1,7 @@
+src/components/management/analytics/ClickFlashAnalytics.tsx(18,19): error TS2307: Cannot find module '../common/Gauge' or its corresponding type declarations.
+src/components/management/ManagementLayout.tsx(124,13): error TS2322: Type '{ currentUser: User; context: string; }' is not assignable to type 'IntrinsicAttributes & MoneyTrashMarketingProps'.
+  Property 'context' does not exist on type 'IntrinsicAttributes & MoneyTrashMarketingProps'.
+src/components/management/ManagementLayout.tsx(128,30): error TS2322: Type '{ context: string; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'context' does not exist on type 'IntrinsicAttributes'.
+src/components/management/PerformancePage.tsx(663,11): error TS2322: Type '{ photographers: User[]; orders: Order[]; expenses: Expense[]; timeFilter: TimeFilter; setTimeFilter: Dispatch<SetStateAction<TimeFilter>>; formatCurrency: (amountInBase: number) => string; onSelect: Dispatch<...>; }' is not assignable to type 'IntrinsicAttributes & { photographers: User[]; orders: Order[]; expenses: Expense[]; timeFilter: TimeFilter; setTimeFilter: (f: TimeFilter) => void; formatCurrency: (n: number) => string; }'.
+  Property 'onSelect' does not exist on type 'IntrinsicAttributes & { photographers: User[]; orders: Order[]; expenses: Expense[]; timeFilter: TimeFilter; setTimeFilter: (f: TimeFilter) => void; formatCurrency: (n: number) => string; }'.

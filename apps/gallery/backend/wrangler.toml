@@ -1,0 +1,26 @@
+name = "gallery-backend"
+main = "src/server.ts"
+compatibility_date = "2024-10-01"
+
+[[d1_databases]]
+binding = "GALLERY_DB"
+database_name = "gallery-db"
+database_id = "b556a025-1ada-46f1-ac15-2f7d117ca350" 
+
+[[d1_databases]]
+binding = "WEBSITE_DB"
+database_name = "clickflash-website-db"
+database_id = "5f78535b-10d3-45b4-af94-a6e5a061cac5"
+
+[[r2_buckets]]
+binding = "GALLERY_BUCKET"
+bucket_name = "clickflash-gallery-assets"
+
+[vars]
+# Add non-secret env vars here
+NODE_ENV = "production"
+ALLOWED_ORIGINS = "https://gallery.clickflash.com,https://clickflash.com,https://clickflash-unified.pages.dev,https://clicketflash.com,https://www.clicketflash.com,https://b322e3ce.customer-gallery.pages.dev,https://*.customer-gallery.pages.dev"
+JWT_SECRET = "<REDACTED:GALLERY_JWT_SECRET>"
+
+[observability]
+enabled = true

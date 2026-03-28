@@ -1,0 +1,257 @@
+import express, { Request, Response } from "express";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import { verifyPassword } from "../shared/auth";
+import {
+  sendAuthError,
+  sendInternalError,
+  sendValidationError,
+} from "../shared/errorHandler";
+import { strictRateLimiter } from "../shared/rateLimiter";
+
+// JWT Secret imported from constants below
+
+import { JWT_SECRET } from "../config/constants";
+import { User } from "../types/shared";
+
+import { Logger } from "../shared/logger";
+import { DatabaseManager } from "../shared/db";
+import AuditLogger from "../shared/auditLogger";
+
+interface AppContext {
+  dbManager: DatabaseManager;
+  logger: Logger;
+  auditLogger: AuditLogger;
+}
+
+export default function authRoutes(context: AppContext) {
+  const { dbManager, logger, auditLogger } = context;
+  const router = express.Router();
+
+  /**
+   * @route POST /login
+   * @description Authenticate user and return JWT
+   * @access Public
+   */
+  router.post(
+    "/login",
+    strictRateLimiter,
+    async (req: Request, res: Response) => {
+      try {
+        const { email, password } = req.body;
+        const clientIp = req.socket.remoteAddress || "unknown";
+
+        if (!email || !password) {
+          sendValidationError(res, "Email and password are required");
+          return;
+        }
+
+        const user = dbManager.get<User>(
+          "SELECT * FROM users WHERE email = ?",
+          [email],
+        );
+
+        if (!user) {
+          auditLogger.logLoginAttempt(email, false, clientIp, "USER_NOT_FOUND");
+          sendAuthError(
+            res,
+            "Invalid email or password. Please check your credentials and try again.",
+          );
+          return;
+        }
+        let isValidPassword = false;
+        if (user.password) {
+          const isPasswordHashed =
+            user.password.startsWith("$2a$") ||
+            user.password.startsWith("$2b$") ||
+            user.password.startsWith("$2y$");
+          if (isPasswordHashed) {
+            isValidPassword = await verifyPassword(password, user.password);
+          }
+        }
+
+        if (!isValidPassword) {
+          auditLogger.logLoginAttempt(
+            email,
+            false,
+            clientIp,
+            "INVALID_PASSWORD",
+          );
+          sendAuthError(
+            res,
+            "Invalid email or password. Please check your credentials and try again.",
+          );
+          return;
+        }
+
+        auditLogger.logLoginAttempt(email, true, clientIp);
+
+        // Create session
+        if (req.session) {
+          (req.session as any).user = {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            name: user.name,
+          } as Record<string, any>;
+        }
+
+        // Generate JWT
+        const token = jwt.sign(
+          { id: user.id, email: user.email, role: user.role },
+          JWT_SECRET,
+          { expiresIn: "7d" },
+        );
+
+        delete user.password;
+
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ user, token }));
+      } catch (e) {
+        const error = e instanceof Error ? e : new Error(String(e));
+        const clientIp = req.socket.remoteAddress || "unknown";
+        logger.error("Login error", {
+          error: error.message,
+          stack: error.stack,
+          ip: clientIp,
+        });
+        sendInternalError(res, error, "login endpoint");
+      }
+    },
+  );
+
+  /**
+   * @route POST /signup
+   * @description Create a new user account
+   * @access Public
+   */
+  router.post(
+    "/signup",
+    strictRateLimiter,
+    async (req: Request, res: Response) => {
+      try {
+        const { email, password, name } = req.body;
+
+        if (!email || !password || !name) {
+          sendValidationError(res, "Missing required fields", {
+            email: !email,
+            password: !password,
+            name: !name,
+          });
+          return;
+        }
+
+        if (password.length < 8) {
+          sendValidationError(res, "Password must be at least 8 characters");
+          return;
+        }
+
+        // Check if user already exists
+        const existingUser = dbManager.get<User>(
+          "SELECT * FROM users WHERE email = ?",
+          [email],
+        );
+        if (existingUser) {
+          sendValidationError(res, "User with this email already exists");
+          return;
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const now = new Date().toISOString();
+
+        // Insert user
+        const result = dbManager.run(
+          "INSERT INTO users (email, password, name, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+          [email, hashedPassword, name, "user", now, now],
+        );
+
+        // Fetch created user
+        const user = dbManager.get<User>("SELECT * FROM users WHERE id = ?", [
+          result.lastInsertRowid,
+        ]);
+
+        if (!user) {
+          sendInternalError(res, new Error("Failed to create user"), "signup");
+          return;
+        }
+
+        // Generate JWT
+        const token = jwt.sign(
+          { id: user.id, email: user.email, role: user.role },
+          JWT_SECRET,
+          { expiresIn: "7d" },
+        );
+
+        delete user.password;
+
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ user, token }));
+      } catch (e) {
+        const error = e instanceof Error ? e : new Error(String(e));
+        logger.error("Signup error", {
+          error: error.message,
+          stack: error.stack,
+        });
+        sendInternalError(res, error, "signup endpoint");
+      }
+    },
+  );
+
+  /**
+   * @route POST /logout
+   * @description Logout endpoint - destroys user session
+   * @access Public
+   */
+  router.post("/logout", (req: Request, res: Response) => {
+    if (req.session) {
+      req.session.destroy((err: any) => {
+        if (err) {
+          logger.error("Logout error", { error: err.message });
+          sendInternalError(res, err, "logout");
+          return;
+        }
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ success: true }));
+      });
+    } else {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ success: true }));
+    }
+  });
+
+  /**
+   * @route GET /me
+   * @description Get current user from session
+   * @access Requires authentication
+   */
+  router.get("/me", async (req: Request, res: Response) => {
+    const sessionUser = (req.session as any)?.user || (req as any).user;
+    if (!sessionUser || !sessionUser.id) {
+      sendAuthError(res, "Not authenticated");
+      return;
+    }
+
+    try {
+      const user = dbManager.get<User>(
+        "SELECT id, email, role, name, avatarUrl FROM users WHERE id = ?",
+        [sessionUser.id],
+      );
+      if (!user) {
+        sendAuthError(res, "User session valid but user not found in database");
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ user }));
+    } catch (e) {
+      logger.error(
+        "Error fetching current user in /me",
+        e instanceof Error ? e : undefined,
+      );
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ user: sessionUser }));
+    }
+  });
+
+  return router;
+}

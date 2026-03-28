@@ -1,0 +1,176 @@
+/* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind base;
+/* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind components;
+/* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind utilities;
+
+/* Custom Scrollbar - Webkit */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.3);
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(156, 163, 175, 0.5);
+}
+
+/* Firefox Scrollbar */
+/* Nota: scrollbar-width y scrollbar-color son propiedades específicas de Firefox.
+   Chrome/Safari usan los estilos webkit definidos arriba. Estas advertencias de compatibilidad son esperadas. */
+/* stylelint-disable */
+@supports (scrollbar-width: thin) {
+    .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+    }
+}
+
+/* stylelint-enable */
+
+/* Filmstrip row styles */
+.filmstrip-row {
+    display: inline-flex;
+    padding-right: 8px;
+}
+
+/* Photo editor dynamic styles using CSS variables */
+.photo-editor-image {
+    filter: var(--photo-filter, none);
+    transform: var(--photo-transform, none);
+}
+
+.crop-overlay {
+    left: var(--crop-x, 0);
+    top: var(--crop-y, 0);
+    width: var(--crop-width, 0);
+    height: var(--crop-height, 0);
+    z-index: 10;
+}
+
+@media print {
+    @page {
+        size: auto;
+        margin: 1in;
+    }
+
+    body {
+        /* stylelint-disable-next-line property-no-vendor-prefix */
+        -webkit-print-color-adjust: exact !important;
+        /* stylelint-disable-next-line property-no-unknown */
+        print-color-adjust: exact !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    body,
+    #root {
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+        height: auto !important;
+    }
+
+    main {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+
+    .printable-area {
+        background-color: white !important;
+        color: black !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .printable-area * {
+        background-color: transparent !important;
+        color: black !important;
+    }
+
+    .dark\:bg-slate-800,
+    .bg-slate-100 {
+        background-color: white !important;
+    }
+
+    .dark\:text-slate-400,
+    .text-slate-500 {
+        color: #333 !important;
+    }
+
+    .dark\:border-slate-700,
+    .dark\:border-slate-600 {
+        border-color: #ccc !important;
+    }
+
+    .documentation-page h1,
+    .documentation-page h3 {
+        page-break-after: avoid;
+    }
+
+    .documentation-page h2 {
+        page-break-before: always;
+        page-break-after: avoid;
+    }
+
+    .documentation-page p,
+    .documentation-page ul,
+    .documentation-page li {
+        page-break-inside: avoid;
+    }
+
+    .documentation-page a {
+        text-decoration: none;
+        color: #000 !important;
+    }
+
+    .documentation-page a[href]:after {
+        content: " (" attr(href) ")";
+        font-size: 90%;
+        color: #555 !important;
+    }
+
+    .documentation-page .code-block {
+        background-color: #f3f4f6 !important;
+        border: 1px solid #d1d5db !important;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        font-family: monospace;
+        color: black !important;
+        page-break-inside: avoid;
+    }
+}
+
+/* Utility for dynamic widths to avoid inline styles */
+.dynamic-width {
+    width: var(--dynamic-width, 0%);
+}
+
+/* Rule 08: GPU Acceleration for Touch App (Zero Latency) */
+.gpu-accelerated {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+    -webkit-font-smoothing: antialiased;
+}
+
+.touch-active:active {
+    transform: scale(0.98) translateZ(0);
+    transition: transform 0.05s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fast-transition {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}

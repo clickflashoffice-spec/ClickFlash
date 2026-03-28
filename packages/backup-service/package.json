@@ -1,0 +1,14 @@
+{
+  "name": "@clickflash/backup-service",
+  "version": "1.0.0",
+  "description": "Backup and restore service for ClickFlash apps",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Tests not implemented\" && exit 0"
+  },
+  "dependencies": {
+    "archiver": "^6.0.1",
+    "node-cron": "^3.0.3",
+    "unzipper": "^0.10.14"
+  }
+}

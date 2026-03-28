@@ -1,0 +1,28 @@
+{
+  "name": "moneytrash-cloudflare-api",
+  "version": "4.2.0",
+  "description": "Cloudflare Worker API for MoneyTrash Uploader",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "logs": "wrangler tail",
+    "db:create": "wrangler d1 create moneytrash-db",
+    "db:migrate": "wrangler d1 execute moneytrash-db --file=schema/schema.sql",
+    "db:backup": "wrangler d1 backup create moneytrash-db",
+    "kv:create": "wrangler kv:namespace create UPLOAD_SESSIONS",
+    "r2:create": "wrangler r2 bucket create moneytrash-uploads",
+    "secret:jwt": "wrangler secret put JWT_SECRET",
+    "secret:stripe": "wrangler secret put STRIPE_SECRET_KEY",
+    "secret:webhook": "wrangler secret put WEBHOOK_SECRET",
+    "setup": "npm run db:create && npm run kv:create && npm run r2:create"
+  },
+  "dependencies": {
+    "@cloudflare/workers-types": "^4.20250312.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0",
+    "typescript": "^5.0.0"
+  }
+}

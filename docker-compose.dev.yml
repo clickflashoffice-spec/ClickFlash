@@ -1,0 +1,189 @@
+# ClickFlash Development Environment
+# Run with: docker-compose -f docker-compose.dev.yml up -d
+
+version: '3.8'
+
+services:
+  # ==========================================
+  # Master App (Electron - requires host X11)
+  # ==========================================
+  master:
+    build:
+      context: .
+      dockerfile: apps/master/Dockerfile.dev
+    container_name: clickflash-master
+    volumes:
+      - ./apps/master:/app
+      - master-node-modules:/app/node_modules
+      - master-data:/app/data
+    ports:
+      - "8090:8090"
+    environment:
+      - NODE_ENV=development
+      - DISPLAY=${DISPLAY:-:0}
+    networks:
+      - clickflash-network
+    profiles: ["electron"]  # Not started by default
+
+  # ==========================================
+  # Touch App (Electron - requires host X11)
+  # ==========================================
+  touch:
+    build:
+      context: .
+      dockerfile: apps/touch/Dockerfile.dev
+    container_name: clickflash-touch
+    volumes:
+      - ./apps/touch:/app
+      - touch-node-modules:/app/node_modules
+    ports:
+      - "8091:8091"
+    environment:
+      - NODE_ENV=development
+      - DISPLAY=${DISPLAY:-:0}
+    networks:
+      - clickflash-network
+    profiles: ["electron"]  # Not started by default
+
+  # ==========================================
+  # Management Hub
+  # ==========================================
+  management:
+    build:
+      context: .
+      dockerfile: apps/management/Dockerfile.dev
+    container_name: clickflash-management
+    volumes:
+      - ./apps/management:/app
+      - management-node-modules:/app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8090
+    networks:
+      - clickflash-network
+    command: npm run dev -- --host
+
+  # ==========================================
+  # Customer Gallery
+  # ==========================================
+  gallery:
+    build:
+      context: .
+      dockerfile: apps/gallery/Dockerfile.dev
+    container_name: clickflash-gallery
+    volumes:
+      - ./apps/gallery:/app
+      - gallery-node-modules:/app/node_modules
+    ports:
+      - "5174:5174"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8090
+    networks:
+      - clickflash-network
+    command: npm run dev -- --host
+
+  # ==========================================
+  # Website (Next.js)
+  # ==========================================
+  website:
+    build:
+      context: .
+      dockerfile: apps/website/Dockerfile.dev
+    container_name: clickflash-website
+    volumes:
+      - ./apps/website:/app
+      - website-node-modules:/app/node_modules
+      - website-next-cache:/app/.next
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    networks:
+      - clickflash-network
+    command: npm run dev
+
+  # ==========================================
+  # MoneyTrash (Tauri - requires host)
+  # ==========================================
+  moneytrash:
+    build:
+      context: .
+      dockerfile: apps/moneytrash/Dockerfile.dev
+    container_name: clickflash-moneytrash
+    volumes:
+      - ./apps/moneytrash:/app
+      - moneytrash-node-modules:/app/node_modules
+    ports:
+      - "1420:1420"
+    environment:
+      - NODE_ENV=development
+      - DISPLAY=${DISPLAY:-:0}
+    networks:
+      - clickflash-network
+    profiles: ["desktop"]  # Not started by default
+
+  # ==========================================
+  # Shared Services
+  # ==========================================
+  
+  # Redis (for caching/sessions)
+  redis:
+    image: redis:7-alpine
+    container_name: clickflash-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - clickflash-network
+
+  # MinIO (S3-compatible storage for local dev)
+  minio:
+    image: minio/minio:latest
+    container_name: clickflash-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio-data:/data
+    networks:
+      - clickflash-network
+    command: server /data --console-address ":9001"
+
+  # Mailhog (email testing)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: clickflash-mailhog
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - clickflash-network
+
+# ==========================================
+# Volumes
+# ==========================================
+volumes:
+  master-node-modules:
+  master-data:
+  touch-node-modules:
+  management-node-modules:
+  gallery-node-modules:
+  website-node-modules:
+  website-next-cache:
+  moneytrash-node-modules:
+  redis-data:
+  minio-data:
+
+# ==========================================
+# Networks
+# ==========================================
+networks:
+  clickflash-network:
+    driver: bridge

@@ -1,0 +1,8 @@
+{
+  "albumId": "test-album-001",
+  "title": "Test Photo JSON Correct",
+  "url": "test_json_final.jpg",
+  "isFavorite": true,
+  "tinyUrl": "tiny_test_json_final.jpg",
+  "quality_flags": []
+}

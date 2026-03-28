@@ -1,0 +1,169 @@
+# ClickFlash Development Environment
+# Run with: docker-compose up -d
+
+version: '3.8'
+
+services:
+  # ==========================================
+  # API Server (Master Backend)
+  # ==========================================
+  api:
+    build:
+      context: ./apps/master/backend
+      dockerfile: Dockerfile
+    container_name: clickflash-api
+    ports:
+      - "8090:8090"
+    environment:
+      - NODE_ENV=development
+      - PORT=8090
+      - DATABASE_PATH=/data/clickflash.db
+      - JWT_SECRET=dev-jwt-secret-change-in-production
+    volumes:
+      - ./data:/data
+      - ./uploads:/uploads
+    networks:
+      - clickflash-network
+    restart: unless-stopped
+
+  # ==========================================
+  # MoneyTrash (Next.js)
+  # ==========================================
+  moneytrash:
+    build:
+      context: ./apps/moneytrash
+      dockerfile: Dockerfile
+    container_name: clickflash-moneytrash
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=sqlite:/data/moneytrash.db
+      - API_URL=http://api:8090/api
+    volumes:
+      - ./data:/data
+      - ./apps/moneytrash:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    networks:
+      - clickflash-network
+    restart: unless-stopped
+
+  # ==========================================
+  # Management Hub (Vite)
+  # ==========================================
+  management:
+    build:
+      context: ./apps/management
+      dockerfile: Dockerfile
+    container_name: clickflash-management
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8090/api
+    volumes:
+      - ./apps/management:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    networks:
+      - clickflash-network
+    restart: unless-stopped
+
+  # ==========================================
+  # Gallery (Vite)
+  # ==========================================
+  gallery:
+    build:
+      context: ./apps/gallery
+      dockerfile: Dockerfile
+    container_name: clickflash-gallery
+    ports:
+      - "5174:5174"
+    environment:
+      - VITE_API_URL=http://localhost:8090/api
+    volumes:
+      - ./apps/gallery:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    networks:
+      - clickflash-network
+    restart: unless-stopped
+
+  # ==========================================
+  # Website (Next.js)
+  # ==========================================
+  website:
+    build:
+      context: ./apps/website
+      dockerfile: Dockerfile
+    container_name: clickflash-website
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./apps/website:/app
+      - /app/node_modules
+    networks:
+      - clickflash-network
+    restart: unless-stopped
+
+  # ==========================================
+  # PostgreSQL (Optional - for production)
+  # ==========================================
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: clickflash-postgres
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     - POSTGRES_USER=clickflash
+  #     - POSTGRES_PASSWORD=clickflash
+  #     - POSTGRES_DB=clickflash
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   networks:
+  #     - clickflash-network
+  #   restart: unless-stopped
+
+  # ==========================================
+  # Redis (Optional - for caching/sessions)
+  # ==========================================
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: clickflash-redis
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - clickflash-network
+  #   restart: unless-stopped
+
+  # ==========================================
+  # MinIO (S3-compatible storage - optional)
+  # ==========================================
+  # minio:
+  #   image: minio/minio:latest
+  #   container_name: clickflash-minio
+  #   ports:
+  #     - "9000:9000"
+  #     - "9001:9001"
+  #   environment:
+  #     - MINIO_ROOT_USER=minioadmin
+  #     - MINIO_ROOT_PASSWORD=minioadmin
+  #   volumes:
+  #     - minio-data:/data
+  #   command: server /data --console-address ":9001"
+  #   networks:
+  #     - clickflash-network
+  #   restart: unless-stopped
+
+networks:
+  clickflash-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  minio-data:

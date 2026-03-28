@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant:wght@400;500;600;700&family=Outfit:wght@100..900&family=Inter:wght@100..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ClickFlash Light Theme - Matching Website */
+    --background: #ffffff;
+    --foreground: #0f172a;
+    --primary: #06b6d4;
+    --primary-foreground: #ffffff;
+    --secondary: #f8fafc;
+    --secondary-foreground: #0f172a;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --radius: 0.75rem;
+    
+    /* Brand Colors - Cyan */
+    --cyan-50: #ecfeff;
+    --cyan-100: #cffafe;
+    --cyan-200: #a5f3fc;
+    --cyan-300: #67e8f9;
+    --cyan-400: #22d3ee;
+    --cyan-500: #06b6d4;
+    --cyan-600: #0891b2;
+    --cyan-700: #0e7490;
+    --cyan-800: #155e75;
+    --cyan-900: #164e63;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  /* Cards and Panels */
+  .glass-panel {
+    @apply bg-white/90 backdrop-blur-xl border border-slate-200 shadow-lg;
+  }
+
+  .glass-card {
+    @apply bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow;
+  }
+
+  .premium-card {
+    @apply bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  /* Text Gradients */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 to-blue-600;
+  }
+
+  .text-cyan-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600;
+  }
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(0.98); }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s infinite ease-in-out;
+}
+
+/* Global Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-400;
+}
+
+/* Selection */
+::selection {
+  @apply bg-cyan-100 text-cyan-900;
+}

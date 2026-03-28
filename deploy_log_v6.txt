@@ -1,0 +1,156 @@
+
+[DEPLOY] Checking prerequisites...
+Verifying Wrangler installation...
+NOTE: Ensure you are logged in by running 'npx wrangler login' if deployment fails.
+
+[DEPLOY] Installing Global Dependencies (Root)...
+Installing dependencies with legacy peer deps to respect overrides...
+
+> clickflash-ecosystem@4.2.0 prepare
+> husky install
+
+husky - install command is DEPRECATED
+
+up to date, audited 34 packages in 3s
+
+7 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+[DEPLOY] Configuring Unified Cloud Database (clickflash-hub-db)...
+X [ERROR] A request to the Cloudflare API (/accounts/<REDACTED:CF_ACCOUNT_ID>/d1/database) failed.
+
+  Authentication error [code: 10000]
+
+
+≡ƒ¬╡  Logs were written to "C:\Users\alamo\AppData\Roaming\xdg.config\.wrangler\logs\wrangler-2026-03-08_11-28-51_265.log"
+WARNING: Failed to 
+auto-configure Unified 
+D1 Hub.
+
+[DEPLOY] Deploying Cloud Workers...
+
+up to date, audited 137 packages in 5s
+
+7 packages are looking for funding
+  run `npm fund` for details
+
+2 low severity vulnerabilities
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
+
+ Γ¢à∩╕Å wrangler 4.68.1 (update available 4.71.0)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+Total Upload: 261.86 KiB / gzip: 50.14 KiB
+Worker Startup Time: 17 ms
+Your Worker has access to the following bindings:
+Binding                                                               Resource                  
+env.DB (management-db)                                                D1 Database               
+env.GALLERY_BUCKET (clickflash-gallery-assets)                        R2 Bucket                 
+env.JWT_SECRET ("uo4/b8fwePCa0IqO46WTEnrOpaOptOvOqR2GZ...")           Environment Variable      
+env.ALLOWED_ORIGINS ("http://localhost:5173,http://localhos...")      Environment Variable      
+env.RESEND_API_KEY ("re_iNnzTTvN_EDCgRcjzXiCLJ1VSieG3gmWP")           Environment Variable      
+env.FROM_EMAIL ("support@clicketflash.com")                           Environment Variable      
+
+Uploaded management-hub (15.58 sec)
+Deployed management-hub triggers (5.44 sec)
+  https://management-hub.clickflash-office.workers.dev
+Current Version ID: c2cdc8cd-8538-4721-844c-f5a6670bd935
+
+up to date, audited 92 packages in 4s
+
+11 packages are looking for funding
+  run `npm fund` for details
+
+4 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+Configuring R2 Bucket...
+
+ Γ¢à∩╕Å wrangler 3.114.17 (update available 4.71.0)
+-----------------------------------------------
+
+Γû▓ [WARNING] The version of Wrangler you are using is now out-of-date.
+
+  Please update to the latest version to prevent critical errors.
+  Run `npm install --save-dev wrangler@4` to update to the latest version.
+  After installation, run Wrangler with `npx wrangler`.
+
+
+Creating bucket 'clickflash-gallery-assets'...
+
+X [ERROR] A request to the Cloudflare API (/accounts/<REDACTED:CF_ACCOUNT_ID>/r2/buckets) failed.
+
+  The bucket you tried to create already exists, and you own it. [code: 10004]
+  
+  If you think this is a bug, please open an issue at: https://github.com/cloudflare/workers-sdk/issues/new/choose
+
+
+≡ƒ¬╡  Logs were written to "C:\Users\alamo\AppData\Roaming\xdg.config\.wrangler\logs\wrangler-2026-03-08_11-29-36_269.log"
+
+Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+
+ Γ¢à∩╕Å wrangler 3.114.17 (update available 4.71.0)
+-----------------------------------------------
+
+Γû▓ [WARNING] The version of Wrangler you are using is now out-of-date.
+
+  Please update to the latest version to prevent critical errors.
+  Run `npm install --save-dev wrangler@4` to update to the latest version.
+  After installation, run Wrangler with `npx wrangler`.
+
+
+Total Upload: 192.58 KiB / gzip: 38.22 KiB
+Your worker has access to the following bindings:
+- D1 Databases:
+  - GALLERY_DB 
+  - WEBSITE_DB 
+- R2 Buckets:
+  - GALLERY_BUCKET: clickflash-gallery-assets
+- Vars:
+  - NODE_ENV: "production"
+  - ALLOWED_ORIGINS: "https://gallery.clickflash.com,https:..."
+
+X [ERROR] A request to the Cloudflare API (/accounts/<REDACTED:CF_ACCOUNT_ID>/workers/scripts/gallery-backend/versions) failed.
+
+  binding WEBSITE_DB of type d1 must have an `id` specified [code: 10021]
+  To learn more about this error, visit: https://developers.cloudflare.com/workers/observability/errors/#validation-errors-10021
+
+  
+  If you think this is a bug, please open an issue at: https://github.com/cloudflare/workers-sdk/issues/new/choose
+
+
+≡ƒ¬╡  Logs were written to "C:\Users\alamo\AppData\Roaming\xdg.config\.wrangler\logs\wrangler-2026-03-08_11-29-40_401.log"
+Gallery backend 
+deployment failed.
+At E:\ClickFlash\deploy
+_ecosystem.ps1:116 
+char:28
++ ...  ($LASTEXITCODE 
+-ne 0) { throw 
+"Gallery backend 
+deployment failed." }
++                      
+        ~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~
+    + CategoryInfo     
+         : OperationS  
+  topped: (Gallery b   
+ ackend deployment     
+failed.:String) []    
+, RuntimeException
+    + FullyQualifiedEr 
+   rorId : Gallery ba  
+  ckend deployment f   
+ ailed.
+ 

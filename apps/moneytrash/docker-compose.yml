@@ -1,0 +1,36 @@
+services:
+  moneytrash-uploader:
+    build: .
+    ports:
+      - "3002:3000"
+    volumes:
+      - uploads:/app/uploads
+    environment:
+      - NODE_ENV=production
+      - GALLERY_API_URL=${GALLERY_API_URL:-http://clickflash-gallery:8093}
+      - MANAGEMENT_API_URL=${MANAGEMENT_API_URL:-http://management:8092}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - clickflash-network
+
+volumes:
+  uploads:
+    driver: local
+
+networks:
+  clickflash-network:
+    external: true

@@ -40,20 +40,24 @@ const StatusBadge: React.FC<{ status: MasterStation["status"] }> = ({ status }) 
 // ─── Metric Bar ──────────────────────────────────────────────────────────────
 const MetricBar: React.FC<{ label: string; value: number; color: string; warning?: number }> = (
   { label, value, color, warning = 80 }
-) => (
-  <div className="flex items-center gap-3">
-    <span className="text-[10px] font-bold text-slate-500 uppercase w-10 tracking-widest">{label}</span>
-    <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-      <div
-        className={`h-full rounded-full transition-all ${value > warning ? "bg-rose-500" : color}`}
-        style={{ width: `${Math.min(100, Math.max(0, value))}%` } as React.CSSProperties}
-      />
+) => {
+  const clampedWidth = `${Math.min(100, Math.max(0, value))}%`;
+  const isWarning = value > warning;
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-[10px] font-bold text-slate-500 uppercase w-10 tracking-widest">{label}</span>
+      <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all ${isWarning ? "bg-rose-500" : color}`}
+          style={{ width: clampedWidth }}
+        />
+      </div>
+      <span className={`text-xs font-bold w-8 text-right ${isWarning ? "text-rose-400" : "text-slate-400"}`}>
+        {value}%
+      </span>
     </div>
-    <span className={`text-xs font-bold w-8 text-right ${value > warning ? "text-rose-400" : "text-slate-400"}`}>
-      {value}%
-    </span>
-  </div>
-);
+  );
+};
 
 // ─── Station Card ─────────────────────────────────────────────────────────────
 const StationCard: React.FC<{

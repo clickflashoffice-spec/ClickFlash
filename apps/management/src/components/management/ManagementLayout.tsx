@@ -415,10 +415,7 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
         <div className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar relative z-10 w-full min-h-[calc(100vh-5rem)]">
           <div className="bg-transparent min-h-full rounded-2xl lg:rounded-3xl p-0 shadow-none border-none">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out h-full">
-              {/* Pass the selectedContext down to the views so they can filter data */}
-              {React.cloneElement(renderView() as React.ReactElement<any>, {
-                context: selectedContext,
-              })}
+              {renderView()}
             </div>
           </div>
         </div>

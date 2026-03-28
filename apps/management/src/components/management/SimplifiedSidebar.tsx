@@ -170,7 +170,7 @@ export const SimplifiedSidebar: React.FC<SimplifiedSidebarProps> = ({
                 {/* Tab Header */}
                 <button
                   onClick={() => handleTabClick(tab)}
-                  aria-expanded={isExpanded}
+                  aria-expanded={isExpanded ? "true" : "false"}
                   aria-label={`${tab.label} tab`}
                   className={`
                     w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl

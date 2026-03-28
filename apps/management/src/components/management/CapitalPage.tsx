@@ -7,6 +7,7 @@ import { useCurrency } from "../CurrencyContext.tsx";
 import { apiService } from "../../services/apiService.ts";
 import Spinner from "../common/Spinner.tsx";
 import StatCard from "../common/StatCard.tsx";
+import { DollarSign, AlertCircle, CreditCard, Plus } from "lucide-react";
 
 interface CapitalPageProps {
   context?: string;
@@ -99,24 +100,17 @@ const CapitalPage: React.FC<CapitalPageProps> = ({ context }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Capital & Loans</h1>
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-1">Finance</p>
+          <h1 className="text-2xl font-black text-white tracking-tight">Capital & Loans</h1>
+          <p className="text-sm text-slate-500 mt-0.5">Manage business loans and capital injections</p>
+        </div>
         <button
           onClick={() => setIsLoanModalOpen(true)}
           className="flex items-center gap-2 px-4 py-2.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl hover:bg-blue-500/20 transition-all text-xs font-black uppercase tracking-wider"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <Plus className="w-4 h-4" />
           <span>Add Loan</span>
         </button>
       </div>
@@ -125,48 +119,17 @@ const CapitalPage: React.FC<CapitalPageProps> = ({ context }) => {
         <StatCard
           title="Total Capital"
           value={formatCurrency(totalCapital)}
-          icon={
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M8.433 7.418c.158-.103.346-.196.567-.267v1.698a2.5 2.5 0 00-1.134.635l-.417.417a1 1 0 001.414 1.414l.417-.417a2.5 2.5 0 00.635-1.134h1.698c-.07.221-.164.41-.267.567l-4.217 4.217a1 1 0 01-1.414 0l-4.217-4.217A1 1 0 013.933 6.002L8.15 1.785c.158-.103.346-.196.567-.267v1.698a2.5 2.5 0 00-1.134.635l-.417.417a1 1 0 001.414 1.414l.417-.417a2.5 2.5 0 00.635-1.134h1.698c-.07.221-.164.41-.267.567L15.93 6.002a1 1 0 11-1.414 1.414l-4.217-4.217z" />
-            </svg>
-          }
+          icon={<DollarSign className="h-6 w-6" />}
         />
         <StatCard
           title="Total Outstanding Debt"
           value={formatCurrency(totalDebt)}
-          icon={
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                clipRule="evenodd"
-              />
-            </svg>
-          }
+          icon={<AlertCircle className="h-6 w-6" />}
         />
         <StatCard
           title="Active Loans"
           value={activeLoans.length.toString()}
-          icon={
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm14 1a1 1 0 11-2 0 1 1 0 012 0zM2 13a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2zm14 1a1 1 0 11-2 0 1 1 0 012 0z" />
-            </svg>
-          }
+          icon={<CreditCard className="h-6 w-6" />}
         />
       </div>
 

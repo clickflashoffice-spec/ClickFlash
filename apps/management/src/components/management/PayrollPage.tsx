@@ -249,7 +249,10 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser, context }) => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
-        <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-1">Finance</p>`n          <h1 className="text-2xl font-black text-white tracking-tight">Payroll</h1>
+        <div>
+          <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-1">Finance</p>
+          <h1 className="text-2xl font-black text-white tracking-tight">Payroll</h1>
+        </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <select

@@ -46,11 +46,11 @@ const MetricBar: React.FC<{ label: string; value: number; color: string; warning
   return (
     <div className="flex items-center gap-3">
       <span className="text-[10px] font-bold text-slate-500 uppercase w-10 tracking-widest">{label}</span>
-      <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all ${isWarning ? "bg-rose-500" : color}`}
-          style={{ width: clampedWidth }}
-        />
+      <div
+        className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden"
+        style={{ ["--bar-w" as string]: clampedWidth }}
+      >
+        <div className={`h-full rounded-full transition-all w-[var(--bar-w)] ${isWarning ? "bg-rose-500" : color}`} />
       </div>
       <span className={`text-xs font-bold w-8 text-right ${isWarning ? "text-rose-400" : "text-slate-400"}`}>
         {value}%

@@ -1,93 +1,113 @@
 #include "core/Config.h"
-#include <iostream>
-#include <cstdlib>
+#include "core/Logger.h"
+#include <QCoreApplication>
+#include <QDir>
+#include <QStandardPaths>
 
 namespace ClickFlash {
 
-Config::Config() 
-    : port_(8090)
-    , databasePath_("./data/master.db")
-    , logLevel_("info")
-    , uploadPath_("./uploads")
-    , processingPath_("./pb_data/processing")
-    , production_(false)
-    , jwtSecret_("clickflash-default-secret-change-in-production")
-    , jwtExpiryHours_(24)
-    , corsOrigin_("*")
-    , maxUploadSize_(104857600)
-    , thumbnailSize_(300)
-    , previewSize_(1200)
-    , workerCount_(4) {}
+Config& Config::instance() {
+    static Config instance;
+    return instance;
+}
+
+Config::Config(QObject* parent)
+    : QObject(parent)
+    , m_settings("ClickFlash", "ClickFlashMaster")
+{
+    m_machineId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+}
+
+QString Config::getSettingsFilePath() const {
+    return QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/settings.json";
+}
 
 void Config::load() {
-    setDefaults();
-    loadFromEnv();
+    CF_INFO("Loading configuration...");
 
-    const char* envPort = std::getenv("PORT");
-    if (envPort) port_ = std::stoi(envPort);
+    m_databasePath = m_settings.value("database/path", 
+        QCoreApplication::applicationDirPath() + "/data/clickflash.db").toString();
+    m_port = m_settings.value("server/port", 8090).toInt();
+    m_logLevel = m_settings.value("logging/level", "info").toString();
+    m_darkMode = m_settings.value("ui/darkMode", true).toBool();
+    m_jwtSecret = m_settings.value("auth/jwtSecret", 
+        QUuid::createUuid().toString(QUuid::WithoutBraces)).toString();
+    m_jwtExpiryDays = m_settings.value("auth/jwtExpiryDays", 7).toInt();
+    m_kioskSigningSecret = m_settings.value("kiosk/signingSecret", 
+        QUuid::createUuid().toString(QUuid::WithoutBraces)).toString();
+    
+    QString defaultOriginals = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + "/ClickFlash/Originals";
+    QString defaultThumbs = QCoreApplication::applicationDirPath() + "/thumbnails";
+    QString defaultWatermarks = QCoreApplication::applicationDirPath() + "/watermarks";
+    
+    m_originalsPath = m_settings.value("paths/originals", defaultOriginals).toString();
+    m_thumbnailsPath = m_settings.value("paths/thumbnails", defaultThumbs).toString();
+    m_watermarksPath = m_settings.value("paths/watermarks", defaultWatermarks).toString();
+    m_kioskModeEnabled = m_settings.value("kiosk/enabled", false).toBool();
+    m_cloudSyncUrl = m_settings.value("cloud/syncUrl", "").toString();
 
-    const char* envDbPath = std::getenv("DATABASE_PATH");
-    if (envDbPath) databasePath_ = envDbPath;
+    QDir().mkpath(m_originalsPath);
+    QDir().mkpath(m_thumbnailsPath);
+    QDir().mkpath(m_watermarksPath);
 
-    const char* envLogLevel = std::getenv("LOG_LEVEL");
-    if (envLogLevel) logLevel_ = envLogLevel;
-
-    const char* envProduction = std::getenv("NODE_ENV");
-    if (envProduction && std::string(envProduction) == "production") {
-        production_ = true;
-    }
-
-    const char* envJwtSecret = std::getenv("JWT_SECRET");
-    if (envJwtSecret) jwtSecret_ = envJwtSecret;
-}
-
-void Config::loadFromEnv() {
-    for (const auto& [key, value] : values_) {
-        const char* envValue = std::getenv(key.c_str());
-        if (envValue) {
-            values_[key] = envValue;
-        }
-    }
-}
-
-void Config::setDefaults() {
-    values_ = {
-        {"PORT", "8090"},
-        {"DATABASE_PATH", "./data/master.db"},
-        {"LOG_LEVEL", "info"},
-        {"UPLOAD_PATH", "./uploads"},
-        {"PROCESSING_PATH", "./pb_data/processing"},
-        {"NODE_ENV", "development"},
-        {"JWT_SECRET", "clickflash-default-secret-change-in-production"},
-        {"JWT_EXPIRY_HOURS", "24"},
-        {"CORS_ORIGIN", "*"},
-        {"MAX_UPLOAD_SIZE", "104857600"},
-        {"THUMBNAIL_SIZE", "300"},
-        {"PREVIEW_SIZE", "1200"},
-        {"WORKER_COUNT", "4"}
-    };
+    CF_INFO("Configuration loaded - Port: {}, Dark mode: {}", m_port, m_darkMode);
 }
 
 void Config::save() {
-    std::ofstream configFile("config.json");
-    if (!configFile.is_open()) {
-        std::cerr << "Failed to save config file" << std::endl;
-        return;
+    m_settings.setValue("database/path", m_databasePath);
+    m_settings.setValue("server/port", m_port);
+    m_settings.setValue("logging/level", m_logLevel);
+    m_settings.setValue("ui/darkMode", m_darkMode);
+    m_settings.setValue("auth/jwtSecret", m_jwtSecret);
+    m_settings.setValue("auth/jwtExpiryDays", m_jwtExpiryDays);
+    m_settings.setValue("kiosk/signingSecret", m_kioskSigningSecret);
+    m_settings.setValue("paths/originals", m_originalsPath);
+    m_settings.setValue("paths/thumbnails", m_thumbnailsPath);
+    m_settings.setValue("paths/watermarks", m_watermarksPath);
+    m_settings.setValue("kiosk/enabled", m_kioskModeEnabled);
+    m_settings.setValue("cloud/syncUrl", m_cloudSyncUrl);
+
+    CF_INFO("Configuration saved");
+}
+
+QJsonObject Config::getAllSettings() const {
+    return QJsonObject{
+        {"port", m_port},
+        {"databasePath", m_databasePath},
+        {"logLevel", m_logLevel},
+        {"darkMode", m_darkMode},
+        {"jwtExpiryDays", m_jwtExpiryDays},
+        {"originalsPath", m_originalsPath},
+        {"thumbnailsPath", m_thumbnailsPath},
+        {"watermarksPath", m_watermarksPath},
+        {"kioskModeEnabled", m_kioskModeEnabled},
+        {"cloudSyncUrl", m_cloudSyncUrl},
+        {"machineId", m_machineId}
+    };
+}
+
+void Config::updateSettings(const QJsonObject& settings) {
+    if (settings.contains("port")) m_port = settings["port"].toInt();
+    if (settings.contains("databasePath")) m_databasePath = settings["databasePath"].toString();
+    if (settings.contains("logLevel")) m_logLevel = settings["logLevel"].toString();
+    if (settings.contains("darkMode")) m_darkMode = settings["darkMode"].toBool();
+    if (settings.contains("jwtExpiryDays")) m_jwtExpiryDays = settings["jwtExpiryDays"].toInt();
+    if (settings.contains("originalsPath")) m_originalsPath = settings["originalsPath"].toString();
+    if (settings.contains("thumbnailsPath")) m_thumbnailsPath = settings["thumbnailsPath"].toString();
+    if (settings.contains("watermarksPath")) m_watermarksPath = settings["watermarksPath"].toString();
+    if (settings.contains("kioskModeEnabled")) m_kioskModeEnabled = settings["kioskModeEnabled"].toBool();
+    if (settings.contains("cloudSyncUrl")) m_cloudSyncUrl = settings["cloudSyncUrl"].toString();
+
+    applySettings();
+    save();
+
+    for (auto it = settings.begin(); it != settings.end(); ++it) {
+        emit settingChanged(it.key(), it.value().toVariant());
     }
-
-    configFile << "{\n";
-    configFile << "  \"port\": " << port_ << ",\n";
-    configFile << "  \"databasePath\": \"" << databasePath_ << "\",\n";
-    configFile << "  \"logLevel\": \"" << logLevel_ << "\",\n";
-    configFile << "  \"production\": " << (production_ ? "true" : "false") << "\n";
-    configFile << "}\n";
-
-    configFile.close();
 }
 
-std::string Config::getEnv(const std::string& key, const std::string& defaultValue) {
-    const char* value = std::getenv(key.c_str());
-    return value ? std::string(value) : defaultValue;
+void Config::applySettings() {
+    CF_INFO("Applying configuration changes...");
 }
 
-}
+} // namespace ClickFlash

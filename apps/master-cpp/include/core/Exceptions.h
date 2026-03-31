@@ -1,26 +1,14 @@
 #pragma once
 
-#include <string>
-#include <exception>
+#include <stdexcept>
+#include <QString>
 
 namespace ClickFlash {
 
-class ClickFlashException : public std::exception {
+class ClickFlashException : public std::runtime_error {
 public:
-    explicit ClickFlashException(const std::string& message) 
-        : message_(message) {}
-    
-    const char* what() const noexcept override {
-        return message_.c_str();
-    }
-
-protected:
-    std::string message_;
-};
-
-class InitException : public ClickFlashException {
-public:
-    using ClickFlashException::ClickFlashException;
+    ClickFlashException(const char* message) : std::runtime_error(message) {}
+    ClickFlashException(const QString& message) : std::runtime_error(message.toStdString()) {}
 };
 
 class DatabaseException : public ClickFlashException {
@@ -28,7 +16,7 @@ public:
     using ClickFlashException::ClickFlashException;
 };
 
-class AuthException : public ClickFlashException {
+class AuthenticationException : public ClickFlashException {
 public:
     using ClickFlashException::ClickFlashException;
 };
@@ -43,9 +31,34 @@ public:
     using ClickFlashException::ClickFlashException;
 };
 
-class PermissionException : public ClickFlashException {
+class ConflictException : public ClickFlashException {
 public:
     using ClickFlashException::ClickFlashException;
 };
 
-}
+class PaymentException : public ClickFlashException {
+public:
+    using ClickFlashException::ClickFlashException;
+};
+
+class KioskException : public ClickFlashException {
+public:
+    using ClickFlashException::ClickFlashException;
+};
+
+class SyncException : public ClickFlashException {
+public:
+    using ClickFlashException::ClickFlashException;
+};
+
+class ImageProcessingException : public ClickFlashException {
+public:
+    using ClickFlashException::ClickFlashException;
+};
+
+class ConfigurationException : public ClickFlashException {
+public:
+    using ClickFlashException::ClickFlashException;
+};
+
+} // namespace ClickFlash

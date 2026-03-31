@@ -1,79 +1,82 @@
 #pragma once
 
-#include <string>
-#include <memory>
-#include <fstream>
-#include <mutex>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/stdout_color_sink.h>
+#include <QCoreApplication>
+#include <QDir>
 #include <chrono>
-#include <sstream>
+#include <memory>
 
 namespace ClickFlash {
 
-enum class LogLevel {
-    Debug,
-    Info,
-    Warn,
-    Error
-};
-
 class Logger {
 public:
-    Logger();
-    ~Logger();
+    static Logger& instance() {
+        static Logger instance;
+        return instance;
+    }
 
-    void setLevel(const std::string& level);
-    void setLevel(LogLevel level);
-    
-    void debug(const std::string& message);
-    void info(const std::string& message);
-    void warn(const std::string& message);
-    void error(const std::string& message);
+    void init() {
+        QString logPath = QCoreApplication::applicationDirPath() + "/logs";
+        QDir().mkpath(logPath);
+        
+        auto fileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+            (logPath + "/clickflash.log").toStdString(),
+            10 * 1024 * 1024,  // 10MB
+            3
+        );
+        fileSink->set_pattern("%Y-%m-%d %H:%M:%S.%e [%l] [%n] %v");
+        
+        auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        consoleSink->set_pattern("%H:%M:%S.%e [%l] %v");
+        
+        spdlog::sinks_init_list sinks = { consoleSink, fileSink };
+        
+        auto logger = std::make_shared<spdlog::logger>("ClickFlash", sinks);
+        logger->set_level(spdlog::level::debug);
+        logger->flush_on(spdlog::level::info);
+        
+        spdlog::register_logger(logger);
+        spdlog::set_default_logger(logger);
+    }
 
     template<typename... Args>
-    void log(LogLevel level, const std::string& format, Args... args) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        
-        auto now = std::chrono::system_clock::now();
-        auto time = std::chrono::system_clock::to_time_t(now);
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-            now.time_since_epoch()) % 1000;
+    static void debug(const char* fmt, Args&&... args) {
+        spdlog::debug(fmt, std::forward<Args>(args)...);
+    }
 
-        std::tm tm = {};
-        localtime_s(&tm, &time);
+    template<typename... Args>
+    static void info(const char* fmt, Args&&... args) {
+        spdlog::info(fmt, std::forward<Args>(args)...);
+    }
 
-        char buffer[32];
-        strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &tm);
+    template<typename... Args>
+    static void warn(const char* fmt, Args&&... args) {
+        spdlog::warn(fmt, std::forward<Args>(args)...);
+    }
 
-        std::ostringstream oss;
-        oss << "[" << buffer << "." << std::setfill('0') << std::setw(3) << ms.count() << "] "
-            << "[" << getLevelString(level) << "] "
-            << formatMessage(format, args...) << "\n";
+    template<typename... Args>
+    static void error(const char* fmt, Args&&... args) {
+        spdlog::error(fmt, std::forward<Args>(args)...);
+    }
 
-        std::cout << oss.str();
-        
-        if (logFile_.is_open()) {
-            logFile_ << oss.str();
-            logFile_.flush();
-        }
+    template<typename... Args>
+    static void critical(const char* fmt, Args&&... args) {
+        spdlog::critical(fmt, std::forward<Args>(args)...);
     }
 
 private:
-    std::string getLevelString(LogLevel level) const;
-    
-    template<typename... Args>
-    std::string formatMessage(const std::string& format, Args... args) {
-        if constexpr (sizeof...(args) == 0) {
-            return format;
-        } else {
-            char buffer[4096];
-            snprintf(buffer, sizeof(buffer), format.c_str(), args...);
-            return std::string(buffer);
-        }
+    Logger() = default;
+    ~Logger() {
+        spdlog::shutdown();
     }
-
-    LogLevel currentLevel_;
-    std::ofstream logFile_;
-    std::mutex mutex_;
 };
 
-}
+} // namespace ClickFlash
+
+#define CF_DEBUG(...) ::ClickFlash::Logger::debug(__VA_ARGS__)
+#define CF_INFO(...) ::ClickFlash::Logger::info(__VA_ARGS__)
+#define CF_WARN(...) ::ClickFlash::Logger::warn(__VA_ARGS__)
+#define CF_ERROR(...) ::ClickFlash::Logger::error(__VA_ARGS__)
+#define CF_CRITICAL(...) ::ClickFlash::Logger::critical(__VA_ARGS__)

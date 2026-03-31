@@ -1,59 +1,58 @@
 #pragma once
 
-#include <string>
-#include <memory>
-#include <functional>
-#include <unordered_map>
-#include <vector>
-
-#include "services/AuthService.h"
-#include "services/CollectionService.h"
-#include "services/OrderService.h"
-#include "services/SyncService.h"
-#include "services/RealtimeService.h"
-#include "database/DatabaseManager.h"
+#include "HttpServer.h"
+#include <QObject>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <QMap>
+#include <QSet>
 
 namespace ClickFlash {
 
-class HttpServer {
+class HttpServer : public QObject {
+    Q_OBJECT
+
 public:
-    HttpServer(int port, DatabaseManager* db, AuthService* auth,
-               CollectionService* collection, OrderService* order,
-               SyncService* sync, RealtimeService* realtime);
+    explicit HttpServer(QObject* parent = nullptr);
     ~HttpServer();
-
-    bool start();
+    
+    void start(quint16 port = 8090);
     void stop();
-    bool isRunning() const { return running_; }
+    
+    Router& router() { return m_router; }
+    
+    bool isRunning() const { return m_running; }
+    quint16 port() const { return m_port; }
 
-    using RequestHandler = std::function<std::string(const std::string& body)>;
+signals:
+    void serverStarted(quint16 port);
+    void serverStopped();
+    void requestReceived(const QString& method, const QString& path);
+    void clientConnected(const QString& address);
+    void clientDisconnected(const QString& address);
 
-    void registerRoute(const std::string& method, const std::string& path, RequestHandler handler);
-    void registerMiddleware(RequestHandler middleware);
+private slots:
+    void onNewConnection();
+    void onSocketReadyRead();
+    void onSocketDisconnected();
 
 private:
-    void handleRequest(const std::string& method, const std::string& path, 
-                      const std::string& body, std::string& response);
-    std::string handleAuth(const std::string& body);
-    std::string handleCollections(const std::string& body);
-    std::string handleOrders(const std::string& body);
-    std::string handleSync(const std::string& body);
-    std::string handleFiles(const std::string& body);
-    std::string handleSystem(const std::string& body);
-
-    int port_;
-    bool running_;
-    std::thread serverThread_;
-
-    DatabaseManager* db_;
-    AuthService* auth_;
-    CollectionService* collection_;
-    OrderService* order_;
-    SyncService* sync_;
-    RealtimeService* realtime_;
-
-    std::unordered_map<std::string, std::unordered_map<std::string, RequestHandler>> routes_;
-    std::vector<RequestHandler> middlewares_;
+    void handleRequest(QTcpSocket* socket);
+    HttpRequest parseRequest(const QByteArray& data);
+    void sendResponse(QTcpSocket* socket, const HttpResponse& response);
+    QString getClientIp(QTcpSocket* socket) const;
+    
+    bool parseStatusLine(const QByteArray& line, QString& method, QString& path, QString& version);
+    QVariantMap parseHeaders(const QList<QByteArray>& lines);
+    QByteArray buildResponse(const HttpResponse& response);
+    
+    QTcpServer* m_server;
+    Router m_router;
+    QSet<QTcpSocket*> m_clients;
+    QMap<QTcpSocket*, QByteArray> m_buffers;
+    
+    bool m_running;
+    quint16 m_port;
 };
 
-}
+} // namespace ClickFlash

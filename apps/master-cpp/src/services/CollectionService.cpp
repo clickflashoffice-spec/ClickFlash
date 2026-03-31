@@ -1,200 +1,253 @@
 #include "services/CollectionService.h"
 #include "database/DatabaseManager.h"
-#include <sstream>
-#include <random>
-#include <iomanip>
+#include "core/Logger.h"
+#include <QUuid>
+#include <QDateTime>
 
 namespace ClickFlash {
 
-CollectionService::CollectionService(DatabaseManager* db) : db_(db) {}
-
-int64_t CollectionService::createAlbum(const std::string& name, const std::string& description,
-                                        int64_t photographerId, const std::string& eventDate) {
-    std::string accessCode = generateRandomCode(6);
-    
-    std::ostringstream sql;
-    sql << "INSERT INTO albums (name, description, photographer_id, event_date, status, access_code, created_at) "
-        << "VALUES ('" << name << "', '" << description << "', " << photographerId 
-        << ", '" << eventDate << "', 'active', '" << accessCode << "', datetime('now'))";
-    
-    db_->execute(sql.str());
-    return db_->getLastInsertRowId();
-}
-
-bool CollectionService::updateAlbum(int64_t albumId, const std::string& name, 
-                                     const std::string& description, const std::string& status) {
-    std::ostringstream sql;
-    sql << "UPDATE albums SET name = '" << name << "', description = '" << description 
-        << "', status = '" << status << "', updated_at = datetime('now') WHERE id = " << albumId;
-    return db_->execute(sql.str());
-}
-
-bool CollectionService::deleteAlbum(int64_t albumId) {
-    db_->execute("DELETE FROM photos WHERE album_id = " + std::to_string(albumId));
-    return db_->execute("DELETE FROM albums WHERE id = " + std::to_string(albumId));
-}
-
-std::optional<CollectionService::Album> CollectionService::getAlbum(int64_t albumId) {
-    auto result = db_->queryMultiple("SELECT id, name, description, photographer_id, event_date, status, access_code FROM albums WHERE id = " + std::to_string(albumId));
-    if (result.empty()) return std::nullopt;
-    
-    Album album;
-    album.id = std::stoll(result[0][0]);
-    album.name = result[0][1];
-    album.description = result[0][2];
-    album.photographerId = std::stoll(result[0][3]);
-    album.eventDate = result[0][4];
-    album.status = result[0][5];
-    album.accessCode = result[0][6];
-    return album;
-}
-
-std::optional<CollectionService::Album> CollectionService::getAlbumByAccessCode(const std::string& accessCode) {
-    auto result = db_->queryMultiple("SELECT id, name, description, photographer_id, event_date, status, access_code FROM albums WHERE access_code = '" + accessCode + "'");
-    if (result.empty()) return std::nullopt;
-    
-    Album album;
-    album.id = std::stoll(result[0][0]);
-    album.name = result[0][1];
-    album.description = result[0][2];
-    album.photographerId = std::stoll(result[0][3]);
-    album.eventDate = result[0][4];
-    album.status = result[0][5];
-    album.accessCode = result[0][6];
-    return album;
-}
-
-std::vector<CollectionService::Album> CollectionService::getAllAlbums() {
-    auto result = db_->queryMultiple("SELECT id, name, description, photographer_id, event_date, status, access_code FROM albums ORDER BY created_at DESC");
-    std::vector<Album> albums;
-    
-    for (const auto& row : result) {
-        Album album;
-        album.id = std::stoll(row[0]);
-        album.name = row[1];
-        album.description = row[2];
-        album.photographerId = std::stoll(row[3]);
-        album.eventDate = row[4];
-        album.status = row[5];
-        album.accessCode = row[6];
-        albums.push_back(album);
+QJsonArray CollectionService::list(const QString& collection, const QJsonObject& filters) {
+    QString table = mapCollectionToTable(collection);
+    if (table.isEmpty()) {
+        CF_WARN("Unknown collection: {}", collection.toStdString());
+        return QJsonArray();
     }
-    return albums;
-}
 
-std::vector<CollectionService::Album> CollectionService::getAlbumsByPhotographer(int64_t photographerId) {
-    auto result = db_->queryMultiple("SELECT id, name, description, photographer_id, event_date, status, access_code FROM albums WHERE photographer_id = " + std::to_string(photographerId));
-    std::vector<Album> albums;
-    
-    for (const auto& row : result) {
-        Album album;
-        album.id = std::stoll(row[0]);
-        album.name = row[1];
-        album.description = row[2];
-        album.photographerId = std::stoll(row[3]);
-        album.eventDate = row[4];
-        album.status = row[5];
-        album.accessCode = row[6];
-        albums.push_back(album);
+    DatabaseManager& db = DatabaseManager::instance();
+
+    QString sql = QString("SELECT * FROM %1").arg(table);
+
+    QVariantMap params;
+
+    if (!filters.isEmpty()) {
+        QStringList conditions;
+        for (auto it = filters.begin(); it != filters.end(); ++it) {
+            conditions.append(QString("%1 = :%1").arg(it.key()));
+            params[it.key()] = it.value().toVariant();
+        }
+        sql += " WHERE " + conditions.join(" AND ");
     }
-    return albums;
-}
 
-int64_t CollectionService::addPhoto(int64_t albumId, const std::string& filename,
-                                     const std::string& originalPath, int width, int height, int64_t fileSize) {
-    std::ostringstream sql;
-    sql << "INSERT INTO photos (album_id, filename, original_path, width, height, file_size, imported_at) "
-        << "VALUES (" << albumId << ", '" << filename << "', '" << originalPath << "', " 
-        << width << ", " << height << ", " << fileSize << ", datetime('now'))";
-    
-    db_->execute(sql.str());
-    return db_->getLastInsertRowId();
-}
+    sql += " ORDER BY created_at DESC";
 
-bool CollectionService::updatePhoto(int64_t photoId, const std::string& rating, bool isFavorite, bool isRejected) {
-    std::ostringstream sql;
-    sql << "UPDATE photos SET rating = '" << rating << "', is_favorite = " << (isFavorite ? 1 : 0) 
-        << ", is_rejected = " << (isRejected ? 1 : 0) << " WHERE id = " << photoId;
-    return db_->execute(sql.str());
-}
-
-bool CollectionService::deletePhoto(int64_t photoId) {
-    return db_->execute("DELETE FROM photos WHERE id = " + std::to_string(photoId));
-}
-
-std::optional<CollectionService::Photo> CollectionService::getPhoto(int64_t photoId) {
-    auto result = db_->queryMultiple("SELECT id, album_id, filename, original_path, thumbnail_path, preview_path, full_path, width, height, file_size, rating, is_favorite, is_rejected, preset FROM photos WHERE id = " + std::to_string(photoId));
-    if (result.empty()) return std::nullopt;
-    
-    Photo photo;
-    photo.id = std::stoll(result[0][0]);
-    photo.albumId = std::stoll(result[0][1]);
-    photo.filename = result[0][2];
-    photo.originalPath = result[0][3];
-    photo.thumbnailPath = result[0][4];
-    photo.previewPath = result[0][5];
-    photo.fullPath = result[0][6];
-    photo.width = std::stoi(result[0][7]);
-    photo.height = std::stoi(result[0][8]);
-    photo.fileSize = std::stoll(result[0][9]);
-    photo.rating = result[0][10];
-    photo.isFavorite = result[0][11] == "1";
-    photo.isRejected = result[0][12] == "1";
-    photo.preset = result[0][13];
-    return photo;
-}
-
-std::vector<CollectionService::Photo> CollectionService::getPhotosByAlbum(int64_t albumId) {
-    auto result = db_->queryMultiple("SELECT id, album_id, filename, original_path, thumbnail_path, preview_path, full_path, width, height, file_size, rating, is_favorite, is_rejected, preset FROM photos WHERE album_id = " + std::to_string(albumId));
-    std::vector<Photo> photos;
-    
-    for (const auto& row : result) {
-        Photo photo;
-        photo.id = std::stoll(row[0]);
-        photo.albumId = std::stoll(row[1]);
-        photo.filename = row[2];
-        photo.originalPath = row[3];
-        photo.thumbnailPath = row[4];
-        photo.previewPath = row[5];
-        photo.fullPath = row[6];
-        photo.width = std::stoi(row[7]);
-        photo.height = std::stoi(row[8]);
-        photo.fileSize = std::stoll(row[9]);
-        photo.rating = row[10];
-        photo.isFavorite = row[11] == "1";
-        photo.isRejected = row[12] == "1";
-        photo.preset = row[13];
-        photos.push_back(photo);
+    if (filters.contains("limit")) {
+        sql += " LIMIT :limit";
+        params["limit"] = filters.value("limit").toInt();
     }
-    return photos;
-}
 
-std::vector<CollectionService::Photo> CollectionService::getFavoritePhotos(int64_t albumId) {
-    return getPhotosByAlbum(albumId);
-}
-
-std::vector<CollectionService::Photo> CollectionService::getRejectedPhotos(int64_t albumId) {
-    return getPhotosByAlbum(albumId);
-}
-
-bool CollectionService::generateAccessCode(int64_t albumId) {
-    std::string code = generateRandomCode(6);
-    std::ostringstream sql;
-    sql << "UPDATE albums SET access_code = '" << code << "' WHERE id = " << albumId;
-    return db_->execute(sql.str());
-}
-
-std::string CollectionService::generateRandomCode(int length) {
-    const char chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dist(0, sizeof(chars) - 2);
-    
-    std::string code;
-    for (int i = 0; i < length; ++i) {
-        code += chars[dist(gen)];
+    if (filters.contains("offset")) {
+        sql += " OFFSET :offset";
+        params["offset"] = filters.value("offset").toInt();
     }
-    return code;
+
+    auto results = db.executeQueryMultiple(sql, params);
+
+    QJsonArray items;
+    for (const auto& row : results) {
+        items.append(mapRowToObject(row));
+    }
+
+    return items;
 }
 
+QJsonObject CollectionService::get(const QString& collection, const QString& id) {
+    QString table = mapCollectionToTable(collection);
+    if (table.isEmpty()) {
+        return QJsonObject();
+    }
+
+    DatabaseManager& db = DatabaseManager::instance();
+
+    auto result = db.executeQuery(
+        QString("SELECT * FROM %1 WHERE id = :id OR uuid = :uuid").arg(table),
+        {{"id", id}, {"uuid", id}}
+    );
+
+    if (result.isEmpty()) {
+        return QJsonObject();
+    }
+
+    return mapRowToObject(result);
 }
+
+QJsonObject CollectionService::create(const QString& collection, const QJsonObject& data) {
+    QString table = mapCollectionToTable(collection);
+    if (table.isEmpty()) {
+        return QJsonObject();
+    }
+
+    DatabaseManager& db = DatabaseManager::instance();
+
+    QJsonObject record = data;
+    if (!data.contains("uuid")) {
+        record["uuid"] = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    }
+    if (!data.contains("created_at")) {
+        record["created_at"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+    }
+    if (!data.contains("updated_at")) {
+        record["updated_at"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+    }
+
+    QVariantMap params;
+    QStringList fields;
+    QStringList placeholders;
+
+    for (auto it = record.begin(); it != record.end(); ++it) {
+        fields.append(it.key());
+        placeholders.append(":" + it.key());
+        params[it.key()] = it.value().toVariant();
+    }
+
+    QString sql = QString("INSERT INTO %1 (%2) VALUES (%3)").arg(table, fields.join(", "), placeholders.join(", "));
+
+    if (!db.execute(sql, params)) {
+        CF_ERROR("Failed to create record in {}", table.toStdString());
+        return QJsonObject();
+    }
+
+    QString lastId = db.lastInsertId();
+    record["id"] = lastId.toInt();
+
+    CF_DEBUG("Created record in {}: {}", table.toStdString(), lastId.toStdString());
+
+    return record;
+}
+
+QJsonObject CollectionService::update(const QString& collection, const QString& id, const QJsonObject& data) {
+    QString table = mapCollectionToTable(collection);
+    if (table.isEmpty()) {
+        return QJsonObject();
+    }
+
+    DatabaseManager& db = DatabaseManager::instance();
+
+    QJsonObject record = data;
+    record["updated_at"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+
+    QVariantMap params;
+    QStringList setClauses;
+
+    for (auto it = record.begin(); it != record.end(); ++it) {
+        setClauses.append(QString("%1 = :set_%2").arg(it.key(), it.key()));
+        params[QString("set_%1").arg(it.key())] = it.value().toVariant();
+    }
+
+    params["id"] = id;
+    params["uuid"] = id;
+
+    QString sql = QString("UPDATE %1 SET %2 WHERE id = :id OR uuid = :uuid").arg(table, setClauses.join(", "));
+
+    if (!db.execute(sql, params)) {
+        CF_ERROR("Failed to update record in {}", table.toStdString());
+        return QJsonObject();
+    }
+
+    CF_DEBUG("Updated record in {}: {}", table.toStdString(), id.toStdString());
+
+    return get(collection, id);
+}
+
+bool CollectionService::remove(const QString& collection, const QString& id) {
+    QString table = mapCollectionToTable(collection);
+    if (table.isEmpty()) {
+        return false;
+    }
+
+    DatabaseManager& db = DatabaseManager::instance();
+
+    bool success = db.execute(
+        QString("DELETE FROM %1 WHERE id = :id OR uuid = :uuid").arg(table),
+        {{"id", id}, {"uuid", id}}
+    );
+
+    if (success) {
+        CF_DEBUG("Deleted record from {}: {}", table.toStdString(), id.toStdString());
+    }
+
+    return success;
+}
+
+QJsonArray CollectionService::query(const QString& collection, const QString& sql, const QJsonObject& params) {
+    Q_UNUSED(collection);
+    Q_UNUSED(sql);
+    Q_UNUSED(params);
+    return QJsonArray();
+}
+
+QJsonArray CollectionService::getAlbums(const QJsonObject& filters) {
+    return list("albums", filters);
+}
+
+QJsonArray CollectionService::getPhotos(const QString& albumId, const QJsonObject& filters) {
+    QJsonObject allFilters = filters;
+    if (!albumId.isEmpty()) {
+        allFilters["album_id"] = albumId;
+    }
+    return list("photos", allFilters);
+}
+
+QJsonArray CollectionService::getOrders(const QJsonObject& filters) {
+    return list("orders", filters);
+}
+
+QJsonArray CollectionService::getBookings(const QJsonObject& filters) {
+    return list("bookings", filters);
+}
+
+QJsonArray CollectionService::getUsers(const QJsonObject& filters) {
+    return list("users", filters);
+}
+
+QJsonArray CollectionService::getProducts(const QJsonObject& filters) {
+    return list("products", filters);
+}
+
+QJsonArray CollectionService::getKiosks(const QJsonObject& filters) {
+    return list("kiosks", filters);
+}
+
+QString CollectionService::mapCollectionToTable(const QString& collection) {
+    static QMap<QString, QString> mapping = {
+        {"users", "users"},
+        {"albums", "albums"},
+        {"photos", "photos"},
+        {"orders", "orders"},
+        {"order_items", "order_items"},
+        {"products", "products"},
+        {"bookings", "bookings"},
+        {"session_types", "session_types"},
+        {"packs", "packs"},
+        {"destinations", "destinations"},
+        {"kiosks", "kiosks"},
+        {"settings", "settings"},
+        {"expenses", "expenses"},
+        {"daily_objectives", "daily_objectives"},
+        {"login_history", "login_history"},
+        {"operation_logs", "operation_logs"},
+        {"sync_sequences", "sync_sequences"},
+        {"photographer_ledger", "photographer_ledger"},
+        {"gallery_tokens", "gallery_tokens"},
+        {"gallery_orders", "gallery_orders"},
+        {"marketing_campaigns", "marketing_campaigns"},
+        {"assistance_requests", "assistance_requests"},
+        {"processing_queue", "processing_queue"},
+        {"fulfillment_queue", "fulfillment_queue"},
+        {"ai_scores", "ai_scores"},
+        {"ai_groups", "ai_groups"},
+        {"faces", "faces"},
+        {"face_persons", "face_persons"}
+    };
+
+    return mapping.value(collection, "");
+}
+
+QJsonObject CollectionService::mapRowToObject(const QVariantMap& row) {
+    QJsonObject obj;
+    for (auto it = row.begin(); it != row.end(); ++it) {
+        obj[it.key()] = QJsonValue::fromVariant(it.value());
+    }
+    return obj;
+}
+
+} // namespace ClickFlash

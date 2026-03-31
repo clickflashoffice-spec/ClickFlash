@@ -1,142 +1,253 @@
 #include "services/AuthService.h"
-#include "database/DatabaseManager.h"
-#include <sstream>
-#include <random>
-#include <ctime>
+#include "core/Logger.h"
+#include "core/Config.h"
+#include "utils/PasswordHash.h"
+#include "utils/JwtHelper.h"
+#include <QUuid>
+#include <QDateTime>
 
 namespace ClickFlash {
 
-AuthService::AuthService(DatabaseManager* db) : db_(db) {}
+QJsonObject AuthService::login(const QString& email, const QString& password, const QString& ipAddress) {
+    QJsonObject result;
 
-AuthService::LoginResult AuthService::login(const std::string& username, const std::string& password) {
-    LoginResult result;
-    result.success = false;
+    DatabaseManager& db = DatabaseManager::instance();
 
-    auto userData = db_->queryMultiple("SELECT id, username, password_hash, email, role, is_active FROM users WHERE username = '" + username + "'");
-    
-    if (userData.empty()) {
-        result.error = "User not found";
+    auto userResult = db.executeQuery(
+        "SELECT id, uuid, email, password_hash, name, role, avatar_url, active FROM users WHERE email = :email",
+        {{"email", email}}
+    );
+
+    if (userResult.isEmpty()) {
+        db.execute(
+            "INSERT INTO login_history (email, ip_address, success, failure_reason, created_at) VALUES (:email, :ip, 0, 'user_not_found', :now)",
+            {{"email", email}, {"ip", ipAddress}, {"now", QDateTime::currentDateTime().toString(Qt::ISODate)}}
+        );
+        CF_WARN("Login failed: user not found - {}", email.toStdString());
         return result;
     }
 
-    const auto& row = userData[0];
-    if (!verifyPassword(password, row[2])) {
-        result.error = "Invalid password";
+    int userId = userResult.value("id").toInt();
+    QString storedHash = userResult.value("password_hash").toString();
+    bool active = userResult.value("active").toInt() == 1;
+
+    if (!active) {
+        db.execute(
+            "INSERT INTO login_history (user_id, email, ip_address, success, failure_reason, created_at) VALUES (:userId, :email, :ip, 0, 'account_inactive', :now)",
+            {{"userId", userId}, {"email", email}, {"ip", ipAddress}, {"now", QDateTime::currentDateTime().toString(Qt::ISODate)}}
+        );
+        CF_WARN("Login failed: account inactive - {}", email.toStdString());
         return result;
     }
 
-    if (row[5] != "1") {
-        result.error = "Account is inactive";
+    if (!verifyPassword(password, storedHash)) {
+        db.execute(
+            "INSERT INTO login_history (user_id, email, ip_address, success, failure_reason, created_at) VALUES (:userId, :email, :ip, 0, 'invalid_password', :now)",
+            {{"userId", userId}, {"email", email}, {"ip", ipAddress}, {"now", QDateTime::currentDateTime().toString(Qt::ISODate)}}
+        );
+        CF_WARN("Login failed: invalid password - {}", email.toStdString());
         return result;
     }
 
-    result.success = true;
-    result.token = generateToken(std::stoll(row[0]));
-    result.user.id = std::stoll(row[0]);
-    result.user.username = row[1];
-    result.user.email = row[3];
-    result.user.role = row[4];
-    result.user.isActive = true;
+    QString token = generateToken();
+    QString tokenHash = QString::fromLatin1(QCryptographicHash::hash(token.toLatin1(), QCryptographicHash::Sha256).toHex());
 
-    tokenToUserId_[result.token] = result.user.id;
+    QDateTime expires = QDateTime::currentDateTime().addDays(Config::instance().getJwtExpiryDays());
+    QString expiresAt = expires.toString(Qt::ISODate);
 
+    db.execute(
+        "INSERT INTO sessions (uuid, user_id, token_hash, expires_at, ip_address, created_at) VALUES (:uuid, :userId, :tokenHash, :expires, :ip, :now)",
+        {
+            {"uuid", QUuid::createUuid().toString(QUuid::WithoutBraces)},
+            {"userId", userId},
+            {"tokenHash", tokenHash},
+            {"expires", expiresAt},
+            {"ip", ipAddress},
+            {"now", QDateTime::currentDateTime().toString(Qt::ISODate)}
+        }
+    );
+
+    db.execute(
+        "INSERT INTO login_history (user_id, email, ip_address, success, created_at) VALUES (:userId, :email, :ip, 1, :now)",
+        {{"userId", userId}, {"email", email}, {"ip", ipAddress}, {"now", QDateTime::currentDateTime().toString(Qt::ISODate)}}
+    );
+
+    QJsonObject payload = QJsonObject{
+        {"userId", userId},
+        {"uuid", userResult.value("uuid").toString()},
+        {"email", email},
+        {"role", userResult.value("role").toString()},
+        {"exp", expires.toSecsSinceEpoch()}
+    };
+
+    QString jwtToken = JwtHelper::generateToken(payload);
+
+    result = QJsonObject{
+        {"token", jwtToken},
+        {"expiresAt", expiresAt},
+        {"user", QJsonObject{
+            {"id", userId},
+            {"uuid", userResult.value("uuid").toString()},
+            {"email", email},
+            {"name", userResult.value("name").toString()},
+            {"role", userResult.value("role").toString()},
+            {"avatarUrl", userResult.value("avatar_url").toString()}
+        }}
+    };
+
+    CF_INFO("User logged in: {}", email.toStdString());
     return result;
 }
 
-bool AuthService::logout(const std::string& token) {
-    auto it = tokenToUserId_.find(token);
-    if (it != tokenToUserId_.end()) {
-        tokenToUserId_.erase(it);
-        return true;
+QJsonObject AuthService::registerUser(const QJsonObject& userData) {
+    QJsonObject result;
+
+    QString email = userData.value("email").toString();
+    QString password = userData.value("password").toString();
+    QString name = userData.value("name").toString();
+    QString role = userData.value("role").toString("Photographer");
+
+    if (email.isEmpty() || password.isEmpty() || name.isEmpty()) {
+        CF_WARN("Registration failed: missing required fields");
+        return result;
     }
-    return false;
-}
 
-bool AuthService::validateToken(const std::string& token) {
-    return tokenToUserId_.find(token) != tokenToUserId_.end();
-}
+    DatabaseManager& db = DatabaseManager::instance();
 
-std::optional<AuthService::User> AuthService::getUserById(int64_t userId) {
-    auto userData = db_->queryMultiple("SELECT id, username, email, role, is_active FROM users WHERE id = " + std::to_string(userId));
-    if (userData.empty()) return std::nullopt;
+    auto existingUser = db.executeQuery(
+        "SELECT id FROM users WHERE email = :email",
+        {{"email", email}}
+    );
 
-    User user;
-    user.id = std::stoll(userData[0][0]);
-    user.username = userData[0][1];
-    user.email = userData[0][2];
-    user.role = userData[0][3];
-    user.isActive = userData[0][4] == "1";
-    return user;
-}
-
-std::optional<AuthService::User> AuthService::getUserByUsername(const std::string& username) {
-    auto userData = db_->queryMultiple("SELECT id, username, email, role, is_active FROM users WHERE username = '" + username + "'");
-    if (userData.empty()) return std::nullopt;
-
-    User user;
-    user.id = std::stoll(userData[0][0]);
-    user.username = userData[0][1];
-    user.email = userData[0][2];
-    user.role = userData[0][3];
-    user.isActive = userData[0][4] == "1";
-    return user;
-}
-
-bool AuthService::createUser(const std::string& username, const std::string& password,
-                              const std::string& email, const std::string& role) {
-    std::string hash = hashPassword(password);
-    std::ostringstream sql;
-    sql << "INSERT INTO users (username, password_hash, email, role, is_active, created_at) "
-        << "VALUES ('" << username << "', '" << hash << "', '" << email << "', '" 
-        << role << "', 1, datetime('now'))";
-    return db_->execute(sql.str());
-}
-
-bool AuthService::updateUser(int64_t userId, const std::string& email, const std::string& role) {
-    std::ostringstream sql;
-    sql << "UPDATE users SET email = '" << email << "', role = '" << role << "', updated_at = datetime('now') WHERE id = " << userId;
-    return db_->execute(sql.str());
-}
-
-bool AuthService::deleteUser(int64_t userId) {
-    return db_->execute("DELETE FROM users WHERE id = " + std::to_string(userId));
-}
-
-std::vector<AuthService::User> AuthService::getAllUsers() {
-    auto userData = db_->queryMultiple("SELECT id, username, email, role, is_active FROM users");
-    std::vector<User> users;
-    
-    for (const auto& row : userData) {
-        User user;
-        user.id = std::stoll(row[0]);
-        user.username = row[1];
-        user.email = row[2];
-        user.role = row[3];
-        user.isActive = row[4] == "1";
-        users.push_back(user);
+    if (!existingUser.isEmpty()) {
+        CF_WARN("Registration failed: email already exists - {}", email.toStdString());
+        return result;
     }
-    return users;
+
+    QString passwordHash = hashPassword(password);
+    QString uuid = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    QString now = QDateTime::currentDateTime().toString(Qt::ISODate);
+
+    db.execute(
+        "INSERT INTO users (uuid, email, password_hash, name, role, active, created_at, updated_at) VALUES (:uuid, :email, :passwordHash, :name, :role, 1, :now, :now)",
+        {
+            {"uuid", uuid},
+            {"email", email},
+            {"passwordHash", passwordHash},
+            {"name", name},
+            {"role", role},
+            {"now", now}
+        }
+    );
+
+    QString lastId = db.lastInsertId();
+
+    result = QJsonObject{
+        {"id", lastId.toInt()},
+        {"uuid", uuid},
+        {"email", email},
+        {"name", name},
+        {"role", role}
+    };
+
+    CF_INFO("User registered: {}", email.toStdString());
+    return result;
 }
 
-std::string AuthService::generateToken(int64_t userId) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, 15);
-    
-    std::string token;
-    const char hex[] = "0123456789abcdef";
-    for (int i = 0; i < 32; ++i) {
-        token += hex[dis(gen)];
+bool AuthService::logout(const QString& token) {
+    DatabaseManager& db = DatabaseManager::instance();
+
+    QString tokenHash = QString::fromLatin1(QCryptographicHash::hash(token.toLatin1(), QCryptographicHash::Sha256).toHex());
+
+    bool success = db.execute(
+        "DELETE FROM sessions WHERE token_hash = :tokenHash",
+        {{"tokenHash", tokenHash}}
+    );
+
+    if (success) {
+        CF_INFO("User logged out");
     }
-    return token;
+
+    return success;
 }
 
-std::string AuthService::hashPassword(const std::string& password) {
-    return password + "_hashed";
+QJsonObject AuthService::validateSession(const QString& token) {
+    if (!JwtHelper::validateToken(token)) {
+        return QJsonObject();
+    }
+
+    return JwtHelper::parsePayload(token);
 }
 
-bool AuthService::verifyPassword(const std::string& password, const std::string& hash) {
-    return (password + "_hashed") == hash;
+QJsonObject AuthService::getCurrentUser(const QString& token) {
+    QJsonObject payload = validateSession(token);
+    if (payload.isEmpty()) {
+        return QJsonObject();
+    }
+
+    int userId = payload.value("userId").toInt();
+
+    DatabaseManager& db = DatabaseManager::instance();
+
+    auto userResult = db.executeQuery(
+        "SELECT id, uuid, email, name, role, avatar_url FROM users WHERE id = :id",
+        {{"id", userId}}
+    );
+
+    if (userResult.isEmpty()) {
+        return QJsonObject();
+    }
+
+    return QJsonObject{
+        {"id", userResult.value("id").toInt()},
+        {"uuid", userResult.value("uuid").toString()},
+        {"email", userResult.value("email").toString()},
+        {"name", userResult.value("name").toString()},
+        {"role", userResult.value("role").toString()},
+        {"avatarUrl", userResult.value("avatar_url").toString()}
+    };
 }
 
+bool AuthService::deleteSession(const QString& token) {
+    QString tokenHash = QString::fromLatin1(QCryptographicHash::hash(token.toLatin1(), QCryptographicHash::Sha256).toHex());
+
+    DatabaseManager& db = DatabaseManager::instance();
+    return db.execute("DELETE FROM sessions WHERE token_hash = :tokenHash", {{"tokenHash", tokenHash}});
 }
+
+QJsonArray AuthService::getLoginHistory(int userId, int limit) {
+    DatabaseManager& db = DatabaseManager::instance();
+
+    auto results = db.executeQueryMultiple(
+        "SELECT email, ip_address, success, failure_reason, created_at FROM login_history WHERE user_id = :userId ORDER BY created_at DESC LIMIT :limit",
+        {{"userId", userId}, {"limit", limit}}
+    );
+
+    QJsonArray history;
+    for (const auto& row : results) {
+        history.append(QJsonObject{
+            {"email", row.value("email")},
+            {"ipAddress", row.value("ip_address")},
+            {"success", row.value("success").toInt() == 1},
+            {"failureReason", row.value("failure_reason")},
+            {"createdAt", row.value("created_at")}
+        });
+    }
+
+    return history;
+}
+
+QString AuthService::hashPassword(const QString& password) {
+    return PasswordHash::hash(password);
+}
+
+bool AuthService::verifyPassword(const QString& password, const QString& hash) {
+    return PasswordHash::verify(password, hash);
+}
+
+QString AuthService::generateToken() {
+    return QUuid::createUuid().toString(QUuid::WithoutBraces) + 
+           QUuid::createUuid().toString(QUuid::WithoutBraces);
+}
+
+} // namespace ClickFlash

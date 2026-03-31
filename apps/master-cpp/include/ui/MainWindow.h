@@ -1,34 +1,64 @@
 #pragma once
 
-#include <string>
-#include <memory>
-#include <functional>
+#include <QMainWindow>
+#include <QStackedWidget>
+#include <QMap>
+#include <QString>
+#include <QLabel>
+#include <QPushButton>
+#include <QTimer>
 
 namespace ClickFlash {
 
-class MainWindow {
+class NavigationSidebar;
+
+class MainWindow : public QMainWindow {
+    Q_OBJECT
+
 public:
-    MainWindow();
+    explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
-    void show();
-    void hide();
-    void close();
+    void navigateTo(const QString& viewName);
+    void showKioskMode(bool enabled);
+    void lockKiosk();
 
-    void setTitle(const std::string& title);
-    std::string getTitle() const { return title_; }
+signals:
+    void viewChanged(const QString& viewName);
+    void kioskModeChanged(bool enabled);
 
-    void showNotification(const std::string& message);
-    void showError(const std::string& error);
-    void showSuccess(const std::string& message);
+public slots:
+    void onUnlockRequested();
+    void onLockRequested();
 
-    bool isVisible() const { return visible_; }
+private slots:
+    void updateTime();
+    void checkKioskTimeout();
+
+protected:
+    void closeEvent(QCloseEvent* event) override;
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
-    std::string title_;
-    bool visible_;
-    int width_;
-    int height_;
+    void setupUi();
+    void setupNavigation();
+    void setupKioskMode();
+    void setupStatusBar();
+    void applyTheme();
+
+    QStackedWidget* m_contentStack;
+    NavigationSidebar* m_sidebar;
+    
+    QLabel* m_timeLabel;
+    QLabel* m_statusLabel;
+    QPushButton* m_kioskButton;
+    
+    bool m_kioskMode;
+    bool m_kioskLocked;
+    QTimer* m_kioskTimer;
+    QTimer* m_clockTimer;
+    
+    QMap<QString, QWidget*> m_views;
 };
 
-}
+} // namespace ClickFlash

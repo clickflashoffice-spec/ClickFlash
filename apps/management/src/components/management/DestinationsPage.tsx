@@ -269,7 +269,8 @@ const DestinationsPage: React.FC = () => {
     <div className="animate-fadeIn pb-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-1">Ecosystem</p>`n          <h1 className="text-2xl font-black text-white tracking-tight">
+          <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-1">Ecosystem</p>
+          <h1 className="text-2xl font-black text-white tracking-tight">
             Destinations
           </h1>
           <p className="text-slate-400 text-xs font-bold tracking-widest uppercase mt-1">

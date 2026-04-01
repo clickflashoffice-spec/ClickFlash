@@ -53,8 +53,9 @@
     "node_modules",
     "dist",
     "release",
-    "backend/node_modules",
+    "backend",
     "tests",
+    "**/__tests__/**",
     "playwright.config.ts",
     "jest.config.ts",
     "vite.config.ts"

@@ -165,11 +165,13 @@ export default function fileRoutes(context: FilesContext): Router {
       }
     }
 
-    const normalizedTargetDir = path.normalize(targetDir);
-    const normalizedFilepath = path.normalize(filepath);
+    const normalizedTargetDir = path.resolve(targetDir);
+    const normalizedFilepath = path.resolve(filepath);
 
-    // Security check: Ensure we're still within UPLOAD_DIR
-    if (!normalizedFilepath.startsWith(normalizedTargetDir)) {
+    // Security check: Ensure resolved path is strictly inside UPLOAD_DIR.
+    // Append sep so /uploads never accidentally matches /uploads2 etc.
+    if (!normalizedFilepath.startsWith(normalizedTargetDir + path.sep) &&
+        normalizedFilepath !== normalizedTargetDir) {
       sendFileError(
         res,
         "Invalid file path. Security check failed.",

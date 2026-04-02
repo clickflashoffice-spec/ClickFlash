@@ -174,6 +174,19 @@ function setupIpcHandlers(): void {
     return options?.multiple ? result.filePaths : result.filePaths[0];
   });
 
+  ipcMain.handle('dialog:saveFile', async (_event, options) => {
+    const win = windowManager?.mainWindow;
+    if (!win) return null;
+
+    const result = await dialog.showSaveDialog(win, {
+      title: options?.title || 'Save File',
+      filters: options?.filters,
+      defaultPath: options?.defaultPath,
+    });
+
+    return result.canceled ? null : result.filePath;
+  });
+
   // Backend IPC
   ipcMain.handle('backend:restart', async () => {
     try {

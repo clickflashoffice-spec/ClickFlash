@@ -46,6 +46,7 @@ console.log(`[Environment] Running in ${isElectron ? "Electron" : "Web"} mode`);
 // Middleware
 import { createSessionMiddleware } from "./middleware/session";
 import { csrfMiddleware } from "./middleware/csrf";
+import { authMiddleware } from "./middleware/auth";
 
 // Routes
 import authRoutes from "./routes/auth";
@@ -435,6 +436,29 @@ app.use(
 
 app.use(createSessionMiddleware());
 app.use(csrfMiddleware);
+
+// Global API auth — protects all /api/* routes that are not explicitly public.
+// Paths in this list are accessible without a user session (kiosk pairing,
+// gallery client auth, Stripe webhooks, etc.).  Everything else requires a
+// valid session cookie or Bearer JWT.
+const PUBLIC_API_PREFIXES = [
+  '/auth',              // login, logout, QR session, magic-link
+  '/health',            // health check (federated diagnostics)
+  '/gallery-auth',      // gallery client authentication
+  '/gallery-checkout',  // Stripe / payment webhook (no user context)
+  '/gallery',           // watermarked image serving (uses gallery JWT)
+  '/pairing',           // kiosk initial pairing handshake
+  '/assistance',        // kiosk → master assistance calls
+  '/notification',      // kiosk → master notification push
+];
+app.use('/api', (req: Request, res: Response, next: NextFunction) => {
+  if (req.method === 'OPTIONS') return next();
+  const isPublic = PUBLIC_API_PREFIXES.some(
+    (p) => req.path === p || req.path.startsWith(p + '/'),
+  );
+  if (isPublic) return next();
+  authMiddleware(req, res, next, auditLogger);
+});
 
 // CORS
 app.use((req: Request, res: Response, next: NextFunction) => {

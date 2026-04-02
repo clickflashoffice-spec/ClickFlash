@@ -13,8 +13,8 @@ const EquipmentCategorySettings: React.FC = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const data = await apiService.getEquipmentCategories();
-            setCategories(data);
+            const data = await apiService.getExpenseCategories();
+            setCategories(data as any);
         } catch (error) {
             console.error("Failed to load equipment categories", error);
         } finally {
@@ -33,9 +33,9 @@ const EquipmentCategorySettings: React.FC = () => {
 
     const handleSave = async (category: Omit<EquipmentCategory, 'id'> | EquipmentCategory) => {
         if ('id' in category) {
-            await apiService.updateEquipmentCategory(category.id, category);
+            await apiService.updateExpenseCategory(category.id, category as any);
         } else {
-            await apiService.createEquipmentCategory(category);
+            await apiService.createExpenseCategory(category as any);
         }
         setIsModalOpen(false);
         setCategoryToEdit(null);
@@ -44,7 +44,7 @@ const EquipmentCategorySettings: React.FC = () => {
     
     const handleDelete = async (id: string, label: string) => {
         if (window.confirm(`Are you sure you want to delete the category "${label}"? This cannot be undone.`)) {
-            await apiService.deleteEquipmentCategory(id);
+            await apiService.deleteExpenseCategory(id);
             fetchData();
         }
     };

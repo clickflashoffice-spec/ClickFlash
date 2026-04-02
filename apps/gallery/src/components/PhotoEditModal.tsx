@@ -24,6 +24,7 @@ const initialEdits: ManualEdits = {
     perspectiveY: 0,
     clarity: 0,
     dropShadow: 0,
+    vignette: 0,
 };
 
 interface PhotoEditModalProps {
@@ -200,7 +201,7 @@ const SliderControl: React.FC<{
 };
 
 // Grid Overlay Component for Straighten Editor
-const GridOverlay: React.FC<{ show: boolean; containerRef: React.RefObject<HTMLDivElement> }> = ({ show, containerRef }) => {
+const GridOverlay: React.FC<{ show: boolean; containerRef: React.RefObject<HTMLDivElement | null> }> = ({ show, containerRef }) => {
     const [gridSize, setGridSize] = useState({ width: 0, height: 0 });
 
     useEffect(() => {
@@ -309,7 +310,7 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({ isOpen, onClose, photo,
         if (!isOpen) return;
 
         const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.target as HTMLElement).tagName === 'INPUT' && (e.target as HTMLElement).type !== 'range') {
+            if ((e.target as HTMLElement).tagName === 'INPUT' && (e.target as HTMLInputElement).type !== 'range') {
                 return;
             }
             if (e.key === 'b' || e.key === 'B') {

@@ -260,7 +260,7 @@ const Albums: React.FC<AlbumsProps> = ({ showToast, currentUser, isOnline, refre
             return safeAlbums;
         }
 
-        let albums = can('manageAllAlbums') ? safeAlbums : safeAlbums.filter(a => a && a.photographerId === currentUser.id);
+        let albums = can('manageAllAlbums') ? safeAlbums : safeAlbums.filter(a => a && String(a.photographerId) === currentUser.id);
         if (activeTab === 'queue') {
             albums = albums.filter(a => a && a.status !== 'Finalized' && a.status !== 'Archived');
         } else if (activeTab === 'live') {
@@ -287,7 +287,7 @@ const Albums: React.FC<AlbumsProps> = ({ showToast, currentUser, isOnline, refre
                 return (
                     (album.title && album.title.toLowerCase().includes(searchLower)) ||
                     (album.roomNumber && album.roomNumber.toLowerCase().includes(searchLower)) ||
-                    (safePhotographers.find(p => p && p.id === album.photographerId)?.name || '').toLowerCase().includes(searchLower)
+                    (safePhotographers.find(p => p && p.id === String(album.photographerId))?.name || '').toLowerCase().includes(searchLower)
                 );
             })
             .sort((a, b) => {
@@ -320,7 +320,7 @@ const Albums: React.FC<AlbumsProps> = ({ showToast, currentUser, isOnline, refre
         // Ensure currentUser exists before filtering
         const userAlbums = (can('manageAllAlbums') || !currentUser || !currentUser.id)
             ? safeAlbums
-            : safeAlbums.filter(a => a && a.photographerId === currentUser.id);
+            : safeAlbums.filter(a => a && String(a.photographerId) === currentUser.id);
 
         return {
             queue: userAlbums.filter(a => a && a.status !== 'Finalized' && a.status !== 'Archived').length,
@@ -736,7 +736,7 @@ const Albums: React.FC<AlbumsProps> = ({ showToast, currentUser, isOnline, refre
                             if (!album || !album.id) {
                                 return null;
                             }
-                            const photographer = safePhotographers.find(p => p && p.id === album.photographerId);
+                            const photographer = safePhotographers.find(p => p && p.id === String(album.photographerId));
                             return (
                                 <AlbumCard
                                     key={album.id}

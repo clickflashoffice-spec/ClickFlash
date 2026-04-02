@@ -40,7 +40,7 @@ const WarehousePage: React.FC = () => {
                 apiService.getEquipment(),
                 apiService.getUsers(),
                 apiService.getDestinations(),
-                apiService.getEquipmentCategories(),
+                apiService.getExpenseCategories() as any,
             ]);
             setEquipment(equipmentData);
             setPhotographers(photographerData);
@@ -177,7 +177,7 @@ const WarehousePage: React.FC = () => {
                         </thead>
                         <tbody>
                             {filteredEquipment.map((item) => {
-                                const photographer = photographers.find(p => p.id === item.assignedToPhotographerId);
+                                const photographer = photographers.find(p => item.assignedToPhotographerId != null && p.id === String(item.assignedToPhotographerId));
                                 const destination = destinations.find(d => d.id === item.destinationId);
                                 const category = equipmentCategories.find(c => c.id === item.type);
                                 return (

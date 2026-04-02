@@ -70,14 +70,14 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser }) => {
         const filteredOrders = orders.filter(o => o.date.startsWith(payrollPeriod) && o.status === 'Completed');
         
         return photographers.map(p => {
-            const adjustmentsForPeriod = adjustments.filter(adj => 
-                adj.photographerId === p.id && adj.date.startsWith(payrollPeriod)
+            const adjustmentsForPeriod = adjustments.filter(adj =>
+                String(adj.photographerId) === p.id && adj.date.startsWith(payrollPeriod)
             );
 
             const unpaidAdjustments = adjustmentsForPeriod.filter(adj => adj.status === 'Unpaid');
             
             const totalSales = filteredOrders
-                .filter(o => o.photographerId === p.id)
+                .filter(o => String(o.photographerId) === p.id)
                 .reduce((sum, o) => sum + o.total, 0);
 
             const adjustmentsTotal = unpaidAdjustments.reduce((sum, adj) => {
@@ -119,7 +119,7 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser }) => {
         };
     }, [payrollData]);
 
-    const handleTogglePaymentStatus = (photographerId: number, isCurrentlyPaid: boolean) => {
+    const handleTogglePaymentStatus = (photographerId: string, isCurrentlyPaid: boolean) => {
         const confirmationMessage = isCurrentlyPaid
             ? "Are you sure you want to revert this payment and mark as UNPAID?"
             : "Are you sure you want to mark this photographer as PAID for this period?";
@@ -131,7 +131,7 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser }) => {
 
             setAdjustments(prevAdjustments =>
                 prevAdjustments.map(adj => {
-                    if (adj.photographerId === photographerId && adj.date.startsWith(payrollPeriod)) {
+                    if (String(adj.photographerId) === photographerId && adj.date.startsWith(payrollPeriod)) {
                         return { ...adj, status: newStatus ? 'Paid' : 'Unpaid' };
                     }
                     return adj;
@@ -154,7 +154,7 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser }) => {
             payrollData.forEach(p => {
                 if (!p.isPaid) {
                     newStatuses[`${p.id}-${payrollPeriod}`] = true;
-                    const adjustmentsToPay = adjustments.filter(adj => adj.photographerId === p.id && adj.date.startsWith(payrollPeriod));
+                    const adjustmentsToPay = adjustments.filter(adj => String(adj.photographerId) === p.id && adj.date.startsWith(payrollPeriod));
                     adjustmentsToPay.forEach(adj => adjustmentIdsToUpdate.add(adj.id));
                 }
             });
@@ -269,7 +269,7 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser }) => {
                     onClose={() => setIsAdjustmentModalOpen(false)}
                     onSave={handleSaveAdjustment}
                     photographers={photographers}
-                    preselectedPhotographerId={photographerForAdjustment.id}
+                    preselectedPhotographerId={Number(photographerForAdjustment.id)}
                 />
             )}
         </div>

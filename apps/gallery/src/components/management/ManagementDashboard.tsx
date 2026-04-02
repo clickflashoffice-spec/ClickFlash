@@ -98,7 +98,7 @@ const ManagementDashboard: React.FC = () => {
         );
     }
 
-    if (!filteredData) {
+    if (!filteredData || !data) {
         return (
             <div className="flex items-center justify-center h-full min-h-[400px]">
                 <Spinner />

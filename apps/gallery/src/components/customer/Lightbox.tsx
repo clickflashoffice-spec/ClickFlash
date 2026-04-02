@@ -285,7 +285,7 @@ const Lightbox: React.FC<LightboxProps> = ({
 
                 {/* Main Image */}
                 <div className="relative max-w-[90vw] max-h-[85vh] flex items-center justify-center overflow-hidden" onClick={e => e.stopPropagation()}>
-                    <div className="absolute inset-0 pointer-events-none z-[1]" style={{ boxShadow: editStyle.boxShadow, transform: editStyle.transform }}></div>
+                    <div className="absolute inset-0 pointer-events-none z-[1]" style={{ boxShadow: (editStyle as any).boxShadow, transform: editStyle.transform }}></div>
                     <img
                         src={activePhoto.url}
                         alt={activePhoto.title}

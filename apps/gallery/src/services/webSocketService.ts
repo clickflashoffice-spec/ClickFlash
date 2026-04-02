@@ -130,7 +130,7 @@ class WebSocketService {
             } catch (readyError) {
                 // If ready fails, try to get existing registration
                 try {
-                    registration = await navigator.serviceWorker.getRegistration();
+                    registration = await navigator.serviceWorker.getRegistration() ?? null;
                 } catch (regError) {
                     logger.warn(`[WebSocketService] Could not get service worker registration`, { 
                         clientType: this.clientType,

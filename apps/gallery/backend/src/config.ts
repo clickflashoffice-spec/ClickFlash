@@ -2,7 +2,9 @@
  * Environment Configuration for Cloudflare Worker
  */
 
-export const JWT_SECRET = 'your-256-bit-secret'; // Recommended: Use env.JWT_SECRET
+// JWT_SECRET must be set as a Cloudflare Worker secret:
+//   wrangler secret put JWT_SECRET --config apps/gallery/backend/wrangler.toml
+// It is accessed via env.JWT_SECRET at runtime.
 export const JWT_EXPIRY = '24h';
 
 export const ALLOWED_ORIGINS = [

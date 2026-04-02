@@ -11,7 +11,7 @@ interface ConnexionHistoryModalProps {
 
 const ConnexionHistoryModal: React.FC<ConnexionHistoryModalProps> = ({ isOpen, onClose, photographer }) => {
     const history = MOCK_LOGIN_HISTORY
-        .filter(h => h.photographerId === photographer.id)
+        .filter(h => String(h.photographerId) === photographer.id)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return (

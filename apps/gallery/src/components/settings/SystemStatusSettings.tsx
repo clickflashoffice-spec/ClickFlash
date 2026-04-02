@@ -140,7 +140,7 @@ const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser
         addLog("Checking Index Integrity...", 'info');
         
         try {
-            const report = await apiService.verifyDataIntegrity();
+            const report = await (apiService as any).verifyDataIntegrity();
             setProgress(60);
             
             addLog(`Indexed ${report.counts.albums} Albums, ${report.counts.photos} Photos`, 'info');
@@ -150,7 +150,7 @@ const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser
                 addLog("Data Consistency Check: PASSED", 'success');
             } else {
                 addLog(`Integrity Warnings: ${report.issues.length} Found`, 'warning');
-                report.issues.forEach(issue => addLog(`[WARN] ${issue}`, 'warning'));
+                report.issues.forEach((issue: string) => addLog(`[WARN] ${issue}`, 'warning'));
             }
 
             await new Promise(r => setTimeout(r, 300));
@@ -206,7 +206,7 @@ const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser
         addLog("Compacting Database Shards...", 'info');
         
         try {
-            const maintenance = await apiService.performMaintenance();
+            const maintenance = await (apiService as any).performMaintenance();
             if (maintenance && maintenance.success) {
                 addLog(`Maintenance: Cleaned ${maintenance.cleaned} temp files.`, 'success');
                 addLog(`Database: Compacted & Saved.`, 'success');

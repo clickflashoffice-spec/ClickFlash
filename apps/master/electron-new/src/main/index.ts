@@ -9,6 +9,7 @@ import { KIOSK, RECOVERY } from '../utils/constants';
 import { ProcessManager } from './process-manager';
 import { WindowManager } from './window-manager';
 import { KioskManager } from './kiosk-manager';
+import { getOrCreateDbKey } from '../utils/dbKey';
 
 const logger = getLogger('main');
 
@@ -39,6 +40,16 @@ async function initializeApp(): Promise<void> {
   });
 
   try {
+    // 1. Resolve DB encryption key (generate once, persist via OS keychain)
+    logger.info('Step 1a: Resolving database encryption key');
+    const dbKey = await getOrCreateDbKey();
+    if (dbKey) {
+      process.env.DB_ENCRYPTION_KEY = dbKey;
+      logger.info('Step 1a: DB encryption key ready');
+    } else {
+      logger.warn('Step 1a: DB encryption key unavailable — database will be unencrypted');
+    }
+
     // 1. Initialize process manager (backend server)
     logger.info('Step 1: Initializing process manager');
     processManager = new ProcessManager();

@@ -26,6 +26,23 @@ export class DatabaseManager {
       }
 
       this.db = new Database(this.dbPath);
+
+      // Encryption — enabled when DB_ENCRYPTION_KEY env var is present.
+      // Key must be a hex-encoded 256-bit (64 hex char) string generated at
+      // first install and stored via the OS keychain (Electron safeStorage).
+      // Set DB_ENCRYPTION_KEY in .env or pass it from the Electron main process
+      // via process.env before this module loads.
+      const encKey = process.env.DB_ENCRYPTION_KEY;
+      if (encKey) {
+        if (!/^[0-9a-fA-F]{64}$/.test(encKey)) {
+          throw new Error('[Database] FATAL: DB_ENCRYPTION_KEY must be 64 hex characters (256-bit).');
+        }
+        this.db.pragma(`key = "x'${encKey}'"`);
+        console.info('[Database] Encryption enabled (SQLCipher).');
+      } else {
+        console.warn('[Database] DB_ENCRYPTION_KEY not set — database is stored unencrypted at rest. Set this in .env for production.');
+      }
+
       this.db.pragma("journal_mode = WAL");
       this.db.pragma("synchronous = NORMAL");
       this.db.pragma("busy_timeout = 5000");

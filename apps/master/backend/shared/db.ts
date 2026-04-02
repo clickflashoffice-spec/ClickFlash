@@ -25,20 +25,27 @@ export class DatabaseManager {
         fs.mkdirSync(dir, { recursive: true });
       }
 
+      // Track whether the DB file pre-existed so we know if encryption is safe to apply.
+      const dbAlreadyExists = fs.existsSync(this.dbPath);
+
       this.db = new Database(this.dbPath);
 
-      // Encryption — enabled when DB_ENCRYPTION_KEY env var is present.
-      // Key must be a hex-encoded 256-bit (64 hex char) string generated at
-      // first install and stored via the OS keychain (Electron safeStorage).
-      // Set DB_ENCRYPTION_KEY in .env or pass it from the Electron main process
-      // via process.env before this module loads.
+      // Encryption — enabled when DB_ENCRYPTION_KEY env var is present AND the
+      // database is newly created.  Applying a key to an existing plaintext
+      // SQLite file causes SQLCipher to mis-interpret the data on every read,
+      // which crashes the backend.  Existing databases must be migrated manually
+      // (export → delete → reimport with encryption) to gain at-rest encryption.
       const encKey = process.env.DB_ENCRYPTION_KEY;
       if (encKey) {
         if (!/^[0-9a-fA-F]{64}$/.test(encKey)) {
           throw new Error('[Database] FATAL: DB_ENCRYPTION_KEY must be 64 hex characters (256-bit).');
         }
-        this.db.pragma(`key = "x'${encKey}'"`);
-        console.info('[Database] Encryption enabled (SQLCipher).');
+        if (!dbAlreadyExists) {
+          this.db.pragma(`key = "x'${encKey}'"`);
+          console.info('[Database] Encryption enabled (SQLCipher) — new database.');
+        } else {
+          console.warn('[Database] DB_ENCRYPTION_KEY set but existing database detected — skipping encryption pragma to preserve compatibility. Delete the database file and restart to enable at-rest encryption.');
+        }
       } else {
         console.warn('[Database] DB_ENCRYPTION_KEY not set — database is stored unencrypted at rest. Set this in .env for production.');
       }

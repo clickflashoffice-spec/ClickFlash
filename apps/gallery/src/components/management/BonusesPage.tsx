@@ -60,9 +60,10 @@ const BonusesPage: React.FC = () => {
             .filter(b => b.status === 'Paid' && new Date(b.date).getFullYear() === currentYear)
             .reduce((sum, b) => sum + b.amount, 0);
 
-        const bonusesByPhotographer = new Map<number, number>();
+        const bonusesByPhotographer = new Map<string, number>();
         bonuses.forEach(bonus => {
-            bonusesByPhotographer.set(bonus.photographerId, (bonusesByPhotographer.get(bonus.photographerId) || 0) + bonus.amount);
+            const key = String(bonus.photographerId);
+            bonusesByPhotographer.set(key, (bonusesByPhotographer.get(key) || 0) + bonus.amount);
         });
 
         let topRecipient = { name: 'N/A', amount: 0 };
@@ -163,7 +164,7 @@ const BonusesPage: React.FC = () => {
                             </thead>
                             <tbody>
                                 {filteredBonuses.map((bonus) => {
-                                    const photographer = photographers.find(p => p.id === bonus.photographerId);
+                                    const photographer = photographers.find(p => p.id === String(bonus.photographerId));
                                     return (
                                     <tr key={bonus.id} className="border-b border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50">
                                         <td className="p-4">{new Date(bonus.date).toLocaleDateString()}</td>

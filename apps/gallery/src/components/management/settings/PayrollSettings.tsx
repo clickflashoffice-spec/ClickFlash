@@ -19,7 +19,7 @@ const PayrollSettings: React.FC = () => {
         fetchUsers();
     }, []);
 
-    const handleSettingChange = (id: number, field: keyof Photographer, value: string | number) => {
+    const handleSettingChange = (id: string, field: keyof Photographer, value: string | number) => {
         setPhotographers(prev =>
             prev.map(p => {
                 if (p.id === id) {

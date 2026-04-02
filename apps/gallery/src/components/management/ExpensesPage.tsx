@@ -167,7 +167,7 @@ const ExpensesPage: React.FC = () => {
                         </thead>
                         <tbody>
                             {filteredExpenses.map((exp) => {
-                                const photographerName = photographers.find(p => p.id === exp.photographerId)?.name;
+                                const photographerName = photographers.find(p => exp.photographerId != null && p.id === String(exp.photographerId))?.name;
                                 const destinationName = destinations.find(d => d.id === exp.destinationId)?.name || 'N/A';
                                 return (
                                 <tr key={exp.id} className="border-b border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50">

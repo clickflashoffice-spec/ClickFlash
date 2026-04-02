@@ -54,8 +54,9 @@ const TetherMode: React.FC<TetherModeProps> = ({ onClose, onSaveSession, photogr
 
             const newPhoto: Photo = {
                 id: `tether-${newId}`,
+                albumId: '',
                 title: imageName,
-                url: photoUrl, 
+                url: photoUrl,
                 photographerId
             };
             setCapturedPhotos(prev => [...prev, newPhoto]);

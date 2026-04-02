@@ -1,9 +1,8 @@
-import { JWT_SECRET } from "./config.js";
 import DatabaseManager from "./db.js";
 import PhotoProcessor from "./photoProcessor.js";
 import { validateLogin } from "./validation.js";
 import { verifyPassword } from "./auth.js";
-import { createToken, verifyToken, extractTokenFromHeader, TokenPayload } from "./jwt.js";
+import { createToken, verifyToken, extractTokenFromHeader } from "./jwt.js";
 
 export interface Env {
   GALLERY_DB: any; // D1 binding
@@ -24,10 +23,10 @@ export default {
     const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : [];
     const requestOrigin = request.headers.get('Origin');
     
-    // Determine CORS origin - use request origin if allowed
-    const corsOrigin = requestOrigin && allowedOrigins.some(o => 
-      o === requestOrigin || (o.includes('*') && requestOrigin.includes(o.replace('*', '')))
-    ) ? requestOrigin : (allowedOrigins[0] || '*');
+    // Determine CORS origin - reflect origin only if it is in the allowlist
+    const corsOrigin = (requestOrigin && allowedOrigins.some(o =>
+      o === requestOrigin || (o.startsWith('*') && requestOrigin.endsWith(o.slice(1)))
+    ) ? requestOrigin : (allowedOrigins[0] ?? ''));
 
     // CORS Handling with proper validation
     const corsHeaders = {

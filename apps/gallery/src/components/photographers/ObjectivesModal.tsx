@@ -13,11 +13,11 @@ interface ObjectivesModalProps {
 const ObjectivesModal: React.FC<ObjectivesModalProps> = ({ isOpen, onClose, photographer, onSave }) => {
     const [newTarget, setNewTarget] = useState<number | ''>('');
     
-    const pastObjectives = MOCK_OBJECTIVES.filter(o => o.photographerId === photographer.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const pastObjectives = MOCK_OBJECTIVES.filter(o => String(o.photographerId) === photographer.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const handleSave = () => {
         if (newTarget !== '' && newTarget > 0) {
-            onSave(photographer.id, newTarget);
+            onSave(Number(photographer.id), newTarget);
             setNewTarget('');
         }
     };

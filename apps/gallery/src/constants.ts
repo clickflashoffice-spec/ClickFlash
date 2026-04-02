@@ -68,10 +68,10 @@ export const MOCK_WORKING_HOURS: WorkingHours = {
 };
 
 export const MOCK_PHOTOGRAPHERS: Photographer[] = [
-    { id: 1, name: 'Alaeddine', email: 'alaeddine@example.com', specialty: 'Portraits', avatarUrl: 'https://i.pravatar.cc/150?u=alaeddine', role: 'CEO', monthlyTarget: 10000, dailyPhotoTarget: 500, workingHours: MOCK_WORKING_HOURS, payrollType: 'Salary', monthlySalary: 5000, destinationId: 'dest1' },
-    { id: 2, name: 'Jane Doe', email: 'jane@example.com', specialty: 'Landscapes', avatarUrl: 'https://i.pravatar.cc/150?u=jane', role: 'Team Leader', monthlyTarget: 7500, dailyPhotoTarget: 400, workingHours: MOCK_WORKING_HOURS, payrollType: 'Salary', monthlySalary: 3500, destinationId: 'dest1' },
-    { id: 3, name: 'Carlos Estevez', email: 'carlos@example.com', specialty: 'Events', avatarUrl: 'https://i.pravatar.cc/150?u=carlos', role: 'Admin', monthlyTarget: 5000, dailyPhotoTarget: 300, workingHours: MOCK_WORKING_HOURS, payrollType: 'Commission', commissionRate: 0.15, destinationId: 'dest2' },
-    { id: 4, name: 'Emily Carter', email: 'emily@example.com', specialty: 'Weddings', avatarUrl: 'https://i.pravatar.cc/150?u=emily', role: 'Photographer', monthlyTarget: 6000, dailyPhotoTarget: 350, workingHours: MOCK_WORKING_HOURS, payrollType: 'Commission', commissionRate: 0.20, destinationId: 'dest1' },
+    { id: '1', name: 'Alaeddine', email: 'alaeddine@example.com', specialty: 'Portraits', avatarUrl: 'https://i.pravatar.cc/150?u=alaeddine', role: 'CEO', monthlyTarget: 10000, dailyPhotoTarget: 500, workingHours: MOCK_WORKING_HOURS, payrollType: 'Salary', monthlySalary: 5000, destinationId: 'dest1' },
+    { id: '2', name: 'Jane Doe', email: 'jane@example.com', specialty: 'Landscapes', avatarUrl: 'https://i.pravatar.cc/150?u=jane', role: 'Team Leader', monthlyTarget: 7500, dailyPhotoTarget: 400, workingHours: MOCK_WORKING_HOURS, payrollType: 'Salary', monthlySalary: 3500, destinationId: 'dest1' },
+    { id: '3', name: 'Carlos Estevez', email: 'carlos@example.com', specialty: 'Events', avatarUrl: 'https://i.pravatar.cc/150?u=carlos', role: 'Admin', monthlyTarget: 5000, dailyPhotoTarget: 300, workingHours: MOCK_WORKING_HOURS, payrollType: 'Commission', commissionRate: 0.15, destinationId: 'dest2' },
+    { id: '4', name: 'Emily Carter', email: 'emily@example.com', specialty: 'Weddings', avatarUrl: 'https://i.pravatar.cc/150?u=emily', role: 'Photographer', monthlyTarget: 6000, dailyPhotoTarget: 350, workingHours: MOCK_WORKING_HOURS, payrollType: 'Commission', commissionRate: 0.20, destinationId: 'dest1' },
 ];
 
 // --- Rich Album Data for Testing ---

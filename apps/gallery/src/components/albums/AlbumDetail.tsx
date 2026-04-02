@@ -44,6 +44,7 @@ const initialEdits: ManualEdits = {
     perspectiveY: 0,
     clarity: 0,
     dropShadow: 0,
+    vignette: 0,
 };
 
 type FilterName = 'vintage' | 'cool' | 'warm' | 'sepia' | 'blackAndWhite';
@@ -158,8 +159,8 @@ const AlbumDetail: React.FC<AlbumDetailProps> = ({ albumId, onBack, onFinalizeSu
                                 albumId: p.albumId || '',
                                 title: p.title || '',
                                 url: p.url || '',
-                                photographerId: p.photographerId || null,
-                                category: p.category || null,
+                                photographerId: p.photographerId || 0,
+                                category: p.category || undefined,
                                 manualEdits: safeManualEdits
                             };
                         });
@@ -169,7 +170,7 @@ const AlbumDetail: React.FC<AlbumDetailProps> = ({ albumId, onBack, onFinalizeSu
                         id: fetchedAlbum.id || '',
                         title: fetchedAlbum.title || '',
                         date: fetchedAlbum.date || '',
-                        photographerId: fetchedAlbum.photographerId || null,
+                        photographerId: fetchedAlbum.photographerId || 0,
                         coverPhotoUrl: fetchedAlbum.coverPhotoUrl || '',
                         source: fetchedAlbum.source || '',
                         roomNumber: fetchedAlbum.roomNumber || '',
@@ -313,7 +314,7 @@ const AlbumDetail: React.FC<AlbumDetailProps> = ({ albumId, onBack, onFinalizeSu
                     id: currentAlbum.id || '',
                     title: currentAlbum.title || '',
                     date: currentAlbum.date || '',
-                    photographerId: currentAlbum.photographerId || null,
+                    photographerId: currentAlbum.photographerId || 0,
                     coverPhotoUrl: currentAlbum.coverPhotoUrl || '',
                     source: currentAlbum.source || '',
                     roomNumber: currentAlbum.roomNumber || '',
@@ -678,7 +679,7 @@ const AlbumDetail: React.FC<AlbumDetailProps> = ({ albumId, onBack, onFinalizeSu
                 id: album.id || '',
                 title: album.title || '',
                 date: album.date || '',
-                photographerId: album.photographerId || null,
+                photographerId: album.photographerId || 0,
                 coverPhotoUrl: album.coverPhotoUrl || '',
                 source: album.source || '',
                 roomNumber: album.roomNumber || '',
@@ -1563,7 +1564,7 @@ const AlbumDetail: React.FC<AlbumDetailProps> = ({ albumId, onBack, onFinalizeSu
                     onPasteEdits={handlePasteEdits}
                     canPaste={!!copiedEdits}
                     albumDetails={album}
-                    onAlbumDetailsChange={setAlbum}
+                    onAlbumDetailsChange={(updater) => setAlbum(prev => prev === null ? null : (typeof updater === 'function' ? (updater as (prev: Album) => Album)(prev) : updater))}
                     onDeleteSelected={() => setIsDeleteModalOpen(true)}
                     isOnline={isOnline}
                     isCropping={isCropping}

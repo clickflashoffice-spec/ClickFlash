@@ -35,7 +35,7 @@ const FileTransferDialog: React.FC<FileTransferDialogProps> = ({
 }) => {
   const [showDetails, setShowDetails] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
 
   // Generate speed graph data
   useEffect(() => {

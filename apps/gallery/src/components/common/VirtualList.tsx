@@ -150,8 +150,9 @@ export function VirtualList<T>({
         // Explicitly pass props to avoid any spread operator issues
         // React-window internally calls Object.values() on props, so we must ensure
         // the props object itself is never undefined/null
+        const ListAny = List as any;
         return (
-            <List
+            <ListAny
                 height={cleanProps.height}
                 itemCount={cleanProps.itemCount}
                 itemSize={cleanProps.itemSize}
@@ -159,7 +160,7 @@ export function VirtualList<T>({
                 overscanCount={cleanProps.overscanCount}
             >
                 {Row}
-            </List>
+            </ListAny>
         );
     } catch (error) {
         console.error('Error rendering react-window List:', error);

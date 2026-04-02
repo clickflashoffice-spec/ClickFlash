@@ -12,10 +12,11 @@ const TopPhotographersWidget: React.FC<TopPhotographersWidgetProps> = ({ orders,
   const { formatCurrency } = useCurrency();
 
   const photographerSales = useMemo(() => {
-    const salesMap = new Map<number, number>();
+    const salesMap = new Map<string, number>();
     orders.forEach(order => {
+      const key = String(order.photographerId);
       if (order.status === 'Completed') {
-        salesMap.set(order.photographerId, (salesMap.get(order.photographerId) || 0) + order.total);
+        salesMap.set(key, (salesMap.get(key) || 0) + order.total);
       }
     });
 

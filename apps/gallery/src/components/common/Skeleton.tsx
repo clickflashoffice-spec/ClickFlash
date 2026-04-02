@@ -4,8 +4,8 @@ import Card from './Card';
 /**
  * Base skeleton component with pulse animation
  */
-const SkeletonBase: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`animate-pulse bg-slate-200 dark:bg-slate-700 rounded ${className}`} />
+const SkeletonBase: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = '', style }) => (
+  <div className={`animate-pulse bg-slate-200 dark:bg-slate-700 rounded ${className}`} style={style} />
 );
 
 /**

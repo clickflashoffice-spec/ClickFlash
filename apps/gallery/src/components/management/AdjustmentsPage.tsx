@@ -116,7 +116,7 @@ const AdjustmentsPage: React.FC = () => {
                             </thead>
                             <tbody>
                                 {filteredAdjustments.map((adj) => {
-                                    const photographer = photographers.find(p => p.id === adj.photographerId);
+                                    const photographer = photographers.find(p => p.id === String(adj.photographerId));
                                     const isBonus = adj.type === 'Bonus';
                                     return (
                                     <tr key={adj.id} className="border-b border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50">

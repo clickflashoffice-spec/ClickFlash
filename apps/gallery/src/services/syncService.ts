@@ -95,7 +95,7 @@ class SyncService {
             await this.pullAlbumsFromMaster();
 
         } catch (e) {
-            logger.warn("[SyncService] Sync failed/skipped", { error: e instanceof Error ? e.message : String(e), masterUrl: this.masterUrl }, e instanceof Error ? e : undefined);
+            logger.warn("[SyncService] Sync failed/skipped", { error: e instanceof Error ? e.message : String(e), masterUrl: this.masterUrl });
         } finally {
             this.isSyncing = false;
         }

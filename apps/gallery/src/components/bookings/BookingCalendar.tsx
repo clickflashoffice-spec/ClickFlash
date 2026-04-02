@@ -82,7 +82,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({ bookings, photographe
                                 <div className="space-y-1 mt-1">
                                     {dayBookings.map(booking => {
                                         const session = sessionTypes.find(s => s.id === booking.sessionId);
-                                        const photographer = photographers.find(p => p.id === booking.photographerId);
+                                        const photographer = photographers.find(p => p.id === String(booking.photographerId));
                                         return (
                                         <div key={booking.id} onClick={() => onBookingClick(booking)} className={`text-xs p-1.5 rounded cursor-pointer hover:opacity-80 ${getStatusColor(booking.status)}`}>
                                             <p className="font-bold truncate">{booking.clientName}</p>

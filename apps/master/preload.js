@@ -1,41 +1,58 @@
 /**
- * Preload script for secure IPC communication
+ * ClickFlash Master OS — Preload Script
+ * Exposes a safe, channel-whitelisted IPC bridge to the renderer.
  */
+
+"use strict";
 
 const { contextBridge, ipcRenderer } = require("electron");
 
-// Expose protected methods that allow the renderer process to use
-// the ipcRenderer without exposing the entire object
+const INVOKE_CHANNELS = [
+  "kiosk:unlock",
+  "kiosk:lock",
+  "dialog:openDirectory",
+  "dialog:openFile",
+  "dialog:saveFile",
+  // auto-updater (optional — only active if main registers these)
+  "updater:check",
+  "updater:download",
+  "updater:install",
+  "updater:status",
+];
+
+const ON_CHANNELS = [
+  "updater:checking",
+  "updater:available",
+  "updater:not-available",
+  "updater:progress",
+  "updater:downloaded",
+  "updater:error",
+];
+
 contextBridge.exposeInMainWorld("electron", {
+  invoke: (channel, ...args) => {
+    if (!INVOKE_CHANNELS.includes(channel)) {
+      throw new Error(`[Preload] Blocked IPC channel: ${channel}`);
+    }
+    return ipcRenderer.invoke(channel, ...args);
+  },
+  on: (channel, callback) => {
+    if (!ON_CHANNELS.includes(channel)) return;
+    const handler = (_event, ...args) => callback(...args);
+    ipcRenderer.on(channel, handler);
+    return () => ipcRenderer.removeListener(channel, handler);
+  },
+  // Legacy shape (some existing UI code calls window.electron.ipcRenderer.invoke)
   ipcRenderer: {
     invoke: (channel, ...args) => {
-      // Whitelist channels
-      const validChannels = [
-        "updater:check",
-        "updater:download",
-        "updater:install",
-        "updater:status",
-        "dialog:openDirectory",
-        "kiosk:unlock",
-        "kiosk:lock",
-      ];
-      if (validChannels.includes(channel)) {
-        return ipcRenderer.invoke(channel, ...args);
+      if (!INVOKE_CHANNELS.includes(channel)) {
+        throw new Error(`[Preload] Blocked IPC channel: ${channel}`);
       }
-      throw new Error(`Invalid channel: ${channel}`);
+      return ipcRenderer.invoke(channel, ...args);
     },
     on: (channel, callback) => {
-      const validChannels = [
-        "updater:checking",
-        "updater:available",
-        "updater:not-available",
-        "updater:progress",
-        "updater:downloaded",
-        "updater:error",
-      ];
-      if (validChannels.includes(channel)) {
-        ipcRenderer.on(channel, (event, ...args) => callback(event, ...args));
-      }
+      if (!ON_CHANNELS.includes(channel)) return;
+      ipcRenderer.on(channel, (_event, ...args) => callback(_event, ...args));
     },
   },
 });

@@ -3,7 +3,7 @@
  * Strict kiosk mode with PIN protection and guardian process
  */
 
-import { BrowserWindow } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import { spawn, ChildProcess } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -20,7 +20,21 @@ export class KioskManager {
 
   constructor(window: BrowserWindow, adminPin?: string) {
     this.window = window;
-    this.adminPin = adminPin || process.env.ADMIN_PIN || KIOSK.DEFAULT_PIN;
+    const resolvedPin = adminPin || process.env.ADMIN_PIN || KIOSK.DEFAULT_PIN;
+
+    // Security: Warn loudly (and in production refuse to start) if the default
+    // PIN has not been changed.  The default '000000' is publicly known.
+    if (resolvedPin === KIOSK.DEFAULT_PIN) {
+      if (app.isPackaged) {
+        throw new Error(
+          'FATAL: Kiosk admin PIN is set to the factory default (000000). ' +
+          'Set ADMIN_PIN in .env before deploying. Refusing to start in production with a default PIN.',
+        );
+      }
+      logger.warn('[KioskManager] Using factory default PIN — change ADMIN_PIN in .env before production deployment.');
+    }
+
+    this.adminPin = resolvedPin;
   }
 
   /**

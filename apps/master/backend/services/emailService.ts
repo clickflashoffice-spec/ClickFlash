@@ -200,11 +200,31 @@ export class EmailService {
     }
 
     /**
-     * Render template with variables
+     * Render plain-text template with variables.
+     * Values are NOT HTML-escaped — use renderHtmlTemplate for HTML emails.
      */
     renderTemplate(template: string, variables: Record<string, string>): string {
         return template.replace(/{(\w+)}/g, (match, key) => {
             return variables[key] !== undefined ? variables[key] : match;
+        });
+    }
+
+    /**
+     * Render HTML email template with variables.
+     * Values are HTML-escaped to prevent malformed markup when customer-supplied
+     * data (names, album titles) contains special characters such as < > & " '.
+     */
+    renderHtmlTemplate(template: string, variables: Record<string, string>): string {
+        const escapeHtml = (str: string): string =>
+            str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+
+        return template.replace(/{(\w+)}/g, (match, key) => {
+            return variables[key] !== undefined ? escapeHtml(variables[key]) : match;
         });
     }
 

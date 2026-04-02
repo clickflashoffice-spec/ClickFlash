@@ -9,6 +9,18 @@ import fs from 'fs';
 
 const execAsync = promisify(exec);
 
+/**
+ * Escape a value for safe embedding inside a PowerShell double-quoted string.
+ * In PowerShell, the backtick is the escape char — double-quotes become `".
+ */
+function escapePsDoubleQuoted(value: string): string {
+  return value
+    .replace(/`/g, '``')   // escape backtick first
+    .replace(/"/g, '`"')   // escape double-quote
+    .replace(/\$/g, '`$')  // escape variable expansion
+    .replace(/\0/g, '');   // strip null bytes
+}
+
 export interface PrinterInfo {
     name: string;
     status: string;
@@ -122,10 +134,12 @@ export class HardwareService {
                  * We use a specialized PowerShell script that utilizes System.Drawing for direct GDI printing.
                  * This ensures proper scaling, color accuracy, and pixel-perfect output for photo printers (e.g., HiTi 525L).
                  */
+                const safePrinterName = escapePsDoubleQuoted(job.printerName);
+                const safeFilePath = escapePsDoubleQuoted(job.photoPath.replace(/\\/g, '\\\\'));
                 const psCommand = `
                     Add-Type -AssemblyName System.Drawing;
-                    $printerName = "${job.printerName}";
-                    $filePath = "${job.photoPath.replace(/\\/g, '\\\\')}";
+                    $printerName = "${safePrinterName}";
+                    $filePath = "${safeFilePath}";
                     $doc = New-Object System.Drawing.Printing.PrintDocument;
                     $doc.PrinterSettings.PrinterName = $printerName;
                     

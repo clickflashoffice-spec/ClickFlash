@@ -1,9 +1,10 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { verifyPassword } from "../shared/auth";
 import {
   sendAuthError,
+  sendAuthorizationError,
   sendInternalError,
   sendValidationError,
 } from "../shared/errorHandler";
@@ -122,12 +123,21 @@ export default function authRoutes(context: AppContext) {
 
   /**
    * @route POST /signup
-   * @description Create a new user account
-   * @access Public
+   * @description Create a new user account — requires Admin or Manager session
+   * @access Admin, Manager
    */
   router.post(
     "/signup",
     strictRateLimiter,
+    (req: Request, res: Response, next: NextFunction) => {
+      const user = (req.session as any)?.user || (req as any).user;
+      const elevatedRoles = ['Admin', 'CEO', 'Manager'];
+      if (!user || !elevatedRoles.includes(user.role)) {
+        sendAuthorizationError(res, 'Creating user accounts requires Admin or Manager privileges.');
+        return;
+      }
+      next();
+    },
     async (req: Request, res: Response) => {
       try {
         const { email, password, name } = req.body;

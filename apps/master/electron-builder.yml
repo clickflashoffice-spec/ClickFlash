@@ -14,10 +14,18 @@ files:
   - package.json
   - "!pb_data/**/*"
   - "!storage/**/*"
-  - "!node_modules/**/*"
+  - "!src/**/*"
+  - "!backend/**/*"
+  - "!scripts/**/*"
+  - "!build/**/*"
+  - "!*.ts"
+  - "!*.tsx"
+  - "!tsconfig*.json"
+  - "!vite.config.*"
 
-# Files unpacked alongside the asar (native modules, large assets)
+# Files unpacked alongside the asar (native modules, backend server)
 asarUnpack:
+  - "dist/backend/**/*"
   - "node_modules/sharp/**/*"
   - "node_modules/better-sqlite3/**/*"
   - "node_modules/better-sqlite3-multiple-ciphers/**/*"

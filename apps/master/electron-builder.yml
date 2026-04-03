@@ -1,38 +1,45 @@
 appId: com.clickflash.master
-productName: ClickFlash Server
+productName: ClickFlash Master OS
 copyright: Copyright © 2025 ClickFlash Photography
-# publish block removed — auto-update not applicable for on-premise kiosk deployment
-# If you later add auto-update, set provider and url here.
+
 directories:
-  output: release_v2
+  output: release
   buildResources: build
+
+# Files bundled into the asar
 files:
   - dist/**/*
+  - electron-main.js
+  - preload.js
   - package.json
   - "!pb_data/**/*"
   - "!storage/**/*"
   - "!node_modules/**/*"
-  - electron-main.js
-  - .env.production
+
+# Files unpacked alongside the asar (native modules, large assets)
+asarUnpack:
+  - "node_modules/sharp/**/*"
+  - "node_modules/better-sqlite3/**/*"
+  - "node_modules/better-sqlite3-multiple-ciphers/**/*"
+  - "node_modules/@tensorflow/**/*"
+  - "node_modules/@napi-rs/**/*"
+
+# Extra files copied to the resources directory
 extraResources:
-  - from: pb_data
-    to: pb_data
-    filter:
-      - "!**/*.db"
-      - "!**/*.log"
-      - "!**/uploads/**"
-  - from: backend
-    to: backend
-    filter:
-      - "**/*"
   - from: helper_scripts
     to: helper_scripts
+  - from: public/models
+    to: models
+    filter:
+      - "**/*"
+
 win:
   target: nsis
   icon: build/icon.ico
   requestedExecutionLevel: requireAdministrator
   forceCodeSigning: false
   signAndEditExecutable: false
+
 nsis:
   oneClick: false
   perMachine: true
@@ -40,4 +47,8 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: false
   runAfterFinish: false
-  shortcutName: ClickFlash Server
+  shortcutName: ClickFlash Master OS
+
+electronVersion: "39.2.7"
+npmRebuild: true
+asar: true

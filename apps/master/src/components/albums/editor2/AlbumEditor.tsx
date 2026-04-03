@@ -203,19 +203,25 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
   }, [albumId, photos.length, actions, state.isDirty, showToast]);
 
   useEffect(() => {
-    if (!state.isDirty) return;
+    if (!state.isDirty || saveStatus === "SAVING") return;
 
     const timer = setTimeout(() => {
-      const draftData = {
-        albumId,
-        edits: state.edits,
-        timestamp: Date.now(),
-      };
-      localStorage.setItem(`CF_DRAFT_${albumId}`, JSON.stringify(draftData));
+      try {
+        const draftData = {
+          albumId,
+          edits: state.edits,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem(`CF_DRAFT_${albumId}`, JSON.stringify(draftData));
+      } catch (e) {
+        // QuotaExceededError — clear old drafts and retry once
+        console.warn("[Editor] localStorage quota exceeded, clearing old drafts");
+        Object.keys(localStorage).filter(k => k.startsWith("CF_DRAFT_")).forEach(k => localStorage.removeItem(k));
+      }
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [state.edits, state.isDirty, albumId]);
+  }, [state.edits, state.isDirty, albumId, saveStatus]);
 
   // Reset save button when user makes new edits after a successful save
   useEffect(() => {
@@ -259,7 +265,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
       }
 
       // Mark state as saved
-      const savedIds = result.items.map((i: any) => i.id);
+      const savedIds = result.items.map((i: { id: string }) => i.id);
       actions.markSaved(savedIds);
     } catch (error) {
       logger.error("Failed to save", error);
@@ -296,14 +302,23 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
     try {
       // Phase P4: Native Directory Picker via Electron IPC
       let targetDir = "";
-      if (
-        typeof (window as any).electron !== "undefined" &&
-        (window as any).electron.ipcRenderer
-      ) {
-        const selectedDir = await (window as any).electron.ipcRenderer.invoke(
-          "dialog:openDirectory",
-        );
+      const electron = (window as { electron?: { ipcRenderer?: { invoke: (channel: string, ...args: unknown[]) => Promise<unknown> }; invoke?: (channel: string, ...args: unknown[]) => Promise<unknown> } }).electron;
+      if (electron?.ipcRenderer?.invoke) {
+        const selectedDir = await electron.ipcRenderer.invoke("dialog:openDirectory") as string | null;
         if (!selectedDir) return; // User canceled
+        // Validate: must be absolute path, no traversal
+        if (/\.\.[/\\]/.test(selectedDir)) {
+          showToast("Invalid export directory.");
+          return;
+        }
+        targetDir = selectedDir;
+      } else if (electron?.invoke) {
+        const selectedDir = await electron.invoke("dialog:openDirectory") as string | null;
+        if (!selectedDir) return;
+        if (/\.\.[/\\]/.test(selectedDir)) {
+          showToast("Invalid export directory.");
+          return;
+        }
         targetDir = selectedDir;
       } else {
         // Fallback or dev-mode override
@@ -314,9 +329,17 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
       showToast(`Exporting ${photosToExport.length} photos to: ${targetDir}`);
 
       const items = photosToExport.map((p) => {
-        // Safe filename extraction
-        const urlParts = (p.url || "").split("/");
-        const basename = urlParts[urlParts.length - 1] || `${p.id}.jpg`;
+        // Safe filename extraction — strip path traversal and query strings
+        let basename = `${p.id}.jpg`;
+        try {
+          const url = new URL(p.url || "", "http://localhost");
+          const lastSegment = url.pathname.split("/").pop() || "";
+          // Strip anything that isn't alphanumeric, dash, underscore, or dot
+          const sanitized = lastSegment.replace(/[^a-zA-Z0-9._-]/g, "_");
+          if (sanitized && sanitized.length > 0 && sanitized.length < 255) {
+            basename = sanitized;
+          }
+        } catch { /* use fallback */ }
 
         return {
           photoId: p.id,
@@ -669,9 +692,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
       retouchBrushSize={retouchBrushSize}
       onRetouchBrushSizeChange={toolHandlers.handleRetouchBrushSizeChange}
       onRetouchDone={toolHandlers.handleRetouchDone}
-      isRetouchingProcessing={
-        activePhoto ? (activePhoto as any)._isProcessing : false
-      }
+      isRetouchingProcessing={false}
       // AI props
       onAutoEnhance={() => aiHandlers.handleAutoEnhance(activePhoto || null)}
       isEnhancing={isEnhancing}

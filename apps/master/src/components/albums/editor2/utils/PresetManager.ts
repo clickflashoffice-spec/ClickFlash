@@ -28,15 +28,23 @@ export class PresetManager {
     static async getPresets(): Promise<Preset[]> {
         try {
             const records = await apiService.getRecords(this.COLLECTION) as RawPresetRecord[];
-            return (records || []).map((r) => ({
-                id: r.id,
-                name: r.name,
-                description: r.description,
-                adjustments: typeof r.adjustments === 'string' ? JSON.parse(r.adjustments) as ManualEdits : r.adjustments,
-                isSystem: Boolean(r.isSystem),
-                category: r.category || 'Custom',
-                createdAt: r.createdAt
-            }));
+            return (records || []).reduce<Preset[]>((acc, r) => {
+                try {
+                    const adjustments = typeof r.adjustments === 'string' ? JSON.parse(r.adjustments) as ManualEdits : r.adjustments;
+                    acc.push({
+                        id: r.id,
+                        name: String(r.name || '').slice(0, 100),
+                        description: r.description ? String(r.description).slice(0, 500) : undefined,
+                        adjustments,
+                        isSystem: Boolean(r.isSystem),
+                        category: r.category || 'Custom',
+                        createdAt: r.createdAt
+                    });
+                } catch (e) {
+                    console.warn('Skipping preset with invalid adjustments:', r.id, e);
+                }
+                return acc;
+            }, []);
         } catch (error) {
             console.error('Failed to fetch presets:', error);
             return [];

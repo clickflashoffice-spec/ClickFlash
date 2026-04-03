@@ -3,6 +3,8 @@ import { Photo, ManualEdits } from "@/types";
 import { INITIAL_EDITS } from "@/utils/styleUtils";
 import { ZoomPanState } from "./useZoomPan";
 
+const MAX_HISTORY = 50;
+
 // --- Types ---
 
 export interface EditorState {
@@ -132,7 +134,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         histories: {
           ...state.histories,
           [state.activePhotoId]: {
-            past: [...currentHistory.past, currentEdits],
+            past: [...currentHistory.past, currentEdits].slice(-MAX_HISTORY),
             future: [],
           },
         },
@@ -158,7 +160,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         histories: {
           ...state.histories,
           [photoId]: {
-            past: [...currentHistory.past, currentEdits],
+            past: [...currentHistory.past, currentEdits].slice(-MAX_HISTORY),
             future: [],
           },
         },
@@ -210,7 +212,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         histories: {
           ...state.histories,
           [state.activePhotoId]: {
-            past: [...currentHistory.past, current],
+            past: [...currentHistory.past, current].slice(-MAX_HISTORY),
             future: newFuture,
           },
         },
@@ -250,7 +252,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         histories: {
           ...state.histories,
           [photoId]: {
-            past: [...currentHistory.past, currentEdits],
+            past: [...currentHistory.past, currentEdits].slice(-MAX_HISTORY),
             future: [],
           },
         },
@@ -343,7 +345,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         histories: {
           ...state.histories,
           [state.activePhotoId]: {
-            past: [...currentHistory.past, currentEdits],
+            past: [...currentHistory.past, currentEdits].slice(-MAX_HISTORY),
             future: [],
           },
         },

@@ -508,18 +508,24 @@ export const EditorCanvas = memo(
   EditorCanvasComponent,
   (prevProps, nextProps) => {
     // Custom comparison to avoid unnecessary re-renders
-    return (
-      prevProps.photo?.id === nextProps.photo?.id &&
-      prevProps.isCropping === nextProps.isCropping &&
-      prevProps.isRetouching === nextProps.isRetouching &&
-      prevProps.isStraightening === nextProps.isStraightening &&
-      prevProps.retouchStep === nextProps.retouchStep &&
-      prevProps.retouchTarget?.x === nextProps.retouchTarget?.x &&
-      prevProps.retouchTarget?.y === nextProps.retouchTarget?.y &&
-      prevProps.retouchBrushSize === nextProps.retouchBrushSize &&
-      // Shallow compare edits
-      JSON.stringify(prevProps.edits) === JSON.stringify(nextProps.edits)
-    );
+    if (
+      prevProps.photo?.id !== nextProps.photo?.id ||
+      prevProps.photo?.url !== nextProps.photo?.url ||
+      prevProps.isCropping !== nextProps.isCropping ||
+      prevProps.isRetouching !== nextProps.isRetouching ||
+      prevProps.isStraightening !== nextProps.isStraightening ||
+      prevProps.retouchStep !== nextProps.retouchStep ||
+      prevProps.retouchTarget?.x !== nextProps.retouchTarget?.x ||
+      prevProps.retouchTarget?.y !== nextProps.retouchTarget?.y ||
+      prevProps.retouchBrushSize !== nextProps.retouchBrushSize
+    ) return false;
+    // Shallow compare edits object keys instead of JSON.stringify
+    const prevEdits = prevProps.edits;
+    const nextEdits = nextProps.edits;
+    if (prevEdits === nextEdits) return true;
+    if (!prevEdits || !nextEdits) return false;
+    const keys = Object.keys(nextEdits) as (keyof typeof nextEdits)[];
+    return keys.every(k => prevEdits[k] === nextEdits[k]);
   },
 );
 

@@ -48,12 +48,20 @@ let isQuitting = false;
 
 // ─── Backend ──────────────────────────────────────────────────────────────────
 
+function getUnpackedPath(relativePath) {
+  // In packaged app, asarUnpack files live in app.asar.unpacked/
+  if (app.isPackaged) {
+    return path.join(__dirname.replace("app.asar", "app.asar.unpacked"), relativePath);
+  }
+  return path.join(__dirname, relativePath);
+}
+
 function startBackend() {
   if (!app.isPackaged) {
     console.log("[Main] Dev mode — start backend separately: npm run dev:backend");
     return;
   }
-  const serverPath = path.join(__dirname, "dist/backend/server.js");
+  const serverPath = getUnpackedPath("dist/backend/server.js");
   if (!fs.existsSync(serverPath)) {
     console.error("[Main] Backend bundle not found:", serverPath);
     return;
@@ -192,27 +200,37 @@ async function createWindow() {
     console.error("[Main] Failed to load renderer:", err.message);
     // Show a helpful error screen instead of a blank page
     if (mainWindow && !mainWindow.isDestroyed()) {
-      const isViteError = !app.isPackaged && err.message && err.message.includes("ERR_CONNECTION_REFUSED");
-      const errorHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{background:#0f172a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;
-             height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-        .wrap{max-width:520px;text-align:center;padding:40px}
-        h1{color:#f87171;font-size:22px;margin-bottom:16px}
-        p{color:#94a3b8;font-size:14px;line-height:1.6;margin-bottom:12px}
-        code{background:#1e293b;padding:6px 12px;border-radius:6px;display:inline-block;
-             color:#38bdf8;font-size:13px;margin:4px 0}
-        .steps{text-align:left;margin:20px 0;padding:20px;background:#1e293b;border-radius:8px}
-        .steps li{margin:8px 0;color:#cbd5e1;font-size:13px}
-        .retry{margin-top:20px;padding:10px 24px;background:#0ea5e9;color:white;border:none;
-               border-radius:6px;cursor:pointer;font-size:14px}
-        .retry:hover{background:#0284c7}
-      </style></head><body><div class="wrap">
-        <h1>${isViteError ? "Dev Servers Not Running" : "Failed to Load Application"}</h1>
-        ${isViteError ? '<p>Electron cannot connect to the Vite dev server. Start the dev servers first:</p><ol class="steps"><li>Open a terminal: <code>cd apps/master</code></li><li>Start backend: <code>npm run dev:backend</code></li><li>Open another terminal: <code>npm run dev</code></li><li>Then relaunch Electron or click Retry</li></ol><p>Or use <code>npm run dev:full</code> to start both at once.</p>' : '<p>Error: ${err.message.replace(/'/g, "\\'")}</p>'}
-        <button class="retry" onclick="window.location.reload()">Retry</button>
-      </div></body></html>`;
-      await mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(errorHtml)}`);
+      var safeMsg = String(err.message || "Unknown error").replace(/[<>&"']/g, "");
+      var title = "Failed to Load Application";
+      var body = "<p>Error: " + safeMsg + "</p>";
+      if (!app.isPackaged && safeMsg.indexOf("ERR_CONNECTION_REFUSED") !== -1) {
+        title = "Dev Servers Not Running";
+        body = '<p>Start the dev servers first:</p>'
+          + '<ol class="steps">'
+          + "<li>Open a terminal: <code>cd apps/master</code></li>"
+          + "<li>Start backend: <code>npm run dev:backend</code></li>"
+          + "<li>Start frontend: <code>npm run dev</code></li>"
+          + "<li>Then relaunch Electron or click Retry</li>"
+          + "</ol>";
+      }
+      var errorHtml = "<!DOCTYPE html><html><head><meta charset='utf-8'><style>"
+        + "*{margin:0;padding:0;box-sizing:border-box}"
+        + "body{background:#0f172a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;"
+        + "height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}"
+        + ".wrap{max-width:520px;text-align:center;padding:40px}"
+        + "h1{color:#f87171;font-size:22px;margin-bottom:16px}"
+        + "p{color:#94a3b8;font-size:14px;line-height:1.6;margin-bottom:12px}"
+        + "code{background:#1e293b;padding:6px 12px;border-radius:6px;display:inline-block;color:#38bdf8;font-size:13px;margin:4px 0}"
+        + ".steps{text-align:left;margin:20px 0;padding:20px;background:#1e293b;border-radius:8px}"
+        + ".steps li{margin:8px 0;color:#cbd5e1;font-size:13px}"
+        + ".retry{margin-top:20px;padding:10px 24px;background:#0ea5e9;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px}"
+        + ".retry:hover{background:#0284c7}"
+        + "</style></head><body><div class='wrap'>"
+        + "<h1>" + title + "</h1>"
+        + body
+        + "<button class='retry' onclick='window.location.reload()'>Retry</button>"
+        + "</div></body></html>";
+      await mainWindow.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(errorHtml));
     }
   }
 

@@ -61,6 +61,7 @@ function startBackend() {
     console.log("[Main] Dev mode — start backend separately: npm run dev:backend");
     return;
   }
+  // Use unpacked path — fork() with ELECTRON_RUN_AS_NODE can't read asar
   const serverPath = getUnpackedPath("dist/backend/server.js");
   if (!fs.existsSync(serverPath)) {
     console.error("[Main] Backend bundle not found:", serverPath);
@@ -70,7 +71,11 @@ function startBackend() {
   backendProcess = fork(serverPath, [], {
     env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" },
     execArgv: ["--max-old-space-size=8192"],
+    stdio: ["pipe", "pipe", "pipe", "ipc"],
   });
+  // Log backend output to main process console for debugging
+  backendProcess.stdout?.on("data", (d) => process.stdout.write("[Backend] " + d));
+  backendProcess.stderr?.on("data", (d) => process.stderr.write("[Backend:ERR] " + d));
   backendProcess.on("error", (err) => console.error("[Main] Backend error:", err.message));
   backendProcess.on("exit", (code) => {
     console.warn("[Main] Backend exited (code", code, ")");
@@ -386,12 +391,11 @@ function setupIpc() {
 
 function setupShortcuts() {
   globalShortcut.register(ADMIN_SHORTCUT, () => {
-    console.log("[Main] Admin breakout");
-    if (mainWindow) {
-      mainWindow.setKiosk(false);
-      mainWindow.setFullScreen(false);
-      mainWindow.setAlwaysOnTop(false);
-      killGuardian();
+    console.log("[Main] Admin shortcut — requesting PIN");
+    // Instead of directly unlocking, send a message to the renderer
+    // to show the PIN dialog. Only unlock after server-side PIN validation.
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("kiosk:show-unlock-dialog");
     }
   });
 

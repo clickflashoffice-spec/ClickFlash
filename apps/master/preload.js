@@ -21,6 +21,7 @@ const INVOKE_CHANNELS = [
 ];
 
 const ON_CHANNELS = [
+  "kiosk:show-unlock-dialog",
   "updater:checking",
   "updater:available",
   "updater:not-available",

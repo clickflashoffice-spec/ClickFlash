@@ -321,8 +321,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         throw new Error(err.message || "IPC validation failed");
       }
     }
-    // Web fallback
-    if (pin === "DEFAULT_PASSWORD_PLACEHOLDER") return true;
+    // Web fallback — validate via backend API
+    const resp = await fetch("/api/auth/verify-pin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin }),
+    });
+    if (resp.ok) return true;
     throw new Error("Invalid PIN");
   };
 

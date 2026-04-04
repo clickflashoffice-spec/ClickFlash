@@ -39,8 +39,13 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
       if (verifyPassword) {
         isVerified = await verifyPassword(password);
       } else {
-        // Legacy hardcoded fallback
-        isVerified = password === "DEFAULT_PASSWORD_PLACEHOLDER";
+        // Validate via backend API — never hardcode passwords client-side
+        const resp = await fetch("/api/auth/verify-pin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin: password }),
+        });
+        isVerified = resp.ok;
       }
 
       if (isVerified) {

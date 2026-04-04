@@ -23,14 +23,11 @@ files:
   - "!tsconfig*.json"
   - "!vite.config.*"
 
-# Files unpacked alongside the asar (native modules, backend server)
+# Unpack backend + ALL node_modules from asar
+# Required because fork() with ELECTRON_RUN_AS_NODE strips asar support
 asarUnpack:
   - "dist/backend/**/*"
-  - "node_modules/sharp/**/*"
-  - "node_modules/better-sqlite3/**/*"
-  - "node_modules/better-sqlite3-multiple-ciphers/**/*"
-  - "node_modules/@tensorflow/**/*"
-  - "node_modules/@napi-rs/**/*"
+  - "node_modules/**/*"
 
 # Extra files copied to the resources directory
 extraResources:

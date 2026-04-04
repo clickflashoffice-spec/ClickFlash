@@ -458,3 +458,7 @@ process.on("uncaughtException", (err) => {
   console.error("[Main] Uncaught exception:", err);
   shutdown();
 });
+
+process.on("unhandledRejection", (reason) => {
+  console.error("[Main] Unhandled promise rejection:", reason);
+});

@@ -561,15 +561,35 @@ app.get(/.*/, (_req: Request, res: Response) => {
   }
 });
 
-// Error handling middleware
+// Error handling middleware — catch-all for unhandled errors
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   logger.error("Unhandled Server Error", {
     error: err.message,
     stack: err.stack,
+    url: _req.url,
+    method: _req.method,
   });
   if (!res.headersSent) {
+    // Never leak stack traces or internal details to client
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
+});
+
+// Catch unhandled promise rejections at the process level
+process.on("unhandledRejection", (reason: any) => {
+  logger.error("[Process] Unhandled Promise Rejection", {
+    error: reason?.message || String(reason),
+    stack: reason?.stack,
+  });
+});
+
+process.on("uncaughtException", (err: Error) => {
+  logger.error("[Process] Uncaught Exception", {
+    error: err.message,
+    stack: err.stack,
+  });
+  // Give time to flush logs, then exit (supervisor will restart)
+  setTimeout(() => process.exit(1), 1000);
 });
 
 // Start Background Services

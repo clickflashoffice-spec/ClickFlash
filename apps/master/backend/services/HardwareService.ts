@@ -1,24 +1,29 @@
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { Logger } from '../shared/logger';
 import DatabaseManager from '../shared/db';
 import { InventoryService } from './InventoryService';
 import * as ptp from 'pdf-to-printer';
-import path from 'path';
 import fs from 'fs';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 /**
- * Escape a value for safe embedding inside a PowerShell double-quoted string.
- * In PowerShell, the backtick is the escape char — double-quotes become `".
+ * Run a PowerShell script safely by passing it via -EncodedCommand.
+ * This avoids shell interpretation of the script content entirely.
  */
-function escapePsDoubleQuoted(value: string): string {
-  return value
-    .replace(/`/g, '``')   // escape backtick first
-    .replace(/"/g, '`"')   // escape double-quote
-    .replace(/\$/g, '`$')  // escape variable expansion
-    .replace(/\0/g, '');   // strip null bytes
+function runPowerShell(script: string): Promise<{ stdout: string; stderr: string }> {
+  const encoded = Buffer.from(script, 'utf16le').toString('base64');
+  return execFileAsync('powershell', ['-NoProfile', '-NonInteractive', '-EncodedCommand', encoded]);
+}
+
+/**
+ * Validate a printer name contains only safe characters.
+ * Rejects names with PowerShell metacharacters that could escape string context.
+ */
+function validatePrinterName(name: string): boolean {
+  // Allow alphanumeric, spaces, hyphens, underscores, dots, parens, #
+  return /^[\w\s\-.()\/#]+$/.test(name) && name.length <= 200;
 }
 
 export interface PrinterInfo {
@@ -55,14 +60,14 @@ export class HardwareService {
      */
     public async getPrinters(): Promise<PrinterInfo[]> {
         try {
-            const { stdout } = await execAsync('powershell -Command "Get-Printer | Select-Object Name, PrinterStatus, JobCount, DriverName | ConvertTo-Json"');
+            const { stdout } = await runPowerShell('Get-Printer | Select-Object Name, PrinterStatus, JobCount, DriverName | ConvertTo-Json');
             if (!stdout.trim()) return [];
 
             const rawPrinters = JSON.parse(stdout);
             const printerArray = Array.isArray(rawPrinters) ? rawPrinters : [rawPrinters];
 
             // Get default printer
-            const { stdout: defaultPrinterName } = await execAsync('powershell -Command "(Get-WmiObject -Query \'SELECT Name FROM Win32_Printer WHERE Default = True\').Name"');
+            const { stdout: defaultPrinterName } = await runPowerShell("(Get-WmiObject -Query 'SELECT Name FROM Win32_Printer WHERE Default = True').Name");
             const trimmedDefault = defaultPrinterName.trim();
 
             return printerArray.map(p => ({
@@ -100,10 +105,17 @@ export class HardwareService {
             throw new Error(`File not found: ${photoPath}`);
         }
 
+        const resolvedPrinter = printerName || (await this.getDefaultPrinterName());
+
+        // SECURITY: Validate printer name to prevent command injection
+        if (!validatePrinterName(resolvedPrinter)) {
+            throw new Error(`Invalid printer name: contains disallowed characters`);
+        }
+
         const job: PrintJob = {
             id: jobId,
             photoPath,
-            printerName: printerName || (await this.getDefaultPrinterName()),
+            printerName: resolvedPrinter,
             priority,
             addedAt: Date.now()
         };
@@ -134,37 +146,33 @@ export class HardwareService {
                  * We use a specialized PowerShell script that utilizes System.Drawing for direct GDI printing.
                  * This ensures proper scaling, color accuracy, and pixel-perfect output for photo printers (e.g., HiTi 525L).
                  */
-                const safePrinterName = escapePsDoubleQuoted(job.printerName);
-                const safeFilePath = escapePsDoubleQuoted(job.photoPath.replace(/\\/g, '\\\\'));
-                const psCommand = `
-                    Add-Type -AssemblyName System.Drawing;
-                    $printerName = "${safePrinterName}";
-                    $filePath = "${safeFilePath}";
-                    $doc = New-Object System.Drawing.Printing.PrintDocument;
-                    $doc.PrinterSettings.PrinterName = $printerName;
-                    
-                    # Ensure high-res rendering
-                    $doc.DefaultPageSettings.PrinterResolution = $doc.PrinterSettings.PrinterResolutions | Where-Object { $_.Kind -eq 'Custom' -or $_.Kind -eq 'High' } | Select-Object -First 1;
-                    
+                // SECURITY: Use -EncodedCommand to avoid shell injection.
+                // Printer name and file path are passed as PowerShell string literals
+                // with single-quotes (no variable expansion) after validation.
+                const safeFilePath = job.photoPath.replace(/'/g, "''");
+                const safePrinterName = job.printerName.replace(/'/g, "''");
+                const psScript = `
+                    Add-Type -AssemblyName System.Drawing
+                    $printerName = '${safePrinterName}'
+                    $filePath = '${safeFilePath}'
+                    $doc = New-Object System.Drawing.Printing.PrintDocument
+                    $doc.PrinterSettings.PrinterName = $printerName
+                    $doc.DefaultPageSettings.PrinterResolution = $doc.PrinterSettings.PrinterResolutions | Where-Object { $_.Kind -eq 'Custom' -or $_.Kind -eq 'High' } | Select-Object -First 1
                     $doc.add_PrintPage({
                         param($sender, $e)
-                        $img = [System.Drawing.Image]::FromFile($filePath);
-                        
-                        # Calculate best fit (Photo printers usually expect full bleed)
-                        $destRect = $e.MarginBounds;
-                        $destRect.X = 0;
-                        $destRect.Y = 0;
-                        $destRect.Width = $e.PageSettings.PrintableArea.Width;
-                        $destRect.Height = $e.PageSettings.PrintableArea.Height;
-                        
-                        $e.Graphics.DrawImage($img, $destRect);
-                        $img.Dispose();
-                    });
-                    
-                    $doc.Print();
-                `.replace(/\n/g, ' ').trim();
+                        $img = [System.Drawing.Image]::FromFile($filePath)
+                        $destRect = $e.MarginBounds
+                        $destRect.X = 0
+                        $destRect.Y = 0
+                        $destRect.Width = $e.PageSettings.PrintableArea.Width
+                        $destRect.Height = $e.PageSettings.PrintableArea.Height
+                        $e.Graphics.DrawImage($img, $destRect)
+                        $img.Dispose()
+                    })
+                    $doc.Print()
+                `;
 
-                await execAsync(`powershell -Command "${psCommand}"`);
+                await runPowerShell(psScript);
                 this.logger.info(`[HardwareService] Job ${job.id} sent successfully to ${job.printerName}`);
 
                 // Automated stock reduction (Phase 34)
@@ -193,7 +201,7 @@ export class HardwareService {
 
     private async getDefaultPrinterName(): Promise<string> {
         try {
-            const { stdout } = await execAsync('powershell -Command "(Get-WmiObject -Query \'SELECT Name FROM Win32_Printer WHERE Default = True\').Name"');
+            const { stdout } = await runPowerShell("(Get-WmiObject -Query 'SELECT Name FROM Win32_Printer WHERE Default = True').Name");
             return stdout.trim();
         } catch (e) {
             return '';

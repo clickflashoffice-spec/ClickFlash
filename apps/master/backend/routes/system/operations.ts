@@ -86,7 +86,21 @@ export default function operationsRoutes(context: OperationsContext): Router {
   router.post("/orders/:orderId/open-folder", (req: Request, res: Response) => {
     try {
       const { orderId } = req.params;
+
+      // SECURITY: Validate orderId to prevent path traversal
+      if (!orderId || /[\/\\]|\.\./.test(orderId)) {
+        return sendInvalidInputError(res, "Invalid order ID");
+      }
+
       const folderPath = path.join(UPLOAD_DIR, "orders", orderId);
+
+      // Double-check resolved path stays within UPLOAD_DIR
+      const resolved = path.resolve(folderPath);
+      const base = path.resolve(UPLOAD_DIR);
+      if (!resolved.startsWith(base + path.sep)) {
+        return sendInvalidInputError(res, "Invalid order path");
+      }
+
       if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
 
       const { spawn } = require("child_process");

@@ -6,8 +6,8 @@ import path from 'path';
 
 // --- Configuration ---
 const BASE_URL = 'http://localhost:8090'; // Assuming default port
-const USER_EMAIL = 'alaeddine@example.com';
-const USER_PASSWORD = 'DEFAULT_PASSWORD_PLACEHOLDER';
+const USER_EMAIL = process.env.TEST_EMAIL || 'admin@clickflash.local';
+const USER_PASSWORD = process.env.TEST_PASSWORD || (() => { console.error('Set TEST_PASSWORD env var'); process.exit(1); return ''; })();
 
 // Polyfill fetch if needed (Node 18+ has it globally, but for safety in TS if types are weird)
 // @ts-ignore

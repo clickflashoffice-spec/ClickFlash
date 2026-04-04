@@ -116,8 +116,8 @@ export class SyncManager {
         const { entity, timestamp } = payload;
         if (!entity || !timestamp) return;
 
-        const table = TABLE_MAP[entity as keyof typeof TABLE_MAP] || entity;
-        if (!ALLOWED_COLUMNS[table]) return;
+        const table = TABLE_MAP[entity as keyof typeof TABLE_MAP];
+        if (!table || !ALLOWED_COLUMNS[table]) return;
 
         try {
             // Fetch records updated after the client's last sync
@@ -157,9 +157,9 @@ export class SyncManager {
             return;
         }
 
-        const table = TABLE_MAP[entity as keyof typeof TABLE_MAP] || entity;
-        if (!ALLOWED_COLUMNS[table]) {
-            this.logger.error(`[SyncManager] Security: Unauthorized table sync attempt: ${table}`);
+        const table = TABLE_MAP[entity as keyof typeof TABLE_MAP];
+        if (!table || !ALLOWED_COLUMNS[table]) {
+            this.logger.error(`[SyncManager] Security: Rejected unknown table "${entity}"`);
             return;
         }
 

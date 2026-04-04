@@ -22,10 +22,15 @@ export interface ValidationResult {
  * Get default user credentials from environment or generate secure defaults
  */
 export function getDefaultUserConfig(): DefaultUserConfig {
+    const password = process.env.DEFAULT_ADMIN_PASSWORD || generateSecurePassword();
+    if (!process.env.DEFAULT_ADMIN_PASSWORD) {
+        console.warn(`[Security] Generated temporary admin password: ${password}`);
+        console.warn('[Security] Set DEFAULT_ADMIN_PASSWORD env var for a persistent password.');
+    }
     return {
-        name: process.env.DEFAULT_ADMIN_NAME || 'Alaeddine',
-        email: process.env.DEFAULT_ADMIN_EMAIL || 'alaeddine@example.com',
-        password: process.env.DEFAULT_ADMIN_PASSWORD || 'DEFAULT_PASSWORD_PLACEHOLDER',
+        name: process.env.DEFAULT_ADMIN_NAME || 'Admin',
+        email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@clickflash.local',
+        password,
         role: 'Admin',
         password_must_change: 1
     };

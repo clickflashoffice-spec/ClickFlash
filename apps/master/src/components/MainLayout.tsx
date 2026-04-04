@@ -28,6 +28,13 @@ const AIIdeasModal = lazy(() => import("./AIIdeasModal"));
 import Toast from "./common/Toast";
 import AssistanceNotificationBar from "./common/AssistanceNotificationBar";
 import PageTransition from "./common/PageTransition"; // Import PageTransition
+import {
+  FeatureErrorBoundary,
+  DashboardErrorBoundary,
+  AlbumErrorBoundary,
+  OrderErrorBoundary,
+  SettingsErrorBoundary,
+} from "./error-boundaries/FeatureErrorBoundary";
 import { apiService } from "../services/apiService";
 import { Order, Photographer, Album, View, AssistanceRequest } from "../types";
 import Spinner from "./common/Spinner";
@@ -459,17 +466,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     );
                   }
                   return (
-                    <Dashboard
-                      localData={
-                        dashboardData || {
-                          orders: [],
-                          photographers: [],
-                          albums: [],
+                    <DashboardErrorBoundary>
+                      <Dashboard
+                        localData={
+                          dashboardData || {
+                            orders: [],
+                            photographers: [],
+                            albums: [],
+                          }
                         }
-                      }
-                      currentUser={currentUser}
-                      onNavigate={handleNavigate}
-                    />
+                        currentUser={currentUser}
+                        onNavigate={handleNavigate}
+                      />
+                    </DashboardErrorBoundary>
                   );
                 case "Albums":
                   if (!can("viewAlbums")) {
@@ -486,12 +495,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     );
                   }
                   return (
-                    <Albums
-                      showToast={showToast}
-                      currentUser={currentUser}
-                      isOnline={isOnline}
-                      refreshTrigger={effectiveRefreshTrigger}
-                    />
+                    <AlbumErrorBoundary>
+                      <Albums
+                        showToast={showToast}
+                        currentUser={currentUser}
+                        isOnline={isOnline}
+                        refreshTrigger={effectiveRefreshTrigger}
+                      />
+                    </AlbumErrorBoundary>
                   );
                 case "Bookings":
                   if (!can("viewBookings")) {
@@ -508,10 +519,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     );
                   }
                   return (
-                    <Bookings
-                      showToast={showToast}
-                      refreshTrigger={effectiveRefreshTrigger}
-                    />
+                    <FeatureErrorBoundary feature="Bookings" severity="medium">
+                      <Bookings
+                        showToast={showToast}
+                        refreshTrigger={effectiveRefreshTrigger}
+                      />
+                    </FeatureErrorBoundary>
                   );
                 case "Orders":
                   if (!can("viewOrders")) {
@@ -528,14 +541,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     );
                   }
                   return (
-                    <Orders
-                      showToast={showToast}
-                      currentUser={currentUser}
-                      onPrintOrder={setPrintOrderData}
-                      onPrintReceipt={setReceiptOrderData}
-                      onOpenLabFolder={setLabFolderOrder}
-                      refreshTrigger={effectiveRefreshTrigger}
-                    />
+                    <OrderErrorBoundary>
+                      <Orders
+                        showToast={showToast}
+                        currentUser={currentUser}
+                        onPrintOrder={setPrintOrderData}
+                        onPrintReceipt={setReceiptOrderData}
+                        onOpenLabFolder={setLabFolderOrder}
+                        refreshTrigger={effectiveRefreshTrigger}
+                      />
+                    </OrderErrorBoundary>
                   );
                 case "Clients":
                   if (!can("viewClients")) {
@@ -552,10 +567,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     );
                   }
                   return (
-                    <Clients
-                      currentUser={currentUser}
-                      refreshTrigger={effectiveRefreshTrigger}
-                    />
+                    <FeatureErrorBoundary feature="Clients" severity="medium">
+                      <Clients
+                        currentUser={currentUser}
+                        refreshTrigger={effectiveRefreshTrigger}
+                      />
+                    </FeatureErrorBoundary>
                   );
                 case "Photographers":
                   if (!can("viewPhotographers")) {
@@ -572,12 +589,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     );
                   }
                   return (
-                    <Photographers
-                      currentUser={currentUser}
-                      photographers={dashboardData?.photographers || []}
-                      orders={dashboardData?.orders || []}
-                      refreshData={refreshData}
-                    />
+                    <FeatureErrorBoundary feature="Photographers" severity="medium">
+                      <Photographers
+                        currentUser={currentUser}
+                        photographers={dashboardData?.photographers || []}
+                        orders={dashboardData?.orders || []}
+                        refreshData={refreshData}
+                      />
+                    </FeatureErrorBoundary>
                   );
                 case "Settings":
                   if (!can("viewSettings")) {
@@ -594,13 +613,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     );
                   }
                   return (
-                    <SettingsPage
-                      currentUser={currentUser}
-                      onCurrentUserUpdate={() => refreshData()}
-                      showToast={showToast}
-                      features={features}
-                      initialTab={viewParams?.tab as any}
-                    />
+                    <SettingsErrorBoundary>
+                      <SettingsPage
+                        currentUser={currentUser}
+                        onCurrentUserUpdate={() => refreshData()}
+                        showToast={showToast}
+                        features={features}
+                        initialTab={viewParams?.tab as any}
+                      />
+                    </SettingsErrorBoundary>
                   );
                 case "Growth":
                   if (!can("viewGrowth")) {
@@ -616,24 +637,34 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                       />
                     );
                   }
-                  return <GrowthPage currentUser={currentUser} />;
+                  return (
+                    <FeatureErrorBoundary feature="Growth" severity="low">
+                      <GrowthPage currentUser={currentUser} />
+                    </FeatureErrorBoundary>
+                  );
 
                 case "LocalResortDashboard":
-                  return <LocalResortDashboard />;
+                  return (
+                    <DashboardErrorBoundary>
+                      <LocalResortDashboard />
+                    </DashboardErrorBoundary>
+                  );
 
                 default:
                   return (
-                    <Dashboard
-                      localData={
-                        dashboardData || {
-                          orders: [],
-                          photographers: [],
-                          albums: [],
+                    <DashboardErrorBoundary>
+                      <Dashboard
+                        localData={
+                          dashboardData || {
+                            orders: [],
+                            photographers: [],
+                            albums: [],
+                          }
                         }
-                      }
-                      currentUser={currentUser}
-                      onNavigate={handleNavigate}
-                    />
+                        currentUser={currentUser}
+                        onNavigate={handleNavigate}
+                      />
+                    </DashboardErrorBoundary>
                   );
               }
             })()}

@@ -1,6 +1,25 @@
-import * as tf from '@tensorflow/tfjs';
-import * as blazeface from '@tensorflow-models/blazeface';
+// TensorFlow imports are dynamic to avoid pulling ~4MB into the main bundle
+// They are loaded on first use via getTf() and getBlazeFace()
 import { logger } from '../utils/logger';
+
+let _tf: typeof import('@tensorflow/tfjs') | null = null;
+let _blazeface: typeof import('@tensorflow-models/blazeface') | null = null;
+
+async function getTf() {
+    if (!_tf) {
+        _tf = await import('@tensorflow/tfjs');
+        await _tf.ready();
+        logger.info('TensorFlow.js backend:', _tf.getBackend());
+    }
+    return _tf;
+}
+
+async function getBlazeFace() {
+    if (!_blazeface) {
+        _blazeface = await import('@tensorflow-models/blazeface');
+    }
+    return _blazeface;
+}
 
 interface Face {
     topLeft: [number, number];
@@ -21,25 +40,22 @@ interface ColorStats {
 
 /**
  * AI Model Service
- * 
+ *
  * Manages TensorFlow.js model lifecycle for AI-powered image operations.
  * Handles lazy loading, caching, and proper tensor disposal for memory safety.
  */
 class AIModelService {
-    private blazefaceModel: blazeface.BlazeFaceModel | null = null;
-    private modelLoadPromise: Promise<blazeface.BlazeFaceModel> | null = null;
+    private blazefaceModel: any | null = null;
+    private modelLoadPromise: Promise<any> | null = null;
 
     constructor() {
-        // Set TensorFlow.js backend preference (WebGL > CPU)
-        tf.ready().then(() => {
-            logger.info('TensorFlow.js backend:', tf.getBackend());
-        });
+        // TensorFlow initialized lazily on first use via getTf()
     }
 
     /**
      * Load BlazeFace model (lazy, cached)
      */
-    async loadBlazeFace(): Promise<blazeface.BlazeFaceModel> {
+    async loadBlazeFace(): Promise<any> {
         if (this.blazefaceModel) {
             return this.blazefaceModel;
         }
@@ -48,7 +64,7 @@ class AIModelService {
             return this.modelLoadPromise;
         }
 
-        this.modelLoadPromise = blazeface.load().then(model => {
+        this.modelLoadPromise = getBlazeFace().then(bf => bf.load()).then(model => {
             this.blazefaceModel = model;
             logger.info('BlazeFace model loaded successfully');
             return model;
@@ -145,7 +161,8 @@ class AIModelService {
     /**
      * Get TensorFlow.js memory stats
      */
-    getMemoryInfo(): { numTensors: number; numBytes: number } {
+    async getMemoryInfo(): Promise<{ numTensors: number; numBytes: number }> {
+        const tf = await getTf();
         return tf.memory();
     }
 }

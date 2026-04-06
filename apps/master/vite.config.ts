@@ -50,6 +50,9 @@ export default defineConfig({
           "vendor-router": ["react-router-dom"],
           "vendor-query": ["@tanstack/react-query"],
           "vendor-ui": ["lucide-react", "clsx", "tailwind-merge"],
+          // Heavy chart libraries — split so they load only with chart components
+          "vendor-apexcharts": ["apexcharts", "react-apexcharts"],
+          "vendor-chartjs": ["chart.js", "react-chartjs-2"],
         },
         // Optimize asset naming
         assetFileNames: "assets/[name].[hash][extname]",

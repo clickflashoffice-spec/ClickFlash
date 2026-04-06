@@ -87,7 +87,9 @@ export class ArchiveService {
                     FROM main.albums WHERE id = ?
                 `, [albumId]);
 
-                // 5. Purge from Main
+                // 5. Purge from Main (including biometric face data — GDPR compliance)
+                dbManager.run(`DELETE FROM main.photo_faces WHERE photoId IN (SELECT id FROM main.photos WHERE albumId = ?)`, [albumId]);
+                dbManager.run(`DELETE FROM main.face_indexing_queue WHERE photoId IN (SELECT id FROM main.photos WHERE albumId = ?)`, [albumId]);
                 dbManager.run(`DELETE FROM main.photos WHERE albumId = ?`, [albumId]);
                 dbManager.run(`DELETE FROM main.orders WHERE albumId = ?`, [albumId]);
                 dbManager.run(`DELETE FROM main.albums WHERE id = ?`, [albumId]);

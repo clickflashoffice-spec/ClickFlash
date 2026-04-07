@@ -45,6 +45,8 @@ win:
   forceCodeSigning: false
   signAndEditExecutable: false
 
+compression: store
+
 nsis:
   oneClick: false
   perMachine: true

@@ -26,7 +26,7 @@ const { fork, spawn } = require("child_process");
 const BACKEND_PORT    = 8090;
 const VITE_PORT       = 5173;
 const HEALTH_URL      = `http://localhost:${BACKEND_PORT}/api/health`;
-const HEALTH_TIMEOUT  = 60_000; // ms to wait before giving up
+const HEALTH_TIMEOUT  = 120_000; // ms — first boot runs 90+ migrations
 const POLL_INTERVAL   = 300;    // ms between health polls
 
 const DEV_URL   = `http://localhost:${VITE_PORT}`;
@@ -56,6 +56,15 @@ function getUnpackedPath(relativePath) {
   return path.join(__dirname, relativePath);
 }
 
+function getDataDir() {
+  // Resolve a writable, predictable data directory.
+  // When double-clicked, process.cwd() can be C:\Windows\System32 — never rely on it.
+  if (app.isPackaged) {
+    return path.join(path.dirname(app.getPath("exe")), "pb_data");
+  }
+  return path.join(__dirname, "pb_data");
+}
+
 function startBackend() {
   if (!app.isPackaged) {
     console.log("[Main] Dev mode — start backend separately: npm run dev:backend");
@@ -67,11 +76,15 @@ function startBackend() {
     console.error("[Main] Backend bundle not found:", serverPath);
     return;
   }
-  console.log("[Main] Forking backend:", serverPath);
+  const dataDir = getDataDir();
+  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+  const appDir = path.dirname(app.getPath("exe"));
+  console.log("[Main] Forking backend:", serverPath, "DATA_DIR:", dataDir, "cwd:", appDir);
   backendProcess = fork(serverPath, [], {
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" },
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", DATA_DIR: dataDir },
     execArgv: ["--max-old-space-size=8192"],
     stdio: ["pipe", "pipe", "pipe", "ipc"],
+    cwd: appDir,
   });
   // Log backend output to main process console for debugging
   backendProcess.stdout?.on("data", (d) => process.stdout.write("[Backend] " + d));
@@ -131,10 +144,10 @@ async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1920,
     height: 1080,
-    fullscreen: true,
-    kiosk: true,
-    alwaysOnTop: true,
-    skipTaskbar: true,
+    fullscreen: app.isPackaged,
+    kiosk: app.isPackaged,
+    alwaysOnTop: app.isPackaged,
+    skipTaskbar: app.isPackaged,
     title: "ClickFlash Master OS",
     icon: path.join(__dirname, "build/icon.ico"),
     show: false,
@@ -297,7 +310,8 @@ function setupWindowEvents(win) {
 // ─── Guardian ─────────────────────────────────────────────────────────────────
 
 function spawnGuardian() {
-  const gPath = path.join(__dirname, "KioskGuardian.exe");
+  if (!app.isPackaged) return; // guardian only runs in packaged kiosk mode
+  const gPath = path.join(process.resourcesPath, "helper_scripts", "KioskGuardian.exe");
   if (!fs.existsSync(gPath)) {
     console.warn("[Main] KioskGuardian.exe not found — OS shortcuts unblocked");
     return;

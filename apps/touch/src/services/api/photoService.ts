@@ -225,14 +225,14 @@ export const photoService = {
             const albumStatus = record.status || '';
 
             return {
-                id: albumId,
-                title: albumTitle,
-                date: albumDate,
-                photographerId: photographerId,
-                coverPhotoUrl: coverPhotoUrl,
-                source: albumSource,
-                roomNumber: roomNumber,
-                status: albumStatus,
+                id: albumId as string,
+                title: albumTitle as string,
+                date: albumDate as string,
+                photographerId: (photographerId ?? 0) as number,
+                coverPhotoUrl: coverPhotoUrl as string,
+                source: albumSource as string,
+                roomNumber: roomNumber as string,
+                status: albumStatus as string,
                 categories: categories,
                 photos: photos
             };

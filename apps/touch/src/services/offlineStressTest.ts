@@ -91,32 +91,28 @@ class OfflineStressTestService {
         
         return {
             id: `stress-order-${Date.now()}-${index}`,
-            albumId: `stress-album-${Math.floor(index / 10)}`,
             items: [
                 {
-                    photoId: `photo-${index}-1`,
-                    size: sizes[Math.floor(Math.random() * sizes.length)],
+                    id: `item-${index}-1`,
+                    name: sizes[Math.floor(Math.random() * sizes.length)],
+                    format: 'print',
                     quantity: Math.floor(Math.random() * 3) + 1,
                     price: Math.random() * 50 + 10,
                 },
                 {
-                    photoId: `photo-${index}-2`,
-                    size: sizes[Math.floor(Math.random() * sizes.length)],
+                    id: `item-${index}-2`,
+                    name: sizes[Math.floor(Math.random() * sizes.length)],
+                    format: 'print',
                     quantity: Math.floor(Math.random() * 2) + 1,
                     price: Math.random() * 30 + 5,
                 },
             ],
-            customer: {
-                name: `Customer ${index}`,
-                email: `customer${index}@test.com`,
-                phone: `555-${String(index).padStart(4, '0')}`,
-            },
+            clientName: `Customer ${index}`,
+            email: `customer${index}@test.com`,
+            date: new Date().toISOString(),
+            photographerId: index % 5,
             status: statuses[Math.floor(Math.random() * statuses.length)] as Order['status'],
-            subtotal: Math.random() * 100 + 20,
-            tax: Math.random() * 10,
             total: Math.random() * 110 + 25,
-            createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-            updatedAt: new Date().toISOString(),
         };
     }
 
@@ -126,13 +122,13 @@ class OfflineStressTestService {
     private generateAlbum(index: number): Album {
         return {
             id: `stress-album-${index}`,
-            name: `Stress Test Album ${index}`,
+            title: `Stress Test Album ${index}`,
             date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
             photos: [],
-            photoCount: Math.floor(Math.random() * 50) + 10,
-            coverPhoto: null,
-            photographer: `Photographer ${index % 5}`,
-            location: `Location ${index % 10}`,
+            coverPhotoUrl: '',
+            photographerId: index % 5,
+            source: 'stress-test',
+            roomNumber: `Room ${index % 10}`,
         };
     }
 
@@ -143,13 +139,9 @@ class OfflineStressTestService {
         return {
             id: `stress-photo-${albumIndex}-${photoIndex}`,
             albumId: `stress-album-${albumIndex}`,
+            title: `photo_${photoIndex}.jpg`,
             url: `https://picsum.photos/seed/${albumIndex}-${photoIndex}/800/600`,
-            thumbnailUrl: `https://picsum.photos/seed/${albumIndex}-${photoIndex}/200/150`,
-            filename: `photo_${photoIndex}.jpg`,
-            width: 800,
-            height: 600,
-            size: Math.floor(Math.random() * 5000000) + 1000000,
-            dateTaken: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+            photographerId: 0,
         };
     }
 
@@ -214,7 +206,7 @@ class OfflineStressTestService {
                     const photo = this.generatePhoto(albumIdx, photoIdx);
                     
                     try {
-                        await db.photos.put(photo);
+                        await (db as any).photos?.put(photo);
                         photosCreated++;
                         writeTimes.push(performance.now() - photoWriteStart);
                         photoIndex++;
@@ -272,7 +264,7 @@ class OfflineStressTestService {
             // Phase 5: Cleanup
             this.reportProgress('cleanup', 0, 3, 'Cleaning up test data...');
             await db.albums.clear();
-            await db.photos.clear();
+            await (db as any).photos?.clear();
             await db.orders.clear();
             this.reportProgress('cleanup', 3, 3, 'Cleanup completed');
 

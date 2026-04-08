@@ -331,15 +331,10 @@ class TouchApp {
       };
 
       if (isDev) {
-        try {
-          const nodemonPath = require.resolve("nodemon/bin/nodemon");
-          this.backendProcess = fork(nodemonPath, [serverScript], {
-            stdio: "inherit",
-            env,
-            execArgv: ["--max-old-space-size=4096"],
-          });
-          return;
-        } catch (e) {}
+        // In dev mode, backend is started externally via `npm run dev:backend`
+        // or via the `dev:electron` concurrently script — don't fork here.
+        console.log("[Touch] Dev mode — backend started externally on port", this.config.backendPort);
+        return;
       }
 
       this.backendProcess = fork(serverScript, [], {
@@ -364,9 +359,9 @@ class TouchApp {
       width: this.config.width,
       height: this.config.height,
       title: this.config.appName,
-      fullscreen: true,
-      kiosk: true,
-      alwaysOnTop: true,
+      fullscreen: app.isPackaged,
+      kiosk: app.isPackaged,
+      alwaysOnTop: app.isPackaged,
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,

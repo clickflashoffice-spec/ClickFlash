@@ -73,9 +73,9 @@ class OfflineAnalyticsService {
         // Track page visibility for session time
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
-                this.trackEvent('session', 'background', { timestamp: Date.now() });
+                this.trackEvent('interaction', 'background', { timestamp: Date.now() });
             } else {
-                this.trackEvent('session', 'foreground', { timestamp: Date.now() });
+                this.trackEvent('interaction', 'foreground', { timestamp: Date.now() });
             }
         });
 
@@ -234,10 +234,10 @@ class OfflineAnalyticsService {
             const session = await db.table<Session>(SESSION_TABLE).get(this.sessionId);
             if (session) {
                 session.orders.push(orderId);
-                await db.table<Session>(SESSION_TABLE).update(this.sessionId, session);
+                await db.table<Session>(SESSION_TABLE).put(session);
             }
             
-            this.trackBusiness('order_completed', total, { orderId }).catch(() => {});
+            void this.trackBusiness('order_completed', total, { orderId });
         } catch (error) {
             console.debug('[Analytics] Failed to record order', error);
         }
@@ -277,7 +277,7 @@ class OfflineAnalyticsService {
         try {
             const unsynced = await db.table<AnalyticsEvent>(ANALYTICS_TABLE)
                 .where('synced')
-                .equals(false)
+                .equals(0 as unknown as number)
                 .limit(100) // Batch size
                 .toArray();
 
@@ -322,7 +322,7 @@ class OfflineAnalyticsService {
         try {
             const [totalEvents, unsyncedEvents, sessions] = await Promise.all([
                 db.table<AnalyticsEvent>(ANALYTICS_TABLE).count(),
-                db.table<AnalyticsEvent>(ANALYTICS_TABLE).where('synced').equals(false).count(),
+                db.table<AnalyticsEvent>(ANALYTICS_TABLE).where('synced').equals(0 as unknown as number).count(),
                 db.table<Session>(SESSION_TABLE).count()
             ]);
 

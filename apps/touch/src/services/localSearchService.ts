@@ -215,7 +215,7 @@ class LocalAISearchService {
         const faceapi = await import('@vladmandic/face-api');
         
         // Get query face descriptor
-        const queryDetection = await faceapi.detectSingleFace(queryImage)
+        const queryDetection = await (faceapi as any).detectSingleFace(queryImage)
             .withFaceDescriptor();
 
         if (!queryDetection) {
@@ -229,7 +229,7 @@ class LocalAISearchService {
             const stored = this.faceEmbeddings.get(photo.id);
             if (!stored) continue;
 
-            const distance = faceapi.matchFaceDistance(
+            const distance = (faceapi as any).matchFaceDistance(
                 queryDetection.descriptor,
                 stored.embedding
             );
@@ -304,11 +304,12 @@ class LocalAISearchService {
         const results: SearchResult[] = [];
 
         for (const photo of photos) {
+            const p = photo as any;
             const searchableText = [
-                photo.filename || '',
-                (photo as Record<string, unknown>).tags as string || '',
-                (photo as Record<string, unknown>).description as string || '',
-                (photo as Record<string, unknown>).albumName as string || '',
+                p.filename || p.title || '',
+                p.tags || '',
+                p.description || '',
+                p.albumName || '',
             ].join(' ').toLowerCase();
 
             let matchCount = 0;

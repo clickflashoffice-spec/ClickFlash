@@ -209,9 +209,9 @@ export function createTouchEvent(type: string, touches: TouchInit[] = []): Touch
     return new TouchEvent(type, {
         bubbles: true,
         touches: touches.map((t, i) => new Touch({
-            identifier: i,
-            target: document.body,
-            ...t
+            ...t,
+            identifier: (t as any).identifier ?? i,
+            target: (t as any).target ?? document.body,
         }))
     });
 }

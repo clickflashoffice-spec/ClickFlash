@@ -1,6 +1,6 @@
 // backend/routes/orders.ts
 import express, { Request, Response, Router } from 'express';
-import { pb } from '../services/pb'; // Assume backend has its own PB or DB access
+// pb import removed — uses context.dbManager (SQLite) directly
 import { Logger } from '../shared/logger'; // Or local logger
 import os from 'os';
 

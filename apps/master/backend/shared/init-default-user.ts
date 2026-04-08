@@ -15,13 +15,54 @@ export async function initDefaultUser(
     password_must_change: 1,
   };
 
-  // SECURITY: Skip default user creation if credentials not configured
+  // If no credentials configured, generate a one-time password and write to pb_data
   if (!DEFAULT_USER.email || !DEFAULT_USER.password) {
-    console.warn(
-      "[Init] DEFAULT_ADMIN_EMAIL and DEFAULT_ADMIN_PASSWORD must be set via environment variables",
-    );
-    console.warn("[Init] Skipping default user creation for security");
-    return;
+    const dataDir = process.env.DATA_DIR || path.join(process.cwd(), "pb_data");
+    const credFile = path.join(dataDir, "FIRST_RUN_CREDENTIALS.txt");
+
+    // Only auto-generate if credentials file doesn't already exist
+    if (!fs.existsSync(credFile)) {
+      const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$";
+      const pw = Array.from({ length: 16 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+      DEFAULT_USER.email = "admin@clickflash.local";
+      DEFAULT_USER.password = pw;
+      DEFAULT_USER.name = "Admin";
+      try {
+        fs.mkdirSync(dataDir, { recursive: true });
+        fs.writeFileSync(
+          credFile,
+          [
+            "ClickFlash Master OS — First Run Credentials",
+            "=============================================",
+            `Email:    ${DEFAULT_USER.email}`,
+            `Password: ${DEFAULT_USER.password}`,
+            "",
+            "Delete this file after logging in and changing your password.",
+            `Generated: ${new Date().toISOString()}`,
+          ].join("\n"),
+          "utf8",
+        );
+        console.warn(`[Init] First-run credentials written to: ${credFile}`);
+      } catch (e) {
+        console.error("[Init] Failed to write first-run credentials file:", e instanceof Error ? e.message : String(e));
+        return;
+      }
+    } else {
+      // Credentials file exists — parse it to get the password for this boot
+      try {
+        const lines = fs.readFileSync(credFile, "utf8").split("\n");
+        const emailLine = lines.find((l) => l.startsWith("Email:"));
+        const pwLine = lines.find((l) => l.startsWith("Password:"));
+        if (emailLine && pwLine) {
+          DEFAULT_USER.email = emailLine.replace("Email:", "").trim();
+          DEFAULT_USER.password = pwLine.replace("Password:", "").trim();
+        } else {
+          return; // malformed file — skip
+        }
+      } catch {
+        return;
+      }
+    }
   }
 
   let dbManager: DatabaseManager;

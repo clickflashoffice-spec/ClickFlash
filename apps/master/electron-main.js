@@ -33,8 +33,12 @@ const DEV_URL   = `http://localhost:${VITE_PORT}`;
 const PROD_FILE = path.join(__dirname, "dist/master/index.html");
 
 const ADMIN_PIN      = process.env.ADMIN_PIN || null;
-const DEFAULT_PIN    = "000000";
 const ADMIN_SHORTCUT = "CommandOrControl+Alt+Shift+X";
+
+// PIN brute-force protection — track failed attempts in memory
+const pinAttempts = { count: 0, lockedUntil: 0 };
+const PIN_MAX_ATTEMPTS = 5;
+const PIN_LOCKOUT_MS   = 15 * 60 * 1000; // 15 minutes
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -261,16 +265,25 @@ async function createWindow() {
 function setupSecurity(win) {
   const wc = win.webContents;
 
+  function isAllowedUrl(url) {
+    if (url.startsWith("file://") || url.startsWith("data:")) return true;
+    try {
+      const { hostname } = new URL(url);
+      return hostname === "localhost" || hostname === "127.0.0.1";
+    } catch (_) { return false; }
+  }
+
   wc.on("will-navigate", (event, url) => {
-    let allowed = url.startsWith("file://") || url.startsWith("data:");
-    if (!allowed) {
-      try {
-        const { hostname } = new URL(url);
-        allowed = hostname === "localhost" || hostname === "127.0.0.1";
-      } catch (_) {}
-    }
-    if (!allowed) {
+    if (!isAllowedUrl(url)) {
       console.warn("[Security] Blocked navigation:", url);
+      event.preventDefault();
+    }
+  });
+
+  // Redirects bypass will-navigate — block them too
+  wc.on("will-redirect", (event, url) => {
+    if (!isAllowedUrl(url)) {
+      console.warn("[Security] Blocked redirect:", url);
       event.preventDefault();
     }
   });
@@ -293,11 +306,35 @@ function setupSecurity(win) {
 }
 
 function setupWindowEvents(win) {
+  // Cap auto-reload attempts: 3 crashes within 60s triggers a wait-for-manual-restart screen
+  const crashTracker = { count: 0, windowStart: Date.now() };
+  const MAX_CRASHES  = 3;
+  const CRASH_WINDOW = 60_000;
+
   win.webContents.on("render-process-gone", (_e, details) => {
-    console.error("[Main] Renderer crashed:", details.reason, "— recovering");
+    console.error("[Main] Renderer crashed:", details.reason);
+
+    const now = Date.now();
+    if (now - crashTracker.windowStart > CRASH_WINDOW) {
+      crashTracker.count = 0;
+      crashTracker.windowStart = now;
+    }
+    crashTracker.count += 1;
+
+    if (crashTracker.count > MAX_CRASHES) {
+      console.error(`[Main] Renderer crashed ${crashTracker.count} times — stopping auto-reload`);
+      if (!win.isDestroyed()) {
+        win.loadURL("data:text/html,<h2 style='font-family:sans-serif;padding:2rem'>ClickFlash encountered a fatal error.<br>Please restart the application.</h2>");
+      }
+      return;
+    }
+
     setTimeout(() => {
       if (!win || win.isDestroyed()) return;
-      if (!win.isKiosk()) { win.setKiosk(true); win.setFullScreen(true); win.setAlwaysOnTop(true); }
+      if (app.isPackaged && !win.isKiosk()) {
+        win.setKiosk(true); win.setFullScreen(true); win.setAlwaysOnTop(true);
+      }
+      console.log(`[Main] Reloading renderer (attempt ${crashTracker.count}/${MAX_CRASHES})`);
       win.reload();
     }, 2000);
   });
@@ -338,16 +375,36 @@ function killGuardian() {
 
 function setupIpc() {
   ipcMain.handle("kiosk:unlock", (_e, pin) => {
-    // In production require ADMIN_PIN env; block default PIN
-    const expected = ADMIN_PIN && ADMIN_PIN !== DEFAULT_PIN
-      ? ADMIN_PIN
-      : (!app.isPackaged ? DEFAULT_PIN : null);
+    // Production requires ADMIN_PIN env; dev falls back to "000000" for convenience
+    const expected = ADMIN_PIN || (!app.isPackaged ? "000000" : null);
 
     if (!expected) {
-      console.error("[IPC] kiosk:unlock — set ADMIN_PIN env before deploying");
-      return { success: false, error: "Kiosk unlock not configured" };
+      console.error("[IPC] kiosk:unlock — ADMIN_PIN env not set; cannot unlock in production");
+      return { success: false, error: "Kiosk unlock not configured — set ADMIN_PIN" };
     }
-    if (pin !== expected) return { success: false, error: "Invalid PIN" };
+
+    // Brute-force lockout
+    const now = Date.now();
+    if (pinAttempts.lockedUntil > now) {
+      const secsLeft = Math.ceil((pinAttempts.lockedUntil - now) / 1000);
+      console.warn(`[IPC] kiosk:unlock — locked out for ${secsLeft}s`);
+      return { success: false, error: `Too many attempts. Try again in ${secsLeft}s` };
+    }
+
+    if (pin !== expected) {
+      pinAttempts.count += 1;
+      console.warn(`[IPC] kiosk:unlock — wrong PIN (attempt ${pinAttempts.count}/${PIN_MAX_ATTEMPTS})`);
+      if (pinAttempts.count >= PIN_MAX_ATTEMPTS) {
+        pinAttempts.lockedUntil = now + PIN_LOCKOUT_MS;
+        pinAttempts.count = 0;
+        return { success: false, error: "Too many attempts. Locked for 15 minutes" };
+      }
+      return { success: false, error: "Invalid PIN" };
+    }
+
+    // Correct PIN — reset attempt counter
+    pinAttempts.count = 0;
+    pinAttempts.lockedUntil = 0;
 
     if (mainWindow) {
       mainWindow.setKiosk(false);
@@ -452,11 +509,38 @@ app.whenReady().then(() => {
   setupIpc();
   startBackend();
   createWindow();
+  scheduleBackups();
 }).catch((err) => {
   console.error("[Main] Fatal startup error:", err);
   dialog.showErrorBox("Startup Error", String(err));
   app.quit();
 });
+
+/**
+ * Daily SQLite backup — runs immediately on launch, then every 24 hours.
+ * Keeps the last 7 snapshots in DATA_DIR/backup/.
+ */
+function scheduleBackups() {
+  const backupServicePath = app.isPackaged
+    ? path.join(getUnpackedPath("dist/backend/main/backupService.js"))
+    : path.join(__dirname, "dist/backend/main/backupService.js");
+
+  function runBackup() {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { BackupService } = require(backupServicePath);
+      BackupService.runDailyBackup(getDataDir()).catch((err) => {
+        console.error("[Backup] Backup failed:", err);
+      });
+    } catch (err) {
+      // Backup service not compiled yet (first run before build) — skip silently
+      console.warn("[Backup] backupService not available:", err.message);
+    }
+  }
+
+  runBackup(); // Immediate backup on startup
+  setInterval(runBackup, 24 * 60 * 60 * 1000); // Then daily
+}
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") shutdown();

@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+release/
+
+# Electron packaged output
+out/
+
+# Runtime data
+pb_data/
+
+# Environment — never commit real secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Native module rebuild artifacts
+build/Release/
+*.node
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Test coverage
+coverage/

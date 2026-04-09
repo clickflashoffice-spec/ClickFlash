@@ -1,57 +1,54 @@
 import fs from 'fs';
 import path from 'path';
-import { app } from 'electron';
 
 export class BackupService {
-    private static BACKUP_DIR = path.join(app.getPath('userData'), 'backups');
-    private static DB_PATH = path.join(app.getPath('userData'), 'database.sqlite');
     private static MAX_BACKUPS = 7;
 
-    public static async runDailyBackup(): Promise<void> {
+    /** Call with the resolved DATA_DIR after app is ready. */
+    public static async runDailyBackup(dataDir: string): Promise<void> {
+        const backupDir = path.join(dataDir, 'backup');
+        const dbPath    = path.join(dataDir, 'master.db');
         try {
-            if (!fs.existsSync(this.BACKUP_DIR)) {
-                fs.mkdirSync(this.BACKUP_DIR, { recursive: true });
+            if (!fs.existsSync(backupDir)) {
+                fs.mkdirSync(backupDir, { recursive: true });
             }
 
-            const now = new Date();
-            const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
-            const backupPath = path.join(this.BACKUP_DIR, `database_${dateStr}.sqlite.bak`);
+            const dateStr  = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            const destPath = path.join(backupDir, `master_${dateStr}.sqlite.bak`);
 
-            // Check if backup already exists for today
-            if (fs.existsSync(backupPath)) {
-                console.log(`[Backup] Backup for ${dateStr} already exists.`);
+            if (fs.existsSync(destPath)) {
+                console.log(`[Backup] Already backed up for ${dateStr}`);
                 return;
             }
 
-            if (!fs.existsSync(this.DB_PATH)) {
-                console.warn(`[Backup] Database not found at ${this.DB_PATH}`);
+            if (!fs.existsSync(dbPath)) {
+                console.warn(`[Backup] DB not found at ${dbPath}`);
                 return;
             }
 
-            // Perform copy
-            await fs.promises.copyFile(this.DB_PATH, backupPath);
-            console.log(`[Backup] Successfully created backup: ${backupPath}`);
+            await fs.promises.copyFile(dbPath, destPath);
+            console.log(`[Backup] Created ${destPath}`);
 
-            // Cleanup old backups
-            await this.cleanupOldBackups();
+            await BackupService.cleanupOldBackups(backupDir);
         } catch (error) {
             console.error('[Backup] Backup failed:', error);
         }
     }
 
-    private static async cleanupOldBackups(): Promise<void> {
-        const files = await fs.promises.readdir(this.BACKUP_DIR);
+    private static async cleanupOldBackups(backupDir: string): Promise<void> {
+        const files   = await fs.promises.readdir(backupDir);
         const backups = files
             .filter(f => f.endsWith('.sqlite.bak'))
-            .map(f => ({ name: f, path: path.join(this.BACKUP_DIR, f), time: fs.statSync(path.join(this.BACKUP_DIR, f)).mtime.getTime() }))
+            .map(f => ({
+                name: f,
+                filePath: path.join(backupDir, f),
+                time: fs.statSync(path.join(backupDir, f)).mtime.getTime(),
+            }))
             .sort((a, b) => b.time - a.time);
 
-        if (backups.length > this.MAX_BACKUPS) {
-            const toDelete = backups.slice(this.MAX_BACKUPS);
-            for (const file of toDelete) {
-                await fs.promises.unlink(file.path);
-                console.log(`[Backup] Deleted old backup: ${file.name}`);
-            }
+        for (const file of backups.slice(BackupService.MAX_BACKUPS)) {
+            await fs.promises.unlink(file.filePath);
+            console.log(`[Backup] Pruned old backup: ${file.name}`);
         }
     }
 }

@@ -22,21 +22,53 @@ export const LOGS_DIR = path.join(DATA_DIR, 'logs');
 export const AUDIT_LOGS_DIR = path.join(DATA_DIR, 'audit_logs');
 
 // --- Security Configuration ---
-export const JWT_SECRET = process.env.JWT_SECRET || (() => {
-    if (NODE_ENV === 'production' && !isElectron) {
-        throw new Error('FATAL: JWT_SECRET environment variable is required in production.');
-    }
-    console.warn('[Security] Using temporary JWT secret. Sessions will invalidate on restart. Set JWT_SECRET in .env');
-    return 'DEV_JWT_' + crypto.randomBytes(32).toString('hex');
-})();
 
-export const SESSION_SECRET = process.env.SESSION_SECRET || (() => {
+/**
+ * Retrieve a named secret from env, or generate + persist it to DATA_DIR/secrets.json.
+ * Persisted secrets survive restarts (important for Electron packaged apps where
+ * environment variables cannot be set in the traditional sense).
+ * In non-Electron production builds, the env var is required.
+ */
+function getOrCreateSecret(name: string, envValue: string | undefined): string {
+    if (envValue) return envValue;
+
+    // Non-Electron production: hard fail — operator must configure the env
     if (NODE_ENV === 'production' && !isElectron) {
-        throw new Error('FATAL: SESSION_SECRET environment variable is required in production.');
+        throw new Error(`FATAL: ${name} environment variable is required in production.`);
     }
-    console.warn('[Security] Using temporary SESSION secret. Cookies will invalidate on restart. Set SESSION_SECRET in .env');
-    return 'DEV_SESS_' + crypto.randomBytes(32).toString('hex');
-})();
+
+    // Electron packaged: persist auto-generated secret so sessions survive restarts
+    const secretsFile = path.join(DATA_DIR, 'secrets.json');
+    let secrets: Record<string, string> = {};
+
+    if (fs.existsSync(secretsFile)) {
+        try {
+            secrets = JSON.parse(fs.readFileSync(secretsFile, 'utf8'));
+        } catch {
+            console.warn(`[Security] Could not parse ${secretsFile}; regenerating secrets`);
+        }
+    }
+
+    if (!secrets[name]) {
+        secrets[name] = crypto.randomBytes(64).toString('hex');
+        try {
+            fs.mkdirSync(path.dirname(secretsFile), { recursive: true });
+            fs.writeFileSync(secretsFile, JSON.stringify(secrets, null, 2), { mode: 0o600 });
+            if (isElectron) {
+                console.log(`[Security] Generated persistent ${name} → ${secretsFile}`);
+            } else {
+                console.warn(`[Security] Using temporary ${name}. Set it in .env for stability.`);
+            }
+        } catch (e) {
+            console.warn(`[Security] Could not persist ${name} to disk:`, e);
+        }
+    }
+
+    return secrets[name];
+}
+
+export const JWT_SECRET     = getOrCreateSecret('JWT_SECRET',     process.env.JWT_SECRET);
+export const SESSION_SECRET = getOrCreateSecret('SESSION_SECRET', process.env.SESSION_SECRET);
 
 // --- CORS Configuration ---
 export const ALLOWED_ORIGINS = process.env.CORS_ORIGINS

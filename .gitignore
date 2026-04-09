@@ -45,6 +45,8 @@ database.sqlite-wal
 # Keep .env.example templates but exclude backend .env files with secrets
 **/backend/.env*
 !**/backend/.env.example
+# Allow app-level .env.example files
+!apps/**/.env.example
 
 # Logs and debug artifacts (Master App hygiene)
 *.log

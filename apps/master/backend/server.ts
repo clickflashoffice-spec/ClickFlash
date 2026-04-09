@@ -26,6 +26,7 @@ import helmet from "helmet";
 
 // Shared Modules
 import rateLimiter, {
+  strictRateLimiter,
   setAuditLogger as setRateLimiterAuditLogger,
 } from "./shared/rateLimiter";
 import { getLocalNetworkIPs } from "./shared/networkDetection";
@@ -509,7 +510,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // --- Routes Mounting ---
 // Specific API routes
-app.use("/api/auth", authRoutes(context));
+// Auth routes get stricter rate limiting (5 req/min) to resist brute-force
+app.use("/api/auth", strictRateLimiter, authRoutes(context));
 app.use("/api/collections", collectionRoutes(context)); // Handles /:collection/records
 app.use("/api/cloud", cloudRoutes(context)); // Handles /status, /sync, /stats, /retention
 app.use("/api/session-types", sessionTypeRoutes(context)); // Handles /session-types
@@ -534,8 +536,8 @@ app.use("/api", pairingRoutes(context)); // Handles /pairing
 app.use("/api", notificationRoutes(context)); // Handles /notify/customer
 app.use("/api", assistanceRoutes(context)); // Handles /assistance
 app.use("/api/gallery", galleryRoutes(context)); // Handles /gallery/export watermark generation
-app.use("/api/gallery-auth", galleryAuthRoutes(context));
-app.use("/api/gallery-checkout", galleryCheckoutRoutes(context));
+app.use("/api/gallery-auth", strictRateLimiter, galleryAuthRoutes(context));
+app.use("/api/gallery-checkout", strictRateLimiter, galleryCheckoutRoutes(context));
 app.use("/api", syncRoutes(context as any)); // Mount /api/sync/mutation — Touch→Master push
 
 // Fallback for unhandled API routes

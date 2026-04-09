@@ -12,6 +12,7 @@ import { VectorIndexService } from "../../services/VectorIndexService";
 interface OperationsContext {
   dbManager: DatabaseManager;
   logger: Logger;
+  auditLogger?: any;
   realtimeService?: any;
   wss?: any;
   cloudSyncService?: any;
@@ -224,6 +225,57 @@ export default function operationsRoutes(context: OperationsContext): Router {
       res.status(report.passed ? 200 : 500).json(report);
     } catch (e) {
       const error = e instanceof Error ? e : new Error(String(e));
+      sendInternalError(res, error.message);
+    }
+  });
+
+  /**
+   * @route POST /erase-customer-data
+   * @desc  GDPR Article 17 — Right to Erasure.
+   *        Deletes all personal data for a customer email from the source-of-truth DB.
+   *        Requires authentication (enforced by global auth middleware).
+   */
+  router.post("/erase-customer-data", async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body as { email?: string };
+      if (!email || typeof email !== "string" || !email.includes("@")) {
+        return sendInvalidInputError(res, "Valid customer email is required");
+      }
+
+      const db = dbManager.getDb();
+      const normalizedEmail = email.toLowerCase().trim();
+
+      // Delete across all tables that store customer PII
+      const ordersResult   = db.prepare("DELETE FROM orders WHERE LOWER(json_extract(customer, '$.email')) = ?").run(normalizedEmail);
+      const bookingsResult = db.prepare("DELETE FROM bookings WHERE LOWER(email) = ?").run(normalizedEmail);
+      const usersResult    = db.prepare("DELETE FROM users WHERE LOWER(email) = ?").run(normalizedEmail);
+
+      // Anonymise photos referencing this customer's orders (retain for accounting audit trail)
+      db.prepare(`
+        UPDATE photos SET metadata = json_patch(metadata, '{"customer_email": null, "customer_name": null}')
+        WHERE json_extract(metadata, '$.customer_email') = ?
+      `).run(normalizedEmail);
+
+      const deleted = {
+        orders:   ordersResult.changes,
+        bookings: bookingsResult.changes,
+        users:    usersResult.changes,
+      };
+
+      logger.info("[GDPR] Customer data erased", { email: normalizedEmail, deleted });
+
+      if (context.auditLogger) {
+        context.auditLogger.log("GDPR_ERASURE", {
+          email: normalizedEmail,
+          deleted,
+          actor: (req as any).user?.email ?? "system",
+        });
+      }
+
+      res.json({ success: true, deleted });
+    } catch (e) {
+      const error = e instanceof Error ? e : new Error(String(e));
+      logger.error("[GDPR] Erase failed", { error: error.message });
       sendInternalError(res, error.message);
     }
   });

@@ -98,6 +98,26 @@ export class DatabaseManager {
     }
 
     const files = fs.readdirSync(migrationsDir).sort();
+
+    // Warn on duplicate numeric prefixes — these run in alpha order which may
+    // not match intended dependency order on fresh installs.
+    const prefixMap = new Map<string, string[]>();
+    for (const f of files) {
+      if (!f.endsWith(".sql")) continue;
+      const prefix = f.match(/^(\d+)/)?.[1] ?? f;
+      const group  = prefixMap.get(prefix) ?? [];
+      group.push(f);
+      prefixMap.set(prefix, group);
+    }
+    for (const [prefix, group] of prefixMap) {
+      if (group.length > 1) {
+        console.warn(
+          `[Database] WARNING: ${group.length} migrations share prefix "${prefix}" — ` +
+          `they run alphabetically (${group.join(", ")}). Verify dependency order on fresh installs.`
+        );
+      }
+    }
+
     const getApplied = this.db.prepare("SELECT name FROM migrations");
     const applied = new Set(
       (getApplied.all() as Migration[]).map((m) => m.name),

@@ -44,6 +44,16 @@ win:
   requestedExecutionLevel: requireAdministrator
   forceCodeSigning: false
   signAndEditExecutable: false
+  # publisherName is used by electron-updater to verify the code-signing certificate
+  # on downloaded updates before installing. Set this to your EV cert CN.
+  # publisherName: "ClickFlash Photography SARL"
+
+# Update feed — HTTPS only. Uncomment and configure before enabling auto-update.
+# publish:
+#   provider: github
+#   owner: clickflash
+#   repo: master-releases
+#   private: true
 
 compression: store
 
@@ -59,3 +69,6 @@ nsis:
 electronVersion: "39.2.7"
 npmRebuild: true
 asar: true
+
+# After packing: generate SHA-256 sidecar for KioskGuardian.exe integrity check
+afterPack: scripts/generate-guardian-hash.js

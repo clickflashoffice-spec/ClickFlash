@@ -19,6 +19,7 @@ const { app, BrowserWindow, ipcMain, globalShortcut, dialog } = require("electro
 const path   = require("path");
 const fs     = require("fs");
 const http   = require("http");
+const crypto = require("crypto");
 const { fork, spawn } = require("child_process");
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -346,13 +347,44 @@ function setupWindowEvents(win) {
 
 // ─── Guardian ─────────────────────────────────────────────────────────────────
 
+/**
+ * Compute SHA-256 of a file synchronously.
+ * @param {string} filePath
+ * @returns {string} hex digest
+ */
+function sha256OfFile(filePath) {
+  const data = fs.readFileSync(filePath);
+  return crypto.createHash("sha256").update(data).digest("hex");
+}
+
 function spawnGuardian() {
   if (!app.isPackaged) return; // guardian only runs in packaged kiosk mode
-  const gPath = path.join(process.resourcesPath, "helper_scripts", "KioskGuardian.exe");
+  const gPath      = path.join(process.resourcesPath, "helper_scripts", "KioskGuardian.exe");
+  const hashPath   = path.join(process.resourcesPath, "helper_scripts", "KioskGuardian.exe.sha256");
+
   if (!fs.existsSync(gPath)) {
     console.warn("[Main] KioskGuardian.exe not found — OS shortcuts unblocked");
     return;
   }
+
+  // Integrity check: compare actual hash against the sidecar .sha256 file
+  if (fs.existsSync(hashPath)) {
+    const expectedHash = fs.readFileSync(hashPath, "utf8").trim().toLowerCase();
+    const actualHash   = sha256OfFile(gPath);
+    if (actualHash !== expectedHash) {
+      const msg = `[Main] SECURITY: KioskGuardian.exe hash mismatch!\n  expected: ${expectedHash}\n  actual:   ${actualHash}`;
+      console.error(msg);
+      dialog.showErrorBox(
+        "Security Alert",
+        "KioskGuardian.exe has been tampered with. The application will not enter kiosk mode.\nPlease reinstall ClickFlash Master."
+      );
+      return; // Do NOT spawn a potentially tampered binary
+    }
+    console.log("[Main] KioskGuardian.exe integrity verified ✓");
+  } else {
+    console.warn("[Main] KioskGuardian.exe.sha256 not found — skipping integrity check (reinstall recommended)");
+  }
+
   guardianProcess = spawn(gPath, [], { detached: false });
   guardianProcess.on("error", (err) => console.error("[Main] Guardian error:", err.message));
   guardianProcess.on("exit", () => {

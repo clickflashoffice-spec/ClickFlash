@@ -22,6 +22,7 @@ files:
   - "!*.tsx"
   - "!tsconfig*.json"
   - "!vite.config.*"
+  - "!**/*.map"
 
 # Unpack backend + ALL node_modules from asar
 # Required because fork() with ELECTRON_RUN_AS_NODE strips asar support

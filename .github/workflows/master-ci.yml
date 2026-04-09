@@ -1,0 +1,123 @@
+name: Master App CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "apps/master/**"
+      - ".github/workflows/master-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/master/**"
+
+defaults:
+  run:
+    working-directory: apps/master
+
+jobs:
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: apps/master/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Audit for high/critical CVEs
+        run: npm audit --audit-level=high
+
+  build:
+    name: Build & Type Check
+    runs-on: ubuntu-latest
+    needs: security
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: apps/master/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: TypeScript — frontend
+        run: npx tsc --noEmit
+
+      - name: TypeScript — backend
+        run: npx tsc --noEmit -p tsconfig.server.json
+
+      - name: Build frontend (Vite)
+        run: npm run build
+
+      - name: Build backend (esbuild)
+        # Skip copy-assets step in CI (no helper_scripts present)
+        run: |
+          npx esbuild \
+            "server=backend/server.ts" \
+            "workers/photoWorker=backend/workers/photoWorker.ts" \
+            "workers/folderWorker=backend/workers/folderWorker.ts" \
+            "main/autoUpdater=src/main/autoUpdater.ts" \
+            "main/backupService=src/main/backupService.ts" \
+            --bundle --minify --platform=node --target=node20 \
+            --outdir=dist/backend \
+            --external:electron \
+            --external:electron-updater \
+            --external:better-sqlite3 \
+            --external:better-sqlite3-multiple-ciphers \
+            --external:better-sqlite3-session-store \
+            --external:sharp \
+            --external:bcryptjs \
+            --external:adm-zip \
+            --external:bonjour-service \
+            --external:express-session \
+            --external:formidable \
+            --external:helmet \
+            --external:jsonwebtoken \
+            --external:pdf-to-printer \
+            --external:fs-extra \
+            --external:form-data \
+            --external:ws \
+            --external:express \
+            --external:@tensorflow/tfjs-node \
+            --external:@napi-rs/canvas \
+            --external:archiver \
+            --external:nodemailer \
+            --drop:debugger
+
+      - name: Verify no source maps in dist
+        run: |
+          count=$(find dist -name "*.map" | wc -l)
+          echo "Source map files found: $count"
+          if [ "$count" -gt 0 ]; then
+            echo "ERROR: Source map files found in dist — leaks source code to end users"
+            find dist -name "*.map"
+            exit 1
+          fi
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: apps/master/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: ESLint
+        run: npm run lint

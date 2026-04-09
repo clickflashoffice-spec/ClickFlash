@@ -691,7 +691,7 @@ server.listen(PORT, "0.0.0.0", async () => {
         await initializeEcosystem();
 
         // Graceful shutdown: stop all background services before exit (P7 audit fix)
-        const gracefulShutdown = (signal: string) => {
+        const gracefulShutdown = async (signal: string) => {
             logger.info(
                 `[Shutdown] ${signal} received — stopping background services...`,
             );
@@ -729,6 +729,13 @@ server.listen(PORT, "0.0.0.0", async () => {
                 maintenancePoller?.stop?.();
             } catch {
                 /* ignore */
+            }
+            // Drain pending DB writes before closing (P4 audit fix — prevents data loss)
+            try {
+                await dbWriteQueue.shutdown();
+                logger.info("[Shutdown] DbWriteQueue drained.");
+            } catch (err) {
+                logger.error("[Shutdown] DbWriteQueue drain failed:", err);
             }
             bonjour.unpublishAll(() => {
                 server.close(() => {

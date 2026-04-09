@@ -66,7 +66,7 @@ nsis:
   runAfterFinish: false
   shortcutName: ClickFlash Master OS
 
-electronVersion: "39.2.7"
+electronVersion: "39.8.7"
 npmRebuild: true
 asar: true
 

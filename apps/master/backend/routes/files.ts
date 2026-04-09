@@ -18,6 +18,7 @@ import DatabaseManager from "../shared/db";
 import { Logger } from "../shared/logger";
 
 import { PhotoProcessor } from "../shared/photoProcessor";
+import { validateImageMagicNumber } from "../shared/validateImage";
 
 interface FilesContext {
   logger: Logger;
@@ -313,9 +314,25 @@ export default function fileRoutes(context: FilesContext): Router {
         return;
       }
 
-      const ext = path.extname(
-        file.originalFilename || file.newFilename || ".png",
-      );
+      const originalName = file.originalFilename || file.newFilename || ".png";
+      const ext = path.extname(originalName).toLowerCase();
+      const allowedLogoExts = [".png", ".jpg", ".jpeg", ".webp", ".svg"];
+      if (!allowedLogoExts.includes(ext)) {
+        await fs.promises.unlink(file.filepath).catch(() => {});
+        sendInvalidInputError(res, `Unsupported logo format: ${ext}. Allowed: ${allowedLogoExts.join(", ")}`);
+        return;
+      }
+
+      // Skip magic-byte check for SVG (text format), validate raster formats
+      if (ext !== ".svg") {
+        const isValid = await validateImageMagicNumber(file.filepath);
+        if (!isValid) {
+          await fs.promises.unlink(file.filepath).catch(() => {});
+          sendInvalidInputError(res, "File content does not match a valid image format");
+          return;
+        }
+      }
+
       const destPath = path.join(UPLOAD_DIR, `logo${ext}`);
 
       try {

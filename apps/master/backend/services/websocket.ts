@@ -124,7 +124,36 @@ const initWebSocketServer = (server: Server, context: WebSocketContext): WebSock
         logger
     );
 
-    const wss = new WebSocketServer({ server, path: '/ws' });
+    const wss = new WebSocketServer({
+        server,
+        path: '/ws',
+        // Verify connecting clients: must be localhost (admin UI) or a registered kiosk.
+        verifyClient: ({ req }: { req: any }, cb: (result: boolean, code?: number, msg?: string) => void) => {
+            try {
+                const ip = (req.socket?.remoteAddress || '').replace('::ffff:', '');
+                // Always allow loopback (admin dashboard on same machine)
+                if (ip === '127.0.0.1' || ip === '::1') return cb(true);
+
+                const url = new URL(req.url || '', 'http://localhost');
+                const kioskId = url.searchParams.get('kioskId');
+                if (!kioskId) {
+                    logger.warn(`[WebSocket] Rejected upgrade from ${ip} — no kioskId`);
+                    return cb(false, 4001, 'Missing kioskId');
+                }
+
+                const kiosk = dbManager.get('SELECT id FROM kiosks WHERE id = ?', [kioskId]);
+                if (!kiosk) {
+                    logger.warn(`[WebSocket] Rejected unknown kiosk ${kioskId} from ${ip}`);
+                    return cb(false, 4003, 'Unknown kiosk');
+                }
+
+                cb(true);
+            } catch (err: any) {
+                logger.error('[WebSocket] verifyClient error', { error: err.message });
+                cb(false, 4500, 'Internal error');
+            }
+        },
+    });
 
     // Function to update kiosk status in DB
     const updateKioskStatus = (kioskId: string, ip: string, status: string = 'Connected', extraData: any = {}): void => {

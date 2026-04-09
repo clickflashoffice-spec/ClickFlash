@@ -918,7 +918,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
         multiples: true,
         uploadDir: IMPORT_DIR,
         keepExtensions: true,
-        maxFileSize: 500 * 1024 * 1024,
+        maxFileSize: 50 * 1024 * 1024, // 50MB — professional camera RAW is ≤30MB; 500MB was far too permissive
       });
 
       form.parse(req, (err, fields, files) => {

@@ -5,7 +5,7 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   root: '.',
-  base: './',
+  base: '/',
   define: {
     // Map process.env to import.meta.env for browser compatibility
     'process.env': 'import.meta.env',

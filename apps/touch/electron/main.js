@@ -1,5 +1,10 @@
 const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
+
+// Both dev and prod load via Express on port 8091 — unified single port.
+// Dev: run `vite build --watch` for incremental rebuilds served by Express.
+const BACKEND_PORT = 8091;
+const APP_URL = `http://localhost:${BACKEND_PORT}`;
 const isDev = process.env.NODE_ENV === 'development';
 
 let mainWindow;
@@ -26,12 +31,10 @@ function createWindow() {
         show: false, // Don't show until ready
     });
 
-    // Load the app
+    // Load app via Express — dev + prod unified on port 8091
+    mainWindow.loadURL(APP_URL);
     if (isDev) {
-        mainWindow.loadURL('http://localhost:5174');
         mainWindow.webContents.openDevTools();
-    } else {
-        mainWindow.loadFile(path.join(__dirname, '../dist/touch/index.html'));
     }
 
     // Show window when ready
@@ -40,10 +43,9 @@ function createWindow() {
         mainWindow.focus();
     });
 
-    // Prevent navigation away from app
+    // Prevent navigation away from app — allow only same Express origin
     mainWindow.webContents.on('will-navigate', (event, url) => {
-        const appUrl = isDev ? 'http://localhost:5174' : 'file://';
-        if (!url.startsWith(appUrl)) {
+        if (!url.startsWith(APP_URL)) {
             event.preventDefault();
         }
     });

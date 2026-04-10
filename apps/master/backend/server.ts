@@ -577,22 +577,10 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   }
 });
 
-// Catch unhandled promise rejections at the process level
-process.on("unhandledRejection", (reason: any) => {
-  logger.error("[Process] Unhandled Promise Rejection", {
-    error: reason?.message || String(reason),
-    stack: reason?.stack,
-  });
-});
-
-process.on("uncaughtException", (err: Error) => {
-  logger.error("[Process] Uncaught Exception", {
-    error: err.message,
-    stack: err.stack,
-  });
-  // Give time to flush logs, then exit (supervisor will restart)
-  setTimeout(() => process.exit(1), 1000);
-});
+// NOTE: uncaughtException and unhandledRejection handlers are registered
+// below in the Phase 55 block (after server.listen). Registering them here
+// as well caused double-logging and a race between two process.exit() calls.
+// DO NOT re-add handlers here.
 
 // Start Background Services
 import { tunnelManager } from "./services/TunnelManager";
@@ -736,6 +724,13 @@ server.listen(PORT, "0.0.0.0", async () => {
                 logger.info("[Shutdown] DbWriteQueue drained.");
             } catch (err) {
                 logger.error("[Shutdown] DbWriteQueue drain failed:", err);
+            }
+            // Terminate photo/ML worker pools (P8 audit fix — prevents thread leaks on exit)
+            try {
+                await photoProcessor?.shutdown?.();
+                logger.info("[Shutdown] Worker pools terminated.");
+            } catch (err) {
+                logger.error("[Shutdown] Worker pool shutdown failed:", err);
             }
             bonjour.unpublishAll(() => {
                 server.close(() => {

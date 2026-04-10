@@ -29,7 +29,7 @@
     "test:e2e:update-snapshots": "playwright test --update-snapshots",
     "lint": "eslint src --ext .ts,.tsx --max-warnings 0",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.server.json",
+    "typecheck:ci": "tsc --noEmit && tsc --noEmit -p tsconfig.server.json",
     "provision": "tsx backend/scripts/provision-hardware.ts"
   },
   "dependencies": {

@@ -71,6 +71,7 @@ export class Logger {
       JSON.stringify({
         timestamp,
         level,
+        pid: process.pid,
         message,
         ...meta,
       }) + "\n"

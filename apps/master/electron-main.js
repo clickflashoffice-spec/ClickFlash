@@ -4,7 +4,8 @@
  *
  * Architecture:
  *  - Dev:  Vite dev server on :5173 (proxies /api to Express on :8090)
- *  - Prod: Express on :8090 serves built frontend from dist/master/
+ *  - Prod: Express on :8090 serves built frontend — renderer loads via loadURL("http://localhost:8090")
+ *          All traffic (UI + API + WebSocket) is unified on a single port.
  *
  * Startup sequence:
  *  1. Show loading splash
@@ -30,8 +31,8 @@ const HEALTH_URL      = `http://localhost:${BACKEND_PORT}/api/health`;
 const HEALTH_TIMEOUT  = 120_000; // ms — first boot runs 90+ migrations
 const POLL_INTERVAL   = 300;    // ms between health polls
 
-const DEV_URL   = `http://localhost:${VITE_PORT}`;
-const PROD_FILE = path.join(__dirname, "dist/master/index.html");
+const DEV_URL  = `http://localhost:${VITE_PORT}`;
+const PROD_URL = `http://localhost:${BACKEND_PORT}`; // Express serves the built frontend — unified port
 
 const ADMIN_PIN      = process.env.ADMIN_PIN || null;
 const ADMIN_SHORTCUT = "CommandOrControl+Alt+Shift+X";
@@ -206,18 +207,15 @@ async function createWindow() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
 
   // Load renderer
+  // Dev:  Vite dev server on :5173 (proxies /api → Express :8090)
+  // Prod: Express on :8090 serves the built frontend — unified single port
   try {
     if (!app.isPackaged) {
       console.log("[Main] Loading Vite dev server:", DEV_URL);
       await mainWindow.loadURL(DEV_URL);
-    } else if (fs.existsSync(PROD_FILE)) {
-      console.log("[Main] Loading production build:", PROD_FILE);
-      await mainWindow.loadFile(PROD_FILE);
     } else {
-      // Fallback: Express serves the frontend
-      const fallback = `http://localhost:${BACKEND_PORT}`;
-      console.warn("[Main] dist/master/index.html not found — falling back to", fallback);
-      await mainWindow.loadURL(fallback);
+      console.log("[Main] Loading production build via Express:", PROD_URL);
+      await mainWindow.loadURL(PROD_URL);
     }
   } catch (err) {
     console.error("[Main] Failed to load renderer:", err.message);

@@ -133,7 +133,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 </button>
               </div>
 
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <div className="mt-8 text-left w-full overflow-hidden">
                   <div className="text-xs font-bold text-red-400 mb-2 uppercase tracking-widest">Dev Info</div>
                   <pre className="text-[10px] font-mono text-slate-500 bg-black/40 p-3 rounded-lg overflow-x-auto">

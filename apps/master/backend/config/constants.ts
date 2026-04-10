@@ -6,7 +6,9 @@ import fs from 'fs';
 import crypto from 'crypto';
 
 // --- Environment & Port Configuration ---
-export const PORT = parseInt(process.env.PORT || '8090', 10);
+// Use BACKEND_PORT (not the generic PORT) so the Vite dev server and preview
+// tools can set PORT for the frontend without conflicting with Express.
+export const PORT = parseInt(process.env.BACKEND_PORT || '8090', 10);
 export const NODE_ENV = process.env.NODE_ENV || 'development';
 export const MANAGEMENT_API_URL = process.env.MANAGEMENT_API_URL || 'http://localhost:8092';
 export const isElectron = (process.versions && !!process.versions.electron) || (typeof process !== 'undefined' && process.env && !!process.env.ELECTRON_RUN_AS_NODE);

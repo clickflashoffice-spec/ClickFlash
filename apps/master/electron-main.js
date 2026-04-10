@@ -223,9 +223,9 @@ async function createWindow() {
         body = '<p>Start the dev servers first:</p>'
           + '<ol class="steps">'
           + "<li>Open a terminal: <code>cd apps/master</code></li>"
-          + "<li>Start backend: <code>npm run dev:backend</code></li>"
-          + "<li>Start frontend: <code>npm run dev</code></li>"
-          + "<li>Then relaunch Electron or click Retry</li>"
+          + "<li>Run: <code>npm run dev:electron</code></li>"
+          + "<li>This starts the backend, builds the frontend, then launches Electron</li>"
+          + "<li>Or manually: <code>npm run dev:backend</code> + <code>npm run dev:watch</code>, then relaunch</li>"
           + "</ol>";
       }
       var errorHtml = "<!DOCTYPE html><html><head><meta charset='utf-8'><style>"

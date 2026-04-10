@@ -209,6 +209,44 @@ export default function authRoutes(context: AppContext) {
   );
 
   /**
+   * @route POST /verify-pin
+   * @description Re-verify the logged-in user's password before accessing sensitive views
+   *              (Settings, Growth, Photographers). Uses the same bcrypt hash as login.
+   * @access Requires authentication
+   */
+  router.post("/verify-pin", strictRateLimiter, async (req: Request, res: Response) => {
+    const sessionUser = (req.session as any)?.user || (req as any).user;
+    if (!sessionUser?.id) {
+      sendAuthError(res, "Not authenticated");
+      return;
+    }
+    const { pin } = req.body;
+    if (!pin || typeof pin !== "string") {
+      sendValidationError(res, "pin is required");
+      return;
+    }
+    try {
+      const user = dbManager.get<User & { password: string }>(
+        "SELECT id, email, password FROM users WHERE id = ?",
+        [sessionUser.id],
+      );
+      if (!user) {
+        sendAuthError(res, "User not found");
+        return;
+      }
+      const ok = await verifyPassword(pin, user.password);
+      if (!ok) {
+        res.status(401).json({ success: false, error: "Incorrect password" });
+        return;
+      }
+      auditLogger.log("security", "settings_access_granted", { userId: user.id, email: user.email });
+      res.json({ success: true });
+    } catch (e) {
+      sendInternalError(res, e as Error, "verify-pin");
+    }
+  });
+
+  /**
    * @route POST /logout
    * @description Logout endpoint - destroys user session
    * @access Public

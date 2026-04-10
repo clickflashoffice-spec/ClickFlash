@@ -66,6 +66,11 @@ export class PhotoProcessor {
     this.mlPool = new WorkerPool(this.getMLWorkerPath(), logger, 2); // Less workers for ML to save RAM
   }
 
+  /** Terminate worker pools on graceful shutdown to prevent thread leaks. */
+  public async shutdown(): Promise<void> {
+    await Promise.allSettled([this.pool.shutdown(), this.mlPool.shutdown()]);
+  }
+
   private async checkThermals(): Promise<void> {
     if (!this.thermalService) return;
     const delay = await this.thermalService.getThrottleDelay();

@@ -3,15 +3,16 @@
  * ClickFlash Master OS — Electron Main Process
  *
  * Architecture:
- *  - Dev:  Vite dev server on :5173 (proxies /api to Express on :8090)
- *  - Prod: Express on :8090 serves built frontend — renderer loads via loadURL("http://localhost:8090")
- *          All traffic (UI + API + WebSocket) is unified on a single port.
+ *  - Dev + Prod: Express on :8090 serves the built frontend.
+ *                Renderer always loads via loadURL("http://localhost:8090").
+ *                All traffic (UI + API + WebSocket) is unified on a single port.
+ *                Use `vite build --watch` during development for incremental rebuilds.
  *
  * Startup sequence:
  *  1. Show loading splash
- *  2. Fork backend (prod only; dev expects `npm run dev:backend` running)
+ *  2. Fork backend (prod: auto-fork; dev: expects `npm run dev:backend` running)
  *  3. Poll /api/health until backend ready (max 60 s)
- *  4. Load renderer (Vite URL in dev, loadFile in prod)
+ *  4. Load renderer via http://localhost:8090
  */
 
 "use strict";
@@ -25,14 +26,14 @@ const { fork, spawn } = require("child_process");
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const BACKEND_PORT    = 8090;
-const VITE_PORT       = 5173;
-const HEALTH_URL      = `http://localhost:${BACKEND_PORT}/api/health`;
-const HEALTH_TIMEOUT  = 120_000; // ms — first boot runs 90+ migrations
-const POLL_INTERVAL   = 300;    // ms between health polls
+const BACKEND_PORT   = 8090;
+const HEALTH_URL     = `http://localhost:${BACKEND_PORT}/api/health`;
+const HEALTH_TIMEOUT = 120_000; // ms — first boot runs 90+ migrations
+const POLL_INTERVAL  = 300;    // ms between health polls
 
-const DEV_URL  = `http://localhost:${VITE_PORT}`;
-const PROD_URL = `http://localhost:${BACKEND_PORT}`; // Express serves the built frontend — unified port
+// Both dev and prod load from the same Express server on port 8090.
+// Use `vite build --watch` in dev for incremental rebuilds served by Express.
+const APP_URL = `http://localhost:${BACKEND_PORT}`;
 
 const ADMIN_PIN      = process.env.ADMIN_PIN || null;
 const ADMIN_SHORTCUT = "CommandOrControl+Alt+Shift+X";
@@ -206,17 +207,10 @@ async function createWindow() {
 
   if (!mainWindow || mainWindow.isDestroyed()) return;
 
-  // Load renderer
-  // Dev:  Vite dev server on :5173 (proxies /api → Express :8090)
-  // Prod: Express on :8090 serves the built frontend — unified single port
+  // Load renderer — always from Express on port 8090 (dev + prod unified)
   try {
-    if (!app.isPackaged) {
-      console.log("[Main] Loading Vite dev server:", DEV_URL);
-      await mainWindow.loadURL(DEV_URL);
-    } else {
-      console.log("[Main] Loading production build via Express:", PROD_URL);
-      await mainWindow.loadURL(PROD_URL);
-    }
+    console.log("[Main] Loading app via Express:", APP_URL);
+    await mainWindow.loadURL(APP_URL);
   } catch (err) {
     console.error("[Main] Failed to load renderer:", err.message);
     // Show a helpful error screen instead of a blank page

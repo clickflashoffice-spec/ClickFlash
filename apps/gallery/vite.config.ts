@@ -25,6 +25,9 @@ export default defineConfig(({ mode }) => ({
     host: true,
     strictPort: true,
   },
+  esbuild: {
+    drop: mode === "production" ? ["console", "debugger"] : [],
+  },
   build: {
     outDir: "dist",
     emptyOutDir: true,

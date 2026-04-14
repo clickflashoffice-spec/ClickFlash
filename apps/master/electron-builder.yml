@@ -24,11 +24,16 @@ files:
   - "!vite.config.*"
   - "!**/*.map"
 
-# Unpack backend + ALL node_modules from asar
-# Required because fork() with ELECTRON_RUN_AS_NODE strips asar support
+# Unpack backend and native .node binaries from asar.
+# fork() with ELECTRON_RUN_AS_NODE strips asar support, so the backend bundle
+# must be outside the asar. Only packages that ship native .node addons need
+# asarUnpack — listing node_modules/**/* would extract 50 k+ files and make
+# the NSIS installer crawl. Enumerate only the three runtime native packages.
 asarUnpack:
   - "dist/backend/**/*"
-  - "node_modules/**/*"
+  - "node_modules/better-sqlite3-multiple-ciphers/**/*"
+  - "node_modules/@img/sharp-win32-x64/**/*"
+  - "node_modules/@napi-rs/canvas-win32-x64-msvc/**/*"
 
 # Extra files copied to the resources directory
 extraResources:
@@ -56,7 +61,7 @@ win:
 #   repo: master-releases
 #   private: true
 
-compression: store
+compression: normal
 
 nsis:
   oneClick: false
@@ -68,7 +73,7 @@ nsis:
   shortcutName: ClickFlash Master OS
 
 electronVersion: "39.8.7"
-npmRebuild: true
+npmRebuild: false
 asar: true
 
 # After packing: generate SHA-256 sidecar for KioskGuardian.exe integrity check

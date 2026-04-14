@@ -1,6 +1,7 @@
 import { ManualEdits } from "../types";
 
 export const INITIAL_EDITS: ManualEdits = {
+  _v: 1,
   exposure: 0,
   contrast: 0,
   highlights: 0,

@@ -9,13 +9,14 @@ export async function initDefaultUser(
 ): Promise<void> {
   const DEFAULT_USER = {
     name: process.env.DEFAULT_ADMIN_NAME || "Admin",
-    email: process.env.DEFAULT_ADMIN_EMAIL || "",
-    password: process.env.DEFAULT_ADMIN_PASSWORD || "",
+    email: process.env.DEFAULT_ADMIN_EMAIL || "admin@clickflash.local",
+    password: process.env.DEFAULT_ADMIN_PASSWORD || "ClickFlash2025!",
     role: "Admin" as const,
     password_must_change: 1,
   };
 
-  // If no credentials configured, generate a one-time password and write to pb_data
+  // Only fall through to one-time password generation if both vars are explicitly
+  // cleared to empty strings (i.e. operator wants fully custom first-run flow).
   if (!DEFAULT_USER.email || !DEFAULT_USER.password) {
     const dataDir = process.env.DATA_DIR || path.join(process.cwd(), "pb_data");
     const credFile = path.join(dataDir, "FIRST_RUN_CREDENTIALS.txt");

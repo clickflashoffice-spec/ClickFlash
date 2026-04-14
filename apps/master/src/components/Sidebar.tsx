@@ -621,27 +621,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <ThemeToggle />
           </div>
 
-          <div
-            className={`flex ${isCollapsed ? "flex-col gap-2 justify-center" : "justify-between"} items-center px-3 py-2.5 glass-card bg-white/40 dark:bg-slate-800/40 rounded-xl border-slate-200/50 dark:border-white/5`}
-          >
-            {!isCollapsed && (
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 truncate pr-2 tracking-tight">
-                Do Not Disturb
-              </p>
-            )}
-            <button
-              onClick={() => setIsDndMode(!isDndMode)}
-              className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${isDndMode ? "bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400" : "text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-700"}`}
-              title={
-                isDndMode
-                  ? "Disable Do Not Disturb (Enable Notifications)"
-                  : "Enable Do Not Disturb (Silence Notifications)"
-              }
-            >
-              {isDndMode ? <BellOff size={18} /> : <Bell size={18} />}
-            </button>
-          </div>
-
           {/* Fullscreen Toggle - Only show when NOT in fullscreen (Kiosk mode) */}
           {!isElectron && !isFullscreen && !isCollapsed && (
             <button

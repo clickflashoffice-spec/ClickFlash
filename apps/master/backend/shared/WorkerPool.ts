@@ -42,7 +42,14 @@ export class WorkerPool {
   }
 
   private createWorker(): Worker {
-    const worker = new Worker(this.workerScript);
+    // TypeScript source files (.ts) require tsx to be active in the worker
+    // thread so imports are resolved at runtime. In production the compiled
+    // .js file is used directly and no execArgv are needed.
+    const isTypeScript = this.workerScript.endsWith(".ts");
+    const workerOptions = isTypeScript
+      ? { execArgv: ["--import", "tsx/esm"] }
+      : {};
+    const worker = new Worker(this.workerScript, workerOptions);
     const id = (worker as any).threadId;
 
     // NOTE: No persistent "message" listener here — executeJob() registers
@@ -105,7 +112,9 @@ export class WorkerPool {
         return reject(new Error("JOB_CANCELLED"));
       }
       if (this.queue.length >= MAX_QUEUE_DEPTH) {
-        return reject(new Error(`WorkerPool queue full (max ${MAX_QUEUE_DEPTH})`));
+        const err = new Error(`WorkerPool queue full (max ${MAX_QUEUE_DEPTH})`);
+        (err as any).code = "WORKER_QUEUE_FULL";
+        return reject(err);
       }
 
       const jobWrapper = { job, resolve, reject, priority };

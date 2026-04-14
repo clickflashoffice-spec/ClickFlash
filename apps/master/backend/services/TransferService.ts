@@ -101,6 +101,7 @@ export class TransferService {
     albumId: string,
     destinations: Set<string>,
     photoIds?: string[],
+    metadataOnly: boolean = false
   ): Promise<string[]> {
     const jobIds: string[] = [];
 
@@ -121,7 +122,7 @@ export class TransferService {
           jobId,
           albumId,
           dest,
-          photoIds ? JSON.stringify(photoIds) : null,
+          JSON.stringify({ ids: photoIds || null, metadataOnly }),
           "pending",
         ],
       );
@@ -152,13 +153,24 @@ export class TransferService {
         [jobId],
       );
 
-      const photoIds = job.photo_ids ? JSON.parse(job.photo_ids) : undefined;
+      const parsed = job.photo_ids ? JSON.parse(job.photo_ids) : null;
+      let photoIds: string[] | undefined;
+      let metadataOnly = false;
+      if (parsed) {
+        if (Array.isArray(parsed)) {
+          photoIds = parsed;
+        } else {
+          photoIds = parsed.ids || undefined;
+          metadataOnly = parsed.metadataOnly || false;
+        }
+      }
 
       // Reuse existing send logic but specialized for one destination
       const result = await this.sendAlbumToKiosks(
         job.album_id,
         new Set([job.destination_path]),
         photoIds,
+        metadataOnly
       );
 
       if (result.success) {
@@ -189,6 +201,7 @@ export class TransferService {
     albumId: string,
     destinations: Set<string>,
     photoIds?: string[],
+    metadataOnly: boolean = false
   ): Promise<TransferResult> {
     // 1. Fetch Photos
     let query = "SELECT * FROM photos WHERE albumId = ?";
@@ -332,8 +345,12 @@ export class TransferService {
               const destPath = path.join(photosDir, destFilename);
 
               // Async Copy
-              await fs.promises.copyFile(sourcePath, destPath);
-              pathCopiedCount++;
+              if (!metadataOnly) {
+                await fs.promises.copyFile(sourcePath, destPath);
+                pathCopiedCount++;
+              } else {
+                pathCopiedCount++; // Ensure metadata is generated even if file is not physically copied
+              }
 
               // Add to metadata
               photoMetadataList.push({

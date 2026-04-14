@@ -168,8 +168,11 @@ export default class MaintenanceService {
     try {
       this.dbManager.exec("VACUUM");
       this.logger.info("[Maintenance] VACUUM complete");
+
+      this.dbManager.exec("ANALYZE");
+      this.logger.info("[Maintenance] ANALYZE complete (post-VACUUM)");
     } catch (error: any) {
-      this.logger.error("[Maintenance] VACUUM failed", {
+      this.logger.error("[Maintenance] VACUUM/ANALYZE failed", {
         error: error.message,
       });
     }

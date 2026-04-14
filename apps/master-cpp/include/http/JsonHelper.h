@@ -1,48 +1,49 @@
 #pragma once
 
-#include "Router.h"
-#include <QJsonObject>
 #include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QString>
+#include <QVariant>
+#include <QVariantMap>
 
 namespace ClickFlash {
 
 class JsonHelper {
 public:
-    static QJsonObject variantMapToJson(const QVariantMap& map) {
-        QJsonObject obj;
-        for (auto it = map.constBegin(); it != map.constEnd(); ++it) {
-            obj[it.key()] = QJsonValue::fromVariant(it.value());
-        }
-        return obj;
-    }
+    static QJsonDocument parse(const QString& jsonString);
+    static QJsonDocument parse(const QByteArray& jsonBytes);
+    static QVariant parseVariant(const QString& jsonString);
+    static QVariant parseVariant(const QByteArray& jsonBytes);
     
-    static QVariantMap jsonToVariantMap(const QJsonObject& obj) {
-        return obj.toVariantMap();
-    }
+    static QString toString(const QJsonDocument& doc);
+    static QString toString(const QJsonObject& obj);
+    static QString toString(const QJsonArray& arr);
     
-    static QByteArray toJsonBytes(const QVariantMap& map) {
-        QJsonObject obj = variantMapToJson(map);
-        QJsonDocument doc(obj);
-        return doc.toJson(QJsonDocument::Compact);
-    }
+    static QByteArray toBytes(const QJsonDocument& doc);
+    static QByteArray toBytes(const QJsonObject& obj);
     
-    static QVariantMap parseJson(const QByteArray& data, QString* error = nullptr) {
-        QJsonParseError parseError;
-        QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
-        
-        if (parseError.error != QJsonParseError::NoError) {
-            if (error) {
-                *error = parseError.errorString();
-            }
-            return {};
-        }
-        
-        if (doc.isObject()) {
-            return doc.object().toVariantMap();
-        }
-        
-        return {};
-    }
+    static QJsonObject variantToJson(const QVariant& variant);
+    static QVariant jsonToVariant(const QJsonValue& value);
+    
+    static bool isValidJson(const QString& jsonString);
+    static bool isValidJson(const QByteArray& jsonBytes);
+    
+    static QString formatJson(const QString& jsonString);
+    static QString formatJson(const QByteArray& jsonBytes);
+    
+    static QJsonObject fromVariantMap(const QVariantMap& map);
+    static QVariantMap toVariantMap(const QJsonObject& obj);
+    
+    static QJsonArray fromStringList(const QStringList& list);
+    static QStringList toStringList(const QJsonArray& arr);
+    
+    static QString escapeString(const QString& str);
+    static QString unescapeString(const QString& str);
+
+private:
+    JsonHelper() = default;
 };
 
 } // namespace ClickFlash

@@ -111,6 +111,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         }
       });
 
+      // P2-P3 Fix: Clear zoomStates on SET_PHOTOS (loading new album)
       return {
         ...state,
         photos: action.payload,
@@ -147,6 +148,23 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         future: [],
       };
 
+      // P1-A4 Fix: Enforce dynamic history cap
+      const maxHistory = getHistoryCap(state.photos.length);
+      const newPast = [...currentHistory.past, currentEdits];
+      
+      // Evict oldest entries if over cap
+      const trimmedPast = newPast.length > maxHistory 
+        ? newPast.slice(-maxHistory) 
+        : newPast;
+
+      // P1-A4 Fix: LRU eviction for non-visible photos
+      const visibleIds = new Set(state.photos.slice(0, 10).map(p => p.id)); // Assume first 10 visible
+      const newHistories = evictLRUHistories(state.histories, state.activePhotoId, visibleIds, maxHistory);
+      newHistories[state.activePhotoId] = {
+        past: trimmedPast,
+        future: [],
+      };
+
       return {
         ...state,
         edits: {
@@ -170,6 +188,23 @@ function editorReducer(state: EditorState, action: Action): EditorState {
       const currentEdits = state.edits[photoId] || { ...INITIAL_EDITS };
       const currentHistory = state.histories[photoId] || {
         past: [],
+        future: [],
+      };
+
+      // P1-A4 Fix: Enforce dynamic history cap
+      const maxHistory = getHistoryCap(state.photos.length);
+      const newPast = [...currentHistory.past, currentEdits];
+      
+      // Evict oldest entries if over cap
+      const trimmedPast = newPast.length > maxHistory 
+        ? newPast.slice(-maxHistory) 
+        : newPast;
+
+      // P1-A4 Fix: LRU eviction for non-visible photos
+      const visibleIds = new Set(state.photos.slice(0, 10).map(p => p.id));
+      const newHistories = evictLRUHistories(state.histories, state.activePhotoId, visibleIds, maxHistory);
+      newHistories[photoId] = {
+        past: trimmedPast,
         future: [],
       };
 

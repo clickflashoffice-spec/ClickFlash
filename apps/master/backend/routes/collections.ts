@@ -59,6 +59,58 @@ export default function collectionRoutes(context: CollectionsContext): Router {
     context;
   const router = express.Router();
 
+  const verifyKioskHmac = async (req: Request, res: Response, next: NextFunction) => {
+    const kioskId = req.headers["x-kiosk-id"] as string;
+    
+    if (!kioskId) {
+      return next();
+    }
+    
+    const clientIp = req.ip || req.get('x-forwarded-for') || '';
+    if (!clientIp || clientIp === '127.0.0.1' || clientIp.startsWith('192.168.') || clientIp.startsWith('10.') || clientIp.startsWith('172.')) {
+    } else {
+      logger.warn(`[Collections] Rejected LAN request from non-private IP: ${clientIp}`);
+      return res.status(403).json({ error: "Forbidden", message: "LAN requests only from private network." });
+    }
+    
+    const timestamp = req.headers["x-timestamp"] as string;
+    const signature = req.headers["x-signature"] as string;
+    
+    if (!timestamp || !signature) {
+      logger.warn(`[Collections] Missing HMAC headers from kiosk ${kioskId}`);
+      return res.status(401).json({ error: "Unauthorized", message: "Missing timestamp or signature." });
+    }
+    
+    const requestTime = parseInt(timestamp, 10);
+    const now = Date.now();
+    if (isNaN(requestTime) || Math.abs(now - requestTime) > 5 * 60 * 1000) {
+      logger.warn(`[Collections] Invalid timestamp from kiosk ${kioskId}: ${timestamp}`);
+      return res.status(401).json({ error: "Unauthorized", message: "Request timestamp invalid or too old." });
+    }
+    
+    try {
+      const kiosk = dbManager.get<{ signingSecret: string }>("SELECT signingSecret FROM kiosks WHERE id = ?", [kioskId]);
+      if (!kiosk || !kiosk.signingSecret) {
+        logger.warn(`[Collections] Unknown kiosk: ${kioskId}`);
+        return res.status(401).json({ error: "Unauthorized", message: "Kiosk not registered." });
+      }
+      
+      const bodyStr = req.body && Object.keys(req.body).length > 0 ? JSON.stringify(req.body) : "";
+      const payload = `${kioskId}:${timestamp}:${req.method}:${req.path}:${bodyStr}`;
+      const expectedSignature = crypto.createHmac("sha256", kiosk.signingSecret).update(payload).digest("hex");
+      
+      if (signature !== expectedSignature) {
+        logger.warn(`[Collections] Invalid signature from kiosk ${kioskId}`);
+        return res.status(401).json({ error: "Unauthorized", message: "Invalid signature." });
+      }
+      
+      next();
+    } catch (error: any) {
+      logger.error(`[Collections] HMAC verification failed: ${error.message}`);
+      res.status(500).json({ error: "Internal Server Error", message: "HMAC verification failed." });
+    }
+  };
+
   const checkSensitiveFields = (req: Request, table: string, data: any) => {
     // Prevent modification of sensitive fields by non-admins
     if (table === "users") {
@@ -802,7 +854,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
 
       let rows = dbManager.query<Record<string, any>>(sql, params);
 
-      // 4. Expansion (Optimized: Batch fetch instead of N+1)
+      // 4. Expansion (Optimized: Batch fetch with pagination for large album photo collections)
       if (
         expandParam &&
         expandParam.includes("photos_via_album") &&
@@ -810,13 +862,17 @@ export default function collectionRoutes(context: CollectionsContext): Router {
         rows.length > 0
       ) {
         const albumIds = rows.map((a) => a.id);
+        const expandLimit = Math.min(perPage * 3, 200);
         const placeholders = albumIds.map(() => "?").join(",");
         const allPhotos = dbManager.query<{ albumId: string }>(
-          `SELECT * FROM photos WHERE albumId IN (${placeholders})`,
-          albumIds,
+          `SELECT p.* FROM photos p
+           INNER JOIN (
+             SELECT id FROM photos WHERE albumId IN (${placeholders})
+             ORDER BY created_at DESC LIMIT ?
+           ) AS limited ON p.id = limited.id`,
+          [...albumIds, expandLimit],
         );
 
-        // Group photos by albumId
         const photosByAlbum: Record<string, any[]> = {};
         allPhotos.forEach((p) => {
           if (!photosByAlbum[p.albumId]) photosByAlbum[p.albumId] = [];
@@ -914,8 +970,9 @@ export default function collectionRoutes(context: CollectionsContext): Router {
   /**
    * @route POST /:collection/records
    * @description Create record (supports Multipart/Form-Data)
+   * Phase 34: HMAC-SHA256 validation for Touch Kiosk requests
    */
-  router.post("/:collection/records", (req: Request, res: Response) => {
+  router.post("/:collection/records", verifyKioskHmac, (req: Request, res: Response) => {
     const { table, collection } = req as CollectionRequest;
     console.log(
       `[Collections] Received POST request for ${collection} (table: ${table})`,
@@ -1003,6 +1060,35 @@ export default function collectionRoutes(context: CollectionsContext): Router {
                     logger.info(
                       `[FK] Album ${albumId} verified — starting photo processing`,
                     );
+                  }
+
+                  // P3-D1 Fix: Calculate hash BEFORE expensive processing to detect duplicates early
+                  const filePath = (file as any).filepath;
+                  let fileHash: string | null = null;
+                  try {
+                    const crypto = require('crypto');
+                    const fileBuffer = require('fs').readFileSync(filePath);
+                    fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+                    
+                    // Check for duplicate by hash before processing
+                    const existingByHash = dbManager.get(
+                      "SELECT id, album_id FROM photos WHERE file_hash = ?",
+                      [fileHash]
+                    );
+                    if (existingByHash) {
+                      logger.warn(
+                        `[Duplicate Detection] Duplicate photo detected! Hash: ${fileHash.substring(0, 8)}..., Existing photo: ${existingByHash.id} in album ${existingByHash.album_id}`
+                      );
+                      throw new Error(
+                        `DUPLICATE_PHOTO: A photo with identical content already exists (photo: ${existingByHash.id})`
+                      );
+                    }
+                  } catch (hashError) {
+                    if ((hashError as Error).message.startsWith('DUPLICATE_PHOTO')) {
+                      throw hashError;
+                    }
+                    // Hash calculation failed - continue without pre-check
+                    logger.warn(`[Duplicate Detection] Could not calculate hash for ${photoId}: ${(hashError as Error).message}`);
                   }
 
                   logger.info(
@@ -1250,6 +1336,132 @@ export default function collectionRoutes(context: CollectionsContext): Router {
         endpoint: pathName,
       });
       sendDatabaseError(res, error, `deleting record from ${table}`);
+    }
+  });
+
+  // P1-A2 Fix: Batch update endpoint - single DB transaction for multiple photos
+  /**
+   * @route PATCH /:collection/records/batch
+   * @description Batch update records in a single transaction
+   * P1-A5 Fix: Added optimistic locking via updatedAt conflict detection
+   */
+  router.patch("/:collection/records/batch", async (req: Request, res: Response) => {
+    const { table, collection } = req as CollectionRequest;
+    const { items } = req.body;
+
+    if (!items || !Array.isArray(items)) {
+      return sendInvalidInputError(res, "Items array is required for batch update");
+    }
+
+    if (items.length === 0) {
+      return res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ items: [], successCount: 0, failureCount: 0 }));
+    }
+
+    // Only support photos table for now
+    if (table !== "photos") {
+      return sendInvalidInputError(res, "Batch update only supported for photos table");
+    }
+
+    const results: any[] = [];
+    let successCount = 0;
+    let failureCount = 0;
+
+    try {
+      // Run all updates in a single transaction
+      dbManager.run("BEGIN TRANSACTION");
+
+      for (const item of items) {
+        try {
+          const { id, updatedAt, ...updates } = item;
+          if (!id) {
+            failureCount++;
+            results.push({ error: "ID required", item });
+            continue;
+          }
+
+          // P1-A5 Fix: Optimistic locking - check updatedAt if provided
+          if (updatedAt) {
+            const existing = dbManager.get<{ updated_at: string }>(
+              `SELECT updated_at FROM ${table} WHERE id = ?`,
+              [id]
+            );
+            if (existing && existing.updated_at !== updatedAt) {
+              failureCount++;
+              results.push({ 
+                id, 
+                error: "CONFLICT", 
+                message: "Record was modified by another session",
+                serverUpdatedAt: existing.updated_at 
+              });
+              continue;
+            }
+          }
+
+          // Validate manualEdits if present (P0-S2)
+          if (updates.manualEdits) {
+            try {
+              const parsed = typeof updates.manualEdits === 'string' 
+                ? JSON.parse(updates.manualEdits) 
+                : updates.manualEdits;
+              updates.manualEdits = JSON.stringify(parsed);
+            } catch {
+              // Invalid JSON, skip update
+            }
+          }
+
+          const now = new Date().toISOString();
+          updates.updated_at = now;
+
+          const setClauses: string[] = [];
+          const values: any[] = [];
+          
+          for (const [key, value] of Object.entries(updates)) {
+            if (key !== 'id' && key !== 'updatedAt') {
+              setClauses.push(`${key} = ?`);
+              values.push(typeof value === 'object' ? JSON.stringify(value) : value);
+            }
+          }
+          
+          values.push(id);
+          
+          const result = dbManager.run(
+            `UPDATE ${table} SET ${setClauses.join(', ')} WHERE id = ?`,
+            values
+          );
+
+          if (result.changes > 0) {
+            successCount++;
+            const updated = dbManager.get(`SELECT * FROM ${table} WHERE id = ?`, [id]);
+            results.push({ id, success: true, updatedAt: updated?.updated_at });
+            
+            // Notify realtime
+            if (context.realtimeService) {
+              context.realtimeService.broadcast({
+                collection: collection,
+                action: "update",
+                record: updated,
+              });
+            }
+          } else {
+            failureCount++;
+            results.push({ id, error: "Record not found or no changes" });
+          }
+        } catch (err) {
+          failureCount++;
+          const error = err instanceof Error ? err : new Error(String(err));
+          results.push({ error: error.message });
+        }
+      }
+
+      dbManager.run("COMMIT");
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ items: results, successCount, failureCount }));
+    } catch (e) {
+      dbManager.run("ROLLBACK");
+      const error = e instanceof Error ? e : new Error(String(e));
+      logger.error(`Batch update failed`, { error: error.message });
+      sendDatabaseError(res, error, "batch update");
     }
   });
 

@@ -2,11 +2,17 @@
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/rotating_file_sink.h>
-#include <spdlog/sinks/stdout_color_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <QCoreApplication>
 #include <QDir>
 #include <chrono>
 #include <memory>
+
+#define CF_SPDLOG_INFO(...) SPDLOG_INFO(__VA_ARGS__)
+#define CF_SPDLOG_ERROR(...) SPDLOG_ERROR(__VA_ARGS__)
+#define CF_SPDLOG_WARN(...) SPDLOG_WARN(__VA_ARGS__)
+#define CF_SPDLOG_DEBUG(...) SPDLOG_DEBUG(__VA_ARGS__)
+#define CF_SPDLOG_CRITICAL(...) SPDLOG_CRITICAL(__VA_ARGS__)
 
 namespace ClickFlash {
 
@@ -23,7 +29,7 @@ public:
         
         auto fileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
             (logPath + "/clickflash.log").toStdString(),
-            10 * 1024 * 1024,  // 10MB
+            10 * 1024 * 1024,
             3
         );
         fileSink->set_pattern("%Y-%m-%d %H:%M:%S.%e [%l] [%n] %v");
@@ -41,29 +47,39 @@ public:
         spdlog::set_default_logger(logger);
     }
 
-    template<typename... Args>
-    static void debug(const char* fmt, Args&&... args) {
-        spdlog::debug(fmt, std::forward<Args>(args)...);
+    static void debug(const char* fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        spdlog::default_logger_raw()->debug(fmt, args);
+        va_end(args);
     }
 
-    template<typename... Args>
-    static void info(const char* fmt, Args&&... args) {
-        spdlog::info(fmt, std::forward<Args>(args)...);
+    static void info(const char* fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        spdlog::default_logger_raw()->info(fmt, args);
+        va_end(args);
     }
 
-    template<typename... Args>
-    static void warn(const char* fmt, Args&&... args) {
-        spdlog::warn(fmt, std::forward<Args>(args)...);
+    static void warn(const char* fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        spdlog::default_logger_raw()->warn(fmt, args);
+        va_end(args);
     }
 
-    template<typename... Args>
-    static void error(const char* fmt, Args&&... args) {
-        spdlog::error(fmt, std::forward<Args>(args)...);
+    static void error(const char* fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        spdlog::default_logger_raw()->error(fmt, args);
+        va_end(args);
     }
 
-    template<typename... Args>
-    static void critical(const char* fmt, Args&&... args) {
-        spdlog::critical(fmt, std::forward<Args>(args)...);
+    static void critical(const char* fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        spdlog::default_logger_raw()->critical(fmt, args);
+        va_end(args);
     }
 
 private:

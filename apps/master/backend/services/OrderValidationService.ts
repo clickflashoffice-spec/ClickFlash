@@ -42,17 +42,33 @@ export class OrderValidationService {
     );
 
     try {
+      const now = new Date().toISOString();
+      const result = this.db.run(
+        `UPDATE orders SET status = 'validating', updated_at = ? WHERE id = ? AND (status = 'paid' OR status = 'pending')`,
+        [now, orderId]
+      );
+
+      if (result.changes === 0) {
+        const currentOrder = this.db.get<{ status: string }>(
+          "SELECT status FROM orders WHERE id = ?",
+          [orderId]
+        );
+        if (!currentOrder) {
+          throw new Error("Order not found");
+        }
+        if (currentOrder.status !== 'paid' && currentOrder.status !== 'pending') {
+          throw new Error(`Order ${orderId} is not in a valid state for validation (current: ${currentOrder.status})`);
+        }
+      }
+
       this.db.transaction(() => {
-        // 1. Identify Assets (Split Logic)
         const { sold, moneytrash } = this.splitAssets(
           albumId,
           selectedAssetIds,
         );
 
-        // 2. Queue Fulfillment (Sold -> High Res)
         this.queueFulfillment(orderId, sold);
 
-        // 3. Queue Retention (Moneytrash -> Watermarked)
         this.queueRetention(albumId, moneytrash);
 
         this.logger.info(

@@ -125,9 +125,15 @@ export class PhotoProcessor {
       const result = await this.pool.run(job);
       return result;
     } catch (err) {
-      const error = err as Error;
+      const error = err as Error & { statusCode?: number; retryAfter?: number };
       logger.error(`[PhotoProcessor] WorkerPool Error: ${error.message}`);
-      return { success: false, error: error.message };
+      
+      // P2-A2 Fix: Propagate queue-full errors with status code
+      if (error.statusCode === 503) {
+        error.statusCode = 503;
+        error.retryAfter = error.retryAfter || 5;
+      }
+      return { success: false, error: error.message, statusCode: error.statusCode, retryAfter: error.retryAfter };
     }
   }
 
@@ -160,6 +166,18 @@ export class PhotoProcessor {
     // Only allow known image extensions; default to .jpg for anything unexpected.
     const ALLOWED_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".heic", ".heif", ".tiff", ".tif"]);
     const ext = ALLOWED_EXTS.has(rawExt) ? rawExt : ".jpg";
+
+    // P1-S3 Fix: Validate BEFORE path.join to catch null bytes and special chars
+    if (
+      originalFilename.includes("\0") ||
+      /[<>:"|?*]/.test(originalFilename) ||
+      albumId.includes("\0") ||
+      /[<>:"|?*]/.test(albumId) ||
+      photoId.includes("\0") ||
+      /[<>:"|?*]/.test(photoId)
+    ) {
+      throw new Error("SECURITY_VIOLATION: Invalid characters in path components");
+    }
 
     // Security: Sanitize inputs to prevent traversal
     const safeAlbumId = albumId.replace(/[^a-zA-Z0-9_-]/g, "");
@@ -198,6 +216,8 @@ export class PhotoProcessor {
     photoId: string,
   ): Promise<PhotoMetadata> {
     const tempFilepath = file.filepath;
+    const MAX_PHOTO_SIZE_BYTES = 100 * 1024 * 1024; // 100MB limit
+
     try {
       const originalFilename =
         file.originalFilename || file.newFilename || "unknown.jpg";
@@ -218,43 +238,9 @@ export class PhotoProcessor {
         );
       }
 
-      // ── Early duplicate detection ──────────────────────────────────────────
-      // Compute a SHA-256 hash of the raw upload before spawning any workers.
-      // This avoids full image processing (thumbnail, preview, EXIF extraction)
-      // for files that are already stored in this album.
-      let earlyHash: string | null = null;
-      if (this.db) {
-        try {
-          const hash = require("crypto").createHash("sha256");
-          const stream = fs.createReadStream(tempFilepath);
-          earlyHash = await new Promise<string>((resolve, reject) => {
-            stream.on("data", (chunk: Buffer) => hash.update(chunk));
-            stream.on("end", () => resolve(hash.digest("hex")));
-            stream.on("error", reject);
-          });
-
-          const existing = this.db.get<{ id: string }>(
-            "SELECT id FROM photos WHERE fileHash = ? AND albumId = ?",
-            [earlyHash, albumId],
-          );
-          if (existing) {
-            logger.warn(
-              `[PhotoProcessor] Duplicate detected for ${originalFilename} (hash ${earlyHash.substring(0, 8)}…) — skipping processing`,
-            );
-            const dupErr = new Error(
-              `Duplicate photo: a file with the same content already exists in this album (photo id: ${existing.id})`,
-            );
-            (dupErr as any).code = "DUPLICATE_PHOTO";
-            (dupErr as any).existingPhotoId = existing.id;
-            throw dupErr;
-          }
-        } catch (hashErr: any) {
-          if (hashErr.code === "DUPLICATE_PHOTO") throw hashErr;
-          // Hash failure is non-fatal — proceed without duplicate check.
-          logger.warn("[PhotoProcessor] Early hash check failed (non-fatal):", hashErr.message);
-        }
-      }
-
+      // ── Worker Execution (Law 13) ──────────────────────────────────────────
+      // Offloading Hashing, Resizing, and EXIF Stripping to the WorkerPool
+      // to prevent event-loop starvation during 100GB+ imports.
       await this.checkThermals();
       await this.checkDiskSpace();
 
@@ -269,7 +255,30 @@ export class PhotoProcessor {
         mimeType: file.mimetype || undefined,
       });
 
-      if (!workerResult.success) throw new Error(workerResult.error);
+      // --- Post-Worker Resolution ---
+      const assets = workerResult.assets;
+      const fileHash = workerResult.hash;
+
+      // Duplicate Check (Post-Worker to avoid Main Thread Blocking)
+      if (this.db && fileHash) {
+          const existing = this.db.get<{ id: string }>(
+            "SELECT id FROM photos WHERE fileHash = ? AND albumId = ?",
+            [fileHash, albumId]
+          );
+          if (existing) {
+            // Cleanup temp assets since it's a duplicate
+            try { if (fs.existsSync(tempFilepath)) fs.unlinkSync(tempFilepath); } catch {}
+            Object.values(assets).forEach((f: any) => {
+                try { fs.unlinkSync(path.join(tempOutputDir, f)); } catch {}
+            });
+
+            logger.warn(`[PhotoProcessor] Post-process duplicate detected: ${photoId} (Hash: ${fileHash.substring(0,8)})`);
+            const dupErr = new Error("Duplicate photo detected");
+            (dupErr as any).code = "DUPLICATE_PHOTO";
+            (dupErr as any).existingPhotoId = existing.id;
+            throw dupErr;
+          }
+      }
 
       const storage = this.getStoragePath(albumId, photoId, originalFilename);
 
@@ -294,50 +303,12 @@ export class PhotoProcessor {
         }
       };
 
-      try {
-        await fs.promises.access(storage.fullPath);
-        await fs.promises.unlink(storage.fullPath);
-      } catch {
-        // Ignore if file doesn't exist
-      }
-
-      await safeMove(tempFilepath, storage.fullPath);
-
-      // ── GPS EXIF strip ─────────────────────────────────────────────────────
-      // Re-encode the highres copy without any EXIF so GPS coordinates are not
-      // stored alongside the served image. `.rotate()` physically corrects
-      // orientation before stripping the EXIF orientation tag.
-      // This step is non-fatal — if it fails the original file is kept as-is.
-      try {
-        const highresPath = storage.fullPath;
-        const tmpStripped = `${highresPath}.stripping`;
-        const meta = await sharp(highresPath).metadata();
-        const isJpeg = meta.format === "jpeg";
-        const isPng = meta.format === "png";
-
-        let pipeline = sharp(highresPath)
-          .rotate(); // Correct orientation physically; drops EXIF orientation flag
-
-        if (isJpeg) {
-          pipeline = pipeline.jpeg({ quality: 100, mozjpeg: false });
-        } else if (isPng) {
-          pipeline = pipeline.png({ compressionLevel: 1 });
-        } else {
-          // For webp, gif, heif etc — keep as-is (lossless passthrough)
-          pipeline = pipeline.withMetadata({ exif: Buffer.alloc(0) } as any);
-        }
-
-        await pipeline.toFile(tmpStripped);
-        await fs.promises.rename(tmpStripped, highresPath);
-        logger.info(`[PhotoProcessor] GPS/EXIF stripped from highres for photo ${photoId}`);
-      } catch (stripErr) {
-        logger.warn(
-          `[PhotoProcessor] GPS strip failed for photo ${photoId} (non-fatal — original kept):`,
-          (stripErr as Error).message,
-        );
-      }
-
-      const assets = workerResult.assets;
+      // Handle High-Res move (The worker created a stripped/corrected copy)
+      const workerHighResPath = path.join(tempOutputDir, assets.highres);
+      await safeMove(workerHighResPath, storage.fullPath);
+      
+      // Cleanup original temp upload (now we have the corrected hi-res in storage)
+      try { if (fs.existsSync(tempFilepath)) await fs.promises.unlink(tempFilepath); } catch {}
       await Promise.all(
         Object.keys(assets).map(async (assetKey) => {
           const assetFilename = assets[assetKey];

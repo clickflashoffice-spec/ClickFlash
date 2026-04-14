@@ -2,6 +2,14 @@ name = "gallery-backend"
 main = "src/server.ts"
 compatibility_date = "2024-10-01"
 
+# [env.staging]
+# name = "gallery-backend-staging"
+# [[env.staging.d1_databases]]
+# binding = "GALLERY_DB"
+# database_name = "gallery-db-staging"
+# database_id = "STAGING_ID_HERE"
+
+# [env.production]
 [[d1_databases]]
 binding = "GALLERY_DB"
 database_name = "gallery-db"
@@ -17,12 +25,19 @@ binding = "GALLERY_BUCKET"
 bucket_name = "clickflash-gallery-assets"
 
 [vars]
-# Add non-secret env vars here
 NODE_ENV = "production"
-ALLOWED_ORIGINS = "https://gallery.clickflash.com,https://clickflash.com,https://clickflash-unified.pages.dev,https://clicketflash.com,https://www.clicketflash.com,https://b322e3ce.customer-gallery.pages.dev,https://*.customer-gallery.pages.dev"
+ALLOWED_ORIGINS = "https://gallery.clickflash.com,https://clickflash.com,https://clicketflash.com"
+DEPLOY_ENV = "production"
 
-# Secrets — set via CLI, never commit values here:
-# wrangler secret put JWT_SECRET --config apps/gallery/backend/wrangler.toml
+# Hardened Security Policy
+GEO_RESTRICTED = "true"
+ALLOWED_COUNTRIES = "MA,TN,FR,US"
+WAF_RATE_LIMIT = "100/min"
+SENTRY_PROJECT = "clickflash-gallery"
+
+# Secrets — set via CLI:
+# wrangler secret put JWT_SECRET --env production
+# wrangler secret put STRIPE_SECRET_KEY --env production
 
 [observability]
 enabled = true

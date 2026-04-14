@@ -12,6 +12,7 @@ import { AutoSizer } from 'react-virtualized-auto-sizer';
 import { Sparkles, CheckSquare, Square } from 'lucide-react';
 import AIBatchActions from './common/AIBatchActions';
 import PageHeader from './common/PageHeader';
+import { PhotoGridSkeleton } from './common/Skeleton';
 
 const Photos: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -68,9 +69,15 @@ const Photos: React.FC = () => {
 
   if (isLoading && photos.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64">
-        <Spinner size="large" />
-        <p className="mt-4 text-slate-500">Loading photo library...</p>
+      <div className="space-y-6 animate-fadeIn">
+        <PageHeader
+          title="Photo Library"
+          subtitle="Manage and view all processed assets across all albums."
+        />
+        <Card className="p-4">
+          <div className="h-10 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse" />
+        </Card>
+        <PhotoGridSkeleton count={24} />
       </div>
     );
   }

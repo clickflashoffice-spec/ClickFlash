@@ -5,6 +5,119 @@
 
 use crate::errors::{AppError, AppResult, CommandResult};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+/// Sensitive fields that should be encrypted
+const SENSITIVE_FIELDS: &[&str] = &[
+    "api_key",
+    "s3_access_key",
+    "s3_secret_key",
+];
+
+/// Encrypt sensitive config data using AES-256-GCM with a machine-derived key
+fn encrypt_config(config: &mut UploadConfig) {
+    let machine_id = get_machine_id();
+    let key = derive_key(&machine_id);
+    
+    // Encrypt sensitive string fields
+    encrypt_field(&mut config.api_key, &key);
+    encrypt_field(&mut config.s3_access_key, &key);
+    encrypt_field(&mut config.s3_secret_key, &key);
+}
+
+/// Decrypt sensitive config data
+fn decrypt_config(config: &mut UploadConfig) {
+    let machine_id = get_machine_id();
+    let key = derive_key(&machine_id);
+    
+    decrypt_field(&mut config.api_key, &key);
+    decrypt_field(&mut config.s3_access_key, &key);
+    decrypt_field(&mut config.s3_secret_key, &key);
+}
+
+/// Get machine-specific identifier for key derivation
+fn get_machine_id() -> String {
+    // Use a combination of username and hostname for machine binding
+    let username = dirs::home_dir()
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_else(|| "default".to_string());
+    
+    format!("moneytrash-{}", username)
+}
+
+/// Derive a 256-bit key from machine ID using SHA-256
+fn derive_key(machine_id: &str) -> [u8; 32] {
+    use sha2::{Sha256, Digest};
+    let mut hasher = Sha256::new();
+    hasher.update(machine_id.as_bytes());
+    let result = hasher.finalize();
+    let mut key = [0u8; 32];
+    key.copy_from_slice(&result);
+    key
+}
+
+/// Encrypt a string field using AES-256-GCM
+fn encrypt_field(field: &mut Option<String>, key: &[u8; 32]) {
+    if let Some(ref mut value) = field {
+        if !value.is_empty() && !value.starts_with("enc:") {
+            use aes_gcm::{
+                aead::{Aead, KeyInit},
+                Aes256Gcm, Nonce,
+            };
+            use rand::RngCore;
+            
+            let cipher = Aes256Gcm::new_from_slice(key).unwrap();
+            let mut nonce = [0u8; 12];
+            rand::thread_rng().fill_bytes(&mut nonce);
+            
+            let ciphertext = cipher.encrypt(
+                Nonce::from_slice(&nonce),
+                value.as_bytes(),
+            ).unwrap_or_else(|_| value.as_bytes().to_vec());
+            
+            // Format: enc:base64(nonce):base64(ciphertext)
+            let mut encrypted = "enc:".to_string();
+            encrypted.push_str(&base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &nonce));
+            encrypted.push(':');
+            encrypted.push_str(&base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &ciphertext));
+            *value = encrypted;
+        }
+    }
+}
+
+/// Decrypt a string field using AES-256-GCM
+fn decrypt_field(field: &mut Option<String>, key: &[u8; 32]) {
+    if let Some(ref mut value) = field {
+        if value.starts_with("enc:") {
+            use aes_gcm::{
+                aead::{Aead, KeyInit},
+                Aes256Gcm, Nonce,
+            };
+            
+            let parts: Vec<&str> = value.split(':').collect();
+            if parts.len() == 3 && parts[0] == "enc" {
+                let nonce = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, parts[1])
+                    .ok()
+                    .map(|v| {
+                        let mut n = [0u8; 12];
+                        n.copy_from_slice(&v);
+                        n
+                    });
+                let ciphertext = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, parts[2]).ok();
+                
+                if let (Some(nonce), Some(ct)) = (nonce, ciphertext) {
+                    let cipher = Aes256Gcm::new_from_slice(key).unwrap();
+                    if let Ok(decrypted) = cipher.decrypt(
+                        Nonce::from_slice(&nonce),
+                        ct.as_ref(),
+                    ) {
+                        *value = String::from_utf8(decrypted).unwrap_or_else(|_| value.clone());
+                    }
+                }
+            }
+        }
+    }
+}
 
 /// Upload configuration structure
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -108,13 +221,18 @@ async fn internal_save_config(config: &UploadConfig) -> AppResult<()> {
     ensure_config_dir().await?;
     
     let config_path = get_config_path()?;
-    let config_json = serde_json::to_string_pretty(config)
+    
+    // Clone and encrypt sensitive fields
+    let mut config_to_save = config.clone();
+    encrypt_config(&mut config_to_save);
+    
+    let config_json = serde_json::to_string_pretty(&config_to_save)
         .map_err(|e| AppError::Serialization(e.to_string()))?;
     
     tokio::fs::write(&config_path, config_json).await
         .map_err(|e| AppError::Io(format!("Failed to write config: {}", e)))?;
     
-    log::info!("Configuration saved successfully");
+    log::info!("Configuration saved successfully (encrypted)");
     Ok(())
 }
 
@@ -165,10 +283,13 @@ async fn internal_load_config() -> AppResult<Option<UploadConfig>> {
     let config_json = tokio::fs::read_to_string(&config_path).await
         .map_err(|e| AppError::Io(format!("Failed to read config: {}", e)))?;
     
-    let config: UploadConfig = serde_json::from_str(&config_json)
+    let mut config: UploadConfig = serde_json::from_str(&config_json)
         .map_err(|e| AppError::Serialization(e.to_string()))?;
     
-    log::info!("Configuration loaded from file successfully");
+    // Decrypt sensitive fields
+    decrypt_config(&mut config);
+    
+    log::info!("Configuration loaded from file successfully (decrypted)");
     Ok(Some(config))
 }
 

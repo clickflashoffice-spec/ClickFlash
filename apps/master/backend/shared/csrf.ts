@@ -13,6 +13,7 @@ const csrfTokens = new Map<string, CsrfTokenData>();
 
 // ── SQLite store (L2 persistence — survives server restarts) ────────────────
 let db: DatabaseManager | null = null;
+let cleanupInterval: NodeJS.Timeout | null = null;
 
 /**
  * Initialise the SQLite-backed CSRF store.
@@ -24,7 +25,7 @@ let db: DatabaseManager | null = null;
 export function initCsrfStore(database: DatabaseManager): void {
     db = database;
 
-    // Create the table if it doesn't exist yet.
+    // Create the table if it doesn't exist yet. (Also handled via migration 061)
     db.exec(`
         CREATE TABLE IF NOT EXISTS csrf_tokens (
             token      TEXT PRIMARY KEY,
@@ -50,21 +51,26 @@ export function initCsrfStore(database: DatabaseManager): void {
     }
 
     console.info(`[CSRF] SQLite store initialised — ${rows.length} token(s) restored from disk.`);
+    
+    // ── Hourly cleanup: removes expired entries from both stores ─────────────────
+    if (!cleanupInterval) {
+        cleanupInterval = setInterval(() => {
+            const now = Date.now();
+            for (const [token, data] of csrfTokens.entries()) {
+                if (data.expiresAt < now) {
+                    csrfTokens.delete(token);
+                }
+            }
+            // Mirror cleanup in SQLite (fire-and-forget — non-critical)
+            if (db) {
+                try { db.run('DELETE FROM csrf_tokens WHERE expires_at < ?', [now]); } catch { /* ignore */ }
+            }
+        }, 60 * 60 * 1000);
+    }
 }
 
-// ── Hourly cleanup: removes expired entries from both stores ─────────────────
-setInterval(() => {
-    const now = Date.now();
-    for (const [token, data] of csrfTokens.entries()) {
-        if (data.expiresAt < now) {
-            csrfTokens.delete(token);
-        }
-    }
-    // Mirror cleanup in SQLite (fire-and-forget — non-critical)
-    if (db) {
-        try { db.run('DELETE FROM csrf_tokens WHERE expires_at < ?', [now]); } catch { /* ignore */ }
-    }
-}, 60 * 60 * 1000);
+// Alias for compatibility
+export const initCsrfTokenStore = initCsrfStore;
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
@@ -106,7 +112,7 @@ export function validateToken(token: string, userId: string | number | null = nu
         return false;
     }
 
-    if (userId && tokenData.userId && tokenData.userId !== userId) return false;
+    if (userId && tokenData.userId && tokenData.userId !== String(userId)) return false;
 
     return true;
 }
@@ -121,7 +127,7 @@ export function revokeToken(token: string): void {
 
 export function revokeUserTokens(userId: string | number): void {
     for (const [token, data] of csrfTokens.entries()) {
-        if (data.userId === userId) csrfTokens.delete(token);
+        if (data.userId === String(userId)) csrfTokens.delete(token);
     }
     if (db) {
         try { db.run('DELETE FROM csrf_tokens WHERE user_id = ?', [String(userId)]); } catch { /* ignore */ }
@@ -131,4 +137,12 @@ export function revokeUserTokens(userId: string | number): void {
 export function getTokenExpiration(token: string): number | null {
     const tokenData = csrfTokens.get(token);
     return tokenData ? tokenData.expiresAt : null;
+}
+
+export function closeCsrfTokenStore(): void {
+    if (cleanupInterval) {
+        clearInterval(cleanupInterval);
+        cleanupInterval = null;
+    }
+    db = null;
 }

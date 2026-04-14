@@ -72,6 +72,13 @@ function getOrCreateSecret(name: string, envValue: string | undefined): string {
 export const JWT_SECRET     = getOrCreateSecret('JWT_SECRET',     process.env.JWT_SECRET);
 export const SESSION_SECRET = getOrCreateSecret('SESSION_SECRET', process.env.SESSION_SECRET);
 
+// --- TLS Configuration ---
+export const TLS_ENABLED = process.env.TLS_ENABLED === 'true';
+export const TLS_KEY_PATH = process.env.TLS_KEY_PATH;
+export const TLS_CERT_PATH = process.env.TLS_CERT_PATH;
+export const FORCE_HTTPS = process.env.FORCE_HTTPS === 'true';
+export const PROTOCOL = TLS_ENABLED ? 'https' : 'http';
+
 // --- CORS Configuration ---
 export const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())

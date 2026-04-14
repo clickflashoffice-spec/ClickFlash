@@ -316,15 +316,7 @@ export const photoService = {
 
     /**
      * Batch save photos with manual edits and metadata
-     * 
-     * Saves multiple photos in a single request, ensuring all manualEdits
-     * are properly validated and persisted.
-     * 
-     * Features:
-     * - Validates all photos before saving
-     * - Ensures manualEdits are properly formatted
-     * - Handles both creates and updates
-     * - Returns results for all photos
+     * P1-A2 Fix: Uses single batch endpoint instead of N sequential PATCH calls
      * 
      * @param {Partial<Photo>[]} photos - Array of photo objects to save
      * @returns {Promise<{items: Photo[], successCount: number, failureCount: number}>}

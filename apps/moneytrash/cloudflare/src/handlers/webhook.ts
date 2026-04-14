@@ -11,7 +11,7 @@ export async function handleWebhook(request: Request, env: Env, params: Record<s
     const signature = request.headers.get('X-Webhook-Signature');
     
     // Verify webhook signature
-    if (!verifyWebhookSignature(await request.text(), signature, env.WEBHOOK_SECRET)) {
+    if (!await verifyWebhookSignature(await request.text(), signature, env.WEBHOOK_SECRET)) {
       return Response.json(
         { error: 'Invalid signature' },
         { status: 401 }
@@ -51,14 +51,37 @@ export async function handleWebhook(request: Request, env: Env, params: Record<s
   }
 }
 
-function verifyWebhookSignature(payload: string, signature: string | null, secret: string): boolean {
-  if (!signature) return false;
+async function verifyWebhookSignature(payload: string, signature: string | null, secret: string): Promise<boolean> {
+  if (!signature || !secret) return false;
   
-  // In production, implement HMAC-SHA256 verification
-  // const expected = crypto.subtle.digest('SHA-256', new TextEncoder().encode(payload + secret));
-  // return signature === expected;
-  
-  return true; // Simplified for now
+  try {
+    const encoder = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+    
+    const signatureBytes = Uint8Array.from(
+      signature.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []
+    );
+    
+    const payloadBytes = encoder.encode(payload);
+    
+    const isValid = await crypto.subtle.verify(
+      'HMAC',
+      keyMaterial,
+      signatureBytes,
+      payloadBytes
+    );
+    
+    return isValid;
+  } catch (error) {
+    console.error('[Webhook] Signature verification error:', error);
+    return false;
+  }
 }
 
 async function handlePaymentCompleted(body: any, env: Env): Promise<void> {

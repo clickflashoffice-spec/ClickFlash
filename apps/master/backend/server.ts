@@ -7,8 +7,6 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 import { initSentry } from "./shared/sentryService";
 
 // P2-F: Sentry is activated when SENTRY_DSN env var is present.
-// Set SENTRY_DSN in .env to enable production error tracking.
-// No-op when DSN is absent — zero overhead in offline/dev mode.
 if (process.env.SENTRY_DSN) {
   initSentry(
     process.env.SENTRY_DSN,
@@ -21,11 +19,15 @@ if (process.env.SENTRY_DSN) {
 }
 
 import express, { Request, Response, NextFunction } from "express";
+import cookieParser from "cookie-parser";
 import http from "http";
 import fs from "fs";
 import path from "path";
 import { Bonjour } from "bonjour-service";
 import helmet from "helmet";
+
+// TLS Configuration
+import { getTLSConfig, createSecureServer } from "./config/tlsConfig";
 
 // Shared Modules
 import rateLimiter, {
@@ -42,6 +44,7 @@ import { ResourceMonitor } from "./shared/ResourceMonitor";
 
 import { sendNotFoundError } from "./shared/errorHandler";
 import { initDefaultUser } from "./shared/init-default-user";
+import { tunnelService } from "./services/tunnelService";
 
 // Rule 05: Universal Environment Parity - Detection
 const isElectron = process.versions && !!process.versions.electron;
@@ -50,7 +53,7 @@ console.log(`[Environment] Running in ${isElectron ? "Electron" : "Web"} mode`);
 // Middleware
 import { createSessionMiddleware } from "./middleware/session";
 import { csrfMiddleware } from "./middleware/csrf";
-import { initCsrfStore } from "./shared/csrf";
+import { initCsrfTokenStore, initCsrfStore } from "./shared/csrf";
 import { authMiddleware } from "./middleware/auth";
 
 // Routes
@@ -77,6 +80,7 @@ import dashboardRoutes from "./routes/dashboard";
 import healthRoutes from "./routes/health";
 import exportRoutes from "./routes/export";
 import { createResortAnalyticsRoutes } from "./routes/resortAnalytics";
+import setupRoutes from "./routes/setup";
 
 // Services
 import startFolderMonitor from "./services/folderMonitor";
@@ -94,6 +98,7 @@ import { FulfillmentService } from "./services/FulfillmentService";
 import { FulfillmentSlipService } from "./services/FulfillmentSlipService";
 import MoneyTrashService from "./services/MoneyTrashService";
 import { EmailService } from "./services/emailService";
+import { BootstrapService } from "./services/provisioning/BootstrapService";
 import { BookingService } from "./services/bookingService";
 
 import { CampaignScheduler } from "./services/campaignScheduler";
@@ -118,24 +123,15 @@ import {
   ALLOWED_ORIGINS,
   WEB_ROOT,
   JWT_SECRET,
+  TLS_ENABLED,
+  FORCE_HTTPS,
+  PROTOCOL,
 } from "./config/constants";
 
 // --- Global Error Handling ---
 // NOTE: The definitive uncaughtException and unhandledRejection handlers are
 // registered at the bottom of this file (Phase 55) with graceful shutdown.
 // Do NOT add duplicate handlers here.
-
-// --- Security: Service Token Generation ---
-import { randomUUID } from "crypto";
-if (!process.env.SERVICE_SECRET) {
-  process.env.SERVICE_SECRET = randomUUID();
-  console.log(
-    "[Security] Generated temporary SERVICE_SECRET (Valid for this session only)",
-  );
-} else {
-  console.log("[Security] Loaded SERVICE_SECRET from environment");
-}
-// ------------------------------------------
 
 // --- Initialization ---
 
@@ -151,10 +147,83 @@ requiredDirs.forEach((dir) => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
-// 2. Services Init
+// 2. Services Init (Bootstrap Phase)
 export let dbManager: DatabaseManager;
 export let logger: Logger;
 export let auditLogger: AuditLogger;
+import { TokenRefreshService } from "./shared/tokenRefresh";
+export let tokenRefreshService: TokenRefreshService;
+
+try {
+  // Logger
+  logger = new Logger(DATA_DIR, (process.env.LOG_LEVEL as string) || "INFO");
+  auditLogger = new AuditLogger(DATA_DIR);
+  setRateLimiterAuditLogger(auditLogger);
+
+  // Database
+  // Run shared migrations first (initial schema), then backend-specific migrations
+  const SHARED_MIGRATIONS_DIR = path.join(__dirname, "shared", "migrations");
+  const BACKEND_MIGRATIONS_DIR = path.join(__dirname, "migrations");
+  dbManager = new DatabaseManager(DB_FILE);
+  dbManager.connect(SHARED_MIGRATIONS_DIR);
+  
+  // Initialize CSRF token store with database (persists tokens across restarts)
+  initCsrfTokenStore(dbManager);
+
+  // Initialize Token Refresh Service
+  tokenRefreshService = new TokenRefreshService(dbManager, auditLogger);
+  
+  // Run backend-specific migrations if directory exists and has different files
+  if (
+    fs.existsSync(BACKEND_MIGRATIONS_DIR) &&
+    BACKEND_MIGRATIONS_DIR !== SHARED_MIGRATIONS_DIR
+  ) {
+    dbManager.runMigrations?.(BACKEND_MIGRATIONS_DIR);
+  }
+} catch (err) {
+  console.error("[Fatal] Bootstrap Error:", err);
+  process.exit(1);
+}
+
+// --- Security: Service Token Generation ---
+import { randomUUID } from "crypto";
+if (!process.env.SERVICE_SECRET) {
+  // Try to load from database for persistence across restarts
+  const storedSecret = dbManager?.get<{ value: string }>(
+    "SELECT value FROM settings WHERE id = 'SERVICE_SECRET'"
+  );
+  
+  if (storedSecret?.value) {
+    process.env.SERVICE_SECRET = storedSecret.value;
+    console.log("[Security] Loaded SERVICE_SECRET from database");
+  } else {
+    // Generate new secret and store in database
+    process.env.SERVICE_SECRET = randomUUID();
+    try {
+      dbManager?.run(
+        "INSERT INTO settings (id, value) VALUES ('SERVICE_SECRET', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value",
+        [process.env.SERVICE_SECRET]
+      );
+      console.log("[Security] Generated and stored persistent SERVICE_SECRET");
+    } catch (err) {
+      console.log("[Security] Generated temporary SERVICE_SECRET (DB not ready)");
+    }
+  }
+} else {
+  // Store env var secret in database for future use
+  try {
+    dbManager?.run(
+      "INSERT INTO settings (id, value) VALUES ('SERVICE_SECRET', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value",
+      [process.env.SERVICE_SECRET]
+    );
+  } catch (err) {
+    // Ignore if DB not ready
+  }
+  console.log("[Security] Loaded SERVICE_SECRET from environment");
+}
+// ------------------------------------------
+
+// 3. Dependent Services Init
 let photoProcessor: PhotoProcessor;
 let thermalService: ThermalService;
 let dbWriteQueue: DbWriteQueue;
@@ -172,33 +241,8 @@ let resortAnalytics: ResortAnalyticsService;
 let diagnosticSync: DiagnosticSyncService;
 
 try {
-  // Logger
-  logger = new Logger(DATA_DIR, (process.env.LOG_LEVEL as string) || "INFO");
-  auditLogger = new AuditLogger(DATA_DIR);
-  setRateLimiterAuditLogger(auditLogger);
-
-  // Database
-  // Run shared migrations first (initial schema), then backend-specific migrations
-  const SHARED_MIGRATIONS_DIR = path.join(__dirname, "shared", "migrations");
-  const BACKEND_MIGRATIONS_DIR = path.join(__dirname, "migrations");
-  dbManager = new DatabaseManager(DB_FILE);
-  dbManager.connect(SHARED_MIGRATIONS_DIR);
-  // Run backend-specific migrations if directory exists and has different files
-  if (
-    fs.existsSync(BACKEND_MIGRATIONS_DIR) &&
-    BACKEND_MIGRATIONS_DIR !== SHARED_MIGRATIONS_DIR
-  ) {
-    dbManager.runMigrations?.(BACKEND_MIGRATIONS_DIR);
-  }
-
-  // Initialise the SQLite-backed CSRF token store so tokens survive server restarts.
-  initCsrfStore(dbManager);
-
-  // Default User, Vector Index, and other background services are now handled in initializeBackgroundServices()
-
   // Write Queue (Zero-Block IO)
-  // Write Queue (Zero-Block IO)
-  dbWriteQueue = new DbWriteQueue(dbManager, { logger }); // Pass DatabaseManager instance directly
+  dbWriteQueue = new DbWriteQueue(dbManager, { logger });
 
   // Thermal Service (Sentinel)
   thermalService = new ThermalService(logger);
@@ -231,8 +275,6 @@ try {
   ledgerService = new LedgerService(dbManager, logger);
   vectorIndex = VectorIndexService.getInstance(dbManager, logger);
 
-  // Vector Index initialization moved to initializeBackgroundServices()
-
   // --- P3: Export Service (Law 14) ---
   exportService = new ExportService(logger, dbManager);
 
@@ -242,13 +284,17 @@ try {
   // Real-time Hub Diagnostic Sync
   diagnosticSync = new DiagnosticSyncService(dbManager, logger, resortAnalytics);
 } catch (err) {
-  console.error("[Fatal] Initialization Error:", err);
+  console.error("[Fatal] Service Initialization Error:", err);
   process.exit(1);
 }
 
 // 3. App Setup
 export const app = express();
-export const server = http.createServer(app);
+
+// TLS Configuration
+const tlsConfig = getTLSConfig();
+const serverResult = createSecureServer(app, PORT, "0.0.0.0");
+export const server = serverResult.server;
 
 // Initialize Services
 const networkMonitor = new NetworkMonitor(logger);
@@ -321,6 +367,9 @@ const context = {
     AUDIT_LOGS_DIR,
     ALLOWED_ORIGINS,
     WEB_ROOT,
+    PROTOCOL,
+    TLS_ENABLED: TLS_ENABLED,
+    FORCE_HTTPS,
     JWT_SECRET,
   },
   JWT_SECRET,
@@ -334,6 +383,7 @@ const context = {
   uploadDir: UPLOAD_DIR, // For gallery watermark route
   vectorIndex,
   ledgerService,
+  tokenRefreshService,
   networkMonitor,
   exportService,
   resortAnalytics,
@@ -390,7 +440,6 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // Security Headers (Helmet)
 const isDev = process.env.NODE_ENV === "development";
 
-// Security Headers (Helmet)
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -404,7 +453,9 @@ app.use(
               "http://localhost:*",
               "http://127.0.0.1:*",
             ]
-          : ["'self'", "'unsafe-inline'"], // unsafe-inline often needed for React runtime injection, but verify if strictly needed
+          : ["'self'", "'unsafe-inline'"], // unsafe-inline required for React style injection in Electron
+        styleSrc: ["'self'", "'unsafe-inline'"], // Tailwind/React inline styles
+        fontSrc: ["'self'", "data:"],
         connectSrc: isDev
           ? [
               "'self'",
@@ -422,26 +473,28 @@ app.use(
               "http://localhost:*",
               "http://127.0.0.1:*",
               "https://*.clickflash.photo",
-            ], // Production: Allow local websocket and cloud domain
+            ],
         imgSrc: ["'self'", "data:", "blob:", "http:", "https:"],
         workerSrc: ["'self'", "blob:"],
-        objectSrc: ["'none'"], // Prevent Flash/Java plugins
-        baseUri: ["'self'"], // Restrict <base> tag
-        frameAncestors: ["'self'"], // Prevent clickjacking (modern X-Frame-Options)
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"], // Prevent form submissions to external domains
+        frameAncestors: ["'self'"],
       },
     },
     hsts: isDev
       ? false
       : {
-          maxAge: 31536000, // 1 year
+          maxAge: 31536000,
           includeSubDomains: true,
           preload: true,
         },
-    crossOriginEmbedderPolicy: false, // Often breaks loading of local assets/images in Electron
+    crossOriginEmbedderPolicy: false, // Required for Electron local asset loading
     crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow Kiosks to fetch images
   }),
 );
 
+app.use(cookieParser());
 app.use(createSessionMiddleware());
 app.use(csrfMiddleware);
 
@@ -468,15 +521,15 @@ app.use('/api', (req: Request, res: Response, next: NextFunction) => {
   authMiddleware(req, res, next, auditLogger);
 });
 
-// CORS
+// CORS — Strict origin whitelist. No wildcard fallback.
 app.use((req: Request, res: Response, next: NextFunction) => {
   const origin = req.headers.origin;
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Access-Control-Allow-Credentials", "true");
-  } else if (!origin && process.env.NODE_ENV !== "production") {
-    res.setHeader("Access-Control-Allow-Origin", "*");
   }
+  // No origin header = same-origin or server-to-server request.
+  // Intentionally not setting Access-Control-Allow-Origin (no wildcard).
 
   res.setHeader(
     "Access-Control-Allow-Methods",
@@ -546,6 +599,7 @@ app.use("/api/gallery", galleryRoutes(context)); // Handles /gallery/export wate
 app.use("/api/gallery-auth", strictRateLimiter, galleryAuthRoutes(context));
 app.use("/api/gallery-checkout", strictRateLimiter, galleryCheckoutRoutes(context));
 app.use("/api", syncRoutes(context as any)); // Mount /api/sync/mutation — Touch→Master push
+app.use("/api/setup", setupRoutes(context)); // 1-Click Installation endpoints
 
 // Fallback for unhandled API routes
 app.all(/\/api\/(.*)/, (_req: Request, res: Response) => {
@@ -609,9 +663,11 @@ const initializeEcosystem = async () => {
     const bootTime = Date.now();
 
     try {
-        // 1. Critical: Default User
+        // 1. Critical: Default User & Bootstrap
         await initDefaultUser(dbManager);
-        logger.info("[Startup] Data Integrity: Default User verified.");
+        const bootstrapService = new BootstrapService(dbManager, logger);
+        await bootstrapService.runIfRequired();
+        logger.info("[Startup] Data Integrity: Default User and Bootstrap checks verified.");
 
         // 2. Critical: Vector Index
         await vectorIndex.initialize();
@@ -641,6 +697,21 @@ const initializeEcosystem = async () => {
         moneyTrashService.start();
         logger.info("[Startup] MoneyTrash Integration: Active.");
 
+        // 6. Cloudflare Tunnel (if configured)
+        if (process.env.TUNNEL_ID) {
+            tunnelService.start().then((started) => {
+                if (started) {
+                    logger.info("[Startup] Cloudflare Tunnel: Connected and routing traffic.");
+                } else {
+                    logger.warn("[Startup] Cloudflare Tunnel: Failed to start - check credentials and network.");
+                }
+            }).catch((err: Error) => {
+                logger.error("[Startup] Cloudflare Tunnel error:", err.message);
+            });
+        } else {
+            logger.info("[Startup] Cloudflare Tunnel: Not configured (TUNNEL_ID not set).");
+        }
+
         campaignScheduler.start();
         logger.info("[Startup] Marketing Layer: Scheduler active.");
 
@@ -655,12 +726,13 @@ const initializeEcosystem = async () => {
 };
 
 // Start Server
+const protocol = tlsConfig.enabled ? 'https' : 'http';
 server.listen(PORT, "0.0.0.0", async () => {
     try {
         const ips = getLocalNetworkIPs();
-        logger.info(`[Titan Protocol] Master Server running on port ${PORT}`);
+        logger.info(`[Titan Protocol] Master Server running on port ${PORT} (${protocol.toUpperCase()})`);
         ips.forEach((ip) =>
-            logger.info(`[Network] Available at: http://${ip.ip}:${PORT}`),
+            logger.info(`[Network] Available at: ${protocol}://${ip.ip}:${PORT}`),
         );
 
         logger.info("\n--- Apex Operational Status ---");
@@ -690,40 +762,30 @@ server.listen(PORT, "0.0.0.0", async () => {
             logger.info(
                 `[Shutdown] ${signal} received — stopping background services...`,
             );
-            try {
-                tunnelManager.stop();
-            } catch {
-                /* ignore */
-            }
-            try {
-                cloudSyncService?.stop?.();
-            } catch {
-                /* ignore */
-            }
-            try {
-                queueProcessor?.stop?.();
-            } catch {
-                /* ignore */
-            }
-            try {
-                campaignScheduler?.stop?.();
-            } catch {
-                /* ignore */
-            }
-            try {
-                moneyTrashService?.stop?.();
-            } catch {
-                /* ignore */
-            }
-            try {
-                resourceMonitor?.stop?.();
-            } catch {
-                /* ignore */
-            }
-            try {
-                maintenancePoller?.stop?.();
-            } catch {
-                /* ignore */
+
+            const serviceStoppers = [
+                { name: 'tunnelManager', fn: () => tunnelManager.stop() },
+                { name: 'cloudSyncService', fn: () => cloudSyncService?.stop?.() },
+                { name: 'queueProcessor', fn: () => queueProcessor?.stop?.() },
+                { name: 'campaignScheduler', fn: () => campaignScheduler?.stop?.() },
+                { name: 'moneyTrashService', fn: () => moneyTrashService?.stop?.() },
+                { name: 'resourceMonitor', fn: () => resourceMonitor?.stop?.() },
+                { name: 'maintenancePoller', fn: () => maintenancePoller?.stop?.() },
+            ];
+
+            const results = await Promise.allSettled(
+                serviceStoppers.map(s => s.fn())
+            );
+
+            const failures = results.filter(r => r.status === 'rejected');
+            if (failures.length > 0) {
+                logger.error(
+                    `[Shutdown] ${failures.length}/${serviceStoppers.length} services failed: ${
+                        failures.map((_, i) => serviceStoppers[results.indexOf(_)].name).join(', ')
+                    }`,
+                );
+            } else {
+                logger.info('[Shutdown] All services stopped gracefully');
             }
             // Drain pending DB writes before closing (P4 audit fix — prevents data loss)
             try {
@@ -741,12 +803,16 @@ server.listen(PORT, "0.0.0.0", async () => {
             }
             bonjour.unpublishAll(() => {
                 server.close(() => {
-                    logger.info("[Shutdown] Clean exit.");
-                    process.exit(0);
+                    logger.info('[Shutdown] Clean exit.');
+                    process.exit(failures.length > 0 ? 1 : 0);
                 });
-                // Force exit after 5s if server.close hangs
-                setTimeout(() => process.exit(0), 5000).unref();
             });
+
+            // Force exit after 30s if server.close hangs
+            setTimeout(() => {
+                logger.error('[Shutdown] Forced exit after timeout');
+                process.exit(1);
+            }, 30_000).unref();
         };
 
         process.on("SIGINT", () => gracefulShutdown("SIGINT"));

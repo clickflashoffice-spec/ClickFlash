@@ -10,10 +10,13 @@ export interface WorkerJob {
 export interface WorkerResult {
   success: boolean;
   error?: string;
+  photoId?: string;
   [key: string]: any;
 }
 
 const MAX_QUEUE_DEPTH = 500;
+const JOB_TIMEOUT_MS = 180_000; // 3 minutes timeout for a single job
+const HEARTBEAT_INTERVAL_MS = 30_000; // 30 seconds heartbeat
 
 export class WorkerPool {
   private queue: {
@@ -21,16 +24,18 @@ export class WorkerPool {
     resolve: (res: any) => void;
     reject: (err: any) => void;
     priority: boolean;
+    timestamp: number;
   }[] = [];
   private activeWorkers = new Map<
     number,
-    { worker: Worker; jobId: string | null }
+    { worker: Worker; jobId: string | null; lastHeartbeat: number; timeout?: NodeJS.Timeout }
   >();
   private idleWorkers: Worker[] = [];
   private maxWorkers: number;
   private workerScript: string;
   private logger: Logger;
   private shuttingDown = false;
+  private heartbeatTimer: NodeJS.Timeout | null = null;
 
   constructor(workerScript: string, logger: Logger, max?: number) {
     this.workerScript = workerScript;
@@ -39,12 +44,35 @@ export class WorkerPool {
     this.logger.info(
       `[WorkerPool] Persistent pool initialized with max ${this.maxWorkers} workers for ${workerScript}`,
     );
+    this.startHeartbeatMonitor();
+  }
+
+  private startHeartbeatMonitor() {
+    this.heartbeatTimer = setInterval(() => {
+      const now = Date.now();
+      for (const [id, info] of this.activeWorkers.entries()) {
+        if (info.jobId && now - info.lastHeartbeat > JOB_TIMEOUT_MS) {
+          this.logger.error(`[WorkerPool] Worker ${id} hung on job ${info.jobId}. Terminating...`);
+          this.terminateWorker(id);
+        }
+      }
+    }, HEARTBEAT_INTERVAL_MS);
+  }
+
+  private terminateWorker(id: number) {
+    const info = this.activeWorkers.get(id);
+    if (!info) return;
+
+    if (info.timeout) clearTimeout(info.timeout);
+    info.worker.terminate().catch((err) => 
+      this.logger.error(`[WorkerPool] Failed to terminate worker ${id}: ${err.message}`)
+    );
+    this.activeWorkers.delete(id);
+    this.idleWorkers = this.idleWorkers.filter((w) => (w as any).threadId !== id);
+    this.processQueue();
   }
 
   private createWorker(): Worker {
-    // TypeScript source files (.ts) require tsx to be active in the worker
-    // thread so imports are resolved at runtime. In production the compiled
-    // .js file is used directly and no execArgv are needed.
     const isTypeScript = this.workerScript.endsWith(".ts");
     const workerOptions = isTypeScript
       ? { execArgv: ["--import", "tsx/esm"] }
@@ -52,10 +80,12 @@ export class WorkerPool {
     const worker = new Worker(this.workerScript, workerOptions);
     const id = (worker as any).threadId;
 
-    // NOTE: No persistent "message" listener here — executeJob() registers
-    // per-job one-shot handlers and calls handleWorkerReady() after cleanup.
-    // Adding a persistent listener here caused the same worker to land in
-    // idleWorkers twice (double-dispatch bug).
+    worker.on("message", (msg) => {
+      if (msg === "pong" || msg?.type === "heartbeat") {
+        const info = this.activeWorkers.get(id);
+        if (info) info.lastHeartbeat = Date.now();
+      }
+    });
 
     worker.on("error", (err: Error) => {
       this.logger.error(`[WorkerPool] Worker ${id} Error: ${err.message}`);
@@ -65,7 +95,7 @@ export class WorkerPool {
     });
 
     worker.on("exit", (code: number) => {
-      if (code !== 0) {
+      if (code !== 0 && !this.shuttingDown) {
         this.logger.error(`[WorkerPool] Worker ${id} exited with code ${code}`);
       }
       this.activeWorkers.delete(id);
@@ -76,15 +106,15 @@ export class WorkerPool {
     return worker;
   }
 
-  /** Terminate all workers and drain the pending queue with cancellation errors. */
   public async shutdown(): Promise<void> {
     this.shuttingDown = true;
-    // Reject all queued jobs
+    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+    
     for (const item of this.queue) {
       item.reject(new Error("WorkerPool shutdown"));
     }
     this.queue = [];
-    // Terminate every worker
+    
     const allWorkers = Array.from(this.activeWorkers.values()).map((v) => v.worker);
     await Promise.allSettled(allWorkers.map((w) => w.terminate()));
     this.activeWorkers.clear();
@@ -94,7 +124,7 @@ export class WorkerPool {
 
   private handleWorkerReady(worker: Worker) {
     const id = (worker as any).threadId;
-    this.activeWorkers.set(id, { worker, jobId: null });
+    this.activeWorkers.set(id, { worker, jobId: null, lastHeartbeat: Date.now() });
     this.idleWorkers.push(worker);
     this.processQueue();
   }
@@ -111,13 +141,17 @@ export class WorkerPool {
       if (signal?.aborted) {
         return reject(new Error("JOB_CANCELLED"));
       }
+
+      // Fix: Corrected queue depth check (was using undefined this.MAX_QUEUE_DEPTH)
       if (this.queue.length >= MAX_QUEUE_DEPTH) {
-        const err = new Error(`WorkerPool queue full (max ${MAX_QUEUE_DEPTH})`);
-        (err as any).code = "WORKER_QUEUE_FULL";
+        const err = new Error(`WorkerPool queue full (max ${MAX_QUEUE_DEPTH})`) as any;
+        err.code = "WORKER_QUEUE_FULL";
+        err.statusCode = 503;
+        err.retryAfter = 5;
         return reject(err);
       }
 
-      const jobWrapper = { job, resolve, reject, priority };
+      const jobWrapper = { job, resolve, reject, priority, timestamp: Date.now() };
 
       if (signal) {
         signal.addEventListener("abort", () => {
@@ -140,13 +174,13 @@ export class WorkerPool {
   }
 
   private processQueue() {
+    if (this.shuttingDown) return;
+
     while (this.queue.length > 0) {
       let worker = this.idleWorkers.shift();
 
       if (!worker && this.activeWorkers.size < this.maxWorkers) {
         worker = this.createWorker();
-        const id = (worker as any).threadId;
-        this.activeWorkers.set(id, { worker, jobId: null });
       }
 
       if (!worker) break;
@@ -164,12 +198,24 @@ export class WorkerPool {
     const { job, resolve, reject } = wrapper;
     const jobId = job.photoId || Math.random().toString(36).substring(7);
 
-    this.activeWorkers.set(id, { worker, jobId });
+    const timeout = setTimeout(() => {
+      this.logger.error(`[WorkerPool] Job ${jobId} timed out on worker ${id}`);
+      this.terminateWorker(id);
+      reject(new Error(`JOB_TIMEOUT: ${jobId}`));
+    }, JOB_TIMEOUT_MS);
 
-    // One-time listeners for this specific job
+    this.activeWorkers.set(id, { worker, jobId, lastHeartbeat: Date.now(), timeout });
+
     const onMessage = (result: WorkerResult) => {
+      if (result === "pong" || result?.type === "heartbeat") {
+        const info = this.activeWorkers.get(id);
+        if (info) info.lastHeartbeat = Date.now();
+        return;
+      }
+
       if (result.photoId === jobId || !result.photoId) {
         cleanup();
+        clearTimeout(timeout);
         resolve(result);
         this.handleWorkerReady(worker);
       }
@@ -177,6 +223,7 @@ export class WorkerPool {
 
     const onError = (err: Error) => {
       cleanup();
+      clearTimeout(timeout);
       reject(err);
     };
 

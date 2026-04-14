@@ -1,7 +1,12 @@
 export const getEnv = (env: any) => {
+  const jwtSecret = env.JWT_SECRET;
+  if (!jwtSecret) {
+    throw new Error('FATAL: JWT_SECRET environment variable is required. Cannot start without secure JWT secret.');
+  }
+  
   return {
     PORT: env.PORT || "8787",
-    JWT_SECRET: env.JWT_SECRET || "CHANGE_ME_IN_PRODUCTION_MANAGEMENT",
+    JWT_SECRET: jwtSecret,
     ALLOWED_ORIGINS: env.ALLOWED_ORIGINS
       ? env.ALLOWED_ORIGINS.split(",").map((o: string) => o.trim())
       : [

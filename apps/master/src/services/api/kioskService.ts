@@ -331,6 +331,7 @@ export const kioskService = {
     albumId: string,
     kioskId: string,
     photoIds?: string[],
+    metadataOnly?: boolean,
   ): Promise<{
     success: boolean;
     message?: string;
@@ -352,7 +353,7 @@ export const kioskService = {
           ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
         },
         credentials: "include", // Include cookies for authentication
-        body: JSON.stringify({ albumId, kioskId, photoIds }),
+        body: JSON.stringify({ albumId, kioskId, photoIds, metadataOnly }),
       });
 
       if (!response.ok) {

@@ -12,7 +12,7 @@ test.describe('Homepage', () => {
   test('should have working navigation', async ({ page }) => {
     // Check main navigation links
     const navLinks = page.locator('nav a');
-    await expect(navLinks).toHaveCount.greaterThan(0);
+    expect(await navLinks.count()).toBeGreaterThan(0);
     
     // Test a navigation link
     await page.click('nav a[href="/features"]');

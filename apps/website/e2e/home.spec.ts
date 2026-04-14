@@ -521,7 +521,7 @@ test.describe("Security", () => {
   test("should have HTTPS in production", async ({ page }) => {
     if (BASE_URL.startsWith("https://")) {
       await page.goto(BASE_URL);
-      expect(page.url()).toStartWith("https://");
+      expect(page.url().startsWith("https://")).toBe(true);
     }
   });
 

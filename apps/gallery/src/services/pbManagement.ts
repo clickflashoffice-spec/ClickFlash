@@ -422,7 +422,7 @@ export const pbManagement = {
                      }
                  }
              } catch (e) {
-                 logger.warn("Failed to sync destination status/config", { error: e instanceof Error ? e.message : String(e) }, e instanceof Error ? e : undefined);
+                 logger.warn("Failed to sync destination status/config", { error: e instanceof Error ? e.message : String(e) });
              }
         }
 

@@ -85,8 +85,10 @@ export function authMiddleware(
   }
 
   // Special Case: Allow /api/files/* ONLY from authorized internal services (Service Token)
-  // This replaces the vulnerable IP-based check (req.ip === '::1')
-  if (req.path.startsWith("/api/files/")) {
+  // This replaces the vulnerable IP-based check (req.ip === '::1').
+  // When invoked via global app.use('/api', ...) the path is relative so we
+  // check both the full and the relative form.
+  if (req.path.startsWith("/api/files/") || req.path.startsWith("/files/")) {
     const serviceToken = req.headers["x-service-token"];
     const internalSecret = process.env.SERVICE_SECRET;
 

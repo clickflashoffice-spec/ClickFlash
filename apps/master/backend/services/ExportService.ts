@@ -179,10 +179,16 @@ export class ExportService {
           );
         }
 
-        // Save Result
-        const outFilename =
-          item.filename || `export_${item.photoId}_${Date.now()}.jpg`;
+        // Save Result — sanitize filename to strip any path separators or
+        // traversal sequences injected via item.filename.
+        const rawFilename = item.filename || `export_${item.photoId}_${Date.now()}.jpg`;
+        const outFilename = path.basename(rawFilename).replace(/[<>:"/\\|?*\x00-\x1f]/g, "_");
         const outPath = path.join(targetDir, outFilename);
+        // Final containment check: ensure the resolved output path is still
+        // inside targetDir even after path.join resolves separators.
+        if (!path.resolve(outPath).startsWith(path.resolve(targetDir) + path.sep)) {
+          throw new Error(`SECURITY_VIOLATION: Output path escapes targetDir for photo ${item.photoId}`);
+        }
 
         // Correct encoding for @napi-rs/canvas
         const format = options.format === "image/png" ? "png" : "jpeg";

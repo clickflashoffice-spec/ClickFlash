@@ -25,7 +25,14 @@ async function copyAssets() {
         console.warn('[Assets] Warning: No migrations directory found.');
     }
 
-    // Add other assets here (e.g. templates)
+    // Backend-specific migrations (separate from shared)
+    const srcBackendMigrations = path.join(SRC_DIR, 'migrations');
+    const destBackendMigrations = path.join(DIST_DIR, 'migrations');
+
+    if (await fs.pathExists(srcBackendMigrations)) {
+        await fs.copy(srcBackendMigrations, destBackendMigrations);
+        console.log(`[Assets] Copied backend migrations to ${destBackendMigrations}`);
+    }
 
     console.log('[Assets] Done.');
 }

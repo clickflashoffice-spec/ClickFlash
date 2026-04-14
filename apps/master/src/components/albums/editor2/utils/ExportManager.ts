@@ -91,6 +91,7 @@ export class ExportManager {
     items: Array<{ photoId: string; edits: ManualEdits; filename?: string }>,
     targetDir: string,
     _onProgress?: (current: number, total: number) => void,
+    signal?: AbortSignal,
   ): Promise<{ success: boolean; exportedCount: number; errors: string[] }> {
     try {
       const response = await fetch("/api/export/batch", {
@@ -101,16 +102,20 @@ export class ExportManager {
           targetDir,
           options: { format: "image/jpeg", quality: 92 },
         }),
+        signal,
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
         throw new Error(errorData.message || "Backend export failed");
       }
 
       const result = await response.json();
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return { success: false, exportedCount: 0, errors: ['Export cancelled'] };
+      }
       console.error("Backend Export failed:", error);
       throw error;
     }
@@ -213,8 +218,11 @@ export class ExportManager {
    * Convert data URL to Blob
    */
   private dataUrlToBlob(dataUrl: string): Promise<Blob> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const arr = dataUrl.split(",");
+      if (arr.length < 2 || !arr[0].includes("base64")) {
+        return reject(new Error("Invalid data URL format"));
+      }
       const mime = arr[0].match(/:(.*?);/)?.[1] || "image/jpeg";
       const bstr = atob(arr[1]);
       let n = bstr.length;

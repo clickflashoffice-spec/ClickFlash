@@ -27,7 +27,7 @@ const IncomeByPhotographerChart: React.FC<IncomeByPhotographerChartProps> = ({ o
 
         const dataPoints = photographers.map(p => ({
             name: p.name,
-            sales: salesMap.get(p.id) || 0,
+            sales: salesMap.get(Number(p.id)) || 0,
         })).sort((a,b) => b.sales - a.sales);
         
         const labels = dataPoints.map(p => p.name);

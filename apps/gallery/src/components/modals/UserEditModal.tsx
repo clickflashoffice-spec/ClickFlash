@@ -33,7 +33,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, onDataCh
     };
   }, [userToEdit, defaultRole]);
 
-  const [user, setUser] = useState(getInitialState());
+  const [user, setUser] = useState<Partial<Photographer>>(getInitialState());
   const [password, setPassword] = useState('');
   const [changePassword, setChangePassword] = useState(false);
   const { currency } = useCurrency();
@@ -124,7 +124,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, onDataCh
                  updates.password = password;
              }
              
-             await apiService.updateUser(user.id, updates);
+             await apiService.updateUser(user.id!, updates);
         }
         onDataChange();
         onClose();

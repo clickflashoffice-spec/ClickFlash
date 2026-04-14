@@ -126,7 +126,7 @@ class PerformanceMonitorService {
         if (typeof window === 'undefined') return;
 
         window.addEventListener('first-input', (event) => {
-            const entry = (event as PerformanceEventTiming).entries?.[0] as FirstInputEntry | undefined;
+            const entry = ((event as any).entries?.[0]) as FirstInputEntry | undefined;
             if (entry) {
                 const fid = entry.processingStart - entry.startTime;
                 this.recordMetric('FID', fid, 'ms', {

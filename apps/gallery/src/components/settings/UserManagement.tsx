@@ -49,7 +49,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
         fetchUsers();
     };
     
-     const handleDeleteUser = async (userId: number, userName: string) => {
+     const handleDeleteUser = async (userId: string | number, userName: string) => {
         if (window.confirm(`Are you sure you want to delete the user "${userName}"?`)) {
             try {
                 await apiService.deleteUser(userId);

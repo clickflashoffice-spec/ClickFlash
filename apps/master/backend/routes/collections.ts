@@ -12,6 +12,7 @@ import {
   sendError,
   sendValidationError,
   sendInvalidInputError,
+  sendInternalError,
   sendDatabaseError,
   sendNotFoundError,
   sendFileError,
@@ -164,32 +165,24 @@ export default function collectionRoutes(context: CollectionsContext): Router {
       // Check foreign key constraints
       if (table === "photos") {
         if (validData.albumId) {
-          // RACE CONDITION DEFENSE: Centralized Album existence retry loop
-          let albumExists = null;
+          // Single FK check — the frontend already has MAX_RETRIES=3 with
+          // exponential back-off, so server-side polling is unnecessary and
+          // generates hundreds of extra DB queries during bulk imports.
           const albumIdCheck = String(validData.albumId);
-
-          for (let i = 0; i < 25; i++) {
-            albumExists = dbManager.get(`SELECT 1 FROM albums WHERE id = ?`, [
-              albumIdCheck,
-            ]);
-            if (albumExists) {
-              if (i > 0)
-                logger.warn(
-                  `[RaceDefense] Album ${albumIdCheck} found after ${i} retries (JSON/Central Path).`,
-                );
-              break;
-            }
-            await new Promise((resolve) => setTimeout(resolve, 200));
-          }
+          const albumExists = dbManager.get(
+            `SELECT 1 FROM albums WHERE id = ?`,
+            [albumIdCheck],
+          );
 
           if (!albumExists) {
-            logger.error(
-              `[RaceDefense] Album ${albumIdCheck} NOT FOUND after 5s retry loop.`,
+            logger.warn(
+              `[FK] Album ${albumIdCheck} not found — returning 422 so client can retry.`,
             );
-            sendInvalidInputError(
-              res,
-              `Album with ID '${albumIdCheck}' does not exist on [MASTER].`,
-            );
+            res.status(422).json({
+              error: "ALBUM_NOT_FOUND",
+              message: `Album '${albumIdCheck}' does not exist yet — please retry`,
+              retryable: true,
+            });
             return;
           }
         }
@@ -315,8 +308,22 @@ export default function collectionRoutes(context: CollectionsContext): Router {
           );
 
           if (existing) {
+            // Optimistic locking: if the client sent _clientUpdatedAt, reject
+            // the write when the DB record is newer (another tab/device saved first).
+            const clientUpdatedAt = data._clientUpdatedAt;
+            if (clientUpdatedAt && (existing as any).updated_at) {
+              const serverTs = new Date((existing as any).updated_at).getTime();
+              const clientTs = new Date(clientUpdatedAt).getTime();
+              // Allow up to 2s clock skew before treating as a conflict.
+              if (serverTs - clientTs > 2000) {
+                throw new Error(
+                  `EDIT_CONFLICT: Record was modified by another session (server: ${(existing as any).updated_at}, client: ${clientUpdatedAt})`,
+                );
+              }
+            }
+
             // Update
-            const keys = Object.keys(rowData).filter((k) => k !== "id");
+            const keys = Object.keys(rowData).filter((k) => k !== "id" && k !== "_clientUpdatedAt");
             const updateKeys = keys.filter((k) => rowData[k] !== undefined);
 
             if (updateKeys.length > 0) {
@@ -614,6 +621,9 @@ export default function collectionRoutes(context: CollectionsContext): Router {
           error.message.includes("does not exist")
         ) {
           sendInvalidInputError(res, error.message || "Invalid reference.");
+        } else if (error.message.startsWith("EDIT_CONFLICT:")) {
+          res.status(409).json({ error: "EDIT_CONFLICT", message: error.message });
+          return;
         } else if (error.message.includes("conflict")) {
           sendError(res, 409, "Conflict", error.message, ERROR_CODES.CONFLICT);
         } else {
@@ -918,7 +928,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
         multiples: true,
         uploadDir: IMPORT_DIR,
         keepExtensions: true,
-        maxFileSize: 500 * 1024 * 1024,
+        maxFileSize: 50 * 1024 * 1024, // 50MB — professional camera RAW is ≤30MB; 500MB was far too permissive
       });
 
       form.parse(req, (err, fields, files) => {
@@ -972,50 +982,27 @@ export default function collectionRoutes(context: CollectionsContext): Router {
               const photoId = data.id || crypto.randomUUID();
               if (!data.id) data.id = photoId;
 
-              // RACE CONDITION DEFENSE: Check Album Existence BEFORE Heavy Processing
-              // This prevents "Album not found" errors after processing and ensures DB consistency
+              // Single FK check — polling was eliminated (see audit plan P2-A3).
+              // 422 retryable errors propagate to the frontend's uploadPhotoWithRetry()
+              // which already has MAX_RETRIES=3 with exponential back-off.
               fileProcessingPromises.push(
                 (async () => {
                   if (albumId) {
-                    let albumExists = null;
-                    logger.info(
-                      `[RaceDefense] Checking Album existence: ID='${albumId}' (Type: ${typeof albumId})`,
+                    const albumExists = dbManager.get(
+                      `SELECT 1 FROM albums WHERE id = ?`,
+                      [albumId],
                     );
-                    for (let i = 0; i < 25; i++) {
-                      albumExists = dbManager.get(
-                        `SELECT 1 FROM albums WHERE id = ?`,
-                        [albumId],
-                      );
-                      if (albumExists) {
-                        if (i > 0)
-                          logger.warn(
-                            `[RaceDefense] Album ${albumId} found after ${i} retries.`,
-                          );
-                        else
-                          logger.info(
-                            `[RaceDefense] Album ${albumId} found immediately.`,
-                          );
-                        break;
-                      }
-                      await new Promise((resolve) => setTimeout(resolve, 200));
-                    }
                     if (!albumExists) {
-                      const allAlbums = dbManager.query(
-                        "SELECT id FROM albums LIMIT 5",
+                      const err = new Error(
+                        `Album ${albumId} not found — client should retry`,
                       );
-                      logger.error(
-                        `[RaceDefense] Album ${albumId} NOT FOUND after 5s retry loop.`,
-                        {
-                          checkedId: albumId,
-                          type: typeof albumId,
-                          length: String(albumId).length,
-                          recentAlbumIds: allAlbums.map((a) => a.id),
-                        },
-                      );
-                      throw new Error(
-                        `Album ${albumId} not found after 5s pre-check on [MASTER]`,
-                      );
+                      (err as any).code = "ALBUM_NOT_FOUND";
+                      (err as any).retryable = true;
+                      throw err;
                     }
+                    logger.info(
+                      `[FK] Album ${albumId} verified — starting photo processing`,
+                    );
                   }
 
                   logger.info(
@@ -1071,6 +1058,34 @@ export default function collectionRoutes(context: CollectionsContext): Router {
               albumId: data.albumId,
               table,
             });
+            // Duplicate photo content — return 409 Conflict so the frontend can skip.
+            if ((err as any).code === "DUPLICATE_PHOTO") {
+              res.status(409).json({
+                error: "DUPLICATE_PHOTO",
+                message: err.message,
+                existingPhotoId: (err as any).existingPhotoId,
+              });
+              return;
+            }
+            // Album FK not yet satisfied → client should retry after album is created.
+            if ((err as any).code === "ALBUM_NOT_FOUND") {
+              res.status(422).json({
+                error: "ALBUM_NOT_FOUND",
+                message: err.message,
+                retryable: true,
+              });
+              return;
+            }
+            // Worker queue saturation → tell the client to back off and retry.
+            if ((err as any).code === "WORKER_QUEUE_FULL") {
+              res.set("Retry-After", "10");
+              res.status(503).json({
+                error: "QUEUE_FULL",
+                message: "Photo processing queue is full — please retry after 10 seconds",
+                retryAfter: 10,
+              });
+              return;
+            }
             sendFileError(res, `File processing failed: ${err.message}`);
           });
       });
@@ -1083,11 +1098,105 @@ export default function collectionRoutes(context: CollectionsContext): Router {
   });
 
   /**
+   * @route PATCH /photos/records/batch
+   * @description Batch update manualEdits for multiple photos in a single DB transaction.
+   * Accepts: { items: Array<{ id: string; manualEdits: object }> }
+   * Returns: { success: boolean; updatedCount: number; errors: string[] }
+   */
+  router.patch("/photos/records/batch", (req: Request, res: Response) => {
+    const pathName = req.originalUrl;
+    const { items } = req.body || {};
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return sendInvalidInputError(res, "items must be a non-empty array");
+    }
+
+    // Enforce reasonable batch size to prevent oversized transactions.
+    if (items.length > 500) {
+      return sendInvalidInputError(res, "Batch size cannot exceed 500 items");
+    }
+
+    const now = new Date().toISOString();
+    const errors: string[] = [];
+    // Track which IDs failed so the frontend only clears dirty-state for photos
+    // that were actually persisted (D1: partial-save dirty tracking fix).
+    const failedIds: string[] = [];
+    let updatedCount = 0;
+
+    try {
+      dbManager.transaction(() => {
+        for (const item of items) {
+          if (!item || typeof item.id !== "string" || !item.id) {
+            errors.push(`Skipped item with missing id`);
+            continue;
+          }
+
+          const exists = dbManager.get(
+            `SELECT 1 FROM photos WHERE id = ? LIMIT 1`,
+            [item.id],
+          );
+          if (!exists) {
+            errors.push(`Photo ${item.id} not found`);
+            failedIds.push(item.id);
+            continue;
+          }
+
+          // Serialize manualEdits; skip update if not provided.
+          let manualEditsJson: string | null = null;
+          if (item.manualEdits !== undefined) {
+            manualEditsJson =
+              typeof item.manualEdits === "string"
+                ? item.manualEdits
+                : JSON.stringify(item.manualEdits);
+          }
+
+          if (manualEditsJson !== null) {
+            dbManager.run(
+              `UPDATE photos SET manualEdits = ?, updated_at = ? WHERE id = ?`,
+              [manualEditsJson, now, item.id],
+            );
+            updatedCount++;
+          }
+        }
+      });
+
+      logger.info(`[Batch] Updated manualEdits for ${updatedCount} photos`, {
+        requested: items.length,
+        updatedCount,
+        errors: errors.length,
+        endpoint: pathName,
+      });
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          success: updatedCount > 0 || (items.length > 0 && errors.length < items.length),
+          updatedCount,
+          errors,
+          failedIds,
+        }),
+      );
+    } catch (e: any) {
+      logger.error(`[Batch] Photo batch update failed`, {
+        error: e.message,
+        endpoint: pathName,
+      });
+      sendInternalError(res, e.message);
+    }
+  });
+
+  /**
    * @route PATCH /:collection/records/:id
    * @description Update record
    */
   router.patch("/:collection/records/:id", (req: Request, res: Response) => {
-    const { table } = req as CollectionRequest;
+    // The collection middleware only runs for /:collection/records (no :id).
+    // Resolve table directly from the URL param so this route is self-contained.
+    const collection = req.params.collection;
+    const table = TABLE_MAP[collection as keyof typeof TABLE_MAP];
+    if (!table || !ALLOWED_COLUMNS[table]) {
+      return sendNotFoundError(res, `Collection '${collection}'`);
+    }
     const pathName = req.originalUrl;
     const id = req.params.id;
     const data = req.body || {};
@@ -1101,7 +1210,11 @@ export default function collectionRoutes(context: CollectionsContext): Router {
    * @description Delete record
    */
   router.delete("/:collection/records/:id", (req: Request, res: Response) => {
-    const { table, collection } = req as CollectionRequest;
+    const collection = req.params.collection;
+    const table = TABLE_MAP[collection as keyof typeof TABLE_MAP];
+    if (!table || !ALLOWED_COLUMNS[table]) {
+      return sendNotFoundError(res, `Collection '${collection}'`);
+    }
     const id = req.params.id;
     const pathName = req.originalUrl;
 

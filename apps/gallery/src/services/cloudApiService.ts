@@ -70,7 +70,7 @@ export const cloudApiService = {
       try {
         const orders = await localApiService.getOrders();
         const order = orders.find(
-          (o) => o.access_pin === pin && o.email === email,
+          (o) => (o as any).access_pin === pin && o.email === email,
         );
         return order || null;
       } catch (fallbackErr) {
@@ -179,7 +179,7 @@ export const cloudApiService = {
       // Fallback to Local Storage
       try {
         const orders = await localApiService.getOrders();
-        const order = orders.find((o) => o.roomNumber === roomNumber);
+        const order = orders.find((o) => (o as any).roomNumber === roomNumber);
         return order || null;
       } catch (fallbackErr) {
         console.warn("[Cloud API] Local fallback also failed", fallbackErr);

@@ -268,6 +268,7 @@ const initialEdits: ManualEdits = {
     perspectiveY: 0,
     clarity: 0,
     dropShadow: 0,
+    vignette: 0,
 };
 
 const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {

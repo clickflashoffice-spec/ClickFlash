@@ -42,7 +42,7 @@ const ManagementPhotographersPage: React.FC = () => {
 
     const enrichedPhotographers = useMemo(() => {
         return filteredPhotographers.map(p => {
-            const photographerOrders = orders.filter(o => o.photographerId === p.id && o.status === 'Completed');
+            const photographerOrders = orders.filter(o => String(o.photographerId) === p.id && o.status === 'Completed');
             const totalSales = photographerOrders.reduce((sum, o) => sum + o.total, 0);
             const destinationName = destinations.find(d => d.id === p.destinationId)?.name || 'Unassigned';
             return { ...p, totalSales, destinationName, orderCount: photographerOrders.length };

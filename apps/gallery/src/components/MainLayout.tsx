@@ -273,7 +273,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ onSwitchUser, currentUser, isOn
     switch (currentView) {
       case 'Dashboard':
         if (!can('viewDashboard')) return <AccessDenied />;
-        return <Dashboard localData={dashboardData} currentUser={currentUser} onNavigate={handleNavigate} />;
+        return <Dashboard localData={dashboardData ?? { orders: [], photographers: [], albums: [] }} currentUser={currentUser} onNavigate={handleNavigate} />;
       case 'Albums':
         if (!can('viewAlbums')) return <AccessDenied />;
         return <Albums showToast={showToast} currentUser={currentUser} isOnline={isOnline} refreshTrigger={dataVersion} />;
@@ -294,7 +294,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ onSwitchUser, currentUser, isOn
         return <Clients currentUser={currentUser} />;
       case 'Photographers':
         if (!can('viewPhotographers')) return <AccessDenied />;
-        return <Photographers currentUser={currentUser} photographers={dashboardData.photographers} orders={dashboardData.orders} refreshData={refreshData} />;
+        return <Photographers currentUser={currentUser} photographers={dashboardData?.photographers ?? []} orders={dashboardData?.orders ?? []} refreshData={refreshData} />;
       case 'Documentation':
         if (!can('viewDocumentation')) return <AccessDenied />;
         return (
@@ -309,7 +309,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ onSwitchUser, currentUser, isOn
         if (!can('viewSettings')) return <AccessDenied />;
         return <SettingsPage currentUser={currentUser} onCurrentUserUpdate={refreshData} showToast={showToast} features={features} />;
       default:
-        return <Dashboard localData={dashboardData} currentUser={currentUser} onNavigate={handleNavigate} />;
+        return <Dashboard localData={dashboardData ?? { orders: [], photographers: [], albums: [] }} currentUser={currentUser} onNavigate={handleNavigate} />;
     }
   };
 

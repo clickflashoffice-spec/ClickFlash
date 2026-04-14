@@ -132,13 +132,15 @@ export default function galleryRoutes(context: GalleryContext) {
         };
     }
 
-    // Worker thread executor
+    // Worker thread executor — terminates the thread after each job to prevent
+    // zombie threads (watermarkWorker has no self-exit logic).
     function runWatermarkWorker(job: any): Promise<void> {
         return new Promise((resolve, reject) => {
             const workerPath = path.resolve(__dirname, '../workers/watermarkWorker.js');
             const worker = new Worker(workerPath);
 
             worker.on('message', (result) => {
+                worker.terminate();
                 if (result.success) {
                     resolve();
                 } else {
@@ -146,7 +148,10 @@ export default function galleryRoutes(context: GalleryContext) {
                 }
             });
 
-            worker.on('error', reject);
+            worker.on('error', (err) => {
+                worker.terminate();
+                reject(err);
+            });
             worker.on('exit', (code) => {
                 if (code !== 0) {
                     reject(new Error(`Worker stopped with exit code ${code}`));

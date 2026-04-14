@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
+import helmet from "helmet";
 
 import { DatabaseManager } from "./shared/db";
 import { verifyPassword, hashPassword } from "./shared/auth";
@@ -335,6 +336,24 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use((req, res, next) => {
   next();
 });
+
+// Security headers
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "blob:", "http:", "https:"],
+        connectSrc: ["'self'", "ws:", "wss:", "http://localhost:*", "http://192.168.*", "http://10.*"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'self'"],
+      },
+    },
+    crossOriginEmbedderPolicy: false, // needed for Electron webContents
+  }),
+);
 
 // CORS
 app.use(

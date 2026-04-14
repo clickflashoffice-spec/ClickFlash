@@ -8,6 +8,7 @@ import { ArchiveService } from "./ArchiveService";
 import { ResourceMonitor } from "../shared/ResourceMonitor";
 import { tunnelManager } from "./TunnelManager";
 import { ResortAnalyticsService } from "./ResortAnalyticsService";
+import { TABLE_MAP, ALLOWED_COLUMNS } from "../config/constants";
 
 interface SyncConfig {
   enabled: boolean;
@@ -1090,8 +1091,15 @@ export class CloudSyncService {
     for (const op of operations) {
       try {
         // RCA: Multi-Master Conflict Resolution (Simplified for Phase 30)
-        // We use the same table mapping as on Hub
-        const table = op.table_name || op.table;
+        // SECURITY: Validate table name against allowlist to prevent SQL injection
+        const rawTable = op.table_name || op.table;
+        const table = TABLE_MAP[rawTable as keyof typeof TABLE_MAP];
+        if (!table || !ALLOWED_COLUMNS[table]) {
+          this.logger.error(
+            `[CloudSync] SECURITY: Rejected unknown table "${rawTable}" from remote operation ${op.id}`,
+          );
+          continue;
+        }
         const recordId = op.record_id;
         const payload =
           typeof op.payload === "string" ? JSON.parse(op.payload) : op.payload;
@@ -1113,19 +1121,23 @@ export class CloudSyncService {
         }
 
         this.dbManager.transaction(() => {
+          // SECURITY: Only allow columns that exist in the allowlist
+          const allowedCols = ALLOWED_COLUMNS[table] || [];
           if (op.type === "INSERT") {
-            const keys = Object.keys(payload);
+            const keys = Object.keys(payload).filter((k) => allowedCols.includes(k));
+            if (keys.length === 0) return;
             const placeholders = keys.map(() => "?").join(", ");
             this.dbManager.run(
               `INSERT OR REPLACE INTO ${table} (${keys.join(", ")}) VALUES (${placeholders})`,
-              Object.values(payload),
+              keys.map((k) => payload[k]),
             );
           } else if (op.type === "UPDATE") {
-            const keys = Object.keys(payload);
+            const keys = Object.keys(payload).filter((k) => k !== "id" && allowedCols.includes(k));
+            if (keys.length === 0) return;
             const setClause = keys.map((k) => `${k} = ?`).join(", ");
             this.dbManager.run(
               `UPDATE ${table} SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-              [...Object.values(payload), recordId],
+              [...keys.map((k) => payload[k]), recordId],
             );
           } else if (op.type === "DELETE") {
             this.dbManager.run(`DELETE FROM ${table} WHERE id = ?`, [recordId]);

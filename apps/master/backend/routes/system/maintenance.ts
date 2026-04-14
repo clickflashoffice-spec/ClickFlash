@@ -150,13 +150,82 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
       
       logger.warn(`FACTORY RESET INITIATED by ${user.email}`);
       dbManager.transaction(() => {
-        ["photos", "albums", "orders", "order_items", "kiosks"].forEach(t => {
+        ["photo_faces", "face_indexing_queue", "photos", "albums", "orders", "order_items", "kiosks"].forEach(t => {
           dbManager.run(`DELETE FROM ${t}`);
           dbManager.run(`DELETE FROM sqlite_sequence WHERE name='${t}'`);
         });
       });
       res.json({ success: true, message: "Reset complete. Restart required." });
     } catch (error) {
+      sendInternalError(res, error.message);
+    }
+  });
+
+  /**
+   * @route POST /erase-customer-data
+   * GDPR Article 17 — Right to erasure ("right to be forgotten")
+   * Deletes all PII associated with a customer email: orders, face data, gallery tokens.
+   */
+  router.post("/erase-customer-data", (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      if (!user || user.role !== "Admin") {
+        return res.status(403).json({ error: "Unauthorized — admin only" });
+      }
+
+      const { email } = req.body;
+      if (!email || typeof email !== "string") {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      const normalizedEmail = email.trim().toLowerCase();
+      logger.warn(`[GDPR] Data erasure requested for: ${normalizedEmail} by ${user.email}`);
+
+      const result = dbManager.transaction(() => {
+        // 1. Find all orders by this customer
+        const orders = dbManager.query<{ id: string; albumId: string }>(
+          `SELECT id, albumId FROM orders WHERE LOWER(TRIM(email)) = ? OR LOWER(TRIM(customerEmail)) = ?`,
+          [normalizedEmail, normalizedEmail]
+        );
+
+        // 2. Find all photos linked to those albums for face data cleanup
+        const albumIds = [...new Set(orders.map(o => o.albumId).filter(Boolean))];
+        let facesDeleted = 0;
+        for (const albumId of albumIds) {
+          const r = dbManager.run(
+            `DELETE FROM photo_faces WHERE photoId IN (SELECT id FROM photos WHERE albumId = ?)`,
+            [albumId]
+          );
+          facesDeleted += r.changes || 0;
+          dbManager.run(
+            `DELETE FROM face_indexing_queue WHERE photoId IN (SELECT id FROM photos WHERE albumId = ?)`,
+            [albumId]
+          );
+        }
+
+        // 3. Anonymize order records (keep for accounting, strip PII)
+        const orderUpdate = dbManager.run(
+          `UPDATE orders SET email = '[erased]', customerEmail = '[erased]', customerName = '[erased]', phone = '[erased]' WHERE LOWER(TRIM(email)) = ? OR LOWER(TRIM(customerEmail)) = ?`,
+          [normalizedEmail, normalizedEmail]
+        );
+
+        // 4. Delete gallery tokens
+        const tokenDelete = dbManager.run(
+          `DELETE FROM gallery_tokens WHERE LOWER(email) = ?`,
+          [normalizedEmail]
+        );
+
+        return {
+          ordersAnonymized: orderUpdate.changes || 0,
+          facesDeleted,
+          tokensDeleted: tokenDelete.changes || 0,
+        };
+      });
+
+      logger.info(`[GDPR] Erasure complete for ${normalizedEmail}`, result);
+      res.json({ success: true, ...result });
+    } catch (error) {
+      logger.error("[GDPR] Erasure failed:", error);
       sendInternalError(res, error.message);
     }
   });

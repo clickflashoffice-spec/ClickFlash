@@ -13,12 +13,6 @@ import { db } from './db';
 import { logger } from '../utils/logger';
 import { kioskConfig } from '../config/kioskConfig';
 
-// Define the expected window interface extensions
-declare global {
-    interface Window {
-        sendSyncMessage?: (item: QueueItem) => Promise<boolean>;
-    }
-}
 
 export type QueueItemStatus = 'pending' | 'processing' | 'failed' | 'dead';
 
@@ -266,8 +260,8 @@ class OfflineQueueServiceV2 {
     private async sendItem(item: QueueItem): Promise<boolean> {
         try {
             // Priority: Electron IPC Bridge
-            if (window.sendSyncMessage) {
-                return await window.sendSyncMessage(item);
+            if ((window as any).sendSyncMessage) {
+                return await (window as any).sendSyncMessage(item);
             }
 
             // Fallback: HTTP Post to Master

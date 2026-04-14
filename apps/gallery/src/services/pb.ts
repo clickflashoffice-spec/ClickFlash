@@ -293,7 +293,7 @@ class CustomPocketBaseAdapter {
           if (hasFile) {
             body = new FormData();
             for (const key in data) {
-              body.append(key, data[key]);
+              body.append(key, data[key] as string | Blob);
             }
           } else {
             body = JSON.stringify(data);

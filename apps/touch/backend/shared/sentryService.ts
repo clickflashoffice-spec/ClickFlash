@@ -7,6 +7,7 @@ let isInitialized = false;
 export async function initSentry(dsn: string, environment: string = 'development', release: string = 'app-backend@4.1.0', component: string = 'backend'): Promise<void> {
     if (!dsn) return;
     try {
+        // @ts-ignore — @sentry/node is optional; install if DSN is configured
         Sentry = await import('@sentry/node');
         Sentry.init({
             dsn,

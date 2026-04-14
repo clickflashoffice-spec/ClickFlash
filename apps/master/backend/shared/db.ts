@@ -25,7 +25,31 @@ export class DatabaseManager {
         fs.mkdirSync(dir, { recursive: true });
       }
 
+      // Track whether the DB file pre-existed so we know if encryption is safe to apply.
+      const dbAlreadyExists = fs.existsSync(this.dbPath);
+
       this.db = new Database(this.dbPath);
+
+      // Encryption — enabled when DB_ENCRYPTION_KEY env var is present AND the
+      // database is newly created.  Applying a key to an existing plaintext
+      // SQLite file causes SQLCipher to mis-interpret the data on every read,
+      // which crashes the backend.  Existing databases must be migrated manually
+      // (export → delete → reimport with encryption) to gain at-rest encryption.
+      const encKey = process.env.DB_ENCRYPTION_KEY;
+      if (encKey) {
+        if (!/^[0-9a-fA-F]{64}$/.test(encKey)) {
+          throw new Error('[Database] FATAL: DB_ENCRYPTION_KEY must be 64 hex characters (256-bit).');
+        }
+        if (!dbAlreadyExists) {
+          this.db.pragma(`key = "x'${encKey}'"`);
+          console.info('[Database] Encryption enabled (SQLCipher) — new database.');
+        } else {
+          console.warn('[Database] DB_ENCRYPTION_KEY set but existing database detected — skipping encryption pragma to preserve compatibility. Delete the database file and restart to enable at-rest encryption.');
+        }
+      } else {
+        console.warn('[Database] DB_ENCRYPTION_KEY not set — database is stored unencrypted at rest. Set this in .env for production.');
+      }
+
       this.db.pragma("journal_mode = WAL");
       this.db.pragma("synchronous = NORMAL");
       this.db.pragma("busy_timeout = 5000");
@@ -74,6 +98,26 @@ export class DatabaseManager {
     }
 
     const files = fs.readdirSync(migrationsDir).sort();
+
+    // Warn on duplicate numeric prefixes — these run in alpha order which may
+    // not match intended dependency order on fresh installs.
+    const prefixMap = new Map<string, string[]>();
+    for (const f of files) {
+      if (!f.endsWith(".sql")) continue;
+      const prefix = f.match(/^(\d+)/)?.[1] ?? f;
+      const group  = prefixMap.get(prefix) ?? [];
+      group.push(f);
+      prefixMap.set(prefix, group);
+    }
+    for (const [prefix, group] of prefixMap) {
+      if (group.length > 1) {
+        console.warn(
+          `[Database] WARNING: ${group.length} migrations share prefix "${prefix}" — ` +
+          `they run alphabetically (${group.join(", ")}). Verify dependency order on fresh installs.`
+        );
+      }
+    }
+
     const getApplied = this.db.prepare("SELECT name FROM migrations");
     const applied = new Set(
       (getApplied.all() as Migration[]).map((m) => m.name),

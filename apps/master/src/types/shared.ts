@@ -81,6 +81,8 @@ export interface Annotation {
 }
 
 export interface ManualEdits {
+  /** Schema version — increment when fields are added/renamed to enable migration. */
+  _v?: number;
   exposure: number;
   contrast: number;
   highlights: number;

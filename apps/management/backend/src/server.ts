@@ -40,17 +40,11 @@ export default {
     const allowedOrigins = ALLOWED_ORIGINS ? ALLOWED_ORIGINS.split(',').map(o => o.trim()) : [];
     const requestOrigin = request.headers.get('Origin');
     
-    // Determine CORS origin - dynamically reflect allowed domains
-    let corsOrigin = allowedOrigins[0] || '*';
-    if (requestOrigin) {
-      const isAllowed = allowedOrigins.some(o => {
-        const cleanOrigin = requestOrigin.replace(/\/$/, '');
-        return o === cleanOrigin || (o.includes('*') && cleanOrigin.includes(o.replace('*', '')));
-      });
-      if (isAllowed || requestOrigin.includes("clicketflash.com") || requestOrigin.includes("localhost")) {
-        corsOrigin = requestOrigin;
-      }
-    }
+    // Determine CORS origin - reflect origin only if it is in the allowlist
+    const corsOrigin = (requestOrigin && allowedOrigins.some(o => {
+      const cleanOrigin = requestOrigin.replace(/\/$/, '');
+      return o === cleanOrigin || (o.startsWith('*') && cleanOrigin.endsWith(o.slice(1)));
+    }) ? requestOrigin : (allowedOrigins[0] ?? ''));
 
     // CORS Headers with proper validation
     const corsHeaders = {

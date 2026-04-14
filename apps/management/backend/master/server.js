@@ -1079,6 +1079,50 @@ const server = http.createServer((req, res) => {
         }
 
         /**
+         * @route POST /api/system/erase-customer-data
+         * @description GDPR Article 17 — Right to Erasure. Deletes all PII for a specific customer.
+         * @access Protected (requires authentication)
+         * @body { email: string } — customer email to erase
+         * @returns {Object} { success: boolean, deleted: object }
+         */
+        if (pathName === '/api/system/erase-customer-data' && req.method === 'POST') {
+            let body = '';
+            req.on('data', c => body += c);
+            req.on('end', async () => {
+                try {
+                    if (!authResult || !authResult.authenticated) {
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        return res.end(JSON.stringify({ success: false, error: 'Authentication required' }));
+                    }
+                    const { email } = JSON.parse(body || '{}');
+                    if (!email) {
+                        res.writeHead(400, { 'Content-Type': 'application/json' });
+                        return res.end(JSON.stringify({ success: false, error: 'email is required' }));
+                    }
+                    logger.warn('GDPR erasure requested', { email, requestedBy: authResult.user?.email });
+
+                    const deletedOrders = dbManager.run('DELETE FROM orders WHERE email = ?', [email]);
+                    const deletedBookings = dbManager.run('DELETE FROM bookings WHERE email = ?', [email]);
+
+                    const deleted = {
+                        orders: deletedOrders?.changes || 0,
+                        bookings: deletedBookings?.changes || 0,
+                    };
+
+                    logger.info('GDPR erasure completed', { email, deleted });
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: true, deleted }));
+                } catch (e) {
+                    const error = e instanceof Error ? e : new Error(String(e));
+                    logger.error('GDPR erasure error', { error: error.message });
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Internal server error' }));
+                }
+            });
+            return;
+        }
+
+        /**
          * @route POST /api/init/default-user
          * @description Initialize or reset default admin user
          * @access Public (no authentication required)

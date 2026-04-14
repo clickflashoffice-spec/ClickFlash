@@ -69,21 +69,21 @@ const PerformancePage: React.FC = () => {
         
         return photographers.map(p => {
             const sales = timeFilteredOrders
-                .filter(o => o.photographerId === p.id && o.status === 'Completed')
+                .filter(o => String(o.photographerId) === p.id && o.status === 'Completed')
                 .reduce((sum, o) => sum + o.total, 0);
-            
+
             const costs = timeFilteredExpenses
-                .filter(e => e.photographerId === p.id)
+                .filter(e => e.photographerId != null && String(e.photographerId) === p.id)
                 .reduce((sum, e) => sum + e.cost, 0);
-                
+
             const netContribution = sales - costs;
-            
+
             return {
                 ...p,
                 totalSales: sales,
                 totalCosts: costs,
                 netContribution,
-                orderCount: timeFilteredOrders.filter(o => o.photographerId === p.id).length
+                orderCount: timeFilteredOrders.filter(o => String(o.photographerId) === p.id).length
             };
         }).sort((a, b) => b.netContribution - a.netContribution);
     }, [photographers, orders, expenses, loading, timeFilter]);

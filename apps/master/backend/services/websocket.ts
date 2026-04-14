@@ -124,7 +124,36 @@ const initWebSocketServer = (server: Server, context: WebSocketContext): WebSock
         logger
     );
 
-    const wss = new WebSocketServer({ server, path: '/ws' });
+    const wss = new WebSocketServer({
+        server,
+        path: '/ws',
+        // Verify connecting clients: must be localhost (admin UI) or a registered kiosk.
+        verifyClient: ({ req }: { req: any }, cb: (result: boolean, code?: number, msg?: string) => void) => {
+            try {
+                const ip = (req.socket?.remoteAddress || '').replace('::ffff:', '');
+                // Always allow loopback (admin dashboard on same machine)
+                if (ip === '127.0.0.1' || ip === '::1') return cb(true);
+
+                const url = new URL(req.url || '', 'http://localhost');
+                const kioskId = url.searchParams.get('kioskId');
+                if (!kioskId) {
+                    logger.warn(`[WebSocket] Rejected upgrade from ${ip} — no kioskId`);
+                    return cb(false, 4001, 'Missing kioskId');
+                }
+
+                const kiosk = dbManager.get('SELECT id FROM kiosks WHERE id = ?', [kioskId]);
+                if (!kiosk) {
+                    logger.warn(`[WebSocket] Rejected unknown kiosk ${kioskId} from ${ip}`);
+                    return cb(false, 4003, 'Unknown kiosk');
+                }
+
+                cb(true);
+            } catch (err: any) {
+                logger.error('[WebSocket] verifyClient error', { error: err.message });
+                cb(false, 4500, 'Internal error');
+            }
+        },
+    });
 
     // Function to update kiosk status in DB
     const updateKioskStatus = (kioskId: string, ip: string, status: string = 'Connected', extraData: any = {}): void => {
@@ -155,8 +184,27 @@ const initWebSocketServer = (server: Server, context: WebSocketContext): WebSock
         }
     };
 
+    // Track connection rate per IP for basic flood protection
+    const wsConnectionCounts = new Map<string, { count: number; resetAt: number }>();
+    const WS_MAX_CONNECTIONS_PER_MIN = 20;
+
     wss.on('connection', (ws: CustomWebSocket, req: any) => {
         const ip = req.socket.remoteAddress?.replace('::ffff:', '') || 'unknown';
+
+        // Rate limit new connections per IP
+        const now = Date.now();
+        const entry = wsConnectionCounts.get(ip);
+        if (entry && now < entry.resetAt) {
+            entry.count++;
+            if (entry.count > WS_MAX_CONNECTIONS_PER_MIN) {
+                logger.warn(`[WebSocket] Rate limit: too many connections from ${ip}`);
+                ws.close(1008, 'Too many connections');
+                return;
+            }
+        } else {
+            wsConnectionCounts.set(ip, { count: 1, resetAt: now + 60_000 });
+        }
+
         if (logger && logger.info) logger.info(`WebSocket client connected from ${ip}`);
 
         // Register with SyncManager for data synchronization
@@ -184,8 +232,14 @@ const initWebSocketServer = (server: Server, context: WebSocketContext): WebSock
 
         ws.on('message', (message: WebSocket.Data) => {
             try {
-                // Peek at message to see if it's a legacy system message
-                const data = JSON.parse(message.toString());
+                // SECURITY: Reject oversized messages (1MB limit)
+                const raw = message.toString();
+                if (raw.length > 1_048_576) {
+                    logger.warn(`[WebSocket] Rejected oversized message (${raw.length} bytes) from ${ip}`);
+                    return;
+                }
+
+                const data = JSON.parse(raw);
 
                 if (data.type === 'PING') {
                     ws.send(JSON.stringify({ type: 'PONG' }));

@@ -96,7 +96,7 @@ const Orders: React.FC<OrdersProps> = ({ showToast, currentUser, onPrintOrder, o
         if (can('viewAllOrders')) {
             return allOrders;
         }
-        return allOrders.filter(order => order.photographerId === currentUser.id);
+        return allOrders.filter(order => String(order.photographerId) === currentUser.id);
     }, [allOrders, currentUser, can]);
 
     const filteredOrders = useMemo(() => {
@@ -297,7 +297,7 @@ const Orders: React.FC<OrdersProps> = ({ showToast, currentUser, onPrintOrder, o
                             </thead>
                             <tbody>
                                 {filteredOrders.map((order) => {
-                                    const photographer = photographers.find(p => p.id === order.photographerId);
+                                    const photographer = photographers.find(p => p.id === String(order.photographerId));
                                     return (
                                     <tr key={order.id} className="border-b border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer" onClick={() => setSelectedOrder(order)}>
                                         <td className="p-4">

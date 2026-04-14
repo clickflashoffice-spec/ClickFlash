@@ -3,6 +3,18 @@ import { Photo, ManualEdits } from "@/types";
 import { INITIAL_EDITS } from "@/utils/styleUtils";
 import { ZoomPanState } from "./useZoomPan";
 
+const MAX_HISTORY = 50;
+
+/**
+ * Returns the per-photo history depth appropriate for the current album size.
+ * Keeps memory bounded: 200 photos × 20 entries × ~30 fields ≈ manageable RAM.
+ */
+function getHistoryCap(totalPhotos: number): number {
+  if (totalPhotos > 100) return 10;
+  if (totalPhotos > 50) return 20;
+  return MAX_HISTORY;
+}
+
 // --- Types ---
 
 export interface EditorState {
@@ -77,8 +89,18 @@ function editorReducer(state: EditorState, action: Action): EditorState {
     }
 
     case "SET_PHOTOS": {
+      const newPhotoIds = new Set(action.payload.map((p) => p.id));
       const newEdits = { ...state.edits };
       const newHistories = { ...state.histories };
+
+      // LRU eviction: drop history for photos no longer in the loaded set
+      // to prevent unbounded memory growth when users browse large libraries.
+      Object.keys(newHistories).forEach((id) => {
+        if (!newPhotoIds.has(id)) {
+          delete newHistories[id];
+        }
+      });
+
       action.payload.forEach((p) => {
         if (!newEdits[p.id]) {
           newEdits[p.id] = p.manualEdits || { ...INITIAL_EDITS };
@@ -94,6 +116,10 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         photos: action.payload,
         edits: newEdits,
         histories: newHistories,
+        // Clear persisted zoom states when a new album/photo set loads.
+        // Stale zoom for photos from other albums wastes memory and can
+        // produce confusing initial positions if photo IDs happen to collide.
+        zoomStates: {},
       };
     }
 
@@ -132,7 +158,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         histories: {
           ...state.histories,
           [state.activePhotoId]: {
-            past: [...currentHistory.past, currentEdits],
+            past: [...currentHistory.past, currentEdits].slice(-getHistoryCap(state.photos.length)),
             future: [],
           },
         },
@@ -158,7 +184,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         histories: {
           ...state.histories,
           [photoId]: {
-            past: [...currentHistory.past, currentEdits],
+            past: [...currentHistory.past, currentEdits].slice(-getHistoryCap(state.photos.length)),
             future: [],
           },
         },
@@ -210,7 +236,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         histories: {
           ...state.histories,
           [state.activePhotoId]: {
-            past: [...currentHistory.past, current],
+            past: [...currentHistory.past, current].slice(-MAX_HISTORY),
             future: newFuture,
           },
         },
@@ -250,7 +276,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         histories: {
           ...state.histories,
           [photoId]: {
-            past: [...currentHistory.past, currentEdits],
+            past: [...currentHistory.past, currentEdits].slice(-MAX_HISTORY),
             future: [],
           },
         },
@@ -343,7 +369,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         histories: {
           ...state.histories,
           [state.activePhotoId]: {
-            past: [...currentHistory.past, currentEdits],
+            past: [...currentHistory.past, currentEdits].slice(-MAX_HISTORY),
             future: [],
           },
         },

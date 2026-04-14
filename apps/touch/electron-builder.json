@@ -2,6 +2,7 @@
   "appId": "com.clickflash.touch",
   "productName": "ClickFlash - Touch Kiosk",
   "copyright": "Copyright © 2025 ClickFlash Photography",
+  "electronVersion": "39.8.7",
   "npmRebuild": false,
   "directories": {
     "output": "release",

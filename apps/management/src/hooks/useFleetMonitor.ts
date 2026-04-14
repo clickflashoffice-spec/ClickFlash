@@ -6,8 +6,8 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { fleetService, MasterStation, FleetStatus, SyncOperation } from './fleetService';
-import { webSocketService } from './webSocketService';
+import { fleetService, MasterStation, FleetStatus, SyncOperation } from '../services/fleetService';
+import { webSocketService } from '../services/webSocketService';
 import { logger } from '@/utils/logger';
 
 export interface FleetMonitorConfig {

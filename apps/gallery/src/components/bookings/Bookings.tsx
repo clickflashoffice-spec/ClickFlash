@@ -295,7 +295,7 @@ const Bookings: React.FC<BookingsProps> = ({ showToast }) => {
                             </thead>
                             <tbody>
                                 {filteredBookings.length > 0 ? filteredBookings.map(booking => {
-                                    const photographer = photographers.find(p => p.id === booking.photographerId);
+                                    const photographer = photographers.find(p => p.id === String(booking.photographerId));
                                     const session = sessionTypes.find(s => s.id === booking.sessionId);
                                     const bookingDate = booking.bookingDate ? new Date(booking.bookingDate) : null;
                                     const isUpcoming = bookingDate && bookingDate >= new Date();

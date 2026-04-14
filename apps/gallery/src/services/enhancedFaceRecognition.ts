@@ -261,9 +261,9 @@ class EnhancedFaceRecognitionService extends EventEmitter {
       const unclustered = new Set(faces.map(f => f.id));
       
       while (unclustered.size > 0) {
-        const seedId = unclustered.values().next().value;
+        const seedId = unclustered.values().next().value as string;
         const seed = this.faces.get(seedId)!;
-        
+
         const clusterFaces: FaceDescriptor[] = [seed];
         unclustered.delete(seedId);
         

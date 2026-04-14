@@ -159,15 +159,24 @@ const startFolderMonitor = (context: FolderMonitorContext): void => {
       }
     });
 
+    // Guard: error event always precedes exit on crash — use a flag so we
+    // only schedule one restart regardless of which events fire.
+    let restarting = false;
+    const scheduleRestart = (reason: string) => {
+      if (restarting) return;
+      restarting = true;
+      logger.warn(`[FolderWorker] ${reason} — restarting in 5s`);
+      setTimeout(startWorker, 5000);
+    };
+
     worker.on("error", (err) => {
       logger.error("[FolderWorker] Critical worker error", { error: err.message });
-      setTimeout(startWorker, 5000); // Restart on crash
+      scheduleRestart(`Worker error: ${err.message}`);
     });
 
     worker.on("exit", (code) => {
       if (code !== 0) {
-        logger.warn(`[FolderWorker] Worker stopped with exit code ${code}. Restarting...`);
-        setTimeout(startWorker, 5000);
+        scheduleRestart(`Worker exited with code ${code}`);
       }
     });
 

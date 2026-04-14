@@ -304,7 +304,7 @@ export function VirtualGrid<T>({
                     rowHeight={finalRowHeight}
                     width={finalWidth}
                     overscanRowCount={finalOverscanRowCount}
-                    children={Cell as React.ComponentType<import('react-window').GridChildComponentProps>}
+                    children={Cell as React.ComponentType<any>}
                 />
             </div>
         );

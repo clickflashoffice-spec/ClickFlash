@@ -72,13 +72,19 @@ export function useEditorTools({
     }, []);
 
     const handleRetouchClick = useCallback((x: number, y: number) => {
+        // Validate coordinates are finite numbers
+        if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || y < 0) return;
+
         if (retouchStep === 'target') {
             setRetouchTarget({ x, y });
             setRetouchStep('source');
         } else if (retouchStep === 'source' && retouchTarget) {
+            const existing = activeEdits?.retouchActions || [];
+            // Cap retouch actions to prevent unbounded growth
+            const capped = existing.length >= 200 ? existing.slice(-199) : existing;
             updateEdit({
                 retouchActions: [
-                    ...(activeEdits?.retouchActions || []),
+                    ...capped,
                     {
                         id: crypto.randomUUID(),
                         type: 'heal',

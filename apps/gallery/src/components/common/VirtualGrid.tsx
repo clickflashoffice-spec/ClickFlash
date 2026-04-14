@@ -289,9 +289,10 @@ export function VirtualGrid<T>({
             return null;
         }
         
+        const GridAny = Grid as any;
         return (
             <div ref={containerRef} style={{ width: containerWidth, height: containerHeight }}>
-                <Grid
+                <GridAny
                     columnCount={finalColumnCount}
                     columnWidth={finalColumnWidth}
                     height={finalHeight}
@@ -302,16 +303,16 @@ export function VirtualGrid<T>({
                     overscanColumnCount={finalOverscanColumnCount}
                 >
                     {Cell}
-                </Grid>
+                </GridAny>
             </div>
         );
                     } catch (error) {
                         // Log error with full context for debugging
                         logger.error('Error rendering react-window Grid', error instanceof Error ? error : undefined, {
-                            columnCount: finalColumnCount,
-                            rowCount: finalRowCount,
-                            width: finalWidth,
-                            height: finalHeight,
+                            columnCount: cleanProps.columnCount,
+                            rowCount: cleanProps.rowCount,
+                            width: cleanProps.width,
+                            height: cleanProps.height,
                             itemCount: items.length,
                             containerWidth: typeof containerWidth === 'number' ? containerWidth : '100%'
                         });

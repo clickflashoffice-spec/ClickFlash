@@ -16,6 +16,7 @@ import { EditorLayout } from "./layout/EditorLayout";
 import { SidebarControls, EditorTab } from "./controls/SidebarControls";
 import { EditorCanvas } from "./canvas/EditorCanvas";
 import { apiService } from "@/services/apiService";
+import { albumService } from "@/services/api/albumService";
 import { logger } from "@/utils/logger";
 import { KioskSelectionModal } from "./KioskSelectionModal";
 import { Filmstrip } from "./components/Filmstrip";
@@ -26,6 +27,7 @@ import { useKioskEditor } from "./hooks/useKioskEditor";
 import { SaveStateMachine } from "@/components/common/SaveStateMachine";
 import { useSessionTiming } from "../../../hooks/useSessionTiming";
 import { exportManager } from "./utils/ExportManager";
+import { INITIAL_EDITS } from "@/utils/styleUtils";
 import {
   Loader2,
   Download,
@@ -72,6 +74,8 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
     "IDLE" | "SAVING" | "SUCCESS" | "ERROR"
   >("IDLE");
   const [isExporting, setIsExporting] = useState(false);
+  // Before/After toggle: when true, the canvas shows the unedited original.
+  const [showOriginal, setShowOriginal] = useState(false);
 
   // 3. Editor UI State
   const [activeTab, setActiveTab] = useState<EditorTab>("adjust");
@@ -202,20 +206,35 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
     }
   }, [albumId, photos.length, actions, state.isDirty, showToast]);
 
+  // Keep a ref to always-current edits so the autosave timer sees the latest
+  // values without needing `state.edits` in the dependency array (which would
+  // re-schedule the debounce on every single keystroke / slider movement).
+  const latestEditsRef = useRef(state.edits);
   useEffect(() => {
-    if (!state.isDirty) return;
+    latestEditsRef.current = state.edits;
+  });
 
+  useEffect(() => {
+    if (!state.isDirty || saveStatus === "SAVING") return;
+
+    // Re-schedule only when the set of dirty photos changes, not on every edit.
     const timer = setTimeout(() => {
-      const draftData = {
-        albumId,
-        edits: state.edits,
-        timestamp: Date.now(),
-      };
-      localStorage.setItem(`CF_DRAFT_${albumId}`, JSON.stringify(draftData));
+      try {
+        const draftData = {
+          albumId,
+          edits: latestEditsRef.current,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem(`CF_DRAFT_${albumId}`, JSON.stringify(draftData));
+      } catch (e) {
+        // QuotaExceededError — clear old drafts and retry once
+        console.warn("[Editor] localStorage quota exceeded, clearing old drafts");
+        Object.keys(localStorage).filter(k => k.startsWith("CF_DRAFT_")).forEach(k => localStorage.removeItem(k));
+      }
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [state.edits, state.isDirty, albumId]);
+  }, [state.dirtyPhotoIds, state.isDirty, albumId, saveStatus]);
 
   // Reset save button when user makes new edits after a successful save
   useEffect(() => {
@@ -259,11 +278,17 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
       }
 
       // Mark state as saved
-      const savedIds = result.items.map((i: any) => i.id);
+      const savedIds = result.items.map((i: { id: string }) => i.id);
       actions.markSaved(savedIds);
     } catch (error) {
-      logger.error("Failed to save", error);
-      showToast("Failed to save changes.");
+      const msg = error instanceof Error ? error.message : String(error);
+      const isConflict = msg.includes('EDIT_CONFLICT') || msg.includes('conflict');
+      if (isConflict) {
+        showToast("Edit conflict — another session saved this photo. Reload to get the latest changes.");
+      } else {
+        logger.error("Failed to save", error);
+        showToast("Failed to save changes.");
+      }
       setSaveStatus("ERROR");
     } finally {
       setTimeout(() => setSaveStatus("IDLE"), 3000);
@@ -296,14 +321,23 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
     try {
       // Phase P4: Native Directory Picker via Electron IPC
       let targetDir = "";
-      if (
-        typeof (window as any).electron !== "undefined" &&
-        (window as any).electron.ipcRenderer
-      ) {
-        const selectedDir = await (window as any).electron.ipcRenderer.invoke(
-          "dialog:openDirectory",
-        );
+      const electron = (window as { electron?: { ipcRenderer?: { invoke: (channel: string, ...args: unknown[]) => Promise<unknown> }; invoke?: (channel: string, ...args: unknown[]) => Promise<unknown> } }).electron;
+      if (electron?.ipcRenderer?.invoke) {
+        const selectedDir = await electron.ipcRenderer.invoke("dialog:openDirectory") as string | null;
         if (!selectedDir) return; // User canceled
+        // Validate: must be absolute path, no traversal
+        if (/\.\.[/\\]/.test(selectedDir)) {
+          showToast("Invalid export directory.");
+          return;
+        }
+        targetDir = selectedDir;
+      } else if (electron?.invoke) {
+        const selectedDir = await electron.invoke("dialog:openDirectory") as string | null;
+        if (!selectedDir) return;
+        if (/\.\.[/\\]/.test(selectedDir)) {
+          showToast("Invalid export directory.");
+          return;
+        }
         targetDir = selectedDir;
       } else {
         // Fallback or dev-mode override
@@ -314,9 +348,17 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
       showToast(`Exporting ${photosToExport.length} photos to: ${targetDir}`);
 
       const items = photosToExport.map((p) => {
-        // Safe filename extraction
-        const urlParts = (p.url || "").split("/");
-        const basename = urlParts[urlParts.length - 1] || `${p.id}.jpg`;
+        // Safe filename extraction — strip path traversal and query strings
+        let basename = `${p.id}.jpg`;
+        try {
+          const url = new URL(p.url || "", "http://localhost");
+          const lastSegment = url.pathname.split("/").pop() || "";
+          // Strip anything that isn't alphanumeric, dash, underscore, or dot
+          const sanitized = lastSegment.replace(/[^a-zA-Z0-9._-]/g, "_");
+          if (sanitized && sanitized.length > 0 && sanitized.length < 255) {
+            basename = sanitized;
+          }
+        } catch { /* use fallback */ }
 
         return {
           photoId: p.id,
@@ -507,6 +549,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
     <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4">
       <div className="flex items-center gap-4">
         <button
+          data-testid="back-button"
           onClick={() => {
             if (state.isDirty) {
               if (
@@ -533,7 +576,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
           )}
         </button>
         <div className="h-6 w-px bg-gray-200" />
-        <span className="text-gray-900 font-semibold">
+        <span data-testid="album-title" className="text-gray-900 font-semibold">
           {album?.title || "Loading..."}
         </span>
       </div>
@@ -590,7 +633,28 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
           </div>
         )}
         <div className="h-6 w-px bg-gray-200" />
+        {/* Before / After comparison toggle */}
         <button
+          data-testid="before-after-button"
+          onMouseDown={() => setShowOriginal(true)}
+          onMouseUp={() => setShowOriginal(false)}
+          onMouseLeave={() => setShowOriginal(false)}
+          onTouchStart={() => setShowOriginal(true)}
+          onTouchEnd={() => setShowOriginal(false)}
+          className={`px-3 py-1 text-xs font-medium rounded transition-colors select-none ${
+            showOriginal
+              ? "bg-indigo-600 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+          title="Hold to view original (before edits)"
+          aria-pressed={showOriginal}
+          aria-label="Before/After comparison"
+        >
+          {showOriginal ? "Before" : "B/A"}
+        </button>
+        <div className="h-6 w-px bg-gray-200" />
+        <button
+          data-testid="undo-button"
           onClick={() => actions.undo()}
           disabled={!canUndo}
           title={canUndo ? `Undo (Ctrl+Z)` : "Nothing to undo"}
@@ -599,6 +663,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
           ↩ Undo
         </button>
         <button
+          data-testid="redo-button"
           onClick={() => actions.redo()}
           disabled={!canRedo}
           title={canRedo ? `Redo (Ctrl+Y)` : "Nothing to redo"}
@@ -612,6 +677,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
           disabled={!state.isDirty}
         />
         <button
+          data-testid="export-button"
           onClick={handleBatchExport}
           disabled={isExporting}
           className="px-4 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded flex items-center gap-2 transition-colors disabled:opacity-50"
@@ -626,6 +692,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
         </button>
         <div className="h-6 w-px bg-gray-200 ml-2" />
         <button
+          data-testid="send-to-kiosk-button"
           onClick={kioskHandlers.handleOpenKioskModal}
           disabled={isSendingToKiosk}
           className="px-4 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded flex items-center gap-2 transition-colors disabled:opacity-50"
@@ -636,6 +703,17 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
       </div>
     </div>
   );
+
+  const handleSetCover = useCallback(async (photo: import("@/types").Photo) => {
+    if (!album) return;
+    const coverUrl = photo.thumbnailUrl || photo.previewUrl || photo.url;
+    const result = await albumService.updateAlbum(album.id, { coverPhotoUrl: coverUrl });
+    if (result.success) {
+      showToast("Album cover updated!");
+    } else {
+      showToast(`Failed to set cover: ${result.error ?? "Unknown error"}`);
+    }
+  }, [album, showToast]);
 
   // Filmstrip component call
   const renderFilmstrip = (
@@ -649,6 +727,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
       onToggleSelection={actions.toggleSelection}
       onSelectAll={actions.selectAll}
       onDeselectAll={actions.deselectAll}
+      onSetCover={handleSetCover}
     />
   );
 
@@ -669,9 +748,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
       retouchBrushSize={retouchBrushSize}
       onRetouchBrushSizeChange={toolHandlers.handleRetouchBrushSizeChange}
       onRetouchDone={toolHandlers.handleRetouchDone}
-      isRetouchingProcessing={
-        activePhoto ? (activePhoto as any)._isProcessing : false
-      }
+      isRetouchingProcessing={false}
       // AI props
       onAutoEnhance={() => aiHandlers.handleAutoEnhance(activePhoto || null)}
       isEnhancing={isEnhancing}
@@ -752,10 +829,10 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100 relative">
+    <div className="flex flex-col h-screen bg-gray-100 relative" data-testid="album-editor">
       {/* Save Status Layer */}
       {saveStatus === "SAVING" && (
-        <div className="absolute inset-0 z-40 pointer-events-none flex items-end justify-center pb-20">
+        <div data-testid="saving-overlay" className="absolute inset-0 z-40 pointer-events-none flex items-end justify-center pb-20">
           <div className="bg-white border border-gray-200 rounded-xl px-6 py-3 shadow-2xl backdrop-blur-md flex items-center gap-3">
             <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
             <span className="text-gray-900 text-sm font-medium">
@@ -787,7 +864,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
               >
                 <EditorCanvas
                   photo={activePhoto || null}
-                  edits={activeEdits || undefined}
+                  edits={showOriginal ? INITIAL_EDITS : (activeEdits || undefined)}
                   isCropping={isCropping}
                   cropAspectRatio={cropAspectRatio}
                   onCropApply={toolHandlers.handleCropApply}

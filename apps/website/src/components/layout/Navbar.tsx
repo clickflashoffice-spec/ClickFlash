@@ -17,14 +17,11 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 const getNavLinks = (lang: string) => [
   { name: getTranslation(lang, "nav_home"), href: "/" },
-  { name: getTranslation(lang, "nav_about"), href: "/about" },
   { name: getTranslation(lang, "nav_services"), href: "/services" },
   { name: getTranslation(lang, "nav_careers"), href: "/careers" },
   { name: getTranslation(lang, "nav_blog"), href: "/blog" },
-  { name: getTranslation(lang, "nav_gallery"), href: "/gallery" },
   { name: getTranslation(lang, "nav_portfolio"), href: "/portfolio" },
   { name: getTranslation(lang, "nav_contact"), href: "/contact" },
-  { name: getTranslation(lang, "nav_admins"), href: "/manage" },
 ];
 
 export function Navbar() {

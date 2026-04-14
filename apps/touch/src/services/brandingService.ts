@@ -120,7 +120,10 @@ class BrandingService {
         });
 
         // Deep merge with existing branding
-        this.currentBranding = this.deepMerge(this.currentBranding, config);
+        this.currentBranding = this.deepMerge(
+            this.currentBranding as unknown as Record<string, unknown>,
+            config as unknown as Partial<Record<string, unknown>>
+        ) as unknown as BrandingConfig;
         this.currentBranding.lastModified = new Date().toISOString();
 
         // Apply CSS variables to document
@@ -210,7 +213,10 @@ class BrandingService {
             const stored = localStorage.getItem('branding_config');
             if (stored) {
                 const parsed = JSON.parse(stored) as Partial<BrandingConfig>;
-                this.currentBranding = this.deepMerge(DEFAULT_BRANDING, parsed);
+                this.currentBranding = this.deepMerge(
+                    DEFAULT_BRANDING as unknown as Record<string, unknown>,
+                    parsed as unknown as Partial<Record<string, unknown>>
+                ) as unknown as BrandingConfig;
                 this.applyColorScheme();
                 logger.info('[BrandingService] Branding loaded from storage', {
                     version: this.currentBranding.version,

@@ -30,7 +30,7 @@ export function useOrders() {
 export function useOrder(id: string | null) {
     return useQuery({
         queryKey: orderKeys.detail(id || ''),
-        queryFn: () => apiService.getOrder(id!),
+        queryFn: () => (apiService as any).getOrder(id!),
         enabled: !!id,
     });
 }

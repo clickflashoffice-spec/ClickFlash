@@ -1,6 +1,9 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+// Ensure NODE_ENV is always defined — rateLimiter and other middleware depend on it
+process.env.NODE_ENV = process.env.NODE_ENV || "development";
+
 import { initSentry } from "./shared/sentryService";
 
 // P2-F: Sentry is activated when SENTRY_DSN env var is present.
@@ -26,6 +29,7 @@ import helmet from "helmet";
 
 // Shared Modules
 import rateLimiter, {
+  strictRateLimiter,
   setAuditLogger as setRateLimiterAuditLogger,
 } from "./shared/rateLimiter";
 import { getLocalNetworkIPs } from "./shared/networkDetection";
@@ -46,6 +50,8 @@ console.log(`[Environment] Running in ${isElectron ? "Electron" : "Web"} mode`);
 // Middleware
 import { createSessionMiddleware } from "./middleware/session";
 import { csrfMiddleware } from "./middleware/csrf";
+import { initCsrfStore } from "./shared/csrf";
+import { authMiddleware } from "./middleware/auth";
 
 // Routes
 import authRoutes from "./routes/auth";
@@ -184,6 +190,9 @@ try {
   ) {
     dbManager.runMigrations?.(BACKEND_MIGRATIONS_DIR);
   }
+
+  // Initialise the SQLite-backed CSRF token store so tokens survive server restarts.
+  initCsrfStore(dbManager);
 
   // Default User, Vector Index, and other background services are now handled in initializeBackgroundServices()
 
@@ -436,6 +445,29 @@ app.use(
 app.use(createSessionMiddleware());
 app.use(csrfMiddleware);
 
+// Global API auth — protects all /api/* routes that are not explicitly public.
+// Paths in this list are accessible without a user session (kiosk pairing,
+// gallery client auth, Stripe webhooks, etc.).  Everything else requires a
+// valid session cookie or Bearer JWT.
+const PUBLIC_API_PREFIXES = [
+  '/auth',              // login, logout, QR session, magic-link
+  '/health',            // health check (federated diagnostics)
+  '/gallery-auth',      // gallery client authentication
+  '/gallery-checkout',  // Stripe / payment webhook (no user context)
+  '/gallery',           // watermarked image serving (uses gallery JWT)
+  '/pairing',           // kiosk initial pairing handshake
+  '/assistance',        // kiosk → master assistance calls
+  '/notification',      // kiosk → master notification push
+];
+app.use('/api', (req: Request, res: Response, next: NextFunction) => {
+  if (req.method === 'OPTIONS') return next();
+  const isPublic = PUBLIC_API_PREFIXES.some(
+    (p) => req.path === p || req.path.startsWith(p + '/'),
+  );
+  if (isPublic) return next();
+  authMiddleware(req, res, next, auditLogger);
+});
+
 // CORS
 app.use((req: Request, res: Response, next: NextFunction) => {
   const origin = req.headers.origin;
@@ -485,7 +517,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // --- Routes Mounting ---
 // Specific API routes
-app.use("/api/auth", authRoutes(context));
+// Auth routes get stricter rate limiting (5 req/min) to resist brute-force
+app.use("/api/auth", strictRateLimiter, authRoutes(context));
 app.use("/api/collections", collectionRoutes(context)); // Handles /:collection/records
 app.use("/api/cloud", cloudRoutes(context)); // Handles /status, /sync, /stats, /retention
 app.use("/api/session-types", sessionTypeRoutes(context)); // Handles /session-types
@@ -510,8 +543,8 @@ app.use("/api", pairingRoutes(context)); // Handles /pairing
 app.use("/api", notificationRoutes(context)); // Handles /notify/customer
 app.use("/api", assistanceRoutes(context)); // Handles /assistance
 app.use("/api/gallery", galleryRoutes(context)); // Handles /gallery/export watermark generation
-app.use("/api/gallery-auth", galleryAuthRoutes(context));
-app.use("/api/gallery-checkout", galleryCheckoutRoutes(context));
+app.use("/api/gallery-auth", strictRateLimiter, galleryAuthRoutes(context));
+app.use("/api/gallery-checkout", strictRateLimiter, galleryCheckoutRoutes(context));
 app.use("/api", syncRoutes(context as any)); // Mount /api/sync/mutation — Touch→Master push
 
 // Fallback for unhandled API routes
@@ -537,16 +570,24 @@ app.get(/.*/, (_req: Request, res: Response) => {
   }
 });
 
-// Error handling middleware
+// Error handling middleware — catch-all for unhandled errors
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   logger.error("Unhandled Server Error", {
     error: err.message,
     stack: err.stack,
+    url: _req.url,
+    method: _req.method,
   });
   if (!res.headersSent) {
+    // Never leak stack traces or internal details to client
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
+
+// NOTE: uncaughtException and unhandledRejection handlers are registered
+// below in the Phase 55 block (after server.listen). Registering them here
+// as well caused double-logging and a race between two process.exit() calls.
+// DO NOT re-add handlers here.
 
 // Start Background Services
 import { tunnelManager } from "./services/TunnelManager";
@@ -645,7 +686,7 @@ server.listen(PORT, "0.0.0.0", async () => {
         await initializeEcosystem();
 
         // Graceful shutdown: stop all background services before exit (P7 audit fix)
-        const gracefulShutdown = (signal: string) => {
+        const gracefulShutdown = async (signal: string) => {
             logger.info(
                 `[Shutdown] ${signal} received — stopping background services...`,
             );
@@ -683,6 +724,20 @@ server.listen(PORT, "0.0.0.0", async () => {
                 maintenancePoller?.stop?.();
             } catch {
                 /* ignore */
+            }
+            // Drain pending DB writes before closing (P4 audit fix — prevents data loss)
+            try {
+                await dbWriteQueue.shutdown();
+                logger.info("[Shutdown] DbWriteQueue drained.");
+            } catch (err) {
+                logger.error("[Shutdown] DbWriteQueue drain failed:", err);
+            }
+            // Terminate photo/ML worker pools (P8 audit fix — prevents thread leaks on exit)
+            try {
+                await photoProcessor?.shutdown?.();
+                logger.info("[Shutdown] Worker pools terminated.");
+            } catch (err) {
+                logger.error("[Shutdown] Worker pool shutdown failed:", err);
             }
             bonjour.unpublishAll(() => {
                 server.close(() => {

@@ -3,14 +3,14 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  base: '/',
   plugins: [react()],
   server: {
     // Vite dev server runs on a different port than the backend
-    // Backend (Express) runs on 8090, Vite runs on 5173 in dev
-    port: 5173,
+    // Backend (Express) runs on 8090, Vite runs on 5173 in dev (or PORT env)
+    port: parseInt(process.env.PORT || "5173"),
     host: true,
-    strictPort: true,
     proxy: {
       "/api": {
         target: "http://127.0.0.1:8090",
@@ -49,6 +49,9 @@ export default defineConfig({
           "vendor-router": ["react-router-dom"],
           "vendor-query": ["@tanstack/react-query"],
           "vendor-ui": ["lucide-react", "clsx", "tailwind-merge"],
+          // Heavy chart libraries — split so they load only with chart components
+          "vendor-apexcharts": ["apexcharts", "react-apexcharts"],
+          "vendor-chartjs": ["chart.js", "react-chartjs-2"],
         },
         // Optimize asset naming
         assetFileNames: "assets/[name].[hash][extname]",
@@ -60,11 +63,11 @@ export default defineConfig({
     chunkSizeWarningLimit: 800,
   },
   esbuild: {
-    drop: ["console", "debugger"], // Remove console.log in production
+    drop: mode === "production" ? ["console", "debugger"] : [],
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
-});
+}));

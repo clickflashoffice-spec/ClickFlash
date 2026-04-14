@@ -193,6 +193,7 @@ global.BroadcastChannel = class BroadcastChannel {
 };
 
 // Mock WebSocket
+// @ts-ignore — mock doesn't implement full WebSocket interface
 global.WebSocket = class WebSocket {
   static CONNECTING = 0;
   static OPEN = 1;
@@ -320,6 +321,7 @@ class MockImage {
     setTimeout(() => {
       if (this.onerror) {
         try {
+          // @ts-ignore — MockImage.onerror type mismatch in tests
           this.onerror(new Event("error"));
         } catch (e) {
           // swallow

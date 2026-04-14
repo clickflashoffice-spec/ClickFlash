@@ -11,20 +11,74 @@ import { PocketRecord, GetListResult } from '../pbTypes';
 import { logger } from '../../utils/logger';
 import { INITIAL_EDITS } from '../../utils/styleUtils';
 
+// Allowed numeric ranges for every ManualEdits field.
+// Anything outside these bounds is clamped — never stored or sent to the worker
+// with out-of-range values that could crash sharp or produce nonsense output.
+const EDIT_RANGES: Partial<Record<keyof ManualEdits, [number, number]>> = {
+    exposure:     [-100, 100],
+    contrast:     [-100, 100],
+    highlights:   [-100, 100],
+    shadows:      [-100, 100],
+    saturate:     [-100, 100],
+    vibrance:     [-100, 100],
+    grayscale:    [0, 100],
+    sepia:        [0, 100],
+    invert:       [0, 1],
+    hueRotate:    [-180, 180],
+    temperature:  [-100, 100],
+    tint:         [-100, 100],
+    whites:       [-100, 100],
+    blacks:       [-100, 100],
+    clarity:      [-100, 100],
+    soften:       [0, 100],
+    sharpen:      [0, 100],
+    vignette:     [0, 100],
+    dropShadow:   [0, 100],
+    brightness:   [-100, 100],
+    rotate:       [-360, 360],
+    straighten:   [-45, 45],
+    perspectiveX: [-50, 50],
+    perspectiveY: [-50, 50],
+    zoomLevel:    [0.1, 10],
+};
+
 /**
- * Validates and sanitizes ManualEdits object
+ * Validates and sanitizes ManualEdits object.
+ * - Merges with INITIAL_EDITS to supply missing fields.
+ * - Replaces NaN with the field default.
+ * - Clamps every numeric field to its allowed range (see EDIT_RANGES).
  */
+// Current schema version — increment whenever ManualEdits fields change.
+const CURRENT_EDITS_VERSION = 1;
+
 export function validateManualEdits(edits: Partial<ManualEdits>): ManualEdits {
+    // Schema migration: upgrade from older versions as needed.
+    // Version-less records are treated as v0 (pre-versioning).
+    const incomingVersion = (edits as any)._v ?? 0;
+    // Future migrations: if (incomingVersion < 2) { /* rename oldField → newField */ }
+    void incomingVersion; // suppress unused-variable lint until migrations are needed
+
     const valid = { ...INITIAL_EDITS, ...edits };
 
-    // Ensure numeric values are numbers and within plausible ranges if necessary
-    // This is a safety layer to prevent string injection or NaN into the DB
     const keys = Object.keys(valid) as Array<keyof ManualEdits>;
     keys.forEach(key => {
-        if (typeof valid[key] === 'number' && isNaN(valid[key] as number)) {
-            (valid as any)[key] = (INITIAL_EDITS as any)[key] || 0;
-        }
+        if (key === '_v') return; // skip the version field
+        const val = (valid as any)[key];
+        if (typeof val !== 'number') return;
+
+        // Replace NaN with the default.
+        const defaultVal = (INITIAL_EDITS as any)[key] ?? 0;
+        const numeric = isNaN(val) ? defaultVal : val;
+
+        // Clamp to allowed range if one is defined.
+        const range = EDIT_RANGES[key];
+        (valid as any)[key] = range
+            ? Math.max(range[0], Math.min(range[1], numeric))
+            : numeric;
     });
+
+    // Stamp the current schema version.
+    (valid as any)._v = CURRENT_EDITS_VERSION;
 
     return valid as ManualEdits;
 }
@@ -215,6 +269,12 @@ export const photoService = {
                     photoData.manualEdits = validateManualEdits(photoData.manualEdits);
                 }
 
+                // Optimistic locking: send the client's last-known updatedAt so the
+                // backend can reject the write if another session already modified the record.
+                if ((data as Partial<Photo>).updated_at) {
+                    (photoData as any)._clientUpdatedAt = (data as Partial<Photo>).updated_at;
+                }
+
                 // Metadata cleaning
                 if (photoData.metadata && typeof photoData.metadata === 'object') {
                     // Remove any non-serializable fields if they might exist
@@ -233,9 +293,10 @@ export const photoService = {
                 errorMessage.includes('timeout');
             const isConflict = errorMessage.includes('conflict') ||
                 errorMessage.includes('modified') ||
-                errorMessage.includes('Update conflict');
+                errorMessage.includes('Update conflict') ||
+                errorMessage.includes('EDIT_CONFLICT');
 
-            // Don't retry on conflict errors
+            // Don't retry on conflict errors — surface them so the UI can warn the user.
             if (isConflict) {
                 logger.warn('Photo update conflict detected', { photoId: id, error: errorMessage });
                 throw error;
@@ -273,43 +334,76 @@ export const photoService = {
             throw new Error('Photos array is required and must not be empty');
         }
 
-        const results: Photo[] = [];
-        let successCount = 0;
-        let failureCount = 0;
+        // Validate and sanitize all manualEdits before sending.
+        const items = photos
+            .filter(p => !!p.id)
+            .map(p => ({
+                id: p.id as string,
+                manualEdits: p.manualEdits ? validateManualEdits(p.manualEdits) : undefined,
+            }));
 
-        // Process in parallel with a limit if needed, but for now Promise.all is fine for typical batch sizes (1-50)
-        // usage of updatePhoto ensures we reuse the same serialization logic
-        const promises = photos.map(async (photo) => {
-            if (!photo.id) {
-                failureCount++;
-                logger.warn('Skipping photo without ID in batch save');
-                return null;
+        const skipped = photos.length - items.length;
+        if (skipped > 0) {
+            logger.warn(`batchSavePhotos: skipped ${skipped} photos without ID`);
+        }
+
+        if (items.length === 0) {
+            return { items: [], successCount: 0, failureCount: skipped };
+        }
+
+        const baseUrl = pb.baseUrlValue;
+
+        try {
+            // Single PATCH /api/collections/photos/records/batch — one DB transaction.
+            const response = await pb.send('/api/collections/photos/records/batch', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items }),
+            });
+
+            const successCount = (response as any).updatedCount ?? items.length;
+            const batchErrors: string[] = (response as any).errors ?? [];
+            // failedIds is populated by the backend for every item it skipped
+            // (e.g. photo not found). Only IDs NOT in this set were actually persisted.
+            const failedIdSet = new Set<string>((response as any).failedIds ?? []);
+
+            if (batchErrors.length > 0) {
+                logger.warn('batchSavePhotos: partial failures', { errors: batchErrors });
             }
 
-            try {
-                // We use updatePhoto which handles retries and manualEdits parsing
-                const result = await this.updatePhoto(photo.id, photo);
-                successCount++;
-                return result;
-            } catch (error) {
-                failureCount++;
-                logger.error('Failed to save photo in batch', { photoId: photo.id, error });
-                return null;
+            // Only return photos that were actually saved so AlbumEditor's markSaved
+            // call only clears dirty-state for those photos (D1: partial-save fix).
+            const resultItems: Photo[] = photos
+                .filter(p => !!p.id && !failedIdSet.has(p.id as string))
+                .map(p => p as Photo);
+
+            return {
+                items: resultItems,
+                successCount,
+                failureCount: skipped + batchErrors.length,
+            };
+        } catch (error) {
+            logger.error('batchSavePhotos: batch endpoint failed, falling back to sequential', { error });
+
+            // Fallback: sequential updates (original behaviour) so saves don't silently drop.
+            const results: Photo[] = [];
+            let successCount = 0;
+            let failureCount = skipped;
+
+            for (const photo of photos) {
+                if (!photo.id) continue;
+                try {
+                    const result = await this.updatePhoto(photo.id, photo);
+                    successCount++;
+                    results.push(result);
+                } catch (err) {
+                    failureCount++;
+                    logger.error('Failed to save photo in sequential fallback', { photoId: photo.id, error: err });
+                }
             }
-        });
 
-        const settled = await Promise.all(promises);
-
-        // Filter out nulls
-        settled.forEach(res => {
-            if (res) results.push(res);
-        });
-
-        return {
-            items: results,
-            successCount,
-            failureCount
-        };
+            return { items: results, successCount, failureCount };
+        }
     },
 
     /**

@@ -665,6 +665,7 @@ const AlbumCard: React.FC<AlbumCardProps> = React.memo(
         exit={{ opacity: 0, scale: 0.9 }}
         whileHover={{ y: -5, scale: 1.02, transition: { duration: 0.2 } }}
         whileTap={{ scale: 0.98 }}
+        data-testid="album-item"
         onClick={handleCardClick}
         onKeyDown={handleKeyDown}
         tabIndex={0}
@@ -1355,22 +1356,32 @@ const Albums: React.FC<AlbumsProps> = ({
               },
             );
 
-            // Don't retry on client errors (4xx) — these are permanent failures
-            // e.g. "Album does not exist", "Invalid input", "Validation failed"
-            const isClientError =
-              errorMessage.includes("400") ||
-              errorMessage.includes("Invalid Input") ||
-              errorMessage.includes("does not exist") ||
-              errorMessage.includes("Validation failed") ||
-              errorMessage.includes("403") ||
-              errorMessage.includes("404");
+            // Retryable server errors: album FK not yet visible (422), queue full (503),
+            // or transient network / timeout failures.
+            const isRetryableServerError =
+              errorMessage.includes("ALBUM_NOT_FOUND") ||
+              errorMessage.includes("QUEUE_FULL") ||
+              errorMessage.includes("please retry") ||
+              errorMessage.includes("503") ||
+              errorMessage.includes("422");
 
-            if (!isClientError && retryCount < MAX_RETRIES) {
+            // Permanent client errors (bad input, auth) — never retry.
+            const isClientError =
+              !isRetryableServerError &&
+              (errorMessage.includes("400") ||
+                errorMessage.includes("Invalid Input") ||
+                errorMessage.includes("Validation failed") ||
+                errorMessage.includes("403") ||
+                errorMessage.includes("404"));
+
+            if ((isRetryableServerError || !isClientError) && retryCount < MAX_RETRIES) {
+              // Back off longer for queue-full (server asked for 10s).
+              const queueFull = errorMessage.includes("QUEUE_FULL") || errorMessage.includes("503");
+              const delay = queueFull ? 10000 : Math.pow(2, retryCount) * 1000;
               logger.warn(
-                `Retrying photo upload (${retryCount + 1}/${MAX_RETRIES})`,
-                { fileName: file.name },
+                `Retrying photo upload (${retryCount + 1}/${MAX_RETRIES}) in ${delay}ms`,
+                { fileName: file.name, reason: errorMessage.substring(0, 60) },
               );
-              const delay = Math.pow(2, retryCount) * 1000;
               await new Promise((resolve) => setTimeout(resolve, delay));
               return uploadPhotoWithRetry(file, fileIndex, retryCount + 1);
             }

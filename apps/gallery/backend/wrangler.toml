@@ -20,7 +20,9 @@ bucket_name = "clickflash-gallery-assets"
 # Add non-secret env vars here
 NODE_ENV = "production"
 ALLOWED_ORIGINS = "https://gallery.clickflash.com,https://clickflash.com,https://clickflash-unified.pages.dev,https://clicketflash.com,https://www.clicketflash.com,https://b322e3ce.customer-gallery.pages.dev,https://*.customer-gallery.pages.dev"
-JWT_SECRET = "<REDACTED:GALLERY_JWT_SECRET>"
+
+# Secrets — set via CLI, never commit values here:
+# wrangler secret put JWT_SECRET --config apps/gallery/backend/wrangler.toml
 
 [observability]
 enabled = true

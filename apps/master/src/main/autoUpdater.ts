@@ -8,8 +8,12 @@ import { autoUpdater, UpdateInfo } from 'electron-updater';
 
 // Configure auto-updater
 autoUpdater.logger = console;
-autoUpdater.autoDownload = false;
+autoUpdater.autoDownload = false;        // Never download without user confirmation
 autoUpdater.autoInstallOnAppQuit = true;
+// Require code-signing certificate to match publisherName (set in electron-builder.yml)
+// When forceDevUpdateConfig is false in production, this is enforced automatically.
+autoUpdater.allowPrerelease = false;     // Never install pre-release builds on kiosks
+autoUpdater.allowDowngrade  = false;     // Never downgrade
 
 interface UpdateStatus {
   checking: boolean;

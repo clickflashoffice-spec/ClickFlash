@@ -168,19 +168,20 @@ const Photographers: React.FC<PhotographersProps> = ({ currentUser, photographer
     }, [orders, startDate, endDate, selectedPhotographerId]);
 
     const performanceData = useMemo(() => {
-        const dataMap = new Map<number, { sales: number; orderCount: number; photoCount: number }>();
+        const dataMap = new Map<string, { sales: number; orderCount: number; photoCount: number }>();
 
         filteredOrders.forEach(order => {
             if (order.photographerId && order.status === 'Completed') {
-                const currentData = dataMap.get(order.photographerId) || { sales: 0, orderCount: 0, photoCount: 0 };
+                const key = String(order.photographerId);
+                const currentData = dataMap.get(key) || { sales: 0, orderCount: 0, photoCount: 0 };
                 currentData.sales += order.total;
                 currentData.orderCount += 1;
                 const photoCountInOrder = order.items.filter(item => item.photo).length;
                 currentData.photoCount += photoCountInOrder;
-                dataMap.set(order.photographerId, currentData);
+                dataMap.set(key, currentData);
             }
         });
-        
+
         return photographers.map(p => ({
             ...p,
             totalSales: dataMap.get(p.id)?.sales || 0,

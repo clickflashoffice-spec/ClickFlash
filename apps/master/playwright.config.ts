@@ -47,6 +47,9 @@ export default defineConfig({
     stderr: "pipe",
     env: {
       NODE_ENV: "test",
+      // Keep these in sync with TEST_CREDENTIALS in tests/e2e/helpers/auth.ts
+      DEFAULT_ADMIN_EMAIL: process.env.TEST_ADMIN_EMAIL ?? "admin@clickflash.local",
+      DEFAULT_ADMIN_PASSWORD: process.env.TEST_ADMIN_PASSWORD ?? "ClickFlash2025!",
     },
   },
 });

@@ -70,6 +70,11 @@ export function Footer({ settings = {} }: FooterProps) {
                 </Link>
               </li>
               <li>
+                <Link href="/gallery" className="transition-colors hover:text-cyan-500">
+                  Gallery
+                </Link>
+              </li>
+              <li>
                 <Link href="/manage" className="transition-colors hover:text-cyan-500">
                   Admins
                 </Link>

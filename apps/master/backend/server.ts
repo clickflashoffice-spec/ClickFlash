@@ -1,6 +1,9 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+// Ensure NODE_ENV is always defined — rateLimiter and other middleware depend on it
+process.env.NODE_ENV = process.env.NODE_ENV || "development";
+
 import { initSentry } from "./shared/sentryService";
 
 // P2-F: Sentry is activated when SENTRY_DSN env var is present.
@@ -47,6 +50,7 @@ console.log(`[Environment] Running in ${isElectron ? "Electron" : "Web"} mode`);
 // Middleware
 import { createSessionMiddleware } from "./middleware/session";
 import { csrfMiddleware } from "./middleware/csrf";
+import { initCsrfStore } from "./shared/csrf";
 import { authMiddleware } from "./middleware/auth";
 
 // Routes
@@ -186,6 +190,9 @@ try {
   ) {
     dbManager.runMigrations?.(BACKEND_MIGRATIONS_DIR);
   }
+
+  // Initialise the SQLite-backed CSRF token store so tokens survive server restarts.
+  initCsrfStore(dbManager);
 
   // Default User, Vector Index, and other background services are now handled in initializeBackgroundServices()
 

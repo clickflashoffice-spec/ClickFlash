@@ -31,6 +31,7 @@ export const SaveStateMachine: React.FC<SaveStateMachineProps> = ({
   return (
     <div className="flex items-center gap-2">
       <button
+        data-testid="save-button"
         onClick={onSave}
         disabled={disabled || isSaving || isSuccess}
         className={`
@@ -52,7 +53,7 @@ export const SaveStateMachine: React.FC<SaveStateMachineProps> = ({
         {isSuccess && <CheckCircle2 className="w-4 h-4" />}
         {isError && <AlertCircle className="w-4 h-4" />}
 
-        <span>
+        <span data-testid="save-status">
           {isSaving
             ? savingLabel
             : isSuccess

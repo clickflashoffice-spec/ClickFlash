@@ -22,8 +22,9 @@ export const permissionService = {
         });
 
         if (!response.ok) {
-            // 401 is expected if not authenticated - don't throw, return empty permissions
-            if (response.status === 401) {
+            // 401 — not authenticated, return empty permissions silently.
+            // 404 — endpoint not yet implemented on this backend build, degrade gracefully.
+            if (response.status === 401 || response.status === 404) {
                 return {} as Record<AppRole, Permission[]>;
             }
             throw new Error(`Failed to fetch permissions: ${response.status} ${response.statusText}`);

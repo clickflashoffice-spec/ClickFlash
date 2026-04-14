@@ -140,11 +140,15 @@ class CustomPocketBaseAdapter {
 
   async request(
     path: string,
-    options: RequestInit = {},
+    options: RequestInit & { timeoutMs?: number } = {},
     retryCount = 0,
   ): Promise<Response> {
+    const { timeoutMs, ...fetchOptions } = options as RequestInit & { timeoutMs?: number };
     const url = `${this.baseUrl}${path}`;
-    const timeout = networkManager.getAdaptiveTimeout(15000); // Base 15s
+    // Mutations (POST/PATCH/DELETE) use a fixed 60s floor so bulk imports don't abort
+    // under SQLite write pressure. GET requests use the adaptive timeout.
+    const isMutation = !!fetchOptions.method && fetchOptions.method !== "GET";
+    const timeout = timeoutMs ?? (isMutation ? 60000 : networkManager.getAdaptiveTimeout(15000));
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -154,7 +158,7 @@ class CustomPocketBaseAdapter {
       const additionalHeaders: Record<string, string> = {};
 
       // Add CSRF for mutations if needed (though the mock says not needed, keeping for robustness)
-      if (options.method && options.method !== "GET") {
+      if (fetchOptions.method && fetchOptions.method !== "GET") {
         const csrfToken = await this.getCsrfToken();
         if (csrfToken) {
           additionalHeaders["X-CSRF-Token"] = csrfToken;
@@ -162,11 +166,11 @@ class CustomPocketBaseAdapter {
       }
 
       const response = await fetch(url, {
-        ...options,
+        ...fetchOptions,
         headers: {
           ...authHeaders,
           ...additionalHeaders,
-          ...options.headers,
+          ...fetchOptions.headers,
         },
         credentials: "include",
         signal: controller.signal,
@@ -179,7 +183,7 @@ class CustomPocketBaseAdapter {
         if (response.status >= 500 || response.status === 429) {
           const delay = Math.pow(2, retryCount) * 1000;
           await new Promise((resolve) => setTimeout(resolve, delay));
-          return this.request(path, options, retryCount + 1);
+          return this.request(path, { ...fetchOptions, timeoutMs } as RequestInit & { timeoutMs?: number }, retryCount + 1);
         }
       }
 
@@ -187,15 +191,17 @@ class CustomPocketBaseAdapter {
     } catch (error) {
       clearTimeout(timeoutId);
 
-      // Handle network errors or timeouts with retries if in cloud mode
-      if (isCloudMode && retryCount < 2) {
+      // Retry network errors and timeouts in all modes (not just cloud).
+      // AbortError = our own timeout fired; TypeError = network-level failure.
+      // Both are transient and safe to retry up to 2 times.
+      if (retryCount < 2) {
         const isRetryable =
           error instanceof TypeError ||
           (error instanceof Error && error.name === "AbortError");
         if (isRetryable) {
           const delay = Math.pow(2, retryCount) * 1000;
           await new Promise((resolve) => setTimeout(resolve, delay));
-          return this.request(path, options, retryCount + 1);
+          return this.request(path, { ...fetchOptions, timeoutMs } as RequestInit & { timeoutMs?: number }, retryCount + 1);
         }
       }
       throw error;

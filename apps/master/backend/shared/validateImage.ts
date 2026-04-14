@@ -1,19 +1,34 @@
 import fs from "fs";
+import sharp from "sharp";
 
 /**
- * Validates the true file type of a given file by reading its "magic numbers" (file signature).
- * This prevents malicious files (like executables renamed to .jpg) from being processed.
+ * Validates a file is a genuine, parseable image using two layers:
  *
- * @param filepath The absolute path to the file to validate
- * @returns A promise that resolves to true if the file is a valid image (JPEG, PNG, WEBP, GIF), false otherwise.
+ * Layer 1 — Magic bytes: Reads the first 12 bytes to confirm the file
+ *   signature matches a known image format (JPEG, PNG, WEBP, GIF).
+ *   Prevents executables/scripts renamed to .jpg from reaching the processor.
+ *
+ * Layer 2 — Sharp header parse: Asks libvips to parse the image header.
+ *   Catches polyglot files that have valid magic bytes but malformed or
+ *   weaponised payloads after the header. Also catches truncated/corrupt
+ *   files that would otherwise crash the worker mid-processing.
+ *
+ * @param filepath   Absolute path to the file to validate.
+ * @param mimeType   Optional MIME type supplied by the client. If provided,
+ *                   it is cross-checked against the detected magic bytes so
+ *                   a client cannot lie about the file type.
+ * @returns          `true` if both layers pass, `false` otherwise.
  */
 export async function validateImageMagicNumber(
   filepath: string,
+  mimeType?: string,
 ): Promise<boolean> {
+  // ── Layer 1: Magic bytes ─────────────────────────────────────────────────
+  let detectedFormat: "jpeg" | "png" | "webp" | "gif" | null = null;
+
   try {
     const fileHandle = await fs.promises.open(filepath, "r");
     try {
-      // Read the first 12 bytes which is enough for our supported formats
       const buffer = Buffer.alloc(12);
       const { bytesRead } = await fileHandle.read(buffer, 0, 12, 0);
 
@@ -23,11 +38,10 @@ export async function validateImageMagicNumber(
 
       // JPEG: FF D8 FF
       if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
-        return true;
+        detectedFormat = "jpeg";
       }
-
       // PNG: 89 50 4E 47 0D 0A 1A 0A
-      if (
+      else if (
         bytesRead >= 8 &&
         buffer[0] === 0x89 &&
         buffer[1] === 0x50 &&
@@ -38,38 +52,34 @@ export async function validateImageMagicNumber(
         buffer[6] === 0x1a &&
         buffer[7] === 0x0a
       ) {
-        return true;
+        detectedFormat = "png";
       }
-
       // WEBP: RIFF .... WEBP
-      if (
+      else if (
         bytesRead >= 12 &&
         buffer[0] === 0x52 &&
         buffer[1] === 0x49 &&
         buffer[2] === 0x46 &&
-        buffer[3] === 0x46 && // RIFF
+        buffer[3] === 0x46 &&
         buffer[8] === 0x57 &&
         buffer[9] === 0x45 &&
         buffer[10] === 0x42 &&
-        buffer[11] === 0x50 // WEBP
+        buffer[11] === 0x50
       ) {
-        return true;
+        detectedFormat = "webp";
       }
-
       // GIF: GIF87a or GIF89a
-      if (
+      else if (
         bytesRead >= 6 &&
         buffer[0] === 0x47 &&
         buffer[1] === 0x49 &&
         buffer[2] === 0x46 &&
-        buffer[3] === 0x38 && // GIF8
+        buffer[3] === 0x38 &&
         (buffer[4] === 0x37 || buffer[4] === 0x39) &&
-        buffer[5] === 0x61 // 7a / 9a
+        buffer[5] === 0x61
       ) {
-        return true;
+        detectedFormat = "gif";
       }
-
-      return false;
     } finally {
       await fileHandle.close();
     }
@@ -80,4 +90,49 @@ export async function validateImageMagicNumber(
     );
     return false;
   }
+
+  if (detectedFormat === null) {
+    return false; // Magic bytes did not match any supported format
+  }
+
+  // ── Client MIME type cross-check ────────────────────────────────────────
+  // If the caller supplied a MIME type, verify it matches the detected format.
+  // This prevents a client from uploading a PNG and claiming it's a JPEG.
+  if (mimeType) {
+    const mimeToFormat: Record<string, typeof detectedFormat> = {
+      "image/jpeg": "jpeg",
+      "image/jpg": "jpeg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+    };
+    const expectedFormat = mimeToFormat[mimeType.toLowerCase()];
+    if (expectedFormat && expectedFormat !== detectedFormat) {
+      console.warn(
+        `[Validation] MIME mismatch for ${filepath}: client says "${mimeType}" but magic bytes indicate "${detectedFormat}"`,
+      );
+      return false;
+    }
+  }
+
+  // ── Layer 2: Sharp header parse ──────────────────────────────────────────
+  // libvips parses the full image header (dimensions, colour space, etc.).
+  // A polyglot or truncated file with valid magic bytes will throw here.
+  try {
+    const meta = await sharp(filepath).metadata();
+    if (!meta.width || !meta.height || meta.width < 1 || meta.height < 1) {
+      console.warn(
+        `[Validation] Sharp reports zero dimensions for ${filepath} — rejecting`,
+      );
+      return false;
+    }
+  } catch (err) {
+    console.warn(
+      `[Validation] Sharp could not parse image header for ${filepath} — likely polyglot or corrupt`,
+      err,
+    );
+    return false;
+  }
+
+  return true;
 }

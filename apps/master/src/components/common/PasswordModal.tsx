@@ -40,9 +40,14 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
         isVerified = await verifyPassword(password);
       } else {
         // Validate via backend API — never hardcode passwords client-side
+        const csrfMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+        const csrfToken = csrfMatch ? decodeURIComponent(csrfMatch[1]) : "";
         const resp = await fetch("/api/auth/verify-pin", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+          },
           body: JSON.stringify({ pin: password }),
         });
         isVerified = resp.ok;

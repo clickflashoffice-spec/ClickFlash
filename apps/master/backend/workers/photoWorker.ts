@@ -52,7 +52,7 @@ parentPort.on("message", async (job: WorkerJob) => {
 });
 
 async function handleProcessJob(job: WorkerJob) {
-  const { filepath, outputDir, photoId, ext } = job;
+  const { filepath, outputDir, photoId, ext, mimeType } = job;
   // Processing ${photoId} from ${filepath}
 
   // Phase 32: Skip processing for placeholder URLs
@@ -76,7 +76,8 @@ async function handleProcessJob(job: WorkerJob) {
     throw new Error(`Input file not found: ${filepath}`);
   }
 
-  const isValidMagicNumber = await validateImageMagicNumber(filepath);
+  // Two-layer validation: magic bytes + sharp header parse (catches polyglots)
+  const isValidMagicNumber = await validateImageMagicNumber(filepath, mimeType as string | undefined);
   if (!isValidMagicNumber) {
     throw new Error(
       `SECURITY_VIOLATION: Invalid file signature (Magic Number mismatch) for photo ${photoId}`,
@@ -260,8 +261,35 @@ async function handleProcessJob(job: WorkerJob) {
  * Applies rotation, crop, color adjustments, and retouching (healing) to a photo.
  * Used for both high-quality previews and final fulfillment.
  */
+// Worker-side edit range clamp (defense-in-depth — the frontend also validates,
+// but the worker must never trust caller-supplied values blindly).
+const WORKER_EDIT_RANGES: Record<string, [number, number]> = {
+  exposure: [-100, 100], contrast: [-100, 100], highlights: [-100, 100],
+  shadows: [-100, 100], saturate: [-100, 100], vibrance: [-100, 100],
+  grayscale: [0, 100], sepia: [0, 100], invert: [0, 1],
+  hueRotate: [-180, 180], temperature: [-100, 100], tint: [-100, 100],
+  whites: [-100, 100], blacks: [-100, 100], clarity: [-100, 100],
+  soften: [0, 100], sharpen: [0, 100], vignette: [0, 100],
+  dropShadow: [0, 100], brightness: [-100, 100],
+  rotate: [-360, 360], straighten: [-45, 45],
+  perspectiveX: [-50, 50], perspectiveY: [-50, 50],
+};
+
+function clampEdits(raw: Record<string, any>): Record<string, any> {
+  const out: Record<string, any> = { ...raw };
+  for (const [key, [lo, hi]] of Object.entries(WORKER_EDIT_RANGES)) {
+    if (key in out) {
+      const n = Number(out[key]);
+      out[key] = isFinite(n) ? Math.max(lo, Math.min(hi, n)) : 0;
+    }
+  }
+  return out;
+}
+
 async function handleApplyEditsJob(job: WorkerJob) {
-  const { sourcePath, destPath, edits } = job;
+  const { sourcePath, destPath } = job;
+  // Clamp all edit values before they reach any sharp operation.
+  const edits = clampEdits(job.edits || {});
 
   if (!sourcePath || !fs.existsSync(sourcePath)) {
     throw new Error(`Source file not found: ${sourcePath}`);
@@ -415,10 +443,31 @@ async function applyRetouchActions(
 
   // Apply retouches sequentially to allow overlaps (matching Canvas behavior)
   for (const action of actions) {
-    const { x, y, radius, sourceX, sourceY } = action;
-    if (sourceX == null || sourceY == null) continue;
+    // ── Security: Sanitize all coordinates to safe numeric ranges ──────────
+    // Values come from the DB (JSON-parsed manualEdits). A crafted payload
+    // could contain non-finite numbers or values that crash sharp / produce
+    // invalid SVG. Coerce to Number first, then clamp to image bounds.
+    const rawRadius  = Number(action.radius);
+    const rawX       = Number(action.x);
+    const rawY       = Number(action.y);
+    const rawSX      = Number(action.sourceX);
+    const rawSY      = Number(action.sourceY);
+
+    if (!isFinite(rawRadius) || !isFinite(rawX) || !isFinite(rawY)) continue;
+    if (action.sourceX == null || action.sourceY == null) continue;
+    if (!isFinite(rawSX) || !isFinite(rawSY)) continue;
+
+    // Clamp radius to [2, min(width,height)/4] so patchSize never exceeds
+    // half the image and is always at least 4 px wide.
+    const maxRadius = Math.floor(Math.min(width, height) / 4);
+    const radius    = Math.max(2, Math.min(maxRadius, rawRadius));
+    const x         = Math.max(0, Math.min(width,  rawX));
+    const y         = Math.max(0, Math.min(height, rawY));
+    const sourceX   = Math.max(0, Math.min(width,  rawSX));
+    const sourceY   = Math.max(0, Math.min(height, rawSY));
 
     const patchSize = Math.round(radius * 2);
+    if (patchSize < 2) continue; // Skip degenerate patches
 
     // 1. Extract source patch
     // Clamp to image bounds
@@ -436,17 +485,10 @@ async function applyRetouchActions(
       .toBuffer();
 
     // 2. Create feathered mask
-    const mask = Buffer.from(`
-            <svg width="${patchSize}" height="${patchSize}">
-                <defs>
-                    <radialGradient id="feather" cx="50%" cy="50%" r="50%">
-                        <stop offset="60%" style="stop-color:white;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:white;stop-opacity:0" />
-                    </radialGradient>
-                </defs>
-                <circle cx="${radius}" cy="${radius}" r="${radius}" fill="url(#feather)" />
-            </svg>
-        `);
+    // All values are pre-sanitized integers — safe to embed directly in SVG.
+    const safePatchSize = patchSize; // integer, ≥ 2
+    const safeRadius    = radius;    // integer, [2, maxRadius]
+    const mask = Buffer.from(`<svg width="${safePatchSize}" height="${safePatchSize}"><defs><radialGradient id="feather" cx="50%" cy="50%" r="50%"><stop offset="60%" style="stop-color:white;stop-opacity:1" /><stop offset="100%" style="stop-color:white;stop-opacity:0" /></radialGradient></defs><circle cx="${safeRadius}" cy="${safeRadius}" r="${safeRadius}" fill="url(#feather)" /></svg>`);
 
     // 3. Apply mask to patch
     const featheredPatch = await sharp(patch)

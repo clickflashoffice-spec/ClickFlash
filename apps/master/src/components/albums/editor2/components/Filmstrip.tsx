@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useCallback } from "react";
+import React, { memo, useMemo, useCallback, useRef, useState, useEffect } from "react";
 import { Photo, ManualEdits } from "@/types/shared";
 import { Wand2 } from "lucide-react";
 import { getPhotoStyle, INITIAL_EDITS, isEdited } from "@/utils/styleUtils";
@@ -83,6 +83,7 @@ const FilmstripThumbnail = memo<FilmstripThumbnailProps>(
     return (
       <div className="relative group">
         <button
+          data-testid="filmstrip-photo"
           onClick={onClick}
           className={`relative w-32 h-32 flex-shrink-0 rounded overflow-hidden border-2 transition-all ${
             isActive
@@ -228,6 +229,124 @@ const FilmstripThumbnailItem: React.FC<FilmstripThumbnailItemProps> = ({
   );
 };
 
+// --- Virtual Filmstrip Scroller ---
+// Renders only the visible window of thumbnails to keep DOM count low.
+// Item width (w-32 = 128px) + gap (gap-2 = 8px) = ITEM_STRIDE 136px.
+// Overscan of 3 items on each side prevents blank flicker during fast scrolls.
+const ITEM_STRIDE = 136; // px per item slot
+const OVERSCAN = 3;
+
+interface VirtualScrollerProps {
+  photos: Photo[];
+  activePhotoId: string | null;
+  selectedPhotoIds: Set<string>;
+  dirtyPhotoIds: Set<string>;
+  edits: Record<string, ManualEdits>;
+  onSetActivePhoto: (id: string) => void;
+  onToggleSelection: (id: string) => void;
+  onContextMenu?: (e: React.MouseEvent, photo: Photo) => void;
+}
+
+const VirtualFilmstripScroller: React.FC<VirtualScrollerProps> = ({
+  photos,
+  activePhotoId,
+  selectedPhotoIds,
+  dirtyPhotoIds,
+  edits,
+  onSetActivePhoto,
+  onToggleSelection,
+  onContextMenu,
+}) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(1200);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const ro = new ResizeObserver(([entry]) => {
+      setContainerWidth(entry.contentRect.width);
+    });
+    ro.observe(el);
+
+    const onScroll = () => setScrollLeft(el.scrollLeft);
+    el.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      ro.disconnect();
+      el.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
+  // Scroll the active photo into view when it changes.
+  useEffect(() => {
+    if (!activePhotoId || !scrollRef.current) return;
+    const idx = photos.findIndex((p) => p.id === activePhotoId);
+    if (idx < 0) return;
+    const itemLeft = idx * ITEM_STRIDE + 16; // 16px = px-4 left padding
+    const el = scrollRef.current;
+    const visibleRight = el.scrollLeft + el.clientWidth;
+    if (itemLeft < el.scrollLeft || itemLeft + 128 > visibleRight) {
+      el.scrollTo({ left: itemLeft - el.clientWidth / 2, behavior: "smooth" });
+    }
+  }, [activePhotoId, photos]);
+
+  const totalWidth = photos.length * ITEM_STRIDE + 32; // +32 for px-4 padding
+  const startIdx = Math.max(0, Math.floor((scrollLeft - 16) / ITEM_STRIDE) - OVERSCAN);
+  const visibleCount = Math.ceil(containerWidth / ITEM_STRIDE) + OVERSCAN * 2;
+  const endIdx = Math.min(photos.length, startIdx + visibleCount);
+
+  const visiblePhotos = photos.slice(startIdx, endIdx);
+
+  return (
+    <div
+      ref={scrollRef}
+      className="flex-1 relative overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300"
+      role="listbox"
+      aria-label="Photo thumbnails"
+      aria-multiselectable="true"
+    >
+      {/* Full-width spacer to give the scrollbar the correct total range */}
+      <div style={{ width: totalWidth, height: "100%", position: "relative" }}>
+        {/* Left spacer fills the gap before the first rendered item */}
+        {startIdx * ITEM_STRIDE > 0 && (
+          <div style={{ display: "inline-block", width: startIdx * ITEM_STRIDE + 16 }} />
+        )}
+        {/* Visible items rendered inline — no absolute positioning needed */}
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            paddingLeft: startIdx === 0 ? 16 : 0,
+            paddingRight: endIdx === photos.length ? 16 : 0,
+            verticalAlign: "top",
+            height: "100%",
+          }}
+        >
+          {visiblePhotos.map((p) => (
+            <div
+              key={p.id}
+              onContextMenu={onContextMenu ? (e) => onContextMenu(e, p) : undefined}
+            >
+              <FilmstripThumbnailItem
+                photo={p}
+                isActive={activePhotoId === p.id}
+                isSelected={selectedPhotoIds.has(p.id)}
+                isDirty={dirtyPhotoIds.has(p.id)}
+                edit={edits[p.id]}
+                onSetActivePhoto={onSetActivePhoto}
+                onToggleSelection={onToggleSelection}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 interface FilmstripProps {
   photos: Photo[];
   activePhotoId: string | null;
@@ -238,6 +357,7 @@ interface FilmstripProps {
   onToggleSelection: (id: string) => void;
   onSelectAll: () => void;
   onDeselectAll: () => void;
+  onSetCover?: (photo: Photo) => void;
 }
 
 const FilmstripComponent: React.FC<FilmstripProps> = ({
@@ -250,12 +370,31 @@ const FilmstripComponent: React.FC<FilmstripProps> = ({
   onToggleSelection,
   onSelectAll,
   onDeselectAll,
+  onSetCover,
 }) => {
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; photo: Photo } | null>(null);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent, photo: Photo) => {
+    if (!onSetCover) return;
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY, photo });
+  }, [onSetCover]);
+
+  const closeContextMenu = useCallback(() => setContextMenu(null), []);
+
+  useEffect(() => {
+    if (!contextMenu) return;
+    const handler = () => setContextMenu(null);
+    window.addEventListener("click", handler);
+    return () => window.removeEventListener("click", handler);
+  }, [contextMenu]);
   const handleSelectAll = useCallback(() => onSelectAll(), [onSelectAll]);
   const handleDeselectAll = useCallback(() => onDeselectAll(), [onDeselectAll]);
 
   return (
     <div
+      data-testid="filmstrip"
       className="h-full flex flex-col pt-2 overflow-hidden"
       role="region"
       aria-label="Photo filmstrip"
@@ -263,6 +402,7 @@ const FilmstripComponent: React.FC<FilmstripProps> = ({
       {/* Selection Toolbar */}
       <div className="flex items-center gap-2 px-4 pb-2 border-b border-gray-200 mb-2">
         <span
+          data-testid="selected-count"
           className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mr-2"
           aria-live="polite"
         >
@@ -285,25 +425,35 @@ const FilmstripComponent: React.FC<FilmstripProps> = ({
         </button>
       </div>
 
-      <div
-        className="flex-1 flex items-center gap-2 px-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300"
-        role="listbox"
-        aria-label="Photo thumbnails"
-        aria-multiselectable="true"
-      >
-        {photos.map((p) => (
-          <FilmstripThumbnailItem
-            key={p.id}
-            photo={p}
-            isActive={activePhotoId === p.id}
-            isSelected={selectedPhotoIds.has(p.id)}
-            isDirty={dirtyPhotoIds.has(p.id)}
-            edit={edits[p.id]}
-            onSetActivePhoto={onSetActivePhoto}
-            onToggleSelection={onToggleSelection}
-          />
-        ))}
-      </div>
+      <VirtualFilmstripScroller
+        photos={photos}
+        activePhotoId={activePhotoId}
+        selectedPhotoIds={selectedPhotoIds}
+        dirtyPhotoIds={dirtyPhotoIds}
+        edits={edits}
+        onSetActivePhoto={onSetActivePhoto}
+        onToggleSelection={onToggleSelection}
+        onContextMenu={onSetCover ? handleContextMenu : undefined}
+      />
+
+      {/* Right-click context menu */}
+      {contextMenu && (
+        <div
+          className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1 min-w-[160px]"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+            onClick={() => {
+              onSetCover?.(contextMenu.photo);
+              closeContextMenu();
+            }}
+          >
+            <span>🖼️</span> Set as Album Cover
+          </button>
+        </div>
+      )}
     </div>
   );
 };

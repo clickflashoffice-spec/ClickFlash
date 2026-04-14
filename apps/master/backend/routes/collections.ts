@@ -1118,6 +1118,9 @@ export default function collectionRoutes(context: CollectionsContext): Router {
 
     const now = new Date().toISOString();
     const errors: string[] = [];
+    // Track which IDs failed so the frontend only clears dirty-state for photos
+    // that were actually persisted (D1: partial-save dirty tracking fix).
+    const failedIds: string[] = [];
     let updatedCount = 0;
 
     try {
@@ -1134,6 +1137,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
           );
           if (!exists) {
             errors.push(`Photo ${item.id} not found`);
+            failedIds.push(item.id);
             continue;
           }
 
@@ -1169,6 +1173,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
           success: updatedCount > 0 || (items.length > 0 && errors.length < items.length),
           updatedCount,
           errors,
+          failedIds,
         }),
       );
     } catch (e: any) {

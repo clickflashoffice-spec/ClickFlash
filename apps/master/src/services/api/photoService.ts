@@ -363,15 +363,18 @@ export const photoService = {
 
             const successCount = (response as any).updatedCount ?? items.length;
             const batchErrors: string[] = (response as any).errors ?? [];
+            // failedIds is populated by the backend for every item it skipped
+            // (e.g. photo not found). Only IDs NOT in this set were actually persisted.
+            const failedIdSet = new Set<string>((response as any).failedIds ?? []);
 
             if (batchErrors.length > 0) {
                 logger.warn('batchSavePhotos: partial failures', { errors: batchErrors });
             }
 
-            // The batch endpoint only updates manualEdits; return the input photos
-            // merged with their validated edits as the items array (no re-fetch needed).
+            // Only return photos that were actually saved so AlbumEditor's markSaved
+            // call only clears dirty-state for those photos (D1: partial-save fix).
             const resultItems: Photo[] = photos
-                .filter(p => !!p.id)
+                .filter(p => !!p.id && !failedIdSet.has(p.id as string))
                 .map(p => p as Photo);
 
             return {

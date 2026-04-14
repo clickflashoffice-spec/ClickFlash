@@ -3,6 +3,10 @@ import { Logger } from '../shared/logger';
 import DatabaseManager from '../shared/db';
 import { TABLE_MAP, JSON_COLUMNS, ALLOWED_COLUMNS } from '../config/constants';
 
+interface VectorClock {
+  [clientId: string]: number;
+}
+
 interface SyncPayload {
     type: 'HEARTBEAT' | 'MUTATION' | 'SYNC_REQUEST' | string;
     clientId: string;
@@ -10,6 +14,7 @@ interface SyncPayload {
     data?: any;
     entity?: string;
     action?: string;
+    vectorClock?: VectorClock;
 }
 
 interface ConnectedClient {
@@ -149,8 +154,33 @@ export class SyncManager {
         }
     }
 
-    public async handleMutation(payload: SyncPayload, clientId: string) {
-        const { entity, action, data } = payload;
+  private compareVectorClocks(a: VectorClock, b: VectorClock): 'before' | 'after' | 'concurrent' {
+    let aNewer = false;
+    let bNewer = false;
+
+    const allKeys = new Set([...Object.keys(a), ...Object.keys(b)]);
+    for (const key of allKeys) {
+      const aVal = a[key] || 0;
+      const bVal = b[key] || 0;
+      if (aVal > bVal) aNewer = true;
+      if (bVal > aVal) bNewer = true;
+    }
+
+    if (aNewer && !bNewer) return 'after';
+    if (bNewer && !aNewer) return 'before';
+    return 'concurrent';
+  }
+
+  private mergeVectorClocks(a: VectorClock, b: VectorClock): VectorClock {
+    const result: VectorClock = { ...a };
+    for (const key of Object.keys(b)) {
+      result[key] = Math.max(result[key] || 0, b[key]);
+    }
+    return result;
+  }
+
+  public async handleMutation(payload: SyncPayload, clientId: string) {
+        const { entity, action, data, vectorClock } = payload;
 
         if (!entity || !action || !data || !data.id) {
             this.logger.warn(`[SyncManager] Invalid mutation payload from ${clientId}`);
@@ -166,7 +196,6 @@ export class SyncManager {
         this.logger.info(`[SyncManager] Applying mutation: ${entity}.${action} (ID: ${data.id})`);
 
         try {
-            // 1. Prepare data (sanitize and handle JSON)
             const rowData = { ...data };
             const jsonCols = JSON_COLUMNS[table] || [];
             jsonCols.forEach(c => {
@@ -178,7 +207,6 @@ export class SyncManager {
             const now = new Date().toISOString();
             rowData.updated_at = now;
 
-            // Phase 32: Extract albumId from order items if not present
             if (entity === 'orders' && !rowData.albumId && rowData.items) {
                 try {
                     const items = typeof rowData.items === 'string' ? JSON.parse(rowData.items) : rowData.items;
@@ -190,30 +218,45 @@ export class SyncManager {
                 }
             }
 
-            // 2. Perform DB operation (Conflict Resolution: Last Write Wins)
             this.db.transaction(() => {
-                const existing = this.db.get<{ id: string, updated_at: string }>(`SELECT id, updated_at FROM ${table} WHERE id = ?`, [data.id]);
+                const existing = this.db.get<{ id: string, updated_at: string, vector_clock: string }>(`SELECT id, updated_at, vector_clock FROM ${table} WHERE id = ?`, [data.id]);
 
                 if (action === 'delete') {
                     this.db.run(`DELETE FROM ${table} WHERE id = ?`, [data.id]);
                 } else if (existing) {
-                    // LWW: Only update if the incoming data is newer (or same timestamp - we trust the client's intent)
-                    const incomingTime = new Date(rowData.updated_at || now).getTime();
-                    const existingTime = new Date(existing.updated_at).getTime();
+                    let existingVC: VectorClock = {};
+                    try {
+                        if (existing.vector_clock) {
+                            existingVC = typeof existing.vector_clock === 'string' 
+                                ? JSON.parse(existing.vector_clock) 
+                                : existing.vector_clock;
+                        }
+                    } catch (e) {
+                        existingVC = {};
+                    }
 
-                    if (incomingTime >= existingTime) {
-                        // Update
+                    const incVC: VectorClock = { ...(vectorClock || {}) };
+                    incVC[clientId] = (incVC[clientId] || 0) + 1;
+
+                    const comparison = this.compareVectorClocks(incVC, existingVC);
+
+                    if (comparison === 'after' || comparison === 'concurrent') {
+                        const mergedVC = this.mergeVectorClocks(existingVC, incVC);
+                        rowData.vector_clock = JSON.stringify(mergedVC);
+
                         const keys = Object.keys(rowData).filter(k => k !== 'id' && ALLOWED_COLUMNS[table].includes(k));
                         const setClause = keys.map(k => `${k} = ?`).join(', ');
                         const values = keys.map(k => rowData[k]);
                         values.push(data.id);
                         this.db.run(`UPDATE ${table} SET ${setClause} WHERE id = ?`, values);
                     } else {
-                        this.logger.warn(`[SyncManager] Conflict: Mutation for ${entity}.${data.id} is older than local record. Ignoring.`);
-                        throw new Error('CONFLICT: Incoming data is stale');
+                        this.logger.warn(`[SyncManager] Conflict: Mutation for ${entity}.${data.id} is older than local record (vector clock). Ignoring.`);
                     }
                 } else {
-                    // Create
+                    const incVC: VectorClock = { ...(vectorClock || {}) };
+                    incVC[clientId] = (incVC[clientId] || 0) + 1;
+                    rowData.vector_clock = JSON.stringify(incVC);
+
                     const keys = Object.keys(rowData).filter(k => ALLOWED_COLUMNS[table].includes(k));
                     const cols = keys.join(', ');
                     const placeholders = keys.map(() => '?').join(', ');
@@ -222,14 +265,11 @@ export class SyncManager {
                 }
             });
 
-            // 3. Broadcast to other clients
             this.broadcastUpdate(payload, clientId);
-
-            // ACK is now handled by the caller (processMessage or HTTP route)
 
         } catch (error: any) {
             this.logger.error(`[SyncManager] Mutation error:`, { error: error.message || String(error), entity, id: data.id });
-            throw error; // Re-throw to let caller handle error reporting
+            throw error;
         }
     }
 

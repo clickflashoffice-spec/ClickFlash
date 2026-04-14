@@ -340,7 +340,10 @@ router.get('/download/archived/:photoId', async (req, res) => {
 
 // Helper functions
 function generateDownloadToken(photoId) {
-    const secret = process.env.JWT_SECRET || 'default-secret';
+    if (!process.env.JWT_SECRET) {
+        throw new Error('JWT_SECRET environment variable not set');
+    }
+    const secret = process.env.JWT_SECRET;
     return crypto.createHmac('sha256', secret).update(photoId).digest('hex');
 }
 

@@ -1,5 +1,9 @@
 /**
  * Environment Configuration for Cloudflare Worker
+ * 
+ * SECURITY NOTE: JWT_SECRET must be set via environment variable in Cloudflare dashboard.
+ * This file intentionally does not export JWT_SECRET - it's passed via the Env interface.
+ * Never hardcode secrets here.
  */
 
 // JWT_SECRET must be set as a Cloudflare Worker secret:

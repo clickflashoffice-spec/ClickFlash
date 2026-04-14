@@ -153,12 +153,28 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
   useEffect(() => {
     if (photos.length > 0 && state.photos.length === 0) {
       actions.setPhotos(photos);
-      // Default to first photo if none active
-      if (!state.activePhotoId) {
+      
+      // Deep Linking: Check URL param first
+      const params = new URLSearchParams(window.location.search);
+      const photoParam = params.get("photo");
+      const targetPhoto = photoParam ? photos.find(p => p.id === photoParam) : null;
+
+      if (targetPhoto) {
+        actions.setActivePhoto(targetPhoto.id);
+      } else if (!state.activePhotoId) {
         actions.setActivePhoto(photos[0].id);
       }
     }
   }, [photos, actions, state.photos.length, state.activePhotoId]);
+
+  // Deep Link: Update URL when photo changes
+  useEffect(() => {
+    if (state.activePhotoId) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("photo", state.activePhotoId);
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [state.activePhotoId]);
 
   // Handle zoom changes from canvas
   const handleZoomChange = useCallback(
@@ -499,7 +515,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
         disabled={
           state.photos.findIndex((p) => p.id === state.activePhotoId) <= 0
         }
-        className="w-12 h-12 flex items-center justify-center bg-white/80 hover:bg-white text-gray-800 rounded-full backdrop-blur-md border border-gray-200 shadow-lg transition-all pointer-events-auto disabled:opacity-30 disabled:cursor-not-allowed group"
+        className="w-12 h-12 flex items-center justify-center bg-white/80 hover:bg-white dark:bg-slate-800/80 dark:hover:bg-slate-800 text-gray-800 dark:text-slate-200 rounded-full backdrop-blur-md border border-gray-200 dark:border-slate-700 shadow-lg transition-all pointer-events-auto disabled:opacity-30 disabled:cursor-not-allowed group"
         title="Previous (Left Arrow)"
       >
         <svg
@@ -523,7 +539,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
           state.photos.findIndex((p) => p.id === state.activePhotoId) ===
           state.photos.length - 1
         }
-        className="w-12 h-12 flex items-center justify-center bg-white/80 hover:bg-white text-gray-800 rounded-full backdrop-blur-md border border-gray-200 shadow-lg transition-all pointer-events-auto disabled:opacity-30 disabled:cursor-not-allowed group"
+        className="w-12 h-12 flex items-center justify-center bg-white/80 hover:bg-white dark:bg-slate-800/80 dark:hover:bg-slate-800 text-gray-800 dark:text-slate-200 rounded-full backdrop-blur-md border border-gray-200 dark:border-slate-700 shadow-lg transition-all pointer-events-auto disabled:opacity-30 disabled:cursor-not-allowed group"
         title="Next (Right Arrow)"
       >
         <svg
@@ -546,7 +562,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
 
   // Toolbar
   const Toolbar = (
-    <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4">
+    <div className="h-14 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between px-4">
       <div className="flex items-center gap-4">
         <button
           data-testid="back-button"
@@ -716,6 +732,26 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
   }, [album, showToast]);
 
   // Filmstrip component call
+  // P3-D4 Fix: Find cover photo ID from album's coverPhotoUrl
+  const coverPhotoId = React.useMemo(() => {
+    if (!album?.coverPhotoUrl) return null;
+    const coverPhoto = state.photos.find(p => p.url === album.coverPhotoUrl || p.thumbnailUrl === album.coverPhotoUrl);
+    return coverPhoto?.id ?? null;
+  }, [album?.coverPhotoUrl, state.photos]);
+
+  const handleSetAsCover = React.useCallback(async (photoId: string) => {
+    const photo = state.photos.find(p => p.id === photoId);
+    if (!photo || !albumId) return;
+    const newCoverUrl = photo.url || photo.thumbnailUrl;
+    try {
+      await apiService.updateCollection("albums", albumId, { coverPhotoUrl: newCoverUrl });
+      showToast("Cover photo updated!");
+    } catch (error) {
+      logger.error("Failed to set cover photo", error);
+      showToast("Failed to update cover photo");
+    }
+  }, [albumId, state.photos, showToast]);
+
   const renderFilmstrip = (
     <Filmstrip
       photos={state.photos}
@@ -723,6 +759,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
       selectedPhotoIds={state.selectedPhotoIds}
       dirtyPhotoIds={state.dirtyPhotoIds}
       edits={state.edits}
+      coverPhotoId={coverPhotoId}
       onSetActivePhoto={actions.setActivePhoto}
       onToggleSelection={actions.toggleSelection}
       onSelectAll={actions.selectAll}
@@ -797,15 +834,15 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
 
   if (error && photos.length === 0) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
+      <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-slate-950">
+        <div className="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-8 max-w-md text-center">
           <div className="text-4xl mb-4">⚠️</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">
             Failed to Load Album
           </h2>
-          <p className="text-gray-600 mb-4">{error.message}</p>
+          <p className="text-gray-600 dark:text-slate-400 mb-4">{error.message}</p>
           {retryCount > 0 && (
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500 dark:text-slate-500 mb-4">
               Retried {retryCount} time{retryCount > 1 ? "s" : ""}
             </p>
           )}
@@ -818,7 +855,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
             </button>
             <button
               onClick={onBack}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
+              className="px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-200 rounded hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors"
             >
               Go Back
             </button>
@@ -923,13 +960,17 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
         kiosks={availableKiosks}
         selectedKioskIds={selectedKioskIds}
         selectedPhotoCount={state.photos.length}
-        onToggleKiosk={kioskHandlers.handleToggleKiosk}
+        metadataOnly={kioskHandlers.metadataOnly}
+        onMetadataOnlyChange={kioskHandlers.setMetadataOnly}
+        onToggleKiosk={kioskHandlers.handlers.handleToggleKiosk}
         onSelectAll={() =>
-          setSelectedKioskIds(new Set(availableKiosks.map((k) => k.id)))
+          kioskHandlers.setSelectedKioskIds(
+            new Set(availableKiosks.map((k) => k.id))
+          )
         }
-        onClearAll={() => setSelectedKioskIds(new Set())}
-        onConfirm={kioskHandlers.handleKioskConfirm}
-        onCancel={() => setIsKioskModalOpen(false)}
+        onClearAll={() => kioskHandlers.setSelectedKioskIds(new Set())}
+        onConfirm={kioskHandlers.handlers.handleKioskConfirm}
+        onCancel={() => kioskHandlers.setIsKioskModalOpen(false)}
       />
     </div>
   );

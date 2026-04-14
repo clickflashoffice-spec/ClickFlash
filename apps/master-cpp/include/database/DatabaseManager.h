@@ -4,6 +4,7 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QSqlRecord>
 #include <QString>
 #include <QVariant>
 #include <QVariantMap>
@@ -11,6 +12,7 @@
 #include <QMutexLocker>
 #include <memory>
 #include <vector>
+#include "core/Logger.h"
 
 namespace ClickFlash {
 
@@ -140,7 +142,7 @@ public:
         m_db.rollback();
     }
 
-signals:
+Q_SIGNALS:
     void databaseError(const QString& error);
 
 private:

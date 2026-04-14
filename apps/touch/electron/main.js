@@ -1,87 +1,242 @@
-const { app, BrowserWindow, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, globalShortcut, session } = require('electron');
 const path = require('path');
+const crypto = require('crypto');
 
-// Both dev and prod load via Express on port 8091 — unified single port.
-// Dev: run `vite build --watch` for incremental rebuilds served by Express.
 const BACKEND_PORT = 8091;
 const APP_URL = `http://localhost:${BACKEND_PORT}`;
 const isDev = process.env.NODE_ENV === 'development';
 
+const ADMIN_PIN = process.env.ADMIN_PIN || null;
+const DEFAULT_PIN = "000000";
+const ADMIN_SHORTCUT = "CommandOrControl+Alt+Shift+X";
+
+const pinAttempts = { count: 0, lockedUntil: 0 };
+const PIN_MAX_ATTEMPTS = 5;
+const PIN_LOCKOUT_MS = 15 * 60 * 1000;
+
 let mainWindow;
 
 function createWindow() {
-    // Get primary display dimensions
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
 
     mainWindow = new BrowserWindow({
         width: width,
         height: height,
-        fullscreen: true, // Start in fullscreen for kiosk mode
-        frame: false, // Frameless for kiosk
-        kiosk: true, // Enable kiosk mode
-        alwaysOnTop: true, // Keep window on top
+        fullscreen: true,
+        frame: false,
+        kiosk: true,
+        alwaysOnTop: true,
+        title: "ClickFlash Touch Kiosk",
+        backgroundColor: '#1e293b',
+        show: false,
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
+            sandbox: true,
             preload: path.join(__dirname, 'preload.js'),
             webSecurity: true,
+            devTools: isDev,
         },
-        backgroundColor: '#1e293b', // Match app theme
-        show: false, // Don't show until ready
     });
 
-    // Load app via Express — dev + prod unified on port 8091
     mainWindow.loadURL(APP_URL);
     if (isDev) {
         mainWindow.webContents.openDevTools();
     }
 
-    // Show window when ready
     mainWindow.once('ready-to-show', () => {
         mainWindow.show();
         mainWindow.focus();
     });
 
-    // Prevent navigation away from app — allow only same Express origin
-    mainWindow.webContents.on('will-navigate', (event, url) => {
-        if (!url.startsWith(APP_URL)) {
-            event.preventDefault();
-        }
-    });
-
-    // Block keyboard shortcuts for Kiosk Mode
-    mainWindow.webContents.on('before-input-event', (event, input) => {
-        // Block DevTools (Ctrl+Shift+I, F12)
-        if ((input.control && input.shift && input.key.toLowerCase() === 'i') || input.key === 'F12') {
-            event.preventDefault();
-        }
-        // Block Reload (Ctrl+R, F5)
-        if ((input.control && input.key.toLowerCase() === 'r') || input.key === 'F5') {
-            event.preventDefault();
-        }
-        // Block Fullscreen Toggle (F11)
-        if (input.key === 'F11') {
-            event.preventDefault();
-        }
-        // Block Closing (Alt+F4)
-        if (input.alt && input.key.toLowerCase() === 'f4') {
-            event.preventDefault();
-        }
-    });
-
-    // Prevent new windows
-    mainWindow.webContents.setWindowOpenHandler(() => {
-        return { action: 'deny' };
-    });
-
     mainWindow.on('closed', () => {
         mainWindow = null;
     });
+
+    setupSecurity();
+    setupWindowEvents();
+    setupShortcuts();
 }
 
-// App lifecycle
+function setupSecurity() {
+    if (!mainWindow) return;
+    const wc = mainWindow.webContents;
+
+    wc.on('will-navigate', (event, url) => {
+        if (!url.startsWith(APP_URL) && !url.startsWith('data:') && !url.startsWith('file://')) {
+            console.warn('[Security] Blocked navigation:', url);
+            event.preventDefault();
+        }
+    });
+
+    wc.on('will-redirect', (event, url) => {
+        if (!url.startsWith(APP_URL) && !url.startsWith('data:') && !url.startsWith('file://')) {
+            console.warn('[Security] Blocked redirect:', url);
+            event.preventDefault();
+        }
+    });
+
+    wc.on('context-menu', (e) => e.preventDefault());
+
+    wc.on('before-input-event', (event, input) => {
+        const k = input.key.toLowerCase();
+        if (/^f(1[0-2]|[1-9])$/.test(k)) { event.preventDefault(); return; }
+        if (input.control && ['i', 'r', 'u', '=', '-', '0'].includes(k)) {
+            event.preventDefault(); return;
+        }
+        if (input.alt && k === 'f4') event.preventDefault();
+    });
+
+    wc.setWindowOpenHandler(() => ({ action: 'deny' }));
+}
+
+function setupWindowEvents() {
+    if (!mainWindow) return;
+
+    const crashTracker = { count: 0, windowStart: Date.now() };
+    const MAX_CRASHES = 3;
+    const CRASH_WINDOW = 60_000;
+
+    mainWindow.webContents.on('render-process-gone', (_e, details) => {
+        console.error('[Touch] Renderer crashed:', details.reason);
+
+        const now = Date.now();
+        if (now - crashTracker.windowStart > CRASH_WINDOW) {
+            crashTracker.count = 0;
+            crashTracker.windowStart = now;
+        }
+        crashTracker.count += 1;
+
+        if (crashTracker.count > MAX_CRASHES) {
+            console.error(`[Touch] Renderer crashed ${crashTracker.count} times — stopping auto-reload`);
+            if (!mainWindow.isDestroyed()) {
+                mainWindow.loadURL("data:text/html,<h2 style='font-family:sans-serif;padding:2rem;color:#fff;background:#1e293b;height:100vh;display:flex;align-items:center;justify-content:center;text-align:center'>ClickFlash Touch Kiosk encountered a fatal error.<br>Please restart the application.</h2>");
+            }
+            return;
+        }
+
+        setTimeout(() => {
+            if (!mainWindow || mainWindow.isDestroyed()) return;
+            mainWindow.reload();
+        }, 2000);
+    });
+
+    mainWindow.webContents.on('did-fail-load', (_e, code, desc) => {
+        console.error('[Touch] did-fail-load:', code, desc);
+    });
+}
+
+function setupShortcuts() {
+    globalShortcut.register(ADMIN_SHORTCUT, () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('kiosk:show-unlock-dialog');
+        }
+    });
+
+    const toBlock = ['Alt+Tab', 'Alt+F4', 'Escape', 'Super', 'Super+D', 'Super+Tab', 'Super+L', 'Super+E'];
+    for (const sc of toBlock) {
+        try { globalShortcut.register(sc, () => false); } catch (_) { }
+    }
+}
+
+function setupIpc() {
+    ipcMain.handle('exit-kiosk', () => {
+        if (mainWindow) {
+            mainWindow.setKiosk(false);
+            mainWindow.setFullScreen(false);
+            mainWindow.setAlwaysOnTop(false);
+        }
+        return { success: true };
+    });
+
+    ipcMain.handle('enter-kiosk', () => {
+        if (mainWindow) {
+            mainWindow.setKiosk(true);
+            mainWindow.setFullScreen(true);
+            mainWindow.setAlwaysOnTop(true);
+        }
+        return { success: true };
+    });
+
+    ipcMain.handle('get-app-version', () => app.getVersion());
+
+    ipcMain.handle('restart-app', () => {
+        app.relaunch();
+        app.exit(0);
+    });
+
+    ipcMain.handle('kiosk:unlock', (_e, pin) => {
+        const expected = ADMIN_PIN || (!app.isPackaged ? DEFAULT_PIN : null);
+
+        if (!expected) {
+            return { success: false, error: "Kiosk unlock not configured" };
+        }
+
+        const now = Date.now();
+        if (pinAttempts.lockedUntil > now) {
+            const secsLeft = Math.ceil((pinAttempts.lockedUntil - now) / 1000);
+            return { success: false, error: `Too many attempts. Try again in ${secsLeft}s` };
+        }
+
+        if (typeof pin !== 'string') pin = "";
+
+        let isValid = true;
+        if (pin.length !== expected.length) {
+            isValid = false;
+            crypto.timingSafeEqual(Buffer.alloc(expected.length), Buffer.alloc(expected.length));
+        } else {
+            isValid = crypto.timingSafeEqual(Buffer.from(pin, 'utf8'), Buffer.from(expected, 'utf8'));
+        }
+
+        if (!isValid) {
+            pinAttempts.count += 1;
+            if (pinAttempts.count >= PIN_MAX_ATTEMPTS) {
+                pinAttempts.lockedUntil = now + PIN_LOCKOUT_MS;
+                pinAttempts.count = 0;
+                return { success: false, error: "Too many attempts. Locked for 15 minutes" };
+            }
+            return { success: false, error: "Invalid PIN" };
+        }
+
+        pinAttempts.count = 0;
+        pinAttempts.lockedUntil = 0;
+
+        if (mainWindow) {
+            mainWindow.setKiosk(false);
+            mainWindow.setFullScreen(false);
+            mainWindow.setAlwaysOnTop(false);
+        }
+        return { success: true };
+    });
+
+    ipcMain.handle('kiosk:lock', () => {
+        if (mainWindow) {
+            mainWindow.setKiosk(true);
+            mainWindow.setFullScreen(true);
+            mainWindow.setAlwaysOnTop(true);
+        }
+        return { success: true };
+    });
+}
+
 app.whenReady().then(() => {
+    session.defaultSession.setContentSecurityPolicy({
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "blob:", "clickflash://"],
+            fontSrc: ["'self'", "data:"],
+            connectSrc: ["'self'", "http://localhost:*"],
+            frameSrc: ["'none'"],
+            objectSrc: ["'none'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"],
+        },
+    });
+
+    setupIpc();
     createWindow();
 
     app.on('activate', () => {
@@ -92,41 +247,27 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+    globalShortcut.unregisterAll();
     if (process.platform !== 'darwin') {
         app.quit();
     }
 });
 
-// IPC Handlers
-ipcMain.handle('exit-kiosk', () => {
-    if (mainWindow) {
-        mainWindow.setKiosk(false);
-        mainWindow.setFullScreen(false);
-    }
+app.on('before-quit', () => {
+    globalShortcut.unregisterAll();
 });
 
-ipcMain.handle('enter-kiosk', () => {
-    if (mainWindow) {
-        mainWindow.setKiosk(true);
-        mainWindow.setFullScreen(true);
-    }
-});
-
-ipcMain.handle('get-app-version', () => {
-    return app.getVersion();
-});
-
-ipcMain.handle('restart-app', () => {
-    app.relaunch();
-    app.exit(0);
-});
-
-// Disable hardware acceleration if needed for compatibility
-// app.disableHardwareAcceleration();
-
-// Security: Disable remote module
-app.on('web-contents-created', (event, contents) => {
-    contents.on('will-attach-webview', (event) => {
+app.on('web-contents-created', (_e, wc) => {
+    wc.setWindowOpenHandler(() => ({ action: 'deny' }));
+    wc.on('will-attach-webview', (event) => {
         event.preventDefault();
     });
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('[Touch] Uncaught exception:', err);
+});
+
+process.on('unhandledRejection', (reason) => {
+    console.error('[Touch] Unhandled promise rejection:', reason);
 });

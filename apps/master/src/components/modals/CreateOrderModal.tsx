@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useOptimistic } from 'react';
 import Modal from '../common/Modal.tsx';
 import { MOCK_PRODUCTS } from '../../constants.ts';
 import { Order, OrderItem, Product, Photographer } from '../../types.ts';
@@ -48,7 +48,6 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
 }) => {
   const [clientName, setClientName] = useState('');
   const [email, setEmail] = useState('');
-  const [items, setItems] = useState<OrderItem[]>([]);
   const [appliedDiscount, setAppliedDiscount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card'>('Cash');
   const [selectedPhotographerId, setSelectedPhotographerId] = useState(currentUser.id);
@@ -56,9 +55,25 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
   const createOrderMutation = useCreateOrder();
   const { data: photographers = [] } = usePhotographers();
 
+  const [optimisticItems, addOptimisticItem, removeOptimisticItem] = useOptimistic<OrderItem[]>(
+    [],
+    (state, action: { type: 'add'; item: OrderItem } | { type: 'remove'; id: string } | { type: 'update'; id: string; field: keyof OrderItem; value: string | number }) => {
+      switch (action.type) {
+        case 'add':
+          return [...state, action.item];
+        case 'remove':
+          return state.filter(item => item.id !== action.id);
+        case 'update':
+          return state.map(item => item.id === action.id ? { ...item, [action.field]: action.value } : item);
+        default:
+          return state;
+      }
+    }
+  );
+
   const subtotal = useMemo(() => {
-    return items.reduce((acc, item) => acc + item.quantity * item.price, 0);
-  }, [items]);
+    return optimisticItems.reduce((acc, item) => acc + item.quantity * item.price, 0);
+  }, [optimisticItems]);
 
   const total = useMemo(() => {
     return Math.max(0, subtotal - appliedDiscount);
@@ -72,21 +87,15 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
       quantity: 1,
       price: product.price
     };
-    setItems([...items, newItem]);
+    addOptimisticItem({ type: 'add', item: newItem });
   };
 
   const handleItemChange = (itemId: string, field: keyof OrderItem, value: string | number) => {
-    const updatedItems = items.map(item => {
-      if (item.id === itemId) {
-        return { ...item, [field]: value };
-      }
-      return item;
-    });
-    setItems(updatedItems);
+    addOptimisticItem({ type: 'update', id: itemId, field, value });
   };
 
   const handleRemoveItem = (itemId: string) => {
-    setItems(items.filter(item => item.id !== itemId));
+    removeOptimisticItem({ type: 'remove', id: itemId });
   };
 
   const handleCreateOrder = async () => {
@@ -101,13 +110,13 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
       return;
     }
 
-    if (items.length === 0) {
+    if (optimisticItems.length === 0) {
       showToast('Please add at least one item to the order.');
       return;
     }
 
     // Validate item quantities and prices
-    const invalidItems = items.filter(item =>
+    const invalidItems = optimisticItems.filter(item =>
       item.quantity <= 0 || item.price < 0 || !item.name
     );
     if (invalidItems.length > 0) {
@@ -137,7 +146,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
         status: 'Pending',
         total: total,
         photographerId: selectedPhotographerId,
-        items: items.map(item => ({
+        items: optimisticItems.map(item => ({
           id: item.id,
           name: item.name,
           format: item.format,
@@ -242,14 +251,14 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {items.length === 0 ? (
+                {optimisticItems.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="p-4 text-center text-slate-500">
                       No items added. Select a product below to add items.
                     </td>
                   </tr>
                 ) : (
-                  items.map(item => (
+                  optimisticItems.map(item => (
                     <tr key={item.id} className="border-b border-slate-200 dark:border-slate-700">
                       <td className="p-2">
                         <p>{item.name}</p>

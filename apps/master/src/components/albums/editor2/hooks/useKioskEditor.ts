@@ -14,6 +14,7 @@ export function useKioskEditor({ albumId, showToast }: UseKioskEditorProps) {
     new Set(),
   );
   const [isSendingToKiosk, setIsSendingToKiosk] = useState(false);
+  const [metadataOnly, setMetadataOnly] = useState(false);
 
   const handleOpenKioskModal = useCallback(async () => {
     try {
@@ -49,7 +50,7 @@ export function useKioskEditor({ albumId, showToast }: UseKioskEditorProps) {
           const kiosk = availableKiosks.find((k) => k.id === kId);
           const name = kiosk?.name || kId;
           try {
-            const res = await kioskService.sendAlbumToKiosk(albumId, kId);
+            const res = await kioskService.sendAlbumToKiosk(albumId, kId, undefined, metadataOnly);
             return {
               id: kId,
               name,
@@ -99,7 +100,7 @@ export function useKioskEditor({ albumId, showToast }: UseKioskEditorProps) {
     } finally {
       setIsSendingToKiosk(false);
     }
-  }, [albumId, selectedKioskIds, showToast]);
+  }, [albumId, selectedKioskIds, metadataOnly, showToast]);
 
   // Memoize handlers to prevent cascading re-renders
   const handlers = useMemo(
@@ -116,8 +117,10 @@ export function useKioskEditor({ albumId, showToast }: UseKioskEditorProps) {
     availableKiosks,
     selectedKioskIds,
     isSendingToKiosk,
+    metadataOnly,
     setIsKioskModalOpen,
     setSelectedKioskIds,
+    setMetadataOnly,
     handlers,
   };
 }

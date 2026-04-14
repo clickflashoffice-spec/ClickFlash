@@ -35,6 +35,14 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const { JWT_SECRET, ALLOWED_ORIGINS } = env;
+    
+    // SECURITY: Fail-fast if JWT_SECRET not configured
+    if (!JWT_SECRET) {
+      return new Response(
+        JSON.stringify({ error: "Configuration Error", message: "JWT_SECRET environment variable is required" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     // Parse allowed origins from config
     const allowedOrigins = ALLOWED_ORIGINS ? ALLOWED_ORIGINS.split(',').map(o => o.trim()) : [];
@@ -921,7 +929,7 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
 
         // Generate a signed URL valid for 1 hour
         const expiresAt = Math.floor(Date.now() / 1000) + 3600;
-        const secretKey = env.JWT_SECRET || "fallback_secret"; // Use same secret for HMAC
+        const secretKey = JWT_SECRET;
 
         const signaturePayload = `${photoId}:${expiresAt}:${secretKey}`;
         const encoder = new TextEncoder();
@@ -971,7 +979,14 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
             );
           }
 
-          const secretKey = env.JWT_SECRET || "fallback_secret";
+          if (!env.JWT_SECRET) {
+            return createErrorResponse(
+              500,
+              "InternalServerError",
+              "JWT_SECRET environment variable not configured.",
+            );
+          }
+          const secretKey = env.JWT_SECRET;
           const signaturePayload = `${id}:${expires}:${secretKey}`;
           const encoder = new TextEncoder();
           const keyMaterial = await crypto.subtle.importKey(

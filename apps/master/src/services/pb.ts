@@ -409,11 +409,17 @@ class CustomPocketBaseAdapter {
         }
 
         try {
-          const res = await this.request(`/api/collections/${name}/records`, {
-            method: "POST",
-            headers,
-            body,
-          });
+          // P0 Fix: Use 60s timeout for mutations to handle SQLite write pressure during bulk imports
+          const res = await this.request(
+            `/api/collections/${name}/records`,
+            {
+              method: "POST",
+              headers,
+              body,
+            },
+            0,
+            60000, // timeoutMs override
+          );
           if (!res.ok) {
             let errorMessage = `Create failed (HTTP ${res.status})`;
             let errorData: { message: string; [key: string]: unknown } = {
@@ -479,6 +485,7 @@ class CustomPocketBaseAdapter {
       },
       update: async (id: string, data: Partial<PocketRecord>) => {
         try {
+          // P0 Fix: Use 60s timeout for mutations to handle SQLite write pressure
           const res = await this.request(
             `/api/collections/${name}/records/${id}`,
             {
@@ -486,6 +493,8 @@ class CustomPocketBaseAdapter {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(data),
             },
+            0,
+            60000, // timeoutMs override
           );
           if (!res.ok) {
             let errorMessage = "Update failed";

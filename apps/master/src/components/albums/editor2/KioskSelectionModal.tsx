@@ -16,6 +16,8 @@ interface KioskSelectionModalProps {
     onClearAll: () => void;
     onConfirm: () => void;
     onCancel: () => void;
+    metadataOnly: boolean;
+    onMetadataOnlyChange: (value: boolean) => void;
 }
 
 export const KioskSelectionModal: React.FC<KioskSelectionModalProps> = ({
@@ -28,6 +30,8 @@ export const KioskSelectionModal: React.FC<KioskSelectionModalProps> = ({
     onClearAll,
     onConfirm,
     onCancel,
+    metadataOnly,
+    onMetadataOnlyChange,
 }) => {
     if (!isOpen) return null;
     
@@ -95,6 +99,19 @@ export const KioskSelectionModal: React.FC<KioskSelectionModalProps> = ({
                     )}
                 </div>
                 
+                <div className="mb-4">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            checked={metadataOnly}
+                            onChange={(e) => onMetadataOnlyChange(e.target.checked)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className={`text-sm ${theme.text}`}>Sync metadata only (skip photos)</span>
+                    </label>
+                    <p className={`text-xs ${theme.subtext} ml-6 mt-1`}>Faster sync if photos are already on the kiosk.</p>
+                </div>
+
                 <p className={`text-xs ${theme.subtext} mb-6`}>
                     Selected: <strong>{selectedKioskIds.size}</strong> kiosk(s)
                 </p>

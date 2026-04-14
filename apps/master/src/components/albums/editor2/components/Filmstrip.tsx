@@ -193,6 +193,8 @@ interface FilmstripThumbnailItemProps {
   edit: ManualEdits | undefined;
   onSetActivePhoto: (id: string) => void;
   onToggleSelection: (id: string) => void;
+  onSetAsCover?: (id: string) => void;
+  isCover?: boolean;
 }
 
 const FilmstripThumbnailItem: React.FC<FilmstripThumbnailItemProps> = ({
@@ -203,7 +205,13 @@ const FilmstripThumbnailItem: React.FC<FilmstripThumbnailItemProps> = ({
   edit,
   onSetActivePhoto,
   onToggleSelection,
+  onSetAsCover,
+  isCover,
 }) => {
+  const [showContextMenu, setShowContextMenu] = useState(false);
+  const [contextMenuPos, setContextMenuPos] = useState({ x: 0, y: 0 });
+  const contextMenuRef = useRef<HTMLDivElement>(null);
+
   const handleClick = useCallback(() => {
     onSetActivePhoto(photo.id);
   }, [onSetActivePhoto, photo.id]);
@@ -216,16 +224,75 @@ const FilmstripThumbnailItem: React.FC<FilmstripThumbnailItemProps> = ({
     [onToggleSelection, photo.id],
   );
 
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setContextMenuPos({ x: e.clientX, y: e.clientY });
+      setShowContextMenu(true);
+    },
+    [],
+  );
+
+  const handleCloseContextMenu = useCallback(() => {
+    setShowContextMenu(false);
+  }, []);
+
+  const handleSetAsCover = useCallback(() => {
+    onSetAsCover?.(photo.id);
+    handleCloseContextMenu();
+  }, [onSetAsCover, photo.id, handleCloseContextMenu]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(e.target as Node)) {
+        handleCloseContextMenu();
+      }
+    };
+    if (showContextMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showContextMenu, handleCloseContextMenu]);
+
   return (
-    <FilmstripThumbnail
-      photo={photo}
-      isActive={isActive}
-      isSelected={isSelected}
-      isDirty={isDirty}
-      edit={edit}
-      onClick={handleClick}
-      onToggleSelection={handleToggleSelection}
-    />
+    <>
+      <div className="relative" onContextMenu={handleContextMenu}>
+        {isCover && (
+          <div className="absolute -top-1 -left-1 z-10 bg-yellow-400 text-black text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+            COVER
+          </div>
+        )}
+        <FilmstripThumbnail
+          photo={photo}
+          isActive={isActive}
+          isSelected={isSelected}
+          isDirty={isDirty}
+          edit={edit}
+          onClick={handleClick}
+          onToggleSelection={handleToggleSelection}
+        />
+      </div>
+
+      {/* P3-D4 Fix: Context menu for "Set as Cover" */}
+      {showContextMenu && (
+        <div
+          ref={contextMenuRef}
+          className="fixed z-50 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl py-1 min-w-[160px] animate-in fade-in zoom-in-95"
+          style={{ top: contextMenuPos.y, left: contextMenuPos.x }}
+        >
+          <button
+            onClick={handleSetAsCover}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center gap-2 text-gray-700 dark:text-slate-200"
+          >
+            <span className="text-yellow-500">⭐</span>
+            Set as Cover
+          </button>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -353,6 +420,7 @@ interface FilmstripProps {
   selectedPhotoIds: Set<string>;
   dirtyPhotoIds: Set<string>;
   edits: Record<string, ManualEdits>;
+  coverPhotoId?: string | null;
   onSetActivePhoto: (id: string) => void;
   onToggleSelection: (id: string) => void;
   onSelectAll: () => void;
@@ -366,6 +434,7 @@ const FilmstripComponent: React.FC<FilmstripProps> = ({
   selectedPhotoIds,
   dirtyPhotoIds,
   edits,
+  coverPhotoId,
   onSetActivePhoto,
   onToggleSelection,
   onSelectAll,
@@ -439,12 +508,12 @@ const FilmstripComponent: React.FC<FilmstripProps> = ({
       {/* Right-click context menu */}
       {contextMenu && (
         <div
-          className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1 min-w-[160px]"
+          className="fixed z-50 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl py-1 min-w-[160px]"
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center gap-2"
             onClick={() => {
               onSetCover?.(contextMenu.photo);
               closeContextMenu();

@@ -19,7 +19,8 @@ export interface ValidationResult {
 }
 
 /**
- * Get default user credentials from environment or generate secure defaults
+ * Get default user credentials from environment
+ * SECURITY: Throws if DEFAULT_ADMIN_PASSWORD is not set in production
  */
 export function getDefaultUserConfig(): DefaultUserConfig {
     const password = process.env.DEFAULT_ADMIN_PASSWORD || generateSecurePassword();

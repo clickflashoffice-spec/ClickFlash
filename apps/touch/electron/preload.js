@@ -1,24 +1,43 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Expose protected methods that allow the renderer process to use
-// ipcRenderer without exposing the entire object
+const INVOKE_CHANNELS = [
+    'exit-kiosk',
+    'enter-kiosk',
+    'get-app-version',
+    'restart-app',
+    'kiosk:unlock',
+    'kiosk:lock',
+];
+
+const ON_CHANNELS = [
+    'kiosk:show-unlock-dialog',
+];
+
 contextBridge.exposeInMainWorld('electron', {
-    // Kiosk controls
+    invoke: (channel, ...args) => {
+        if (!INVOKE_CHANNELS.includes(channel)) {
+            throw new Error(`[Preload] Blocked IPC channel: ${channel}`);
+        }
+        return ipcRenderer.invoke(channel, ...args);
+    },
+    on: (channel, callback) => {
+        if (!ON_CHANNELS.includes(channel)) return;
+        const handler = (_event, ...args) => callback(...args);
+        ipcRenderer.on(channel, handler);
+        return () => ipcRenderer.removeListener(channel, handler);
+    },
     exitKiosk: () => ipcRenderer.invoke('exit-kiosk'),
     enterKiosk: () => ipcRenderer.invoke('enter-kiosk'),
-
-    // App info
     getAppVersion: () => ipcRenderer.invoke('get-app-version'),
-
-    // App controls
     restartApp: () => ipcRenderer.invoke('restart-app'),
-
-    // Platform info
+    kiosk: {
+        unlock: (pin) => ipcRenderer.invoke('kiosk:unlock', pin),
+        lock: () => ipcRenderer.invoke('kiosk:lock'),
+    },
     platform: process.platform,
     isElectron: true,
 });
 
-// Expose a safe API for the touch app
 contextBridge.exposeInMainWorld('touchApp', {
     isDesktop: true,
     platform: process.platform,

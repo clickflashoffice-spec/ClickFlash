@@ -39,6 +39,12 @@ chrono = { version = "0.4", features = ["serde"] }
 mime_guess = "2"
 dirs = "5"
 
+# Encryption
+aes-gcm = "0.10"
+rand = "0.8"
+sha2 = "0.10"
+base64 = "0.22"
+
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-single-instance = "2"
 

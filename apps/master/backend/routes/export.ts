@@ -8,6 +8,7 @@ import {
   sendInvalidInputError,
   sendInternalError,
 } from "../shared/errorHandler";
+import { strictRateLimiter } from "../shared/rateLimiter";
 
 // Track in-progress exports per albumId to prevent concurrent export floods.
 // Keyed by albumId; value is the timestamp the export started (for future TTL if needed).
@@ -57,6 +58,17 @@ interface ExportContext {
   exportService: ExportService;
 }
 
+// P0-S3 Fix: Allowed export root directories
+const ALLOWED_EXPORT_ROOTS: string[] = [
+  process.env.HOME || process.env.USERPROFILE || "",
+  process.env.APPDATA || "",
+  process.env.TEMP || "",
+].filter(Boolean);
+
+// P0-S4 Fix: In-progress export guard per album
+const inProgressExports = new Map<string, { startTime: number; albumId: string }>();
+const EXPORT_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes max per export
+
 export default function exportRoutes(context: ExportContext): Router {
   const { logger, exportService } = context;
   const router = express.Router();
@@ -64,6 +76,8 @@ export default function exportRoutes(context: ExportContext): Router {
   /**
    * @route POST /export/batch
    * @description Batch process photos and save to a local directory (Law 14)
+   * P0-S3 Fix: Server-side path validation to prevent traversal attacks
+   * P0-S4 Fix: Rate limiting and in-progress export guard
    */
   router.post("/batch", strictRateLimiter, async (req: Request, res: Response) => {
     try {

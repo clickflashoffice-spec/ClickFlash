@@ -53,7 +53,9 @@ contextBridge.exposeInMainWorld("electron", {
     },
     on: (channel, callback) => {
       if (!ON_CHANNELS.includes(channel)) return;
-      ipcRenderer.on(channel, (_event, ...args) => callback(_event, ...args));
+      const handler = (_event, ...args) => callback(_event, ...args);
+      ipcRenderer.on(channel, handler);
+      return () => ipcRenderer.removeListener(channel, handler);
     },
   },
 });

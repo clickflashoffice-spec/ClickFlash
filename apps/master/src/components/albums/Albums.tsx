@@ -5,6 +5,7 @@ import React, {
   useCallback,
   Suspense,
   lazy,
+  useTransition,
 } from "react";
 import { VirtuosoGrid } from "react-virtuoso";
 import styled from "@emotion/styled";
@@ -913,9 +914,10 @@ const useBulkSelection = (albumIds: string[]) => {
 };
 
 /**
- * Custom hook for album filtering
+ * Custom hook for album filtering with React 19 useTransition
  */
 const useAlbumFilters = (canManageAll: boolean, currentUserId?: string) => {
+  const [isPending, startTransition] = useTransition();
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [selectedPhotographer, setSelectedPhotographer] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<AlbumStatus>("all");
@@ -933,10 +935,12 @@ const useAlbumFilters = (canManageAll: boolean, currentUserId?: string) => {
   }, [dateRange, selectedPhotographer, selectedStatus, searchTerm]);
 
   const clearFilters = useCallback(() => {
-    setDateRange({ start: "", end: "" });
-    setSelectedPhotographer("");
-    setSelectedStatus("all");
-    setSearchTerm("");
+    startTransition(() => {
+      setDateRange({ start: "", end: "" });
+      setSelectedPhotographer("");
+      setSelectedStatus("all");
+      setSearchTerm("");
+    });
     logger.info("Cleared all filters");
   }, []);
 
@@ -996,14 +1000,15 @@ const useAlbumFilters = (canManageAll: boolean, currentUserId?: string) => {
   );
 
   return {
+    isPending,
     dateRange,
-    setDateRange,
+    setDateRange: (value: { start: string; end: string }) => startTransition(() => setDateRange(value)),
     selectedPhotographer,
-    setSelectedPhotographer,
+    setSelectedPhotographer: (value: string) => startTransition(() => setSelectedPhotographer(value)),
     selectedStatus,
-    setSelectedStatus,
+    setSelectedStatus: (value: AlbumStatus) => startTransition(() => setSelectedStatus(value)),
     searchTerm,
-    setSearchTerm,
+    setSearchTerm: (value: string) => startTransition(() => setSearchTerm(value)),
     debouncedSearchTerm,
     hasFilters,
     clearFilters,
@@ -1155,6 +1160,7 @@ const Albums: React.FC<AlbumsProps> = ({
 
   // Filter hook
   const {
+    isPending: isFiltering,
     dateRange,
     setDateRange,
     selectedPhotographer,

@@ -49,7 +49,7 @@ export default function operationsRoutes(context: OperationsContext): Router {
    */
   router.post("/kiosk/send-album", async (req: Request, res: Response) => {
     try {
-      const { albumId, kioskId, photoIds } = req.body;
+      const { albumId, kioskId, photoIds, metadataOnly } = req.body;
       if (!albumId) throw new Error("Album ID is required");
 
       const destinations = new Set<string>();
@@ -72,7 +72,7 @@ export default function operationsRoutes(context: OperationsContext): Router {
       }
 
       const transferService = new TransferService({ dbManager, logger, wss: context.wss });
-      const jobIds = await transferService.enqueueTransfer(albumId, destinations, photoIds);
+      const jobIds = await transferService.enqueueTransfer(albumId, destinations, photoIds, metadataOnly);
       res.json({ success: true, message: "Transfer started", jobIds });
     } catch (e) {
       const error = e instanceof Error ? e : new Error(String(e));

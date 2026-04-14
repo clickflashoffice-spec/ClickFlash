@@ -301,5 +301,130 @@ export default function authRoutes(context: AppContext) {
     }
   });
 
+  /**
+   * @route DELETE /me
+   * @description Delete user account and all associated data (GDPR Art. 17 - Right to Deletion)
+   * @access Requires authentication
+   */
+  router.delete("/me", async (req: Request, res: Response) => {
+    const sessionUser = (req.session as any)?.user || (req as any).user;
+    if (!sessionUser || !sessionUser.id) {
+      sendAuthError(res, "Not authenticated");
+      return;
+    }
+
+    try {
+      const userId = sessionUser.id;
+
+      const user = dbManager.get<User>(
+        "SELECT id, email, role FROM users WHERE id = ?",
+        [userId],
+      );
+      if (!user) {
+        sendAuthError(res, "User not found");
+        return;
+      }
+
+      if (user.role === "admin") {
+        sendValidationError(res, "Admin accounts cannot be deleted via self-service");
+        return;
+      }
+
+      dbManager.transaction(() => {
+        dbManager.run("DELETE FROM sessions WHERE user_id = ?", [userId]);
+        dbManager.run("DELETE FROM consent_records WHERE user_id = ?", [userId]);
+        dbManager.run("DELETE FROM audit_logs WHERE user_id = ?", [userId]);
+        dbManager.run("DELETE FROM orders WHERE customer_email = ?", [user.email]);
+        dbManager.run("DELETE FROM gallery_customers WHERE email = ?", [user.email]);
+        dbManager.run("DELETE FROM users WHERE id = ?", [userId]);
+      });
+
+      auditLogger.log({
+        action: "USER_ACCOUNT_DELETION",
+        details: `User account ${user.email} deleted by user (self-service)`,
+        userId: userId,
+      });
+
+      if (req.session) {
+        req.session.destroy((err: any) => {});
+      }
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ 
+        success: true, 
+        message: "Your account and all associated data have been deleted" 
+      }));
+    } catch (e) {
+      const error = e instanceof Error ? e : new Error(String(e));
+      logger.error("Account deletion error", {
+        error: error.message,
+        stack: error.stack,
+      });
+      sendInternalError(res, error, "account deletion endpoint");
+    }
+  });
+
+  /**
+   * @route POST /me/export
+   * @description Export user data for data portability (GDPR Art. 20)
+   * @access Requires authentication
+   */
+  router.post("/me/export", async (req: Request, res: Response) => {
+    const sessionUser = (req.session as any)?.user || (req as any).user;
+    if (!sessionUser || !sessionUser.id) {
+      sendAuthError(res, "Not authenticated");
+      return;
+    }
+
+    try {
+      const userId = sessionUser.id;
+      const user = dbManager.get<User>(
+        "SELECT id, email, name, role, created_at FROM users WHERE id = ?",
+        [userId],
+      );
+
+      if (!user) {
+        sendAuthError(res, "User not found");
+        return;
+      }
+
+      const consents = dbManager.query(
+        "SELECT * FROM consent_records WHERE user_id = ?",
+        [userId],
+      );
+
+      const orders = dbManager.query(
+        "SELECT * FROM orders WHERE customer_email = ?",
+        [user.email],
+      );
+
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          createdAt: user.created_at,
+        },
+        consents: consents || [],
+        orders: orders || [],
+      };
+
+      res.writeHead(200, {
+        "Content-Type": "application/json",
+        "Content-Disposition": `attachment; filename="my-data-export-${new Date().toISOString().split('T')[0]}.json"`,
+      });
+      res.end(JSON.stringify(exportData, null, 2));
+    } catch (e) {
+      const error = e instanceof Error ? e : new Error(String(e));
+      logger.error("Data export error", {
+        error: error.message,
+        stack: error.stack,
+      });
+      sendInternalError(res, error, "data export endpoint");
+    }
+  });
+
   return router;
 }

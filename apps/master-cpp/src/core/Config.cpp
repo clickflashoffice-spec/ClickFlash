@@ -102,7 +102,7 @@ void Config::updateSettings(const QJsonObject& settings) {
     save();
 
     for (auto it = settings.begin(); it != settings.end(); ++it) {
-        emit settingChanged(it.key(), it.value().toVariant());
+        Q_EMIT settingChanged(it.key(), it.value().toVariant());
     }
 }
 

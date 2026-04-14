@@ -15,14 +15,27 @@
  *  4. Load renderer via http://localhost:8090
  */
 
-"use strict";
-
-const { app, BrowserWindow, ipcMain, globalShortcut, dialog } = require("electron");
+const { app, BrowserWindow, ipcMain, globalShortcut, dialog, protocol, net, session } = require("electron");
 const path   = require("path");
 const fs     = require("fs");
 const http   = require("http");
 const crypto = require("crypto");
 const { fork, spawn } = require("child_process");
+
+// ─── Protocol Registration ────────────────────────────────────────────────────
+// Must be called before app.whenReady()
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "clickflash",
+    privileges: {
+      secure: true,
+      standard: true,
+      supportFetchAPI: true,
+      allowServiceWorkers: true,
+      bypassCSP: true,
+    },
+  },
+]);
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -36,13 +49,13 @@ const POLL_INTERVAL  = 300;    // ms between health polls
 const APP_URL = `http://localhost:${BACKEND_PORT}`;
 
 const ADMIN_PIN      = process.env.ADMIN_PIN || null;
+const DEFAULT_PIN    = "000000";
 const ADMIN_SHORTCUT = "CommandOrControl+Alt+Shift+X";
 
 // PIN brute-force protection — track failed attempts in memory
 const pinAttempts = { count: 0, lockedUntil: 0 };
 const PIN_MAX_ATTEMPTS = 5;
 const PIN_LOCKOUT_MS   = 15 * 60 * 1000; // 15 minutes
-
 // ─── State ────────────────────────────────────────────────────────────────────
 
 /** @type {BrowserWindow | null} */
@@ -105,7 +118,6 @@ function startBackend() {
     }
   });
 }
-
 /** Poll /api/health. Resolves true on success, false on timeout. */
 function waitForBackend(deadline = Date.now() + HEALTH_TIMEOUT) {
   return new Promise((resolve) => {
@@ -259,7 +271,7 @@ function setupSecurity(win) {
   const wc = win.webContents;
 
   function isAllowedUrl(url) {
-    if (url.startsWith("file://") || url.startsWith("data:")) return true;
+    if (url.startsWith("file://") || url.startsWith("data:") || url.startsWith("clickflash://")) return true;
     try {
       const { hostname } = new URL(url);
       return hostname === "localhost" || hostname === "127.0.0.1";
@@ -415,7 +427,23 @@ function setupIpc() {
       return { success: false, error: `Too many attempts. Try again in ${secsLeft}s` };
     }
 
-    if (pin !== expected) {
+    if (typeof pin !== 'string') {
+      pin = "";
+    }
+
+    let isValid = true;
+    if (pin.length !== expected.length) {
+      isValid = false;
+      // dummy compare to maintain constant time-ish behavior
+      const dummy = Buffer.alloc(expected.length);
+      require('crypto').timingSafeEqual(dummy, dummy);
+    } else {
+      const pinBuffer = Buffer.from(pin, 'utf8');
+      const expectedBuffer = Buffer.from(expected, 'utf8');
+      isValid = require('crypto').timingSafeEqual(pinBuffer, expectedBuffer);
+    }
+
+    if (!isValid) {
       pinAttempts.count += 1;
       console.warn(`[IPC] kiosk:unlock — wrong PIN (attempt ${pinAttempts.count}/${PIN_MAX_ATTEMPTS})`);
       if (pinAttempts.count >= PIN_MAX_ATTEMPTS) {
@@ -526,9 +554,55 @@ if (!gotLock) {
 
 app.on("web-contents-created", (_e, wc) => {
   wc.setWindowOpenHandler(() => ({ action: "deny" }));
+  wc.on("will-attach-webview", (event) => {
+    event.preventDefault();
+  });
 });
 
 app.whenReady().then(() => {
+  // ─── Content Security Policy ────────────────────────────────────────────────
+  session.defaultSession.setContentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "blob:", "clickflash://"],
+      fontSrc: ["'self'", "data:"],
+      connectSrc: ["'self'", "http://localhost:*"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+    },
+  });
+
+  // ─── Custom Protocol Handler ────────────────────────────────────────────────
+  protocol.handle("clickflash", (request) => {
+    try {
+      // url like clickflash://uploads/album1/photo.jpg
+      const url = new URL(request.url);
+      const relativePath = decodeURIComponent(url.pathname.startsWith("/") ? url.pathname.slice(1) : url.pathname);
+      const dataDir = getDataDir();
+      
+      // Industrial Hardening: Strict path sanitization to prevent directory traversal
+      const fullPath = path.normalize(path.join(dataDir, relativePath));
+      
+      if (!fullPath.startsWith(dataDir)) {
+        console.error("[Security] clickflash:// Directory traversal attempt:", fullPath);
+        return new Response("Access Denied", { status: 403 });
+      }
+
+      if (!fs.existsSync(fullPath)) {
+        return new Response("Not Found", { status: 404 });
+      }
+
+      return net.fetch("file://" + fullPath);
+    } catch (err) {
+      console.error("[Protocol] clickflash:// error:", err);
+      return new Response("Internal Error", { status: 500 });
+    }
+  });
+
   setupShortcuts();
   setupIpc();
   startBackend();

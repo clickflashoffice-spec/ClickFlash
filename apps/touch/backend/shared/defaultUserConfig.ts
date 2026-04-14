@@ -19,13 +19,31 @@ export interface ValidationResult {
 }
 
 /**
- * Get default user credentials from environment or generate secure defaults
+ * Get default user credentials from environment
+ * SECURITY: Throws if DEFAULT_ADMIN_PASSWORD is not set in production
  */
 export function getDefaultUserConfig(): DefaultUserConfig {
+    const email = process.env.DEFAULT_ADMIN_EMAIL || 'alaeddine@example.com';
+    const password = process.env.DEFAULT_ADMIN_PASSWORD;
+    
+    if (!password) {
+        if (isProduction()) {
+            throw new Error('FATAL: DEFAULT_ADMIN_PASSWORD environment variable is required in production. Cannot start without secure admin credentials.');
+        }
+        console.warn('[Security] DEFAULT_ADMIN_PASSWORD not set. Using insecure default. This is only acceptable in development.');
+        return {
+            name: process.env.DEFAULT_ADMIN_NAME || 'Alaeddine',
+            email,
+            password: 'DEFAULT_PASSWORD_PLACEHOLDER',
+            role: 'Admin',
+            password_must_change: 1
+        };
+    }
+    
     return {
         name: process.env.DEFAULT_ADMIN_NAME || 'Alaeddine',
-        email: process.env.DEFAULT_ADMIN_EMAIL || 'alaeddine@example.com',
-        password: process.env.DEFAULT_ADMIN_PASSWORD || 'DEFAULT_PASSWORD_PLACEHOLDER',
+        email,
+        password,
         role: 'Admin',
         password_must_change: 1
     };

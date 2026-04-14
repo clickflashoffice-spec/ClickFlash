@@ -8,12 +8,76 @@ import { ArchiveService } from "./ArchiveService";
 import { ResourceMonitor } from "../shared/ResourceMonitor";
 import { tunnelManager } from "./TunnelManager";
 import { ResortAnalyticsService } from "./ResortAnalyticsService";
+import { AuditService } from "./auditService";
 import { TABLE_MAP, ALLOWED_COLUMNS } from "../config/constants";
+import { executeWithRetry } from "../shared/networkUtils";
+import { timeService } from "../shared/timeService";
+import { Order } from "../types/shared";
+import crypto from "crypto";
 
 interface SyncConfig {
   enabled: boolean;
   retentionDays: number;
   price: string;
+}
+
+interface RemoteOperation {
+  id: string;
+  table_name?: string;
+  table?: string;
+  record_id?: string;
+  payload?: string | Record<string, unknown>;
+  type: 'INSERT' | 'UPDATE' | 'DELETE';
+  desk_id?: string;
+  sequence_number?: number;
+  hub_index?: number;
+  retry_count?: number;
+}
+
+interface OperationResult {
+  success: boolean;
+  error?: string;
+}
+
+interface CloudApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+interface EmailService {
+  setCloudConfig: (url: string, token: string) => void;
+}
+
+interface OutgoingOperation {
+  id: string;
+  type: string;
+  table_name?: string;
+  record_id?: string;
+  payload?: unknown;
+  timestamp?: string;
+  sequence_number?: number;
+}
+
+interface OperationLogRow {
+  id: string;
+  type: string;
+  table_name: string;
+  record_id: string;
+  payload: string | Record<string, unknown>;
+  timestamp: string;
+  sequence_number: number;
+}
+
+function isErrorWithMessage(err: unknown): err is { message: string } {
+  return typeof err === 'object' && err !== null && 'message' in err;
+}
+
+function getErrorMessage(err: unknown): string {
+  if (isErrorWithMessage(err)) {
+    return err.message;
+  }
+  return String(err);
 }
 
 // Use global fetch (Node 18+)
@@ -25,6 +89,13 @@ const MAX_SYNC_INTERVAL = 1000 * 60 * 30; // 30 Minutes
 const BACKOFF_FACTOR = 1.5;
 const RETENTION_CHECK_INTERVAL = 1000 * 60 * 60 * 24; // Once a day
 const CHUNK_SIZE = 1024 * 1024 * 1; // 1MB chunks for stability
+const MAX_OPERATION_RETRIES = 5;
+const DLQ_STATUS = 'dead_letter';
+const JITTER_FACTOR = 0.3;
+const MAX_CONSECUTIVE_FAILURES = 10;
+const CIRCUIT_BREAKER_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+
+type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
 
 export class CloudSyncService {
   private logger: Logger;
@@ -39,6 +110,9 @@ export class CloudSyncService {
   private resortAnalytics: ResortAnalyticsService | null = null;
   private consecutiveFailures = 0;
   private currentInterval = MIN_SYNC_INTERVAL;
+  private auditService: AuditService;
+  private circuitState: CircuitState = 'CLOSED';
+  private circuitOpenedAt: number | null = null;
 
   // Config
   // SECURITY: All cloud credentials can be set via environment variables (Bootstrap)
@@ -131,7 +205,7 @@ export class CloudSyncService {
   constructor(
     dbManager: DatabaseManager,
     logger: Logger,
-    emailService: any,
+    emailService: EmailService,
     resourceMonitor: ResourceMonitor | null = null,
     resortAnalytics: ResortAnalyticsService | null = null,
   ) {
@@ -140,6 +214,9 @@ export class CloudSyncService {
     this.emailService = emailService;
     this.resourceMonitor = resourceMonitor;
     this.resortAnalytics = resortAnalytics;
+
+    // Initialize audit service
+    this.auditService = new AuditService(logger, dbManager);
 
     // Default Upload Dir calculation based on env or relative path
     const dataDir = process.env.DATA_DIR || path.join(process.cwd(), "pb_data");
@@ -152,8 +229,8 @@ export class CloudSyncService {
         this.cloudPassword &&
         this.cloudApiUrl
       );
-    } catch (e: any) {
-      this.logger.debug(`[CloudSync] Enrollment Check Failed: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.debug(`[CloudSync] Enrollment Check Failed: ${getErrorMessage(e)}`);
       this.enabled = false;
     }
 
@@ -268,8 +345,8 @@ export class CloudSyncService {
           "SELECT value FROM settings WHERE key = 'remote_settings_hash'",
         );
         if (row?.value) lastHash = row.value;
-      } catch (e: any) {
-        this.logger.debug(`[CloudSync] remote_settings_hash not found: ${e.message}`);
+      } catch (e: unknown) {
+        this.logger.debug(`[CloudSync] remote_settings_hash not found: ${getErrorMessage(e)}`);
       }
 
       const res = await fetchFn(
@@ -302,7 +379,7 @@ export class CloudSyncService {
              ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
             [setting.id, setting.value],
           );
-        } catch (e: any) {
+        } catch (e: unknown) {
           this.logger.warn("[CloudSync] Failed to apply remote setting", {
             key: setting.id,
             error: e.message,
@@ -320,7 +397,7 @@ export class CloudSyncService {
       this.logger.info("[CloudSync] Remote settings applied successfully", {
         hash: data.hash,
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Silently swallow — Hub may be unreachable during offline operation (Law 01)
     }
   }
@@ -338,6 +415,9 @@ export class CloudSyncService {
       `[CloudSync] Service started.Target: ${this.cloudApiUrl} (Desk: ${this.deskId})`,
     );
 
+    // P2-Audit Fix: Hydrate queue state before starting sync
+    this.hydrateQueueState();
+
     // Initial Cycle
     this.scheduleNextSync(1000); // Start in 1 second
 
@@ -349,11 +429,54 @@ export class CloudSyncService {
     );
   }
 
+  private hydrateQueueState(): void {
+    try {
+      const pendingOps = this.dbManager.query(`
+        SELECT COUNT(*) as count FROM operation_logs WHERE status = 'pending'
+      `);
+      const pendingCount = pendingOps[0]?.count || 0;
+
+      const failedOps = this.dbManager.query(`
+        SELECT COUNT(*) as count FROM operation_logs WHERE status = 'failed'
+      `);
+      const failedCount = failedOps[0]?.count || 0;
+
+      const dlqOps = this.dbManager.query(`
+        SELECT COUNT(*) as count FROM operation_logs WHERE status = ?
+      `, [DLQ_STATUS]);
+      const dlqCount = dlqOps[0]?.count || 0;
+
+      this.logger.info(
+        `[CloudSync] Boot hydration: ${pendingCount} pending, ${failedCount} failed, ${dlqCount} dead_letter operations`,
+      );
+
+      const resetResult = this.dbManager.run(`
+        UPDATE operation_logs
+        SET status = 'pending', retry_count = 0
+        WHERE status = 'failed'
+        AND updated_at < datetime('now', '-1 hour')
+      `);
+      if (resetResult.changes > 0) {
+        this.logger.info(
+          `[CloudSync] Reset ${resetResult.changes} stuck operations to pending`,
+        );
+      }
+    } catch (err) {
+      this.logger.warn('[CloudSync] Queue hydration failed:', err);
+    }
+  }
+
   private scheduleNextSync(ms?: number) {
     if (this.timer) clearTimeout(this.timer);
     if (this.isPaused) return;
 
-    const delay = ms ?? this.currentInterval;
+    let delay = ms ?? this.currentInterval;
+    
+    if (!ms && this.currentInterval > MIN_SYNC_INTERVAL) {
+      const jitter = delay * JITTER_FACTOR * (Math.random() - 0.5);
+      delay = Math.max(MIN_SYNC_INTERVAL, Math.min(MAX_SYNC_INTERVAL, delay + jitter));
+    }
+
     this.timer = setTimeout(() => this.sync(), delay);
     this.logger.debug(`[CloudSync] Next sync scheduled in ${Math.round(delay / 1000)}s`);
   }
@@ -380,17 +503,22 @@ export class CloudSyncService {
 
     try {
       const machineId = await HardwareService.getMachineId();
-      const res = await fetchFn(`${this.cloudApiUrl}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: this.cloudEmail,
-          password: this.cloudPassword,
-          machine_id: machineId,
-        }),
-      });
+      const res = await executeWithRetry(async () => {
+        return await fetchFn(`${this.cloudApiUrl}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: this.cloudEmail,
+            password: this.cloudPassword,
+            machine_id: machineId,
+          }),
+        });
+      }, { maxRetries: 3 });
 
       if (res.ok) {
+        // --- NTP Drift Correction (Law 01/Law 02) ---
+        timeService.updateDrift(res.headers.get("Date"));
+
         const data = (await res.json()) as { token: string };
         this.token = data.token;
         this._isConnected = true;
@@ -415,8 +543,8 @@ export class CloudSyncService {
         this.token = null;
         this._isConnected = false;
       }
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Auth Error: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Auth Error: ${getErrorMessage(e)}`);
       this.token = null;
       this._isConnected = false;
     }
@@ -425,6 +553,20 @@ export class CloudSyncService {
   public async sync() {
     if (this.isPaused) return;
     if (this.isSyncing) return;
+
+    // Circuit Breaker: Check if we should allow sync attempts
+    if (this.circuitState === 'OPEN') {
+      const timeSinceOpen = Date.now() - (this.circuitOpenedAt || 0);
+      if (timeSinceOpen < CIRCUIT_BREAKER_TIMEOUT) {
+        this.logger.debug(`[CloudSync] Circuit breaker OPEN - skipping sync (${Math.round((CIRCUIT_BREAKER_TIMEOUT - timeSinceOpen) / 1000)}s remaining)`);
+        this.scheduleNextSync(CIRCUIT_BREAKER_TIMEOUT - timeSinceOpen);
+        return;
+      } else {
+        this.logger.info('[CloudSync] Circuit breaker transitioning to HALF_OPEN');
+        this.circuitState = 'HALF_OPEN';
+      }
+    }
+
     this.isSyncing = true;
     try {
       await this.authenticate();
@@ -432,7 +574,7 @@ export class CloudSyncService {
 
       // --- Phase 13/32: Parallelized Intent Synchronization ---
       // We run these in parallel so a slow order poll doesn't block intent pushing.
-      await Promise.allSettled([
+      const results = await Promise.allSettled([
         this.syncOperationLogs(),
         this.syncLedgerEntries(), // Payroll sync
         this.syncExpenses(), // Expenses sync
@@ -455,25 +597,45 @@ export class CloudSyncService {
         ),
       ]);
 
+      // Check for failures
+      const rejectedCount = results.filter(r => r.status === 'rejected').length;
+      
       this._lastSuccessfulSync = new Date();
       this.consecutiveFailures = 0;
       this.currentInterval = MIN_SYNC_INTERVAL;
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Sync Cycle Error: ${e.message} `);
+      
+      // Circuit Breaker: If sync succeeded, close the circuit
+      if (this.circuitState !== 'CLOSED') {
+        this.logger.info(`[CloudSync] Circuit breaker CLOSED - sync recovered`);
+        this.circuitState = 'CLOSED';
+        this.circuitOpenedAt = null;
+      }
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Sync Cycle Error: ${getErrorMessage(e)} `);
       this.consecutiveFailures++;
       this.currentInterval = Math.min(
         MAX_SYNC_INTERVAL,
         this.currentInterval * BACKOFF_FACTOR,
       );
+
+      // Circuit Breaker: Check if threshold exceeded
+      if (this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+        this.logger.warn(`[CloudSync] Circuit breaker OPEN - ${this.consecutiveFailures} consecutive failures`);
+        this.circuitState = 'OPEN';
+        this.circuitOpenedAt = Date.now();
+        this.scheduleNextSync(CIRCUIT_BREAKER_TIMEOUT);
+        return;
+      }
     } finally {
       this.isSyncing = false;
-      this.scheduleNextSync();
+      if (this.circuitState !== 'OPEN') {
+        this.scheduleNextSync();
+      }
     }
   }
 
   private async syncOperationLogs() {
-    // Fetch pending operations (ordered by sequence_number for strict linear replay)
-    const ops = this.dbManager.query(`
+    const ops = this.dbManager.query<OperationLogRow>(`
             SELECT * FROM operation_logs 
             WHERE status = 'pending' 
             ORDER BY sequence_number ASC 
@@ -487,30 +649,35 @@ export class CloudSyncService {
     );
 
     try {
-      const res = await fetchFn(
-        `${this.cloudApiUrl}/api/cloud/sync/operations`,
-        {
-          method: "POST",
-          headers: await this.getHeaders(),
-          body: JSON.stringify({
-            desk_id: this.deskId,
-            operations: ops.map((op: any) => ({
-              id: op.id,
-              type: op.type,
-              table: op.table_name,
-              record_id: op.record_id,
-              payload:
-                typeof op.payload === "string"
-                  ? JSON.parse(op.payload)
-                  : op.payload,
-              timestamp: op.timestamp,
-              sequence_number: op.sequence_number,
-            })),
-          }),
-        },
-      );
+      const res = await executeWithRetry(async () => {
+        return await fetchFn(
+          `${this.cloudApiUrl}/api/cloud/sync/operations`,
+          {
+            method: "POST",
+            headers: await this.getHeaders(),
+            body: JSON.stringify({
+              desk_id: this.deskId,
+              operations: ops.map((op: OperationLogRow): OutgoingOperation => ({
+                id: op.id,
+                type: op.type,
+                table: op.table_name,
+                record_id: op.record_id,
+                payload:
+                  typeof op.payload === "string"
+                    ? JSON.parse(op.payload)
+                    : op.payload,
+                timestamp: op.timestamp,
+                sequence_number: op.sequence_number,
+              })),
+            }),
+          },
+        );
+      }, { maxRetries: 3 });
 
       if (res.ok) {
+        // --- NTP Drift Correction ---
+        timeService.updateDrift(res.headers.get("Date"));
+
         const json = (await res.json()) as {
           success: true;
           processed: string[];
@@ -520,7 +687,7 @@ export class CloudSyncService {
         if (processedIds.length > 0) {
           this.dbManager.transaction(() => {
             const stmt = this.dbManager.prepare(
-              `UPDATE operation_logs SET status = 'synced' WHERE id = ?`,
+              `UPDATE operation_logs SET status = 'synced', last_error = NULL WHERE id = ?`,
             );
             for (const id of processedIds) {
               stmt.run(id);
@@ -530,12 +697,43 @@ export class CloudSyncService {
             `[CloudSync] Successfully synced ${processedIds.length} operations to Hub.`,
           );
         }
+        
+        // Handle partial failures explicitly (the server didn't process them)
+        const failedIds = ops.map((op: OperationLogRow) => op.id).filter((id: string) => !processedIds.includes(id));
+        if (failedIds.length > 0) {
+           this.handleFailedOperations(failedIds, "Remote Hub rejected record");
+        }
+
       } else {
         const txt = await res.text();
         this.logger.error(`[CloudSync] Operations Sync Failed: ${txt}`);
+        this.handleFailedOperations(ops.map((op: OperationLogRow) => op.id), `HTTP ${res.status}: ${txt}`);
+        throw new Error(`Sync failed: ${res.status}`);
       }
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Operations Sync Error: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Operations Sync Error: ${getErrorMessage(e)}`);
+      throw e;
+    }
+  }
+
+  private handleFailedOperations(ids: string[], error: string) {
+    if (!ids || ids.length === 0) return;
+    try {
+        this.dbManager.transaction(() => {
+          const stmt = this.dbManager.prepare(`
+            UPDATE operation_logs 
+            SET retry_count = retry_count + 1, 
+                last_error = ?,
+                status = CASE WHEN retry_count + 1 >= ? THEN ? ELSE 'pending' END
+            WHERE id = ?
+          `);
+          for (const id of ids) {
+            stmt.run(error, MAX_OPERATION_RETRIES, DLQ_STATUS, id);
+          }
+        });
+        this.logger.warn(`[CloudSync] Logged failure for ${ids.length} operations.`, { error });
+    } catch (e: unknown) {
+        this.logger.error(`[CloudSync] Fatal error updating DLQ: ${getErrorMessage(e)}`);
     }
   }
 
@@ -580,49 +778,31 @@ export class CloudSyncService {
         sequence_number: Date.now(), // Use timestamp as sequence for ledger
       }));
 
-      const res = await fetchFn(
-        `${this.cloudApiUrl}/api/cloud/sync/operations`,
-        {
+      const res = await executeWithRetry(async () => {
+        const r = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/ledger`, {
           method: "POST",
           headers: await this.getHeaders(),
-          body: JSON.stringify({
-            desk_id: this.deskId,
-            operations,
-          }),
-        },
-      );
+          body: JSON.stringify({ desk_id: this.deskId, operations }),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r;
+      }, { maxRetries: 3 });
 
       if (res.ok) {
-        const json = (await res.json()) as {
-          success: true;
-          processed: string[];
-        };
-        const processedIds = json.processed || [];
-
-        if (processedIds.length > 0) {
-          // Mark entries as synced
-          this.dbManager.transaction(() => {
-            const stmt = this.dbManager.prepare(
-              `UPDATE photographer_ledger SET sync_status = 'synced' WHERE sync_id = ? OR id = ?`,
-            );
-            for (const syncId of processedIds) {
-              // Extract original ID from sync_id format: deskId_ledger_originalId
-              const originalId = syncId.includes("_ledger_")
-                ? syncId.split("_ledger_")[1]
-                : syncId;
-              stmt.run(syncId, originalId);
-            }
-          });
-          this.logger.info(
-            `[CloudSync] Successfully synced ${processedIds.length} ledger entries to Hub.`,
+        this.dbManager.transaction(() => {
+          const stmt = this.dbManager.prepare(
+            `UPDATE photographer_ledger SET sync_status = 'synced' WHERE id = ?`,
           );
-        }
-      } else {
-        const txt = await res.text();
-        this.logger.error(`[CloudSync] Ledger Sync Failed: ${txt}`);
+          for (const entry of entries) {
+            stmt.run(entry.id);
+          }
+        });
+        this.logger.info(
+          `[CloudSync] Successfully synced ${entries.length} ledger entries to Hub.`,
+        );
       }
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Ledger Sync Error: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Ledger Sync Error: ${getErrorMessage(e)}`);
     }
   }
 
@@ -717,8 +897,8 @@ export class CloudSyncService {
         );
         return { pushed: 0, date };
       }
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Analytics Sync Error: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Analytics Sync Error: ${getErrorMessage(e)}`);
       return { pushed: 0, date };
     }
   }
@@ -728,82 +908,42 @@ export class CloudSyncService {
    * Pushes pending expense entries for consolidated business reporting.
    */
   public async syncExpenses() {
-    const entries = this.dbManager.query(`
+    const expenses = this.dbManager.query(`
             SELECT * FROM expenses 
             WHERE sync_status = 'pending' 
             ORDER BY created_at ASC 
             LIMIT 50
         `);
 
-    if (entries.length === 0) return;
+    if (expenses.length === 0) return;
 
     this.logger.info(
-      `[CloudSync] Syncing ${entries.length} expense entries to Cloud Hub (Desk: ${this.deskId})...`,
+      `[CloudSync] Syncing ${expenses.length} expense entries to Cloud Hub (Desk: ${this.deskId})...`,
     );
 
     try {
-      const operations = entries.map((entry) => ({
-        id: entry.sync_id || `${this.deskId}_expense_${entry.id}`,
-        type: "INSERT",
-        table: "expenses",
-        record_id: entry.id,
-        payload: {
-          id: entry.id,
-          description: entry.description,
-          amount: entry.amount,
-          category: entry.category,
-          date: entry.date,
-          photographerId: entry.photographerId,
-          destinationId: entry.destinationId,
-          invoiceUrl: entry.invoiceUrl,
-          original_id: entry.id,
-          created_at: entry.created_at,
-        },
-        timestamp: Date.now(),
-        sequence_number: Date.now(),
-      }));
-
-      const res = await fetchFn(
-        `${this.cloudApiUrl}/api/cloud/sync/operations`,
-        {
+      const res = await executeWithRetry(async () => {
+        const r = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/expenses`, {
           method: "POST",
           headers: await this.getHeaders(),
-          body: JSON.stringify({
-            desk_id: this.deskId,
-            operations,
-          }),
-        },
-      );
+          body: JSON.stringify({ desk_id: this.deskId, expenses }),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r;
+      }, { maxRetries: 2 });
 
       if (res.ok) {
-        const json = (await res.json()) as {
-          success: true;
-          processed: string[];
-        };
-        const processedIds = json.processed || [];
-
-        if (processedIds.length > 0) {
-          this.dbManager.transaction(() => {
-            const stmt = this.dbManager.prepare(
-              `UPDATE expenses SET sync_status = 'synced' WHERE sync_id = ? OR id = ?`,
-            );
-            for (const syncId of processedIds) {
-              const originalId = syncId.includes("_expense_")
-                ? syncId.split("_expense_")[1]
-                : syncId;
-              stmt.run(syncId, originalId);
-            }
-          });
-          this.logger.info(
-            `[CloudSync] Successfully synced ${processedIds.length} expense entries to Hub.`,
+        this.dbManager.transaction(() => {
+          const stmt = this.dbManager.prepare(
+            "UPDATE expenses SET sync_status = 'synced' WHERE id = ?",
           );
-        }
-      } else {
-        const txt = await res.text();
-        this.logger.error(`[CloudSync] Expenses Sync Failed: ${txt}`);
+          for (const exp of expenses) {
+            stmt.run(exp.id);
+          }
+        });
       }
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Expenses Sync Error: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Expense Sync Error: ${getErrorMessage(e)}`);
     }
   }
 
@@ -844,17 +984,15 @@ export class CloudSyncService {
         sequence_number: Date.now(),
       }));
 
-      const res = await fetchFn(
-        `${this.cloudApiUrl}/api/cloud/sync/operations`,
-        {
+      const res = await executeWithRetry(async () => {
+        const r = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/operations`, {
           method: "POST",
           headers: await this.getHeaders(),
-          body: JSON.stringify({
-            desk_id: this.deskId,
-            operations,
-          }),
-        },
-      );
+          body: JSON.stringify({ desk_id: this.deskId, operations }),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r;
+      }, { maxRetries: 3 });
 
       if (res.ok) {
         const json = (await res.json()) as {
@@ -883,8 +1021,8 @@ export class CloudSyncService {
         const txt = await res.text();
         this.logger.error(`[CloudSync] Inventory Sync Failed: ${txt}`);
       }
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Inventory Sync Error: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Inventory Sync Error: ${getErrorMessage(e)}`);
     }
   }
 
@@ -966,9 +1104,9 @@ export class CloudSyncService {
           for (const cmd of resData.commands) {
             this.logger.info(`[CloudSync] Received command from Hub: ${cmd}`);
             if (cmd === "START_TUNNEL") {
-              tunnelManager.start().catch((err) => {
+              tunnelManager.start().catch((err: unknown) => {
                 this.logger.error(
-                  `[TunnelManager] Failed to start tunnel: ${err.message}`,
+                  `[TunnelManager] Failed to start tunnel: ${getErrorMessage(err)}`,
                 );
               });
             } else if (cmd === "STOP_TUNNEL") {
@@ -982,8 +1120,8 @@ export class CloudSyncService {
           `[CloudSync] Heartbeat failed: ${res.status} - ${txt}`,
         );
       }
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Heartbeat Error: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Heartbeat Error: ${getErrorMessage(e)}`);
     }
   }
 
@@ -1002,16 +1140,18 @@ export class CloudSyncService {
         `[CloudSync] Polling remote operations since Hub Index ${sinceHubIndex}...`,
       );
 
-      const res = await fetchFn(
-        `${this.cloudApiUrl}/api/cloud/sync/operations?since_hub_index=${sinceHubIndex}`,
-        {
-          headers: await this.getHeaders(),
-        },
-      );
+      const res = await executeWithRetry(async () => {
+        const r = await fetchFn(
+          `${this.cloudApiUrl}/api/cloud/sync/operations?since_hub_index=${sinceHubIndex}`,
+          {
+            headers: await this.getHeaders(),
+          },
+        );
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r;
+      }, { maxRetries: 3 });
 
-      if (!res.ok) return;
-
-      const data = (await res.json()) as { success: true; operations: any[] };
+      const data = (await res.json()) as { success: true; operations: RemoteOperation[] };
       const remoteOps = data.operations || [];
 
       if (remoteOps.length > 0) {
@@ -1020,8 +1160,8 @@ export class CloudSyncService {
         );
         await this.applyRemoteOperations(remoteOps);
       }
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Pull Operations Error: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Pull Operations Error: ${getErrorMessage(e)}`);
     }
   }
 
@@ -1077,15 +1217,15 @@ export class CloudSyncService {
       this.logger.info(
         `[CloudSync] Applied ${data.settings.length} global settings (hash: ${data.hash.substring(0, 8)}...).`,
       );
-    } catch (e: any) {
-      // Non-critical — don't spam logs if Hub doesn't support this endpoint yet
-      if (!e.message?.includes("404")) {
-        this.logger.warn(`[CloudSync] Pull Settings: ${e.message}`);
+    } catch (e: unknown) {
+      const msg = getErrorMessage(e);
+      if (!msg.includes("404")) {
+        this.logger.warn(`[CloudSync] Pull Settings: ${msg}`);
       }
     }
   }
 
-  private async applyRemoteOperations(operations: any[]) {
+  private async applyRemoteOperations(operations: RemoteOperation[]) {
     let lastInBatchIdx = 0;
 
     for (const op of operations) {
@@ -1104,9 +1244,15 @@ export class CloudSyncService {
         const payload =
           typeof op.payload === "string" ? JSON.parse(op.payload) : op.payload;
 
-        // Idempotency: Don't replay if we already have this specific op (unlikely due to hub_index filter)
-        // OR if our local counter for that site is already higher (Vector Clock principle)
         const siteId = op.desk_id;
+        
+        // Industrial Hardening: Prevent Infinite Loop / Self-Sync
+        if (siteId === this.deskId) {
+          this.logger.debug(`[CloudSync] Deduplicated self-operation ${op.id} from local desk_id`);
+          lastInBatchIdx = op.hub_index;
+          continue;
+        }
+
         const localSiteSeq = this.dbManager.get<{ counter: number }>(
           "SELECT counter FROM sync_sequences WHERE site_id = ?",
           [siteId],
@@ -1114,13 +1260,26 @@ export class CloudSyncService {
 
         if (localSiteSeq && op.sequence_number <= localSiteSeq.counter) {
           this.logger.debug(
-            `[CloudSync] Skipping already seen operation ${op.id} from ${siteId}`,
+            `[CloudSync] Skipping already seen operation ${op.id} from ${siteId} (Seq: ${op.sequence_number})`,
           );
           lastInBatchIdx = op.hub_index;
           continue;
         }
 
         this.dbManager.transaction(() => {
+          // Industrial Conflict Resolution: Check if local record is newer
+          const existing = this.dbManager.get<{ updated_at: string }>(
+            `SELECT updated_at FROM ${table} WHERE id = ?`,
+            [recordId]
+          );
+
+          if (existing && op.payload && typeof op.payload === 'object') {
+            const remoteUpdatedAt = (op.payload as any).updated_at;
+            if (remoteUpdatedAt && new Date(existing.updated_at) > new Date(remoteUpdatedAt)) {
+              this.logger.warn(`[CloudSync] Conflict: Local record for ${table}.${recordId} is newer than remote. Protecting local integrity.`);
+              return;
+            }
+          }
           // SECURITY: Only allow columns that exist in the allowlist
           const allowedCols = ALLOWED_COLUMNS[table] || [];
           if (op.type === "INSERT") {
@@ -1143,7 +1302,6 @@ export class CloudSyncService {
             this.dbManager.run(`DELETE FROM ${table} WHERE id = ?`, [recordId]);
           }
 
-          // Update site-specific sequence tracking
           this.dbManager.run(
             `
                         INSERT INTO sync_sequences (id, site_id, last_processed_id, counter, updated_at)
@@ -1158,16 +1316,32 @@ export class CloudSyncService {
         });
 
         lastInBatchIdx = op.hub_index;
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const errMsg = getErrorMessage(err);
         this.logger.error(
-          `[CloudSync] Failed to apply remote operation ${op.id}: ${err.message}`,
+          `[CloudSync] Failed to apply remote operation ${op.id}: ${errMsg}`,
         );
-        // Continue with next op? No, break to ensure sequentiality
-        break;
+        
+        const retryCount = (op.retry_count || 0) + 1;
+        if (retryCount >= MAX_OPERATION_RETRIES) {
+          this.logger.error(
+            `[CloudSync] Operation ${op.id} exceeded max retries (${MAX_OPERATION_RETRIES}). Moving to dead_letter queue.`,
+          );
+          this.dbManager.run(
+            `UPDATE operation_logs SET status = ?, error_log = ?, retry_count = ? WHERE id = ?`,
+            [DLQ_STATUS, errMsg, retryCount, op.id],
+          );
+        } else {
+          this.dbManager.run(
+            `UPDATE operation_logs SET status = 'failed', error_log = ?, retry_count = ? WHERE id = ?`,
+            [errMsg, retryCount, op.id],
+          );
+        }
+        
+        continue;
       }
     }
 
-    // Update HUB_GLOBAL sequence
     if (lastInBatchIdx > 0) {
       this.dbManager.run(
         `
@@ -1224,8 +1398,8 @@ export class CloudSyncService {
           }
         });
       }
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Retention Batch Error: ${e.message} `);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Retention Batch Error: ${getErrorMessage(e)} `);
     }
   }
 
@@ -1246,6 +1420,12 @@ export class CloudSyncService {
       return {
         enabled: this.config.enabled,
         status: this.isPaused ? "paused" : this.isSyncing ? "syncing" : "idle",
+        circuitBreaker: {
+          state: this.circuitState,
+          consecutiveFailures: this.consecutiveFailures,
+          threshold: MAX_CONSECUTIVE_FAILURES,
+          openedAt: this.circuitOpenedAt ? new Date(this.circuitOpenedAt).toISOString() : null,
+        },
         cloudConnection: this._isConnected ? "online" : "offline",
         lastSuccessfulSync: this._lastSuccessfulSync
           ? this._lastSuccessfulSync.toISOString()
@@ -1294,8 +1474,8 @@ export class CloudSyncService {
         total: pendingCount + syncedCount,
         recentPending: recentPending || [],
       };
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Failed to get ledger stats: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Failed to get ledger stats: ${getErrorMessage(e)}`);
       return { error: "Failed to fetch ledger stats" };
     }
   }
@@ -1329,9 +1509,9 @@ export class CloudSyncService {
         total: pendingCount + syncedCount,
         recentPending: recentPending || [],
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
       this.logger.error(
-        `[CloudSync] Failed to get expenses stats: ${e.message}`,
+        `[CloudSync] Failed to get expenses stats: ${getErrorMessage(e)}`,
       );
       return { error: "Failed to fetch expenses stats" };
     }
@@ -1366,9 +1546,9 @@ export class CloudSyncService {
         total: pendingCount + syncedCount,
         lowStock: lowStock || [],
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
       this.logger.error(
-        `[CloudSync] Failed to get inventory stats: ${e.message}`,
+        `[CloudSync] Failed to get inventory stats: ${getErrorMessage(e)}`,
       );
       return { error: "Failed to fetch inventory stats" };
     }
@@ -1483,9 +1663,9 @@ export class CloudSyncService {
             [item.asset_id],
           );
         });
-      } catch (e: any) {
+      } catch (e: unknown) {
         this.logger.error(
-          `[CloudSync] Failed to process retention asset ${item.asset_id}: ${e.message}`,
+          `[CloudSync] Failed to process retention asset ${item.asset_id}: ${getErrorMessage(e)}`,
         );
         this.dbManager.run(
           `UPDATE retention_queue SET status = 'failed', error_log = ?, retry_count = retry_count + 1 WHERE id = ?`,
@@ -1535,7 +1715,7 @@ export class CloudSyncService {
           `[CloudSync] Synced retention stats: ${payload.retention_queue_size} items, €${payload.retention_potential_value}`,
         );
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Don't log error if collection doesn't exist yet (404), maybe just debug
       if (e.message && e.message.includes("404")) {
         this.logger.debug(
@@ -1543,7 +1723,7 @@ export class CloudSyncService {
         );
       } else {
         this.logger.error(
-          `[CloudSync] Retention Stats Sync Error: ${e.message}`,
+          `[CloudSync] Retention Stats Sync Error: ${getErrorMessage(e)}`,
         );
       }
     }
@@ -1573,7 +1753,7 @@ export class CloudSyncService {
     }
   }
 
-  private async enqueueOrderForFulfillment(order: any) {
+  private async enqueueOrderForFulfillment(order: Order) {
     this.dbManager.transaction(() => {
       // Update local order status if we have it, or create it
       this.dbManager.run(
@@ -1603,6 +1783,8 @@ export class CloudSyncService {
    * Pushes orders created at this Master station to the cloud.
    */
   public async syncOrdersToGallery() {
+    const startTime = Date.now();
+    
     try {
       // Find orders that haven't been synced yet or failed previously
       const pendingOrders = this.dbManager.query(`
@@ -1620,8 +1802,13 @@ export class CloudSyncService {
       );
 
       for (const order of pendingOrders) {
+        const correlationId = `cf_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+        const orderStartTime = Date.now();
+        
         try {
+          // Generate correlation ID for this order's lifecycle
           const orderData = {
+            correlationId,
             id: order.id,
             orderNumber: order.orderNumber || order.id,
             date: order.date,
@@ -1638,6 +1825,17 @@ export class CloudSyncService {
             magic_link_token: order.magic_link_token,
           };
 
+          // Log audit: ORDER_SYNC_STARTED
+          this.auditService.logOrderSyncEvent({
+            event: 'ORDER_SYNCED',
+            correlationId,
+            orderId: order.id,
+            albumId: order.albumId,
+            customerEmail: order.email,
+            photoCount: order.items ? JSON.parse(order.items).length : 0,
+            totalAmount: order.total || order.totalAmount || 0,
+          });
+
           const res = await fetchFn(
             `${this.cloudApiUrl}/api/cloud/sync/order`,
             {
@@ -1645,6 +1843,7 @@ export class CloudSyncService {
               headers: {
                 Authorization: `Bearer ${this.token}`,
                 "Content-Type": "application/json",
+                "X-Correlation-ID": correlationId,
               },
               body: JSON.stringify({
                 desk_id: this.deskId,
@@ -1666,22 +1865,63 @@ export class CloudSyncService {
                WHERE id = ?`,
               [data.accessPin || null, order.id],
             );
+            
+            const duration = Date.now() - orderStartTime;
+            
+            // Log audit: ORDER_SYNCED success
+            this.auditService.logOrderSyncEvent({
+              event: 'ORDER_SYNCED',
+              correlationId,
+              orderId: order.id,
+              albumId: order.albumId,
+              customerEmail: order.email,
+              photoCount: order.items ? JSON.parse(order.items).length : 0,
+              totalAmount: order.total || order.totalAmount || 0,
+              galleryOrderId: data.galleryOrderId || data.orderId,
+              duration,
+            });
+            
             this.logger.info(
-              `[CloudSync] Order ${order.id} synced to Hub successfully.`,
+              `[CloudSync] Order ${order.id} synced to Hub successfully. [${correlationId}] (${duration}ms)`,
             );
           } else {
             const txt = await res.text();
+            const duration = Date.now() - orderStartTime;
+            
+            // Log audit: ORDER_SYNC_FAILED
+            this.auditService.logOrderSyncEvent({
+              event: 'ORDER_FAILED',
+              correlationId,
+              orderId: order.id,
+              albumId: order.albumId,
+              customerEmail: order.email,
+              error: txt,
+              duration,
+            });
+            
             this.logger.error(
-              `[CloudSync] Failed to sync order ${order.id}: ${txt}`,
+              `[CloudSync] Failed to sync order ${order.id}: ${txt} [${correlationId}]`,
             );
             this.dbManager.run(
               `UPDATE orders SET cloud_sync_status = 'failed', cloud_sync_error = ? WHERE id = ?`,
               [txt, order.id],
             );
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
+          const duration = Date.now() - orderStartTime;
+          
+          // Log audit: ORDER_SYNC_FAILED
+          this.auditService.logOrderSyncEvent({
+            event: 'ORDER_FAILED',
+            correlationId,
+            orderId: order.id,
+            albumId: order.albumId,
+            error: e.message,
+            duration,
+          });
+          
           this.logger.error(
-            `[CloudSync] Error syncing order ${order.id}: ${e.message}`,
+            `[CloudSync] Error syncing order ${order.id}: ${getErrorMessage(e)} [${correlationId}]`,
           );
           this.dbManager.run(
             `UPDATE orders SET cloud_sync_status = 'failed', cloud_sync_error = ? WHERE id = ?`,
@@ -1689,8 +1929,8 @@ export class CloudSyncService {
           );
         }
       }
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] syncOrdersToGallery error: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] syncOrdersToGallery error: ${getErrorMessage(e)}`);
     }
   }
 
@@ -1775,14 +2015,15 @@ export class CloudSyncService {
           this.logger.debug(
             `[CloudSync] Chunk ${i + 1}/${totalChunks} uploaded for ${assetId}`,
           );
-        } catch (err: any) {
+        } catch (err: unknown) {
+          const errMsg = getErrorMessage(err);
           chunkRetries++;
           this.logger.warn(
-            `[CloudSync] Chunk ${i + 1}/${totalChunks} upload attempt ${chunkRetries} failed: ${err.message}`,
+            `[CloudSync] Chunk ${i + 1}/${totalChunks} upload attempt ${chunkRetries} failed: ${errMsg}`,
           );
           if (chunkRetries >= maxChunkRetries) {
             throw new Error(
-              `Max retries reached for chunk ${i + 1}/${totalChunks}: ${err.message}`,
+              `Max retries reached for chunk ${i + 1}/${totalChunks}: ${errMsg}`,
             );
           }
           // Exponential backoff for chunk retries (e.g., 2s, 4s, 8s)
@@ -1850,8 +2091,8 @@ export class CloudSyncService {
       } else {
         this.logger.info(`[CloudSync] Retention Asset Uploaded: ${assetId}`);
       }
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Retention Error: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Retention Error: ${getErrorMessage(e)}`);
       throw e;
     }
   }
@@ -1878,9 +2119,9 @@ export class CloudSyncService {
       this.logger.info(
         `[CloudSync] Order ${orderId} status updated to: ${status}`,
       );
-    } catch (e: any) {
+    } catch (e: unknown) {
       this.logger.error(
-        `[CloudSync] Failed to update order status: ${e.message}`,
+        `[CloudSync] Failed to update order status: ${getErrorMessage(e)}`,
       );
       throw e;
     }
@@ -1937,8 +2178,8 @@ export class CloudSyncService {
         const txt = await res.text();
         this.logger.error(`[CloudSync] Resort BI Sync Failed: ${txt}`);
       }
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Resort BI Sync Error: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Resort BI Sync Error: ${getErrorMessage(e)}`);
     }
   }
   /**
@@ -1959,13 +2200,19 @@ export class CloudSyncService {
 
       if (stats.length === 0) return;
 
-      await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/yield`, {
-        method: "POST",
-        headers: await this.getHeaders(),
-        body: JSON.stringify({ desk_id: this.deskId, stats }),
-      });
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Yield Sync Error: ${e.message}`);
+      const res = await executeWithRetry(async () => {
+        const r = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/yield`, {
+          method: "POST",
+          headers: await this.getHeaders(),
+          body: JSON.stringify({ desk_id: this.deskId, stats }),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r;
+      }, { maxRetries: 2 });
+      
+      this.logger.info(`[CloudSync] Yield intelligence synced successfully.`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Yield Sync Error: ${getErrorMessage(e)}`);
     }
   }
 
@@ -1980,11 +2227,15 @@ export class CloudSyncService {
 
       if (leads.length === 0) return;
 
-      const res = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/crm`, {
-        method: "POST",
-        headers: await this.getHeaders(),
-        body: JSON.stringify({ desk_id: this.deskId, leads }),
-      });
+      const res = await executeWithRetry(async () => {
+        const r = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/crm`, {
+          method: "POST",
+          headers: await this.getHeaders(),
+          body: JSON.stringify({ desk_id: this.deskId, leads }),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r;
+      }, { maxRetries: 3 });
 
       if (res.ok) {
         this.dbManager.transaction(() => {
@@ -1993,9 +2244,10 @@ export class CloudSyncService {
             stmt.run(lead.id);
           }
         });
+        this.logger.info(`[CloudSync] CRM leads synced successfully (${leads.length}).`);
       }
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] CRM Sync Error: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] CRM Sync Error: ${getErrorMessage(e)}`);
     }
   }
 
@@ -2023,8 +2275,8 @@ export class CloudSyncService {
         headers: await this.getHeaders(),
         body: JSON.stringify(payload)
       });
-    } catch (e: any) {
-      this.logger.error(`[CloudSync] Fleet Triage Error: ${e.message}`);
+    } catch (e: unknown) {
+      this.logger.error(`[CloudSync] Fleet Triage Error: ${getErrorMessage(e)}`);
     }
   }
 }

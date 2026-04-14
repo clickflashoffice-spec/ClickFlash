@@ -33,7 +33,11 @@ const handleSyncRequest = async (req, res, pathName, context) => {
     let deskData;
     try {
         const token = authHeader.substring(7);
-        deskData = jwt.verify(token, process.env.JWT_SECRET || 'CHANGE_ME_IN_PRODUCTION');
+        if (!process.env.JWT_SECRET) {
+            logger.error('[Sync] JWT_SECRET environment variable not set');
+            return sendJson({ error: 'Server configuration error' }, 500);
+        }
+        deskData = jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
         logger.error('[Sync] Token verification failed', err);
         return sendJson({ error: 'Unauthorized: Invalid token' }, 401);

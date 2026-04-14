@@ -10,7 +10,10 @@ const Logger = require('../logger');
 // Configuration (passed via server.js usually, but we'll use a getter for consistency)
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '../../pb_data');
 const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
-const JWT_SECRET = process.env.JWT_SECRET || 'CHANGE_ME_IN_PRODUCTION'; 
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable is required. Cannot start without secure JWT secret.');
+} 
 
 const logger = new Logger(path.join(DATA_DIR, 'logs'));
 

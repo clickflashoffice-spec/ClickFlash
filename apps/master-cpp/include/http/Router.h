@@ -1,84 +1,53 @@
 #pragma once
 
-#include "HttpServer.h"
 #include <QObject>
 #include <QString>
-#include <QVector>
-#include <memory>
+#include <QMap>
+#include <QList>
+#include <QRegularExpression>
+#include <functional>
 
 namespace ClickFlash {
+
+class HttpServer;
+
+using RouteHandler = std::function<void(class Request&, class Response&)>;
+
+struct Route {
+    QString method;
+    QString path;
+    QRegularExpression regex;
+    RouteHandler handler;
+    QStringList middleware;
+};
 
 class Router : public QObject {
     Q_OBJECT
 
 public:
-    using RouteHandler = std::function<void(const HttpRequest&, HttpResponse&)>;
+    explicit Router(HttpServer* server, QObject* parent = nullptr);
     
-    Router() = default;
+    void get(const QString& path, RouteHandler handler, const QStringList& middleware = {});
+    void post(const QString& path, RouteHandler handler, const QStringList& middleware = {});
+    void put(const QString& path, RouteHandler handler, const QStringList& middleware = {});
+    void patch(const QString& path, RouteHandler handler, const QStringList& middleware = {});
+    void delete_(const QString& path, RouteHandler handler, const QStringList& middleware = {});
+    void options(const QString& path, RouteHandler handler, const QStringList& middleware = {});
     
-    void get(const QString& path, RouteHandler handler) {
-        addRoute("GET", path, handler);
-    }
+    void handleRequest(class Request& request, class Response& response);
     
-    void post(const QString& path, RouteHandler handler) {
-        addRoute("POST", path, handler);
-    }
+    void addRoute(const QString& method, const QString& path, RouteHandler handler, const QStringList& middleware = {});
     
-    void put(const QString& path, RouteHandler handler) {
-        addRoute("PUT", path, handler);
-    }
-    
-    void patch(const QString& path, RouteHandler handler) {
-        addRoute("PATCH", path, handler);
-    }
-    
-    void deleteRoute(const QString& path, RouteHandler handler) {
-        addRoute("DELETE", path, handler);
-    }
-    
-    void options(const QString& path, RouteHandler handler) {
-        addRoute("OPTIONS", path, handler);
-    }
-    
-    void use(const QString& path, RouteHandler handler) {
-        addRoute("USE", path, handler);
-    }
-    
-    void use(RouteHandler handler) {
-        addRoute("USE", "*", handler);
-    }
-
-    bool matchRoute(const QString& method, const QString& path, 
-                    RouteHandler& handler, QVariantMap& params) {
-        
-        for (const Route& route : m_routes) {
-            if (route.method != method && route.method != "USE" && route.method != "*") {
-                continue;
-            }
-            
-            QRegExp regex(route.pattern);
-            if (regex.exactMatch(path)) {
-                handler = route.handler;
-                params.clear();
-                
-                QStringList captures = regex.capturedTexts();
-                for (int i = 0; i < route.paramNames.size() && i + 1 < captures.size(); ++i) {
-                    params[route.paramNames[i]] = captures[i + 1];
-                }
-                
-                return true;
-            }
-        }
-        
-        return false;
-    }
+signals:
+    void routeRegistered(const QString& method, const QString& path);
 
 private:
-    void addRoute(const QString& method, const QString& path, RouteHandler handler) {
-        m_routes.append(Route(method, path, handler));
-    }
+    void compileRoutes();
+    QString extractPathParams(const QString& path, QString& regexPattern);
     
-    QVector<Route> m_routes;
+    HttpServer* m_server;
+    QList<Route> m_routes;
+    QMap<QString, QStringList> m_pathParams;
 };
 
 } // namespace ClickFlash

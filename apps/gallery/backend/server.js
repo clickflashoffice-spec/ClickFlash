@@ -79,11 +79,10 @@ const copyFileWindows = async (sourcePath, destPath) => {
 };
 
 // Security Configuration
-const JWT_SECRET = process.env.JWT_SECRET || (() => {
-    // Logger not yet initialized, use console for startup warnings
-    console.warn('[Security] Using generated JWT secret. Sessions will invalidate on restart. Set JWT_SECRET in .env');
-    return 'CHANGE_ME_IN_PRODUCTION_' + crypto.randomBytes(32).toString('hex');
-})();
+if (!process.env.JWT_SECRET) {
+    throw new Error('[Security] JWT_SECRET environment variable is required. Cannot start server without secure JWT secret.');
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // CORS Configuration - Allow environment variable override
 const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
@@ -934,47 +933,12 @@ const server = http.createServer(async (req, res) => {
                     // Query user from database
                     let user = dbManager.get('SELECT * FROM users WHERE email = ?', [email]);
 
-                    // If user doesn't exist, create default user if credentials match
+                    // User must exist - no auto-creation
                     if (!user) {
-                        logger.info('Login attempt - user not found', { email, matchingCredentials: email === 'alaeddine@example.com' && password === 'DEFAULT_PASSWORD_PLACEHOLDER' });
-
-                        // Auto-create if credentials match default (regardless of other users)
-                        if (email === 'alaeddine@example.com' && password === 'DEFAULT_PASSWORD_PLACEHOLDER') {
-                            try {
-                                logger.info('Attempting to auto-create default user', { email });
-                                const DEFAULT_USER = {
-                                    name: 'Alaeddine',
-                                    email: 'alaeddine@example.com',
-                                    password: 'DEFAULT_PASSWORD_PLACEHOLDER',
-                                    role: 'Admin'
-                                };
-
-                                const hashedPassword = await hashPassword(DEFAULT_USER.password);
-                                const insertSql = `INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)`;
-                                const insertResult = dbManager.run(insertSql, [DEFAULT_USER.name, DEFAULT_USER.email, hashedPassword, DEFAULT_USER.role]);
-
-                                logger.info('Default user auto-created during login', { email: DEFAULT_USER.email, insertId: insertResult.lastInsertRowid });
-
-                                // Fetch the newly created user
-                                user = dbManager.get('SELECT * FROM users WHERE email = ?', [email]);
-
-                                if (!user) {
-                                    logger.error('User was created but could not be retrieved', { email, insertId: insertResult.lastInsertRowid });
-                                } else {
-                                    logger.info('User retrieved after creation', { email, userId: user.id });
-                                }
-                            } catch (createErr) {
-                                logger.error('Failed to auto-create default user during login', { error: createErr.message, stack: createErr.stack });
-                                // Continue to show error below
-                            }
-                        }
-
-                        // If still no user, show error
-                        if (!user) {
-                            auditLogger.logLoginAttempt(email, false, clientIp, 'USER_NOT_FOUND');
-                            sendAuthError(res, 'Invalid email or password. Please check your credentials and try again.');
-                            return;
-                        }
+                        logger.info('Login attempt - user not found', { email });
+                        auditLogger.logLoginAttempt(email, false, clientIp, 'USER_NOT_FOUND');
+                        sendAuthError(res, 'Invalid email or password. Please check your credentials and try again.');
+                        return;
                     }
 
                     // Verify password using bcrypt

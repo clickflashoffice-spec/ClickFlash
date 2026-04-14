@@ -69,6 +69,11 @@ export function Footer({ settings = {} }: FooterProps) {
                   Blog
                 </Link>
               </li>
+              <li>
+                <Link href="/manage" className="transition-colors hover:text-cyan-500">
+                  Admins
+                </Link>
+              </li>
             </ul>
           </div>
 

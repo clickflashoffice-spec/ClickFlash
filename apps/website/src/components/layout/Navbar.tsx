@@ -20,7 +20,6 @@ const getNavLinks = (lang: string) => [
   { name: getTranslation(lang, "nav_services"), href: "/services" },
   { name: getTranslation(lang, "nav_careers"), href: "/careers" },
   { name: getTranslation(lang, "nav_blog"), href: "/blog" },
-  { name: getTranslation(lang, "nav_gallery"), href: "/gallery" },
   { name: getTranslation(lang, "nav_portfolio"), href: "/portfolio" },
   { name: getTranslation(lang, "nav_contact"), href: "/contact" },
 ];

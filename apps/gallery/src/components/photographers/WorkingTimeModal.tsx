@@ -66,7 +66,7 @@ const WorkingTimeModal: React.FC<WorkingTimeModalProps> = ({ isOpen, onClose, ph
         setWorkingHours(photographer.workingHours);
     }, [photographer]);
 
-    const handleHoursChange = (day: DayOfWeek, shift: 'shift1' | 'shift2', field: 'start' | 'end' | 'enabled', value: any) => {
+    const handleHoursChange = (day: DayOfWeek, shift: 'shift1' | 'shift2', field: string, value: any) => {
         setWorkingHours(prev => {
             if (!prev) return prev;
             return {

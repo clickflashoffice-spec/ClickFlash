@@ -4,7 +4,7 @@ import CustomerLayout from "./components/customer/CustomerLayout";
 import { Order } from "./types";
 import { cloudApiService } from "./services/cloudApiService";
 import OfflineScreen from "./components/common/OfflineScreen";
-import Spinner from "./components/common/Spinner";
+
 import { NetworkStatusProvider } from "./components/common/NetworkStatusProvider";
 
 type CustomerAuthState = "unauthenticated" | "authenticated" | "loading";

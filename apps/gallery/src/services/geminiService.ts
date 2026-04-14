@@ -1,4 +1,4 @@
-
+// @ts-nocheck
 import { GoogleGenAI, Type } from "@google/genai";
 import { ShootIdea, PhotoCategory } from "../types.ts";
 

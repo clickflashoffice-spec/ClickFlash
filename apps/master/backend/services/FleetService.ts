@@ -144,8 +144,8 @@ export class FleetService {
 
         // Gather Sales Metrics
         const today = new Date().toISOString().split('T')[0];
-        const revenueResult = this.db.get<{ revenue: number }>(`SELECT SUM(total) as revenue FROM orders WHERE date = '${today}' AND status = 'Completed'`);
-        const orderCountResult = this.db.get<{ count: number }>(`SELECT COUNT(*) as count FROM orders WHERE date = '${today}' AND status = 'Completed'`);
+        const revenueResult = this.db.get<{ revenue: number }>('SELECT SUM(total) as revenue FROM orders WHERE date = ? AND status = ?', [today, 'Completed']);
+        const orderCountResult = this.db.get<{ count: number }>('SELECT COUNT(*) as count FROM orders WHERE date = ? AND status = ?', [today, 'Completed']);
         const pendingCountResult = this.db.get<{ count: number }>("SELECT COUNT(*) as count FROM orders WHERE status = 'Pending'");
 
         const salesMetrics = {

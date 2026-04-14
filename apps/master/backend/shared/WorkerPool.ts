@@ -13,6 +13,8 @@ export interface WorkerResult {
   [key: string]: any;
 }
 
+const MAX_QUEUE_DEPTH = 500;
+
 export class WorkerPool {
   private queue: {
     job: WorkerJob;
@@ -28,6 +30,7 @@ export class WorkerPool {
   private maxWorkers: number;
   private workerScript: string;
   private logger: Logger;
+  private shuttingDown = false;
 
   constructor(workerScript: string, logger: Logger, max?: number) {
     this.workerScript = workerScript;
@@ -39,21 +42,25 @@ export class WorkerPool {
   }
 
   private createWorker(): Worker {
-    const worker = new Worker(this.workerScript);
+    // TypeScript source files (.ts) require tsx to be active in the worker
+    // thread so imports are resolved at runtime. In production the compiled
+    // .js file is used directly and no execArgv are needed.
+    const isTypeScript = this.workerScript.endsWith(".ts");
+    const workerOptions = isTypeScript
+      ? { execArgv: ["--import", "tsx/esm"] }
+      : {};
+    const worker = new Worker(this.workerScript, workerOptions);
     const id = (worker as any).threadId;
 
-    worker.on("message", (result: WorkerResult) => {
-      const activeInfo = this.activeWorkers.get(id);
-      if (activeInfo && activeInfo.jobId) {
-        // Find the job that was running and resolve it
-        // Note: Realistically, we need to track the resolve/reject per worker
-      }
-      this.handleWorkerReady(worker);
-    });
+    // NOTE: No persistent "message" listener here — executeJob() registers
+    // per-job one-shot handlers and calls handleWorkerReady() after cleanup.
+    // Adding a persistent listener here caused the same worker to land in
+    // idleWorkers twice (double-dispatch bug).
 
     worker.on("error", (err: Error) => {
       this.logger.error(`[WorkerPool] Worker ${id} Error: ${err.message}`);
       this.activeWorkers.delete(id);
+      this.idleWorkers = this.idleWorkers.filter((w) => w !== worker);
       this.processQueue();
     });
 
@@ -69,6 +76,22 @@ export class WorkerPool {
     return worker;
   }
 
+  /** Terminate all workers and drain the pending queue with cancellation errors. */
+  public async shutdown(): Promise<void> {
+    this.shuttingDown = true;
+    // Reject all queued jobs
+    for (const item of this.queue) {
+      item.reject(new Error("WorkerPool shutdown"));
+    }
+    this.queue = [];
+    // Terminate every worker
+    const allWorkers = Array.from(this.activeWorkers.values()).map((v) => v.worker);
+    await Promise.allSettled(allWorkers.map((w) => w.terminate()));
+    this.activeWorkers.clear();
+    this.idleWorkers = [];
+    this.logger.info("[WorkerPool] Shutdown complete.");
+  }
+
   private handleWorkerReady(worker: Worker) {
     const id = (worker as any).threadId;
     this.activeWorkers.set(id, { worker, jobId: null });
@@ -82,8 +105,16 @@ export class WorkerPool {
     priority: boolean = false,
   ): Promise<WorkerResult> {
     return new Promise((resolve, reject) => {
+      if (this.shuttingDown) {
+        return reject(new Error("WorkerPool shutdown"));
+      }
       if (signal?.aborted) {
         return reject(new Error("JOB_CANCELLED"));
+      }
+      if (this.queue.length >= MAX_QUEUE_DEPTH) {
+        const err = new Error(`WorkerPool queue full (max ${MAX_QUEUE_DEPTH})`);
+        (err as any).code = "WORKER_QUEUE_FULL";
+        return reject(err);
       }
 
       const jobWrapper = { job, resolve, reject, priority };

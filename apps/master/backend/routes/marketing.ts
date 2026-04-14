@@ -170,6 +170,22 @@ export default function marketingRoutes(context: MarketingContext): Router {
         });
       }
 
+      const ALLOWED_TYPES = ['post-event', 'abandoned-cart', 're-engagement', 'retention'];
+      if (!ALLOWED_TYPES.includes(type)) {
+        return res.status(400).json({
+          success: false,
+          error: `Invalid type. Allowed values: ${ALLOWED_TYPES.join(', ')}`,
+        });
+      }
+
+      const parsedDelay = delayMinutes != null ? parseInt(delayMinutes, 10) : 60;
+      if (isNaN(parsedDelay) || parsedDelay < 0 || parsedDelay > 43200) {
+        return res.status(400).json({
+          success: false,
+          error: 'delayMinutes must be a non-negative integer ≤ 43200 (30 days)',
+        });
+      }
+
       const id = `camp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const now = new Date().toISOString();
 
@@ -185,7 +201,7 @@ export default function marketingRoutes(context: MarketingContext): Router {
           name,
           type,
           triggerEvent,
-          delayMinutes || 60,
+          parsedDelay,
           subjectTemplate,
           bodyTemplate,
           bodyText || bodyTemplate,
@@ -204,7 +220,7 @@ export default function marketingRoutes(context: MarketingContext): Router {
           name,
           type,
           triggerEvent,
-          delayMinutes: delayMinutes || 60,
+          delayMinutes: parsedDelay,
           subjectTemplate,
           bodyTemplate,
           isActive: Boolean(isActive),

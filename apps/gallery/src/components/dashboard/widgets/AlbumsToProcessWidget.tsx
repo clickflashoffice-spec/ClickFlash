@@ -31,7 +31,7 @@ const AlbumsToProcessWidget: React.FC<AlbumsToProcessWidgetProps> = React.memo((
             
             <div className="space-y-3 flex-grow">
                 {queueAlbums.length > 0 ? queueAlbums.map(album => {
-                    const photographer = photographers.find(p => p.id === album.photographerId);
+                    const photographer = photographers.find(p => p.id === String(album.photographerId));
                     return (
                         <div key={album.id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-700/30 rounded-lg transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-700">
                             <div className="flex items-center space-x-3">

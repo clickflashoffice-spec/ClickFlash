@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { AppMode } from '../App.tsx';
+
+type AppMode = 'master' | 'touch' | 'management' | 'customer';
 
 interface DeviceSetupProps {
     onConfigure: (mode: AppMode) => void;

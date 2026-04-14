@@ -59,9 +59,9 @@ class StorageMonitorService {
                 other: 0
             };
 
-            if (estimate.usageDetails) {
-                breakdown.indexedDB = estimate.usageDetails.indexedDB || 0;
-                breakdown.cache = estimate.usageDetails.caches || 0;
+            if ((estimate as any).usageDetails) {
+                breakdown.indexedDB = (estimate as any).usageDetails.indexedDB || 0;
+                breakdown.cache = (estimate as any).usageDetails.caches || 0;
                 breakdown.other = usage - breakdown.indexedDB - breakdown.cache;
             } else {
                 breakdown.other = usage;

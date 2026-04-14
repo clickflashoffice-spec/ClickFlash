@@ -69,7 +69,7 @@ const ActivityFeedWidget: React.FC<ActivityFeedWidgetProps> = ({ orders, expense
             date: adj.date,
             description: `${adj.type}: ${adj.description}`,
             amount: adj.amount,
-            context: photographers.find(p => p.id === adj.photographerId)?.name || 'Staff'
+            context: photographers.find(p => p.id === String(adj.photographerId))?.name || 'Staff'
         }));
 
         return [...orderItems, ...expenseItems, ...adjustmentItems]

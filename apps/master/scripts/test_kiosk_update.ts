@@ -2,8 +2,8 @@
 import fetch from 'node-fetch';
 
 const BASE_URL = 'http://localhost:8090';
-const EMAIL = 'alaeddine@example.com';
-const PASSWORD = 'DEFAULT_PASSWORD_PLACEHOLDER';
+const EMAIL = process.env.TEST_EMAIL || 'admin@clickflash.local';
+const PASSWORD = process.env.TEST_PASSWORD || (() => { console.error('Set TEST_PASSWORD env var'); process.exit(1); return ''; })();
 
 async function run() {
     console.log('--- Testing Kiosk API Persistence ---');

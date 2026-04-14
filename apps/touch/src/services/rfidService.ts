@@ -293,8 +293,8 @@ class RFIDService {
                 if (user.roomNumber) {
                     logger.info("[RFIDService] Found room in database", { rfidUid, roomNumber: user.roomNumber });
                     // Cache the mapping for future use
-                    this.mapRFIDToRoom(rfidUid, user.roomNumber, user.name, user.id);
-                    return user.roomNumber;
+                    this.mapRFIDToRoom(rfidUid, user.roomNumber as string, user.name as string, user.id as string);
+                    return user.roomNumber as string;
                 }
             }
         } catch (error) {

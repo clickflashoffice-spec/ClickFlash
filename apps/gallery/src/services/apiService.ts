@@ -34,7 +34,7 @@ export const apiService = {
   // --- Users / Photographers ---
   async getUsers(): Promise<Photographer[]> {
     const records = await pb.collection("users").getFullList();
-    return records.map((r) => ({
+    return records.map((r: any) => ({
       id: r.id,
       name: r.name,
       email: r.email,
@@ -321,9 +321,9 @@ export const apiService = {
                       title: (p.title as string) || "",
                       url: photoUrl,
                       photographerId: p.photographerId as number,
-                      category: p.category || null,
+                      category: p.category ? (p.category as string) : undefined,
                       manualEdits: manualEdits,
-                      original_file: p.original_file,
+                      original_file: p.original_file as string | undefined,
                     };
                   });
               }
@@ -362,13 +362,13 @@ export const apiService = {
             return {
               id: r.id || "",
               title: (r.title as string) || "",
-              date: r.date || "",
+              date: (r.date as string) || "",
               photographerId:
-                r.photographerId != null ? r.photographerId : null,
-              coverPhotoUrl: coverPhotoUrl,
-              source: r.source || "",
-              roomNumber: r.roomNumber || "",
-              status: r.status || "",
+                r.photographerId != null ? (r.photographerId as number) : 0,
+              coverPhotoUrl: (coverPhotoUrl as string) || "",
+              source: (r.source as string) || "",
+              roomNumber: (r.roomNumber as string) || "",
+              status: (r.status as string) || "",
               categories: categories,
               photos: photos,
             };
@@ -467,8 +467,8 @@ export const apiService = {
                 albumId: (p.albumId as string) || "",
                 title: (p.title as string) || "",
                 url: photoUrl,
-                photographerId: p.photographerId,
-                category: p.category || null,
+                photographerId: (p.photographerId as number) || 0,
+                category: p.category ? (p.category as string) : undefined,
                 manualEdits: manualEdits,
               };
             });

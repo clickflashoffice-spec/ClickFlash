@@ -4,8 +4,8 @@
   "location": "\"\"",
   "managementHub": {
     "url": "https://management.clickflash.app",
-    "email": "alaeddine@example.com",
-    "password": "DEFAULT_PASSWORD_PLACEHOLDER",
+    "email": "",
+    "password": "",
     "apiToken": ""
   },
   "gallery": {

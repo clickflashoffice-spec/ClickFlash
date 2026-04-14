@@ -7,15 +7,16 @@
   "main": "electron-main.js",
   "scripts": {
     "dev": "vite",
+    "dev:watch": "vite build --watch",
     "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
+    "dev:electron": "concurrently \"npm run dev:backend\" \"npm run dev:watch\" \"wait-on http://localhost:8090/api/health file:dist/master/index.html && electron .\" --names \"backend,frontend,electron\" --prefix-colors \"blue,green,cyan\" --kill-others-on-fail",
     "dev:backend": "tsx watch backend/server.ts",
     "preview:full": "concurrently \"npm run dev:backend\" \"npm run preview\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
-    "clean": "rimraf dist release release_v2 release_v3",
+    "clean": "rimraf dist release",
     "build": "vite build",
     "build:backend": "esbuild \"server=backend/server.ts\" \"workers/photoWorker=backend/workers/photoWorker.ts\" \"workers/folderWorker=backend/workers/folderWorker.ts\" \"main/autoUpdater=src/main/autoUpdater.ts\" \"main/backupService=src/main/backupService.ts\" --bundle --minify --platform=node --target=node20 --outdir=dist/backend --external:electron --external:electron-updater --external:better-sqlite3 --external:better-sqlite3-multiple-ciphers --external:better-sqlite3-session-store --external:sharp --external:bcryptjs --external:adm-zip --external:bonjour-service --external:express-session --external:formidable --external:helmet --external:jsonwebtoken --external:pdf-to-printer --external:fs-extra --external:form-data --external:ws --external:express --external:@tensorflow/tfjs-node --external:@napi-rs/canvas --external:archiver --external:nodemailer --drop:debugger && tsx scripts/copy-assets.ts",
-    "build:electron": "cd electron-new && npm run build",
-    "package": "npm run clean && npm run build && npm run build:backend && electron-builder build --win",
-    "package:v3": "npm run clean && npm run build && npm run build:backend && npm run build:electron && electron-builder build --win --config electron-builder-v3.yml",
+    "package": "npm run clean && npm run build && npm run build:backend && electron-builder build --win --dir",
+    "package:installer": "npm run clean && npm run build && npm run build:backend && electron-builder build --win",
     "preview": "vite preview",
     "start": "node -r dotenv/config dist/backend/server.js",
     "test": "npx jest",
@@ -29,6 +30,7 @@
     "test:e2e:update-snapshots": "playwright test --update-snapshots",
     "lint": "eslint src --ext .ts,.tsx --max-warnings 0",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "typecheck:ci": "tsc --noEmit && tsc --noEmit -p tsconfig.server.json",
     "provision": "tsx backend/scripts/provision-hardware.ts"
   },
   "dependencies": {
@@ -127,8 +129,8 @@
     "caniuse-lite": "^1.0.30001761",
     "concurrently": "^9.2.1",
     "copyfiles": "^2.4.1",
-    "electron": "^39.2.7",
-    "electron-builder": "24.13.3",
+    "electron": "^39.8.7",
+    "electron-builder": "^24.13.3",
     "electron-updater": "^6.3.9",
     "esbuild": "^0.27.4",
     "eslint": "^9.0.0",
@@ -143,6 +145,6 @@
     "ts-jest": "^29.4.6",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vite": "^7.2.4"
+    "vite": "^7.3.2"
   }
 }

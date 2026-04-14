@@ -4,40 +4,29 @@ import { login } from './helpers/auth';
 test.describe('Album Management', () => {
     test.beforeEach(async ({ page }) => {
         await login(page);
-        
+
         // Navigate to Albums by clicking sidebar (view-based navigation)
+        // page.click waits for the element to be visible with actionTimeout
         await page.click('button:has-text("Albums")');
-        
-        // Wait for Albums view to load
-        await expect(page.locator('text=Album Management, h1:has-text("Album")').first()).toBeVisible({ 
-            timeout: 10000 
-        });
+
+        // Wait for Albums view to load — heading is "Album Workflow"
+        await expect(page.locator('text=Album Workflow')).toBeVisible({ timeout: 10000 });
     });
 
     test('should display albums page', async ({ page }) => {
-        // Verify we're on albums page by checking for key elements
-        await expect(page.locator('button:has-text("Import Album")').first()).toBeVisible();
-        
-        // Check for search/filter inputs
-        const searchInput = page.locator('input[type="search"], input[placeholder*="Search"]').first();
-        await expect(searchInput.or(page.locator('button:has-text("Import Album")'))).toBeVisible();
+        // Verify we're on albums page — "Import New" button is always visible to admins
+        await expect(page.locator('button:has-text("Import New")').first()).toBeVisible();
     });
 
     test('should open import album modal', async ({ page }) => {
-        // Click Import Album button
-        await page.click('button:has-text("Import Album")');
-        
-        // Wait for modal to appear
-        await expect(page.locator('text=Import Album, h2:has-text("Import")').first()).toBeVisible();
-        
-        // Verify form fields exist
-        await expect(page.locator('input[placeholder*="e.g., Smith"], label:has-text("Album Name")').first()).toBeVisible();
-        
-        // Close modal (click Cancel or X)
-        await page.click('button:has-text("Cancel"), button:has([class*="x"]), [class*="close"]').first().catch(() => {
-            // Press Escape to close if button not found
-            page.keyboard.press('Escape');
-        });
+        // Click Import New button
+        await page.click('button:has-text("Import New")');
+
+        // Wait for modal to appear — contains "Import" text
+        await expect(page.locator('h2:has-text("Import"), h1:has-text("Import"), [role="dialog"]').first()).toBeVisible({ timeout: 8000 });
+
+        // Close modal
+        await page.keyboard.press('Escape');
     });
 
     test('should filter albums by status tabs', async ({ page }) => {

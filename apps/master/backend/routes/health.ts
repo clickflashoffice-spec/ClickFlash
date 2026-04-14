@@ -68,11 +68,13 @@ export default (db: DatabaseManager, thermalService: ThermalService) => {
     res.status(statusCode).json(health);
   });
 
-  // Basic health check
+  // Basic liveness check — used by wait-on, load-balancers, and monitoring
   router.get("/", (_req: Request, res: Response) => {
     res.json({
       status: "ok",
       timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || process.env.APP_VERSION || "unknown",
+      uptime: Math.floor(process.uptime()),
     });
   });
 

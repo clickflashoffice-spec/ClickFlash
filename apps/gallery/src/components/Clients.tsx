@@ -95,7 +95,7 @@ const Clients: React.FC<ClientsProps> = ({ currentUser }) => {
         // Filter orders based on permissions
         let visibleOrders = orders;
         if (currentUser && !can('viewAllOrders')) {
-             visibleOrders = orders.filter(o => o.photographerId === currentUser.id);
+             visibleOrders = orders.filter(o => String(o.photographerId) === currentUser.id);
         }
 
         const clientsMap = new Map<string, Client>();

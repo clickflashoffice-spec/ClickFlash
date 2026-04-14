@@ -8,6 +8,10 @@ import sharp from "sharp";
 
 const logger = new Logger(path.resolve(process.cwd(), "pb_data"));
 
+// Maximum allowed file size (50 MB). Must match formidable's maxFileSize so
+// any file that bypassed the upload parser is still rejected here.
+const MAX_PHOTO_SIZE_BYTES = 50 * 1024 * 1024;
+
 interface PhotoMetadata {
   url: string;
   tinyUrl?: string;
@@ -66,6 +70,11 @@ export class PhotoProcessor {
     this.mlPool = new WorkerPool(this.getMLWorkerPath(), logger, 2); // Less workers for ML to save RAM
   }
 
+  /** Terminate worker pools on graceful shutdown to prevent thread leaks. */
+  public async shutdown(): Promise<void> {
+    await Promise.allSettled([this.pool.shutdown(), this.mlPool.shutdown()]);
+  }
+
   private async checkThermals(): Promise<void> {
     if (!this.thermalService) return;
     const delay = await this.thermalService.getThrottleDelay();
@@ -122,12 +131,35 @@ export class PhotoProcessor {
     }
   }
 
+  /**
+   * Rejects filenames that contain null bytes, control characters, or OS-reserved
+   * characters (Windows: < > : " / \ | ? *). These can be used for path traversal,
+   * directory separator injection, or null-byte truncation attacks.
+   */
+  private static sanitizeFilename(filename: string): string {
+    // Reject null bytes and control characters immediately — these are never
+    // legitimate in filenames and are commonly used in truncation exploits.
+    if (/[\x00-\x1f]/.test(filename)) {
+      throw new Error(
+        `SECURITY_VIOLATION: Filename contains illegal control characters: ${JSON.stringify(filename)}`,
+      );
+    }
+    // Strip Windows/POSIX reserved characters that could affect path resolution.
+    // We strip rather than throw so minor client-side quirks don't break imports.
+    return filename.replace(/[<>:"/\\|?*]/g, "_");
+  }
+
   public getStoragePath(
     albumId: string,
     photoId: string,
     originalFilename: string,
   ) {
-    const ext = path.extname(originalFilename).toLowerCase() || ".jpg";
+    // Sanitize the original filename before extracting the extension.
+    const safeOriginalFilename = PhotoProcessor.sanitizeFilename(originalFilename);
+    const rawExt = path.extname(safeOriginalFilename).toLowerCase();
+    // Only allow known image extensions; default to .jpg for anything unexpected.
+    const ALLOWED_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".heic", ".heif", ".tiff", ".tif"]);
+    const ext = ALLOWED_EXTS.has(rawExt) ? rawExt : ".jpg";
 
     // Security: Sanitize inputs to prevent traversal
     const safeAlbumId = albumId.replace(/[^a-zA-Z0-9_-]/g, "");
@@ -177,6 +209,52 @@ export class PhotoProcessor {
       if (!tempFilepath || !fs.existsSync(tempFilepath))
         throw new Error(`Invalid temp path: ${tempFilepath}`);
 
+      // Defense-in-depth: enforce file size limit even if the upload parser was
+      // bypassed. Checked before the worker is spawned to avoid wasted CPU.
+      const fileStats = fs.statSync(tempFilepath);
+      if (fileStats.size > MAX_PHOTO_SIZE_BYTES) {
+        throw new Error(
+          `File size ${fileStats.size} bytes exceeds the ${MAX_PHOTO_SIZE_BYTES / 1024 / 1024}MB limit`,
+        );
+      }
+
+      // ── Early duplicate detection ──────────────────────────────────────────
+      // Compute a SHA-256 hash of the raw upload before spawning any workers.
+      // This avoids full image processing (thumbnail, preview, EXIF extraction)
+      // for files that are already stored in this album.
+      let earlyHash: string | null = null;
+      if (this.db) {
+        try {
+          const hash = require("crypto").createHash("sha256");
+          const stream = fs.createReadStream(tempFilepath);
+          earlyHash = await new Promise<string>((resolve, reject) => {
+            stream.on("data", (chunk: Buffer) => hash.update(chunk));
+            stream.on("end", () => resolve(hash.digest("hex")));
+            stream.on("error", reject);
+          });
+
+          const existing = this.db.get<{ id: string }>(
+            "SELECT id FROM photos WHERE fileHash = ? AND albumId = ?",
+            [earlyHash, albumId],
+          );
+          if (existing) {
+            logger.warn(
+              `[PhotoProcessor] Duplicate detected for ${originalFilename} (hash ${earlyHash.substring(0, 8)}…) — skipping processing`,
+            );
+            const dupErr = new Error(
+              `Duplicate photo: a file with the same content already exists in this album (photo id: ${existing.id})`,
+            );
+            (dupErr as any).code = "DUPLICATE_PHOTO";
+            (dupErr as any).existingPhotoId = existing.id;
+            throw dupErr;
+          }
+        } catch (hashErr: any) {
+          if (hashErr.code === "DUPLICATE_PHOTO") throw hashErr;
+          // Hash failure is non-fatal — proceed without duplicate check.
+          logger.warn("[PhotoProcessor] Early hash check failed (non-fatal):", hashErr.message);
+        }
+      }
+
       await this.checkThermals();
       await this.checkDiskSpace();
 
@@ -187,6 +265,8 @@ export class PhotoProcessor {
         outputDir: tempOutputDir,
         photoId,
         ext,
+        // Pass client-supplied MIME type for cross-validation in the worker
+        mimeType: file.mimetype || undefined,
       });
 
       if (!workerResult.success) throw new Error(workerResult.error);
@@ -222,6 +302,40 @@ export class PhotoProcessor {
       }
 
       await safeMove(tempFilepath, storage.fullPath);
+
+      // ── GPS EXIF strip ─────────────────────────────────────────────────────
+      // Re-encode the highres copy without any EXIF so GPS coordinates are not
+      // stored alongside the served image. `.rotate()` physically corrects
+      // orientation before stripping the EXIF orientation tag.
+      // This step is non-fatal — if it fails the original file is kept as-is.
+      try {
+        const highresPath = storage.fullPath;
+        const tmpStripped = `${highresPath}.stripping`;
+        const meta = await sharp(highresPath).metadata();
+        const isJpeg = meta.format === "jpeg";
+        const isPng = meta.format === "png";
+
+        let pipeline = sharp(highresPath)
+          .rotate(); // Correct orientation physically; drops EXIF orientation flag
+
+        if (isJpeg) {
+          pipeline = pipeline.jpeg({ quality: 100, mozjpeg: false });
+        } else if (isPng) {
+          pipeline = pipeline.png({ compressionLevel: 1 });
+        } else {
+          // For webp, gif, heif etc — keep as-is (lossless passthrough)
+          pipeline = pipeline.withMetadata({ exif: Buffer.alloc(0) } as any);
+        }
+
+        await pipeline.toFile(tmpStripped);
+        await fs.promises.rename(tmpStripped, highresPath);
+        logger.info(`[PhotoProcessor] GPS/EXIF stripped from highres for photo ${photoId}`);
+      } catch (stripErr) {
+        logger.warn(
+          `[PhotoProcessor] GPS strip failed for photo ${photoId} (non-fatal — original kept):`,
+          (stripErr as Error).message,
+        );
+      }
 
       const assets = workerResult.assets;
       await Promise.all(

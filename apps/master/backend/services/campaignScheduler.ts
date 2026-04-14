@@ -333,7 +333,9 @@ export class CampaignScheduler {
         template.subject_template || "",
         context.variables,
       );
-      const html = this.emailService.renderTemplate(
+      // Use renderHtmlTemplate so customer-supplied values (names, titles) are
+      // HTML-escaped before being embedded in the HTML email body.
+      const html = this.emailService.renderHtmlTemplate(
         template.body_html || "",
         context.variables,
       );

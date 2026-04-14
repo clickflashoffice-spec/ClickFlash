@@ -63,6 +63,26 @@ export const albumSchema = z.object({
     ...commonFields
 });
 
+// Customer PII schema — used as JSON column in orders.customer
+export const customerSchema = z.object({
+    name:      z.string().max(200).optional(),
+    email:     z.string().email().max(254).optional().or(z.literal('')),
+    phone:     z.string().max(30).optional(),
+    roomNumber: z.string().max(50).optional(),
+}).passthrough(); // allow extension fields without breaking existing data
+
+// Photo metadata schema — used as JSON column in photos.metadata
+export const photoMetadataSchema = z.object({
+    width:          z.number().int().positive().optional(),
+    height:         z.number().int().positive().optional(),
+    format:         z.string().max(20).optional(),
+    size:           z.number().int().nonnegative().optional(),
+    orientation:    z.number().int().optional(),
+    customer_email: z.string().email().max(254).nullable().optional(),
+    customer_name:  z.string().max(200).nullable().optional(),
+    gps:            z.null().optional(), // GPS must always be stripped
+}).passthrough();
+
 // Order item validation schema
 export const orderItemSchema = z.object({
     id: z.string(),
@@ -93,7 +113,7 @@ export const orderSchema = z.object({
         { message: 'Photographer ID must be a positive number' }
     ),
     items: z.array(orderItemSchema).min(1, 'At least one item is required'),
-    customer: z.any().optional(),
+    customer: customerSchema.optional(),
     appliedDiscount: z.number().min(0, 'Discount cannot be negative').max(100, 'Discount cannot exceed 100%').optional(),
     destinationId: z.string().optional(),
     paymentMethod: z.enum(['Cash', 'Card']).nullable().optional(),
@@ -155,6 +175,7 @@ export const photoSchema = z.object({
     sync_status: z.string().optional(),
     sync_id: z.string().optional(),
     quality_flags: z.string().optional(),
+    metadata: photoMetadataSchema.optional().or(z.null()),
     manualEdits: manualEditsSchema.optional().or(z.null()),
     ...commonFields
 }).passthrough();

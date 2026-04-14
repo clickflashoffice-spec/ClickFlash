@@ -31,6 +31,7 @@ const ProductSelectionModal: React.FC<ProductSelectionModalProps> = ({ product, 
         reader.onload = (e) => {
             const newPhoto: Photo = {
                 id: `upload-${Date.now()}`,
+                albumId: '',
                 title: file.name,
                 url: e.target?.result as string,
                 photographerId: photographerId,

@@ -92,7 +92,7 @@ class AIBatchStressTest {
         const startTime = Date.now();
 
         while (Date.now() - startTime < durationMs) {
-            const stats = this.getCurrentMemoryStats();
+            const stats = await this.getCurrentMemoryStats();
             samples.push(stats);
             await new Promise(resolve => setTimeout(resolve, 100));
         }
@@ -158,7 +158,7 @@ class AIBatchStressTest {
             await this.waitForJobs(jobIds);
 
             // Track memory peak
-            const memoryStats = this.getCurrentMemoryStats();
+            const memoryStats = await this.getCurrentMemoryStats();
             this.memoryPeakGB = Math.max(this.memoryPeakGB, memoryStats.currentUsageGB);
 
         } catch (error) {
@@ -253,7 +253,7 @@ class AIBatchStressTest {
     /**
      * Internal: Get current memory statistics
      */
-    private getCurrentMemoryStats(): MemoryStats {
+    private async getCurrentMemoryStats(): Promise<MemoryStats> {
         let currentUsageGB = 0;
 
         // Browser memory API (Chrome/Edge)
@@ -263,7 +263,7 @@ class AIBatchStressTest {
         }
 
         // TensorFlow.js memory
-        const tfMemory = aiModelService.getMemoryInfo();
+        const tfMemory = await aiModelService.getMemoryInfo();
 
         return {
             currentUsageGB,

@@ -1,0 +1,134 @@
+{
+  "metrics": {
+    "security": {
+      "critical_vulnerabilities": {
+        "description": "Number of critical severity vulnerabilities",
+        "source": "SonarQube/npm audit",
+        "refresh": "daily",
+        "threshold": 0,
+        "severity": "critical",
+        "alert": "pagerduty"
+      },
+      "high_vulnerabilities": {
+        "description": "Number of high severity vulnerabilities",
+        "source": "SonarQube/npm audit",
+        "refresh": "daily",
+        "threshold": 5,
+        "severity": "high",
+        "alert": "slack"
+      },
+      "secrets_detected": {
+        "description": "Number of hardcoded secrets detected",
+        "source": "TruffleHog/GitLeaks",
+        "refresh": "daily",
+        "threshold": 0,
+        "severity": "critical",
+        "alert": "pagerduty"
+      },
+      "jwt_secret_hardcoded": {
+        "description": "JWT secrets in source code",
+        "source": "Manual/grep",
+        "refresh": "daily",
+        "threshold": 0,
+        "severity": "critical",
+        "alert": "pagerduty"
+      }
+    },
+    "quality": {
+      "build_success_rate": {
+        "description": "CI/CD build success percentage",
+        "source": "GitHub Actions",
+        "refresh": "hourly",
+        "threshold": 95,
+        "unit": "percent"
+      },
+      "test_coverage": {
+        "description": "Code coverage percentage",
+        "source": "Jest/Playwright",
+        "refresh": "daily",
+        "threshold": 80,
+        "unit": "percent"
+      },
+      "lint_errors": {
+        "description": "Number of ESLint errors",
+        "source": "ESLint",
+        "refresh": "daily",
+        "threshold": 0,
+        "severity": "medium"
+      }
+    },
+    "operations": {
+      "error_rate": {
+        "description": "Application error rate",
+        "source": "Logs/Sentry",
+        "refresh": "real-time",
+        "threshold": 1,
+        "unit": "percent",
+        "alert": "pagerduty"
+      },
+      "api_latency_p95": {
+        "description": "API latency 95th percentile",
+        "source": "Logs/APM",
+        "refresh": "5min",
+        "threshold": 500,
+        "unit": "ms"
+      },
+      "api_latency_p99": {
+        "description": "API latency 99th percentile",
+        "source": "Logs/APM",
+        "refresh": "5min",
+        "threshold": 1000,
+        "unit": "ms"
+      },
+      "mttr_hours": {
+        "description": "Mean time to recovery",
+        "source": "PagerDuty",
+        "refresh": "weekly",
+        "threshold": 4,
+        "unit": "hours"
+      }
+    },
+    "compliance": {
+      "gdpr_score": {
+        "description": "GDPR compliance percentage",
+        "source": "Audit checklist",
+        "refresh": "quarterly",
+        "threshold": 100,
+        "unit": "percent"
+      },
+      "ccpa_score": {
+        "description": "CCPA compliance percentage",
+        "source": "Audit checklist",
+        "refresh": "quarterly",
+        "threshold": 100,
+        "unit": "percent"
+      },
+      "days_since_incident": {
+        "description": "Days since last security incident",
+        "source": "Incident tracker",
+        "refresh": "daily",
+        "threshold": 30,
+        "unit": "days"
+      }
+    },
+    "dependencies": {
+      "outdated_packages": {
+        "description": "Number of outdated npm packages",
+        "source": "npm audit",
+        "refresh": "weekly",
+        "threshold": 10,
+        "severity": "low"
+      },
+      "deprecated_packages": {
+        "description": "Number of deprecated packages",
+        "source": "npm audit",
+        "refresh": "weekly",
+        "threshold": 0,
+        "severity": "medium"
+      }
+    }
+  },
+  "apps": ["master", "touch", "moneytrash", "management", "gallery", "website", "master-cpp"],
+  "layers": ["frontend", "backend", "datastore", "integrations", "apis", "messaging", "deployment", "routing", "security", "governance", "operations"],
+  "version": "1.0"
+}

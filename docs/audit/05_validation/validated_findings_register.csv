@@ -1,0 +1,15 @@
+Finding ID,Domain,Description,App,Severity (Initial),Severity (Confirmed),Evidence ID,Owner,Status,Validation Notes,Resolution,Date Validated
+AUDIT-SEC-M001,Security,Hardcoded credentials in .env file,Master,Critical,Critical,,"@dev",Verified,Secret key found in .env,Replaced with CHANGEME placeholders,2026-04-08
+AUDIT-SEC-M002,Security,No TLS/SSL enforcement,Master,High,Medium,,"@dev",Verified,HTTP only in dev,TLS implementation guide created,2026-04-08
+AUDIT-SEC-M003,Security,No encryption at rest for SQLite,Master,Medium,Low,,"@dev",Verified,Using better-sqlite3-multiple-ciphers,Encryption already available,2026-04-08
+AUDIT-DATA-M001,Data Governance,No PII classification in database schema,All Apps,High,Medium,,"@dpo",Verified,No schema tags,PII service exists in codebase,2026-04-08
+AUDIT-DATA-M002,Data Governance,No retention policy enforcement,All Apps,High,High,,"@dpo",Open,,"MoneyTrash has retention config",2026-04-08
+AUDIT-DATA-M003,Data Governance,No consent management (GDPR),Master/Gallery,High,Medium,,"@legal",Verified,Consent service exists,Verified in codebase,2026-04-08
+AUDIT-BACK-M001,Backend,No API versioning strategy,All Apps,Medium,Medium,,"@arch",Verified,No v1 prefix,Framework ready but not enforced,2026-04-08
+AUDIT-BACK-M002,Backend,No circuit breakers for external APIs,All Apps,Medium,Medium,,"@dev",Verified,Circuit breaker exists in Master,Circuit breaker class exists,2026-04-08
+AUDIT-COMP-M001,Compliance,No incident response plan,All Apps,High,High,,"@legal",Verified,No IRP found,IRP created in artifacts/,2026-04-08
+AUDIT-OBS-M001,Observability,No metrics export,All Apps,Medium,Medium,,"@sre",Open,,"Sentry integrated, needs Prometheus",2026-04-08
+AUDIT-OBS-M002,Observability,No request tracing,All Apps,Medium,Low,,"@sre",Open,,"Sentry tracing available",2026-04-08
+AUDIT-OBS-M003,Observability,No alerting configuration,All Apps,Medium,Medium,,"@sre",Open,,"Sentry DSN can enable alerts",2026-04-08
+AUDIT-ARC-M001,Architecture,No shared package between apps,Master/Touch,Medium,Low,,"@arch",Verified,No packages/ folder,Not implemented yet,2026-04-08
+AUDIT-INT-M001,Integration,No API key rotation policy,All Apps,Medium,Medium,,"@devops",Open,,"Rotation not automated",2026-04-08

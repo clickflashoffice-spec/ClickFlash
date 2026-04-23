@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "claude-code-explorer": {
+      "type": "local",
+      "command": ["node", "C:/Users/alamo/Desktop/ClickFlash/claude-code/mcp-server/dist/index.js"],
+      "enabled": true
+    }
+  }
+}

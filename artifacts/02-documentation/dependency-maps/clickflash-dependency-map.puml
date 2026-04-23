@@ -1,0 +1,81 @@
+@startuml ClickFlash-Dependency-Map
+
+title ClickFlash Dependency Map
+
+package "Frontend Layer" {
+  [React 19] as react19
+  [React 18] as react18
+  [Vite 7] as vite
+  [Tailwind CSS 3/4] as tailwind
+}
+
+package "State Management" {
+  [@tanstack/react-query 5] as rq
+  [Zod 4] as zod
+}
+
+package "Backend" {
+  [Express 5] as express
+  [Next.js 15] as nextjs
+  [Electron 39] as electron
+  [Tauri 2] as tauri
+}
+
+package "Data Layer" {
+  [SQLite (better-sqlite3)] as sqlite
+  [D1 Database] as d1
+  [Supabase] as supabase
+  [R2 Storage] as r2
+}
+
+package "Services" {
+  [Stripe 20] as stripe
+  [JWT] as jwt
+  [TensorFlow] as tf
+  [Sharp] as sharp
+}
+
+package "Testing" {
+  [Jest 30] as jest
+  [Playwright 1.57] as playwright
+  [Vitest] as vitest
+}
+
+react19 --> rq --> zod
+react18 --> rq --> zod
+
+master --> [React 19]
+touch --> [React 19]
+mgmt --> [React 19]
+gallery --> [React 19]
+moneytrash --> [React 18]
+
+master --> express
+touch --> express
+mgmt --> express
+
+master --> sqlite
+touch --> sqlite
+
+master --> electron
+touch --> electron
+moneytrash --> tauri
+
+gallery --> stripe
+master --> stripe
+
+master --> tf
+touch --> tf
+
+master --> sharp
+touch --> sharp
+
+gallery --> nextjs
+website --> nextjs
+
+moneytrash --> r2
+
+mgmt --> supabase
+gallery --> d1
+
+@enduml

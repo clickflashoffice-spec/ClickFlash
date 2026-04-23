@@ -1,0 +1,20 @@
+ID,Domain,Finding Description,App,Severity,Owner,Effort (days),Status,Due Date,Priority Score,Dependencies,Notes
+AUDIT-SEC-001,Security,Hardcoded JWT secret in source code (auth.ts line 15),Master,Critical,@dev,1,Open,,100,,Requires immediate remediation - secret exposed
+AUDIT-SEC-002,Security,No TLS enforcement for local API connections,All Apps,High,@dev,2,Open,,85,,Upgrade to HTTPS for all internal calls
+AUDIT-SEC-003,Security,Missing rate limiting on /api/auth endpoint,Master,High,@dev,1,Open,,80,,Brute force protection needed
+AUDIT-ARC-001,Architecture,Circular dependency between auth and session modules,Master,High,@arch,3,Open,,75,,Refactor to break circular import
+AUDIT-ARC-002,Architecture,No shared package for common utilities across apps,All Apps,Medium,@dev,5,Open,,50,,Create @clickflash/shared package
+AUDIT-DATA-001,Data Governance,No automated data retention policy enforcement,Master,High,@dpo,5,Open,,70,,Implement cleanup cron job for old records
+AUDIT-DATA-002,Data Governance,Missing PII classification tags in database schema,All Apps,Medium,@dpo,3,Open,,55,,Add classification metadata to schema
+AUDIT-FEAT-001,Features,Photo thumbnail generation not asynchronous,Master,Medium,@po,2,Open,,45,,Implement background job for image processing
+AUDIT-FEAT-002,Features,Inconsistent error messages between apps,All Apps,Low,@dev,3,Open,,30,,Standardize error handling across apps
+AUDIT-BACK-001,Backend,No circuit breaker implementation for Stripe calls,Gallery,Medium,@dev,3,Open,,60,,Implement circuit breaker pattern
+AUDIT-BACK-002,Backend,API version strategy not documented,All Apps,Low,@arch,2,Open,,25,,Document versioning approach
+AUDIT-COMP-001,Compliance,Missing GDPR consent checkbox for new user registration,All Apps,Medium,@legal,2,Open,,65,,Add consent UI component
+AUDIT-COMP-002,Compliance,No documented incident response plan,All Apps,High,@legal,4,Open,,75,,Create IRP document
+AUDIT-PERF-001,Performance,Missing database index on orders table order_date column,Master,Medium,@dba,1,Open,,50,,Add index for date range queries
+AUDIT-PERF-002,Performance,No caching layer for frequently accessed data,Management,Medium,@dev,4,Open,,45,,Implement Redis caching
+AUDIT-OBS-001,Observability,Logs not rotated beyond 7 days,All Apps,Low,@sre,1,Open,,20,,Configure log rotation policy
+AUDIT-OBS-002,Observability,No alerting configured for critical errors,All Apps,Medium,@sre,2,Open,,55,,Set up PagerDuty or equivalent alerts
+AUDIT-INT-001,Integration,Stripe API version outdated (v2022 deprecated),Gallery,Low,@dev,2,Open,,30,,Upgrade to latest Stripe SDK
+AUDIT-INT-002,Integration,Cloudflare WAF rules not documented,All Apps,Medium,@devops,2,Open,,40,,Document WAF configuration

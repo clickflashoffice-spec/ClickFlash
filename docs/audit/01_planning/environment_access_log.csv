@@ -1,0 +1,13 @@
+Environment,Type,URL/Path,Access Method,Credentials Location,Access Granted Date,Access Expiry Date,Verified By,Status,Notes
+GitHub Repository - ClickFlash,Code Repository,https://github.com/anomalyco/clickflash,GitHub OAuth,,,Yes,,Ready,
+Docker Compose - Local,Development,local,docker-compose.yml,Local Docker daemon,,,Yes,,Ready,
+Cloudflare Account,Cloud Infrastructure,console.cloudflare.com,SSO/MFA,,,Yes,,Pending,Need access
+Stripe Dashboard,Third-Party API,dashboard.stripe.com,SSO/MFA,,,Yes,,Pending,Test mode only
+CI/CD - GitHub Actions,CI/CD,github.com/anomalyco/clickflash/actions,GitHub OAuth,,,Yes,,Ready,
+Database - Master (Production),Database,localhost:8090,SQLite file,apps/master/data/,TBD,TBD,,Pending,Restricted - query via DevOps
+Database - Touch (Production),Database,localhost:8091,SQLite file,apps/touch/data/,TBD,TBD,,Pending,Restricted - query via DevOps
+Database - COP Master,Database,TBD,SQLite file,TBD,TBD,TBD,,Pending,Need provisioning
+API Endpoint - Master,API,http://localhost:8090,HTTP,Local dev server,TBD,TBD,,Pending,
+API Endpoint - Touch,API,http://localhost:8091,HTTP,Local dev server,TBD,TBD,,Pending,
+API Endpoint - Management,API,http://localhost:5173,HTTP,Local dev server,TBD,TBD,,Pending,
+API Endpoint - Gallery,API,http://localhost:5174,HTTP,Local dev server,TBD,TBD,,Pending,

@@ -1,0 +1,16 @@
+Role,Name,Email,Department,Availability,Communication Preference,Notes
+Executive Sponsor,,,Leadership,,,Budget authority
+Audit Lead,,,Architecture,,,Overall execution
+Product Owner - Master,,,Product,,,
+Product Owner - Touch,,,Product,,,
+Product Owner - MoneyTrash,,,Product,,,
+Product Owner - Management,,,Product,,,
+Product Owner - Gallery,,,Product,,,
+Product Owner - Website,,,Product,,,
+Security Architect,,,Security,,,Security domain lead
+DevOps Lead,,,DevOps,,,Infrastructure access
+SRE Lead,,,Operations,,,Observability
+Data Protection Officer,,,Legal/Privacy,,,Data governance
+Compliance Officer,,,Legal,,,Regulatory alignment
+Backend Developer Lead,,,Engineering,,,Code access
+Frontend Developer Lead,,,Engineering,,,Code access

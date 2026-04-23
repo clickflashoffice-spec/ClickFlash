@@ -1,0 +1,55 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "master – full (backend + preview)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "preview:full"],
+      "port": 5174,
+      "autoPort": false,
+      "cwd": "apps/master"
+    },
+    {
+      "name": "master – frontend (vite dev)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5173,
+      "cwd": "apps/master"
+    },
+    {
+      "name": "master – backend only",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:backend"],
+      "port": 8090,
+      "cwd": "apps/master"
+    },
+    {
+      "name": "touch – frontend (vite dev)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5174,
+      "cwd": "apps/touch"
+    },
+    {
+      "name": "touch – backend only",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:backend"],
+      "port": 8091,
+      "cwd": "apps/touch"
+    },
+    {
+      "name": "website (Next.js dev)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000,
+      "cwd": "apps/website"
+    },
+    {
+      "name": "moneytrash (vite dev)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 1420,
+      "cwd": "apps/moneytrash"
+    }
+  ]
+}

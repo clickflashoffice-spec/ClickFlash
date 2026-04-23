@@ -1,0 +1,49 @@
+@startuml ClickFlash-Data-Flow
+
+title ClickFlash Data Flow Diagram
+
+start
+
+:Customer initiates session\nat Touch Kiosk;
+
+:Photo capture or upload;
+
+:Local SQLite storage\n(Touch Kiosk);
+
+if (Order created?) then (yes)
+  :Generate Order with HMAC signature;
+  :Export to Master Portal\nvia secure channel;
+  :Master processes order;
+  
+  if (Cloud sync enabled?) then (yes)
+    :Push to Management Hub\nvia authenticated API;
+    :Sync to Gallery\nfor customer access;
+  endif
+  
+  :Stripe payment\n(if applicable);
+  :Order fulfilled;
+else (no)
+  :Photo stored locally;
+endif
+
+:Customer receives\ngallery access link;
+
+:Customer browses\ngallery;
+
+:High-res download\n(after payment);
+
+stop
+
+note right of "Touch Kiosk"
+  Local-first architecture
+  Offline queue for orders
+  HMAC-signed exports
+end note
+
+note right of "Gallery"
+  Token-based access
+  Watermarked previews
+  Stripe checkout
+end note
+
+@enduml

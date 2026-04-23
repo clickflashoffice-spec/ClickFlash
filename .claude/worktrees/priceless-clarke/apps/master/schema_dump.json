@@ -1,0 +1,90 @@
+{
+  "albums": [
+    {
+      "name": "id"
+    },
+    {
+      "name": "title"
+    },
+    {
+      "name": "date"
+    },
+    {
+      "name": "photographerId"
+    },
+    {
+      "name": "coverPhotoUrl"
+    },
+    {
+      "name": "source"
+    },
+    {
+      "name": "roomNumber"
+    },
+    {
+      "name": "status"
+    },
+    {
+      "name": "categories"
+    },
+    {
+      "name": "created_at"
+    },
+    {
+      "name": "updated_at"
+    },
+    {
+      "name": "kiosk_ready"
+    },
+    {
+      "name": "customerEmail"
+    },
+    {
+      "name": "pricePerPhoto"
+    },
+    {
+      "name": "fullGalleryPrice"
+    }
+  ],
+  "opLogs": [
+    {
+      "name": "id"
+    },
+    {
+      "name": "type"
+    },
+    {
+      "name": "table_name"
+    },
+    {
+      "name": "record_id"
+    },
+    {
+      "name": "payload"
+    },
+    {
+      "name": "timestamp"
+    },
+    {
+      "name": "vector_clock"
+    },
+    {
+      "name": "status"
+    },
+    {
+      "name": "retries"
+    },
+    {
+      "name": "error_message"
+    },
+    {
+      "name": "created_at"
+    },
+    {
+      "name": "sequence_number"
+    },
+    {
+      "name": "desk_id"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+    "name": "star-master-touch-desktop",
+    "version": "4.1.0",
+    "description": "Touch Kiosk Desktop Application",
+    "main": "electron/main.js",
+    "author": "Star Master Photography",
+    "license": "MIT",
+    "scripts": {
+        "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5174 && electron .\"",
+        "electron:build": "npm run build && electron-builder",
+        "electron:dist": "npm run build && electron-builder --win --mac --linux"
+    },
+    "build": {
+        "appId": "com.starmaster.touch",
+        "productName": "Star Master Touch",
+        "directories": {
+            "output": "dist/electron",
+            "buildResources": "electron/resources"
+        },
+        "files": [
+            "dist/touch/**/*",
+            "electron/**/*",
+            "package.json"
+        ],
+        "win": {
+            "target": [
+                "nsis",
+                "portable"
+            ],
+            "icon": "electron/resources/icon.ico",
+            "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+        },
+        "mac": {
+            "target": [
+                "dmg",
+                "zip"
+            ],
+            "icon": "electron/resources/icon.icns",
+            "category": "public.app-category.business"
+        },
+        "linux": {
+            "target": [
+                "AppImage",
+                "deb"
+            ],
+            "icon": "electron/resources/icon.png",
+            "category": "Office"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true
+        }
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2",
+        "electron": "^28.0.0",
+        "electron-builder": "^24.9.1",
+        "wait-on": "^7.2.0"
+    }
+}

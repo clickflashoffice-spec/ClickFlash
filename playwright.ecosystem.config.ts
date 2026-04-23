@@ -5,15 +5,28 @@ import { defineConfig, devices } from "@playwright/test";
  * Validates data flow across all 6 applications.
  */
 export default defineConfig({
-  testDir: "./tests/ecosystem",
+  testDir: './',
+  testMatch: [
+    'tests/ecosystem/**/*.spec.ts',
+    'apps/master/tests/e2e/**/*.spec.ts',
+    'apps/touch/tests/e2e/**/*.spec.ts'
+  ],
+  testIgnore: [
+    '**/.claude/**',
+    '**/.kilo/**',
+    '**/.git/**',
+    '**/node_modules/**'
+  ],
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 1,
   workers: 1,
-  reporter: "list",
-  timeout: 300000, // 5 minutes (cloud sync takes time)
+  reporter: 'list',
+  timeout: 300000, 
+
 
   use: {
+    baseURL: 'http://localhost:5173',
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",

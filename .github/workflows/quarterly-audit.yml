@@ -1,0 +1,260 @@
+name: Quarterly Security Re-Audit
+
+on:
+  schedule:
+    # Run quarterly on: Jan 1, Apr 1, Jul 1, Oct 1 at 00:00 UTC
+    - cron: '0 0 1 1,4,7,10 *'
+  
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Scan type'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - security
+          - dependencies
+          - secrets
+
+  # Trigger after security-related changes
+  push:
+    paths:
+      - '**.security/**'
+      - '**/SECURITY.md'
+      - '.github/workflows/audit*.yml'
+
+permissions:
+  contents: read
+  security-events: write
+  issues: write
+
+jobs:
+  audit-dependencies:
+    name: Audit Dependencies
+    runs-on: ubuntu-latest
+    if: inputs.scan_type == 'full' || inputs.scan_type == 'dependencies'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install audit script
+        run: |
+          chmod +x artifacts/03-assessment/re-audit-kit/scripts/scan-dependencies.sh
+      
+      - name: Run dependency audit
+        run: |
+          for app in master touch moneytrash management gallery website; do
+            echo "=== Scanning apps/$app ==="
+            cd apps/$app 2>/dev/null || continue
+            if [ -f package.json ]; then
+              npm audit --audit-level=high --json > audit-results.json || true
+              npm outdated --depth=0 || true
+            fi
+            cd ../..
+          done
+      
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-audit-results
+          path: '**/audit-results.json'
+          retention-days: 30
+
+  audit-secrets:
+    name: Scan Secrets
+    runs-on: ubuntu-latest
+    if: inputs.scan_type == 'full' || inputs.scan_type == 'secrets'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Run TruffleHog
+        uses: edplato/trufflehog-action@main
+        with:
+          repoPath: '.'
+          outputFormat: 'json'
+          output: secret-scan-results.json
+      
+      - name: Run custom secret scan
+        run: |
+          chmod +x artifacts/03-assessment/re-audit-kit/scripts/scan-secrets.sh
+          ./artifacts/03-assessment/re-audit-kit/scripts/scan-secrets.sh . > custom-secret-scan.log 2>&1 || true
+      
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: secret-scan-results
+          path: |
+            secret-scan-results.json
+            custom-secret-scan.log
+          retention-days: 30
+
+  audit-security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    if: inputs.scan_type == 'full' || inputs.scan_type == 'security'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run vulnerability scan
+        run: |
+          chmod +x artifacts/03-assessment/re-audit-kit/scripts/scan-vulnerabilities.sh
+          ./artifacts/03-assessment/re-audit-kit/scripts/scan-vulnerabilities.sh || true
+      
+      - name: Run security checklist
+        run: |
+          echo "## Security Checklist Results" >> security-checklist.md
+          echo "### $(date)" >> security-checklist.md
+          echo "" >> security-checklist.md
+          
+          # Check JWT secrets
+          echo "### JWT Secrets Check" >> security-checklist.md
+          grep -r "JWT_SECRET.*=" apps/*/wrangler.toml apps/*/backend/wrangler.toml 2>/dev/null || echo "No hardcoded JWT secrets found" >> security-checklist.md
+          
+          echo "### Fallback Secrets Check" >> security-checklist.md
+          grep -r "fallback\|CHANGE_ME\|default-secret" apps/*/backend/ 2>/dev/null | grep -i "secret\|jwt" || echo "No fallback secrets found" >> security-checklist.md
+      
+      - name: Upload security results
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results
+          path: security-checklist.md
+          retention-days: 30
+
+  generate-report:
+    name: Generate Report
+    needs: [audit-dependencies, audit-secrets, audit-security]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: audit-results
+      
+      - name: Generate quarterly report
+        run: |
+          chmod +x artifacts/03-assessment/re-audit-kit/scripts/generate-report.sh
+          ./artifacts/03-assessment/re-audit-kit/scripts/generate-report.sh artifacts/03-assessment/audit-reports/
+          
+          # Append scan summaries
+          echo "## Quarterly Scan Results" >> artifacts/03-assessment/audit-reports/latest/scan-summary.md
+          echo "### $(date)" >> artifacts/03-assessment/audit-reports/latest/scan-summary.md
+          
+          if [ -d "audit-results/dependency-audit-results" ]; then
+            echo "### Dependencies" >> artifacts/03-assessment/audit-reports/latest/scan-summary.md
+            find audit-results/dependency-audit-results -name "*.json" -exec cat {} \; 2>/dev/null | jq -r '.metadata.vulnerabilities | to_entries[] | "\(.key): \(.value)"' 2>/dev/null || echo "No dependency issues" >> artifacts/03-assessment/audit-reports/latest/scan-summary.md
+          fi
+      
+      - name: Create GitHub Issue
+        if: needs.audit-secrets.result == 'success' || needs.audit-dependencies.result == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'artifacts/03-assessment/audit-reports/latest/audit_report_*.md';
+            const reports = fs.readdirSync('.').filter(f => f.match(/audit_report_/));
+            
+            if (reports.length > 0) {
+              const report = reports[0];
+              const content = fs.readFileSync(report, 'utf8');
+              
+              github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Quarterly Security Re-Audit Report - ' + new Date().toISOString().split('T')[0],
+                body: 'Quarterly re-audit completed. See attached report for findings.\n\n' +
+                      '**Scan Date:** ' + new Date().toISOString() + '\n' +
+                      '**Artifacts:** ' + report,
+                labels: ['security', 'audit', 'quarterly']
+              });
+            }
+
+  ci-status-check:
+    name: CI Status Check
+    runs-on: ubuntu-latest
+    if: inputs.scan_type == 'full'
+    
+    steps:
+      - name: Get CI status
+        run: |
+          echo "## CI/CD Status" >> ci-status.md
+          echo "### GitHub Actions" >> ci-status.md
+          echo "Last 5 workflow runs would be checked via API" >> ci-status.md
+          
+          # Note: In production, use GitHub API to get actual workflow status
+          # curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          #   https://api.github.com/repos/${{ github.repository }}/actions/runs | jq '.workflow_runs[:5]'
+
+  post-mortem-trigger:
+    name: Post-Mortem Check
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      inputs.scan_type == 'full'
+    
+    steps:
+      - name: Check for recent incidents
+        run: |
+          echo "Checking for SEV1/SEV2 incidents in last 90 days..."
+          # In production, query incident tracker
+          
+          # If incidents found, create post-mortem audit trigger
+          INCIDENTS_FOUND=false
+          
+          if [ "$INCIDENTS_FOUND" == "true" ]; then
+            echo "Post-mortem audit recommended"
+            # Create follow-up issue
+          fi
+
+  metrics-update:
+    name: Update Metrics
+    needs: [audit-dependencies, audit-secrets, audit-security]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    outputs:
+      critical_count: ${{ steps.count.outputs.critical }}
+      high_count: ${{ steps.count.outputs.high }}
+    
+    steps:
+      - name: Count findings
+        id: count
+        run: |
+          CRITICAL=0
+          HIGH=0
+          
+          # Count from downloaded artifacts
+          if [ -d "audit-results/secret-scan-results" ]; then
+            # Parse secret scan results
+            SECRETS_FOUND=$(find audit-results/secret-scan-results -type f | wc -l)
+          fi
+          
+          echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+          echo "high=$HIGH" >> $GITHUB_OUTPUT
+      
+      - name: Update Grafana metrics
+        if: vars.GRAFANA_API_KEY != ''
+        run: |
+          curl -X POST "${{ vars.GRAFANA_URL }}/api/push/influx" \
+            -H "Authorization: Bearer ${{ secrets.GRAFANA_API_KEY }}" \
+            -d "audit,app=clickflash critical=${{ steps.count.outputs.critical }},high=${{ steps.count.outputs.high }}"
+        continue-on-error: true

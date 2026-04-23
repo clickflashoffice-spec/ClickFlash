@@ -1,0 +1,81 @@
+[
+  {
+    "results": [
+      {
+        "name": "_cf_KV"
+      },
+      {
+        "name": "users"
+      },
+      {
+        "name": "albums"
+      },
+      {
+        "name": "photos"
+      },
+      {
+        "name": "products"
+      },
+      {
+        "name": "packs"
+      },
+      {
+        "name": "bookings"
+      },
+      {
+        "name": "settings"
+      },
+      {
+        "name": "moneytrash_purchases"
+      },
+      {
+        "name": "sync_sequences"
+      },
+      {
+        "name": "destinations"
+      },
+      {
+        "name": "fleet_heartbeat_history"
+      },
+      {
+        "name": "sqlite_sequence"
+      },
+      {
+        "name": "orders_old"
+      },
+      {
+        "name": "operation_logs"
+      },
+      {
+        "name": "fleet_heartbeats"
+      },
+      {
+        "name": "system_stats"
+      },
+      {
+        "name": "daily_photographer_audits"
+      },
+      {
+        "name": "orders"
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "WEUR",
+      "served_by_colo": "MRS",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 0.3577
+      },
+      "duration": 0.3577,
+      "changes": 0,
+      "last_row_id": 0,
+      "changed_db": false,
+      "size_after": 303104,
+      "rows_read": 46,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]

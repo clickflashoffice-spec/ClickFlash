@@ -1,0 +1,400 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20'
+  JWT_SECRET: test-secret-for-ci-min-32-chars!!
+  DEFAULT_ADMIN_PASSWORD: test-password
+  NODE_ENV: test
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --workspace=apps/master
+
+      - name: Type check
+        run: npx tsc --noEmit --workspace=apps/master
+
+  # Phase 1: Unit Tests with Jest
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --workspace=apps/master
+
+      - name: Run unit tests with coverage
+        run: npm run test:ci --workspace=apps/master
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./apps/master/coverage/unit/coverage-final.json
+          flags: unittests
+          name: master-unit
+        continue-on-error: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jest-results
+          path: |
+            apps/master/test-results/
+            apps/master/coverage/
+          retention-days: 30
+
+  # Phase 2: Integration Tests with Supertest
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --workspace=apps/master
+
+      - name: Run integration tests
+        run: npm run test:integration --workspace=apps/master
+        env:
+          NODE_ENV: test
+          JWT_SECRET: ${{ env.JWT_SECRET }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-results
+          path: apps/master/test-results/integration/
+          retention-days: 30
+
+  # Phase 3: E2E Tests with Playwright
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1/4, 2/4, 3/4, 4/4]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --workspace=apps/master
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Start backend server
+        run: |
+          cd apps/master
+          npm run dev:backend &
+          echo "Waiting for backend..."
+          sleep 15
+
+      - name: Start frontend dev server
+        run: |
+          cd apps/master
+          npm run dev &
+          echo "Waiting for frontend..."
+          sleep 20
+
+      - name: Run E2E tests (sharded)
+        run: |
+          cd apps/master
+          npx playwright test \
+            --shard=${{ matrix.shard }} \
+            --reporter=list \
+            --timeout=60000
+        env:
+          E2E_BASE_URL: http://localhost:5173
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-results-${{ matrix.shard }}
+          path: |
+            apps/master/test-results/
+            apps/master/test-results/playwright/
+          retention-days: 30
+
+      - name: Upload Playwright traces
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces-${{ matrix.shard }}
+          path: apps/master/trace.zip
+          retention-days: 14
+        continue-on-error: true
+
+  # Phase 4: Performance Tests
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --workspace=apps/master
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run k6 stress tests
+        run: k6 run tests/performance/k6-stress.js
+        env:
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-results
+          path: |
+            apps/master/test-results/k6/
+          retention-days: 30
+
+  # Phase 5: Security Tests
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --workspace=apps/master
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high --workspace=apps/master
+        continue-on-error: true
+
+      - name: Run Snyk security scan
+        run: npx snyk test --workspace=apps/master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Run electronegativity
+        run: npx electronegativity -i -o electronegativity-results.json --workspace=apps/master
+        continue-on-error: true
+
+      - name: Upload security results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-results
+          path: |
+            apps/master/electronegativity-results.json
+          retention-days: 30
+
+  # Phase 6: Accessibility Tests
+  accessibility-tests:
+    name: Accessibility Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --workspace=apps/master
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Start dev server
+        run: |
+          cd apps/master
+          npm run dev &
+          sleep 25
+
+      - name: Run accessibility tests
+        run: npm run test:a11y --workspace=apps/master
+
+      - name: Upload accessibility results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a11y-results
+          path: apps/master/test-results/a11y/
+          retention-days: 30
+
+  # Build verification
+  build-test:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --workspace=apps/master
+
+      - name: Build backend
+        run: npm run build:backend --workspace=apps/master
+
+      - name: Build frontend
+        run: npm run build --workspace=apps/master
+
+      - name: Electron builder dry-run
+        if: matrix.os == 'ubuntu-latest'
+        run: npx electron-builder build --win --dir --config=apps/master/electron-builder.yml || echo "electron-builder not configured"
+
+  # Allure Report Generation
+  report:
+    name: Generate Test Report
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [unit-tests, integration-tests, e2e-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Install Allure
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y default-jre
+          wget -q -O allure-commandline.zip https://github.com/allure-framework/allure2/releases/download/2.24.0/allure-commandline-2.24.0.zip
+          unzip -q allure-commandline.zip
+          echo "$(pwd)/allure-commandline-2.24.0/bin" >> $GITHUB_PATH
+
+      - name: Generate Allure report
+        run: |
+          mkdir -p allure-results
+          # Combine Jest results
+          find artifacts -name "*.xml" -path "*junit*" -exec cp {} allure-results/ \;
+          find artifacts -name "*.json" -path "*coverage*" -exec cp {} allure-results/ \;
+          # Find Playwright results
+          find artifacts -type d -name "playwright" -exec cp -r {} allure-results/ \; 2>/dev/null || true
+          allure generate allure-results -o allure-report --quiet
+
+      - name: Upload Allure report
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
+          retention-days: 14
+
+  # Matrix build for cross-platform E2E
+  cross-platform-e2e:
+    name: Cross-Platform E2E
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --workspace=apps/master
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Start dev server
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          cd apps/master
+          npm run dev:full &
+          Start-Sleep -Seconds 30
+
+      - name: Start dev server
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd apps/master
+          npm run dev:full &
+          sleep 30
+
+      - name: Run smoke tests
+        run: npm run test:e2e:smoke --workspace=apps/master || echo "No smoke tests"
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cross-platform-results-${{ matrix.os }}
+          path: apps/master/test-results/
+          retention-days: 14

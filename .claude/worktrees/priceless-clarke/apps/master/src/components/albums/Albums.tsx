@@ -2002,6 +2002,7 @@ const Albums: React.FC<AlbumsProps> = ({
             <VirtuosoGrid
               style={{ height: "100%", width: "100%" }}
               data={allAlbums}
+              initialItemCount={Math.min(allAlbums.length, 6)}
               components={{
                 Item: ItemContainer,
                 List: ListContainer,

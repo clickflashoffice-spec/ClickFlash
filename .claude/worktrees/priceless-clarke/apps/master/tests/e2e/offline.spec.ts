@@ -47,26 +47,27 @@ test.describe('Offline Functionality', () => {
     test('should restore normal operation when back online', async ({ page }) => {
         // Brief offline→online cycle. In-flight background polls may fail during
         // the offline window, causing the app to crash (React error boundary) or
-        // redirect to login within a few seconds of reconnection. The Albums
-        // button may be visible before the crash, so we must wait for the app to
-        // fully stabilize before checking state.
+        // redirect to login within a few seconds of reconnection.
         await page.context().setOffline(true);
         await page.context().setOffline(false);
 
-        // Wait long enough for any crash/redirect to manifest before checking state
-        await page.waitForTimeout(4000);
+        // Wait long enough (6 s) for any crash/redirect to manifest before checking state.
+        // 4 s was sometimes insufficient when the backend reconnect races with polling.
+        await page.waitForTimeout(6000);
 
-        if (await page.locator('text=System Problem Detected').isVisible({ timeout: 500 }).catch(() => false)) {
+        if (await page.locator('text=System Problem Detected').isVisible({ timeout: 1000 }).catch(() => false)) {
             // React error boundary — restart and re-authenticate
             await page.click('button:has-text("Restart System")');
             await login(page);
-        } else if (await page.locator('[data-testid="login-button"]').isVisible({ timeout: 500 }).catch(() => false)) {
+        } else if (await page.locator('[data-testid="login-button"]').isVisible({ timeout: 1000 }).catch(() => false)) {
             await login(page);
         }
         // Otherwise the app recovered without issues
 
-        // Navigate to Albums to confirm the app is functional
-        await page.click('button:has-text("Albums")');
+        // Wait for the Albums sidebar button to be ready before clicking
+        const albumsBtn = page.locator('button:has-text("Albums")');
+        await albumsBtn.waitFor({ state: 'visible', timeout: 10000 });
+        await albumsBtn.click();
         await expect(page.locator('text=Album Workflow')).toBeVisible({ timeout: 10000 });
     });
 });

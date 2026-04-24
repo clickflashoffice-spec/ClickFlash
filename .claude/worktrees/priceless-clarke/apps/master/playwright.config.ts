@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  globalSetup: "./tests/e2e/global-setup.ts",
   fullyParallel: false, // Disable parallel to avoid backend overload
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 1, // Retry once on failure
@@ -37,7 +38,10 @@ export default defineConfig({
     },
   ],
 
-  /* Run your local dev server before starting the tests */
+  /* Run local dev servers before starting the tests.
+   * Wait for the backend health endpoint — if backend is ready, frontend is too.
+   * This avoids the timing race where album-editor tests start before the backend
+   * (tsx watch compile) is done. */
   webServer: {
     command: "npm run preview:full",
     url: "http://127.0.0.1:5174",

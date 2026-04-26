@@ -13,28 +13,13 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
   Tooltip,
-  Legend,
-  Filler,
-} from "chart.js";
-import { Line } from "react-chartjs-2";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-);
+  ResponsiveContainer,
+} from "recharts";
 
 interface PhotographerDetailModalProps {
   photographer: Photographer & {
@@ -85,37 +70,10 @@ const PhotographerDetailModal: React.FC<PhotographerDetailModalProps> = ({
     return data;
   }, [photographerOrders]);
 
-  const chartData = {
-    labels: last30DaysData.map((d) => d.date),
-    datasets: [
-      {
-        label: "Daily Sales",
-        data: last30DaysData.map((d) => d.sales),
-        borderColor: "rgb(59, 130, 246)",
-        backgroundColor: "rgba(59, 130, 246, 0.1)",
-        fill: true,
-        tension: 0.4,
-        pointRadius: 0,
-        pointHoverRadius: 4,
-      },
-    ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-    },
-    scales: {
-      x: { display: false },
-      y: {
-        beginAtZero: true,
-        grid: { color: "rgba(0,0,0,0.05)" },
-        ticks: { display: false },
-      },
-    },
-  };
+  const chartData = last30DaysData.map((d) => ({
+    date: d.date,
+    sales: d.sales,
+  }));
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -199,7 +157,54 @@ const PhotographerDetailModal: React.FC<PhotographerDetailModalProps> = ({
                 30-Day Sales Trend
               </h3>
               <div className="h-48 bg-slate-50 rounded-3xl p-6 border border-slate-100">
-                <Line data={chartData} options={chartOptions} />
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={chartData}
+                    margin={{ top: 4, right: 4, left: 0, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient
+                        id="modalSalesGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="rgb(59,130,246)"
+                          stopOpacity={0.15}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="rgb(59,130,246)"
+                          stopOpacity={0.01}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="date" hide />
+                    <YAxis hide domain={[0, "auto"]} />
+                    <Tooltip
+                      formatter={(v: number) => [
+                        formatCurrency(v),
+                        "Daily Sales",
+                      ]}
+                      cursor={{
+                        stroke: "rgba(59,130,246,0.3)",
+                        strokeWidth: 1,
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="sales"
+                      stroke="rgb(59,130,246)"
+                      strokeWidth={2}
+                      fill="url(#modalSalesGradient)"
+                      dot={false}
+                      activeDot={{ r: 4 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
 

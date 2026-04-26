@@ -1,18 +1,33 @@
 import React, { useMemo } from "react";
 import {
-  DollarSign,
   TrendingUp,
-  TrendingDown,
   Hotel,
-  Globe,
   ShoppingBag,
   Activity,
 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { Order, Expense, Destination } from "../../../types";
 import { analyticsUtils } from "../../../utils/analyticsUtils";
 import StatCard from "../../common/StatCard";
-import ReactApexChart from "react-apexcharts";
-import { ApexOptions } from "apexcharts";
+
+const PROFIT_COLORS = [
+  "#06b6d4",
+  "#3b82f6",
+  "#8b5cf6",
+  "#ec4899",
+  "#f59e0b",
+  "#10b981",
+  "#f97316",
+];
 
 interface DashboardProfitabilityProps {
   orders: Order[];
@@ -47,41 +62,14 @@ const DashboardProfitability: React.FC<DashboardProfitabilityProps> = ({
     return { totalIncome, totalExpenses, netProfit, profitMargin };
   }, [profitabilityData]);
 
-  const chartOptions: ApexOptions = {
-    chart: {
-      type: "bar",
-      toolbar: { show: false },
-    },
-    plotOptions: {
-      bar: {
-        borderRadius: 8,
-        distributed: true,
-        horizontal: true,
-        barHeight: "60%",
-      },
-    },
-    colors: ["#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b"],
-    dataLabels: {
-      enabled: true,
-      formatter: (val: number) => formatCurrency(val),
-      style: { fontWeight: 900 },
-    },
-    xaxis: {
-      categories: profitabilityData.map((d) => d.name),
-      labels: { show: false },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    grid: { show: false },
-    legend: { show: false },
-  };
-
-  const chartSeries = [
-    {
-      name: "Profit",
-      data: profitabilityData.map((d) => d.profit),
-    },
-  ];
+  const chartData = useMemo(
+    () =>
+      profitabilityData.map((d) => ({
+        name: d.name,
+        profit: d.profit,
+      })),
+    [profitabilityData],
+  );
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -129,12 +117,55 @@ const DashboardProfitability: React.FC<DashboardProfitabilityProps> = ({
             </p>
           </div>
           <div className="h-[400px]">
-            <ReactApexChart
-              options={chartOptions}
-              series={chartSeries}
-              type="bar"
-              height="100%"
-            />
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                layout="vertical"
+                margin={{ top: 0, right: 48, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                <XAxis
+                  type="number"
+                  tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 600 }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v) =>
+                    new Intl.NumberFormat(undefined, {
+                      notation: "compact",
+                      style: "currency",
+                      currency: "EUR",
+                    }).format(v)
+                  }
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  tick={{ fill: "#64748b", fontSize: 12, fontWeight: 700 }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={100}
+                />
+                <Tooltip
+                  formatter={(value: number) => [
+                    formatCurrency(value),
+                    "Net Profit",
+                  ]}
+                  cursor={{ fill: "rgba(59,130,246,0.04)" }}
+                />
+                <Bar dataKey="profit" radius={[0, 8, 8, 0]}>
+                  {chartData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={
+                        entry.profit >= 0
+                          ? PROFIT_COLORS[index % PROFIT_COLORS.length]
+                          : "#ef4444"
+                      }
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -203,4 +234,3 @@ const DashboardProfitability: React.FC<DashboardProfitabilityProps> = ({
 };
 
 export default React.memo(DashboardProfitability);
-

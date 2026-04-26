@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useMemo } from "react";
-import ReactApexChart from "react-apexcharts";
-import { ApexOptions } from "apexcharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+} from "recharts";
 import {
   TrendingUp,
   Users,
@@ -360,66 +371,48 @@ const ClickFlashAnalytics: React.FC<ClickFlashAnalyticsProps> = ({
                 </div>
               </div>
               <div className="h-[250px] lg:h-[300px]">
-                <ReactApexChart
-                  options={
-                    {
-                      chart: {
-                        type: "bar",
-                        toolbar: { show: false },
-                        animations: {
-                          enabled: true,
-                          easing: "easeinout",
-                          speed: 800,
-                        },
-                      },
-                      plotOptions: {
-                        bar: {
-                          horizontal: false,
-                          columnWidth: "15%",
-                          borderRadius: 6,
-                          distributed: false,
-                        },
-                      },
-                      dataLabels: { enabled: false },
-                      colors: ["#3b82f6", "#1e293b"],
-                      xaxis: {
-                        categories: ["Seb", "Mih", "Deb", "Mar", "Luc"],
-                        labels: {
-                          style: {
-                            fontWeight: 900,
-                            fontSize: "10px",
-                            colors: "#64748b",
-                          },
-                        },
-                        axisBorder: { show: false },
-                        axisTicks: { show: false },
-                      },
-                      yaxis: {
-                        labels: {
-                          style: { fontWeight: 600, colors: "#94a3b8" },
-                        },
-                      },
-                      legend: {
-                        show: true,
-                        position: "top",
-                        horizontalAlign: "right",
-                        fontWeight: 900,
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={[
+                      { name: "Seb", Leads: 130, Closings: 28 },
+                      { name: "Mih", Leads: 80, Closings: 48 },
+                      { name: "Deb", Leads: 25, Closings: 32 },
+                      { name: "Mar", Leads: 60, Closings: 45 },
+                      { name: "Luc", Leads: 95, Closings: 78 },
+                    ]}
+                    margin={{ top: 4, right: 8, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid
+                      vertical={false}
+                      stroke="#f1f5f9"
+                      strokeDasharray="4 4"
+                    />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fill: "#64748b", fontSize: 10, fontWeight: 900 }}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 600 }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={28}
+                    />
+                    <Tooltip
+                      cursor={{ fill: "rgba(59,130,246,0.04)" }}
+                    />
+                    <Legend
+                      wrapperStyle={{
                         fontSize: "10px",
-                      },
-                      grid: {
-                        borderColor: "#f1f5f9",
-                        strokeDashArray: 4,
-                      },
-                      tooltip: { theme: "light" },
-                    } as ApexOptions
-                  }
-                  series={[
-                    { name: "Leads", data: [130, 80, 25, 60, 95] },
-                    { name: "Closings", data: [28, 48, 32, 45, 78] },
-                  ]}
-                  type="bar"
-                  height="100%"
-                />
+                        fontWeight: 900,
+                        textAlign: "right",
+                      }}
+                    />
+                    <Bar dataKey="Leads" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={20} />
+                    <Bar dataKey="Closings" fill="#1e293b" radius={[6, 6, 0, 0]} maxBarSize={20} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
@@ -448,67 +441,54 @@ const ClickFlashAnalytics: React.FC<ClickFlashAnalyticsProps> = ({
                     </div>
                   </div>
                   <div className="flex-1 flex flex-col items-center justify-center min-h-[300px]">
-                    <ReactApexChart
-                      options={
-                        {
-                          chart: {
-                            type: "donut",
-                            animations: {
-                              enabled: true,
-                              dynamicAnimation: { speed: 1000 },
-                            },
-                          },
-                          labels: [
-                            "Poolside",
-                            "Ocean Front",
-                            "Golden Hour",
-                            "After Dark",
-                            "Studio Session",
-                          ],
-                          colors: [
-                            "#3b82f6",
-                            "#06b6d4",
-                            "#f59e0b",
-                            "#1e293b",
-                            "#ec4899",
-                          ],
-                          stroke: { width: 0 },
-                          legend: {
-                            position: "bottom",
-                            fontWeight: 900,
+                    <ResponsiveContainer width="100%" height={280}>
+                      <RechartsPieChart>
+                        <Pie
+                          data={[
+                            { name: "Poolside", value: 30 },
+                            { name: "Ocean Front", value: 20 },
+                            { name: "Golden Hour", value: 40 },
+                            { name: "After Dark", value: 60 },
+                            { name: "Studio Session", value: 10 },
+                          ]}
+                          cx="50%"
+                          cy="42%"
+                          innerRadius="52%"
+                          outerRadius="70%"
+                          dataKey="value"
+                          nameKey="name"
+                          strokeWidth={0}
+                        >
+                          {["#3b82f6", "#06b6d4", "#f59e0b", "#1e293b", "#ec4899"].map(
+                            (color, index) => (
+                              <Cell key={`cell-${index}`} fill={color} />
+                            ),
+                          )}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#0f172a",
+                            border: "1px solid #1e293b",
+                            borderRadius: "8px",
+                          }}
+                          labelStyle={{ color: "#94a3b8" }}
+                          itemStyle={{ color: "#e2e8f0" }}
+                        />
+                        <Legend
+                          iconType="circle"
+                          iconSize={10}
+                          wrapperStyle={{
                             fontSize: "10px",
-                            markers: { radius: 12 },
-                          },
-                          plotOptions: {
-                            pie: {
-                              donut: {
-                                size: "78%",
-                                labels: {
-                                  show: true,
-                                  total: {
-                                    show: true,
-                                    label: "TOTAL",
-                                    formatter: () => "160",
-                                    fontSize: "10px",
-                                    fontWeight: 900,
-                                    color: "#94a3b8",
-                                  },
-                                  value: {
-                                    fontSize: "24px",
-                                    fontWeight: 900,
-                                    color: "#1e293b",
-                                  },
-                                },
-                              },
-                            },
-                          },
-                          dataLabels: { enabled: false },
-                        } as ApexOptions
-                      }
-                      series={[30, 20, 40, 60, 10]}
-                      type="donut"
-                      width="100%"
-                    />
+                            fontWeight: 900,
+                            color: "#94a3b8",
+                          }}
+                        />
+                      </RechartsPieChart>
+                    </ResponsiveContainer>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                      Total:{" "}
+                      <span className="text-white font-black">160</span>
+                    </p>
                   </div>
                 </div>
               </>

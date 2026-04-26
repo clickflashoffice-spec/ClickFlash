@@ -3,15 +3,20 @@ import {
   ShoppingBag,
   TrendingUp,
   Calendar,
-  Filter,
-  Users,
   Target,
 } from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { Order } from "../../../types";
 import { analyticsUtils } from "../../../utils/analyticsUtils";
 import StatCard from "../../common/StatCard";
-import ReactApexChart from "react-apexcharts";
-import { ApexOptions } from "apexcharts";
 
 interface DashboardIncomeAnalyticsProps {
   orders: Order[];
@@ -35,12 +40,20 @@ const DashboardIncomeAnalytics: React.FC<DashboardIncomeAnalyticsProps> = ({
     };
   }, [orders, period]);
 
+  const chartData = useMemo(
+    () =>
+      analyticsData.labels.map((label, i) => ({
+        label,
+        revenue: analyticsData.revenue[i],
+      })),
+    [analyticsData],
+  );
+
   const stats = useMemo(() => {
     const totalRevenue = analyticsData.revenue.reduce((sum, r) => sum + r, 0);
     const totalOrders = analyticsData.counts.reduce((sum, c) => sum + c, 0);
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-    // Calculate trends (comparing last data point to predecessor)
     const len = analyticsData.revenue.length;
     const getTrend = (data: number[]) => {
       if (len < 2) return 0;
@@ -63,61 +76,6 @@ const DashboardIncomeAnalytics: React.FC<DashboardIncomeAnalyticsProps> = ({
     };
   }, [analyticsData]);
 
-  const chartOptions: ApexOptions = {
-    chart: {
-      type: "area",
-      toolbar: { show: false },
-      zoom: { enabled: false },
-    },
-    colors: ["#06b6d4", "#3b82f6"],
-    dataLabels: { enabled: false },
-    stroke: {
-      curve: "smooth",
-      width: 3,
-    },
-    fill: {
-      type: "gradient",
-      gradient: {
-        shadeIntensity: 1,
-        opacityFrom: 0.45,
-        opacityTo: 0.05,
-        stops: [20, 100, 100, 100],
-      },
-    },
-    xaxis: {
-      categories: analyticsData.labels,
-      labels: {
-        rotate: -45,
-        style: { fontWeight: 600, fontSize: "10px" },
-      },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      labels: {
-        formatter: (val: number) => formatCurrency(val),
-        style: { fontWeight: 600 },
-      },
-    },
-    grid: {
-      borderColor: "#f1f5f9",
-      strokeDashArray: 4,
-    },
-    tooltip: {
-      theme: "light",
-      y: {
-        formatter: (val: number) => formatCurrency(val),
-      },
-    },
-  };
-
-  const chartSeries = [
-    {
-      name: "Revenue",
-      data: analyticsData.revenue,
-    },
-  ];
-
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Analytics Controls */}
@@ -132,7 +90,7 @@ const DashboardIncomeAnalytics: React.FC<DashboardIncomeAnalyticsProps> = ({
           {["day", "month", "year"].map((p) => (
             <button
               key={p}
-              onClick={() => setPeriod(p as any)}
+              onClick={() => setPeriod(p as "day" | "month" | "year")}
               className={`px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${
                 period === p
                   ? "bg-blue-600 text-white shadow-lg"
@@ -186,12 +144,68 @@ const DashboardIncomeAnalytics: React.FC<DashboardIncomeAnalyticsProps> = ({
           </div>
         </div>
         <div className="h-[450px]">
-          <ReactApexChart
-            options={chartOptions}
-            series={chartSeries}
-            type="area"
-            height="100%"
-          />
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={chartData}
+              margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient
+                  id="incomeAnalyticsGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="20%"
+                    stopColor="rgb(6,182,212)"
+                    stopOpacity={0.45}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor="rgb(6,182,212)"
+                    stopOpacity={0.03}
+                  />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                vertical={false}
+                stroke="#f1f5f9"
+                strokeDasharray="4 4"
+              />
+              <XAxis
+                dataKey="label"
+                tick={{ fill: "#64748b", fontSize: 10, fontWeight: 600 }}
+                tickLine={false}
+                axisLine={false}
+                angle={-45}
+                textAnchor="end"
+                height={50}
+              />
+              <YAxis
+                tick={{ fill: "#64748b", fontSize: 10, fontWeight: 600 }}
+                tickLine={false}
+                axisLine={false}
+                width={72}
+                tickFormatter={(v) => formatCurrency(v)}
+              />
+              <Tooltip
+                formatter={(v: number) => [formatCurrency(v), "Revenue"]}
+                cursor={{ stroke: "rgba(6,182,212,0.3)", strokeWidth: 1 }}
+              />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                name="Revenue"
+                stroke="rgb(6,182,212)"
+                strokeWidth={3}
+                fill="url(#incomeAnalyticsGradient)"
+                dot={false}
+                activeDot={{ r: 5 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>
@@ -199,4 +213,3 @@ const DashboardIncomeAnalytics: React.FC<DashboardIncomeAnalyticsProps> = ({
 };
 
 export default React.memo(DashboardIncomeAnalytics);
-

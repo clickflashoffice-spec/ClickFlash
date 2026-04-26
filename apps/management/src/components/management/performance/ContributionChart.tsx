@@ -1,14 +1,20 @@
-import React, { useMemo } from 'react';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
-import { useTheme } from '../../ThemeContext.tsx';
-import { useCurrency } from '../../CurrencyContext.tsx';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+import React, { useMemo } from "react";
+import {
+  BarChart,
+  Bar,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { useTheme } from "../../ThemeContext.tsx";
+import { useCurrency } from "../../CurrencyContext.tsx";
 
 interface PerformanceData {
-    name: string;
-    netContribution: number;
+  name: string;
+  netContribution: number;
 }
 
 interface ContributionChartProps {
@@ -16,73 +22,80 @@ interface ContributionChartProps {
 }
 
 const ContributionChart: React.FC<ContributionChartProps> = ({ data }) => {
-    const { theme } = useTheme();
-    const { currency } = useCurrency();
+  const { theme } = useTheme();
+  const { currency } = useCurrency();
 
-    const chartData = useMemo(() => {
-        const sortedData = [...data].sort((a, b) => a.netContribution - b.netContribution);
-        
-        const labels = sortedData.map(p => p.name);
-        const chartValues = sortedData.map(p => p.netContribution * currency.rate);
-        const backgroundColors = chartValues.map(value => value >= 0 ? 'rgba(59, 130, 246, 0.5)' : 'rgba(239, 68, 68, 0.5)');
-        const borderColors = chartValues.map(value => value >= 0 ? 'rgba(59, 130, 246, 1)' : 'rgba(239, 68, 68, 1)');
-        
-        return {
-            labels,
-            datasets: [
-                {
-                    label: `Net Contribution in ${currency.code}`,
-                    data: chartValues,
-                    backgroundColor: backgroundColors,
-                    borderColor: borderColors,
-                    borderWidth: 1,
-                    borderRadius: 4,
-                },
-            ],
-        };
-    }, [data, currency]);
+  const chartData = useMemo(() => {
+    return [...data]
+      .sort((a, b) => a.netContribution - b.netContribution)
+      .map((p) => ({
+        name: p.name,
+        value: p.netContribution * currency.rate,
+      }));
+  }, [data, currency]);
 
-    const options = {
-        indexAxis: 'y' as const,
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            title: { display: false },
-            tooltip: {
-                callbacks: {
-                    label: function(context: any) {
-                        let label = context.dataset.label || '';
-                        if (label) { label += ': '; }
-                        if (context.parsed.x !== null) {
-                             label += new Intl.NumberFormat(undefined, { style: 'currency', currency: currency.code }).format(context.parsed.x);
-                        }
-                        return label;
-                    }
-                }
-            }
-        },
-        scales: {
-            y: {
-                grid: { display: false },
-                ticks: { color: theme === 'dark' ? '#cbd5e1' : '#475569' }
-            },
-            x: {
-                grid: { color: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' },
-                ticks: {
-                    color: theme === 'dark' ? '#94a3b8' : '#64748b',
-                    callback: (value: string | number) => {
-                        const numericValue = typeof value === 'string' ? parseFloat(value) : value;
-                        return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency.code, notation: 'compact' }).format(numericValue);
-                    }
-                }
-            }
-        }
-    };
+  const tickColor = theme === "dark" ? "#94a3b8" : "#64748b";
+  const gridColor =
+    theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
 
-    return (
-        <Bar options={options} data={chartData} />
-    );
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart
+        data={chartData}
+        layout="vertical"
+        margin={{ top: 0, right: 16, left: 0, bottom: 0 }}
+      >
+        <CartesianGrid
+          horizontal={false}
+          strokeDasharray="3 3"
+          stroke={gridColor}
+        />
+        <XAxis
+          type="number"
+          tick={{ fill: tickColor, fontSize: 11 }}
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={(v) =>
+            new Intl.NumberFormat(undefined, {
+              style: "currency",
+              currency: currency.code,
+              notation: "compact",
+            }).format(v)
+          }
+        />
+        <YAxis
+          type="category"
+          dataKey="name"
+          tick={{ fill: tickColor, fontSize: 12 }}
+          tickLine={false}
+          axisLine={false}
+          width={80}
+        />
+        <Tooltip
+          formatter={(value: number) => [
+            new Intl.NumberFormat(undefined, {
+              style: "currency",
+              currency: currency.code,
+            }).format(value),
+            `Net Contribution in ${currency.code}`,
+          ]}
+          cursor={{ fill: "rgba(59,130,246,0.05)" }}
+        />
+        <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+          {chartData.map((entry, index) => (
+            <Cell
+              key={`cell-${index}`}
+              fill={
+                entry.value >= 0
+                  ? "rgba(59,130,246,0.7)"
+                  : "rgba(239,68,68,0.7)"
+              }
+            />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
 };
 
 export default ContributionChart;

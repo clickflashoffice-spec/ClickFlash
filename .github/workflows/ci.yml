@@ -28,11 +28,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
+      - name: Lint (master)
         run: npm run lint --workspace=apps/master
 
-      - name: Type check
+      - name: Type check (master)
         run: npx tsc --noEmit --workspace=apps/master
+
+      # Type-check remaining apps — install per-app to respect workspace boundaries
+      - name: Type check (gallery)
+        run: npm ci --workspace=apps/gallery && npm run typecheck --workspace=apps/gallery
+        continue-on-error: false
+
+      - name: Type check (management)
+        run: npm ci --workspace=apps/management && npm run typecheck --workspace=apps/management
+        continue-on-error: false
+
+      - name: Type check (touch)
+        run: npm ci --workspace=apps/touch && npm run typecheck --workspace=apps/touch
+        continue-on-error: false
+
+      - name: Type check (website)
+        run: npm ci --workspace=apps/website && npm run typecheck --workspace=apps/website
+        continue-on-error: false
 
   # Phase 1: Unit Tests with Jest
   unit-tests:
@@ -129,15 +146,15 @@ jobs:
         run: |
           cd apps/master
           npm run dev:backend &
-          echo "Waiting for backend..."
-          sleep 15
+          echo "Polling backend health endpoint..."
+          timeout 60 bash -c 'until curl -sf http://localhost:8090/api/health; do sleep 2; done'
 
       - name: Start frontend dev server
         run: |
           cd apps/master
           npm run dev &
-          echo "Waiting for frontend..."
-          sleep 20
+          echo "Polling frontend..."
+          timeout 60 bash -c 'until curl -sf http://localhost:5173; do sleep 2; done'
 
       - name: Run E2E tests (sharded)
         run: |
@@ -223,12 +240,13 @@ jobs:
         run: npm ci --workspace=apps/master
 
       - name: Run npm audit
+        # Fail on high/critical CVEs — not continue-on-error so security blocks merge
         run: npm audit --audit-level=high --workspace=apps/master
-        continue-on-error: true
 
       - name: Run Snyk security scan
+        # Snyk requires SNYK_TOKEN; skip gracefully when secret is absent (forks/untrusted PRs)
         run: npx snyk test --workspace=apps/master
-        continue-on-error: true
+        continue-on-error: ${{ secrets.SNYK_TOKEN == '' }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 

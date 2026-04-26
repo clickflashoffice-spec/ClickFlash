@@ -5,7 +5,7 @@
 
 import { invoke } from '@tauri-apps/api/core';
 
-const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
+const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks for high-volume uploads
 const STORAGE_KEY = 'moneytrash_upload_sessions';
 
 interface UploadSession {

@@ -29,6 +29,7 @@ const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser
     const [dbEngineStatus, setDbEngineStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking');
     const [cloudLinkStatus, setCloudLinkStatus] = useState<CloudLinkStatus | undefined>(undefined);
     const [latency, setLatency] = useState<number | null>(null);
+    const [telemetry, setTelemetry] = useState<{ lastHeartbeat: string | null; heartbeatStatus: string } | null>(null);
 
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
     const [isResetting, setIsResetting] = useState(false);
@@ -78,6 +79,10 @@ const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser
         setCloudLinkStatus(prev => ({ ...prev, status: 'checking' } as CloudLinkStatus));
         const cloudStatus = await diagnosticsService.checkCloudLinkStatus();
         setCloudLinkStatus(cloudStatus);
+
+        // Fetch Fleet Telemetry
+        const tel = await diagnosticsService.getTelemetry();
+        if (tel) setTelemetry({ lastHeartbeat: tel.lastHeartbeat, heartbeatStatus: tel.heartbeatStatus });
 
         return { appHealthy: appHealth.healthy, dbHealthy: isDbUp };
     }, []);
@@ -358,6 +363,15 @@ const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser
                         <span>v{APP_VERSION}</span>
                         <span className="text-slate-300 dark:text-slate-600">|</span>
                         <span>{latency ? `${latency}ms` : '---'}</span>
+                        <span className="text-slate-300 dark:text-slate-600">|</span>
+                        <div className="flex items-center gap-1.5">
+                            <span className={telemetry?.heartbeatStatus === 'healthy' ? 'text-green-500' : 'text-amber-500'}>
+                                {telemetry?.heartbeatStatus === 'healthy' ? '● Sync Active' : '○ Sync Pending'}
+                            </span>
+                            {telemetry?.lastHeartbeat && (
+                                <span className="opacity-50">(${new Date(telemetry.lastHeartbeat).toLocaleTimeString()})</span>
+                            )}
+                        </div>
                         <span className="text-slate-300 dark:text-slate-600">|</span>
                         <button 
                             onClick={runHealthCheck}

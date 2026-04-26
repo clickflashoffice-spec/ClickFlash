@@ -4,6 +4,7 @@ import App from './App';
 import { ThemeProvider } from './components/ThemeContext';
 import { CurrencyProvider } from './components/CurrencyContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import * as Sentry from '@sentry/react';
 import './index.css';
 
 // Suppress harmless browser extension warnings (e.g., wallet extensions competing for window.ethereum)
@@ -23,6 +24,20 @@ if (!window.location.search.includes('mode=')) {
   const url = new URL(window.location.href);
   url.searchParams.set('mode', 'touch');
   window.history.replaceState({}, '', url.toString());
+}
+
+if (import.meta.env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration(),
+    ],
+    tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1.0,
+    environment: import.meta.env.MODE,
+  });
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

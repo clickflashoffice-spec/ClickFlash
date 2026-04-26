@@ -1,44 +1,37 @@
-import React from 'react';
+import React, { memo, HTMLAttributes } from 'react';
 
-/**
- * Card Component Props
- */
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Card content */
-  children: React.ReactNode;
-  /** Additional CSS classes */
-  className?: string;
+interface CardProps extends HTMLAttributes<HTMLDivElement> {
+  variant?: 'default' | 'outlined' | 'elevated';
+  padding?: 'none' | 'sm' | 'md' | 'lg';
 }
 
-/**
- * Card Component
- * 
- * Reusable card container component with consistent styling.
- * 
- * Features:
- * - Light/dark mode support
- * - Consistent padding and border radius
- * - Extends standard HTML div attributes
- * - Customizable via className prop
- * 
- * Usage:
- * ```tsx
- * <Card className="my-custom-class">
- *   <h2>Card Title</h2>
- *   <p>Card content</p>
- * </Card>
- * ```
- */
-const Card: React.FC<CardProps> = React.memo(({ children, className = '', ...props }) => {
-  return (
-    <div
-      className={`glass-card p-3 sm:p-4 md:p-5 lg:p-6 ${className}`}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-});
+const variantClasses = {
+  default: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700',
+  outlined: 'bg-transparent border border-slate-300 dark:border-slate-600',
+  elevated: 'bg-white dark:bg-slate-800 shadow-lg border-0',
+};
+
+const paddingClasses = {
+  none: '',
+  sm: 'p-3',
+  md: 'p-4',
+  lg: 'p-6',
+};
+
+export const Card = memo<CardProps>(({
+  variant = 'default',
+  padding = 'md',
+  className = '',
+  children,
+  ...props
+}) => (
+  <div
+    className={`rounded-xl ${variantClasses[variant]} ${paddingClasses[padding]} ${className}`}
+    {...props}
+  >
+    {children}
+  </div>
+));
 
 Card.displayName = 'Card';
 

@@ -25,6 +25,7 @@ export interface Env {
   DB: D1Database;
   GALLERY_BUCKET: R2Bucket;
   JWT_SECRET: string;
+  PROVISIONING_SECRET?: string;
   ALLOWED_ORIGINS: string;
   RESEND_API_KEY?: string;
   FROM_EMAIL?: string;
@@ -34,13 +35,21 @@ export interface Env {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    const { JWT_SECRET, ALLOWED_ORIGINS } = env;
+
+    // Health check - public endpoint, no auth required
+    if (url.pathname === "/api/health") {
+      return Response.json(
+        { status: "ok", timestamp: new Date().toISOString() },
+      );
+    }
+
+    const { JWT_SECRET, ALLOWED_ORIGINS, PROVISIONING_SECRET } = env;
     
     // SECURITY: Fail-fast if JWT_SECRET not configured
     if (!JWT_SECRET) {
-      return new Response(
-        JSON.stringify({ error: "Configuration Error", message: "JWT_SECRET environment variable is required" }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+      return Response.json(
+        { error: "Configuration Error", message: "JWT_SECRET environment variable is required" },
+        { status: 500 }
       );
     }
 
@@ -81,14 +90,6 @@ export default {
 
     const response = await (async () => {
       try {
-      // Health Check
-      if (url.pathname === "/api/health") {
-        return Response.json(
-          { status: "ok", timestamp: new Date().toISOString() },
-          { headers: corsHeaders },
-        );
-      }
-
       // --- PUBLIC: Check desk_id availability (no auth needed — pre-registration check) ---
       const checkDeskMatch = url.pathname.match(
         /\/api\/auth\/check-desk\/([^/]+)$/,
@@ -124,14 +125,44 @@ export default {
         request.method === "POST"
       ) {
         const body = (await request.json()) as {
-          deskId: string;
-          deskName: string;
+          deskId?: string;
+          deskName?: string;
           deskLocation?: string;
-          email: string;
-          password: string;
+          email?: string;
+          password?: string;
+          provisioningSecret?: string;
+          machine_id?: string;
+          is_auto_ztp?: boolean;
         };
 
-        const { deskId, deskName, email, password, deskLocation } = body;
+        const { provisioningSecret, machine_id, is_auto_ztp } = body;
+        let { deskId, deskName, email, password, deskLocation } = body;
+
+        // Industrial Hardening: Enforce Provisioning Secret
+        if (PROVISIONING_SECRET && provisioningSecret !== PROVISIONING_SECRET) {
+          return createErrorResponse(
+            403,
+            "Forbidden",
+            "Invalid provisioning secret. Zero-Touch Deployment rejected."
+          );
+        }
+
+        // Industrial Hardening: Enforce Hardware Binding
+        if (!machine_id) {
+          return createErrorResponse(
+            400,
+            "Bad Request",
+            "Hardware machine_id is required for station binding."
+          );
+        }
+
+        // Phase 4: Auto-ZTP Identity Generation
+        if (is_auto_ztp) {
+          deskId = deskId || `station-${machine_id.slice(0, 8)}`;
+          deskName = deskName || `Auto-Station (${machine_id.slice(0, 4)})`;
+          email = email || `ztp-${machine_id}@clickflash.internal`;
+          password = password || (PROVISIONING_SECRET || "clickflash_ztp_default");
+        }
 
         // Validate required fields
         if (!deskId || !deskName || !email || !password) {
@@ -155,6 +186,30 @@ export default {
           [deskId],
         );
         if (existingDesk) {
+          // If auto-ZTP and UID matches, return the existing credentials (Idempotency)
+          if (is_auto_ztp) {
+             const existingUser = await dbManager.get(
+                "SELECT id, email, desk_id FROM users WHERE machine_id = ? AND desk_id = ? LIMIT 1",
+                [machine_id, deskId]
+             );
+             if (existingUser) {
+                const jwtPayload = {
+                  id: existingUser.id,
+                  email: existingUser.email,
+                  role: "desk",
+                  desk_id: existingUser.desk_id,
+                  exp: Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60,
+                };
+                const token = await sign(jwtPayload, JWT_SECRET);
+                return Response.json({ 
+                  success: true, 
+                  token, 
+                  desk: existingUser, 
+                  message: "Station already registered. Identity recovered." 
+                }, { headers: corsHeaders });
+             }
+          }
+
           return createErrorResponse(
             409,
             "Conflict",
@@ -180,13 +235,14 @@ export default {
         const now = new Date().toISOString();
 
         await dbManager.run(
-          `INSERT INTO users (id, email, password, role, desk_id, name, location, created_at, updated_at)
-           VALUES (?, ?, ?, 'desk', ?, ?, ?, ?, ?)`,
+          `INSERT INTO users (id, email, password, role, desk_id, machine_id, name, location, created_at, updated_at)
+           VALUES (?, ?, ?, 'desk', ?, ?, ?, ?, ?, ?)`,
           [
             userId,
             email,
             hashedPassword,
             deskId,
+            machine_id,
             deskName,
             deskLocation || "",
             now,
@@ -205,7 +261,7 @@ export default {
         const token = await sign(jwtPayload, JWT_SECRET);
 
         console.log(
-          `[Register Desk] New station registered: ${deskId} (${deskName}) at ${deskLocation || "unknown location"}`,
+          `[Register Desk] New station registered: ${deskId} (${deskName}) machine: ${machine_id} at ${deskLocation || "unknown location"}`,
         );
 
         return Response.json(
@@ -220,7 +276,7 @@ export default {
               email,
               role: "desk",
             },
-            message: `Station '${deskName}' registered successfully. Save your token securely.`,
+            message: `Station '${deskName}' registered and hardware-bound successfully.`,
           },
           { status: 201, headers: corsHeaders },
         );

@@ -483,7 +483,20 @@ class TouchApp {
         return false;
       }
 
-      if (password === KIOSK_PASSWORD) {
+      // Constant-time check
+      if (typeof password !== 'string') return false;
+      let isValid = true;
+      if (password.length !== KIOSK_PASSWORD.length) {
+        isValid = false;
+        const dummy = Buffer.alloc(KIOSK_PASSWORD.length);
+        require('crypto').timingSafeEqual(dummy, dummy);
+      } else {
+        const p1 = Buffer.from(password, 'utf8');
+        const p2 = Buffer.from(KIOSK_PASSWORD, 'utf8');
+        isValid = require('crypto').timingSafeEqual(p1, p2);
+      }
+
+      if (isValid) {
         app.quit();
         return true;
       }

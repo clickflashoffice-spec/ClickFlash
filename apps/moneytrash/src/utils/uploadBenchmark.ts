@@ -80,7 +80,7 @@ class UploadBenchmarkService {
             for (let i = 0; i < totalChunks; i++) {
                 const chunkStart = i * chunkSize * 1024 * 1024;
                 const chunkEnd = Math.min(chunkStart + chunkSize * 1024 * 1024, data.length);
-                const chunk = data.slice(chunkStart, chunkEnd);
+                void data.slice(chunkStart, chunkEnd);
                 
                 // Simulate chunk upload (in real impl, would use fetch)
                 await new Promise(resolve => setTimeout(resolve, 5 + Math.random() * 10));
@@ -121,7 +121,7 @@ class UploadBenchmarkService {
             for (let i = 0; i < totalChunks; i++) {
                 const chunkStart = i * chunkSize * 1024 * 1024;
                 const chunkEnd = Math.min(chunkStart + chunkSize * 1024 * 1024, data.length);
-                const chunk = data.slice(chunkStart, chunkEnd);
+                void data.slice(chunkStart, chunkEnd);
                 
                 // Simulate faster Rust implementation
                 await new Promise(resolve => setTimeout(resolve, 2 + Math.random() * 5));
@@ -160,7 +160,7 @@ class UploadBenchmarkService {
         const allErrors: string[] = [];
         const memorySnapshots: number[] = [];
         
-        logger.info(`[Benchmark] Starting ${mode} benchmark`, config);
+        logger.info(`[Benchmark] Starting ${mode} benchmark`, config as unknown as Record<string, unknown>);
 
         for (let i = 0; i < totalIterations; i++) {
             if (onProgress) {

@@ -3,10 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="script-src 'unsafe-inline' 'self' http://localhost:* http://127.0.0.1:* https://cdn.tailwindcss.com data: blob:; style-src 'unsafe-inline' 'self' https://cdn.tailwindcss.com; object-src 'none'; connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://*.workers.dev; img-src 'self' data: blob: https: http:;"
-    />
+    <!-- CSP handled at edge via Cloudflare headers (meta CSP removed - was blocking Google Fonts & causing blank render) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <title>ClickFlash - HQ</title>
     <link rel="icon" type="image/png" href="./favicon.png" />
     <link rel="apple-touch-icon" href="./favicon.png" />
@@ -16,8 +15,11 @@
       name="description"
       content="ClickFlash Photography OS - Management Headquarters"
     />
-    <script type="module" crossorigin src="/manage/assets/index-CulmLkEM.js"></script>
-    <link rel="stylesheet" crossorigin href="/manage/assets/index-CSxXWitU.css">
+    <script type="module" crossorigin src="/manage/assets/index-jN4d3Fsi.js"></script>
+    <link rel="modulepreload" crossorigin href="/manage/assets/vendor-react-QHy_IWjG.js">
+    <link rel="modulepreload" crossorigin href="/manage/assets/vendor-router-B3-AMwH9.js">
+    <link rel="modulepreload" crossorigin href="/manage/assets/vendor-query-X85lm9RF.js">
+    <link rel="stylesheet" crossorigin href="/manage/assets/index-cJy-2v7T.css">
   </head>
 
   <body class="bg-slate-50 dark:bg-slate-900">

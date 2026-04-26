@@ -92,7 +92,7 @@ class BandwidthSchedulerService {
             this.updateNetworkCondition();
         }, 5000);
 
-        logger.info('[BandwidthScheduler] Started', this.config);
+        logger.info('[BandwidthScheduler] Started', this.config as unknown as Record<string, unknown>);
     }
 
     /**
@@ -356,7 +356,7 @@ class BandwidthSchedulerService {
             try {
                 listener(limit);
             } catch (error) {
-                logger.error('[BandwidthScheduler] Listener error', error);
+                logger.error('[BandwidthScheduler] Listener error', error instanceof Error ? error : undefined);
             }
         }
     }
@@ -367,7 +367,7 @@ class BandwidthSchedulerService {
     public configure(config: Partial<BandwidthScheduleConfig>): void {
         this.config = { ...this.config, ...config };
         this.updateLimitBasedOnSchedule();
-        logger.info('[BandwidthScheduler] Configuration updated', this.config);
+        logger.info('[BandwidthScheduler] Configuration updated', this.config as unknown as Record<string, unknown>);
     }
 }
 

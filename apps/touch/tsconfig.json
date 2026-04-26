@@ -27,6 +27,12 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@clickflash/ui/*": [
+        "../../packages/ui/src/*"
+      ],
+      "@clickflash/ui": [
+        "../../packages/ui/src/index.ts"
       ]
     },
     "allowImportingTsExtensions": true,

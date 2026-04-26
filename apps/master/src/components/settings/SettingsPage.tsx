@@ -5,6 +5,7 @@ import { usePermissions } from '../../hooks/usePermissions.ts';
 import { isCloudMode } from '../../services/pb.ts';
 import { useDebounce } from '../../hooks/useDebounce.ts';
 import Spinner from '../common/Spinner';
+import AdminPINChallenge from './AdminPINChallenge';
 import {
     Settings,
     Database,
@@ -216,8 +217,17 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [favorites, setFavorites] = useState<SettingsTab[]>(['account', 'general', 'system']);
     const [hasChanges, setHasChanges] = useState<Set<SettingsTab>>(new Set());
+    const [isAdminVerified, setIsAdminVerified] = useState(false);
+    const [pendingTab, setPendingTab] = useState<SettingsTab | null>(null);
+    
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
     const { can } = usePermissions(currentUser);
+
+    // Rule 16: List of sensitive tabs that require PIN verification
+    const SENSITIVE_TABS: SettingsTab[] = [
+        'database', 'cloud', 'backup', 'data', 'users', 'permissions', 
+        'kiosks', 'ai', 'print', 'watermark', 'receipts', 'products', 'session-types'
+    ];
 
     // Settings configuration - REMOVED DUPLICATES:
     // - Removed 'Kiosk Mode' (merged into Kiosks)
@@ -567,6 +577,14 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
 
     const unsavedCount = hasChanges.size;
 
+    const handleTabChange = (tab: SettingsTab) => {
+        if (SENSITIVE_TABS.includes(tab) && !isAdminVerified) {
+            setPendingTab(tab);
+        } else {
+            setActiveTab(tab);
+        }
+    };
+
     const renderTabContent = () => {
         const config = SETTINGS_CONFIG[activeTab];
         if (!config || !config.permission) {
@@ -582,6 +600,24 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 </div>
             );
         }
+
+        // Rule 16 Verification Check
+        if (SENSITIVE_TABS.includes(activeTab) && !isAdminVerified) {
+            return (
+                <div className="flex flex-col items-center justify-center h-full min-h-[400px] p-8">
+                    <Lock className="w-12 h-12 text-slate-300 mb-4" />
+                    <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">Identity Verification Required</h3>
+                    <p className="text-sm text-slate-500 mb-4">Verification expired or required for this sensitive area.</p>
+                    <button 
+                        onClick={() => setPendingTab(activeTab)}
+                        className="px-4 py-2 bg-cyan-500 text-white rounded-lg font-medium shadow-lg shadow-cyan-500/20"
+                    >
+                        Unlock Administration
+                    </button>
+                </div>
+            );
+        }
+
         return config.component;
     };
 
@@ -666,7 +702,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                                             isActive={activeTab === tab}
                                             isFavorite={favorites.includes(tab)}
                                             hasChanges={hasChanges.has(tab)}
-                                            onClick={() => { setActiveTab(tab); setIsMobileMenuOpen(false); }}
+                                            onClick={() => handleTabChange(tab)}
                                             onToggleFavorite={(e) => { e.stopPropagation(); toggleFavorite(tab); }}
                                         />
                                     ))}
@@ -738,6 +774,19 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                     <div className="p-6">{renderTabContent()}</div>
                 </main>
             </div>
+
+            {/* Rule 16 PIN Modal */}
+            {pendingTab && (
+                <AdminPINChallenge 
+                    onSuccess={() => {
+                        setIsAdminVerified(true);
+                        setActiveTab(pendingTab);
+                        setPendingTab(null);
+                        setIsMobileMenuOpen(false);
+                    }}
+                    onCancel={() => setPendingTab(null)}
+                />
+            )}
         </div>
     );
 };

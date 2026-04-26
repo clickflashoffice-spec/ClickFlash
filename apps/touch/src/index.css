@@ -5,6 +5,9 @@
 /* stylelint-disable-next-line at-rule-no-unknown */
 @tailwind utilities;
 
+/* ClickFlash Unified Design System Tokens */
+@import "../../../packages/ui/src/styles/tokens.css";
+
 /* Custom Scrollbar - Webkit */
 .custom-scrollbar::-webkit-scrollbar {
     width: 8px;

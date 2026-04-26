@@ -9,6 +9,7 @@ import { clsx } from 'clsx';
 import { desktopBatchUploadService } from './services/desktopBatchUploadService';
 import { cloudApiService } from './services/cloudApiService';
 import { initTauriApi, isTauri, invoke } from './services/tauriService';
+import { useVRAMProtection } from './hooks/useVRAMProtection';
 
 interface UploadFile {
   id: string;
@@ -151,31 +152,41 @@ function App() {
     }
   };
 
-  // Generate previews for image files
-  const createPreview = (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      if (!file.type.startsWith('image/')) {
-        resolve('');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.readAsDataURL(file);
-    });
+  // VRAM protection for preview generation
+  const { getPreview: getVRAMPreview } = useVRAMProtection({
+    maxPreviewsInMemory: 20,
+    previewMaxWidth: 400,
+    previewMaxHeight: 400,
+  });
+
+  // Generate previews with VRAM protection (downsampled)
+  const createPreview = async (id: string, file: File): Promise<string> => {
+    if (!file.type.startsWith('image/')) {
+      return '';
+    }
+    try {
+      return await getVRAMPreview(id, file);
+    } catch (err) {
+      console.warn('[VRAM] Preview generation failed, using fallback:', err);
+      return '';
+    }
   };
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const newFiles: UploadFile[] = await Promise.all(
-      acceptedFiles.map(async (file) => ({
-        id: crypto.randomUUID(),
-        file,
-        preview: await createPreview(file),
-        progress: 0,
-        status: 'pending' as const
-      }))
+      acceptedFiles.map(async (file) => {
+        const id = crypto.randomUUID();
+        return {
+          id,
+          file,
+          preview: await createPreview(id, file),
+          progress: 0,
+          status: 'pending' as const
+        };
+      })
     );
     setFiles((prev) => [...prev, ...newFiles]);
-  }, []);
+  }, [createPreview]);
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
     onDrop,
@@ -252,7 +263,7 @@ function App() {
               id: crypto.randomUUID(),
               file,
               filePath: fileInfo.path,
-              preview: file.type.startsWith('image/') ? await createPreview(file) : '',
+              preview: file.type.startsWith('image/') ? await createPreview(crypto.randomUUID(), file) : '',
               progress: 0,
               status: 'pending' as const
             };
@@ -321,7 +332,7 @@ function App() {
             id: crypto.randomUUID(),
             file,
             filePath: fileInfo.path,
-            preview: file.type.startsWith('image/') ? await createPreview(file) : '',
+            preview: file.type.startsWith('image/') ? await createPreview(crypto.randomUUID(), file) : '',
             progress: 0,
             status: 'pending' as const
           };

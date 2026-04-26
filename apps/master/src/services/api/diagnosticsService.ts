@@ -350,6 +350,30 @@ export const diagnosticsService = {
         if (!res.ok) {
             throw new Error("Failed to reset system");
         }
+    },
+
+    /**
+     * Fetch extended fleet telemetry
+     */
+    async getTelemetry(): Promise<{
+        history: any[];
+        lastHeartbeat: string | null;
+        heartbeatStatus: string;
+    } | null> {
+        try {
+            const res = await withRetry(async () => {
+                const r = await fetch(`${pb.baseUrlValue}/api/telemetry`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${pb.authStore.token}` }
+                });
+                if (!r.ok) throw new Error('Failed to fetch telemetry');
+                return r;
+            }, 2, 300);
+
+            return await res.json();
+        } catch {
+            return null;
+        }
     }
 };
 

@@ -1,433 +1,330 @@
 import React, { useState, useEffect } from "react";
+import { 
+  Database, 
+  Trash2, 
+  ShieldAlert, 
+  History, 
+  HardDrive,
+  RefreshCw,
+  Gauge,
+  Clock,
+  ShieldCheck,
+  AlertTriangle
+} from "lucide-react";
 import Card from "../common/Card.tsx";
-
-interface DataManagementSettingsProps {
-  masterImportRetentionDays: number;
-  touchKioskRetentionDays: number;
-  backupSoldOrders: boolean;
-  backupLocation: string;
-  autoDeleteEnabled: boolean;
-}
-
 import { apiService } from "../../services/apiService";
+import { logger } from "../../utils/logger";
 import { safeStorage } from "../../utils/safeStorage";
 
+interface RetentionStats {
+  disk: {
+    usedPercent: number;
+    totalGb: number;
+    availableGb: number;
+  };
+  database: {
+    mainSize: number;
+    archiveSize: number;
+  };
+  recycler: {
+    archivedAlbumsCount: number;
+    oldestArchivedAlbum: string;
+    scrubQueueSize: number;
+  };
+}
+
 const DataManagementSettings: React.FC = () => {
-  const [settings, setSettings] = useState<DataManagementSettingsProps>({
-    masterImportRetentionDays: 30,
-    touchKioskRetentionDays: 7,
-    backupSoldOrders: true,
-    backupLocation: "pb_data/backup/orders",
-    autoDeleteEnabled: true,
+  const [retentionSettings, setRetentionSettings] = useState({
+    hiResDays: 14,
+    tieredDays: 60,
+    auditDays: 90,
+    cloudSyncRequired: true,
+    fulfillmentLock: true
   });
+  
+  const [stats, setStats] = useState<RetentionStats | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [lastCleanup, setLastCleanup] = useState<string | null>(null);
+  const [scrubbing, setScrubbing] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [hiRes, tiered, audit, cloud, lock, statsData] = await Promise.all([
+        apiService.getSetting("retention_days_hi_res"),
+        apiService.getSetting("retention_days_tiered"),
+        apiService.getSetting("retention_days_audit"),
+        apiService.getSetting("retention_cloud_sync_required"),
+        apiService.getSetting("retention_fulfillment_lock"),
+        apiService.get("/retention/stats")
+      ]);
+
+      setRetentionSettings({
+        hiResDays: parseInt(String(hiRes || "14")),
+        tieredDays: parseInt(String(tiered || "60")),
+        auditDays: parseInt(String(audit || "90")),
+        cloudSyncRequired: String(cloud) === "true",
+        fulfillmentLock: String(lock) === "true"
+      });
+      
+      setStats(statsData);
+    } catch (err) {
+      logger.error("[RetentionSettings] Failed to fetch data", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        // Try to load from backend settings first
-        const backendSettings = await apiService.getSetting(
-          "data_management_settings",
-        );
-        if (
-          backendSettings &&
-          typeof backendSettings === "object" &&
-          Object.keys(backendSettings).length > 0
-        ) {
-          setSettings(backendSettings as DataManagementSettingsProps);
-        } else {
-          // Fallback to legacy localStorage if backend is empty
-          const savedSettings = safeStorage.getItem("dataManagementSettings");
-          if (savedSettings) {
-            setSettings(JSON.parse(savedSettings));
-          }
-        }
-      } catch (e) {
-        console.error("Failed to load data management settings:", e);
-        // Last ditch fallback
-        const savedSettings = safeStorage.getItem("dataManagementSettings");
-        if (savedSettings) {
-          setSettings(JSON.parse(savedSettings));
-        }
-      }
-    };
-
-    loadSettings();
-
-    // Load last cleanup timestamp (keep in localStorage as it's purely UI metadata)
-    const lastCleanupTime = safeStorage.getItem("lastDataCleanup");
-    if (lastCleanupTime) {
-      setLastCleanup(lastCleanupTime);
-    }
+    fetchData();
   }, []);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Save to backend SQLite
-      await apiService.setSetting("data_management_settings", settings as any);
-
-      // Backup save to localStorage for offline redundancy
-      safeStorage.setItem("dataManagementSettings", JSON.stringify(settings));
-
-      setIsSaving(false);
-      alert("Data management settings saved to database successfully!");
-    } catch (e) {
-      console.error("Failed to save settings:", e);
-      alert("Failed to save settings to server. Please check connection.");
+      await Promise.all([
+        apiService.setSetting("retention_days_hi_res", String(retentionSettings.hiResDays)),
+        apiService.setSetting("retention_days_tiered", String(retentionSettings.tieredDays)),
+        apiService.setSetting("retention_days_audit", String(retentionSettings.auditDays)),
+        apiService.setSetting("retention_cloud_sync_required", String(retentionSettings.cloudSyncRequired)),
+        apiService.setSetting("retention_fulfillment_lock", String(retentionSettings.fulfillmentLock))
+      ]);
+      alert("Retention policies successfully deployed.");
+    } catch (err) {
+      logger.error("[RetentionSettings] Save failed", err);
+      alert("Failed to save settings.");
+    } finally {
       setIsSaving(false);
     }
   };
 
-  const handleRunCleanup = async () => {
-    if (
-      !confirm(
-        "This will delete old photos from the import folder based on your retention settings. Continue?",
-      )
-    ) {
-      return;
-    }
-
+  const handleManualScrub = async () => {
+    if (!window.confirm("WARNING: This will physically delete original files for archived albums based on your policy. This is irreversible. Proceed?")) return;
+    
+    setScrubbing(true);
     try {
-      const result = await apiService.cleanup(settings as any);
-      const now = new Date().toISOString();
-      safeStorage.setItem("lastDataCleanup", now);
-      setLastCleanup(now);
-      alert(result.message || "Cleanup completed successfully!");
-    } catch (e) {
-      console.error("Cleanup failed:", e);
-      alert("Cleanup failed. Please check logs.");
+      await apiService.post("/recycler/scrub", {});
+      alert("Industrial scrub cycle completed successfully.");
+      fetchData();
+    } catch (err) {
+      logger.error("[RetentionSettings] Scrub failed", err);
+    } finally {
+      setScrubbing(false);
     }
   };
 
   const handlePruneSessions = async () => {
-    if (
-      !confirm("This will delete kiosk sessions older than 24 hours. Continue?")
-    )
-      return;
+    if (!confirm("This will delete kiosk sessions older than 24 hours. Continue?")) return;
     try {
-      const res = await apiService.pruneSessions(1);
-      alert(res.message);
+      const res = await apiService.post("/system/prune-sessions", { hours: 24 });
+      alert(res.message || "Sessions pruned.");
     } catch (e: any) {
       alert("Failed to prune sessions: " + e.message);
     }
   };
 
-  const handleExportDb = () => {
-    try {
-      apiService.exportDb();
-    } catch (e: any) {
-      alert("Failed to start download");
-    }
-  };
-
-  const handleFactoryReset = async () => {
-    if (
-      !confirm(
-        "DANGER: This will delete ALL photos, orders, and albums. This actions cannot be undone. \n\nAre you ABSOLUTELY sure?",
-      )
-    )
-      return;
-    if (!confirm('Final Confirmation: Type "YES" to proceed?')) return; // Simplified for now, just double confirm
-
-    try {
-      await apiService.resetDb();
-      alert("Factory Reset Complete. The application will now reload.");
-      window.location.reload();
-    } catch (e: any) {
-      alert("Reset Failed: " + e.message);
-    }
-  };
+  if (loading && !stats) return <div className="p-8 text-center text-slate-500">Initializing Recycler Metrics...</div>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-12">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Data Retention & Recycler</h2>
+          <p className="text-slate-500 dark:text-slate-400">Manage asset lifecycle and local disk pressure</p>
+        </div>
+        <div className="flex gap-2">
+            <button 
+              onClick={fetchData}
+              className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            >
+              <RefreshCw className="w-5 h-5" />
+            </button>
+        </div>
+      </div>
+
+      {/* Recycler Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-slate-900 border-blue-100 dark:border-blue-900/30">
+          <div className="flex items-center gap-3 mb-4">
+            <HardDrive className="w-5 h-5 text-blue-500" />
+            <h3 className="font-bold text-slate-800 dark:text-white">Disk Utilization</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="relative pt-1">
+              <div className="flex items-center justify-between mb-2 text-xs font-semibold uppercase">
+                <span className="text-blue-600 dark:text-blue-400">Total Usage</span>
+                <span className="text-blue-600 dark:text-blue-400">{stats?.disk.usedPercent.toFixed(1)}%</span>
+              </div>
+              <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-200 dark:bg-blue-900/40">
+                <div style={{ width: `${stats?.disk.usedPercent}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"></div>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500">{stats?.disk.availableGb.toFixed(1)}GB free of {stats?.disk.totalGb.toFixed(1)}GB</p>
+          </div>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-slate-900 border-purple-100 dark:border-purple-900/30">
+          <div className="flex items-center gap-3 mb-4">
+            <Database className="w-5 h-5 text-purple-500" />
+            <h3 className="font-bold text-slate-800 dark:text-white">Database Health</h3>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-500">Master DB:</span>
+              <span className="font-mono text-slate-800 dark:text-slate-200">{stats?.database.mainSize.toFixed(1)} MB</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-500">Archive DB:</span>
+              <span className="font-mono text-slate-800 dark:text-slate-200">{stats?.database.archiveSize.toFixed(1)} MB</span>
+            </div>
+            <div className="mt-2 pt-2 border-t border-purple-100 dark:border-purple-900/30">
+              <p className="text-[10px] text-purple-600 dark:text-purple-400 uppercase tracking-wider font-bold">Rule 20 Compliance: VACUUM Weekly</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-slate-900 border-emerald-100 dark:border-emerald-900/30">
+          <div className="flex items-center gap-3 mb-4">
+            <History className="w-5 h-5 text-emerald-500" />
+            <h3 className="font-bold text-slate-800 dark:text-white">Scrub Queue</h3>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-500">Archived Albums:</span>
+              <span className="font-bold text-emerald-600 dark:text-emerald-400">{stats?.recycler.archivedAlbumsCount}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-500">Oldest in Queue:</span>
+              <span className="font-mono text-[10px] text-slate-800 dark:text-slate-200">{stats?.recycler.oldestArchivedAlbum}</span>
+            </div>
+            <button 
+              onClick={handleManualScrub}
+              disabled={scrubbing}
+              className="mt-2 w-full flex items-center justify-center gap-2 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white text-xs font-bold rounded-lg transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {scrubbing ? 'Running Scrub...' : 'Run Manual Scrub'}
+            </button>
+          </div>
+        </Card>
+      </div>
+
+      {/* Retention Policies */}
       <Card>
-        <h3 className="text-xl font-bold mb-4 flex items-center">
-          <span className="w-1.5 h-6 bg-blue-500 rounded-full mr-3"></span>
-          Import Folder Retention
-        </h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-          Configure how long photos stay in the Master Portal's import folder
-          before automatic deletion.
-        </p>
-
-        <div className="space-y-4">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400">
+            <Gauge className="w-5 h-5" />
+          </div>
           <div>
-            <label
-              htmlFor="masterImportRetentionDays"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
-            >
-              Master Import Folder Retention (Days)
-            </label>
-            <div className="flex items-center gap-4">
-              <input
-                id="masterImportRetentionDays"
-                type="number"
-                min="1"
-                max="365"
-                value={settings.masterImportRetentionDays}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    masterImportRetentionDays: parseInt(e.target.value) || 30,
-                  })
-                }
-                className="w-32 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white">Recycler Policies</h3>
+            <p className="text-sm text-slate-500">Configure how long assets persist on this local station</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Original Hi-Res Retention (Days)</label>
+              <input 
+                type="number" 
+                value={retentionSettings.hiResDays}
+                onChange={(e) => setRetentionSettings({...retentionSettings, hiResDays: parseInt(e.target.value) || 0})}
+                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
               />
-              <span className="text-sm text-slate-600 dark:text-slate-400">
-                Photos older than {settings.masterImportRetentionDays} days will
-                be deleted from the import folder
-              </span>
+              <p className="mt-1.5 text-xs text-slate-500 italic">Full-resolution source files (Approx. 5-15MB each)</p>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-              ⚠️ Photos in active albums or with orders will NOT be deleted
-            </p>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Lightweight Tiers Retention (Days)</label>
+              <input 
+                type="number" 
+                value={retentionSettings.tieredDays}
+                onChange={(e) => setRetentionSettings({...retentionSettings, tieredDays: parseInt(e.target.value) || 0})}
+                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
+              />
+              <p className="mt-1.5 text-xs text-slate-500 italic">Previews and thumbnails (Approx. 200KB each)</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Audit & Diagnostic Logs Retention (Days)</label>
+              <input 
+                type="number" 
+                value={retentionSettings.auditDays}
+                onChange={(e) => setRetentionSettings({...retentionSettings, auditDays: parseInt(e.target.value) || 0})}
+                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-            <input
-              type="checkbox"
-              id="autoDeleteEnabled"
-              checked={settings.autoDeleteEnabled}
-              onChange={(e) =>
-                setSettings({
-                  ...settings,
-                  autoDeleteEnabled: e.target.checked,
-                })
-              }
-              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-            />
-            <label
-              htmlFor="autoDeleteEnabled"
-              className="text-sm font-medium text-slate-700 dark:text-slate-300"
-            >
-              Enable automatic deletion of old import files
-            </label>
-          </div>
+          <div className="space-y-4">
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
+              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                Apex Fulfillment Safeguards
+              </h4>
+              <div className="space-y-4">
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="pt-0.5">
+                    <input 
+                      type="checkbox" 
+                      checked={retentionSettings.fulfillmentLock}
+                      onChange={(e) => setRetentionSettings({...retentionSettings, fulfillmentLock: e.target.checked})}
+                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200 block">Fulfillment Lock</span>
+                    <span className="text-xs text-slate-500">Prevent deletion of any assets belonging to albums with pending, unfulfilled, or unexported orders.</span>
+                  </div>
+                </label>
 
-          {lastCleanup && (
-            <div className="text-sm text-slate-600 dark:text-slate-400">
-              Last cleanup: {new Date(lastCleanup).toLocaleString()}
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="pt-0.5">
+                    <input 
+                      type="checkbox" 
+                      checked={retentionSettings.cloudSyncRequired}
+                      onChange={(e) => setRetentionSettings({...retentionSettings, cloudSyncRequired: e.target.checked})}
+                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200 block">Cloud Sync Verification</span>
+                    <span className="text-xs text-slate-500">Recycler will wait until album metadata is cryptographically verified by the Management Hub before purging.</span>
+                  </div>
+                </label>
+              </div>
             </div>
-          )}
 
-          <button
-            onClick={handleRunCleanup}
-            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold transition-colors"
+            <div className="flex gap-2">
+               <button 
+                  onClick={handlePruneSessions}
+                  className="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors"
+                >
+                  Prune Stuck Sessions
+                </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-2 p-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 rounded-lg text-amber-700 dark:text-amber-400">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span className="text-[10px] font-bold uppercase tracking-tighter">Warning: Assets purged by the recycler cannot be recovered from the local machine.</span>
+          </div>
+          <button 
+            onClick={handleSave}
+            disabled={isSaving}
+            className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-blue-500/20"
           >
-            Run Cleanup Now
+            {isSaving ? 'Deploying...' : 'Update Policies'}
           </button>
         </div>
       </Card>
 
-      <Card>
-        <h3 className="text-xl font-bold mb-4 flex items-center">
-          <span className="w-1.5 h-6 bg-purple-500 rounded-full mr-3"></span>
-          Touch Kiosk Retention
-        </h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-          Configure how long photos stay on Touch Kiosks before automatic
-          deletion.
-        </p>
-
-        <div className="space-y-4">
-          <div>
-            <label
-              htmlFor="touchKioskRetentionDays"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
-            >
-              Touch Kiosk Retention (Days)
-            </label>
-            <div className="flex items-center gap-4">
-              <input
-                id="touchKioskRetentionDays"
-                type="number"
-                min="1"
-                max="90"
-                value={settings.touchKioskRetentionDays}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    touchKioskRetentionDays: parseInt(e.target.value) || 7,
-                  })
-                }
-                className="w-32 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-              />
-              <span className="text-sm text-slate-600 dark:text-slate-400">
-                Photos older than {settings.touchKioskRetentionDays} days will
-                be deleted from Touch Kiosks
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-              💡 Recommended: 7-14 days to keep kiosk storage manageable
-            </p>
-          </div>
-
-          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <p className="text-sm text-blue-800 dark:text-blue-200">
-              <strong>Note:</strong> Photos with active orders or in the cart
-              will be preserved regardless of age.
-            </p>
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-            <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">
-              Session Management
-            </h4>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-              Clear stuck or old kiosk sessions that may be cluttering the
-              dashboard.
-            </p>
-            <button
-              onClick={handlePruneSessions}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
-            >
-              Prune Old Sessions
-            </button>
-          </div>
-        </div>
-      </Card>
-
-      <Card>
-        <h3 className="text-xl font-bold mb-4 flex items-center">
-          <span className="w-1.5 h-6 bg-green-500 rounded-full mr-3"></span>
-          Order Photo Backup
-        </h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-          Automatically backup photos when orders are completed to prevent data
-          loss.
-        </p>
-
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-            <input
-              type="checkbox"
-              id="backupSoldOrders"
-              checked={settings.backupSoldOrders}
-              onChange={(e) =>
-                setSettings({ ...settings, backupSoldOrders: e.target.checked })
-              }
-              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-            />
-            <label
-              htmlFor="backupSoldOrders"
-              className="text-sm font-medium text-slate-700 dark:text-slate-300"
-            >
-              Automatically backup photos when orders are completed
-            </label>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Backup Location
-            </label>
-            <input
-              type="text"
-              value={settings.backupLocation}
-              onChange={(e) =>
-                setSettings({ ...settings, backupLocation: e.target.value })
-              }
-              className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono text-sm"
-              placeholder="pb_data/backup/orders"
-            />
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-              Photos will be saved to:{" "}
-              <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">
-                {settings.backupLocation}/[order-id]/
-              </code>
-            </p>
-          </div>
-
-          <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-            <p className="text-sm text-green-800 dark:text-green-200">
-              <strong>✓ Recommended:</strong> Keep this enabled to ensure sold
-              photos are never lost, even if originals are deleted.
-            </p>
-          </div>
-        </div>
-      </Card>
-
-      <Card>
-        <h3 className="text-xl font-bold mb-4 flex items-center">
-          <span className="w-1.5 h-6 bg-slate-500 rounded-full mr-3"></span>
-          Database Management
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
-            <h4 className="font-bold text-slate-800 dark:text-white mb-2">
-              Export Database
-            </h4>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-              Download a raw copy of the SQLite database (`master.db`) for
-              external backup or troubleshooting.
-            </p>
-            <button
-              onClick={handleExportDb}
-              className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
-              </svg>
-              Export Database
-            </button>
-          </div>
-
-          <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-            <h4 className="font-bold text-red-800 dark:text-red-200 mb-2">
-              Factory Reset
-            </h4>
-            <p className="text-sm text-red-700 dark:text-red-300 mb-4">
-              Warning: This will permanently delete ALL photos, albums, and
-              orders. Configuration settings (Users, Kiosks) will be preserved.
-            </p>
-            <button
-              onClick={handleFactoryReset}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors w-full"
-            >
-              Factory Reset
-            </button>
-          </div>
-        </div>
-      </Card>
-
-      <div className="flex justify-end gap-3">
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white font-semibold rounded-lg transition-colors shadow-lg"
-        >
-          {isSaving ? "Saving..." : "Save Settings"}
-        </button>
-      </div>
-
-      <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-        <h4 className="font-bold text-amber-800 dark:text-amber-200 mb-2">
-          ⚠️ Important Notes
-        </h4>
-        <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1 list-disc list-inside">
-          <li>Automatic cleanup runs daily at midnight</li>
-          <li>Photos in active albums are never deleted</li>
-          <li>Photos with orders (pending or completed) are preserved</li>
-          <li>
-            Backed up order photos are stored separately and not affected by
-            retention settings
-          </li>
-          <li>
-            Factory Reset is irreversible. Please export database before
-            resetting.
-          </li>
-        </ul>
+      <div className="p-6 bg-slate-100 dark:bg-slate-800/40 rounded-2xl flex flex-col items-center text-center">
+        <Database className="w-8 h-8 text-slate-400 mb-3" />
+        <h4 className="font-bold text-slate-800 dark:text-white mb-1">Industrial Data Integrity</h4>
+        <p className="text-sm text-slate-500 max-w-lg mb-4">ClickFlash implements GDPR-compliant one-way data flow. Archived metadata is preserved in a decoupled SQLite archive database, while physical assets are rotated to maintain peak disk performance (Law 15).</p>
       </div>
     </div>
   );

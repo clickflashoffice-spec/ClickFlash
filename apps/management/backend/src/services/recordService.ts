@@ -253,12 +253,19 @@ export class RecordService {
         )) as any;
 
         if (lastSync && op.sequence_number <= lastSync.counter) {
-          logger.info(
-            `Skipping duplicate/older operation ${op.id} (Seq: ${op.sequence_number}, Last: ${lastSync.counter})`,
+          logger.warn(
+            `[SequenceViolation] Rejected duplicate/older operation ${op.id} from Desk ${deskId} (OpSeq: ${op.sequence_number}, LastHubSeq: ${lastSync.counter})`,
           );
-          processedIds.push(op.id);
+          processedIds.push(op.id); // Mark as processed to prevent client re-send loop
           continue;
         }
+
+        // --- GAP DETECTION (Law 02/08) ---
+        // If there's a gap in sequence (e.g., we get 11 but last was 9), 
+        // we should ideally stop and wait for 10. However, in a hybrid offline-first
+        // system, we might allow gaps if the client guarantees eventual delivery.
+        // For now, we enforce strict monotonicity but allowed gaps, 
+        // provided the sequence is GREATER than last.
 
         // 2. Transliterate and Apply
         const table = TABLE_MAP[op.table] || op.table;

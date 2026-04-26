@@ -12,6 +12,9 @@ body,
 @tailwind components;
 @tailwind utilities;
 
+/* ClickFlash Unified Design System Tokens */
+@import "../../../packages/ui/src/styles/tokens.css";
+
 @layer components {
   /* Refined Glassmorphism Utilities */
   .glass-panel {

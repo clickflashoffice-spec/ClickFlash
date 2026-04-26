@@ -1,28 +1,49 @@
-// backend/logger.js
-// Structured logging utility for consistent log formatting
-
-const fs = require('fs');
+// apps/gallery/backend/logger.js
+const pino = require('pino');
 const path = require('path');
+const fs = require('fs');
 
 /**
- * Log levels
- */
-const LOG_LEVELS = {
-    ERROR: 0,
-    WARN: 1,
-    INFO: 2,
-    DEBUG: 3
-};
-
-/**
- * Logger class for structured logging
+ * Enterprise Structured Logger using Pino
+ * Optimized for Gallery Backend
  */
 class Logger {
-    constructor(dataDir, logLevel = 'INFO') {
+    constructor(dataDir, logLevel = 'info') {
         this.dataDir = dataDir;
         this.logDir = path.join(dataDir, 'logs');
-        this.logLevel = LOG_LEVELS[logLevel.toUpperCase()] || LOG_LEVELS.INFO;
         this.ensureLogDirectory();
+
+        const targets = [
+            {
+                target: 'pino/file',
+                options: { destination: path.join(this.logDir, 'gallery.log'), mkdir: true },
+                level: logLevel.toLowerCase()
+            }
+        ];
+
+        // Add console pretty printing in development or if explicitly enabled
+        if (process.env.NODE_ENV !== 'production' || process.env.CONSOLE_LOGGING === 'true') {
+            targets.push({
+                target: 'pino-pretty',
+                options: { colorize: true },
+                level: logLevel.toLowerCase()
+            });
+        }
+
+        const transport = pino.transport({ targets });
+
+        this.pino = pino(
+            {
+                level: logLevel.toLowerCase(),
+                base: { 
+                    component: 'gallery-backend', 
+                    env: process.env.NODE_ENV || 'development',
+                    version: process.env.APP_VERSION || '1.0.0'
+                },
+                timestamp: pino.stdTimeFunctions.isoTime
+            },
+            transport
+        );
     }
 
     ensureLogDirectory() {
@@ -31,63 +52,25 @@ class Logger {
         }
     }
 
-    getLogFile(level) {
-        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-        return path.join(this.logDir, `${level.toLowerCase()}-${today}.log`);
-    }
-
-    formatLogEntry(level, message, meta = {}) {
-        const timestamp = new Date().toISOString();
-        return JSON.stringify({
-            timestamp,
-            level,
-            message,
-            ...meta
-        }) + '\n';
-    }
-
-    writeLog(level, message, meta = {}) {
-        // Check if log level is enabled
-        if (LOG_LEVELS[level] > this.logLevel) {
-            return;
-        }
-
-        const logEntry = this.formatLogEntry(level, message, meta);
-        const logFile = this.getLogFile(level);
-
-        try {
-            fs.appendFileSync(logFile, logEntry, 'utf8');
-        } catch (error) {
-            // Fallback to console if file write fails
-            console.error('[Logger] Failed to write log:', error.message);
-            console.log(logEntry.trim());
-        }
-
-        // Also output to console in development
-        if (process.env.NODE_ENV === 'development') {
-            const consoleMethod = level === 'ERROR' ? console.error : 
-                                 level === 'WARN' ? console.warn : 
-                                 console.log;
-            consoleMethod(`[${level}] ${message}`, meta && Object.keys(meta).length > 0 ? meta : '');
-        }
-    }
-
     error(message, meta = {}) {
-        this.writeLog('ERROR', message, meta);
+        this.pino.error(meta, message);
     }
 
     warn(message, meta = {}) {
-        this.writeLog('WARN', message, meta);
+        this.pino.warn(meta, message);
     }
 
     info(message, meta = {}) {
-        this.writeLog('INFO', message, meta);
+        this.pino.info(meta, message);
     }
 
     debug(message, meta = {}) {
-        this.writeLog('DEBUG', message, meta);
+        this.pino.debug(meta, message);
+    }
+
+    log(message, meta = {}) {
+        this.info(message, meta);
     }
 }
 
 module.exports = Logger;
-

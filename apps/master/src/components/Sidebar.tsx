@@ -4,6 +4,8 @@ import ThemeToggle from "./ThemeToggle";
 import PasswordModal from "./common/PasswordModal";
 import { CloudStatusIndicator } from "./common/CloudStatusIndicator";
 import NetworkStatusIndicator from "./common/NetworkStatusIndicator";
+import { RealtimeStatus } from "./common/RealtimeStatus";
+import FleetStatusIndicator from "./common/FleetStatusIndicator";
 import { usePermissions } from "../hooks/usePermissions.ts";
 import { Photographer, View, DestinationFeatures } from "../types.ts";
 import { pb } from "../services/pb.ts";
@@ -603,6 +605,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className={`flex flex-col gap-2 ${isCollapsed ? "items-center" : ""}`}
           >
             {!isCollapsed && <NetworkStatusIndicator />}
+            {!isCollapsed && <RealtimeStatus />}
+            {!isCollapsed && <FleetStatusIndicator />}
             <div
               className={`flex-shrink-0 flex items-center justify-center p-2 rounded-xl glass-card bg-white/40 dark:bg-slate-800/40 border-slate-200/50 dark:border-white/5 ${isCollapsed ? "w-full" : ""}`}
             >

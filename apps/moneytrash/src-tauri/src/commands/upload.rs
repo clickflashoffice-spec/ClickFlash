@@ -13,8 +13,8 @@ use tauri_plugin_notification::NotificationExt;
 
 /// Maximum file size (500MB)
 const MAX_FILE_SIZE: u64 = 500 * 1024 * 1024;
-/// Chunk size (1MB)
-const CHUNK_SIZE: usize = 1024 * 1024;
+/// Chunk size (5MB)
+const CHUNK_SIZE: usize = 5 * 1024 * 1024;
 
 /// File information structure
 #[derive(Debug, Clone, Serialize, Deserialize)]

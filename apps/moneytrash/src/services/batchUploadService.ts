@@ -149,7 +149,7 @@ class BatchUploadService {
    * Upload a single file (Chunked Resumable Pattern)
    */
   private async uploadFile(job: UploadJob, file: File): Promise<void> {
-    const CHUNK_SIZE = 1024 * 1024; // 1MB chunks (matches server)
+    const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks for high-volume uploads
     const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
     try {

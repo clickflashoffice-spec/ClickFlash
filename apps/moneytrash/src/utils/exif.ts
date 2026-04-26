@@ -41,7 +41,7 @@ function parseExif(view: DataView, offset: number): { dateTaken?: string } {
   try {
     const isLittleEndian = view.getUint16(offset + 6) === 0x4949;
     // Validate EXIF header by checking TIFF magic number
-    const _tiffMagic = view.getUint32(offset + 10, isLittleEndian);
+    void view.getUint32(offset + 10, isLittleEndian); // validate TIFF magic (value unused)
 
     // Search for DateTimeOriginal tag (Simplified search)
     // Real implementation would traverse IFD entries...

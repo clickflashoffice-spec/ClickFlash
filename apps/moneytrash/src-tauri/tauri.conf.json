@@ -24,7 +24,7 @@
       }
     ],
     "security": {
-      "csp": null,
+      "csp": "default-src 'self'; script-src 'self'; connect-src 'self' https://s3.amazonaws.com; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; frame-src 'none'",
       "capabilities": [
         {
           "identifier": "default",

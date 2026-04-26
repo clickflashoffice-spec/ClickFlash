@@ -15,16 +15,23 @@ services:
     ports:
       - "8090:8090"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=${NODE_ENV:-development}
       - PORT=8090
       - DATABASE_PATH=/data/clickflash.db
-      - JWT_SECRET=dev-jwt-secret-change-in-production
+      # JWT_SECRET must be set in .env or host environment — never hard-coded
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required. Copy .env.example to .env and set it.}
     volumes:
       - ./data:/data
       - ./uploads:/uploads
     networks:
       - clickflash-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8090/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   # ==========================================
   # MoneyTrash (Next.js)
@@ -45,7 +52,8 @@ services:
       - ./apps/moneytrash:/app
       - /app/node_modules
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks:
       - clickflash-network
     restart: unless-stopped
@@ -66,7 +74,8 @@ services:
       - ./apps/management:/app
       - /app/node_modules
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks:
       - clickflash-network
     restart: unless-stopped
@@ -87,7 +96,8 @@ services:
       - ./apps/gallery:/app
       - /app/node_modules
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks:
       - clickflash-network
     restart: unless-stopped

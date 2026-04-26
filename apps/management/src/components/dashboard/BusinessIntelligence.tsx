@@ -1,92 +1,170 @@
 import React from "react";
-import ReactApexChart from "react-apexcharts";
-import { ApexOptions } from "apexcharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+} from "recharts";
 import { useStation } from "../../context/StationContext";
+
+const BAR_COLORS = ["#6366f1", "#14b8a6"];
+const DONUT_COLORS = ["#3b82f6", "#14b8a6", "#8b5cf6", "#f59e0b", "#ec4899"];
 
 interface BusinessIntelligenceProps {
   chartsData: any;
   trendData: any;
 }
 
-const BusinessIntelligence: React.FC<BusinessIntelligenceProps> = ({ chartsData, trendData }) => {
+const BusinessIntelligence: React.FC<BusinessIntelligenceProps> = ({
+  chartsData,
+}) => {
   const { selectedStationId } = useStation();
 
-  // --- Bar Chart (Meetings)
-  const barOptions: ApexOptions = {
-    chart: { type: "bar", toolbar: { show: false }, background: "transparent" },
-    plotOptions: {
-      bar: { horizontal: false, columnWidth: "60%", borderRadius: 4 },
-    },
-    dataLabels: { enabled: false },
-    stroke: { show: true, width: 2, colors: ["transparent"] },
-    xaxis: {
-      categories: chartsData.photographerNames,
-      labels: { style: { colors: "#64748b" } },
-    },
-    yaxis: { labels: { style: { colors: "#64748b" } } },
-    fill: { opacity: 1 },
-    colors: ["#6366f1", "#14b8a6"],
-    theme: { mode: "dark" },
-    legend: { position: "top", labels: { colors: "#94a3b8" } },
-  };
+  const barData = (chartsData.photographerNames ?? []).map(
+    (name: string, i: number) => ({
+      name,
+      "Meetings Taken": chartsData.meetingsTaken?.[i] ?? 0,
+      "Sales Made": chartsData.meetingsMade?.[i] ?? 0,
+    }),
+  );
 
-  // --- Donut Chart (Themes)
-  const donutOptions: ApexOptions = {
-    chart: { type: "donut", background: "transparent" },
-    labels:
-      chartsData.themeLabels?.length > 0
-        ? chartsData.themeLabels
-        : ["Pool", "Beach", "Night", "Restaurant"],
-    colors: ["#3b82f6", "#14b8a6", "#8b5cf6", "#f59e0b", "#ec4899"],
-    stroke: { show: true, colors: ["#020617"], width: 2 },
-    legend: { position: "right", labels: { colors: "#94a3b8" } },
-    dataLabels: { enabled: false },
-    theme: { mode: "dark" },
-    plotOptions: { pie: { donut: { size: "75%" } } },
-  };
+  const themeLabels: string[] =
+    chartsData.themeLabels?.length > 0
+      ? chartsData.themeLabels
+      : ["Pool", "Beach", "Night", "Restaurant"];
+
+  const donutData = (chartsData.incomeThemePie ?? []).map(
+    (value: number, i: number) => ({
+      name: themeLabels[i] ?? `Theme ${i + 1}`,
+      value,
+    }),
+  );
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Performance Bar */}
         <div className="glass-panel p-8 rounded-[3rem] border-slate-800/30 bg-slate-900 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] -translate-y-1/2 -translate-x-1/2"></div>
-            <h3 className="text-sm font-black text-white uppercase tracking-widest mb-6 relative z-10">
-                Staff Performance Leaderboard
-            </h3>
-            <div className="h-64 relative z-10">
-                <ReactApexChart
-                options={barOptions}
-                series={[
-                    { name: "Meetings Taken", data: chartsData.meetingsTaken },
-                    { name: "Sales Made", data: chartsData.meetingsMade },
-                ]}
-                type="bar"
-                height="100%"
+          <div className="absolute top-0 left-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] -translate-y-1/2 -translate-x-1/2" />
+          <h3 className="text-sm font-black text-white uppercase tracking-widest mb-6 relative z-10">
+            Staff Performance Leaderboard
+          </h3>
+          <div className="h-64 relative z-10">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={barData}
+                margin={{ top: 4, right: 8, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  vertical={false}
+                  stroke="rgba(255,255,255,0.06)"
+                  strokeDasharray="3 3"
                 />
-            </div>
+                <XAxis
+                  dataKey="name"
+                  tick={{ fill: "#64748b", fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  tick={{ fill: "#64748b", fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={32}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#0f172a",
+                    border: "1px solid #1e293b",
+                    borderRadius: "8px",
+                  }}
+                  labelStyle={{ color: "#94a3b8" }}
+                  itemStyle={{ color: "#e2e8f0" }}
+                />
+                <Legend
+                  wrapperStyle={{
+                    color: "#94a3b8",
+                    fontSize: "12px",
+                    fontWeight: 900,
+                  }}
+                />
+                <Bar
+                  dataKey="Meetings Taken"
+                  fill={BAR_COLORS[0]}
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="Sales Made"
+                  fill={BAR_COLORS[1]}
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Theme Donut */}
         <div className="glass-panel p-8 rounded-[3rem] border-slate-800/30 bg-slate-900 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
-            <h3 className="text-sm font-black text-white uppercase tracking-widest mb-6 relative z-10">
-                Photo Content Strategy (Themes)
-            </h3>
-            <div className="h-64 relative z-10">
-                {chartsData.incomeThemePie.length > 0 ? (
-                <ReactApexChart
-                    options={donutOptions}
-                    series={chartsData.incomeThemePie}
-                    type="donut"
-                    height="100%"
-                />
-                ) : (
-                <div className="h-full flex items-center justify-center text-slate-500 font-bold uppercase tracking-widest text-xs">
-                    No Theme Data Available
-                </div>
-                )}
-            </div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+          <h3 className="text-sm font-black text-white uppercase tracking-widest mb-6 relative z-10">
+            Photo Content Strategy (Themes)
+          </h3>
+          <div className="h-64 relative z-10">
+            {donutData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={donutData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius="52%"
+                    outerRadius="72%"
+                    dataKey="value"
+                    nameKey="name"
+                    strokeWidth={2}
+                    stroke="#020617"
+                  >
+                    {donutData.map((_: any, index: number) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={DONUT_COLORS[index % DONUT_COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#0f172a",
+                      border: "1px solid #1e293b",
+                      borderRadius: "8px",
+                    }}
+                    labelStyle={{ color: "#94a3b8" }}
+                    itemStyle={{ color: "#e2e8f0" }}
+                  />
+                  <Legend
+                    layout="vertical"
+                    align="right"
+                    verticalAlign="middle"
+                    wrapperStyle={{
+                      color: "#94a3b8",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-slate-500 font-bold uppercase tracking-widest text-xs">
+                No Theme Data Available
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -99,10 +177,18 @@ const BusinessIntelligence: React.FC<BusinessIntelligenceProps> = ({ chartsData,
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-950/40">
-                <th className="py-2 px-4 text-[10px] font-black text-slate-500 uppercase">Product Type</th>
-                <th className="py-2 px-4 text-[10px] font-black text-slate-500 uppercase text-right">Revenue Avg</th>
-                <th className="py-2 px-4 text-[10px] font-black text-slate-500 uppercase text-right">Unit Dist.</th>
-                <th className="py-2 px-4 text-[10px] font-black text-slate-500 uppercase text-right">Volume</th>
+                <th className="py-2 px-4 text-[10px] font-black text-slate-500 uppercase">
+                  Product Type
+                </th>
+                <th className="py-2 px-4 text-[10px] font-black text-slate-500 uppercase text-right">
+                  Revenue Avg
+                </th>
+                <th className="py-2 px-4 text-[10px] font-black text-slate-500 uppercase text-right">
+                  Unit Dist.
+                </th>
+                <th className="py-2 px-4 text-[10px] font-black text-slate-500 uppercase text-right">
+                  Volume
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/30">
@@ -115,7 +201,9 @@ const BusinessIntelligence: React.FC<BusinessIntelligenceProps> = ({ chartsData,
                 <td className="py-3 px-4 text-right text-sm font-black text-white">
                   €{chartsData.simpleSessions.income.toFixed(2)}
                 </td>
-                <td className="py-3 px-4 text-right text-xs font-bold text-slate-300">1.0 Units</td>
+                <td className="py-3 px-4 text-right text-xs font-bold text-slate-300">
+                  1.0 Units
+                </td>
                 <td className="py-3 px-4 text-right text-xs font-bold text-slate-300">
                   {chartsData.simpleSessions.meetings.toFixed(0)}
                 </td>
@@ -129,7 +217,9 @@ const BusinessIntelligence: React.FC<BusinessIntelligenceProps> = ({ chartsData,
                 <td className="py-3 px-4 text-right text-sm font-black text-white">
                   €{chartsData.multipleSessions.income.toFixed(2)}
                 </td>
-                <td className="py-3 px-4 text-right text-xs font-bold text-slate-300">3.5 Units</td>
+                <td className="py-3 px-4 text-right text-xs font-bold text-slate-300">
+                  3.5 Units
+                </td>
                 <td className="py-3 px-4 text-right text-xs font-bold text-slate-300">
                   {chartsData.multipleSessions.meetings.toFixed(0)}
                 </td>
@@ -158,7 +248,11 @@ const BusinessIntelligence: React.FC<BusinessIntelligenceProps> = ({ chartsData,
             </div>
           </div>
           <p className="text-slate-500 text-[10px] mt-4 font-bold uppercase tracking-widest text-center">
-            Calculated from {selectedStationId ? "Station " + selectedStationId : "Global Fleet"} Volume
+            Calculated from{" "}
+            {selectedStationId
+              ? "Station " + selectedStationId
+              : "Global Fleet"}{" "}
+            Volume
           </p>
         </div>
       </div>

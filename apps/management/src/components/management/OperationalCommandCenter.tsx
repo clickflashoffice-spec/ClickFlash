@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
-import ReactApexChart from "react-apexcharts";
-import { ApexOptions } from "apexcharts";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import {
   Globe,
   Wifi,
@@ -269,74 +276,87 @@ const OperationalCommandCenter: React.FC<OperationalCommandCenterProps> = ({
           </div>
           <div className="h-[300px] lg:h-[400px]">
             {analytics?.trend?.length > 0 ? (
-              <ReactApexChart
-                options={
-                  {
-                    chart: {
-                      type: "area",
-                      toolbar: { show: false },
-                      background: "transparent",
-                      fontFamily: "inherit",
-                      animations: {
-                        enabled: true,
-                        easing: "easeinout",
-                        speed: 1200,
-                      },
-                    },
-                    stroke: { curve: "smooth", width: 3, colors: ["#3b82f6"] },
-                    fill: {
-                      type: "gradient",
-                      gradient: {
-                        shadeIntensity: 1,
-                        opacityFrom: 0.3,
-                        opacityTo: 0.05,
-                        stops: [0, 90, 100],
-                      },
-                      colors: ["#3b82f6"],
-                    },
-                    xaxis: {
-                      categories: analytics.trend.map((t: any) => t.date),
-                      labels: {
-                        style: {
-                          colors: "#94a3b8",
-                          fontWeight: 900,
-                          fontSize: "10px",
-                        },
-                        rotate: isMobile ? -45 : 0,
-                      },
-                      axisBorder: { show: false },
-                      axisTicks: { show: false },
-                    },
-                    yaxis: {
-                      labels: {
-                        style: {
-                          colors: "#94a3b8",
-                          fontWeight: 800,
-                          fontSize: "10px",
-                        },
-                        formatter: (v) =>
-                          `€${v >= 1000 ? (v / 1000).toFixed(1) + "k" : v}`,
-                      },
-                    },
-                    grid: { borderColor: "#f1f5f9", strokeDashArray: 6 },
-                    markers: { size: 0, hover: { size: 6 } },
-                    tooltip: {
-                      theme: "light",
-                      x: { show: false },
-                      marker: { show: false },
-                    },
-                    dataLabels: { enabled: false },
-                  } as ApexOptions
-                }
-                series={[
-                  {
-                    name: "Gross Volume",
-                    data: analytics.trend.map((t: any) => t.revenue),
-                  },
-                ]}
-                type="area"
-                height="100%"
-              />
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={analytics.trend.map((t: any) => ({
+                    date: t.date,
+                    revenue: t.revenue,
+                  }))}
+                  margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient
+                      id="commandCenterGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="#3b82f6"
+                        stopOpacity={0.3}
+                      />
+                      <stop
+                        offset="90%"
+                        stopColor="#3b82f6"
+                        stopOpacity={0.03}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    vertical={false}
+                    stroke="rgba(241,245,249,0.15)"
+                    strokeDasharray="6 6"
+                  />
+                  <XAxis
+                    dataKey="date"
+                    tick={{
+                      fill: "#94a3b8",
+                      fontSize: 10,
+                      fontWeight: 900,
+                    }}
+                    tickLine={false}
+                    axisLine={false}
+                    angle={isMobile ? -45 : 0}
+                    textAnchor={isMobile ? "end" : "middle"}
+                    height={isMobile ? 48 : 24}
+                  />
+                  <YAxis
+                    tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 800 }}
+                    tickLine={false}
+                    axisLine={false}
+                    width={52}
+                    tickFormatter={(v) =>
+                      `€${v >= 1000 ? (v / 1000).toFixed(1) + "k" : v}`
+                    }
+                  />
+                  <Tooltip
+                    formatter={(v: number) => [
+                      `€${v >= 1000 ? (v / 1000).toFixed(2) + "k" : v}`,
+                      "Gross Volume",
+                    ]}
+                    cursor={{ stroke: "rgba(59,130,246,0.3)", strokeWidth: 1 }}
+                    contentStyle={{
+                      backgroundColor: "#1e293b",
+                      border: "1px solid #334155",
+                      borderRadius: "8px",
+                    }}
+                    labelStyle={{ color: "#94a3b8" }}
+                    itemStyle={{ color: "#e2e8f0" }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    name="Gross Volume"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    fill="url(#commandCenterGradient)"
+                    dot={false}
+                    activeDot={{ r: 6, fill: "#3b82f6" }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             ) : (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center">

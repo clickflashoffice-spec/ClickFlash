@@ -199,15 +199,16 @@ Key version flags to check:
 
 ## REMEDIATION PRIORITY ORDER
 
-| Priority | Finding | Effort |
-|----------|---------|--------|
-| 1 | CRIT-1: Move JWT secrets to Cloudflare secrets | Low (2 CLI commands) |
-| 2 | HIGH-2: Fix CORS typo + remove wildcard fallback | Low (5 lines) |
-| 3 | HIGH-1: Migrate tokens from localStorage | Medium |
-| 4 | MED-1: Fix TypeScript errors in management | Low–Medium |
-| 5 | MED-3: Upgrade Electron in gallery | Low |
-| 6 | MED-2: Remove duplicate charting libs | Medium |
-| 7 | MED-4: Pin `@google/generative-ai` version | Trivial |
-| 8 | LOW-1/2: Fix wrangler.toml dates | Trivial |
-| 9 | MED-5/6/7: Bundle optimization | Medium |
-| 10 | Test coverage gaps (touch + management) | High effort |
+| Priority | Finding | Effort | Status |
+|----------|---------|--------|--------|
+| 1 | CRIT-1: Move JWT secrets to Cloudflare secrets | Low (2 CLI commands) | ✅ Resolved |
+| 2 | HIGH-2: Fix CORS typo + remove wildcard fallback | Low (5 lines) | ✅ Resolved (commit 1289db9) |
+| 3 | HIGH-1: Migrate tokens from localStorage | Medium | ✅ Resolved — sessionStorage (commit 1289db9) |
+| 4 | MED-1: Fix TypeScript errors in management | Low–Medium | ✅ Resolved — 0 TS errors |
+| 5 | MED-3: Upgrade Electron in gallery | Low | ✅ Already at 39.x |
+| 6 | MED-2: Remove duplicate charting libs | Medium | ✅ Resolved — consolidated to Recharts (commit cb98771) |
+| 7 | MED-4: Pin `@google/generative-ai` version | Trivial | ✅ Already pinned ^0.24.0 |
+| 8 | LOW-1/2: Fix wrangler.toml dates | Trivial | ✅ Already at 2025-01-01 |
+| 9 | MED-5/6/7: Bundle optimization | Medium | ✅ Resolved — chunk splits added, sourcemaps dev-only |
+| 10 | LOW-3: Strict auth rate limiter | Low | ✅ Resolved — 10 req/5 min (commit 3dd5fd2) |
+| 11 | Test coverage gaps (touch + management) | High effort | ⏳ Deferred — requires significant test authoring |

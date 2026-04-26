@@ -25,11 +25,13 @@ const galleryHandler = {
     // Parse allowed origins from env var (comma-separated string)
     const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : [];
     const requestOrigin = request.headers.get('Origin');
-    
-    // Determine CORS origin - reflect origin only if it is in the allowlist
-    const corsOrigin = (requestOrigin && allowedOrigins.some(o =>
-      o === requestOrigin || (o.startsWith('*') && requestOrigin.endsWith(o.slice(1)))
-    ) ? requestOrigin : (allowedOrigins[0] ?? ''));
+
+    // SECURITY: Exact-match only — no wildcard patterns, no fallback to first
+    // allowed origin. When origin is absent or not in the allowlist, corsOrigin
+    // is '' so no Access-Control-Allow-Origin header is emitted (fail-closed).
+    const corsOrigin = (requestOrigin && allowedOrigins.includes(requestOrigin))
+      ? requestOrigin
+      : '';
 
     // CORS Handling with proper validation
     const corsHeaders = {

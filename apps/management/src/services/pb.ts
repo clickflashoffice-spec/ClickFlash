@@ -97,8 +97,10 @@ class CustomPocketBaseAdapter {
       !this.baseUrl.includes("127.0.0.1") &&
       !this.baseUrl.includes("192.168");
 
-    // Load token from localStorage if available
-    const savedToken = localStorage.getItem("authToken");
+    // SECURITY: Use sessionStorage for auth tokens — cleared on tab close,
+    // reducing persistence window vs localStorage. Full httpOnly-cookie
+    // migration tracked separately (requires backend Set-Cookie support).
+    const savedToken = sessionStorage.getItem("authToken");
     if (savedToken) {
       this.authToken = savedToken;
     }
@@ -114,7 +116,7 @@ class CustomPocketBaseAdapter {
       onChange: () => () => {}, // No-op unsubscribe
       clear: () => {
         self.authToken = null;
-        localStorage.removeItem("authToken");
+        sessionStorage.removeItem("authToken");
       },
     };
   }
@@ -122,9 +124,9 @@ class CustomPocketBaseAdapter {
   setAuthToken(token: string | null): void {
     this.authToken = token;
     if (token) {
-      localStorage.setItem("authToken", token);
+      sessionStorage.setItem("authToken", token);
     } else {
-      localStorage.removeItem("authToken");
+      sessionStorage.removeItem("authToken");
     }
   }
 

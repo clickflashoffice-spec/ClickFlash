@@ -10,7 +10,7 @@ export default function cullingRoutes(context: any): Router {
     // POST /api/culling/analyze/:albumId
     // Triggers full analysis and grouping for an album
     router.post('/analyze/:albumId', async (req: Request, res: Response) => {
-        const { albumId } = req.params;
+        const albumId = req.params.albumId as string;
         if (!albumId) return sendInvalidInputError(res, 'Album ID is required');
 
         try {

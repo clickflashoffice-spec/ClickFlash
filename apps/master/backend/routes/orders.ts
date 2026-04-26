@@ -14,6 +14,7 @@ import { FulfillmentService } from "../services/FulfillmentService";
 import { isAdminOrManager } from "../middleware/role";
 import { SyncManager } from "../services/SyncManager";
 import { LedgerService } from "../services/LedgerService";
+import { OrderValidationService } from "../services/OrderValidationService";
 import AuditLogger from "../shared/auditLogger";
 
 interface OrdersContext {
@@ -25,6 +26,7 @@ interface OrdersContext {
   syncManager: SyncManager;
   ledgerService: LedgerService;
   auditLogger: AuditLogger;
+  orderValidationService?: OrderValidationService;
 }
 
 export default function orderRoutes(context: OrdersContext): Router {
@@ -376,7 +378,7 @@ export default function orderRoutes(context: OrdersContext): Router {
 
             // Phase 46: Automated Fulfillment (Receipts & Emails)
             // Trigger asynchronous post-validation actions
-            context.orderValidationService.handlePostValidationActions(orderId);
+            context.orderValidationService?.handlePostValidationActions(orderId);
           } catch (ledgerError: any) {
             logger.error(
               `[Ledger] Failed to record commission for order ${orderId}`,

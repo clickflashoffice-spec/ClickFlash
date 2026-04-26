@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/cloudflare";
 import { getEnv, TABLE_MAP } from "./config.js";
 import DatabaseManager from "./db.js";
 import RecordService from "./services/recordService.js";
@@ -30,9 +31,10 @@ export interface Env {
   RESEND_API_KEY?: string;
   FROM_EMAIL?: string;
   GOOGLE_API_KEY?: string;
+  SENTRY_DSN?: string; // Sentry DSN — optional; monitoring disabled when absent
 }
 
-export default {
+const managementHandler = {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
@@ -2370,8 +2372,22 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
     } catch (err) {
       console.error("[Cron] Uncaught error during scheduled execution:", err);
     }
+  },
+};
 
-
-
+export default {
+  fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    if (!env.SENTRY_DSN) {
+      return managementHandler.fetch(request, env);
+    }
+    return Sentry.withSentry(
+      () => ({
+        dsn: env.SENTRY_DSN!,
+        tracesSampleRate: 0.1,
+        environment: "production",
+        release: "clickflash-management@4.2.0",
+      }),
+      managementHandler,
+    ).fetch(request, env, ctx);
   },
 };

@@ -10,7 +10,7 @@
     "dev:watch": "vite build --watch",
     "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
     "dev:electron": "concurrently \"npm run dev:backend\" \"npm run dev:watch\" \"wait-on http://localhost:8090/api/health file:dist/master/index.html && electron .\" --names \"backend,frontend,electron\" --prefix-colors \"blue,green,cyan\" --kill-others-on-fail",
-    "dev:backend": "tsx watch backend/server.ts",
+    "dev:backend": "npx tsx watch backend/server.ts",
     "preview:full": "concurrently \"npm run dev:backend\" \"npm run preview\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
     "clean": "rimraf dist release",
     "build": "vite build",

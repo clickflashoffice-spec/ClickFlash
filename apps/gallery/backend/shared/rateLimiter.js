@@ -5,8 +5,14 @@
 const DEFAULT_LIMIT = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100;
 const WINDOW_MS = 60 * 1000; // 1 minute
 
+// Auth-specific limiter: 10 req / 5 min per IP (brute-force protection)
+const AUTH_LIMIT = parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS) || 10;
+const AUTH_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+
 // Store request counts per IP
 const ipCounters = new Map();
+// Separate counter store for auth endpoints
+const authIpCounters = new Map();
 
 // Optional: Audit logger (will be set by server.js if available)
 let auditLogger = null;
@@ -42,9 +48,18 @@ function resetCounters() {
     }
 }
 
-// Periodically clean up old entries
+function resetAuthCounters() {
+    const now = Date.now();
+    for (const [ip, info] of authIpCounters.entries()) {
+        if (now - info.startTime >= AUTH_WINDOW_MS) {
+            authIpCounters.delete(ip);
+        }
+    }
+}
+
 // Periodically clean up old entries
 const intervalId = setInterval(resetCounters, WINDOW_MS);
+const authIntervalId = setInterval(resetAuthCounters, AUTH_WINDOW_MS);
 
 /**
  * Rate limiting middleware compatible with the existing server implementation.
@@ -92,9 +107,48 @@ function rateLimiter(req, res, next) {
     return true;
 }
 
+/**
+ * Strict rate limiter for authentication endpoints.
+ * Allows AUTH_LIMIT (default 10) requests per AUTH_WINDOW_MS (default 5 min) per IP.
+ * Use this middleware on /api/auth/login and similar sensitive routes.
+ */
+function authRateLimiter(req, res, next) {
+    const ip = req.socket?.remoteAddress || req.connection?.remoteAddress || 'unknown';
+    const now = Date.now();
+    let record = authIpCounters.get(ip);
+    if (!record) {
+        record = { count: 1, startTime: now };
+        authIpCounters.set(ip, record);
+    } else {
+        if (now - record.startTime >= AUTH_WINDOW_MS) {
+            record.count = 1;
+            record.startTime = now;
+        } else {
+            record.count += 1;
+        }
+    }
+
+    if (record.count > AUTH_LIMIT) {
+        if (auditLogger) {
+            auditLogger.logRateLimitExceeded(ip, req.url);
+        }
+        const errorHandler = require('./errorHandler');
+        errorHandler.sendRateLimitError(
+            res,
+            `Too many login attempts. Maximum ${AUTH_LIMIT} attempts per 5 minutes. Please try again later.`,
+        );
+        return false;
+    }
+
+    next();
+    return true;
+}
+
 rateLimiter.stop = () => {
     if (intervalId) clearInterval(intervalId);
+    if (authIntervalId) clearInterval(authIntervalId);
 };
 
 module.exports = rateLimiter;
 module.exports.setAuditLogger = setAuditLogger;
+module.exports.authRateLimiter = authRateLimiter;

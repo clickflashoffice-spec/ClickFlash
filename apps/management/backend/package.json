@@ -8,8 +8,6 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.995.0",
-    "@aws-sdk/s3-request-presigner": "^3.995.0",
     "@sentry/cloudflare": "^10.48.0",
     "@tsndr/cloudflare-worker-jwt": "^2.5.3"
   },

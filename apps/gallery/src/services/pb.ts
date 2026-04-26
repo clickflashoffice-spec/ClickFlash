@@ -44,8 +44,10 @@ class CustomPocketBaseAdapter {
     // Sanitize baseUrl: remove trailing slash and 'api' suffix if present
     // This prevents the common double-slash error (e.g., http://localhost:8090/api/api/...)
     this.baseUrl = baseUrl.replace(/\/+$/, "").replace(/\/api$/, "");
-    // Load token from localStorage if available
-    const savedToken = localStorage.getItem("authToken");
+    // SECURITY: Use sessionStorage for auth tokens — cleared on tab close,
+    // reducing persistence window vs localStorage. Full httpOnly-cookie
+    // migration tracked separately (requires backend Set-Cookie support).
+    const savedToken = sessionStorage.getItem("authToken");
     if (savedToken) {
       this.authToken = savedToken;
     }
@@ -62,7 +64,7 @@ class CustomPocketBaseAdapter {
       onChange: () => () => {}, // No-op unsubscribe
       clear: () => {
         self.authToken = null;
-        localStorage.removeItem("authToken");
+        sessionStorage.removeItem("authToken");
       },
     };
   }
@@ -70,9 +72,9 @@ class CustomPocketBaseAdapter {
   setAuthToken(token: string | null): void {
     this.authToken = token;
     if (token) {
-      localStorage.setItem("authToken", token);
+      sessionStorage.setItem("authToken", token);
     } else {
-      localStorage.removeItem("authToken");
+      sessionStorage.removeItem("authToken");
     }
   }
 

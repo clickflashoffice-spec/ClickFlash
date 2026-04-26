@@ -59,12 +59,13 @@ const managementHandler = {
     // Parse allowed origins from config
     const allowedOrigins = ALLOWED_ORIGINS ? ALLOWED_ORIGINS.split(',').map(o => o.trim()) : [];
     const requestOrigin = request.headers.get('Origin');
-    
-    // Determine CORS origin - reflect origin only if it is in the allowlist
-    const corsOrigin = (requestOrigin && allowedOrigins.some(o => {
-      const cleanOrigin = requestOrigin.replace(/\/$/, '');
-      return o === cleanOrigin || (o.startsWith('*') && cleanOrigin.endsWith(o.slice(1)));
-    }) ? requestOrigin : (allowedOrigins[0] ?? ''));
+
+    // SECURITY: Exact-match only — no wildcard patterns, no trailing-slash
+    // normalisation tricks, no fallback. When origin is absent or not in the
+    // allowlist, corsOrigin is '' so no ACAO header is emitted (fail-closed).
+    const corsOrigin = (requestOrigin && allowedOrigins.includes(requestOrigin))
+      ? requestOrigin
+      : '';
 
     // CORS Headers with proper validation
     const corsHeaders = {

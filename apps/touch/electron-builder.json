@@ -48,5 +48,12 @@
     "createDesktopShortcut": false,
     "runAfterFinish": false,
     "shortcutName": "ClickFlash Touch"
+  },
+  "publish": {
+    "provider": "github",
+    "owner": "clickflash",
+    "repo": "clickflash-touch",
+    "releaseType": "release",
+    "vPrefixedTagName": true
   }
 }

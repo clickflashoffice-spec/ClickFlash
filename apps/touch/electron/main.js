@@ -2,6 +2,41 @@ const { app, BrowserWindow, ipcMain, screen, globalShortcut, session } = require
 const path = require('path');
 const crypto = require('crypto');
 
+// ─── Auto-Updater (kiosk mode: silent, auto-install on quit) ────────────────
+let autoUpdater = null;
+function initAutoUpdater() {
+    if (isDev) {
+        console.log('[AutoUpdater] Skipped in development');
+        return;
+    }
+    try {
+        ({ autoUpdater } = require('electron-updater'));
+        autoUpdater.logger              = console;
+        autoUpdater.autoDownload        = true;   // Kiosk: download without prompting
+        autoUpdater.autoInstallOnAppQuit = true;  // Install when the kiosk restarts
+        autoUpdater.allowPrerelease     = false;
+        autoUpdater.allowDowngrade      = false;
+
+        autoUpdater.on('update-available',   (info) => console.log('[AutoUpdater] Update available:', info.version));
+        autoUpdater.on('update-downloaded',  (info) => console.log('[AutoUpdater] Update ready to install:', info.version));
+        autoUpdater.on('update-not-available', ()   => console.log('[AutoUpdater] Up to date'));
+        autoUpdater.on('error',              (err)  => console.error('[AutoUpdater] Error:', err.message));
+
+        // Initial check 30 s after launch; re-check every 4 h
+        setTimeout(() => autoUpdater.checkForUpdates().catch(() => {}), 30_000);
+        setInterval(() => autoUpdater.checkForUpdates().catch(() => {}), 4 * 60 * 60 * 1000);
+
+        // IPC: allow admin UI to trigger a manual check
+        ipcMain.handle('updater:check',  () => autoUpdater.checkForUpdates().catch(() => {}));
+        ipcMain.handle('updater:status', () => ({ version: app.getVersion() }));
+
+        console.log('[AutoUpdater] Initialized — auto-download enabled for kiosk mode');
+    } catch (err) {
+        console.warn('[AutoUpdater] Failed to initialize (electron-updater not available):', err.message);
+    }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 const BACKEND_PORT = 8091;
 const APP_URL = `http://localhost:${BACKEND_PORT}`;
 const isDev = process.env.NODE_ENV === 'development';
@@ -238,6 +273,7 @@ app.whenReady().then(() => {
 
     setupIpc();
     createWindow();
+    initAutoUpdater();
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {

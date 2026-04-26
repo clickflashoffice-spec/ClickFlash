@@ -478,6 +478,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// Global rate limiter — applied before all routes to protect auth and API endpoints
+app.use(rateLimiter);
+
 // Context
 const context = {
   dbManager,

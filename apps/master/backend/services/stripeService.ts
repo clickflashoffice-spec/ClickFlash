@@ -68,13 +68,22 @@ export const createCheckoutSession = async (
 };
 
 /**
- * Verify webhook signature
+ * Verify webhook signature.
+ * Throws at call-time (not silently) when the secret is absent so that a
+ * misconfigured production deployment fails loudly on the first webhook hit
+ * rather than silently accepting or rejecting every event.
  */
 export const constructWebhookEvent = (
     payload: string | Buffer,
     signature: string
 ): Stripe.Event => {
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+        throw new Error(
+            '[StripeService] STRIPE_WEBHOOK_SECRET is not set. ' +
+            'Cannot verify webhook signature — set the env var to proceed.'
+        );
+    }
 
     return getStripe().webhooks.constructEvent(
         payload,

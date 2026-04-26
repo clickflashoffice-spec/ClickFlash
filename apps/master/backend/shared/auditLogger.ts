@@ -91,6 +91,10 @@ class AuditLogger {
     public logError(error: Error, context: Record<string, any> = {}): void {
         this.log('ERROR', 'SYSTEM_ERROR', { message: error.message, stack: error.stack, ...context });
     }
+
+    public logSecurityEvent(event: string, details: Record<string, any>): void {
+        this.log('WARN', event, details);
+    }
 }
 
 export default AuditLogger;

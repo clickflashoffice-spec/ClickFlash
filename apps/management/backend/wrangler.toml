@@ -33,3 +33,6 @@ ALLOWED_COUNTRIES = "MA,TN,FR,US"
 # Secrets — set via CLI:
 # wrangler secret put JWT_SECRET --env production
 # wrangler secret put SENTRY_DSN --env production
+
+[observability]
+enabled = true

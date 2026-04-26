@@ -1,6 +1,7 @@
 name = "gallery-backend"
 main = "src/server.ts"
 compatibility_date = "2024-10-01"
+compatibility_flags = ["nodejs_compat"]
 
 # [env.staging]
 # name = "gallery-backend-staging"

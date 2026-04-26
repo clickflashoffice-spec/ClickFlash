@@ -21,8 +21,6 @@
   },
   "dependencies": {
     "@builder.io/partytown": "^0.10.3",
-    "@react-three/drei": "^9.122.0",
-    "@react-three/fiber": "^9.0.0",
     "@sentry/nextjs": "^10.39.0",
     "@swc/helpers": "^0.5.19",
     "caniuse-lite": "^1.0.30001776",
@@ -34,8 +32,7 @@
     "next": "^15.1.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwind-merge": "^3.4.0",
-    "three": "^0.173.0"
+    "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
@@ -47,7 +44,6 @@
     "@types/node": "^20",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@types/three": "^0.173.0",
     "@vitejs/plugin-react": "^4.3.4",
     "cross-env": "^7.0.3",
     "eslint": "^9",

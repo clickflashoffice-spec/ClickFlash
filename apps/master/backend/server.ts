@@ -453,8 +453,9 @@ app.use(
               "http://localhost:*",
               "http://127.0.0.1:*",
             ]
-          : ["'self'", "'unsafe-inline'"], // unsafe-inline required for React style injection in Electron
-        styleSrc: ["'self'", "'unsafe-inline'"], // Tailwind/React inline styles
+          // Vite production build emits fully-bundled JS — no inline scripts needed.
+          : ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"], // Tailwind/React runtime styles require unsafe-inline
         fontSrc: ["'self'", "data:"],
         connectSrc: isDev
           ? [

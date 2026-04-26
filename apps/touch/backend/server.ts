@@ -354,9 +354,12 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
+        // unsafe-eval is restricted to dev (Vite HMR); unsafe-inline is never
+        // needed in production since Vite outputs fully-bundled JS files.
         scriptSrc: isDev
           ? ["'self'", "'unsafe-inline'", "'unsafe-eval'"]
-          : ["'self'", "'unsafe-inline'"],
+          : ["'self'"],
+        // unsafe-inline for styles is required for Tailwind/React dynamic styles
         styleSrc: ["'self'", "'unsafe-inline'"],
         fontSrc: ["'self'", "data:"],
         imgSrc: ["'self'", "data:", "blob:", "http:", "https:"],

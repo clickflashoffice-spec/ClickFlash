@@ -26,7 +26,6 @@
   "dependencies": {
     "@clickflash/types": "file:../../packages/types",
     "@clickflash/ui": "file:../../packages/ui",
-    "@google/generai": "^1.42.0",
     "@sentry/react": "^10.39.0",
     "@sentry/tracing": "^7.120.4",
     "@stripe/react-stripe-js": "^2.7.1",

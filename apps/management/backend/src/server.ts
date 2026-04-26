@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/cloudflare";
+import { checkLoginRateLimit, recordLoginAttempt } from "./loginRateLimiter.js";
 import { getEnv, TABLE_MAP } from "./config.js";
 import DatabaseManager from "./db.js";
 import RecordService from "./services/recordService.js";
@@ -296,6 +297,28 @@ const managementHandler = {
           );
         }
         const { email, password, machine_id } = (validation as any).data;
+
+        // Brute-force protection
+        const clientIp = request.headers.get('CF-Connecting-IP') ??
+                         request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ??
+                         'unknown';
+        const rateLimit = await checkLoginRateLimit(dbManager, email, clientIp);
+        if (!rateLimit.allowed) {
+          return new Response(
+            JSON.stringify({
+              error: "Too Many Requests",
+              message: "Too many failed login attempts. Please try again later.",
+            }),
+            {
+              status: 429,
+              headers: {
+                'Content-Type': 'application/json',
+                'Retry-After': String(rateLimit.retryAfterSeconds ?? 900),
+              },
+            },
+          );
+        }
+
         let user;
         try {
           user = await dbManager.get(`SELECT * FROM users WHERE email = ?`, [
@@ -306,7 +329,10 @@ const managementHandler = {
           throw dbe;
         }
 
-        if (!user || !(await verifyPassword(password, user.password))) {
+        const passwordOk = user && (await verifyPassword(password, user.password));
+        await recordLoginAttempt(dbManager, email, clientIp, !!passwordOk);
+
+        if (!passwordOk) {
           return sendAuthError("Invalid email or password.");
         }
 

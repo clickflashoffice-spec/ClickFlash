@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "dev:backend": "tsx watch backend/server.js",
+    "dev:backend": "npx tsx watch backend/server.js",
     "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
     "build": "vite build && node -e \"require('fs').copyFileSync('service-worker.js', 'dist/service-worker.js')\"",
     "preview": "vite preview",

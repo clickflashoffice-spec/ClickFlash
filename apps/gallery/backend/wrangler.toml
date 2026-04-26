@@ -38,6 +38,8 @@ SENTRY_PROJECT = "clickflash-gallery"
 # Secrets — set via CLI:
 # wrangler secret put JWT_SECRET --env production
 # wrangler secret put STRIPE_SECRET_KEY --env production
+# wrangler secret put STRIPE_WEBHOOK_SECRET --env production
+# wrangler secret put SENTRY_DSN --env production
 
 [observability]
 enabled = true

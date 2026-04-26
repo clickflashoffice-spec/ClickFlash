@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/cloudflare";
 import DatabaseManager from "./db.js";
 import PhotoProcessor from "./photoProcessor.js";
 import { validateLogin } from "./validation.js";
@@ -12,9 +13,10 @@ export interface Env {
   ALLOWED_ORIGINS: string; // Comma-separated list of allowed origins
   STRIPE_SECRET_KEY?: string; // Stripe secret key
   STRIPE_WEBHOOK_SECRET?: string; // Stripe webhook signing secret
+  SENTRY_DSN?: string; // Sentry DSN — optional; monitoring disabled when absent
 }
 
-export default {
+const galleryHandler = {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const pathName = url.pathname;
@@ -766,5 +768,23 @@ export default {
       status: response.status,
       headers,
     });
+  },
+};
+
+export default {
+  fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    if (!env.SENTRY_DSN) {
+      // Sentry DSN not configured — run without instrumentation
+      return galleryHandler.fetch(request, env);
+    }
+    return Sentry.withSentry(
+      () => ({
+        dsn: env.SENTRY_DSN!,
+        tracesSampleRate: 0.1,
+        environment: "production",
+        release: "clickflash-gallery@4.2.0",
+      }),
+      galleryHandler,
+    ).fetch(request, env, ctx);
   },
 };

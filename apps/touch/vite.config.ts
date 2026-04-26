@@ -26,8 +26,14 @@ export default defineConfig({
       output: {
         // Optimize chunk splitting
         manualChunks: {
+          // Core React runtime
           'react-vendor': ['react', 'react-dom'],
-          'react-window': ['react-window'],
+          // Data fetching layer
+          'query-vendor': ['@tanstack/react-query'],
+          // Virtualisation (photo grid)
+          'virtual-vendor': ['react-window'],
+          // Offline-first DB (Dexie IDB)
+          'db-vendor': ['dexie'],
         },
         // Optimize asset naming
         assetFileNames: 'assets/[name].[hash].[ext]',

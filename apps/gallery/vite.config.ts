@@ -36,12 +36,21 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
+          // Core React runtime — loaded on every page
           "react-vendor": ["react", "react-dom"],
-          "chart-vendor": ["chart.js", "react-chartjs-2"],
+          // Data fetching — shared across all query-driven pages
+          "query-vendor": ["@tanstack/react-query"],
+          // Virtualisation — only needed on photo grids
+          "virtual-vendor": ["@tanstack/react-virtual", "react-window"],
+          // Charts — loaded only on analytics pages
+          "chart-vendor": ["chart.js", "react-chartjs-2", "recharts"],
+          // Stripe — payment flow only; loaded last
+          "stripe-vendor": ["@stripe/stripe-js", "@stripe/react-stripe-js"],
         },
       },
     },
-    chunkSizeWarningLimit: 1000,
+    // Lower warning threshold now that chunks are isolated
+    chunkSizeWarningLimit: 600,
   },
   resolve: {
     alias: {

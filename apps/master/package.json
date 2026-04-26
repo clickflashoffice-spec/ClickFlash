@@ -10,11 +10,11 @@
     "dev:watch": "vite build --watch",
     "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
     "dev:electron": "concurrently \"npm run dev:backend\" \"npm run dev:watch\" \"wait-on http://localhost:8090/api/health file:dist/master/index.html && electron .\" --names \"backend,frontend,electron\" --prefix-colors \"blue,green,cyan\" --kill-others-on-fail",
-    "dev:backend": "tsx watch backend/server.ts",
+    "dev:backend": "npx tsx watch backend/server.ts",
     "preview:full": "concurrently \"npm run dev:backend\" \"npm run preview\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
     "clean": "rimraf dist release",
     "build": "vite build",
-    "build:backend": "esbuild \"server=backend/server.ts\" \"workers/photoWorker=backend/workers/photoWorker.ts\" \"workers/folderWorker=backend/workers/folderWorker.ts\" \"main/autoUpdater=src/main/autoUpdater.ts\" \"main/backupService=src/main/backupService.ts\" --bundle --minify --platform=node --target=node20 --outdir=dist/backend --external:electron --external:electron-updater --external:better-sqlite3-multiple-ciphers --external:sharp --external:@napi-rs/canvas --external:bcrypjs --external:adm-zip --external:bonjour-service --external:express-session --external:formidable --external:helmet --external:jsonwebtoken --external:pdf-to-printer --external:fs-extra --external:form-data --external:ws --external:express --external:archiver --external:nodemailer --drop:debugger && tsx scripts/copy-assets.ts",
+    "build:backend": "esbuild \"server=backend/server.ts\" \"workers/photoWorker=backend/workers/photoWorker.ts\" \"workers/folderWorker=backend/workers/folderWorker.ts\" \"main/autoUpdater=src/main/autoUpdater.ts\" \"main/backupService=src/main/backupService.ts\" --bundle --minify --platform=node --target=node20 --outdir=dist/backend --external:electron --external:electron-updater --external:better-sqlite3-multiple-ciphers --external:sharp --external:@napi-rs/canvas --external:bcrypjs --external:adm-zip --external:bonjour-service --external:express-session --external:formidable --external:helmet --external:jsonwebtoken --external:pdf-to-printer --external:fs-extra --external:form-data --external:ws --external:express --external:archiver --external:nodemailer --drop:debugger && npx tsx scripts/copy-assets.ts",
     "package": "npm run clean && npm run build && npm run build:backend && electron-builder build --win --dir",
     "package:installer": "npm run clean && npm run build && npm run build:backend && electron-builder build --win",
     "preview": "vite preview",
@@ -36,8 +36,8 @@
     "lint": "eslint src --ext .ts,.tsx --max-warnings 0",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "typecheck:ci": "tsc --noEmit && tsc --noEmit -p tsconfig.server.json",
-    "provision": "tsx backend/scripts/provision-hardware.ts",
-    "bootstrap": "tsx scripts/generate-bootstrap.ts"
+    "provision": "npx tsx backend/scripts/provision-hardware.ts",
+    "bootstrap": "npx tsx scripts/generate-bootstrap.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

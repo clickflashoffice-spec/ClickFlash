@@ -29,7 +29,9 @@ jobs:
           echo "Checking API key ages..."
           node scripts/rotate-api-keys.js
         env:
-          ROTATION_DRY_RUN: ${{ github.event.inputs.dry_run || 'true' }}
+          # Scheduled cron runs should perform real rotation (dry_run defaults
+          # to false). Manual workflow_dispatch can pass dry_run=true to preview.
+          ROTATION_DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
           ROTATION_NOTIFY: ${{ secrets.NOTIFY_EMAIL }}
 
       - name: Create rotation log

@@ -54,21 +54,33 @@ export async function handleAuth(request: Request, env: any, url: URL, dbManager
       [userId, email, hashedPassword, deskId, deskName, deskLocation || "", now, now]
     );
 
+    // Generate Access JWT (Short-lived: 1h)
     const jwtPayload = {
       id: userId,
       email,
       role: "desk",
       desk_id: deskId,
-      exp: Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
     };
     const token = await sign(jwtPayload, JWT_SECRET);
 
-    return Response.json({
+    // Generate Refresh Token
+    const refreshToken = crypto.randomUUID() + crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    await dbManager.run(
+      'INSERT INTO refresh_tokens (id, user_id, token, expires_at) VALUES (?, ?, ?, ?)',
+      [crypto.randomUUID(), userId, refreshToken, expiresAt]
+    );
+
+    const response = Response.json({
       success: true,
       token,
       desk: { id: userId, deskId, deskName, deskLocation, email, role: "desk" },
-      message: `Station '${deskName}' registered successfully. Save your token securely.`,
+      message: `Station '${deskName}' registered successfully. Session active for 1 hour.`,
     }, { status: 201, headers: corsHeaders });
+
+    response.headers.append("Set-Cookie", `refreshToken=${refreshToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}; Path=/api/auth`);
+    return response;
   }
 
   // --- PUBLIC: Login ---
@@ -96,17 +108,106 @@ export async function handleAuth(request: Request, env: any, url: URL, dbManager
       }
     }
 
+    // Generate Access JWT
     const payload = {
       id: user.id,
       email: user.email,
       role: user.role,
       desk_id: user.desk_id || null,
-      exp: Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60,
     };
 
     const token = await sign(payload, JWT_SECRET);
+
+    // Generate Refresh Token
+    const refreshToken = crypto.randomUUID() + crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    await dbManager.run(
+      'INSERT INTO refresh_tokens (id, user_id, token, expires_at) VALUES (?, ?, ?, ?)',
+      [crypto.randomUUID(), user.id, refreshToken, expiresAt]
+    );
+
     delete user.password;
-    return Response.json({ token, user, desk_id: user.desk_id }, { headers: corsHeaders });
+    const response = Response.json({ token, user, desk_id: user.desk_id }, { headers: corsHeaders });
+    response.headers.append("Set-Cookie", `refreshToken=${refreshToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}; Path=/api/auth`);
+    return response;
+  }
+
+  // --- PUBLIC: Refresh Token ---
+  if (url.pathname === "/api/auth/refresh" && request.method === "POST") {
+    const cookieHeader = request.headers.get("Cookie") || "";
+    const refreshToken = cookieHeader.match(/refreshToken=([^;]+)/)?.[1];
+
+    if (!refreshToken) {
+      return createErrorResponse(401, "Unauthorized", "Refresh token missing");
+    }
+
+    const tokenData = await dbManager.get('SELECT * FROM refresh_tokens WHERE token = ?', [refreshToken]);
+
+    if (!tokenData) {
+      return createErrorResponse(401, "Unauthorized", "Invalid refresh token");
+    }
+
+    // Reuse detection
+    if (tokenData.revoked === 1) {
+      await dbManager.run('UPDATE refresh_tokens SET revoked = 1 WHERE user_id = ?', [tokenData.user_id]);
+      const res = createErrorResponse(401, "Unauthorized", "Token reuse detected. All sessions revoked.");
+      res.headers.append("Set-Cookie", `refreshToken=; HttpOnly; Secure; SameSite=Strict; Max-Age=0; Path=/api/auth`);
+      return res;
+    }
+
+    // Expiry check
+    if (new Date() > new Date(tokenData.expires_at)) {
+      await dbManager.run('UPDATE refresh_tokens SET revoked = 1 WHERE id = ?', [tokenData.id]);
+      return createErrorResponse(401, "Unauthorized", "Refresh token expired");
+    }
+
+    const user = await dbManager.get('SELECT * FROM users WHERE id = ?', [tokenData.user_id]);
+    if (!user) {
+      return createErrorResponse(401, "Unauthorized", "User not found");
+    }
+
+    // Rotate Token
+    const newToken = crypto.randomUUID() + crypto.randomUUID();
+    const newId = crypto.randomUUID();
+    const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    await dbManager.run(
+      'INSERT INTO refresh_tokens (id, user_id, token, expires_at) VALUES (?, ?, ?, ?)',
+      [newId, user.id, newToken, newExpiresAt]
+    );
+
+    await dbManager.run(
+      'UPDATE refresh_tokens SET revoked = 1, replaced_by = ? WHERE id = ?',
+      [newId, tokenData.id]
+    );
+
+    const payload = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      desk_id: user.desk_id || null,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60,
+    };
+
+    const token = await sign(payload, JWT_SECRET);
+    const response = Response.json({ token, user: { id: user.id, email: user.email, role: user.role } }, { headers: corsHeaders });
+    response.headers.append("Set-Cookie", `refreshToken=${newToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}; Path=/api/auth`);
+    return response;
+  }
+
+  // --- PUBLIC: Logout ---
+  if (url.pathname === "/api/auth/logout" && request.method === "POST") {
+    const cookieHeader = request.headers.get("Cookie") || "";
+    const refreshToken = cookieHeader.match(/refreshToken=([^;]+)/)?.[1];
+
+    if (refreshToken) {
+      await dbManager.run('UPDATE refresh_tokens SET revoked = 1 WHERE token = ?', [refreshToken]);
+    }
+
+    const response = Response.json({ success: true }, { headers: corsHeaders });
+    response.headers.append("Set-Cookie", `refreshToken=; HttpOnly; Secure; SameSite=Strict; Max-Age=0; Path=/api/auth`);
+    return response;
   }
 
   return null;

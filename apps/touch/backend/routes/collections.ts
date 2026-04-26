@@ -101,6 +101,7 @@ const ALLOWED_COLUMNS: Record<string, string[]> = {
     "customerEmail",
     "paymentIntentId",
     "kioskId",
+    "checksum",
   ],
   kiosks: [
     "id",
@@ -347,6 +348,13 @@ export default function createCollectionsRouter(
 
         validData.password = await hashPassword(validData.password);
         validData.password_must_change = 0;
+      }
+
+      // Law 08: Intercept order creation to add integrity checksum
+      if (table === 'orders' && (req.method === 'POST' || !isUpdate)) {
+        const { OrderIntegrity } = require('../shared/OrderIntegrity');
+        validData.checksum = OrderIntegrity.calculateChecksum(validData);
+        logger.info(`[Sync] Calculated integrity checksum for Order ${validData.id}: ${validData.checksum}`);
       }
 
       const jsonCols = JSON_COLUMNS[table] || [];

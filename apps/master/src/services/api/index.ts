@@ -33,6 +33,7 @@ export * from './analyticsService';
 export * from './analyticsExportService';
 export * from './marketingService';
 export * from './ledgerService';
+export * from './securityService';
 
 // Re-export services as a combined object for backward compatibility
 import { userService } from './userService';
@@ -62,6 +63,7 @@ import { marketingService } from './marketingService';
 import { dashboardService } from './dashboardService';
 import { ledgerService } from './ledgerService';
 import { configService } from './configService';
+import { securityService } from './securityService';
 
 /**
  * Combined API service object (for backward compatibility)
@@ -96,6 +98,7 @@ export const apiServicePartial = {
     ...marketingService,
     ...dashboardService,
     ...ledgerService,
-    ...configService
+    ...configService,
+    ...securityService
 };
 

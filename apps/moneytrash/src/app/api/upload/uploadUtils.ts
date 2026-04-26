@@ -51,6 +51,8 @@ export async function performBackgroundSync(apiUrl: string, albumId: string, alb
                 // Use form-data package for real streaming support if available, 
                 // or native fetch with a stream if the target supports it.
                 // Since we are in a Node environment, we use the 'form-data' pattern.
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore – form-data types not installed; runtime-only import
                 const FormDataNode = await import('form-data');
                 const form = new (FormDataNode.default || FormDataNode)();
                 
@@ -74,7 +76,7 @@ export async function performBackgroundSync(apiUrl: string, albumId: string, alb
                 form.append('albumId', albumId);
 
                 const response = await new Promise<any>((resolve, reject) => {
-                    form.submit(`${apiUrl}/api/cloud/upload-photo`, (err, res) => {
+                    form.submit(`${apiUrl}/api/cloud/upload-photo`, (err: Error | null, res: any) => {
                         if (err) reject(err);
                         else resolve(res);
                     });

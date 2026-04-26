@@ -67,21 +67,27 @@ export function sendNotFoundError(
 }
 
 export function sendDatabaseError(error: Error, operation: string = "") {
+  // Sanitize: never leak error internals in production (Task 2.4)
+  const isDev = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+  
   return createErrorResponse(
     500,
     "Database Error",
-    `An error occurred ${operation}.`,
+    isDev ? `Database error during ${operation}: ${error.message}` : "A database error occurred while processing your request.",
     ERROR_CODES.DATABASE_ERROR,
-    { message: error.message },
+    isDev ? { message: error.message, operation } : undefined,
   );
 }
 
 export function sendInternalError(error: Error, context: string = "") {
+  // Sanitize: never leak error internals in production (Task 2.4)
+  const isDev = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+  
   return createErrorResponse(
     500,
     "Internal Server Error",
-    "An unexpected error occurred.",
+    isDev ? `Internal error: ${error.message}` : "An unexpected service error occurred. Please try again later.",
     ERROR_CODES.INTERNAL_ERROR,
-    { message: error.message, context },
+    isDev ? { message: error.message, stack: error.stack, context } : undefined,
   );
 }

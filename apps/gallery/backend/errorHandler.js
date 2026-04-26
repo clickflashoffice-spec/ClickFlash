@@ -98,16 +98,16 @@ function sendRateLimitError(res, message = 'Too many requests. Please try again 
 
 /**
  * Send internal server error response
- * @param {http.ServerResponse} res - HTTP response object
- * @param {Error} error - Error object
- * @param {string} [context] - Additional context about where the error occurred
  */
 function sendInternalError(res, error, context = null) {
-    const message = process.env.NODE_ENV === 'development' 
+    const isDev = process.env.NODE_ENV === 'development';
+    
+    // In production, mask the actual error message
+    const message = isDev 
         ? `Internal server error: ${error.message}`
-        : 'An internal error occurred. Please try again later.';
+        : 'An unexpected internal error occurred. Please contact support.';
 
-    const details = process.env.NODE_ENV === 'development' 
+    const details = isDev 
         ? { 
             message: error.message, 
             stack: error.stack,
@@ -122,25 +122,32 @@ function sendInternalError(res, error, context = null) {
  * Send database error response
  */
 function sendDatabaseError(res, error, operation = 'database operation') {
-    const message = process.env.NODE_ENV === 'development'
+    const isDev = process.env.NODE_ENV === 'development';
+    
+    // Production: Generic message, hide operation and raw error
+    const message = isDev
         ? `Database error during ${operation}: ${error.message}`
-        : `Failed to complete ${operation}. Please try again.`;
+        : 'A database error occurred while processing your request.';
 
     sendError(res, 500, 'Database Error', message, ERROR_CODES.DATABASE_ERROR, 
-        process.env.NODE_ENV === 'development' ? { error: error.message } : null);
+        isDev ? { error: error.message, operation } : null);
 }
 
 /**
  * Send file error response
  */
 function sendFileError(res, message, code = ERROR_CODES.FILE_ERROR) {
-    sendError(res, 400, 'File Error', message, code);
+    // Filesystem errors can leak paths, sanitize
+    const isDev = process.env.NODE_ENV === 'development';
+    const sanitizedMessage = isDev ? message : 'File processing error occurred.';
+    sendError(res, 400, 'File Error', sanitizedMessage, code);
 }
 
 /**
  * Send invalid input error response
  */
 function sendInvalidInputError(res, message, details = null) {
+    // Input validation errors are generally safe to show as they usually reflect user input
     sendError(res, 400, 'Invalid Input', message, ERROR_CODES.INVALID_INPUT, details);
 }
 

@@ -96,6 +96,16 @@ class LocalFaceService {
         }
 
         try {
+            if (!image) {
+                logger.warn('[LocalFaceService] Image is null or undefined');
+                return null;
+            }
+
+            if (image instanceof HTMLImageElement && (!image.width || !image.height)) {
+                logger.warn('[LocalFaceService] Image not fully loaded');
+                return null;
+            }
+
             const detection = await this.faceapi!.detectSingleFace(image)
                 .withFaceLandmarks()
                 .withFaceDescriptor();
@@ -110,7 +120,12 @@ class LocalFaceService {
 
             return { descriptor, hash };
         } catch (error) {
-            logger.error('[LocalFaceService] Failed to extract face descriptor', error);
+            const message = error instanceof Error ? error.message : String(error);
+            if (message.includes('does not support image input') || message.includes('Cannot read image')) {
+                logger.warn('[LocalFaceService] Face detection skipped: model does not support this image type');
+            } else {
+                logger.error('[LocalFaceService] Failed to extract face descriptor', error);
+            }
             return null;
         }
     }

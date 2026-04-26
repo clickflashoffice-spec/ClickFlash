@@ -259,6 +259,8 @@ export interface CartItem {
   productId?: string;
 }
 
+export type OrderItemCreateInput = CartItemCreateInput;
+
 export interface CartItemCreateInput {
   photoId: string;
   name: string;

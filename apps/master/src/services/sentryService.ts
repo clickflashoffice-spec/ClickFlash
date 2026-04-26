@@ -6,6 +6,8 @@
  */
 
 import * as Sentry from '@sentry/react';
+import { networkManager } from "./networkManager";
+import { useConnectionStore } from "../store/connectionStore";
 
 // Helper function to check if we're in development mode (Jest-compatible)
 const isDev = (): boolean => {
@@ -84,16 +86,34 @@ export function initSentry(dsn?: string, environment?: string, release?: string)
             // Additional context
             beforeSend(event, _hint) {
                 // Don't send errors in development unless explicitly enabled
-                const isDevEnv = typeof jest !== 'undefined' ? true : false;
-                const sentryEnabled = typeof jest !== 'undefined' ? false : false;
-                if (isDevEnv && !sentryEnabled) {
+                const isDevEnv = isDev();
+                if (isDevEnv && !process.env.VITE_SENTRY_ENABLED) {
                     return null;
                 }
 
-                // Add custom tags
+                // Add custom tags for network and real-time status
+                const netState = networkManager.getState();
+                const connState = useConnectionStore.getState();
+
                 event.tags = {
                     ...event.tags,
                     component: 'master-portal',
+                    network_quality: netState.quality,
+                    network_online: String(netState.isOnline),
+                    realtime_status: connState.status,
+                };
+
+                event.contexts = {
+                    ...event.contexts,
+                    network: {
+                        latency: netState.latency,
+                        last_checked: netState.lastChecked,
+                    },
+                    realtime: {
+                        status: connState.status,
+                        error_count: connState.errorCount,
+                        last_heartbeat: connState.lastHeartbeat,
+                    }
                 };
 
                 return event;

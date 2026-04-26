@@ -77,9 +77,17 @@ export default function createOrderExportRouter(context: OrderExportContext): Ro
                 roomNumber: order.roomNumber || undefined,
                 phone: order.phone || undefined,
                 source: 'touch',
+                checksum: order.checksum || undefined,
                 created_at: order.created_at || undefined,
                 updated_at: order.updated_at || undefined
             };
+
+            // Law 08 Hardening: Ensure checksum exists before export
+            if (!payload.checksum) {
+                const { OrderIntegrity } = require('../shared/OrderIntegrity');
+                payload.checksum = OrderIntegrity.calculateChecksum(payload);
+                logger.info(`[OrderExport] Generated missing checksum for order ${orderId}: ${payload.checksum}`);
+            }
 
             const bodyStr = JSON.stringify(payload);
 

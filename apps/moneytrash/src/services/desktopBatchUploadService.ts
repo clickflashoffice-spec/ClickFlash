@@ -166,7 +166,7 @@ class DesktopBatchUploadService {
     }
 
     const sessionId = crypto.randomUUID();
-    const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB chunks for bridge efficiency
+    const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks for high-volume uploads
     const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
     try {

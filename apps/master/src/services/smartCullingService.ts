@@ -376,6 +376,10 @@ class SmartCullingService {
      */
     private async detectFaces(img: HTMLImageElement): Promise<{ hasFace: boolean; eyesOpen: boolean }> {
         try {
+            if (!img || !img.width || !img.height) {
+                return { hasFace: false, eyesOpen: true };
+            }
+
             // Dynamically import face-api
             const faceapi = await import('@vladmandic/face-api');
             
@@ -396,7 +400,11 @@ class SmartCullingService {
             // Simplified eye openness check based on landmark positions
             // In real implementation, would analyze eye aspect ratio
             return { hasFace: true, eyesOpen: true };
-        } catch {
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            if (message.includes('does not support image input') || message.includes('Cannot read image')) {
+                logger.warn('[SmartCulling] Face detection skipped: model does not support this image type');
+            }
             return { hasFace: false, eyesOpen: true };
         }
     }

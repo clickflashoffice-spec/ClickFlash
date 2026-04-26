@@ -4,6 +4,9 @@
  */
 
 const { handleStripeWebhook } = require('../services/stripeService');
+const { executeWithRetry } = require('../utils/networkUtils');
+const { sendError, ERROR_CODES } = require('../utils/errorHandler');
+const { parseBody, getRawBody } = require('../utils/fileUtils');
 
 /**
  * Setup payment routes
@@ -32,12 +35,16 @@ function setupPaymentRoutes(server, dbManager, logger) {
                 const Stripe = require('stripe');
                 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-                // Create payment intent
-                const paymentIntent = await stripe.paymentIntents.create({
-                    amount: Math.round(amount * 100), // Convert to cents
-                    currency,
-                    metadata,
-                    automatic_payment_methods: { enabled: true }
+                // Create payment intent with retry
+                const paymentIntent = await executeWithRetry(async () => {
+                    return await stripe.paymentIntents.create({
+                        amount: Math.round(amount * 100), // Convert to cents
+                        currency,
+                        metadata,
+                        automatic_payment_methods: { enabled: true }
+                    });
+                }, { maxRetries: 3 }, (err, attempt) => {
+                    logger.warn(`[Payment] Stripe retry attempt ${attempt}`, { error: err.message });
                 });
 
                 res.writeHead(200, { 'Content-Type': 'application/json' });

@@ -68,6 +68,8 @@
     "src/services/performanceMonitor.ts",
     "src/components/error-boundaries/FeatureErrorBoundary.tsx",
     "src/services/advancedCheckout.ts",
-    "src/services/persistentCart.ts"
+    "src/services/persistentCart.ts",
+    "src/components/photos/PhotoGrid.tsx",
+    "src/stores/useCartStore.ts"
   ]
 }

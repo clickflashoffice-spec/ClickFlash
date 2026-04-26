@@ -147,7 +147,6 @@ export default function BookingsPage() {
                                             {session.name}
                                         </h3>
                                         <p className="text-slate-500 text-sm mt-1 leading-relaxed">{session.description}</p>
-                                        <p className="text-cyan-500 text-[10px] font-black uppercase tracking-widest mt-4">Duration: {session.duration}</p>
                                     </div>
                                 </label>
                             ))}
@@ -303,19 +302,6 @@ export default function BookingsPage() {
                 </>
             )}
 
-            {/* Contact Alternative */}
-            <section className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 text-center">
-                <p className="text-slate-500 font-bold">
-                    Prefer to talk? Call us at{" "}
-                    <a href="tel:+306945648936" className="text-cyan-600 hover:text-cyan-700 underline underline-offset-4">
-                        +30 694 564 8936
-                    </a>{" "}
-                    or email{" "}
-                    <a href="mailto:info@clickflash.photography" className="text-cyan-600 hover:text-cyan-700 underline underline-offset-4">
-                        info@clickflash.photography
-                    </a>
-                </p>
-            </section>
         </main>
     );
 }

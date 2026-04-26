@@ -13,6 +13,7 @@ import { CollectionOptions, PocketRecord, AuthResponse } from "./pbTypes";
 import { logger } from "../utils/logger";
 import { DEFAULT_MASTER_PORT, DEFAULT_TOUCH_PORT } from "../constants";
 import { safeStorage } from "../utils/safeStorage";
+import { useConnectionStore } from "../store/connectionStore";
 
 /** Custom API error with additional metadata */
 interface ApiError extends Error {
@@ -573,27 +574,87 @@ class CustomPocketBaseAdapter {
           collection?: string;
         }) => void,
       ) => {
-        const evtSource = new EventSource(`${this.baseUrl}/api/realtime`);
-        evtSource.onmessage = (e) => {
-          if (e.data && e.data !== ": connected") {
-            try {
-              const payload = JSON.parse(e.data);
-              if (payload.collection === name || topic === "*") {
-                callback({
-                  action: payload.action,
-                  record: payload.record,
-                  collection: payload.collection,
-                });
-              }
-            } catch (err) {
-              logger.error(
-                "SSE Parse Error",
-                err instanceof Error ? err : new Error(String(err)),
-              );
-            }
+        const store = useConnectionStore.getState();
+        let retryCount = 0;
+        let evtSource: EventSource | null = null;
+        let isClosed = false;
+
+        const connect = () => {
+          if (isClosed) return;
+          
+          if (retryCount > 0) {
+            store.setStatus('reconnecting');
           }
+          
+          evtSource = new EventSource(`${this.baseUrl}/api/realtime`);
+          
+          evtSource.onopen = () => {
+            store.setStatus('connected');
+            store.resetErrors();
+            retryCount = 0;
+          };
+
+          evtSource.onmessage = (e) => {
+            // Heartbeats and standard data
+            if (e.data && e.data !== ": connected") {
+              try {
+                const payload = JSON.parse(e.data);
+                
+                // Handle Heartbeat
+                if (payload.type === 'HEARTBEAT') {
+                   store.recordHeartbeat();
+                   return;
+                }
+
+                if (payload.collection === name || topic === "*") {
+                  callback({
+                    action: payload.action,
+                    record: payload.record,
+                    collection: payload.collection,
+                  });
+                }
+              } catch (err) {
+                // Not JSON or heartbeats
+                if (e.data.includes('HEARTBEAT')) {
+                   store.recordHeartbeat();
+                } else {
+                   logger.error("SSE Parse Error", err instanceof Error ? err : new Error(String(err)));
+                }
+              }
+            } else if (e.data === ": connected") {
+               store.setStatus('connected');
+            }
+          };
+
+          evtSource.onerror = () => {
+            if (isClosed) return;
+            
+            store.incrementError();
+            evtSource?.close();
+            
+            // Exponential backoff (1s, 2s, 4s... max 30s)
+            const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+            retryCount++;
+            
+            if (retryCount < 5) {
+              logger.info(`[SSE] Connection lost, retrying in ${delay / 1000}s... (Attempt ${retryCount})`);
+            }
+            
+            setTimeout(connect, delay);
+          };
         };
-        return Promise.resolve(() => evtSource.close());
+
+        connect();
+
+        return Promise.resolve(() => {
+          isClosed = true;
+          if (evtSource) {
+            evtSource.close();
+            evtSource = null;
+          }
+          // Do not set global disconnected here as other subscriptions might exist,
+          // but for this simple adapter it's fine.
+        });
       },
       unsubscribe: (_topic?: string) => {
         // Since we don't track individual subscriptions by topic in this simple mock,

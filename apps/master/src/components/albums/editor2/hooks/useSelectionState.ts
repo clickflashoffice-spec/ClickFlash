@@ -4,7 +4,9 @@ import { useReducer, useCallback, useMemo } from "react";
 
 export interface SelectionState {
   selectedPhotoIds: Set<string>;
-  selectedCount: number; // Derived: selectedPhotoIds.size
+  selectedCount: number;
+  lastSelectedId: string | null;
+  anchorId: string | null;
 }
 
 export interface SelectionActions {
@@ -12,18 +14,26 @@ export interface SelectionActions {
   deselectAll: () => void;
   toggleSelection: (id: string) => void;
   isSelected: (id: string) => boolean;
+  selectRange: (targetId: string, allPhotoIds: string[]) => void;
+  setAnchor: (id: string) => void;
+  getAnchor: () => string | null;
 }
 
 type SelectionAction =
   | { type: "SELECT_ALL"; payload: string[] }
   | { type: "DESELECT_ALL" }
-  | { type: "TOGGLE_SELECTION"; payload: string };
+  | { type: "TOGGLE_SELECTION"; payload: string }
+  | { type: "SELECT_RANGE"; payload: { targetId: string; allPhotoIds: string[] } }
+  | { type: "SET_ANCHOR"; payload: string }
+  | { type: "CLEAR_ANCHOR" };
 
 // --- Reducer ---
 
 const initialState: SelectionState = {
   selectedPhotoIds: new Set(),
   selectedCount: 0,
+  lastSelectedId: null,
+  anchorId: null,
 };
 
 function selectionReducer(
@@ -45,6 +55,8 @@ function selectionReducer(
         ...state,
         selectedPhotoIds: new Set(),
         selectedCount: 0,
+        lastSelectedId: null,
+        anchorId: null,
       };
 
     case "TOGGLE_SELECTION": {
@@ -58,8 +70,59 @@ function selectionReducer(
         ...state,
         selectedPhotoIds: newSelection,
         selectedCount: newSelection.size,
+        lastSelectedId: action.payload,
       };
     }
+
+    case "SELECT_RANGE": {
+      const { targetId, allPhotoIds } = action.payload;
+      const anchorId = state.anchorId || state.lastSelectedId;
+      
+      if (!anchorId) {
+        const newSelection = new Set(state.selectedPhotoIds);
+        newSelection.add(targetId);
+        return {
+          ...state,
+          selectedPhotoIds: newSelection,
+          selectedCount: newSelection.size,
+          lastSelectedId: targetId,
+          anchorId: targetId,
+        };
+      }
+
+      const anchorIndex = allPhotoIds.indexOf(anchorId);
+      const targetIndex = allPhotoIds.indexOf(targetId);
+      
+      if (anchorIndex === -1 || targetIndex === -1) {
+        return state;
+      }
+
+      const start = Math.min(anchorIndex, targetIndex);
+      const end = Math.max(anchorIndex, targetIndex);
+      const rangeIds = allPhotoIds.slice(start, end + 1);
+
+      const newSelection = new Set(state.selectedPhotoIds);
+      rangeIds.forEach(id => newSelection.add(id));
+
+      return {
+        ...state,
+        selectedPhotoIds: newSelection,
+        selectedCount: newSelection.size,
+        lastSelectedId: targetId,
+      };
+    }
+
+    case "SET_ANCHOR":
+      return {
+        ...state,
+        anchorId: action.payload,
+      };
+
+    case "CLEAR_ANCHOR":
+      return {
+        ...state,
+        anchorId: null,
+      };
 
     default:
       return state;
@@ -71,10 +134,8 @@ function selectionReducer(
 export function useSelectionState(): [SelectionState, SelectionActions] {
   const [state, dispatch] = useReducer(selectionReducer, initialState);
 
-  // Derived state
   const selectedCount = state.selectedPhotoIds.size;
 
-  // Actions
   const selectAll = useCallback((allPhotoIds: string[]) => {
     dispatch({ type: "SELECT_ALL", payload: allPhotoIds });
   }, []);
@@ -87,7 +148,16 @@ export function useSelectionState(): [SelectionState, SelectionActions] {
     dispatch({ type: "TOGGLE_SELECTION", payload: id });
   }, []);
 
-  // Helper to check if a photo is selected
+  const selectRange = useCallback((targetId: string, allPhotoIds: string[]) => {
+    dispatch({ type: "SELECT_RANGE", payload: { targetId, allPhotoIds } });
+  }, []);
+
+  const setAnchor = useCallback((id: string) => {
+    dispatch({ type: "SET_ANCHOR", payload: id });
+  }, []);
+
+  const getAnchor = useCallback(() => state.anchorId, [state.anchorId]);
+
   const isSelected = useCallback(
     (id: string) => state.selectedPhotoIds.has(id),
     [state.selectedPhotoIds],
@@ -99,11 +169,13 @@ export function useSelectionState(): [SelectionState, SelectionActions] {
       deselectAll,
       toggleSelection,
       isSelected,
+      selectRange,
+      setAnchor,
+      getAnchor,
     }),
-    [selectAll, deselectAll, toggleSelection, isSelected],
+    [selectAll, deselectAll, toggleSelection, isSelected, selectRange, setAnchor, getAnchor],
   );
 
-  // Return state with derived selectedCount attached
   const stateWithDerived = useMemo(
     () => ({
       ...state,

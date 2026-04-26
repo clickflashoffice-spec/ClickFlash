@@ -7,8 +7,6 @@ export default defineConfig(({ mode }) => ({
   base: '/',
   plugins: [react()],
   server: {
-    // Vite dev server runs on a different port than the backend
-    // Backend (Express) runs on 8090, Vite runs on 5173 in dev (or PORT env)
     port: parseInt(process.env.PORT || "5173"),
     host: true,
     proxy: {
@@ -39,27 +37,25 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: "dist/master",
     emptyOutDir: true,
-    sourcemap: false, // Disable for production builds
+    sourcemap: false,
     minify: "esbuild",
+    // Bundle UI components into the app - NO external symlinks
+    // packages/ui source is copied during build:backend via copy-assets.ts
     rollupOptions: {
       output: {
         manualChunks: {
-          // Split vendor libraries
           "vendor-react": ["react", "react-dom"],
           "vendor-router": ["react-router-dom"],
           "vendor-query": ["@tanstack/react-query"],
           "vendor-ui": ["lucide-react", "clsx", "tailwind-merge"],
-          // Heavy chart libraries — split so they load only with chart components
           "vendor-apexcharts": ["apexcharts", "react-apexcharts"],
           "vendor-chartjs": ["chart.js", "react-chartjs-2"],
         },
-        // Optimize asset naming
         assetFileNames: "assets/[name].[hash][extname]",
         chunkFileNames: "assets/[name].[hash].js",
         entryFileNames: "assets/[name].[hash].js",
       },
     },
-    // Chunk size warning limit
     chunkSizeWarningLimit: 800,
   },
   esbuild: {

@@ -300,7 +300,7 @@ class UploadQueueService {
    * Upload a single file using Tauri commands
    */
   private async uploadFile(item: UploadQueueItem): Promise<void> {
-    const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
+    const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks for high-volume uploads
     const fileData = await this.readFileData(item);
     const totalChunks = Math.ceil(fileData.length / CHUNK_SIZE);
 

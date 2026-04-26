@@ -14,7 +14,7 @@
     "preview:full": "concurrently \"npm run dev:backend\" \"npm run preview\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
     "clean": "rimraf dist release",
     "build": "vite build",
-    "build:backend": "esbuild \"server=backend/server.ts\" \"workers/photoWorker=backend/workers/photoWorker.ts\" \"workers/folderWorker=backend/workers/folderWorker.ts\" \"main/autoUpdater=src/main/autoUpdater.ts\" \"main/backupService=src/main/backupService.ts\" --bundle --minify --platform=node --target=node20 --outdir=dist/backend --external:electron --external:electron-updater --external:better-sqlite3 --external:better-sqlite3-multiple-ciphers --external:better-sqlite3-session-store --external:sharp --external:bcryptjs --external:adm-zip --external:bonjour-service --external:express-session --external:formidable --external:helmet --external:jsonwebtoken --external:pdf-to-printer --external:fs-extra --external:form-data --external:ws --external:express --external:@tensorflow/tfjs-node --external:@napi-rs/canvas --external:archiver --external:nodemailer --drop:debugger && tsx scripts/copy-assets.ts",
+    "build:backend": "esbuild \"server=backend/server.ts\" \"workers/photoWorker=backend/workers/photoWorker.ts\" \"workers/folderWorker=backend/workers/folderWorker.ts\" \"main/autoUpdater=src/main/autoUpdater.ts\" \"main/backupService=src/main/backupService.ts\" --bundle --minify --platform=node --target=node20 --outdir=dist/backend --external:electron --external:electron-updater --external:better-sqlite3-multiple-ciphers --external:sharp --external:@napi-rs/canvas --external:bcrypjs --external:adm-zip --external:bonjour-service --external:express-session --external:formidable --external:helmet --external:jsonwebtoken --external:pdf-to-printer --external:fs-extra --external:form-data --external:ws --external:express --external:archiver --external:nodemailer --drop:debugger && tsx scripts/copy-assets.ts",
     "package": "npm run clean && npm run build && npm run build:backend && electron-builder build --win --dir",
     "package:installer": "npm run clean && npm run build && npm run build:backend && electron-builder build --win",
     "preview": "vite preview",
@@ -94,7 +94,8 @@
     "tailwind-merge": "^3.4.0",
     "uuid": "^13.0.0",
     "ws": "^8.18.3",
-    "zod": "^4.1.13"
+    "zod": "^4.1.13",
+    "zustand": "^5.0.12"
   },
   "overrides": {
     "fast-xml-parser": "^4.4.1",

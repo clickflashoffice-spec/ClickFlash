@@ -77,45 +77,69 @@ function getUnpackedPath(relativePath) {
 }
 
 function getDataDir() {
-  // Resolve a writable, predictable data directory.
-  // When double-clicked, process.cwd() can be C:\Windows\System32 — never rely on it.
+  // Resolved as app.getPath('userData') for production portability.
+  // Standard Windows path: C:\Users\<User>\AppData\Roaming\ClickFlashMaster
+  // This ensures writability even in C:\Program Files installs.
   if (app.isPackaged) {
-    return path.join(path.dirname(app.getPath("exe")), "pb_data");
+    return path.join(app.getPath("userData"), "pb_data");
   }
   return path.join(__dirname, "pb_data");
 }
 
+/**
+ * Start the backend process in packaged mode.
+ * Returns a Promise that resolves when backend is forked and ready.
+ */
 function startBackend() {
-  if (!app.isPackaged) {
-    console.log("[Main] Dev mode — start backend separately: npm run dev:backend");
-    return;
-  }
-  // Use unpacked path — fork() with ELECTRON_RUN_AS_NODE can't read asar
-  const serverPath = getUnpackedPath("dist/backend/server.js");
-  if (!fs.existsSync(serverPath)) {
-    console.error("[Main] Backend bundle not found:", serverPath);
-    return;
-  }
-  const dataDir = getDataDir();
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-  const appDir = path.dirname(app.getPath("exe"));
-  console.log("[Main] Forking backend:", serverPath, "DATA_DIR:", dataDir, "cwd:", appDir);
-  backendProcess = fork(serverPath, [], {
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", DATA_DIR: dataDir },
-    execArgv: ["--max-old-space-size=8192"],
-    stdio: ["pipe", "pipe", "pipe", "ipc"],
-    cwd: appDir,
-  });
-  // Log backend output to main process console for debugging
-  backendProcess.stdout?.on("data", (d) => process.stdout.write("[Backend] " + d));
-  backendProcess.stderr?.on("data", (d) => process.stderr.write("[Backend:ERR] " + d));
-  backendProcess.on("error", (err) => console.error("[Main] Backend error:", err.message));
-  backendProcess.on("exit", (code) => {
-    console.warn("[Main] Backend exited (code", code, ")");
-    if (!isQuitting) {
-      console.log("[Main] Respawning backend in 3 s...");
-      setTimeout(startBackend, 3000);
+  return new Promise((resolve, reject) => {
+    if (!app.isPackaged) {
+      console.log("[Main] Dev mode — backend expected on port", BACKEND_PORT);
+      resolve(null);
+      return;
     }
+
+    const serverPath = getUnpackedPath("dist/backend/server.js");
+    if (!fs.existsSync(serverPath)) {
+      console.error("[Main] Backend bundle not found:", serverPath);
+      reject(new Error("Backend bundle not found: " + serverPath));
+      return;
+    }
+
+    const dataDir = getDataDir();
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+
+    const appDir = path.dirname(app.getPath("exe"));
+    console.log("[Main] Forking backend:", serverPath);
+    console.log("[Main] DATA_DIR:", dataDir);
+    console.log("[Main] Working dir:", appDir);
+
+    backendProcess = fork(serverPath, [], {
+      env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", DATA_DIR: dataDir },
+      execArgv: ["--max-old-space-size=8192"],
+      stdio: ["pipe", "pipe", "pipe", "ipc"],
+      cwd: appDir,
+    });
+
+    backendProcess.stdout?.on("data", (d) => process.stdout.write("[Backend] " + d));
+    backendProcess.stderr?.on("data", (d) => process.stderr.write("[Backend:ERR] " + d));
+
+    backendProcess.on("error", (err) => {
+      console.error("[Main] Backend fork error:", err.message);
+      reject(err);
+    });
+
+    backendProcess.on("exit", (code) => {
+      console.warn("[Main] Backend exited (code", code, ")");
+      if (!isQuitting) {
+        console.log("[Main] Respawning backend in 3 s...");
+        setTimeout(() => startBackend().catch(console.error), 3000);
+      }
+    });
+
+    // Do not resolve until the health check confirms binding
+    resolve(null);
   });
 }
 /** Poll /api/health. Resolves true on success, false on timeout. */
@@ -559,7 +583,7 @@ app.on("web-contents-created", (_e, wc) => {
   });
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // ─── Content Security Policy ────────────────────────────────────────────────
   session.defaultSession.setContentSecurityPolicy({
     directives: {
@@ -579,7 +603,6 @@ app.whenReady().then(() => {
   // ─── Custom Protocol Handler ────────────────────────────────────────────────
   protocol.handle("clickflash", (request) => {
     try {
-      // url like clickflash://uploads/album1/photo.jpg
       const url = new URL(request.url);
       const relativePath = decodeURIComponent(url.pathname.startsWith("/") ? url.pathname.slice(1) : url.pathname);
       const dataDir = getDataDir();
@@ -605,7 +628,24 @@ app.whenReady().then(() => {
 
   setupShortcuts();
   setupIpc();
-  startBackend();
+
+  // CRITICAL: Start backend FIRST, then wait for it to be healthy before creating window
+  try {
+    await startBackend();
+    console.log("[Main] Backend process started");
+    
+    // Wait for backend health in production
+    if (app.isPackaged) {
+      const backendReady = await waitForBackend();
+      if (!backendReady) {
+        console.warn("[Main] Backend health check timed out, proceeding anyway...");
+      }
+    }
+  } catch (err) {
+    console.error("[Main] Failed to start backend:", err.message);
+    dialog.showErrorBox("Backend Error", "Failed to start backend: " + err.message);
+  }
+
   createWindow();
   scheduleBackups();
 }).catch((err) => {

@@ -50,7 +50,7 @@ interface UploadSession {
   uploadDir: string;
 }
 
-const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
+const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks for high-volume uploads
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB max
 const UPLOAD_DIR = join(process.cwd(), 'uploads');
 
@@ -205,13 +205,13 @@ export async function PATCH(request: Request) {
       
       const canContinue = writeStream.write(chunkBuffer);
       if (!canContinue) {
-        await new Promise((resolve) => writeStream.once('drain', resolve));
+        await new Promise<void>((resolve) => writeStream.once('drain', resolve));
       }
     }
     writeStream.end();
     
     // Wait for the stream to finish writing
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       writeStream.on('finish', resolve);
       writeStream.on('error', reject);
     });

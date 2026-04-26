@@ -9,6 +9,11 @@ async function getTf() {
     if (!_tf) {
         _tf = await import('@tensorflow/tfjs');
         await _tf.ready();
+        try {
+            await _tf.setBackend('cpu');
+        } catch (e) {
+            logger.warn('Could not set CPU backend, using default');
+        }
         logger.info('TensorFlow.js backend:', _tf.getBackend());
     }
     return _tf;
@@ -77,8 +82,18 @@ class AIModelService {
      * Detect faces in an image
      */
     async detectFaces(imageElement: HTMLImageElement): Promise<Face[]> {
+        if (!imageElement || !imageElement.width || !imageElement.height) {
+            logger.warn('Face detection skipped: image not loaded or has no dimensions');
+            return [];
+        }
+
         try {
             const model = await this.loadBlazeFace();
+            if (!model || typeof model.estimateFaces !== 'function') {
+                logger.error('BlazeFace model not properly loaded');
+                return [];
+            }
+
             const predictions = await model.estimateFaces(imageElement, false);
 
             return (predictions as any[]).map((prediction) => ({
@@ -88,7 +103,14 @@ class AIModelService {
                 landmarks: prediction.landmarks as number[][]
             }));
         } catch (error) {
-            logger.error('Face detection failed', error instanceof Error ? error : undefined);
+            const message = error instanceof Error ? error.message : String(error);
+            if (message.includes('does not support image input')) {
+                logger.warn('Face detection skipped: model does not support this image type');
+            } else if (message.includes('tfjs') || message.includes('tensor') || message.includes('Tensor')) {
+                logger.warn('Face detection skipped: TensorFlow error', { error: message });
+            } else {
+                logger.error('Face detection failed', error instanceof Error ? error : undefined);
+            }
             return [];
         }
     }

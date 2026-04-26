@@ -1,3 +1,5 @@
+import { executeWithRetry } from "../utils/networkUtils";
+
 export class GeminiService {
   private apiKey: string;
 
@@ -40,21 +42,25 @@ Respond EXACTLY in the following JSON structure:
   "insights": ["insight 1", "insight 2", "insight 3"]
 }`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: promptText }] }],
-            generationConfig: {
-              responseMimeType: "application/json",
+      const response = await executeWithRetry(async () => {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-          }),
-        },
-      );
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: promptText }] }],
+              generationConfig: {
+                responseMimeType: "application/json",
+              },
+            }),
+          },
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res;
+      }, { maxRetries: 2 });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -101,16 +107,20 @@ User Message: ${message}
 
 Provide a helpful, professional, and concise response. Avoid jargon.`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: promptText }] }],
-          }),
-        },
-      );
+      const response = await executeWithRetry(async () => {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: promptText }] }],
+            }),
+          },
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res;
+      }, { maxRetries: 2 });
 
       if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
 

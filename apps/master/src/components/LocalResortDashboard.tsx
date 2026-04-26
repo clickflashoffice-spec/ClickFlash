@@ -12,6 +12,8 @@ import {
   Activity,
   Target,
 } from "lucide-react";
+import { StationStatus } from "../types/shared";
+import { FleetHealthWidget } from "./dashboard/widgets/FleetHealthWidget";
 
 /**
  * LocalResortDashboard
@@ -55,6 +57,21 @@ const LocalResortDashboard: React.FC = () => {
   const [monthly, setMonthly] = useState<MonthlyStatus | null>(null);
   const [comparison, setComparison] = useState<Comparison | null>(null);
   const [distribution, setDistribution] = useState<DistributionPoint[]>([]);
+  const [stationStatus, setStationStatus] = useState<StationStatus | null>(null);
+  const [isStatusLoading, setIsStatusLoading] = useState(false);
+
+  const fetchStatus = async () => {
+    setIsStatusLoading(true);
+    try {
+      const res = await fetch("/api/resort-analytics/status");
+      const data = await res.json();
+      setStationStatus(data);
+    } catch (err) {
+      console.error("Failed to fetch station status:", err);
+    } finally {
+      setIsStatusLoading(false);
+    }
+  };
 
   const fetchAll = async () => {
     setLoading(true);
@@ -76,6 +93,9 @@ const LocalResortDashboard: React.FC = () => {
       setComparison(compRes || null);
       setDistribution(Array.isArray(distRes) ? distRes : []);
       setLastRefresh(new Date().toLocaleTimeString());
+      
+      // Also fetch status once
+      fetchStatus();
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Failed to load local analytics";
@@ -88,6 +108,13 @@ const LocalResortDashboard: React.FC = () => {
   useEffect(() => {
     setIsMounted(true);
     fetchAll();
+
+    // Set up polling for hardware/sync status (Law 09/32)
+    const statusInterval = setInterval(() => {
+      fetchStatus();
+    }, 30000);
+
+    return () => clearInterval(statusInterval);
   }, []);
 
   // --- Derived KPIs ---
@@ -251,6 +278,15 @@ const LocalResortDashboard: React.FC = () => {
             <RefreshCw className="w-5 h-5" />
           </button>
         </div>
+      </div>
+
+      {/* Hardware & Sync Fleet Health Widget (Phase 90 Hardening) */}
+      <div className="grid grid-cols-1 gap-6">
+        <FleetHealthWidget 
+          status={stationStatus} 
+          isLoading={isStatusLoading} 
+          onRefresh={fetchStatus} 
+        />
       </div>
 
       {/* Stats row */}

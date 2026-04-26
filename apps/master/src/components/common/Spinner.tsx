@@ -1,47 +1,40 @@
-import React from 'react';
-import { clsx, type ClassValue } from 'clsx';
+import React, { memo } from 'react';
 
-/**
- * Spinner Component Props
- */
 interface SpinnerProps {
-  /** Size variant: 'small', 'medium', or 'large' */
   size?: 'small' | 'medium' | 'large';
-  /** Optional CSS class names */
   className?: string;
+  color?: 'blue' | 'white' | 'primary';
 }
 
-/**
- * Spinner Component
- * 
- * Loading spinner component for displaying loading states throughout the application.
- * 
- * Features:
- * - Centered layout with padding
- * - Animated spinning indicator
- * - Blue color scheme matching app theme (customizable via className)
- * - Responsive and accessible
- * - Size variants (small, medium, large)
- * 
- * Usage:
- * ```tsx
- * {loading && <Spinner />}
- * {loading && <Spinner size="small" />}
- * {loading && <Spinner size="small" className="border-white" />}
- * ```
- */
-const Spinner: React.FC<SpinnerProps> = React.memo(({ size = 'medium', className }) => {
-  const sizeClasses = {
-    small: { container: 'p-2', spinner: 'h-6 w-6 border-b-2' },
-    medium: { container: 'p-3', spinner: 'h-8 w-8 border-b-2' },
-    large: { container: 'p-4', spinner: 'h-12 w-12 border-b-2' }
-  };
+const colorClasses = {
+  blue: 'border-blue-500',
+  white: 'border-white',
+  primary: 'border-slate-200 dark:border-slate-600',
+};
 
-  const classes = sizeClasses[size];
+const sizeClasses = {
+  small: { container: 'p-2', spinner: 'h-4 w-4 border-[2px]' },
+  medium: { container: 'p-3', spinner: 'h-6 w-6 border-[2px]' },
+  large: { container: 'p-4', spinner: 'h-10 w-10 border-[3px]' },
+};
+
+export const Spinner: React.FC<SpinnerProps> = memo(({ 
+  size = 'medium', 
+  className = '',
+  color = 'primary'
+}) => {
+  const sizeStyle = sizeClasses[size];
+  const colorStyle = colorClasses[color];
 
   return (
-    <div className={clsx('flex justify-center items-center', classes.container)} role="status" aria-label="Loading">
-      <div className={clsx('animate-spin rounded-full border-blue-500', classes.spinner, className)}></div>
+    <div className={`flex items-center justify-center ${sizeStyle.container} ${className}`}>
+      <div
+        className={[
+          'animate-spin rounded-full border-t-transparent',
+          sizeStyle.spinner,
+          colorStyle,
+        ].join(' ')}
+      />
     </div>
   );
 });

@@ -222,7 +222,7 @@ impl Default for AppConfig {
         Self {
             default_api_url: "http://localhost:8090".to_string(),
             max_concurrent_uploads: 3,
-            chunk_size: 1024 * 1024, // 1MB
+            chunk_size: 5 * 1024 * 1024, // 5MB
             enable_notifications: true,
             auto_retry: true,
             max_retries: 3,

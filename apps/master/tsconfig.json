@@ -29,7 +29,9 @@
       "@services/*": ["./src/services/*"],
       "@hooks/*": ["./src/hooks/*"],
       "@utils/*": ["./src/utils/*"],
-      "@types/*": ["./src/types/*"]
+      "@types/*": ["./src/types/*"],
+      "@clickflash/ui/*": ["../../packages/ui/src/*"],
+      "@clickflash/ui": ["../../packages/ui/src/index.ts"]
     }
   },
   "include": ["src", "backend", "scripts"]

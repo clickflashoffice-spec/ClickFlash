@@ -160,30 +160,28 @@ export default function AboutPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
                     {[
-                        { name: "Ahmed Ben Ali", role: "Lead Photographer", image: "/images/portfolio/1a5aeeb8-c8ee-4991-abcb-a9a08b5aa7a5.jpg" },
-                        { name: "Sarah Johnson", role: "Wedding Specialist", image: "/images/portfolio/d753e241-b318-4356-91be-b51b899e2394.jpg" },
-                        { name: "Michael Chen", role: "Creative Director", image: "/images/portfolio/eec2e1da-34bf-4629-b63b-bdcef8b7f11b.jpg" }
-                    ].map((member, i) => (
-                        <motion.div
-                            key={i}
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: i * 0.1 }}
-                            className="text-center"
-                        >
-                            <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 mx-auto mb-4 md:mb-6 rounded-full overflow-hidden">
-                                <Image
-                                    src={member.image}
-                                    alt={member.name}
-                                    fill
-                                    className="object-cover"
-                                />
-                            </div>
-                            <h3 className="text-lg md:text-xl font-black text-slate-900 mb-1 md:mb-2">{member.name}</h3>
-                            <p className="text-slate-500 text-sm md:text-base">{member.role}</p>
-                        </motion.div>
-                    ))}
+                        { name: "Ahmed Ben Ali", role: "Lead Photographer" },
+                        { name: "Sarah Johnson", role: "Wedding Specialist" },
+                        { name: "Michael Chen", role: "Creative Director" }
+                    ].map((member, i) => {
+                        const initials = member.name.split(" ").map(w => w[0]).join("").slice(0, 2);
+                        return (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.1 }}
+                                className="text-center"
+                            >
+                                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 mx-auto mb-4 md:mb-6 rounded-full bg-cyan-500 flex items-center justify-center">
+                                    <span className="text-white font-black text-3xl sm:text-4xl md:text-5xl tracking-tight">{initials}</span>
+                                </div>
+                                <h3 className="text-lg md:text-xl font-black text-slate-900 mb-1 md:mb-2">{member.name}</h3>
+                                <p className="text-slate-500 text-sm md:text-base">{member.role}</p>
+                            </motion.div>
+                        );
+                    })}
                 </div>
             </section>
         </main>

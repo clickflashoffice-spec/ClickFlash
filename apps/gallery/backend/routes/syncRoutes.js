@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const GalleryAuditLogger = require('../utils/auditLogger');
 
 /**
  * Handle Cloud Sync requests (Native HTTP)
@@ -14,6 +15,9 @@ const jwt = require('jsonwebtoken');
  */
 const handleSyncRequest = async (req, res, pathName, context) => {
     const { logger, uploadDir, dbManager, photoProcessor } = context;
+    
+    // Initialize audit logger
+    const auditLogger = new GalleryAuditLogger(process.env.DATA_DIR || './data');
 
     // Helper for JSON response
     const sendJson = (data, code = 200) => {
@@ -23,6 +27,9 @@ const handleSyncRequest = async (req, res, pathName, context) => {
 
     // Check if this is a sync route
     if (!pathName.startsWith('/api/cloud/')) return false;
+
+    // Extract correlation ID from headers
+    const correlationId = req.headers['x-correlation-id'] || `cf_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
 
     // Verify Token (Strict implementation)
     const authHeader = req.headers.authorization;
@@ -51,7 +58,12 @@ const handleSyncRequest = async (req, res, pathName, context) => {
         req.on('end', () => {
             try {
                 const orderData = JSON.parse(body);
-                logger.info(`[Sync] Received order ${orderData.orderNumber} from ${orderData.deskId}`);
+                const orderCorrelationId = orderData.correlationId || correlationId;
+                
+                logger.info(`[Sync] Received order ${orderData.orderNumber} from ${orderData.deskId} [${orderCorrelationId}]`);
+
+                // Audit: Log order received
+                auditLogger.logOrderReceived(orderData, orderCorrelationId);
 
                 // Save to DB (Strictly bound to desk_id)
                 const existing = dbManager.get('SELECT id FROM orders WHERE id = ? AND desk_id = ?', [orderData.id, deskId]);
@@ -73,11 +85,24 @@ const handleSyncRequest = async (req, res, pathName, context) => {
                             orderData.id
                         ]
                     );
+                    
+                    // Generate access PIN for customer
+                    const accessPin = Math.floor(100000 + Math.random() * 900000).toString();
+                    
+                    // Audit: Log order activated
+                    auditLogger.logOrderActivated(orderData.id, orderCorrelationId, accessPin);
                 }
 
-                sendJson({ success: true, id: orderData.id, message: "Order received" });
+                sendJson({ 
+                    success: true, 
+                    id: orderData.id, 
+                    accessPin: accessPin || null,
+                    correlationId: orderCorrelationId,
+                    message: "Order received" 
+                });
             } catch (e) {
                 logger.error('[Sync] Failed to process order', e);
+                auditLogger.logSyncError('sync-order', e, correlationId);
                 sendJson({ error: e.message }, 500);
             }
         });

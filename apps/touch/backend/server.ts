@@ -20,6 +20,7 @@ import rateLimiter, {
   setAuditLogger as setRateLimiterAuditLogger,
 } from "./shared/rateLimiter";
 import { initDefaultUser } from "./shared/init-default-user";
+import { initSentry } from "./shared/sentryService";
 
 import createAuthRouter from "./routes/auth";
 import createCollectionsRouter from "./routes/collections";
@@ -114,7 +115,15 @@ console.log("========================================");
 console.log("ClickFlash Photography OS - Touch Backend Server");
 console.log("========================================");
 console.log(`[Startup] Port: ${PORT}`);
+console.log(`[Startup] Data Directory: ${DATA_DIR}`);
 console.log(`[Startup] Environment: ${process.env.NODE_ENV || "development"}`);
+
+// 0. Initialize Sentry
+if (process.env.SENTRY_DSN) {
+  initSentry(process.env.SENTRY_DSN, process.env.NODE_ENV || 'development')
+    .then(() => console.log('[Init] Sentry initialized'))
+    .catch(err => console.error('[Init] Sentry initialization failed:', err));
+}
 
 // --- Services & Global State ---
 let dbManager: DatabaseManager;
@@ -337,17 +346,25 @@ app.use((req, res, next) => {
   next();
 });
 
-// Security headers
+// Security headers — env-aware CSP (unsafe-eval dev-only)
+const isDev = process.env.NODE_ENV === "development" || process.env.NODE_ENV === undefined;
+
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        scriptSrc: isDev
+          ? ["'self'", "'unsafe-inline'", "'unsafe-eval'"]
+          : ["'self'", "'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
+        fontSrc: ["'self'", "data:"],
         imgSrc: ["'self'", "data:", "blob:", "http:", "https:"],
-        connectSrc: ["'self'", "ws:", "wss:", "http://localhost:*", "http://192.168.*", "http://10.*"],
+        connectSrc: isDev
+          ? ["'self'", "ws:", "wss:", "http://localhost:*", "http://127.0.0.1:*", "http://192.168.*", "http://10.*"]
+          : ["'self'", "ws://localhost:*", "http://localhost:*", "http://127.0.0.1:*", "http://192.168.*", "http://10.*"],
         objectSrc: ["'none'"],
+        formAction: ["'self'"],
         frameAncestors: ["'self'"],
       },
     },
@@ -355,7 +372,7 @@ app.use(
   }),
 );
 
-// CORS
+// CORS — LAN-only with dev port exceptions gated by environment
 app.use(
   cors({
     origin: (
@@ -364,20 +381,21 @@ app.use(
     ) => {
       if (!origin) return callback(null, true);
 
-      // Explicitly allow Master Portal preview port
-      if (origin.includes(":5174") || origin.includes(":5173")) {
+      // Dev-only: Allow Vite HMR proxy ports
+      if (isDev && (origin.includes(":5174") || origin.includes(":5173"))) {
         return callback(null, true);
       }
 
       if (ALLOWED_ORIGINS.includes(origin)) {
         callback(null, true);
       } else {
+        // LAN-only policy per Law 06 (Touch Local Fetch)
         const isLocalNetwork =
           /^http:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|127\.0\.0\.1|localhost)/.test(
             origin,
           );
         if (isLocalNetwork) callback(null, true);
-        else callback(null, false); // Strict for unknown external
+        else callback(null, false);
       }
     },
     credentials: true,
@@ -482,13 +500,18 @@ app.use("/api/orders", createOrderExportRouter(context));
 app.use("/api/realtime", createRealtimeRouter(context));
 app.use("/api/faces", createFacesRouter(context));
 
-// Global Express error handler
+// Global Express error handler — sanitized (Task 2.4)
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   logger.error("[Server] Unhandled route error", err);
   if (res.headersSent) {
     return next(err);
   }
-  res.status(500).json({ error: err.message });
+  const isDevelopment = process.env.NODE_ENV === "development";
+  res.status(500).json({
+    error: "Internal Server Error",
+    message: isDevelopment ? err.message : "An unexpected error occurred. Please try again.",
+    ...(isDevelopment && { stack: err.stack }),
+  });
 });
 
 // API 404 Handler (if /api request fell through)
@@ -530,6 +553,55 @@ server.listen(PORT, "0.0.0.0", () => {
   logger.info(
     "[Apex] Status: mDNS=ClickFlash-Client | Tiering=Active | WAL=Active",
   );
+
+  // --- Graceful Shutdown (Task 1.7) ---
+  const gracefulShutdown = async (signal: string) => {
+    logger.info(`[Shutdown] ${signal} received — stopping Touch services...`);
+
+    const shutdownSteps = [
+      { name: "watcherService", fn: () => watcherService?.stop?.() },
+    ];
+
+    const results = await Promise.allSettled(
+      shutdownSteps.map((s) =>
+        Promise.resolve()
+          .then(() => s.fn())
+          .catch((err: unknown) => logger.error(`[Shutdown] ${s.name} failed:`, err as Record<string, any>)),
+      ),
+    );
+
+    const failures = results.filter((r) => r.status === "rejected");
+    if (failures.length > 0) {
+      logger.error(
+        `[Shutdown] ${failures.length}/${shutdownSteps.length} services failed`,
+      );
+    } else {
+      logger.info("[Shutdown] All Touch services stopped gracefully");
+    }
+
+    // Close database connection
+    try {
+      dbManager?.close?.();
+      logger.info("[Shutdown] Database connection closed.");
+    } catch (err: unknown) {
+      logger.error("[Shutdown] Database close failed:", err as Record<string, any>);
+    }
+
+    // Drain HTTP connections
+    server.close(() => {
+      logger.info("[Shutdown] Clean exit.");
+      process.exit(failures.length > 0 ? 1 : 0);
+    });
+
+    // Force exit after 15s if server.close hangs
+    setTimeout(() => {
+      logger.error("[Shutdown] Forced exit after timeout");
+      process.exit(1);
+    }, 15_000).unref();
+  };
+
+  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 });
 
 server.on("error", (e: any) => {

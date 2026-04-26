@@ -513,3 +513,43 @@ export interface PhotographerPerformance {
   averageOrderValue: number;
   processingEfficiency: number; // Avg mins per album processing
 }
+
+// --- FLEET MONITORING ---
+
+export interface StationStatus {
+  success: boolean;
+  health: {
+    cpuLoad: number;
+    cpuTemp: number | null;
+    memoryUsed: number;
+    memoryTotal: number;
+    memoryPercent: number;
+    diskUsed: number;
+    diskTotal: number;
+    diskPercent: number;
+    diskIO: number;
+    networkLatency: number;
+    uptime: number;
+    timestamp: string;
+  } | null;
+  sync: {
+    timestamp: string;
+    lastSync: string | null;
+    isConnected: boolean;
+    queue: {
+      pending: number;
+      failed: number;
+    };
+    circuit: {
+      state: "CLOSED" | "OPEN" | "HALF_OPEN";
+      openedAt: string | null;
+    };
+  } | null;
+  identity: {
+    deskId: string | null;
+    machineId: string;
+    isProvisioned: boolean;
+    provisioningStatus: "VERIFIED" | "PENDING_TRIAGE" | "UNPROVISIONED";
+  } | null;
+  timestamp: string;
+}

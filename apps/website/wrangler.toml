@@ -1,3 +1,13 @@
 name = "clickflash-website"
 compatibility_date = "2025-01-01"
 pages_build_output_dir = "out"
+
+# [env.staging]
+# name = "clickflash-website-staging"
+
+# [env.production]
+# name = "clickflash-website"
+
+[vars]
+NODE_ENV = "production"
+DEPLOY_ENV = "production"

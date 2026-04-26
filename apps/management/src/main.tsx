@@ -29,7 +29,22 @@ if (!window.location.search.includes("mode=")) {
   window.history.replaceState({}, "", url.toString());
 }
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Data is considered fresh for 30 s — avoids background-refetch on every
+      // component mount for a management dashboard where data changes infrequently.
+      staleTime: 30 * 1000,
+      // Keep inactive query data in cache for 10 min.
+      gcTime: 10 * 60 * 1000,
+      // Retry once on transient failure; don't spam a slow backend.
+      retry: 1,
+      // Do not refetch when the window regains focus — the admin can manually
+      // trigger refreshes; background refetches degrade perceived performance.
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

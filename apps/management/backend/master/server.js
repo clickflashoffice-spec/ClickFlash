@@ -44,6 +44,7 @@ const { exec } = require('child_process');
 const { promisify } = require('util');
 const execAsync = promisify(exec);
 const rateLimiter = require('../shared/rateLimiter');
+const { authRateLimiter } = require('../shared/rateLimiter');
 const DatabaseManager = require('../shared/db');
 const { verifyPassword, hashPassword } = require('../shared/auth');
 const { validateRequest, validateLogin } = require('../shared/validation');
@@ -1242,6 +1243,10 @@ const server = http.createServer((req, res) => {
          * @returns {Object} 401 - Invalid credentials
          */
         if (pathName === '/api/auth/login' && req.method === 'POST') {
+            // Apply strict auth rate limiter (10 req / 5 min per IP)
+            const authAllowed = authRateLimiter(req, res, () => {});
+            if (!authAllowed) return;
+
             let body = '';
             req.on('data', c => body += c);
             req.on('end', async () => {

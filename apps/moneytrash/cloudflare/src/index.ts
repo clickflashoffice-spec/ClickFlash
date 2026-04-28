@@ -45,7 +45,7 @@ export default {
     const requestOrigin = request.headers.get("Origin") || "";
     const corsOrigin = allowedOrigins.split(",").includes(requestOrigin)
       ? requestOrigin
-      : allowedOrigins.split(",")[0];
+      : ""; // fails closed — browser rejects response when origin is not whitelisted
 
     const corsHeaders = {
       "Access-Control-Allow-Origin": corsOrigin,

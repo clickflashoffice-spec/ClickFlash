@@ -31,6 +31,21 @@ jobs:
       - name: Lint (master)
         run: npm run lint --workspace=apps/master
 
+      - name: Lint (gallery)
+        run: npm run lint --workspace=apps/gallery
+
+      - name: Lint (management)
+        run: npm run lint --workspace=apps/management
+
+      - name: Lint (touch)
+        run: npm run lint --workspace=apps/touch
+
+      - name: Lint (website)
+        run: npm run lint --workspace=apps/website
+
+      - name: Lint (moneytrash)
+        run: npm run lint --workspace=apps/moneytrash
+
       - name: Type check (master)
         run: npx tsc --noEmit --workspace=apps/master
 

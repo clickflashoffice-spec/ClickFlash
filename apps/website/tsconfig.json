@@ -24,8 +24,7 @@
       }
     ],
     "types": [
-      "@cloudflare/workers-types",
-      "@react-three/fiber"
+      "@cloudflare/workers-types"
     ],
     "paths": {
       "@/*": [

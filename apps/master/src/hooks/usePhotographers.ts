@@ -14,8 +14,7 @@ export const photographerKeys = {
  */
 export function usePhotographers() {
     return useQuery({
-        queryKey: ['photographers'],
+        queryKey: photographerKeys.lists(),
         queryFn: () => apiService.getUsers(),
-        staleTime: 0, // Force fresh fetch for debugging
     });
 }

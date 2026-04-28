@@ -73,7 +73,7 @@ export default defineConfig(({ mode }) => ({
         entryFileNames: "assets/[name].[hash].js",
       },
     },
-    chunkSizeWarningLimit: 800,
+    chunkSizeWarningLimit: 600,
   },
   esbuild: {
     drop: mode === "production" ? ["console", "debugger"] : [],

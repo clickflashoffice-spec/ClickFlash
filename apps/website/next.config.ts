@@ -103,14 +103,14 @@ const nextConfig: NextConfig = {
     },
   },
 
-  // TypeScript configuration
+  // TypeScript configuration — errors are enforced at build time
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
 
-  // ESLint configuration
+  // ESLint configuration — lint failures block the build
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
 };
 

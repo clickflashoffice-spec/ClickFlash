@@ -40,14 +40,6 @@ router.post('/login', authRateLimiter, async (req, res) => {
             }
         }
 
-        // Logic for default user password reset fallback
-        if (!isValidPassword && email === 'alaeddine@example.com' && password === 'DEFAULT_PASSWORD_PLACEHOLDER') {
-            const hashedPassword = await hashPassword(password);
-            dbManager.run('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email]);
-            user = dbManager.get('SELECT * FROM users WHERE email = ?', [email]);
-            isValidPassword = await verifyPassword(password, user.password);
-        }
-
         if (!isValidPassword) {
             if (auditLogger) auditLogger.logLoginAttempt(email, false, clientIp, 'INVALID_PASSWORD');
             return sendAuthError(res, 'Invalid email or password.');

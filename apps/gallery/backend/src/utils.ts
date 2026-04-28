@@ -59,7 +59,11 @@ export const serveStatic = (res: ServerResponse, baseDir: string, urlPath: strin
 
         const headers: Record<string, string> = { 'Content-Type': mime };
         if (ext === '.html') {
-            headers['Content-Security-Policy'] = "script-src 'unsafe-eval' 'unsafe-inline' 'self' http://localhost:* http://127.0.0.1:* https://cdn.tailwindcss.com data: blob:; style-src 'unsafe-inline' 'self' https://cdn.tailwindcss.com; object-src 'none'; connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://starmaster.cloud; img-src 'self' data: blob: https: http:;";
+            // CSP for the compiled Vite SPA served by the dev backend.
+            // Tailwind is compiled at build time — no CDN script, no unsafe-eval, no unsafe-inline in script-src.
+            // localhost:* / 127.0.0.1:* in script-src is required for Vite HMR in development.
+            // unsafe-inline is permitted in style-src only (Tailwind CSS-in-JS at runtime) per CLAUDE.md.
+            headers['Content-Security-Policy'] = "script-src 'self' http://localhost:* http://127.0.0.1:*; style-src 'unsafe-inline' 'self'; object-src 'none'; connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://starmaster.cloud; img-src 'self' data: blob: https: http:;";
         }
         res.writeHead(200, headers);
         fs.createReadStream(targetPath).pipe(res);

@@ -15,6 +15,8 @@ export interface Env {
   STRIPE_SECRET_KEY?: string; // Stripe secret key
   STRIPE_WEBHOOK_SECRET?: string; // Stripe webhook signing secret
   SENTRY_DSN?: string; // Sentry DSN — optional; monitoring disabled when absent
+  GEO_RESTRICTED?: string; // "true" to enable country allowlist enforcement
+  ALLOWED_COUNTRIES?: string; // Comma-separated ISO-3166-1 alpha-2 codes, e.g. "MA,TN,FR,US"
 }
 
 const galleryHandler = {
@@ -43,6 +45,27 @@ const galleryHandler = {
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    // Geo-restriction enforcement — reads CF's auto-populated country field.
+    // Only active when GEO_RESTRICTED="true" and ALLOWED_COUNTRIES is set in wrangler.toml.
+    // Health-check bypass keeps uptime monitors working from any region.
+    if (
+      env.GEO_RESTRICTED === "true" &&
+      env.ALLOWED_COUNTRIES &&
+      pathName !== "/api/health"
+    ) {
+      const country = (request as any).cf?.country as string | undefined;
+      const allowedCountries = env.ALLOWED_COUNTRIES.split(",").map((c) => c.trim());
+      if (country && !allowedCountries.includes(country)) {
+        return new Response(
+          JSON.stringify({ error: "Service not available in your region." }),
+          {
+            status: 403,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          },
+        );
+      }
     }
 
     // Initialize Services with Worker Env

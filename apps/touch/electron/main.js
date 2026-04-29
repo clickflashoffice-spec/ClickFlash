@@ -47,7 +47,7 @@ const ADMIN_SHORTCUT = "CommandOrControl+Alt+Shift+X";
 
 const pinAttempts = { count: 0, lockedUntil: 0 };
 const PIN_MAX_ATTEMPTS = 5;
-const PIN_LOCKOUT_MS = 15 * 60 * 1000;
+const PIN_LOCKOUT_MS = 60 * 60 * 1000; // 60-min lockout → max 120 guesses/day for a 4-digit PIN
 
 let mainWindow;
 
@@ -229,7 +229,7 @@ function setupIpc() {
             if (pinAttempts.count >= PIN_MAX_ATTEMPTS) {
                 pinAttempts.lockedUntil = now + PIN_LOCKOUT_MS;
                 pinAttempts.count = 0;
-                return { success: false, error: "Too many attempts. Locked for 15 minutes" };
+                return { success: false, error: "Too many attempts. Locked for 60 minutes" };
             }
             return { success: false, error: "Invalid PIN" };
         }

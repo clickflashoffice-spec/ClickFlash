@@ -4,8 +4,21 @@ import App from './App';
 import { ThemeProvider } from './components/ThemeContext';
 import { CurrencyProvider } from './components/CurrencyContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as Sentry from '@sentry/react';
 import './index.css';
+
+// Touch kiosk QueryClient — moderate cache; kiosk screens don't background-switch tabs.
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30 * 1000,       // 30 s fresh window
+      gcTime: 10 * 60 * 1000,     // 10 min inactive cache
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Suppress harmless browser extension warnings (e.g., wallet extensions competing for window.ethereum)
 const originalWarn = console.warn;
@@ -43,22 +56,23 @@ if (import.meta.env.VITE_SENTRY_DSN) {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <ThemeProvider>
-        <CurrencyProvider>
-          <App
-            isOnline={navigator.onLine}
-            showToast={(msg) => console.debug('Toast:', msg)}
-            onExit={async () => {
-              if (window.electron?.exitKiosk) {
-                await window.electron.exitKiosk();
-              } else {
-                console.warn('Exit Kiosk not available');
-              }
-            }}
-
-          />
-        </CurrencyProvider>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <CurrencyProvider>
+            <App
+              isOnline={navigator.onLine}
+              showToast={(msg) => console.debug('Toast:', msg)}
+              onExit={async () => {
+                if (window.electron?.exitKiosk) {
+                  await window.electron.exitKiosk();
+                } else {
+                  console.warn('Exit Kiosk not available');
+                }
+              }}
+            />
+          </CurrencyProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   </React.StrictMode>
 );

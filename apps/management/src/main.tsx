@@ -6,7 +6,23 @@ import { CurrencyProvider } from "./components/CurrencyContext";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import * as Sentry from "@sentry/react";
 import "./index.css";
+
+if (import.meta.env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration(),
+    ],
+    tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1.0,
+    environment: import.meta.env.MODE,
+    release: `management@${import.meta.env.VITE_APP_VERSION ?? "unknown"}`,
+  });
+}
 
 // Suppress harmless browser extension warnings (e.g., wallet extensions competing for window.ethereum)
 const originalWarn = console.warn;

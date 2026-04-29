@@ -11,11 +11,11 @@ import { initSentry } from "./services/sentryService";
 import { safeStorage } from "./utils/safeStorage";
 import "./index.css";
 
-// Initialize Sentry error tracking
+// Initialize Sentry error tracking — release version injected by Vite from package.json
 initSentry(
   import.meta.env.VITE_SENTRY_DSN,
   import.meta.env.MODE,
-  "master-portal@4.1.0",
+  `master-portal@${import.meta.env.VITE_APP_VERSION ?? "unknown"}`,
 );
 
 // Suppress harmless browser extension warnings (e.g., wallet extensions competing for window.ethereum)

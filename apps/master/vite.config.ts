@@ -83,4 +83,11 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    // Inject the master app's package.json version at build time so the
+    // Sentry release string in main.tsx + sentryService.ts resolves correctly.
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(
+      process.env.npm_package_version || "unknown",
+    ),
+  },
 }));

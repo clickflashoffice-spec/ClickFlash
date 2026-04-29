@@ -54,7 +54,7 @@ export function initSentry(dsn?: string, environment?: string, release?: string)
         Sentry.init({
             dsn,
             environment: environment || getMode(),
-            release: release || 'master-portal@4.1.0',
+            release: release || `master-portal@${import.meta.env.VITE_APP_VERSION ?? 'unknown'}`,
 
             // Performance monitoring
             tracesSampleRate: isProd() ? 0.1 : 1.0, // 10% in prod, 100% in dev

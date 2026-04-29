@@ -58,9 +58,10 @@ export default defineConfig(({ mode }) => ({
     },
   },
   define: {
-    // Ensure environment variables are properly replaced
+    // Inject the gallery app's package.json version at build time so the
+    // Sentry release string in main.tsx resolves correctly.
     "import.meta.env.VITE_APP_VERSION": JSON.stringify(
-      process.env.npm_package_version || "4.1.0",
+      process.env.npm_package_version || "unknown",
     ),
   },
 }));

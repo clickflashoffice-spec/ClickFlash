@@ -1,4 +1,4 @@
-import { Destination } from "./types";
+import { Destination, DailyObjective, LoginHistory } from "./types";
 
 export type ManagementContext = "global" | string; // 'global' or a specific hotel ID
 
@@ -53,8 +53,8 @@ export const MOCK_PRODUCTS = [
   { id: "3", name: "Print 4x6", price: 10 },
 ];
 
-export const MOCK_LOGIN_HISTORY = [];
-export const MOCK_OBJECTIVES = [];
+export const MOCK_LOGIN_HISTORY: LoginHistory[] = [];
+export const MOCK_OBJECTIVES: DailyObjective[] = [];
 
 // ============================================================================
 // MANAGEMENT VIEWS — 12 primary views (4 tabs)

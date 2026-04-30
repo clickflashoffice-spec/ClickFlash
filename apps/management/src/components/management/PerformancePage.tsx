@@ -27,7 +27,6 @@ type ViewMode = "global" | "photographers";
 
 // ─── Stat Card ───────────────────────────────────────────────────────────────
 import StatCard from "../common/StatCard.tsx";
-const StatCardPlaceholderNotNeeded = null;
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {

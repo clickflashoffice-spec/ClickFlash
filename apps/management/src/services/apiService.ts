@@ -69,7 +69,7 @@ export const apiService = {
   // --- Users / Photographers ---
   async getUsers(): Promise<Photographer[]> {
     const records = await pb.collection("users").getFullList();
-    return records.map((r) => ({
+    return records.map((r: PocketRecord) => ({
       id: r.id,
       name: r.name,
       email: r.email,

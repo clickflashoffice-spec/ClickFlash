@@ -4,12 +4,13 @@
  */
 
 import { pb } from "../pb";
+import type { PocketRecord } from "../pbTypes";
 import { Photographer } from "../../types";
 
 export const usersService = {
   async getUsers(): Promise<Photographer[]> {
     const records = await pb.collection("users").getFullList();
-    return records.map((r) => ({
+    return records.map((r: PocketRecord) => ({
       id: r.id,
       name: r.name,
       email: r.email,

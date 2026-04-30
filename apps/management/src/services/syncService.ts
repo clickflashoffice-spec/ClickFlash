@@ -105,7 +105,7 @@ class SyncService {
 
         try {
             // Check if Master is reachable
-            const healthRes = await fetch(`${this.masterUrl}/api/health`).catch(() => null);
+            const healthRes = await fetch(`${this.masterUrl}/api/health`).catch((): Response | null => null);
             if (!healthRes || !healthRes.ok) {
                 logger.debug("[SyncService] Master unavailable", { masterUrl: this.masterUrl });
                 return;
@@ -191,7 +191,7 @@ class SyncService {
         for (const rAlbum of masterAlbums) {
             try {
                 // Check if exists locally
-                const localExists = await pb.collection('albums').getOne(rAlbum.id).catch(() => null);
+                const localExists = await pb.collection('albums').getOne(rAlbum.id).catch((): null => null);
 
                 if (!localExists) {
                     logger.info(`[SyncService] Pulling new album`, { albumId: rAlbum.id, albumTitle: rAlbum.title });
@@ -211,7 +211,7 @@ class SyncService {
                     for (const rPhoto of photos) {
                         try {
                             // Check if photo already exists locally to avoid re-downloading
-                            const localPhotoExists = await pb.collection('photos').getOne(rPhoto.id).catch(() => null);
+                            const localPhotoExists = await pb.collection('photos').getOne(rPhoto.id).catch((): null => null);
                             if (localPhotoExists) {
                                 logger.debug(`[SyncService] Photo already exists locally, skipping`, { photoId: rPhoto.id });
                                 continue;

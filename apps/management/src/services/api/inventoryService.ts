@@ -4,6 +4,7 @@
  */
 
 import { pb } from "../pb";
+import type { PocketRecord } from "../pbTypes";
 import { Equipment, Loan, Booking, Expense, ExpenseCategory, Adjustment, SessionType } from "../../types";
 
 export const inventoryService = {
@@ -15,7 +16,7 @@ export const inventoryService = {
 
   async getEquipmentCategories(): Promise<string[]> {
     const records = await pb.collection("equipment_category").getFullList();
-    return records.map((r) => r.name);
+    return records.map((r: PocketRecord) => r.name as string);
   },
 
   async createEquipmentCategory(name: string): Promise<void> {

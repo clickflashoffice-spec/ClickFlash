@@ -61,7 +61,7 @@ const OperationalCommandCenter: React.FC<OperationalCommandCenterProps> = ({
         const today = new Date().toISOString().split("T")[0];
 
         const [stationsRes, analyticsRes] = await Promise.all([
-          fleetService.getStations().catch(() => []),
+          fleetService.getStations().catch((): MasterStation[] => []),
           cloudApiService.get(`/api/analytics/dashboard?endDate=${today}`),
         ]);
 

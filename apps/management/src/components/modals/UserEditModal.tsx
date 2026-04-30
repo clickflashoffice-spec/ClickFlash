@@ -29,8 +29,10 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
   ];
   const defaultRole = rolesToShow[0];
 
-  const getInitialState = useCallback(() => {
-    if (userToEdit) return JSON.parse(JSON.stringify(userToEdit));
+  type UserDraft = Photographer | Omit<Photographer, "id">;
+
+  const getInitialState = useCallback((): UserDraft => {
+    if (userToEdit) return JSON.parse(JSON.stringify(userToEdit)) as UserDraft;
     return {
       name: "",
       specialty: "",
@@ -41,10 +43,10 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
       dailyPhotoTarget: 0,
       payrollType: "Commission" as const,
       commissionRate: 0.15,
-    };
+    } as UserDraft;
   }, [userToEdit, defaultRole]);
 
-  const [user, setUser] = useState(getInitialState());
+  const [user, setUser] = useState<UserDraft>(getInitialState());
   const [password, setPassword] = useState("");
   const [changePassword, setChangePassword] = useState(false);
   const { currency } = useCurrency();
@@ -155,7 +157,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
           updates.password = password;
         }
 
-        await apiService.updateUser(user.id, updates);
+        await apiService.updateUser((user as Photographer).id, updates);
       }
       onDataChange();
       onClose();

@@ -22,11 +22,16 @@ import Spinner from "../common/Spinner.tsx";
 
 // ─── Status Badge ────────────────────────────────────────────────────────────
 const StatusBadge: React.FC<{ status: MasterStation["status"] }> = ({ status }) => {
-  const config = {
-    online:  { dot: "bg-emerald-400", text: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/20",  label: "Online"  },
-    offline: { dot: "bg-rose-400",    text: "text-rose-400",    bg: "bg-rose-400/10 border-rose-400/20",        label: "Offline" },
-    warning: { dot: "bg-amber-400",   text: "text-amber-400",   bg: "bg-amber-400/10 border-amber-400/20",      label: "Warning" },
-    syncing: { dot: "bg-blue-400",    text: "text-blue-400",    bg: "bg-blue-400/10 border-blue-400/20",        label: "Syncing" },
+  const config: Record<
+    MasterStation["status"],
+    { dot: string; text: string; bg: string; label: string }
+  > = {
+    online:       { dot: "bg-emerald-400", text: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/20", label: "Online" },
+    offline:      { dot: "bg-rose-400",    text: "text-rose-400",    bg: "bg-rose-400/10 border-rose-400/20",       label: "Offline" },
+    warning:      { dot: "bg-amber-400",   text: "text-amber-400",   bg: "bg-amber-400/10 border-amber-400/20",     label: "Warning" },
+    syncing:      { dot: "bg-blue-400",    text: "text-blue-400",    bg: "bg-blue-400/10 border-blue-400/20",       label: "Syncing" },
+    degraded:     { dot: "bg-amber-400",   text: "text-amber-400",   bg: "bg-amber-400/10 border-amber-400/20",     label: "Degraded" },
+    disconnected: { dot: "bg-rose-400",    text: "text-rose-400",    bg: "bg-rose-400/10 border-rose-400/20",       label: "Disconnected" },
   };
   const { dot, text, bg, label } = config[status];
   return (

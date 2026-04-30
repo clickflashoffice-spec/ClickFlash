@@ -77,7 +77,7 @@ export const createMockAlbum = (overrides = {}) => ({
     photographerId: 'photo-1',
     coverPhotoUrl: '/test.jpg',
     status: 'Draft',
-    photos: [],
+    photos: [] as unknown[],
     ...overrides,
 });
 
@@ -97,7 +97,7 @@ export const createMockOrder = (overrides = {}) => ({
     email: 'test@example.com',
     total: 100,
     status: 'Pending',
-    items: [],
+    items: [] as unknown[],
     ...overrides,
 });
 

@@ -7,6 +7,7 @@
 import { apiService as localApiService } from "./apiService.ts";
 import { Order } from "../types.ts";
 import { pb } from "./pb.ts";
+import type { PocketRecord } from "./pbTypes.ts";
 
 export const cloudApiService = {
   /**
@@ -39,7 +40,9 @@ export const cloudApiService = {
           });
           record =
             orders.items.find(
-              (o) => o.email?.toLowerCase() === normalizedEmail,
+              (o: PocketRecord) =>
+                (o.email as string | undefined)?.toLowerCase() ===
+                normalizedEmail,
             ) || null;
         } catch (fallbackError) {
           throw exactMatchError; // Throw original error

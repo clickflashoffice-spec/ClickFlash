@@ -33,8 +33,6 @@ interface OrdersProps {
 
 import StatCard from "./common/StatCard.tsx";
 
-const StatCardPlaceholderNotNeeded = null;
-
 /**
  * Orders Component
  *

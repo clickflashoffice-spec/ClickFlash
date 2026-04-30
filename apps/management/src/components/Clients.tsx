@@ -39,7 +39,6 @@ interface ClientsProps {
  * @param {string} [props.colorClass] - Optional color class for the icon background
  */
 import StatCard from "./common/StatCard.tsx";
-const StatCardPlaceholderNotNeeded = null;
 
 type SortOption = "name" | "totalSpent" | "lastVisit" | "orderCount";
 

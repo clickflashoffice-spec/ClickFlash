@@ -48,13 +48,12 @@ export async function performBackgroundSync(apiUrl: string, albumId: string, alb
                 const { createReadStream } = await import('fs');
                 const { stat } = await import('fs/promises');
                 
-                // Use form-data package for real streaming support if available, 
-                // or native fetch with a stream if the target supports it.
-                // Since we are in a Node environment, we use the 'form-data' pattern.
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore – form-data types not installed; runtime-only import
-                const FormDataNode = await import('form-data');
-                const form = new (FormDataNode.default || FormDataNode)();
+                // form-data is a runtime-only Node dep used for real streaming
+                // upload support. Types are provided by the local declaration
+                // at ./form-data.d.ts (the package itself is a transitive dep,
+                // not declared in moneytrash's package.json).
+                const { default: FormDataNode } = await import('form-data');
+                const form = new FormDataNode();
                 
                 if (file.path) {
                     const stats = await stat(file.path);

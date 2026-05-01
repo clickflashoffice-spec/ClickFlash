@@ -20,8 +20,8 @@ Object.defineProperty = function (
       obj === window &&
       (prop === "localStorage" || prop === "sessionStorage")
     ) {
-      (window as any).__TEST_LOCAL_STORAGE =
-        descriptor && (descriptor as any).value;
+      window.__TEST_LOCAL_STORAGE =
+        descriptor && (descriptor as PropertyDescriptor).value;
     }
   } catch (e) {
     // ignore
@@ -192,9 +192,9 @@ global.BroadcastChannel = class BroadcastChannel {
   }
 };
 
-// Mock WebSocket
-// @ts-ignore — mock doesn't implement full WebSocket interface
-global.WebSocket = class WebSocket {
+// Mock WebSocket — minimal jsdom shim; only the constants and ctor are exercised.
+// Cast to typeof WebSocket so global typing accepts the partial implementation.
+global.WebSocket = (class WebSocket {
   static CONNECTING = 0;
   static OPEN = 1;
   static CLOSING = 2;
@@ -230,7 +230,7 @@ global.WebSocket = class WebSocket {
   dispatchEvent(): boolean {
     return true;
   }
-};
+}) as unknown as typeof WebSocket;
 
 // Mock performance.now for consistent testing
 global.performance = {
@@ -321,8 +321,10 @@ class MockImage {
     setTimeout(() => {
       if (this.onerror) {
         try {
-          // @ts-ignore — MockImage.onerror type mismatch in tests
-          this.onerror(new Event("error"));
+          // The DOM HTMLImageElement onerror handler is typed as
+          // OnErrorEventHandlerNonNull (string | Event); cast our Event so
+          // the call site type-checks against either signature.
+          (this.onerror as (e: Event) => unknown)(new Event("error"));
         } catch (e) {
           // swallow
         }

@@ -2,6 +2,29 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 
+// ─── Browser API extensions used in this file ────────────────────────────────
+
+/** PerformanceObserver "layout-shift" entries — not yet in the standard lib.dom typings. */
+interface LayoutShiftEntry extends PerformanceEntry {
+  readonly value: number;
+  readonly hadRecentInput: boolean;
+}
+
+/** Element Timing API marker — set on elements we want LCP to track. */
+interface ElementTimingTarget extends Element {
+  elementTiming: string;
+}
+
+/** Google Analytics 4 gtag.js global. Present only after GA4 snippet has loaded. */
+type GtagFn = (
+  command: "event",
+  eventName: string,
+  params?: Record<string, unknown>,
+) => void;
+interface GtagWindow {
+  gtag?: GtagFn;
+}
+
 // Core Web Vitals thresholds based on Google's recommendations
 const WEB_VITALS_THRESHOLDS = {
   LCP: { good: 2500, poor: 4000 }, // Largest Contentful Paint (ms)
@@ -101,8 +124,9 @@ export function usePerformance(options: {
     if (!reportToAnalytics) return;
 
     // Google Analytics 4
-    if (typeof window !== "undefined" && (window as any).gtag) {
-      (window as any).gtag("event", `web_vitals_${metric.name.toLowerCase()}`, {
+    const gtagWindow = window as Window & GtagWindow;
+    if (typeof window !== "undefined" && gtagWindow.gtag) {
+      gtagWindow.gtag("event", `web_vitals_${metric.name.toLowerCase()}`, {
         event_category: "Web Vitals",
         event_label: metric.id,
         value: Math.round(metric.value),
@@ -195,9 +219,9 @@ export function usePerformance(options: {
     const observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         // Only count layout shifts without recent user input
-        if (!(entry as any).hadRecentInput) {
-          const value = (entry as any).value;
-          clsValue += value;
+        const layoutShift = entry as LayoutShiftEntry;
+        if (!layoutShift.hadRecentInput) {
+          clsValue += layoutShift.value;
           sessionEntries.push(entry);
         }
       }
@@ -398,8 +422,8 @@ export function usePerformance(options: {
     
     observedElements.current.add(element);
     
-    // Mark element for LCP tracking
-    (element as any).elementTiming = "lcp-target";
+    // Mark element for LCP tracking via the Element Timing API
+    (element as ElementTimingTarget).elementTiming = "lcp-target";
   }, []);
 
   /**

@@ -30,13 +30,27 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { s3StorageService } from '../s3StorageService';
 
+/**
+ * Shape of the private state on S3StorageService that this test suite
+ * pokes at to set up scenarios. Mirrors the `private` fields on the
+ * class — kept here so the test file owns the cast explicitly rather
+ * than scattering `as any` across every call site.
+ */
+type S3StorageServicePrivate = {
+  s3: { send: (...args: unknown[]) => unknown } | null;
+  isConfigured: boolean;
+  bucket: string;
+};
+
+const internals = s3StorageService as unknown as S3StorageServicePrivate;
+
 describe('S3StorageService - R2 Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset service state
-    (s3StorageService as any).s3 = null;
-    (s3StorageService as any).isConfigured = false;
-    (s3StorageService as any).bucket = '';
+    internals.s3 = null;
+    internals.isConfigured = false;
+    internals.bucket = '';
   });
 
   describe('Configuration', () => {
@@ -100,7 +114,7 @@ describe('S3StorageService - R2 Integration', () => {
 
     it('should upload to TN001 site folder', async () => {
       const mockSend = vi.fn().mockResolvedValue({});
-      (s3StorageService as any).s3 = { send: mockSend };
+      internals.s3 = { send: mockSend };
 
       const file = new Blob(['test'], { type: 'image/jpeg' });
       const metadata = {
@@ -123,7 +137,7 @@ describe('S3StorageService - R2 Integration', () => {
 
     it('should upload to TN002 site folder', async () => {
       const mockSend = vi.fn().mockResolvedValue({});
-      (s3StorageService as any).s3 = { send: mockSend };
+      internals.s3 = { send: mockSend };
 
       const file = Buffer.from('test-image-data');
       await s3StorageService.uploadFile('TN002/orders/ORD123/photo.jpg', file);
@@ -137,7 +151,7 @@ describe('S3StorageService - R2 Integration', () => {
 
     it('should upload to TN003 site folder', async () => {
       const mockSend = vi.fn().mockResolvedValue({});
-      (s3StorageService as any).s3 = { send: mockSend };
+      internals.s3 = { send: mockSend };
 
       const file = Buffer.from('test-image-data');
       await s3StorageService.uploadFile('TN003/raw/IMG_001.jpg', file);
@@ -157,7 +171,7 @@ describe('S3StorageService - R2 Integration', () => {
           { Key: 'TN001/orders/ord1.jpg' },
         ],
       });
-      (s3StorageService as any).s3 = { send: mockSend };
+      internals.s3 = { send: mockSend };
 
       const files = await s3StorageService.listFiles('TN001/');
 
@@ -183,7 +197,7 @@ describe('S3StorageService - R2 Integration', () => {
 
     it('should upload file successfully', async () => {
       const mockSend = vi.fn().mockResolvedValue({});
-      (s3StorageService as any).s3 = { send: mockSend };
+      internals.s3 = { send: mockSend };
 
       const file = Buffer.from('test-image-data');
       const result = await s3StorageService.uploadFile('test/photo.jpg', file);
@@ -195,7 +209,7 @@ describe('S3StorageService - R2 Integration', () => {
     });
 
     it('should return error when not configured', async () => {
-      (s3StorageService as any).isConfigured = false;
+      internals.isConfigured = false;
 
       const file = Buffer.from('test');
       const result = await s3StorageService.uploadFile('test.jpg', file);
@@ -206,7 +220,7 @@ describe('S3StorageService - R2 Integration', () => {
 
     it('should handle upload errors', async () => {
       const mockSend = vi.fn().mockRejectedValue(new Error('Network error'));
-      (s3StorageService as any).s3 = { send: mockSend };
+      internals.s3 = { send: mockSend };
 
       const file = Buffer.from('test');
       const result = await s3StorageService.uploadFile('test.jpg', file);
@@ -217,7 +231,7 @@ describe('S3StorageService - R2 Integration', () => {
 
     it('should upload with progress tracking', async () => {
       const mockSend = vi.fn().mockResolvedValue({});
-      (s3StorageService as any).s3 = { send: mockSend };
+      internals.s3 = { send: mockSend };
 
       const progressCallbacks: number[] = [];
       const onProgress = (progress: { loaded: number; total: number; percentage: number }) => {
@@ -255,7 +269,7 @@ describe('S3StorageService - R2 Integration', () => {
       ['clip.mov', 'video/quicktime'],
     ])('should detect content type for %s', async (filename: string, expectedType: string) => {
       const mockSend = vi.fn().mockResolvedValue({});
-      (s3StorageService as any).s3 = { send: mockSend };
+      internals.s3 = { send: mockSend };
 
       const file = Buffer.from('test');
       await s3StorageService.uploadFile(filename, file);
@@ -280,7 +294,7 @@ describe('S3StorageService - R2 Integration', () => {
 
     it('should check if file exists', async () => {
       const mockSend = vi.fn().mockResolvedValue({ ContentLength: 1024 });
-      (s3StorageService as any).s3 = { send: mockSend };
+      internals.s3 = { send: mockSend };
 
       const exists = await s3StorageService.fileExists('test.jpg');
 
@@ -289,7 +303,7 @@ describe('S3StorageService - R2 Integration', () => {
 
     it('should return false when file does not exist', async () => {
       const mockSend = vi.fn().mockRejectedValue(new Error('Not found'));
-      (s3StorageService as any).s3 = { send: mockSend };
+      internals.s3 = { send: mockSend };
 
       const exists = await s3StorageService.fileExists('missing.jpg');
 
@@ -298,7 +312,7 @@ describe('S3StorageService - R2 Integration', () => {
 
     it('should delete file successfully', async () => {
       const mockSend = vi.fn().mockResolvedValue({});
-      (s3StorageService as any).s3 = { send: mockSend };
+      internals.s3 = { send: mockSend };
 
       const deleted = await s3StorageService.deleteFile('test.jpg');
 
@@ -307,7 +321,7 @@ describe('S3StorageService - R2 Integration', () => {
 
     it('should generate signed URL', async () => {
       const mockSend = vi.fn();
-      (s3StorageService as any).s3 = { send: mockSend };
+      internals.s3 = { send: mockSend };
 
       const url = await s3StorageService.getSignedUrl('test.jpg', 3600);
 
@@ -335,7 +349,7 @@ describe('S3StorageService - R2 Integration', () => {
         ],
         NextContinuationToken: undefined,
       });
-      (s3StorageService as any).s3 = { send: mockSend };
+      internals.s3 = { send: mockSend };
 
       const stats = await s3StorageService.getStorageStats('TN001/');
 
@@ -353,7 +367,7 @@ describe('S3StorageService - R2 Integration', () => {
           Contents: [{ Key: 'file2.jpg', Size: 2048 }],
           NextContinuationToken: undefined,
         });
-      (s3StorageService as any).s3 = { send: mockSend };
+      internals.s3 = { send: mockSend };
 
       const stats = await s3StorageService.getStorageStats();
 

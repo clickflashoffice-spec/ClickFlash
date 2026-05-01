@@ -153,24 +153,36 @@ export async function fetchWebsiteSettings(): Promise<WebsiteSettings> {
       return {};
     }
 
-    const data = (await response.json()) as any;
-    const records = data.items || [];
+    interface SettingRecord {
+      id: string;
+      value: unknown;
+    }
+    interface SettingsListResponse {
+      items?: SettingRecord[];
+    }
+    const data = (await response.json()) as SettingsListResponse;
+    const records: SettingRecord[] = data.items || [];
 
     const settings: WebsiteSettings = {};
 
-    records.forEach((record: any) => {
+    records.forEach((record: SettingRecord) => {
       // record.id is the KEY (e.g. 'website_hero_title')
-      // record.value is the VALUE
+      // record.value is the VALUE — typed `unknown` because the PocketBase
+      // settings collection stores heterogeneous JSON; per-field assertions
+      // happen below.
       const internalKey = KEY_MAPPING[record.id];
-      if (internalKey) {
-        if (internalKey === "aboutPoints" && typeof record.value === "string") {
-          settings[internalKey] = record.value
-            .split(",")
-            .map((s: string) => s.trim())
-            .filter(Boolean);
-        } else {
-          settings[internalKey] = record.value;
-        }
+      if (!internalKey) return;
+
+      if (internalKey === "aboutPoints" && typeof record.value === "string") {
+        settings[internalKey] = record.value
+          .split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean);
+      } else {
+        // The API returns the value as the target field's type by convention;
+        // assert per-key to satisfy WebsiteSettings's heterogeneous shape.
+        // Using a type-asserting helper keeps the indexed assignment well-typed.
+        (settings as Record<string, unknown>)[internalKey] = record.value;
       }
     });
 
@@ -212,8 +224,21 @@ export async function fetchPortfolioItems(): Promise<PortfolioItem[]> {
       return [];
     }
 
-    const data = (await response.json()) as any;
-    return (data.items || []).map((item: any) => ({
+    interface PortfolioRecord {
+      id: string;
+      title: string;
+      category: string;
+      description: string;
+      image?: string;
+      image_url?: string;
+      featured: boolean;
+      sort_order: number;
+    }
+    interface PortfolioListResponse {
+      items?: PortfolioRecord[];
+    }
+    const data = (await response.json()) as PortfolioListResponse;
+    return (data.items || []).map((item: PortfolioRecord) => ({
       id: item.id,
       title: item.title,
       category: item.category,
@@ -222,7 +247,7 @@ export async function fetchPortfolioItems(): Promise<PortfolioItem[]> {
         ? item.image.startsWith("http")
           ? item.image
           : `${API_BASE_URL}/api/files/portfolio/${item.id}/${item.image}`
-        : item.image_url,
+        : (item.image_url ?? ""),
       featured: item.featured,
       sort_order: item.sort_order,
     }));

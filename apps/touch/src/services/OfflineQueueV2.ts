@@ -260,8 +260,8 @@ class OfflineQueueServiceV2 {
     private async sendItem(item: QueueItem): Promise<boolean> {
         try {
             // Priority: Electron IPC Bridge
-            if ((window as any).sendSyncMessage) {
-                return await (window as any).sendSyncMessage(item);
+            if (window.sendSyncMessage) {
+                return Boolean(await window.sendSyncMessage(item));
             }
 
             // Fallback: HTTP Post to Master

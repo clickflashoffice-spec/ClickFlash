@@ -205,13 +205,16 @@ export function createDragEvent(type: string, files: File[] = []): DragEvent {
     return event;
 }
 
-export function createTouchEvent(type: string, touches: TouchInit[] = []): TouchEvent {
+/** Test callers may omit `identifier` / `target` — they're filled in here. */
+type PartialTouchInit = Partial<TouchInit> & Omit<TouchInit, 'identifier' | 'target'>;
+
+export function createTouchEvent(type: string, touches: PartialTouchInit[] = []): TouchEvent {
     return new TouchEvent(type, {
         bubbles: true,
         touches: touches.map((t, i) => new Touch({
             ...t,
-            identifier: (t as any).identifier ?? i,
-            target: (t as any).target ?? document.body,
+            identifier: t.identifier ?? i,
+            target: t.target ?? document.body,
         }))
     });
 }

@@ -213,9 +213,12 @@ class LocalAISearchService {
         }
 
         const faceapi = await import('@vladmandic/face-api');
-        
-        // Get query face descriptor
-        const queryDetection = await (faceapi as any).detectSingleFace(queryImage)
+
+        // Get query face descriptor — requires the landmark step before
+        // descriptor extraction per face-api's task chain.
+        const queryDetection = await faceapi
+            .detectSingleFace(queryImage as Parameters<typeof faceapi.detectSingleFace>[0])
+            .withFaceLandmarks()
             .withFaceDescriptor();
 
         if (!queryDetection) {
@@ -229,8 +232,10 @@ class LocalAISearchService {
             const stored = this.faceEmbeddings.get(photo.id);
             if (!stored) continue;
 
-            const distance = (faceapi as any).matchFaceDistance(
-                queryDetection.descriptor,
+            // Note: matchFaceDistance does not exist on face-api — euclideanDistance
+            // is the correct function for comparing two descriptor vectors.
+            const distance = faceapi.euclideanDistance(
+                queryDetection.descriptor as unknown as number[],
                 stored.embedding
             );
 
@@ -303,8 +308,17 @@ class LocalAISearchService {
         const queryTerms = query.toLowerCase().split(/\s+/);
         const results: SearchResult[] = [];
 
+        // Search-time view of a Photo: includes optional metadata fields that
+        // some photos carry but that aren't on the canonical Photo type.
+        type SearchablePhoto = Photo & {
+            filename?: string;
+            tags?: string;
+            description?: string;
+            albumName?: string;
+        };
+
         for (const photo of photos) {
-            const p = photo as any;
+            const p = photo as SearchablePhoto;
             const searchableText = [
                 p.filename || p.title || '',
                 p.tags || '',

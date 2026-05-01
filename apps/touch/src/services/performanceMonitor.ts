@@ -125,8 +125,14 @@ class PerformanceMonitorService {
     private measureFID(): void {
         if (typeof window === 'undefined') return;
 
-        window.addEventListener('first-input', (event) => {
-            const entry = ((event as any).entries?.[0]) as FirstInputEntry | undefined;
+        // The 'first-input' event fired by web-vitals carries an `entries`
+        // array of PerformanceEventTiming records. The standard EventTarget
+        // type doesn't model the custom payload, so describe it locally.
+        interface FirstInputEvent extends Event {
+            entries?: FirstInputEntry[];
+        }
+        window.addEventListener('first-input', (event: Event) => {
+            const entry = (event as FirstInputEvent).entries?.[0];
             if (entry) {
                 const fid = entry.processingStart - entry.startTime;
                 this.recordMetric('FID', fid, 'ms', {

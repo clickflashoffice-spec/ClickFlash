@@ -54,7 +54,7 @@ describe('Image Utilities', () => {
   describe('validatePhotoUrl', () => {
     it('should return false for undefined/null', async () => {
       expect(await validatePhotoUrl(undefined)).toBe(false);
-      expect(await validatePhotoUrl(null as any)).toBe(false);
+      expect(await validatePhotoUrl(null as unknown as string)).toBe(false);
     });
 
     it('should return false for empty string', async () => {

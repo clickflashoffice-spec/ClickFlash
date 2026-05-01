@@ -48,7 +48,7 @@ function useLocalStorage<T>(
   const readValue = () => {
     const candidates = [
       window.localStorage,
-      (window as any).__TEST_LOCAL_STORAGE,
+      window.__TEST_LOCAL_STORAGE,
     ];
     try {
       for (const candidate of candidates) {
@@ -60,7 +60,7 @@ function useLocalStorage<T>(
             console.log("[useLocalStorage] readValue", {
               key,
               storageType:
-                candidate === (window as any).localStorage
+                candidate === window.localStorage
                   ? "window.localStorage"
                   : "__TEST_LOCAL_STORAGE",
               raw: item,
@@ -98,7 +98,7 @@ function useLocalStorage<T>(
       try {
         const candidates = [
           window.localStorage,
-          (window as any).__TEST_LOCAL_STORAGE,
+          window.__TEST_LOCAL_STORAGE,
         ];
         if (process.env.DEBUG_USE_LOCAL_STORAGE === "1") {
           // eslint-disable-next-line no-console
@@ -116,7 +116,7 @@ function useLocalStorage<T>(
               console.log("[useLocalStorage] setValue written to", {
                 key,
                 storageType:
-                  candidate === (window as any).localStorage
+                  candidate === window.localStorage
                     ? "window.localStorage"
                     : "__TEST_LOCAL_STORAGE",
               });

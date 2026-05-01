@@ -98,7 +98,7 @@ export function BookingSection() {
     setSubmitStatus("idle");
 
     try {
-      const data = await submitBooking(formData) as any;
+      const data = await submitBooking(formData);
 
       setSubmitStatus("success");
       setSubmitMessage(data.message || "Your booking request has been received!");

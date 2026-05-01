@@ -23,14 +23,19 @@ export interface PortfolioResponse {
     items: PortfolioItem[];
 }
 
-export async function submitContactForm(data: ContactData) {
+export interface ContactFormResponse {
+    success: boolean;
+    message?: string;
+}
+
+export async function submitContactForm(data: ContactData): Promise<ContactFormResponse> {
     const response = await fetch(`${API_BASE_URL}/api/website/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
     });
     if (!response.ok) throw new Error('Failed to submit contact form');
-    return response.json();
+    return response.json() as Promise<ContactFormResponse>;
 }
 
 export async function fetchPortfolioItems(category?: string, featured?: boolean): Promise<PortfolioResponse> {
@@ -60,7 +65,13 @@ interface BookingData {
     message: string;
 }
 
-export async function submitBooking(data: BookingData) {
+export interface BookingResponse {
+    success: boolean;
+    booking_id?: string;
+    message?: string;
+}
+
+export async function submitBooking(data: BookingData): Promise<BookingResponse> {
     const response = await fetch(`${API_BASE_URL}/api/website/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,7 +81,7 @@ export async function submitBooking(data: BookingData) {
         const errorData = await response.json().catch(() => ({ message: 'Failed to submit booking' })) as { message?: string };
         throw new Error(errorData.message || 'Failed to submit booking');
     }
-    return response.json();
+    return response.json() as Promise<BookingResponse>;
 }
 
 export interface AccessCodeResponse {

@@ -8,6 +8,13 @@
  */
 
 import { db } from './db';
+import type { Table } from 'dexie';
+
+// The touch Dexie schema currently only declares the `albums` table; some test
+// scenarios optimistically write/clear a `photos` table that may exist in
+// future migrations. Use a typed extension with optional chaining so the calls
+// safely no-op when the table is absent.
+type DBWithOptionalPhotos = typeof db & { photos?: Table<unknown> };
 import { Order, Album, Photo } from '../types';
 import { logger } from '../utils/logger';
 
@@ -206,7 +213,7 @@ class OfflineStressTestService {
                     const photo = this.generatePhoto(albumIdx, photoIdx);
                     
                     try {
-                        await (db as any).photos?.put(photo);
+                        await (db as DBWithOptionalPhotos).photos?.put(photo);
                         photosCreated++;
                         writeTimes.push(performance.now() - photoWriteStart);
                         photoIndex++;
@@ -264,7 +271,7 @@ class OfflineStressTestService {
             // Phase 5: Cleanup
             this.reportProgress('cleanup', 0, 3, 'Cleaning up test data...');
             await db.albums.clear();
-            await (db as any).photos?.clear();
+            await (db as DBWithOptionalPhotos).photos?.clear();
             await db.orders.clear();
             this.reportProgress('cleanup', 3, 3, 'Cleanup completed');
 

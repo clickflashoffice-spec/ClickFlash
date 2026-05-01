@@ -27,8 +27,8 @@ describe('Validation Utilities', () => {
       expect(validateAccessCode('special@char')).toBe(false); // Invalid char
       expect(validateAccessCode('code with spaces')).toBe(false);
       expect(validateAccessCode('a'.repeat(51))).toBe(false); // Too long
-      expect(validateAccessCode(null as any)).toBe(false);
-      expect(validateAccessCode(undefined as any)).toBe(false);
+      expect(validateAccessCode(null as unknown as string)).toBe(false);
+      expect(validateAccessCode(undefined as unknown as string)).toBe(false);
     });
   });
 
@@ -47,7 +47,7 @@ describe('Validation Utilities', () => {
       expect(validateEmail('user@')).toBe(false);
       expect(validateEmail('user@.com')).toBe(false);
       expect(validateEmail('user@@example.com')).toBe(false);
-      expect(validateEmail(null as any)).toBe(false);
+      expect(validateEmail(null as unknown as string)).toBe(false);
     });
   });
 
@@ -83,14 +83,16 @@ describe('Validation Utilities', () => {
 
     it('should handle empty input', () => {
       expect(sanitizeInput('')).toBe('');
-      expect(sanitizeInput(null as any)).toBe('');
-      expect(sanitizeInput(undefined as any)).toBe('');
+      // sanitizeInput's signature already accepts string | null | undefined,
+      // so null and undefined need no cast — keep them as direct calls.
+      expect(sanitizeInput(null)).toBe('');
+      expect(sanitizeInput(undefined)).toBe('');
     });
 
     it('should handle non-string input', () => {
-      expect(sanitizeInput(123 as any)).toBe('');
-      expect(sanitizeInput({} as any)).toBe('');
-      expect(sanitizeInput([] as any)).toBe('');
+      expect(sanitizeInput(123 as unknown as string)).toBe('');
+      expect(sanitizeInput({} as unknown as string)).toBe('');
+      expect(sanitizeInput([] as unknown as string)).toBe('');
     });
   });
 
@@ -119,8 +121,8 @@ describe('Validation Utilities', () => {
 
     it('should handle invalid input', () => {
       expect(isValidImageFile('')).toBe(false);
-      expect(isValidImageFile(null as any)).toBe(false);
-      expect(isValidImageFile(undefined as any)).toBe(false);
+      expect(isValidImageFile(null as unknown as string)).toBe(false);
+      expect(isValidImageFile(undefined as unknown as string)).toBe(false);
     });
   });
 

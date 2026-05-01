@@ -59,9 +59,20 @@ class StorageMonitorService {
                 other: 0
             };
 
-            if ((estimate as any).usageDetails) {
-                breakdown.indexedDB = (estimate as any).usageDetails.indexedDB || 0;
-                breakdown.cache = (estimate as any).usageDetails.caches || 0;
+            // StorageEstimate.usageDetails is a non-standard Chromium extension
+            // (https://wicg.github.io/storage/#dom-storageestimate-usagedetails)
+            // that the lib.dom.d.ts typings don't yet cover.
+            interface UsageDetails {
+                indexedDB?: number;
+                caches?: number;
+            }
+            interface ExtendedStorageEstimate extends StorageEstimate {
+                usageDetails?: UsageDetails;
+            }
+            const details = (estimate as ExtendedStorageEstimate).usageDetails;
+            if (details) {
+                breakdown.indexedDB = details.indexedDB || 0;
+                breakdown.cache = details.caches || 0;
                 breakdown.other = usage - breakdown.indexedDB - breakdown.cache;
             } else {
                 breakdown.other = usage;

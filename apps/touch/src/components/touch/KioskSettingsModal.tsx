@@ -420,8 +420,8 @@ const KioskSettingsModal: React.FC<KioskSettingsModalProps> = ({
                   const password = prompt("Enter Admin Password to Exit:");
                   if (password === null) return; // User cancelled
 
-                  if ((window as any).electron && (window as any).electron.exitKiosk) {
-                    const success = await (window as any).electron.exitKiosk(password);
+                  if (window.electron && window.electron.exitKiosk) {
+                    const success = await window.electron.exitKiosk(password);
 
                     if (!success) {
                       alert("Incorrect password.");

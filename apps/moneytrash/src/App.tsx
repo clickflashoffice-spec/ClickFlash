@@ -113,7 +113,7 @@ function App() {
         // Update metadata if present
         if (config.eventName) setEventName(config.eventName);
         if (config.accessCode) setAccessCode(config.accessCode);
-        if (config.mode) setMode(config.mode as any);
+        if (config.mode === "moneytrash" || config.mode === "sold") setMode(config.mode);
         if (config.customerEmail) setCustomerEmail(config.customerEmail);
         if (config.singlePhotoPrice) setSinglePhotoPrice(config.singlePhotoPrice);
         if (config.fullGalleryPrice) setFullGalleryPrice(config.fullGalleryPrice);

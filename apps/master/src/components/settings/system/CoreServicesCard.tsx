@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Card from '../../common/Card';
 import { StatusIndicator } from './StatusIndicator';
 import type { CloudLinkStatus } from '../../../services/api/diagnosticsService';
@@ -20,24 +20,36 @@ export const CoreServicesCard: React.FC<CoreServicesCardProps> = ({
     cloudLinkStatus 
 }) => {
     const [thermal, setThermal] = useState<ThermalData | null>(null);
+    const failureCount = useRef(0);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    // Fetch thermal status
+    // Fetch thermal status with circuit-breaker: stops after 3 consecutive failures
     useEffect(() => {
         const fetchThermal = async () => {
+            if (failureCount.current >= 3) return;
             try {
                 const res = await fetch('/api/hardware/thermal');
-                if (res.ok) {
-                    const data = await res.json();
-                    setThermal({ temp: data.temp, status: data.status });
-                }
+                if (!res.ok) throw new Error('non-ok');
+                const data = await res.json();
+                failureCount.current = 0;
+                setThermal({ temp: data.temp, status: data.status });
             } catch {
-                // Silent fail - thermal is optional
+                failureCount.current += 1;
+                if (failureCount.current >= 3 && intervalRef.current !== null) {
+                    clearInterval(intervalRef.current);
+                    intervalRef.current = null;
+                }
             }
         };
 
         fetchThermal();
-        const interval = setInterval(fetchThermal, 10000);
-        return () => clearInterval(interval);
+        intervalRef.current = setInterval(fetchThermal, 10000);
+        return () => {
+            if (intervalRef.current !== null) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+        };
     }, []);
 
     const getCloudLinkDisplay = () => {

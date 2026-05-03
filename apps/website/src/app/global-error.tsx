@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect } from 'react';
 
 interface GlobalErrorProps {
@@ -55,7 +56,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             >
               Try again
             </button>
-            <a
+            <Link
               href="/"
               style={{
                 padding: '0.75rem 1.5rem',
@@ -68,7 +69,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               }}
             >
               Return home
-            </a>
+            </Link>
           </div>
         </div>
       </body>

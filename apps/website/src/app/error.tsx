@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect } from 'react';
 
 interface ErrorPageProps {
@@ -36,12 +37,12 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           >
             Try again
           </button>
-          <a
+          <Link
             href="/"
             className="rounded-lg border border-slate-200 px-6 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
           >
             Return home
-          </a>
+          </Link>
         </div>
         {process.env.NODE_ENV !== 'production' && (
           <details className="mt-8 rounded-lg border border-red-100 bg-red-50 p-4 text-left">

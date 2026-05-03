@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export interface ThermalStatus {
     success: boolean;
@@ -9,30 +9,53 @@ export interface ThermalStatus {
     timestamp: number;
 }
 
+const MAX_CONSECUTIVE_FAILURES = 3;
+
 /**
  * Hook to monitor system thermal status for adaptive performance scaling.
+ * Circuit-breaker: stops polling after MAX_CONSECUTIVE_FAILURES consecutive
+ * errors so the frontend doesn't hammer an unreachable backend endpoint.
  */
 export function useThermalStatus(intervalMs: number = 10000) {
     const [status, setStatus] = useState<ThermalStatus | null>(null);
     const [isThrottled, setIsThrottled] = useState(false);
+    const failureCount = useRef(0);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
         const fetchStatus = async () => {
+            // Circuit-breaker: bail out if backend is confirmed unreachable
+            if (failureCount.current >= MAX_CONSECUTIVE_FAILURES) return;
+
             try {
                 const response = await fetch('/api/hardware/thermal');
                 if (!response.ok) throw new Error('Thermal API failed');
                 const data: ThermalStatus = await response.json();
+                failureCount.current = 0;
                 setStatus(data);
                 setIsThrottled(data.status !== 'normal');
-            } catch (err) {
-                // Silently fail, default to normal
+            } catch {
+                failureCount.current += 1;
+                if (failureCount.current >= MAX_CONSECUTIVE_FAILURES) {
+                    // Kill the interval — no point hammering an unreachable port
+                    if (intervalRef.current !== null) {
+                        clearInterval(intervalRef.current);
+                        intervalRef.current = null;
+                    }
+                }
             }
         };
 
-        const interval = setInterval(fetchStatus, intervalMs);
+        failureCount.current = 0;
         fetchStatus();
+        intervalRef.current = setInterval(fetchStatus, intervalMs);
 
-        return () => clearInterval(interval);
+        return () => {
+            if (intervalRef.current !== null) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+        };
     }, [intervalMs]);
 
     return {

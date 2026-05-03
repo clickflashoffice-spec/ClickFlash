@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Thermometer, AlertTriangle, Cpu, WifiOff } from 'lucide-react';
 
 interface ThermalStatus {
@@ -11,52 +11,63 @@ interface ThermalStatus {
     timestamp: number;
 }
 
+const MAX_FAILURES = 3;
+
 /**
  * Rule 13: Thermal Monitor
  * Displays real-time hardware health and notifies user of throttling.
+ *
+ * Circuit-breaker: uses a ref (not state) to track failures so the useEffect
+ * dependency array stays stable ([]). Previously, retryCount was state AND in
+ * the dep array — every failure restarted the effect, fired an immediate fetch,
+ * and created a runaway ECONNREFUSED flood when the backend wasn't running.
  */
 const ThermalMonitor: React.FC = () => {
     const [status, setStatus] = useState<ThermalStatus | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [retryCount, setRetryCount] = useState(0);
+    const [offline, setOffline] = useState(false);
+    const failureCount = useRef(0);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
         const fetchStatus = async () => {
+            // Circuit-breaker: stop fetching once backend is confirmed unreachable
+            if (failureCount.current >= MAX_FAILURES) return;
+
             try {
                 const response = await fetch('/api/hardware/thermal');
                 if (!response.ok) throw new Error('Thermal API failed');
                 const data: ThermalStatus = await response.json();
+                failureCount.current = 0;
                 setStatus(data);
-                setError(null);
-                setRetryCount(0);
-            } catch (err) {
-                setError('Offline');
-                setRetryCount(prev => prev + 1);
-                // Stop retrying after 3 failures to reduce console noise
-                if (retryCount >= 3) {
-                    setStatus({
-                        success: false,
-                        temp: null,
-                        status: 'normal',
-                        delay: 0,
-                        workerLimit: 4,
-                        timestamp: Date.now()
-                    });
+                setOffline(false);
+            } catch {
+                failureCount.current += 1;
+                if (failureCount.current >= MAX_FAILURES) {
+                    setOffline(true);
+                    if (intervalRef.current !== null) {
+                        clearInterval(intervalRef.current);
+                        intervalRef.current = null;
+                    }
                 }
             }
         };
 
-        const interval = setInterval(fetchStatus, 5000);
         fetchStatus();
+        intervalRef.current = setInterval(fetchStatus, 5000);
 
-        return () => clearInterval(interval);
-    }, [retryCount]);
+        return () => {
+            if (intervalRef.current !== null) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+        };
+    }, []); // Stable empty deps — failure tracking is in a ref, not state
 
     // Don't show if no status and not explicitly offline
-    if (!status && !error) return null;
+    if (!status && !offline) return null;
 
     // Show offline indicator if API unavailable
-    if (error && !status) {
+    if (offline && !status) {
         return (
             <div className="fixed top-20 right-4 z-[9999] flex items-center gap-1.5 px-2 py-1.5 rounded-md border shadow-lg transition-all backdrop-blur-sm bg-slate-900/80 border-slate-700 text-slate-500">
                 <WifiOff size={12} />
@@ -68,7 +79,7 @@ const ThermalMonitor: React.FC = () => {
     if (!status) return null;
 
     const isThrottled = status.status !== 'normal';
-    const hasError = !status.success || error;
+    const hasError = !status.success || offline;
 
     return (
         <div className={`fixed top-20 right-4 z-[9999] flex items-center gap-1.5 px-2 py-1.5 rounded-md border shadow-lg transition-all backdrop-blur-sm ${

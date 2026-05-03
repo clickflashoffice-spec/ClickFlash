@@ -28,7 +28,7 @@ function deployWebsite() {
   const dir = path.join(ROOT, 'apps/website');
   run('npm install --legacy-peer-deps', dir);
   run('npm run build', dir);
-  run('npx wrangler pages deploy out --project-name=clickflash-website --commit-dirty=true', dir);
+  run('npx wrangler pages deploy out --project-name=clickflash-website --branch=main --commit-dirty=true', dir);
 }
 
 function deployGallery() {
@@ -36,7 +36,7 @@ function deployGallery() {
   const dir = path.join(ROOT, 'apps/gallery');
   run('npm install --legacy-peer-deps', dir);
   run('npm run build', dir);
-  run('npx wrangler pages deploy dist --project-name=clickflash-gallery --commit-dirty=true', dir);
+  run('npx wrangler pages deploy dist --project-name=clickflash-gallery --branch=main --commit-dirty=true', dir);
 }
 
 function deployManagement() {
@@ -44,7 +44,7 @@ function deployManagement() {
   const dir = path.join(ROOT, 'apps/management');
   run('npm install --legacy-peer-deps', dir);
   run('npm run build', dir);
-  run('npx wrangler pages deploy dist --project-name=management-hub --commit-dirty=true', dir);
+  run('npx wrangler pages deploy dist --project-name=management-hub --branch=main --commit-dirty=true', dir);
 }
 
 // ── Cloudflare Workers ─────────────────────────────────────────────────────

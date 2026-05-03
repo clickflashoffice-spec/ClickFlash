@@ -17,8 +17,6 @@ on:
 
 env:
   NODE_VERSION: '20'
-  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
 jobs:
   deploy-website:
@@ -43,6 +41,9 @@ jobs:
 
       - name: Deploy to Cloudflare Pages
         run: npx wrangler pages deploy apps/website/out --project-name=clickflash-website --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy-gallery:
     name: Deploy Gallery to Cloudflare Pages
@@ -66,6 +67,9 @@ jobs:
 
       - name: Deploy to Cloudflare Pages
         run: npx wrangler pages deploy apps/gallery/dist --project-name=click-flash-gallery --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy-management:
     name: Deploy Management to Cloudflare Pages
@@ -89,3 +93,6 @@ jobs:
 
       - name: Deploy to Cloudflare Pages
         run: npx wrangler pages deploy apps/management/dist --project-name=management-hub --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

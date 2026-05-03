@@ -10,90 +10,82 @@ on:
   workflow_dispatch:
     inputs:
       app:
-        description: 'App to deploy'
+        description: 'App to deploy (all / management / gallery / website)'
         required: true
-        default: 'all'
-        type: choice
-        options:
-          - all
-          - management
-          - gallery
-          - website
+        default: 'website'
+        type: string
 
 env:
   NODE_VERSION: '20'
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
 jobs:
-  deploy-management:
-    name: Deploy Management Hub
+  deploy-website:
+    name: Deploy Website to Cloudflare Pages
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.app == 'all' || inputs.app == 'management' }}
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm install --prefix apps/management --legacy-peer-deps
-      - run: npm run build --prefix apps/management
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --prefix apps/website --legacy-peer-deps
+
+      - name: Build website
+        run: npm run build --prefix apps/website
         env:
           NODE_ENV: production
-      - run: npx wrangler pages deploy apps/management/dist --project-name=management-hub --commit-dirty=true
+
+      - name: Deploy to Cloudflare Pages
+        run: npx wrangler pages deploy apps/website/out --project-name=clickflash-website --commit-dirty=true
 
   deploy-gallery:
-    name: Deploy Customer Gallery
+    name: Deploy Gallery to Cloudflare Pages
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.app == 'all' || inputs.app == 'gallery' }}
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm install --prefix apps/gallery --legacy-peer-deps
-      - run: npm run build --prefix apps/gallery
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --prefix apps/gallery --legacy-peer-deps
+
+      - name: Build gallery
+        run: npm run build --prefix apps/gallery
         env:
           NODE_ENV: production
-      - run: npx wrangler pages deploy apps/gallery/dist --project-name=click-flash-gallery --commit-dirty=true
 
-  deploy-website:
-    name: Deploy Website
+      - name: Deploy to Cloudflare Pages
+        run: npx wrangler pages deploy apps/gallery/dist --project-name=click-flash-gallery --commit-dirty=true
+
+  deploy-management:
+    name: Deploy Management to Cloudflare Pages
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.app == 'all' || inputs.app == 'website' }}
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm install --prefix apps/website --legacy-peer-deps
-      - run: npm run build --prefix apps/website
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --prefix apps/management --legacy-peer-deps
+
+      - name: Build management
+        run: npm run build --prefix apps/management
         env:
           NODE_ENV: production
-      - run: npx wrangler pages deploy apps/website/out --project-name=clickflash-website --commit-dirty=true
 
-  deploy-workers:
-    name: Deploy Cloudflare Workers
-    runs-on: ubuntu-latest
-    if: ${{ inputs.app == 'all' }}
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-    steps:
-      - uses: actions/checkout@v4
-      - run: npm install -g wrangler
-      - name: Deploy Gallery Backend Worker
-        run: wrangler deploy
-        working-directory: apps/gallery/backend
-      - name: Deploy Management Backend Worker
-        run: wrangler deploy
-        working-directory: apps/management/backend
+      - name: Deploy to Cloudflare Pages
+        run: npx wrangler pages deploy apps/management/dist --project-name=management-hub --commit-dirty=true

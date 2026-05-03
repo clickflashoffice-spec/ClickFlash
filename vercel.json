@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npm install --prefix apps/gallery --legacy-peer-deps && npm run build --prefix apps/gallery",
+  "outputDirectory": "apps/gallery/dist",
+  "installCommand": "npm install --legacy-peer-deps",
+  "framework": null
+}

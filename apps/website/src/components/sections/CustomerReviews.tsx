@@ -8,11 +8,14 @@ interface CustomerReviewsProps {
   settings?: WebsiteSettings;
 }
 
+/** Trustindex widget loader hash supplied by the dashboard. */
+const TRUSTINDEX_LOADER_SRC =
+  "https://cdn.trustindex.io/loader.js?0174c7b56d45942f1f76a34d6bc";
+
 export function CustomerReviews({ settings = {} }: CustomerReviewsProps) {
   const {
     manualReviewCount = "2,050",
     manualReviewRating = "5.0",
-    reviewsWidgetId = "8dfffd2d-2bce-4158-82b7-c5d24ed3b428",
   } = settings;
 
   const widgetRef = useRef<HTMLDivElement>(null);
@@ -20,20 +23,15 @@ export function CustomerReviews({ settings = {} }: CustomerReviewsProps) {
   useEffect(() => {
     if (!widgetRef.current) return;
 
-    // Prevent duplicate injections in React Strict Mode
+    // Prevent duplicate injections in React Strict Mode / re-mounts.
     if (widgetRef.current.querySelector("script")) return;
 
+    // Trustindex auto-mounts the widget at the location of the loader
+    // script tag, so append it inside our container ref.
     const script = document.createElement("script");
-    script.src = "https://cdn.revukit.com/widgets/testimonial-grid-double-row.umd.js";
-    script.setAttribute("data-business-id", "RVK-7984FA5A");
-    script.setAttribute("data-place-id", "ChIJu86SVJ6L_RIRGkF4TGgMFYc");
-    script.setAttribute("data-primary-color", "#FBBC04");
-    script.setAttribute("data-secondary-color", "#1f2937");
-    script.setAttribute("data-tertiary-color", "#6b7280");
-    script.setAttribute("data-border-radius", "8px");
-    script.setAttribute("data-shadow", "0 1px 2px 0 rgb(0 0 0 / 0.05)");
-    script.setAttribute("data-mode", "inline");
+    script.src = TRUSTINDEX_LOADER_SRC;
     script.async = true;
+    script.defer = true;
 
     widgetRef.current.appendChild(script);
   }, []);
@@ -59,10 +57,9 @@ export function CustomerReviews({ settings = {} }: CustomerReviewsProps) {
           </h2>
         </motion.div>
 
-        {/* Revukit Google Reviews Widget */}
-        <div ref={widgetRef} className="mx-auto min-h-[400px] max-w-7xl">
-          {/* Script is injected here via useEffect to maintain exact DOM hierarchy */}
-        </div>
+        {/* Trustindex Reviews Widget — loader script injects the widget DOM in place. */}
+        <div ref={widgetRef} className="mx-auto min-h-[400px] max-w-7xl" />
+
       </div>
     </section>
   );

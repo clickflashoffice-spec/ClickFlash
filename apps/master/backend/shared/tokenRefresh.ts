@@ -1,5 +1,7 @@
 // backend/shared/tokenRefresh.ts
 import crypto from 'crypto';
+import type { DatabaseManager } from './db';
+import type { AuditLogger } from './auditLogger';
 
 interface RefreshTokenData {
     userId: string | number;
@@ -48,5 +50,32 @@ export function revokeRefreshToken(token: string): void {
 export function revokeUserRefreshTokens(userId: string | number): void {
     for (const [token, data] of refreshTokens.entries()) {
         if (data.userId === userId) refreshTokens.delete(token);
+    }
+}
+
+/**
+ * Service wrapper around the module-level token refresh functions.
+ * Accepts dbManager and auditLogger for future DB-backed persistence.
+ */
+export class TokenRefreshService {
+    constructor(
+        private readonly dbManager: DatabaseManager,
+        private readonly auditLogger: AuditLogger
+    ) {}
+
+    generate(userId: string | number, expiresInDays?: number): string {
+        return generateRefreshToken(userId, expiresInDays);
+    }
+
+    validateAndConsume(token: string) {
+        return validateAndConsumeRefreshToken(token);
+    }
+
+    revoke(token: string): void {
+        revokeRefreshToken(token);
+    }
+
+    revokeAllForUser(userId: string | number): void {
+        revokeUserRefreshTokens(userId);
     }
 }

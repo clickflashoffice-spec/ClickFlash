@@ -17,7 +17,7 @@ const DatabaseManagement: React.FC = () => {
         checkBackendHealth().then(isUp => setStatus(isUp ? 'online' : 'offline'));
         
         // Subscribe to auth changes
-        return (pb.authStore as any).onChange(() => {
+        return pb.authStore.onChange(() => {
             setIsAdmin(pb.authStore.isValid && pb.authStore.isAdmin);
         });
     }, []);

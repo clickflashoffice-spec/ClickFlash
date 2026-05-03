@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { EquipmentCategory } from '../../../types';
+import { EquipmentCategory, ExpenseCategory } from '../../../types';
 import { apiService } from '../../../services/apiService';
 import Spinner from '../../common/Spinner';
 import EquipmentCategoryEditModal from '../modals/EquipmentCategoryEditModal';
@@ -14,7 +14,7 @@ const EquipmentCategorySettings: React.FC = () => {
         setLoading(true);
         try {
             const data = await apiService.getExpenseCategories();
-            setCategories(data as any);
+            setCategories(data as EquipmentCategory[]);
         } catch (error) {
             console.error("Failed to load equipment categories", error);
         } finally {
@@ -33,9 +33,9 @@ const EquipmentCategorySettings: React.FC = () => {
 
     const handleSave = async (category: Omit<EquipmentCategory, 'id'> | EquipmentCategory) => {
         if ('id' in category) {
-            await apiService.updateExpenseCategory(category.id, category as any);
+            await apiService.updateExpenseCategory(category.id, category as Partial<ExpenseCategory>);
         } else {
-            await apiService.createExpenseCategory(category as any);
+            await apiService.createExpenseCategory(category as Omit<ExpenseCategory, 'id'>);
         }
         setIsModalOpen(false);
         setCategoryToEdit(null);

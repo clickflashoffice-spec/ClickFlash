@@ -1,4 +1,5 @@
 import { pb } from "./pb";
+import { ApiError } from "../utils/errors";
 import {
   Photographer,
   Order,
@@ -14,6 +15,7 @@ import {
   Equipment,
   Loan,
   SessionType,
+  ManualEdits,
 } from "../types";
 import { PocketRecord } from "./pbTypes";
 import { logger } from "../utils/logger";
@@ -220,13 +222,13 @@ export const apiService = {
         errorMessage = response.statusText || errorMessage;
       }
 
-      // Create error with more context
-      const error = new Error(errorMessage);
-      // Add status code for handling authentication errors
-      (error as any).status = response.status;
-      (error as any).code =
-        response.status === 401 ? "AUTHENTICATION_ERROR" : "REFRESH_ERROR";
-      throw error;
+      // Throw a typed ApiError carrying the HTTP status + a stable code so
+      // callers can distinguish authentication failures from other errors.
+      throw new ApiError(errorMessage, {
+        status: response.status,
+        code: response.status === 401 ? "AUTHENTICATION_ERROR" : "REFRESH_ERROR",
+        response,
+      });
     }
 
     return await response.json();
@@ -290,7 +292,9 @@ export const apiService = {
                     // Safely parse manualEdits
                     let manualEdits: any = {};
                     try {
-                      const mEdits = p.manualEdits as any;
+                      // manualEdits arrives from the API as either a JSON string
+                      // (legacy persisted form) or an already-parsed object.
+                      const mEdits = p.manualEdits as unknown as string | Record<string, unknown> | null;
                       if (typeof mEdits === "string" && mEdits) {
                         const parsed = JSON.parse(mEdits);
                         manualEdits =
@@ -394,10 +398,14 @@ export const apiService = {
 
   async getAlbum(id: string): Promise<Album | null> {
     try {
-      // Fetch album with expanded photos
+      // Fetch album with expanded photos. The PocketBase adapter typing for
+      // .getOne() returns a base PocketRecord — narrow to the specific
+      // expanded shape this method needs at the call boundary.
       const record = (await pb
         .collection("albums")
-        .getOne(id, { expand: "photos_via_album" })) as any;
+        .getOne(id, { expand: "photos_via_album" })) as unknown as
+        | (Record<string, unknown> & { id?: string; expand?: { photos_via_album?: unknown[] } })
+        | null;
 
       // Explicit null check - return early if record is null/undefined
       if (!record || typeof record !== "object") {
@@ -435,9 +443,9 @@ export const apiService = {
               }
 
               // Safely parse manualEdits - ensure it's always an object, never null
-              let manualEdits: any = {};
+              let manualEdits: Partial<ManualEdits> = {};
               try {
-                const mEdits = p.manualEdits as any;
+                const mEdits = p.manualEdits as unknown;
                 if (typeof mEdits === "string" && mEdits) {
                   const parsed = JSON.parse(mEdits);
                   manualEdits =
@@ -469,7 +477,7 @@ export const apiService = {
                 url: photoUrl,
                 photographerId: (p.photographerId as number) || 0,
                 category: p.category ? (p.category as string) : undefined,
-                manualEdits: manualEdits,
+                manualEdits: manualEdits as ManualEdits,
               };
             });
         } else {
@@ -568,16 +576,16 @@ export const apiService = {
       // Safely construct album object with all defensive checks
       const albumId = record.id || "";
       const albumTitle = (record.title as string) || "";
-      const albumDate = record.date || "";
+      const albumDate = (record.date as string) || "";
       const photographerId =
-        record.photographerId != null ? record.photographerId : null;
+        record.photographerId != null ? (record.photographerId as number) : 0;
       const coverPhotoUrl =
-        record.coverPhotoUrl ||
+        (record.coverPhotoUrl as string) ||
         (photos.length > 0 && photos[0]?.url ? photos[0].url : "") ||
         "";
-      const albumSource = record.source || "";
-      const roomNumber = record.roomNumber || "";
-      const albumStatus = record.status || "";
+      const albumSource = (record.source as string) || "";
+      const roomNumber = (record.roomNumber as string) || "";
+      const albumStatus = (record.status as string) || "";
 
       return {
         id: albumId,
@@ -1089,15 +1097,12 @@ export const apiService = {
         errorMessage = error.message;
       }
 
-      const finalError = new Error(errorMessage);
-      // Preserve original error structure
-      if (error?.response) {
-        (finalError as any).response = error.response;
-      }
-      if (error?.status) {
-        (finalError as any).status = error.status;
-      }
-      throw finalError;
+      // Preserve original error structure (status + response) via ApiError.
+      throw new ApiError(errorMessage, {
+        status: error?.status,
+        response: error?.response,
+        cause: error,
+      });
     }
   },
 

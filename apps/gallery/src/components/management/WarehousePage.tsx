@@ -40,7 +40,7 @@ const WarehousePage: React.FC = () => {
                 apiService.getEquipment(),
                 apiService.getUsers(),
                 apiService.getDestinations(),
-                apiService.getExpenseCategories() as any,
+                apiService.getExpenseCategories() as Promise<EquipmentCategory[]>,
             ]);
             setEquipment(equipmentData);
             setPhotographers(photographerData);

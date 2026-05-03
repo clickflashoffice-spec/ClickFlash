@@ -222,7 +222,7 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
             onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); resetView(); }}
             className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 relative group ${idx === currentIndex ? 'border-cyan-500 scale-110 shadow-[0_0_20px_rgba(34,211,238,0.3)]' : 'border-transparent opacity-40 hover:opacity-100 hover:scale-105'}`}
           >
-            <img src={(photo as any).thumbnailUrl || photo.url} alt="" className="w-full h-full object-cover" />
+            <img src={photo.thumbnailUrl || photo.url} alt="" className="w-full h-full object-cover" />
             {idx === currentIndex && (
               <div className="absolute inset-0 bg-cyan-500/10"></div>
             )}

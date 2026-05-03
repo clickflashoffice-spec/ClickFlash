@@ -146,7 +146,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
 
     // Add optimistic locking
     if (order.updatedAt) {
-      (orderToSave as any).updated_at = order.updatedAt;
+      orderToSave.updated_at = order.updatedAt;
     }
 
     onSave(orderToSave);

@@ -201,7 +201,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({ currentUser, onCurren
             console.error("Error type:", typeof error);
             console.error("Error keys:", error && typeof error === 'object' ? Object.keys(error) : 'N/A');
             if (error && typeof error === 'object' && 'response' in error) {
-                console.error("Error response:", (error as any).response);
+                console.error("Error response:", (error as { response: unknown }).response);
             }
             
             logger.error("Failed to create destination", error instanceof Error ? error : undefined, {
@@ -219,14 +219,14 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({ currentUser, onCurren
                 // Try to extract from PocketBase error structure
                 if ('message' in error) {
                     errorMessage = String(error.message);
-                } else if ('response' in error && typeof error.response === 'object' && error.response !== null) {
-                    const response = error.response as any;
+                } else if ('response' in error && typeof (error as { response?: unknown }).response === 'object' && (error as { response?: unknown }).response !== null) {
+                    const response = (error as { response: { data?: { message?: string; data?: Record<string, unknown> }; status?: number } }).response;
                     if (response.data?.message) {
                         errorMessage = response.data.message;
                     } else if (response.data?.data) {
                         // Validation errors
                         const validationErrors = Object.entries(response.data.data)
-                            .map(([field, msg]: [string, any]) => `${field}: ${msg}`)
+                            .map(([field, msg]) => `${field}: ${String(msg)}`)
                             .join(', ');
                         errorMessage = validationErrors || errorMessage;
                     } else if (response.status) {

@@ -448,12 +448,12 @@ const AlbumDetail: React.FC<AlbumDetailProps> = ({ albumId, onBack, onFinalizeSu
             setSaveStatus('saving');
             
             // Include updatedAt for optimistic locking if available
-            const albumToSave = { ...album } as any;
-            if ((pristineAlbum as any)?.updatedAt || (pristineAlbum as any)?.updated_at) {
-                albumToSave.updated_at = (pristineAlbum as any).updated_at || (pristineAlbum as any).updatedAt;
+            const albumToSave = { ...album };
+            if (pristineAlbum?.updatedAt || pristineAlbum?.updated_at) {
+                albumToSave.updated_at = pristineAlbum.updated_at || pristineAlbum.updatedAt;
             }
-            if ((album as any)?.updated_at) {
-                albumToSave.updated_at = (album as any).updated_at;
+            if (album?.updated_at) {
+                albumToSave.updated_at = album.updated_at;
             }
             
             const savedAlbum = await apiService.updateAlbum(album.id, albumToSave);
@@ -482,8 +482,8 @@ const AlbumDetail: React.FC<AlbumDetailProps> = ({ albumId, onBack, onFinalizeSu
                             ? { ...initialEdits, ...p.manualEdits } as ManualEdits
                             : initialEdits
                     })),
-                    updatedAt: (savedAlbum as any).updatedAt || (savedAlbum as any).updated_at,
-                    updated_at: (savedAlbum as any).updated_at || (savedAlbum as any).updatedAt
+                    updatedAt: savedAlbum.updatedAt || savedAlbum.updated_at,
+                    updated_at: savedAlbum.updated_at || savedAlbum.updatedAt
                 };
                 setPristineAlbum(JSON.parse(JSON.stringify(cleanSavedAlbum)) as Album);
             } catch (cloneError) {
@@ -642,7 +642,7 @@ const AlbumDetail: React.FC<AlbumDetailProps> = ({ albumId, onBack, onFinalizeSu
                     max = 20;
                 }
                 
-                validatedUpdates[key as keyof ManualEdits] = Math.max(min, Math.min(max, value)) as any;
+                (validatedUpdates as Partial<Record<string, number>>)[key] = Math.max(min, Math.min(max, value));
             }
         });
 

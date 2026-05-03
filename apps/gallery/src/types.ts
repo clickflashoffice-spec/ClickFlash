@@ -213,6 +213,8 @@ export interface Album {
     roomNumber: string;
     categories?: PhotoCategory[];
     status?: string;
+    updatedAt?: string;
+    updated_at?: string;
 }
 
 export interface OrderItem {
@@ -238,6 +240,7 @@ export interface Order {
     // Added paymentMethod
     paymentMethod?: 'Cash' | 'Card';
     updatedAt?: string;
+    updated_at?: string;
 }
 
 export interface DailyObjective {

@@ -232,7 +232,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
             favoritePhotoIds={favoritePhotoIds}
             onToggleFavorite={onToggleFavorite}
             onOpenAddToCartModal={(photo) =>
-              handleOpenAddToCartModal(photo as any)
+              handleOpenAddToCartModal(photo)
             }
             onPhotoClick={() => {}}
           />

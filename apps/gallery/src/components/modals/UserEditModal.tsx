@@ -4,6 +4,7 @@ import Modal from '../common/Modal.tsx';
 import { Photographer } from '../../types.ts';
 import { useCurrency } from '../CurrencyContext.tsx';
 import { apiService } from '../../services/apiService.ts';
+import { ApiError } from '../../utils/errors.ts';
 
 interface UserEditModalProps {
   isOpen: boolean;
@@ -135,7 +136,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, onDataCh
         if (err instanceof Error) {
             errorMessage = err.message;
             // Check if it's a network error
-            if ((err as any).isNetworkError || err.message.includes('Failed to fetch') || err.message.includes('Cannot connect')) {
+            if ((err instanceof ApiError && err.isNetworkError) || err.message.includes('Failed to fetch') || err.message.includes('Cannot connect')) {
                 errorMessage = err.message;
             }
         } else if (typeof err === 'object' && err !== null) {

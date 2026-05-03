@@ -45,7 +45,7 @@ const WatermarkSettings: React.FC = () => {
     
     const resetToDefaults = () => setSettings(DEFAULT_SETTINGS);
 
-    const positions = ['top-left', 'top-center', 'top-right', 'center-left', 'center', 'center-right', 'bottom-left', 'bottom-center', 'bottom-right'];
+    const positions: WatermarkSettingsType['position'][] = ['top-left', 'top-center', 'top-right', 'center-left', 'center', 'center-right', 'bottom-left', 'bottom-center', 'bottom-right'];
 
     return (
         <Card>
@@ -77,7 +77,7 @@ const WatermarkSettings: React.FC = () => {
                     {/* Sliders and Position Grid (Abbreviated for space, logic remains) */}
                      <div className="grid grid-cols-3 gap-2 w-32">
                         {positions.map(pos => (
-                             <button key={pos} onClick={() => setSettings(prev => ({ ...prev, position: pos as any }))} className={`w-10 h-10 border rounded flex items-center justify-center ${settings.position === pos ? 'bg-blue-500 text-white' : ''}`}><div className="w-2 h-2 bg-current rounded-full"></div></button>
+                             <button key={pos} onClick={() => setSettings(prev => ({ ...prev, position: pos }))} className={`w-10 h-10 border rounded flex items-center justify-center ${settings.position === pos ? 'bg-blue-500 text-white' : ''}`}><div className="w-2 h-2 bg-current rounded-full"></div></button>
                         ))}
                     </div>
                     <button onClick={resetToDefaults} className="text-sm text-red-500 hover:underline mt-4">Reset to Defaults</button>

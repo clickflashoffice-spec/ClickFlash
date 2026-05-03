@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import useLocalStorage from '../../hooks/useLocalStorage.ts';
 import { pb } from '../../services/pb.ts';
-// @ts-ignore
 import QRCode from 'qrcode';
 
 interface KioskPairingProps {

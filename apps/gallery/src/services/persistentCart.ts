@@ -333,14 +333,14 @@ class PersistentCartService extends EventEmitter {
    * Check if cart has items from Money Trash
    */
   hasMoneyTrashItems(): boolean {
-    return this.items.some(item => (item.photo as any).isFromMoneyTrash);
+    return this.items.some(item => 'isFromMoneyTrash' in item.photo && (item.photo as { isFromMoneyTrash?: boolean }).isFromMoneyTrash);
   }
 
   /**
    * Get Money Trash items
    */
   getMoneyTrashItems(): CartItem[] {
-    return this.items.filter(item => (item.photo as any).isFromMoneyTrash);
+    return this.items.filter(item => 'isFromMoneyTrash' in item.photo && (item.photo as { isFromMoneyTrash?: boolean }).isFromMoneyTrash);
   }
 
   /**

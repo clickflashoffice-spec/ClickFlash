@@ -61,7 +61,7 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ onExit }) => {
         try {
           // Validate QR session with Touch App
           const touchApiUrl =
-            (import.meta as any).env.VITE_TOUCH_API_URL ||
+            import.meta.env.VITE_TOUCH_API_URL ||
             "http://localhost:8091";
           const validationResponse = await fetch(
             `${touchApiUrl}/api/qr/validate`,
@@ -189,7 +189,7 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ onExit }) => {
     <NetworkStatusProvider>
       {currentOrder || currentTrashGallery ? (
         <CustomerLayout
-          order={currentOrder || (undefined as any)}
+          order={currentOrder ?? undefined}
           trashGallery={currentTrashGallery}
           onLogout={handleLogout}
         />

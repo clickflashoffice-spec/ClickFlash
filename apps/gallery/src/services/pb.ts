@@ -1,4 +1,5 @@
 import { CollectionOptions, PocketRecord, AuthResponse } from "./pbTypes";
+import { ApiError, isAuthError } from "../utils/errors";
 
 // A Custom Adapter to replace the PocketBase SDK dependency
 // This allows the frontend to keep using 'pb.collection()...' syntax
@@ -35,7 +36,7 @@ class CustomPocketBaseAdapter {
     isAdmin: boolean;
     model: { id: string; email: string };
     token: string;
-    onChange: () => () => void;
+    onChange: (callback: () => void) => () => void;
     clear: () => void;
   };
   private authToken: string | null = null;
@@ -127,10 +128,10 @@ class CustomPocketBaseAdapter {
           if (!res.ok) {
             // For 401 errors, throw with status code so calling code can detect auth errors
             if (res.status === 401) {
-              const error = new Error("Authentication required");
-              (error as any).status = 401;
-              (error as any).code = "AUTHENTICATION_ERROR";
-              throw error;
+              throw new ApiError("Authentication required", {
+                status: 401,
+                code: "AUTHENTICATION_ERROR",
+              });
             }
             throw new Error(res.statusText);
           }
@@ -142,7 +143,7 @@ class CustomPocketBaseAdapter {
           return Array.isArray(data.items) ? data.items : [];
         } catch (e) {
           // Re-throw auth errors so they can be handled by calling code
-          if (e instanceof Error && (e as any).status === 401) {
+          if (isAuthError(e)) {
             throw e;
           }
           // Check if it's a network error (backend not available)
@@ -175,10 +176,10 @@ class CustomPocketBaseAdapter {
         if (!res.ok) {
           // For 401 errors, throw with status code so calling code can detect auth errors
           if (res.status === 401) {
-            const error = new Error("Authentication required");
-            (error as any).status = 401;
-            (error as any).code = "AUTHENTICATION_ERROR";
-            throw error;
+            throw new ApiError("Authentication required", {
+              status: 401,
+              code: "AUTHENTICATION_ERROR",
+            });
           }
           throw new Error(res.statusText);
         }
@@ -211,10 +212,10 @@ class CustomPocketBaseAdapter {
           if (!res.ok) {
             // For 401 errors, throw with status code so calling code can detect auth errors
             if (res.status === 401) {
-              const error = new Error("Authentication required");
-              (error as any).status = 401;
-              (error as any).code = "AUTHENTICATION_ERROR";
-              throw error;
+              throw new ApiError("Authentication required", {
+                status: 401,
+                code: "AUTHENTICATION_ERROR",
+              });
             }
             // Return null instead of throwing to match expected behavior
             return null;
@@ -253,7 +254,7 @@ class CustomPocketBaseAdapter {
           return null;
         } catch (error) {
           // Re-throw auth errors so they can be handled by calling code
-          if (error instanceof Error && (error as any).status === 401) {
+          if (isAuthError(error)) {
             throw error;
           }
           // Handle network errors gracefully

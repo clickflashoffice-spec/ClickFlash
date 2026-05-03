@@ -11,7 +11,7 @@ const CurrencySettings: React.FC = () => {
 
     useEffect(() => {
         const fetchCurrencies = async () => {
-            const data = await (apiService as any).getCurrencies();
+            const data = await (apiService as unknown as { getCurrencies: () => Promise<Currency[]> }).getCurrencies();
             setCurrencies(data);
             setLoading(false);
         };
@@ -24,7 +24,7 @@ const CurrencySettings: React.FC = () => {
     
     const handleSaveChanges = async () => {
       try {
-        await (apiService as any).updateCurrencies(currencies);
+        await (apiService as unknown as { updateCurrencies: (currencies: Currency[]) => Promise<void> }).updateCurrencies(currencies);
         alert("Currency settings saved!");
       } catch (error) {
         alert("Failed to save currency settings.");

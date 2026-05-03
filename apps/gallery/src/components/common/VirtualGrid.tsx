@@ -289,21 +289,18 @@ export function VirtualGrid<T>({
             return null;
         }
         
-        const GridAny = Grid as any;
         return (
             <div ref={containerRef} style={{ width: containerWidth, height: containerHeight }}>
-                <GridAny
+                <Grid<object>
+                    cellComponent={Cell as (props: { ariaAttributes: { "aria-colindex": number; role: "gridcell" }; columnIndex: number; rowIndex: number; style: React.CSSProperties }) => React.ReactElement | null}
+                    cellProps={{}}
                     columnCount={finalColumnCount}
                     columnWidth={finalColumnWidth}
-                    height={finalHeight}
                     rowCount={finalRowCount}
                     rowHeight={finalRowHeight}
-                    width={finalWidth}
-                    overscanRowCount={finalOverscanRowCount}
-                    overscanColumnCount={finalOverscanColumnCount}
-                >
-                    {Cell}
-                </GridAny>
+                    overscanCount={Math.max(finalOverscanRowCount, finalOverscanColumnCount)}
+                    style={{ height: finalHeight, width: finalWidth }}
+                />
             </div>
         );
                     } catch (error) {

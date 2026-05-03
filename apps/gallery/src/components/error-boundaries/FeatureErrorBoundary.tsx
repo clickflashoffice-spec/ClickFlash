@@ -91,15 +91,16 @@ export class FeatureErrorBoundary extends Component<Props, State> {
             onError(sanitizedError, errorInfo);
         }
 
-        // Send to error tracking in production (with sanitized data)
-        if (import.meta.env.PROD && (window as any).Sentry) {
-            (window as any).Sentry.withScope((scope: any) => {
+        // Send to error tracking in production (with sanitized data).
+        // window.Sentry is typed via src/types/globals.d.ts.
+        if (import.meta.env.PROD && window.Sentry) {
+            window.Sentry.withScope((scope) => {
                 scope.setTag('feature', feature);
                 scope.setTag('severity', severity);
                 scope.setTag('is_payment', isPaymentBoundary ? 'yes' : 'no');
                 scope.setExtra('componentStack', errorInfo.componentStack);
                 // Never send raw error for payment boundaries
-                (window as any).Sentry.captureException(sanitizedError);
+                window.Sentry?.captureException(sanitizedError);
             });
         }
     }

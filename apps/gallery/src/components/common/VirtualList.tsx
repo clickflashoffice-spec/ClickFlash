@@ -150,17 +150,15 @@ export function VirtualList<T>({
         // Explicitly pass props to avoid any spread operator issues
         // React-window internally calls Object.values() on props, so we must ensure
         // the props object itself is never undefined/null
-        const ListAny = List as any;
         return (
-            <ListAny
-                height={cleanProps.height}
-                itemCount={cleanProps.itemCount}
-                itemSize={cleanProps.itemSize}
-                width={cleanProps.width}
+            <List<object>
+                rowComponent={Row as (props: { ariaAttributes: { "aria-posinset": number; "aria-setsize": number; role: "listitem" }; index: number; style: React.CSSProperties }) => React.ReactElement | null}
+                rowProps={{}}
+                rowCount={cleanProps.itemCount}
+                rowHeight={cleanProps.itemSize}
                 overscanCount={cleanProps.overscanCount}
-            >
-                {Row}
-            </ListAny>
+                style={{ height: cleanProps.height, width: cleanProps.width }}
+            />
         );
     } catch (error) {
         console.error('Error rendering react-window List:', error);

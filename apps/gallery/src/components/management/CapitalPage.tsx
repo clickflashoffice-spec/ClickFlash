@@ -54,7 +54,7 @@ const CapitalPage: React.FC = () => {
 
     const handleSavePayment = async (newPayment: Omit<LoanPayment, 'id' | 'loanId'>) => {
         if (!selectedLoanIdForPayment) return;
-        await (apiService as any).createLoanPayment(selectedLoanIdForPayment, newPayment);
+        await (apiService as unknown as { createLoanPayment: (loanId: string, payment: Omit<LoanPayment, 'id' | 'loanId'>) => Promise<void> }).createLoanPayment(selectedLoanIdForPayment, newPayment);
         setIsPaymentModalOpen(false);
         setSelectedLoanIdForPayment(null);
         fetchData(); // Refetch all data

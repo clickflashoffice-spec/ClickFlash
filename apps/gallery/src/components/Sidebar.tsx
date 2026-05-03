@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ThemeToggle from "./ThemeToggle";
 import { Logo } from "./common/Logo";
 import { usePermissions } from "../hooks/usePermissions.ts";
-import { Photographer, View, DestinationFeatures } from "../types.ts";
+import { Photographer, View, DestinationFeatures, Permission } from "../types.ts";
 import { logger } from "../utils/logger.ts";
 
 interface SidebarProps {
@@ -16,7 +16,7 @@ interface SidebarProps {
   onCloseMobile?: () => void;
 }
 
-const NAV_ITEMS_CONFIG = [
+const NAV_ITEMS_CONFIG: Array<{ view: View; label: string; icon: React.ReactNode; permission: Permission }> = [
   {
     view: "Dashboard",
     label: "Dashboard",
@@ -243,7 +243,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { can } = usePermissions(currentUser);
   const visibleNavItems = NAV_ITEMS_CONFIG.filter((item) =>
-    can(item.permission as any),
+    can(item.permission),
   );
   const [logoUrl, setLogoUrl] = useState("/gallery/logo.png");
   const [deskName, setDeskName] = useState("MASTER STATION");

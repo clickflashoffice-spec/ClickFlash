@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { GoogleGenAI, Type } from "@google/genai";
 import { ShootIdea, PhotoCategory } from "../types.ts";
 
@@ -41,7 +40,8 @@ export async function generateShootIdeas(
         },
     });
     
-    return response.parsed as ShootIdea[] || [];
+    const rawText = response.text ?? '';
+    return rawText ? (JSON.parse(rawText) as ShootIdea[]) : [];
   } catch (error) {
     console.error("Error generating shoot ideas with Gemini:", error);
     return [];
@@ -75,9 +75,9 @@ export async function editImageWithAI(base64Image: string, mimeType: string, pro
         if (candidate?.content?.parts) {
             for (const part of candidate.content.parts) {
                 if (part.inlineData) {
-                    return { 
-                        data: part.inlineData.data, 
-                        mimeType: part.inlineData.mimeType || 'image/png' 
+                    return {
+                        data: part.inlineData.data ?? '',
+                        mimeType: part.inlineData.mimeType || 'image/png'
                     };
                 }
             }
@@ -141,7 +141,8 @@ export async function generateAlbumSuggestions(
             categories?: PhotoCategory[];
             coverPhotoIndex?: number;
         }
-        const result = response.parsed as AlbumSuggestionResult | null;
+        const rawResult = response.text ?? '';
+        const result: AlbumSuggestionResult | null = rawResult ? (JSON.parse(rawResult) as AlbumSuggestionResult) : null;
 
         // Validate index bounds
         let coverIndex = 0;

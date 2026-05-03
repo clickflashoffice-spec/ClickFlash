@@ -16,6 +16,27 @@ interface SystemStatusSettingsProps {
 
 type ScanStatus = 'idle' | 'scanning' | 'complete' | 'optimizing' | 'repaired';
 
+/**
+ * Diagnostic-only API surface. The verifyDataIntegrity / performMaintenance
+ * RPCs are exposed by the master backend's admin endpoints but are not part
+ * of the typed apiService contract used elsewhere; cast through this
+ * interface at the call site so the calls are visible at the type level.
+ *
+ * Shape mirrors what the master admin endpoint returns today (issues are
+ * preformatted strings; counts include albums/photos/orders).
+ */
+interface DiagnosticApi {
+    verifyDataIntegrity?: () => Promise<{
+        counts: { albums: number; photos: number; orders: number };
+        issues: string[];
+        storageUsageBytes: number;
+    }>;
+    performMaintenance?: () => Promise<{
+        success: boolean;
+        cleaned: number;
+    }>;
+}
+
 const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser }) => {
     const [appServerStatus, setAppServerStatus] = useState<'connected' | 'disconnected'>('disconnected');
     const [dbEngineStatus, setDbEngineStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking');
@@ -113,14 +134,14 @@ const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser
         await new Promise(r => setTimeout(r, 200));
         addLog("Allocating Virtual Memory...", 'info');
         
-        // @ts-ignore
+        // navigator.connection / mozConnection / webkitConnection typed via globals.d.ts
         const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
         if (connection) {
             addLog(`Network Interface: ${connection.effectiveType?.toUpperCase() || 'UNKNOWN'} (${connection.downlink || 0} Mbps)`, 'info');
         }
 
-        if ((performance as any).memory) {
-             const mem = (performance as any).memory;
+        if (performance.memory) {
+             const mem = performance.memory;
              const usedMB = Math.round(mem.usedJSHeapSize / 1024 / 1024);
              const limitMB = Math.round(mem.jsHeapSizeLimit / 1024 / 1024);
              addLog(`Heap Allocation: ${usedMB}MB / ${limitMB}MB`, usedMB > limitMB * 0.8 ? 'warning' : 'info');
@@ -140,7 +161,9 @@ const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser
         addLog("Checking Index Integrity...", 'info');
         
         try {
-            const report = await (apiService as any).verifyDataIntegrity();
+            const diagApi = apiService as unknown as DiagnosticApi;
+            if (!diagApi.verifyDataIntegrity) throw new Error('verifyDataIntegrity not available');
+            const report = await diagApi.verifyDataIntegrity();
             setProgress(60);
             
             addLog(`Indexed ${report.counts.albums} Albums, ${report.counts.photos} Photos`, 'info');
@@ -206,7 +229,8 @@ const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser
         addLog("Compacting Database Shards...", 'info');
         
         try {
-            const maintenance = await (apiService as any).performMaintenance();
+            const diagApi = apiService as unknown as DiagnosticApi;
+            const maintenance = diagApi.performMaintenance ? await diagApi.performMaintenance() : null;
             if (maintenance && maintenance.success) {
                 addLog(`Maintenance: Cleaned ${maintenance.cleaned} temp files.`, 'success');
                 addLog(`Database: Compacted & Saved.`, 'success');
@@ -220,8 +244,9 @@ const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser
         await new Promise(r => setTimeout(r, 500));
         addLog("Flushing Temporary Image Buffers...", 'info');
         
-        if ((window as any).gc) {
-            try { (window as any).gc(); addLog("Garbage Collection: Triggered", 'info'); } catch(e) {}
+        // window.gc is exposed only when Chromium is launched with --js-flags="--expose-gc"
+        if (window.gc) {
+            try { window.gc(); addLog("Garbage Collection: Triggered", 'info'); } catch(e) {}
         }
         
         if (scanReport?.issues.length) {

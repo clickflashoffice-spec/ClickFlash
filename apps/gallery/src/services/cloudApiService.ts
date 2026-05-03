@@ -8,6 +8,8 @@ import { apiService as localApiService } from "./apiService";
 import { Order } from "../types.ts";
 import { pb } from "./pb";
 
+type LocalStorageOrder = Order & { access_pin?: string; roomNumber?: string };
+
 export const cloudApiService = {
   /**
    * Fetches an order by credentials from the backend API.
@@ -69,8 +71,8 @@ export const cloudApiService = {
       // Fallback to Local Storage (for Demo/Offline consistency)
       try {
         const orders = await localApiService.getOrders();
-        const order = orders.find(
-          (o) => (o as any).access_pin === pin && o.email === email,
+        const order = (orders as LocalStorageOrder[]).find(
+          (o) => o.access_pin === pin && o.email === email,
         );
         return order || null;
       } catch (fallbackErr) {
@@ -179,7 +181,7 @@ export const cloudApiService = {
       // Fallback to Local Storage
       try {
         const orders = await localApiService.getOrders();
-        const order = orders.find((o) => (o as any).roomNumber === roomNumber);
+        const order = (orders as LocalStorageOrder[]).find((o) => o.roomNumber === roomNumber);
         return order || null;
       } catch (fallbackErr) {
         console.warn("[Cloud API] Local fallback also failed", fallbackErr);

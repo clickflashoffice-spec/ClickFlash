@@ -204,8 +204,8 @@ class PerformanceMonitor {
     }
 
     // Send to analytics in production
-    if (import.meta.env.PROD && (window as any).gtag) {
-      (window as any).gtag('event', 'web_vitals', {
+    if (import.meta.env.PROD && window.gtag) {
+      window.gtag('event', 'web_vitals', {
         event_category: 'Web Vitals',
         event_label: name,
         value: Math.round(value),

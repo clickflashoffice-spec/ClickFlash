@@ -85,17 +85,18 @@ const Lightbox: React.FC<LightboxProps> = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onClose, photos.length, isFullscreen, handleNext, handlePrev]);
 
-    // Fullscreen API
+    // Fullscreen API — vendor-prefixed methods are typed via src/types/globals.d.ts
     const enterFullscreen = () => {
-        if (lightboxRef.current) {
-            if (lightboxRef.current.requestFullscreen) {
-                lightboxRef.current.requestFullscreen();
-            } else if ((lightboxRef.current as any).webkitRequestFullscreen) {
-                (lightboxRef.current as any).webkitRequestFullscreen();
-            } else if ((lightboxRef.current as any).mozRequestFullScreen) {
-                (lightboxRef.current as any).mozRequestFullScreen();
-            } else if ((lightboxRef.current as any).msRequestFullscreen) {
-                (lightboxRef.current as any).msRequestFullscreen();
+        const el = lightboxRef.current;
+        if (el) {
+            if (el.requestFullscreen) {
+                el.requestFullscreen();
+            } else if (el.webkitRequestFullscreen) {
+                el.webkitRequestFullscreen();
+            } else if (el.mozRequestFullScreen) {
+                el.mozRequestFullScreen();
+            } else if (el.msRequestFullscreen) {
+                el.msRequestFullscreen();
             }
             setIsFullscreen(true);
         }
@@ -104,12 +105,12 @@ const Lightbox: React.FC<LightboxProps> = ({
     const exitFullscreen = () => {
         if (document.exitFullscreen) {
             document.exitFullscreen();
-        } else if ((document as any).webkitExitFullscreen) {
-            (document as any).webkitExitFullscreen();
-        } else if ((document as any).mozCancelFullScreen) {
-            (document as any).mozCancelFullScreen();
-        } else if ((document as any).msExitFullscreen) {
-            (document as any).msExitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
         }
         setIsFullscreen(false);
     };
@@ -117,7 +118,7 @@ const Lightbox: React.FC<LightboxProps> = ({
     // Listen for fullscreen changes
     useEffect(() => {
         const handleFullscreenChange = () => {
-            setIsFullscreen(!!(document.fullscreenElement || (document as any).webkitFullscreenElement || (document as any).mozFullScreenElement || (document as any).msFullscreenElement));
+            setIsFullscreen(!!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement));
         };
         document.addEventListener('fullscreenchange', handleFullscreenChange);
         document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
@@ -285,7 +286,8 @@ const Lightbox: React.FC<LightboxProps> = ({
 
                 {/* Main Image */}
                 <div className="relative max-w-[90vw] max-h-[85vh] flex items-center justify-center overflow-hidden" onClick={e => e.stopPropagation()}>
-                    <div className="absolute inset-0 pointer-events-none z-[1]" style={{ boxShadow: (editStyle as any).boxShadow, transform: editStyle.transform }}></div>
+                    {/* getPhotoStyle does not currently return a boxShadow; only the transform is reused here. */}
+                    <div className="absolute inset-0 pointer-events-none z-[1]" style={{ transform: editStyle.transform }}></div>
                     <img
                         src={activePhoto.url}
                         alt={activePhoto.title}

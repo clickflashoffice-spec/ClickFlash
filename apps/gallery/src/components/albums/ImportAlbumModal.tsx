@@ -110,7 +110,8 @@ const ImportAlbumModal: React.FC<ImportAlbumModalProps> = ({ isOpen, onClose, on
             return;
         }
         const firstFile = files[0]; 
-        const rootPath = (firstFile as any).webkitRelativePath?.split('/')[0] || 'Device Folder';
+        // File.webkitRelativePath is typed via src/types/globals.d.ts
+        const rootPath = firstFile.webkitRelativePath?.split('/')[0] || 'Device Folder';
         await processFiles(files, rootPath);
         if(event.target) event.target.value = '';
     };

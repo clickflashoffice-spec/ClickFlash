@@ -707,7 +707,7 @@ const initializeEcosystem = async () => {
                     logger.warn("[Startup] Cloudflare Tunnel: Failed to start - check credentials and network.");
                 }
             }).catch((err: Error) => {
-                logger.error("[Startup] Cloudflare Tunnel error:", err.message);
+                logger.error("[Startup] Cloudflare Tunnel error:", { error: err?.message ?? String(err) });
             });
         } else {
             logger.info("[Startup] Cloudflare Tunnel: Not configured (TUNNEL_ID not set).");
@@ -792,15 +792,15 @@ server.listen(PORT, "0.0.0.0", async () => {
             try {
                 await dbWriteQueue.shutdown();
                 logger.info("[Shutdown] DbWriteQueue drained.");
-            } catch (err) {
-                logger.error("[Shutdown] DbWriteQueue drain failed:", err);
+            } catch (err: any) {
+                logger.error("[Shutdown] DbWriteQueue drain failed:", { error: err?.message ?? String(err) });
             }
             // Terminate photo/ML worker pools (P8 audit fix — prevents thread leaks on exit)
             try {
                 await photoProcessor?.shutdown?.();
                 logger.info("[Shutdown] Worker pools terminated.");
-            } catch (err) {
-                logger.error("[Shutdown] Worker pool shutdown failed:", err);
+            } catch (err: any) {
+                logger.error("[Shutdown] Worker pool shutdown failed:", { error: err?.message ?? String(err) });
             }
             bonjour.unpublishAll(() => {
                 server.close(() => {

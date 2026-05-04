@@ -26,6 +26,7 @@ interface WorkerJob {
   outputDir: string;
   photoId: string;
   ext: string;
+  mimeType?: string;
   sourcePath?: string;
   destPath?: string;
   edits?: any;

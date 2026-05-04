@@ -54,8 +54,8 @@ export class InventoryService {
             if (newCount <= item.low_stock_threshold) {
                 this.logger.warn(`[Inventory] LOW STOCK ALERT: ${item.name} is at ${newCount}`);
             }
-        } catch (error) {
-            this.logger.error(`[Inventory] Failed to deduct stock for ${type}`, error);
+        } catch (error: any) {
+            this.logger.error(`[Inventory] Failed to deduct stock for ${type}`, { error: error?.message ?? String(error) });
         }
     }
 

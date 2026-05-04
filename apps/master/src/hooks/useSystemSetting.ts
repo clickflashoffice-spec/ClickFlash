@@ -4,7 +4,7 @@ import { DEFAULT_MASTER_PORT } from '../constants';
 
 // Helper to get Base URL (reused logic)
 const getBaseUrl = () => {
-    if ((window as { pb?: { baseUrl: string } }).pb?.baseUrl) return (window as { pb?: { baseUrl: string } }).pb.baseUrl;
+    if ((window as { pb?: { baseUrl: string } }).pb?.baseUrl) return (window as { pb?: { baseUrl: string } }).pb!.baseUrl;
     return `http://127.0.0.1:${DEFAULT_MASTER_PORT}`;
 };
 

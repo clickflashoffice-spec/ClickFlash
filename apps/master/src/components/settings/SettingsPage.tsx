@@ -35,7 +35,8 @@ import {
     Camera,
     Trash2,
     FileText,
-    UserCircle
+    UserCircle,
+    Lock
 } from 'lucide-react';
 
 // Lazy load settings components

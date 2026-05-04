@@ -247,8 +247,8 @@ const PhotographerDetailModal: React.FC<{
                                 <Shield className="w-5 h-5 text-cyan-500" />
                                 <h3 className="font-bold text-slate-900 dark:text-white">Security & Identity</h3>
                             </div>
-                            <FaceEnrollmentSection 
-                                userId={photographer.id} 
+                            <FaceEnrollmentSection
+                                userId={String(photographer.id)}
                                 userName={photographer.name}
                                 initialHasFace={!!photographer.faceDescriptor}
                                 onEnrollmentComplete={onRefresh}
@@ -294,7 +294,7 @@ const Photographers: React.FC<PhotographersProps> = ({ currentUser, photographer
             const orderCount = photographerOrders.length;
             const photoCount = Math.floor(totalSales / 50); // Estimated
             const earned = p.payrollType === 'Salary' 
-                ? (p.salary || 0) 
+                ? (p.monthlySalary || 0)
                 : totalSales * (p.commissionRate || 0);
             const target = p.monthlyTarget || 1;
             const progress = (totalSales / target) * 100;

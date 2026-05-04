@@ -197,7 +197,7 @@ const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser
         addLog("Health Check: PASSED", 'success');
         setProgress(15);
 
-        const backendStats = await getBackendStats();
+        const backendStats = await getBackendStats() as any;
         if (backendStats && backendStats.status === 'online') {
             addLog(`Engine Status: ONLINE [Port ${DEFAULT_MASTER_PORT}]`, 'success');
             addLog(`Latency Check: ${latency || '<1'}ms`, 'success');

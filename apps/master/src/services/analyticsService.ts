@@ -19,7 +19,7 @@ interface PerformanceMetric {
   name: string;
   value: number;
   unit: "ms" | "bytes" | "count" | "percent";
-  timestamp: number;
+  timestamp?: number;
   context?: Record<string, any>;
 }
 
@@ -82,7 +82,7 @@ class AnalyticsSession {
     this.eventQueue.push(event);
 
     if (ANALYTICS_CONFIG.debug) {
-      logger.debug("[Analytics]", eventName, properties);
+      logger.debug("[Analytics] " + eventName, properties);
     }
 
     // Flush immediately for critical events

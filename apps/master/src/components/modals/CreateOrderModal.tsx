@@ -169,7 +169,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
       // Reset form
       setClientName('');
       setEmail('');
-      setItems([]);
+      // optimisticItems resets via useOptimistic on parent re-render
       setAppliedDiscount(0);
       setPaymentMethod('Cash');
       setSelectedPhotographerId(currentUser.id);

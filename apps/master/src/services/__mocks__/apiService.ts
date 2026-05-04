@@ -41,7 +41,7 @@ export const mockAlbum: Album = {
     title: 'Test Album',
     description: 'Test album description',
     photographerId: 'user-1',
-    status: 'active',
+    status: 'Draft' as const,
     created: '2024-01-01T00:00:00Z',
     updated: '2024-01-01T00:00:00Z',
 };

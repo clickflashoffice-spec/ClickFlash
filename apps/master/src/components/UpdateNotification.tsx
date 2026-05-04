@@ -28,7 +28,7 @@ export const UpdateNotification: React.FC = () => {
 
   useEffect(() => {
     // Listen for update events from main process
-    if (window.electron?.ipcRenderer) {
+    if ((window.electron as any)?.ipcRenderer) {
       window.electron.ipcRenderer.on('updater:checking', () => {
         setStatus(prev => ({ ...prev, checking: true }));
       });
@@ -61,7 +61,7 @@ export const UpdateNotification: React.FC = () => {
   const handleCheckForUpdates = async () => {
     setStatus(prev => ({ ...prev, checking: true }));
     try {
-      await window.electron?.ipcRenderer.invoke('updater:check');
+      await (window.electron as any)?.ipcRenderer.invoke('updater:check');
     } catch (error) {
       console.error('Failed to check for updates:', error);
     }
@@ -69,14 +69,14 @@ export const UpdateNotification: React.FC = () => {
 
   const handleDownload = async () => {
     try {
-      await window.electron?.ipcRenderer.invoke('updater:download');
+      await (window.electron as any)?.ipcRenderer.invoke('updater:download');
     } catch (error) {
       console.error('Failed to download update:', error);
     }
   };
 
   const handleInstall = () => {
-    window.electron?.ipcRenderer.invoke('updater:install');
+    (window.electron as any)?.ipcRenderer.invoke('updater:install');
   };
 
   const handleDismiss = () => {

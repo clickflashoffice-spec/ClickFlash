@@ -76,7 +76,7 @@ export default function ledgerRoutes(context: LedgerContext): Router {
         try {
             const { secret } = req.body;
             if (secret !== process.env.JWT_SECRET) {
-                return sendError(res, 403, 'Forbidden', 'Invalid secret', ERROR_CODES.FORBIDDEN);
+                return sendError(res, 403, 'Forbidden', 'Invalid secret', ERROR_CODES.AUTHORIZATION_ERROR);
             }
 
             logger.info('[Ledger] Starting historical backfill...');

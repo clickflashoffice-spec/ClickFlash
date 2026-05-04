@@ -28,6 +28,7 @@ interface PhotoMetadata {
   format?: string;
   qualityScore: number;
   qualityFlags: string[];
+  orientation?: number;
 }
 
 export interface QualityResult {

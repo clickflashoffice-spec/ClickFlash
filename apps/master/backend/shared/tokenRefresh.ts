@@ -1,7 +1,7 @@
 // backend/shared/tokenRefresh.ts
 import crypto from 'crypto';
 import type { DatabaseManager } from './db';
-import type { AuditLogger } from './auditLogger';
+import type AuditLogger from './auditLogger';
 
 interface RefreshTokenData {
     userId: string | number;

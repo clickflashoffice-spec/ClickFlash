@@ -9,7 +9,7 @@ const getStripe = () => {
             console.warn('[StripeService] Warning: Using placeholder or missing STRIPE_SECRET_KEY');
         }
         stripeInstance = new Stripe(apiKey || '', {
-            apiVersion: '2024-11-20.acacia'
+            apiVersion: '2026-02-25.clover'
         });
     }
     return stripeInstance;

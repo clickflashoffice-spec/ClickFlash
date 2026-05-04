@@ -70,8 +70,8 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
     try {
       dbManager.maintenance();
       res.json({ success: true, message: "Database optimized." });
-    } catch (error) {
-      sendInternalError(res, error.message);
+    } catch (error: any) {
+      sendInternalError(res, error instanceof Error ? error : new Error(String(error)), "vacuum");
     }
   });
 
@@ -85,8 +85,8 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
         .filter(f => f.endsWith(".log"))
         .map(f => ({ name: f, size: fs.statSync(path.join(LOGS_DIR, f)).size }));
       res.json({ logs: files });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+    } catch (error: any) {
+      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -99,8 +99,8 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
       const files = fs.readdirSync(BACKUP_DIR)
         .map(f => ({ name: f, size: fs.statSync(path.join(BACKUP_DIR, f)).size }));
       res.json({ backups: files });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+    } catch (error: any) {
+      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -114,8 +114,8 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
         dbManager.exec("ANALYZE");
       });
       res.json({ success: true, message: "System indices rebuilt." });
-    } catch (error) {
-      sendInternalError(res, error.message);
+    } catch (error: any) {
+      sendInternalError(res, error instanceof Error ? error : new Error(String(error)), "rebuild");
     }
   });
 
@@ -133,8 +133,8 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
       // Better-sqlite3 clean backup
       dbManager.getDb().exec(`VACUUM INTO '${backupFile.replace(/\\/g, "/")}'`);
       res.json({ success: true, path: backupFile });
-    } catch (error) {
-      sendInternalError(res, error.message);
+    } catch (error: any) {
+      sendInternalError(res, error instanceof Error ? error : new Error(String(error)), "backup");
     }
   });
 
@@ -156,8 +156,8 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
         });
       });
       res.json({ success: true, message: "Reset complete. Restart required." });
-    } catch (error) {
-      sendInternalError(res, error.message);
+    } catch (error: any) {
+      sendInternalError(res, error instanceof Error ? error : new Error(String(error)), "reset");
     }
   });
 
@@ -224,9 +224,9 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
 
       logger.info(`[GDPR] Erasure complete for ${normalizedEmail}`, result);
       res.json({ success: true, ...result });
-    } catch (error) {
+    } catch (error: any) {
       logger.error("[GDPR] Erasure failed:", error);
-      sendInternalError(res, error.message);
+      sendInternalError(res, error instanceof Error ? error : new Error(String(error)), "erase-customer-data");
     }
   });
 

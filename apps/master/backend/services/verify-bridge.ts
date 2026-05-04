@@ -30,7 +30,7 @@ async function verifyBridge() {
     const cloudSyncService = new CloudSyncService(
         dbManager,
         logger,
-        { sendEmail: () => Promise.resolve() }, // Dummy email service
+        { setCloudConfig: () => {} } as any, // Dummy email service
         resourceMonitor
     );
 

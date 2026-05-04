@@ -13,9 +13,9 @@ async function verifyFixes() {
         console.log('1. Testing Database Connection & WAL Checkpoint...');
         dbManager.connect(MIGRATIONS_DIR);
 
-        if (typeof dbManager.checkpoint === 'function') {
+        if (typeof (dbManager as any).checkpoint === 'function') {
             console.log('[PASS] DatabaseManager.checkpoint exists');
-            dbManager.checkpoint();
+            (dbManager as any).checkpoint();
         } else {
             throw new Error('[FAIL] DatabaseManager.checkpoint missing');
         }
@@ -28,7 +28,7 @@ async function verifyFixes() {
         );
 
         // Force checkpoint (This is what we added to collections.ts)
-        dbManager.checkpoint();
+        (dbManager as any).checkpoint();
 
         // Immediate check (Simulation of a subsequent photo upload request)
         const album = dbManager.get("SELECT * FROM albums WHERE id = ?", [albumId]);

@@ -1,5 +1,5 @@
 import { DatabaseManager } from '../backend/shared/db';
-import PhotoProcessor from '../backend/shared/photoProcessor';
+import { PhotoProcessor } from '../backend/shared/photoProcessor';
 import path from 'path';
 import fs from 'fs';
 import { DATA_DIR, UPLOAD_DIR, DB_FILE } from '../backend/config/constants';
@@ -15,9 +15,9 @@ async function verifyFixes() {
         dbManager.connect(MIGRATIONS_DIR);
 
         // Verify checkpoint exists
-        if (typeof dbManager.checkpoint === 'function') {
+        if (typeof (dbManager as any).checkpoint === 'function') {
             console.log('[PASS] DatabaseManager.checkpoint exists');
-            dbManager.checkpoint();
+            (dbManager as any).checkpoint();
         } else {
             throw new Error('[FAIL] DatabaseManager.checkpoint missing');
         }
@@ -30,7 +30,7 @@ async function verifyFixes() {
         );
 
         // Force checkpoint
-        dbManager.checkpoint();
+        (dbManager as any).checkpoint();
 
         // Immediate check
         const album = dbManager.get("SELECT * FROM albums WHERE id = ?", [albumId]);

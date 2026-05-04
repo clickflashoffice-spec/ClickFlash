@@ -329,11 +329,11 @@ export class DeploymentStateMachine {
       return {
         success: true,
         locationName: context.locationName,
-        endpoints: {
-          master: `https://master.${domain}`,
-          gallery: `https://gallery.${domain}`,
-          management: `https://management.${domain}`,
-        },
+        endpoints: context.cloudflareConfig ? {
+          master: `https://master.${context.cloudflareConfig.domain}`,
+          gallery: `https://gallery.${context.cloudflareConfig.domain}`,
+          management: `https://management.${context.cloudflareConfig.domain}`,
+        } : undefined,
         tunnelId: this.db.get<{ value: string }>(`SELECT value FROM settings WHERE id = 'cloudflare_tunnel'`) 
           ? JSON.parse(this.db.get<{ value: string }>(`SELECT value FROM settings WHERE id = 'cloudflare_tunnel'`)?.value || '{}').tunnelId 
           : undefined,

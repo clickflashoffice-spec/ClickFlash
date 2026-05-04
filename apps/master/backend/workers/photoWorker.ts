@@ -21,7 +21,7 @@ sharp.cache(false);
 // Thread started
 
 interface WorkerJob {
-  type?: "process" | "apply-edits" | "watermark";
+  type?: "process" | "apply-edits" | "watermark" | "ping";
   filepath: string;
   outputDir: string;
   photoId: string;
@@ -369,19 +369,19 @@ async function applyRetouchActions(
     const actualPatchSize = Math.min(patchSize, width - sx, height - sy);
     if (actualPatchSize <= 0) continue;
 
-    const patch = await sharp(currentBuffer).extract({ left: sx, top: sy, width: actualPatchSize, height: actualPatchSize }).toBuffer();
+    const patch: Buffer = await sharp(currentBuffer!).extract({ left: sx, top: sy, width: actualPatchSize, height: actualPatchSize }).toBuffer();
     const mask = Buffer.from(`<svg width="${actualPatchSize}" height="${actualPatchSize}"><defs><radialGradient id="feather" cx="50%" cy="50%" r="50%"><stop offset="60%" style="stop-color:white;stop-opacity:1" /><stop offset="100%" style="stop-color:white;stop-opacity:0" /></radialGradient></defs><circle cx="${actualPatchSize / 2}" cy="${actualPatchSize / 2}" r="${actualPatchSize / 2}" fill="url(#feather)" /></svg>`);
 
-    const featheredPatch = await sharp(patch).composite([{ input: mask, blend: "dest-in" }]).toBuffer();
+    const featheredPatch: Buffer = await sharp(patch).composite([{ input: mask, blend: "dest-in" }]).toBuffer();
 
     const tx = Math.max(0, Math.min(width - actualPatchSize, Math.round(safeX - safeRadius)));
     const ty = Math.max(0, Math.min(height - actualPatchSize, Math.round(safeY - safeRadius)));
 
-    const nextBuffer = await sharp(currentBuffer).composite([{ input: featheredPatch, left: tx, top: ty }]).toBuffer();
+    const nextBuffer: Buffer = await sharp(currentBuffer!).composite([{ input: featheredPatch, left: tx, top: ty }]).toBuffer();
     currentBuffer = nextBuffer;
   }
 
-  return sharp(currentBuffer);
+  return sharp(currentBuffer!);
 }
 
 async function handleWatermarkJob(job: WorkerJob) {

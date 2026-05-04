@@ -1,4 +1,4 @@
-
+export {};
 const { parentPort } = require('worker_threads');
 const sharp = require('sharp');
 const fs = require('fs');

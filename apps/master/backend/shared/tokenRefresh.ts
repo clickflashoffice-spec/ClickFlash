@@ -59,8 +59,8 @@ export function revokeUserRefreshTokens(userId: string | number): void {
  */
 export class TokenRefreshService {
     constructor(
-        private readonly dbManager: DatabaseManager,
-        private readonly auditLogger: AuditLogger
+        private readonly _dbManager: DatabaseManager,
+        private readonly _auditLogger: AuditLogger
     ) {}
 
     generate(userId: string | number, expiresInDays?: number): string {

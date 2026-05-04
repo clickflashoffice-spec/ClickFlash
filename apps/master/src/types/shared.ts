@@ -386,18 +386,20 @@ export interface Expense extends BaseRecord {
   photographerId?: string;
 }
 
+export interface LoanPayment {
+  id: string;
+  loanId: string;
+  date: string;
+  amount: number;
+}
+
 export interface Loan extends BaseRecord {
   date: string;
   source: string;
   amount: number;
   interestRate: number;
   status: "Active" | "Paid Off";
-  payments: Array<{
-    id: string;
-    loanId: string;
-    date: string;
-    amount: number;
-  }>;
+  payments: LoanPayment[];
 }
 
 export interface Adjustment extends BaseRecord {

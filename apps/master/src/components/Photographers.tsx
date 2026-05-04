@@ -250,7 +250,7 @@ const PhotographerDetailModal: React.FC<{
                             <FaceEnrollmentSection
                                 userId={String(photographer.id)}
                                 userName={photographer.name}
-                                initialHasFace={!!photographer.faceDescriptor}
+                                hasFaceRegistered={!!photographer.faceDescriptor}
                                 onEnrollmentComplete={onRefresh}
                             />
                         </div>

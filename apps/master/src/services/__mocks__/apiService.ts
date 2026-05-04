@@ -39,7 +39,6 @@ export const mockPhotos: Photo[] = [
 export const mockAlbum: Album = {
     id: 'album-1',
     title: 'Test Album',
-    description: 'Test album description',
     photographerId: 'user-1',
     status: 'Draft' as const,
     created: '2024-01-01T00:00:00Z',

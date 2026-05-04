@@ -30,7 +30,7 @@ describe('albumService', () => {
             const albums = await albumService.getAlbums();
 
             expect(albums).toHaveLength(1);
-            expect(albums[0].name).toBe('Album 1');
+            expect((albums[0] as any).name).toBe('Album 1');
         });
 
         it('should return empty array on error', async () => {
@@ -64,7 +64,7 @@ describe('albumService', () => {
             const album = await albumService.getAlbum('a1');
 
             expect(album).toBeDefined();
-            expect(album?.name).toBe('Album 1');
+            expect((album as any)?.name).toBe('Album 1');
         });
     });
 
@@ -73,9 +73,9 @@ describe('albumService', () => {
             const newAlbum = { name: 'New Album' };
             mockCollection.create.mockResolvedValue({ id: 'a2', ...newAlbum });
 
-            const created = await albumService.createAlbum(newAlbum);
+            const created = await albumService.createAlbum(newAlbum as any);
 
-            expect(created.name).toBe('New Album');
+            expect((created as any).name).toBe('New Album');
         });
     });
 
@@ -84,10 +84,10 @@ describe('albumService', () => {
             const updates = { name: 'Updated Album' };
             mockCollection.update.mockResolvedValue({ id: 'a1', ...updates });
 
-            const result = await albumService.updateAlbum('a1', updates);
+            const result = await albumService.updateAlbum('a1', updates as any);
 
             expect(result.success).toBe(true);
-            expect(result.album?.name).toBe('Updated Album');
+            expect((result.album as any)?.name).toBe('Updated Album');
         });
     });
 

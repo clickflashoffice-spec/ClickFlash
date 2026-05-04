@@ -196,7 +196,7 @@ export default class MoneyTrashService {
                 try {
                     // Physical Deletion
                     // Construct full path. url is relative like "albumId/archived/filename.jpg"
-                    const fullPath = path.join(this.dbManager.getUploadDir ? this.dbManager.getUploadDir() : path.join(DATA_DIR, 'uploads'), file.url);
+                    const fullPath = path.join((this.dbManager as any).getUploadDir ? (this.dbManager as any).getUploadDir() : path.join(DATA_DIR, 'uploads'), file.url);
 
                     // We need to be careful about constructing the path. 
                     // Assuming standard upload dir structure.

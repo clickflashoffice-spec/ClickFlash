@@ -63,6 +63,7 @@ export interface User extends BaseRecord {
   workingHours?: WorkingHours;
   password?: string;
   faceDescriptor?: string;
+  disabled?: boolean;
 }
 
 export type Photographer = User;

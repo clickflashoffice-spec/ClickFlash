@@ -9,7 +9,7 @@ export class OrderIntegrity {
   public static calculateChecksum(order: Partial<Order>): string {
     const items = order.items || [];
     const itemsString = items
-      .map((item: OrderItem) => `${item.photoId || item.id}-${item.quantity}-${item.price}`)
+      .map((item: OrderItem) => `${(item as any).photoId || item.id}-${item.quantity}-${item.price}`)
       .sort()
       .join('|');
 
@@ -29,8 +29,8 @@ export class OrderIntegrity {
    * Verifies an order's checksum.
    */
   public static verify(order: Order): boolean {
-    if (!order.checksum) return false;
+    if (!(order as any).checksum) return false;
     const computed = this.calculateChecksum(order);
-    return computed === order.checksum;
+    return computed === (order as any).checksum;
   }
 }

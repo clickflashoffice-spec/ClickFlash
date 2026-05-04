@@ -8,7 +8,7 @@ export interface ProvisioningContext {
   locationName: string;
   adminEmail: string;
   adminPassword: string;
-  provisioningSecret: string;
+  provisioningSecret?: string;
   cloudflareConfig?: CloudflareAppsConfig;
   hubUrl?: string;
   webhookUrl?: string;

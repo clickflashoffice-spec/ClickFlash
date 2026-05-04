@@ -8,6 +8,7 @@ interface UseAIEditorProps {
   refresh: () => Promise<void>;
   showToast: (message: string) => void;
   updateEdit: (updates: Partial<ManualEdits>) => void;
+  batchUpdateEdits?: (photoIds: string[], edits: Partial<ManualEdits>) => void;
 }
 
 export function useAIEditor({
@@ -15,6 +16,7 @@ export function useAIEditor({
   refresh,
   showToast,
   updateEdit,
+  batchUpdateEdits,
 }: UseAIEditorProps) {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -58,29 +60,44 @@ export function useAIEditor({
   }, [albumId, refresh, showToast]);
 
   const handleAutoEnhance = useCallback(
-    async (activePhoto: Photo | null) => {
-      if (!activePhoto) return;
+    async (activePhotoOrPhotos: Photo | Photo[] | null) => {
+      if (!activePhotoOrPhotos) return;
 
-      setIsEnhancing(true);
-      showToast("Enhancing photo...");
-
-      // Simulate AI processing delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Apply auto-enhance edits - simplified algorithm for now
-      updateEdit({
+      const enhanceEdits: Partial<ManualEdits> = {
         exposure: 10,
         contrast: 15,
         highlights: -20,
         shadows: 20,
         vibrance: 10,
         sharpen: 20,
-      });
+      };
 
+      setIsEnhancing(true);
+
+      // Batch mode: array of photos
+      if (Array.isArray(activePhotoOrPhotos)) {
+        const photos = activePhotoOrPhotos;
+        if (photos.length === 0) { setIsEnhancing(false); return; }
+        showToast("Enhancing photos...");
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        if (batchUpdateEdits) {
+          batchUpdateEdits(photos.map(p => p.id), enhanceEdits);
+        } else {
+          updateEdit(enhanceEdits);
+        }
+        setIsEnhancing(false);
+        showToast(`${photos.length} photos enhanced!`);
+        return;
+      }
+
+      // Single photo mode
+      showToast("Enhancing photo...");
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      updateEdit(enhanceEdits);
       setIsEnhancing(false);
       showToast("Photo enhanced!");
     },
-    [updateEdit, showToast],
+    [updateEdit, batchUpdateEdits, showToast],
   );
 
   // Memoize handlers to prevent cascading re-renders

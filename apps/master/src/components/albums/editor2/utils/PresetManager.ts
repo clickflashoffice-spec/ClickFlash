@@ -27,7 +27,7 @@ export class PresetManager {
 
     static async getPresets(): Promise<Preset[]> {
         try {
-            const records = await apiService.getRecords(this.COLLECTION) as RawPresetRecord[];
+            const records = await (apiService as any).getRecords(this.COLLECTION) as RawPresetRecord[];
             return (records || []).reduce<Preset[]>((acc, r) => {
                 try {
                     const adjustments = typeof r.adjustments === 'string' ? JSON.parse(r.adjustments) as ManualEdits : r.adjustments;
@@ -61,7 +61,7 @@ export class PresetManager {
                 adjustments: JSON.stringify(preset.adjustments)
             };
 
-            const saved = await apiService.createRecord(this.COLLECTION, record);
+            const saved = await (apiService as any).createRecord(this.COLLECTION, record);
             if (!saved) return null;
 
             return {
@@ -78,7 +78,7 @@ export class PresetManager {
 
     static async deletePreset(id: string): Promise<boolean> {
         try {
-            return await apiService.deleteRecord(this.COLLECTION, id);
+            return await (apiService as any).deleteRecord(this.COLLECTION, id);
         } catch (error) {
             console.error('Failed to delete preset:', error);
             return false;

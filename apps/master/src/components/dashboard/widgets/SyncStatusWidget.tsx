@@ -29,7 +29,7 @@ const SyncStatusWidget: React.FC = () => {
             });
         };
 
-        webSocketService.subscribe('KIOSK_STATUS_UPDATE', handleKioskUpdate);
+        webSocketService.subscribe('KIOSK_STATUS_UPDATE', handleKioskUpdate as (data: unknown) => void);
 
         // Polling for general connection stats
         const interval = setInterval(() => {
@@ -41,7 +41,7 @@ const SyncStatusWidget: React.FC = () => {
         }, 5000);
 
         return () => {
-            webSocketService.unsubscribe('KIOSK_STATUS_UPDATE', handleKioskUpdate);
+            webSocketService.unsubscribe('KIOSK_STATUS_UPDATE', handleKioskUpdate as (data: unknown) => void);
             clearInterval(interval);
         };
     }, []);

@@ -58,9 +58,10 @@ export function revokeUserRefreshTokens(userId: string | number): void {
  * Accepts dbManager and auditLogger for future DB-backed persistence.
  */
 export class TokenRefreshService {
+    // Reserved for future DB-backed persistence migration
     constructor(
-        private readonly _dbManager: DatabaseManager,
-        private readonly _auditLogger: AuditLogger
+        _dbManager: DatabaseManager,
+        _auditLogger: AuditLogger
     ) {}
 
     generate(userId: string | number, expiresInDays?: number): string {

@@ -210,7 +210,7 @@ export class BootstrapService {
             return;
         }
 
-        const machineId = await HardwareService.getMachineId((this.db as any).getRawDb());
+        const machineId = await HardwareService.getMachineId();
         this.logger.info('[Bootstrap] Initiating resilient Auto-ZTP handshake', { machineId });
 
         let attempt = 0;

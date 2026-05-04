@@ -52,6 +52,7 @@ interface EmailService {
 interface OutgoingOperation {
   id: string;
   type: string;
+  table?: string;
   table_name?: string;
   record_id?: string;
   payload?: unknown;
@@ -229,7 +230,7 @@ export class CloudSyncService {
         this.cloudPassword &&
         this.cloudApiUrl
       );
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.debug(`[CloudSync] Enrollment Check Failed: ${getErrorMessage(e)}`);
       this.enabled = false;
     }
@@ -345,7 +346,7 @@ export class CloudSyncService {
           "SELECT value FROM settings WHERE key = 'remote_settings_hash'",
         );
         if (row?.value) lastHash = row.value;
-      } catch (e: unknown) {
+      } catch (e: any) {
         this.logger.debug(`[CloudSync] remote_settings_hash not found: ${getErrorMessage(e)}`);
       }
 
@@ -379,7 +380,7 @@ export class CloudSyncService {
              ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
             [setting.id, setting.value],
           );
-        } catch (e: unknown) {
+        } catch (e: any) {
           this.logger.warn("[CloudSync] Failed to apply remote setting", {
             key: setting.id,
             error: e.message,
@@ -397,7 +398,7 @@ export class CloudSyncService {
       this.logger.info("[CloudSync] Remote settings applied successfully", {
         hash: data.hash,
       });
-    } catch (e: unknown) {
+    } catch (e: any) {
       // Silently swallow — Hub may be unreachable during offline operation (Law 01)
     }
   }
@@ -461,8 +462,8 @@ export class CloudSyncService {
           `[CloudSync] Reset ${resetResult.changes} stuck operations to pending`,
         );
       }
-    } catch (err) {
-      this.logger.warn('[CloudSync] Queue hydration failed:', err);
+    } catch (err: any) {
+      this.logger.warn('[CloudSync] Queue hydration failed:', { error: err?.message ?? String(err) });
     }
   }
 
@@ -543,7 +544,7 @@ export class CloudSyncService {
         this.token = null;
         this._isConnected = false;
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Auth Error: ${getErrorMessage(e)}`);
       this.token = null;
       this._isConnected = false;
@@ -610,7 +611,7 @@ export class CloudSyncService {
         this.circuitState = 'CLOSED';
         this.circuitOpenedAt = null;
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Sync Cycle Error: ${getErrorMessage(e)} `);
       this.consecutiveFailures++;
       this.currentInterval = Math.min(
@@ -710,7 +711,7 @@ export class CloudSyncService {
         this.handleFailedOperations(ops.map((op: OperationLogRow) => op.id), `HTTP ${res.status}: ${txt}`);
         throw new Error(`Sync failed: ${res.status}`);
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Operations Sync Error: ${getErrorMessage(e)}`);
       throw e;
     }
@@ -732,7 +733,7 @@ export class CloudSyncService {
           }
         });
         this.logger.warn(`[CloudSync] Logged failure for ${ids.length} operations.`, { error });
-    } catch (e: unknown) {
+    } catch (e: any) {
         this.logger.error(`[CloudSync] Fatal error updating DLQ: ${getErrorMessage(e)}`);
     }
   }
@@ -801,7 +802,7 @@ export class CloudSyncService {
           `[CloudSync] Successfully synced ${entries.length} ledger entries to Hub.`,
         );
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Ledger Sync Error: ${getErrorMessage(e)}`);
     }
   }
@@ -897,7 +898,7 @@ export class CloudSyncService {
         );
         return { pushed: 0, date };
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Analytics Sync Error: ${getErrorMessage(e)}`);
       return { pushed: 0, date };
     }
@@ -942,7 +943,7 @@ export class CloudSyncService {
           }
         });
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Expense Sync Error: ${getErrorMessage(e)}`);
     }
   }
@@ -1021,7 +1022,7 @@ export class CloudSyncService {
         const txt = await res.text();
         this.logger.error(`[CloudSync] Inventory Sync Failed: ${txt}`);
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Inventory Sync Error: ${getErrorMessage(e)}`);
     }
   }
@@ -1120,7 +1121,7 @@ export class CloudSyncService {
           `[CloudSync] Heartbeat failed: ${res.status} - ${txt}`,
         );
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Heartbeat Error: ${getErrorMessage(e)}`);
     }
   }
@@ -1160,7 +1161,7 @@ export class CloudSyncService {
         );
         await this.applyRemoteOperations(remoteOps);
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Pull Operations Error: ${getErrorMessage(e)}`);
     }
   }
@@ -1217,7 +1218,7 @@ export class CloudSyncService {
       this.logger.info(
         `[CloudSync] Applied ${data.settings.length} global settings (hash: ${data.hash.substring(0, 8)}...).`,
       );
-    } catch (e: unknown) {
+    } catch (e: any) {
       const msg = getErrorMessage(e);
       if (!msg.includes("404")) {
         this.logger.warn(`[CloudSync] Pull Settings: ${msg}`);
@@ -1249,7 +1250,7 @@ export class CloudSyncService {
         // Industrial Hardening: Prevent Infinite Loop / Self-Sync
         if (siteId === this.deskId) {
           this.logger.debug(`[CloudSync] Deduplicated self-operation ${op.id} from local desk_id`);
-          lastInBatchIdx = op.hub_index;
+          lastInBatchIdx = op.hub_index ?? 0;
           continue;
         }
 
@@ -1258,11 +1259,11 @@ export class CloudSyncService {
           [siteId],
         );
 
-        if (localSiteSeq && op.sequence_number <= localSiteSeq.counter) {
+        if (localSiteSeq && (op.sequence_number ?? 0) <= localSiteSeq.counter) {
           this.logger.debug(
             `[CloudSync] Skipping already seen operation ${op.id} from ${siteId} (Seq: ${op.sequence_number})`,
           );
-          lastInBatchIdx = op.hub_index;
+          lastInBatchIdx = op.hub_index ?? 0;
           continue;
         }
 
@@ -1315,8 +1316,8 @@ export class CloudSyncService {
           );
         });
 
-        lastInBatchIdx = op.hub_index;
-      } catch (err: unknown) {
+        lastInBatchIdx = op.hub_index ?? 0;
+      } catch (err: any) {
         const errMsg = getErrorMessage(err);
         this.logger.error(
           `[CloudSync] Failed to apply remote operation ${op.id}: ${errMsg}`,
@@ -1398,7 +1399,7 @@ export class CloudSyncService {
           }
         });
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Retention Batch Error: ${getErrorMessage(e)} `);
     }
   }
@@ -1474,7 +1475,7 @@ export class CloudSyncService {
         total: pendingCount + syncedCount,
         recentPending: recentPending || [],
       };
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Failed to get ledger stats: ${getErrorMessage(e)}`);
       return { error: "Failed to fetch ledger stats" };
     }
@@ -1509,7 +1510,7 @@ export class CloudSyncService {
         total: pendingCount + syncedCount,
         recentPending: recentPending || [],
       };
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(
         `[CloudSync] Failed to get expenses stats: ${getErrorMessage(e)}`,
       );
@@ -1546,7 +1547,7 @@ export class CloudSyncService {
         total: pendingCount + syncedCount,
         lowStock: lowStock || [],
       };
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(
         `[CloudSync] Failed to get inventory stats: ${getErrorMessage(e)}`,
       );
@@ -1663,7 +1664,7 @@ export class CloudSyncService {
             [item.asset_id],
           );
         });
-      } catch (e: unknown) {
+      } catch (e: any) {
         this.logger.error(
           `[CloudSync] Failed to process retention asset ${item.asset_id}: ${getErrorMessage(e)}`,
         );
@@ -1715,7 +1716,7 @@ export class CloudSyncService {
           `[CloudSync] Synced retention stats: ${payload.retention_queue_size} items, €${payload.retention_potential_value}`,
         );
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       // Don't log error if collection doesn't exist yet (404), maybe just debug
       if (e.message && e.message.includes("404")) {
         this.logger.debug(
@@ -1907,7 +1908,7 @@ export class CloudSyncService {
               [txt, order.id],
             );
           }
-        } catch (e: unknown) {
+        } catch (e: any) {
           const duration = Date.now() - orderStartTime;
           
           // Log audit: ORDER_SYNC_FAILED
@@ -1929,7 +1930,7 @@ export class CloudSyncService {
           );
         }
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] syncOrdersToGallery error: ${getErrorMessage(e)}`);
     }
   }
@@ -2015,7 +2016,7 @@ export class CloudSyncService {
           this.logger.debug(
             `[CloudSync] Chunk ${i + 1}/${totalChunks} uploaded for ${assetId}`,
           );
-        } catch (err: unknown) {
+        } catch (err: any) {
           const errMsg = getErrorMessage(err);
           chunkRetries++;
           this.logger.warn(
@@ -2091,7 +2092,7 @@ export class CloudSyncService {
       } else {
         this.logger.info(`[CloudSync] Retention Asset Uploaded: ${assetId}`);
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Retention Error: ${getErrorMessage(e)}`);
       throw e;
     }
@@ -2119,7 +2120,7 @@ export class CloudSyncService {
       this.logger.info(
         `[CloudSync] Order ${orderId} status updated to: ${status}`,
       );
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(
         `[CloudSync] Failed to update order status: ${getErrorMessage(e)}`,
       );
@@ -2178,7 +2179,7 @@ export class CloudSyncService {
         const txt = await res.text();
         this.logger.error(`[CloudSync] Resort BI Sync Failed: ${txt}`);
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Resort BI Sync Error: ${getErrorMessage(e)}`);
     }
   }
@@ -2211,7 +2212,7 @@ export class CloudSyncService {
       }, { maxRetries: 2 });
       
       this.logger.info(`[CloudSync] Yield intelligence synced successfully.`);
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Yield Sync Error: ${getErrorMessage(e)}`);
     }
   }
@@ -2246,7 +2247,7 @@ export class CloudSyncService {
         });
         this.logger.info(`[CloudSync] CRM leads synced successfully (${leads.length}).`);
       }
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] CRM Sync Error: ${getErrorMessage(e)}`);
     }
   }
@@ -2275,7 +2276,7 @@ export class CloudSyncService {
         headers: await this.getHeaders(),
         body: JSON.stringify(payload)
       });
-    } catch (e: unknown) {
+    } catch (e: any) {
       this.logger.error(`[CloudSync] Fleet Triage Error: ${getErrorMessage(e)}`);
     }
   }

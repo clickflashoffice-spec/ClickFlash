@@ -40,6 +40,7 @@ interface FileUpload {
   filepath: string;
   originalFilename?: string;
   newFilename?: string;
+  mimetype?: string;
 }
 
 export class PhotoProcessor {

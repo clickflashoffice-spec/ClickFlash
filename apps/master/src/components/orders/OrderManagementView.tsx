@@ -88,7 +88,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({ order, onBack
 
     // Rule 1.1d: Print single item via Backend API (High-Res)
     const handlePrint = useCallback(async (item: OrderItem) => {
-        const photoId = item.photoId || (item.photo && item.photo.id);
+        const photoId = (item as any).photoId || (item.photo && item.photo.id);
         if (!photoId) {
             showToast('Cannot print: Missing photo ID');
             return;

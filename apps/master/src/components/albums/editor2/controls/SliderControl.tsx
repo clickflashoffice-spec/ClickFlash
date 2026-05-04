@@ -4,8 +4,8 @@ import { useDebounce } from "../../../../hooks/useDebounce";
 export interface SliderControlProps {
   label: string;
   value: number;
-  min: number;
-  max: number;
+  min?: number;
+  max?: number;
   onChange: (value: number) => void;
   disabled?: boolean;
   step?: number;
@@ -21,8 +21,8 @@ export interface SliderControlProps {
 export const SliderControl: React.FC<SliderControlProps> = ({
   label,
   value,
-  min,
-  max,
+  min = -100,
+  max = 100,
   onChange,
   disabled = false,
   step = 1,

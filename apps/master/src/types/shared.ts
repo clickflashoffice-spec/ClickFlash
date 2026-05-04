@@ -433,6 +433,8 @@ export interface TouchKiosk extends BaseRecord {
   settings?: Record<string, unknown>;
   ipAddress?: string;
   version?: string;
+  uploadFolderPath?: string;
+  ordersFolderPath?: string;
 }
 
 export interface AssistanceRequest {

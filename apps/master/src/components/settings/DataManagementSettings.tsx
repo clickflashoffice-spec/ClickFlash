@@ -56,7 +56,7 @@ const DataManagementSettings: React.FC = () => {
         apiService.getSetting("retention_days_audit"),
         apiService.getSetting("retention_cloud_sync_required"),
         apiService.getSetting("retention_fulfillment_lock"),
-        apiService.get("/retention/stats")
+        (apiService as any).get("/retention/stats")
       ]);
 
       setRetentionSettings({
@@ -103,7 +103,7 @@ const DataManagementSettings: React.FC = () => {
     
     setScrubbing(true);
     try {
-      await apiService.post("/recycler/scrub", {});
+      await (apiService as any).post("/recycler/scrub", {});
       alert("Industrial scrub cycle completed successfully.");
       fetchData();
     } catch (err) {
@@ -116,7 +116,7 @@ const DataManagementSettings: React.FC = () => {
   const handlePruneSessions = async () => {
     if (!confirm("This will delete kiosk sessions older than 24 hours. Continue?")) return;
     try {
-      const res = await apiService.post("/system/prune-sessions", { hours: 24 });
+      const res = await (apiService as any).post("/system/prune-sessions", { hours: 24 });
       alert(res.message || "Sessions pruned.");
     } catch (e: any) {
       alert("Failed to prune sessions: " + e.message);

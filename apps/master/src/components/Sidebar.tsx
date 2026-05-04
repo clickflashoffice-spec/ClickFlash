@@ -259,7 +259,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleCollapse,
 }) => {
   const { can } = usePermissions(currentUser);
-  const { isDndMode, setIsDndMode } = useSync();
+  const { isDndMode: _isDndMode, setIsDndMode: _setIsDndMode } = useSync();
   const visibleNavItems = NAV_ITEMS_CONFIG.filter((item) =>
     can(item.permission as any),
   );

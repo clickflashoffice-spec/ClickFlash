@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
+// @ts-ignore — archiver has no @types package; treat as any
 import archiver from "archiver";
 import { DatabaseManager } from "../shared/db";
 import { Logger } from "../shared/logger";

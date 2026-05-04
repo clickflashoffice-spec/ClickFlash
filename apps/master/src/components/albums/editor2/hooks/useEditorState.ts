@@ -6,6 +6,25 @@ import { ZoomPanState } from "./useZoomPan";
 const MAX_HISTORY = 50;
 
 /**
+ * Evicts history entries for non-visible, non-active photos to free memory.
+ * Keeps the active photo and visibleIds photos; removes all others.
+ */
+function evictLRUHistories(
+  histories: Record<string, { past: ManualEdits[]; future: ManualEdits[] }>,
+  activePhotoId: string,
+  visibleIds: Set<string>,
+  _maxHistory: number,
+): Record<string, { past: ManualEdits[]; future: ManualEdits[] }> {
+  const result = { ...histories };
+  for (const photoId of Object.keys(result)) {
+    if (photoId !== activePhotoId && !visibleIds.has(photoId)) {
+      delete result[photoId];
+    }
+  }
+  return result;
+}
+
+/**
  * Returns the per-photo history depth appropriate for the current album size.
  * Keeps memory bounded: 200 photos × 20 entries × ~30 fields ≈ manageable RAM.
  */

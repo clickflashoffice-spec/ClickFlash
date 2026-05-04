@@ -239,7 +239,7 @@ export default function authRoutes(context: AppContext) {
         res.status(401).json({ success: false, error: "Incorrect password" });
         return;
       }
-      auditLogger.log("security", "settings_access_granted", { userId: user.id, email: user.email });
+      auditLogger.logSecurityEvent("SETTINGS_ACCESS_GRANTED", { userId: user.id, email: user.email });
       res.json({ success: true });
     } catch (e) {
       sendInternalError(res, e as Error, "verify-pin");
@@ -325,7 +325,7 @@ export default function authRoutes(context: AppContext) {
         return;
       }
 
-      if (user.role === "admin") {
+      if (user.role === "Admin") {
         sendValidationError(res, "Admin accounts cannot be deleted via self-service");
         return;
       }
@@ -339,10 +339,11 @@ export default function authRoutes(context: AppContext) {
         dbManager.run("DELETE FROM users WHERE id = ?", [userId]);
       });
 
-      auditLogger.log({
+      auditLogger.logSecurityEvent("USER_ACCOUNT_DELETION", {
         action: "USER_ACCOUNT_DELETION",
         details: `User account ${user.email} deleted by user (self-service)`,
         userId: userId,
+        email: user.email,
       });
 
       if (req.session) {

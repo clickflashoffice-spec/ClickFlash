@@ -86,7 +86,7 @@ export default function operationsRoutes(context: OperationsContext): Router {
    */
   router.post("/orders/:orderId/open-folder", (req: Request, res: Response) => {
     try {
-      const { orderId } = req.params;
+      const orderId = String(req.params.orderId);
 
       // SECURITY: Validate orderId to prevent path traversal
       if (!orderId || /[\/\\]|\.\./.test(orderId)) {

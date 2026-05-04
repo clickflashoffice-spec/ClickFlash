@@ -86,7 +86,7 @@ class AIBatchStressTest {
      * Monitor memory usage during batch processing
      */
     async monitorMemoryUsage(durationMs = 5000): Promise<MemoryStats> {
-        logger.info('[StressTest] Monitoring memory for', durationMs, 'ms');
+        logger.info(`[StressTest] Monitoring memory for ${durationMs}ms`);
 
         const samples: MemoryStats[] = [];
         const startTime = Date.now();

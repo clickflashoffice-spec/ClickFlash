@@ -111,8 +111,8 @@ class DataVersionManager {
         records.forEach((r: DataVersionRecord) => {
           if (r.collection === "global") {
             versions.global = r.version;
-          } else if ((versions as Record<string, unknown>)[r.collection]) {
-            (versions as Record<string, unknown>)[r.collection] = {
+          } else if ((versions as unknown as Record<string, unknown>)[r.collection]) {
+            (versions as unknown as Record<string, unknown>)[r.collection] = {
               collection: r.collection,
               version: r.version,
               lastUpdated: new Date(r.lastUpdated).toISOString(),
@@ -140,7 +140,7 @@ class DataVersionManager {
   }
 
   private async persistToDexie(versions: DataVersions) {
-    const records: DataVersionRecord[] = Object.keys(versions)
+    const records = (Object.keys(versions)
       .map((key) => {
         if (key === "global") {
           return {
@@ -150,7 +150,7 @@ class DataVersionManager {
           };
         }
         if (key === "lastUpdated") return null;
-        const v = (versions as Record<string, unknown>)[
+        const v = (versions as unknown as Record<string, unknown>)[
           key
         ] as CollectionVersion;
         if (!v || !v.collection) return null;
@@ -160,7 +160,7 @@ class DataVersionManager {
           lastUpdated: new Date(v.lastUpdated).getTime(),
         };
       })
-      .filter((r): r is DataVersionRecord => r !== null);
+      .filter((r) => r !== null)) as DataVersionRecord[];
 
     await db.table("dataVersions").bulkPut(records);
   }

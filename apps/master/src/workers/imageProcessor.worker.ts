@@ -15,7 +15,7 @@
 import { logger } from '../utils/logger';
 
 // Worker context type
-declare const self: DedicatedWorkerGlobalScope;
+declare const self: Worker & typeof globalThis;
 
 /**
  * Message types for worker communication
@@ -571,7 +571,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
             processingTime: performance.now() - startTime,
         };
         
-        self.postMessage(response, result instanceof ArrayBuffer ? [result] : undefined);
+        (self as any).postMessage(response, result instanceof ArrayBuffer ? [result] : undefined);
         
     } catch (error) {
         const response: WorkerResponse = {

@@ -6,7 +6,11 @@
  */
 
 import { logger } from '@/utils/logger';
-import { db } from './db';
+import { db as _dexieDb } from './db';
+
+// This file uses SQLite methods; at runtime it targets the backend db adapter via alias
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = _dexieDb as any;
 
 export interface ConcurrencyConfig {
     maxRetries: number;

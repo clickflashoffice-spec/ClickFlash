@@ -281,7 +281,7 @@ export const photoService = {
                 }
             }
 
-            const record = await pb.collection('photos').update(id, photoData);
+            const record = await pb.collection('photos').update(id, photoData as any);
             const baseUrl = pb.baseUrlValue;
 
             // Use our standard transform for consistency in return value
@@ -347,7 +347,7 @@ export const photoService = {
 
         try {
             // Single PATCH /api/collections/photos/records/batch — one DB transaction.
-            const response = await pb.send('/api/collections/photos/records/batch', {
+            const response = await (pb as any).send('/api/collections/photos/records/batch', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ items }),

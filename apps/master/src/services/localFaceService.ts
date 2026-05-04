@@ -106,7 +106,7 @@ class LocalFaceService {
                 return null;
             }
 
-            const detection = await this.faceapi!.detectSingleFace(image)
+            const detection = await this.faceapi!.detectSingleFace(image as any)
                 .withFaceLandmarks()
                 .withFaceDescriptor();
 
@@ -176,7 +176,7 @@ class LocalFaceService {
                     continue;
                 }
 
-                const distance = this.faceapi!.matchFaceDistance(
+                const distance = (this.faceapi as any).matchFaceDistance(
                     currentDescriptor.descriptor,
                     stored.descriptor
                 );
@@ -293,7 +293,7 @@ class LocalFaceService {
             throw new Error('Video is not playing');
         }
 
-        return this.getFaceDescriptor(video);
+        return this.getFaceDescriptor(video as any);
     }
 
     /**

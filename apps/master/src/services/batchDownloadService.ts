@@ -43,7 +43,7 @@ class BatchDownloadService {
             // We'll fetch the photo object to get the latest URL/filename
             const tasks = photoIds.map((id) => limit(async () => {
                 try {
-                    const photo = await photoService.getPhoto(id);
+                    const photo = await (photoService as any).getPhoto(id);
                     if (!photo || !photo.url) {
                         throw new Error(`Photo ${id} not found or missing URL`);
                     }

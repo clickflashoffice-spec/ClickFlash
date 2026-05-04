@@ -25,6 +25,7 @@ interface OrdersContext {
   syncManager: SyncManager;
   ledgerService: LedgerService;
   auditLogger: AuditLogger;
+  orderValidationService?: any;
 }
 
 export default function orderRoutes(context: OrdersContext): Router {

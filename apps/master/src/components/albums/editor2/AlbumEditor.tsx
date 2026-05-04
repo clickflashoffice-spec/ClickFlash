@@ -123,8 +123,10 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
     availableKiosks,
     selectedKioskIds,
     isSendingToKiosk,
+    metadataOnly: kioskMetadataOnly,
     setIsKioskModalOpen,
     setSelectedKioskIds,
+    setMetadataOnly: setKioskMetadataOnly,
     handlers: kioskHandlers,
   } = useKioskEditor({
     albumId,
@@ -137,7 +139,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
     (p) => p.id === album?.photographerId,
   );
 
-  const { startSession, endSession } = useSessionTiming(activePhotographer?.id);
+  const { startSession, endSession } = useSessionTiming(activePhotographer?.id as number | undefined);
 
   useEffect(() => {
     // Note: In Master App, photographerId is stored on the album
@@ -744,7 +746,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
     if (!photo || !albumId) return;
     const newCoverUrl = photo.url || photo.thumbnailUrl;
     try {
-      await apiService.updateCollection("albums", albumId, { coverPhotoUrl: newCoverUrl });
+      await apiService.updateAlbum(albumId, { coverPhotoUrl: newCoverUrl });
       showToast("Cover photo updated!");
     } catch (error) {
       logger.error("Failed to set cover photo", error);
@@ -960,17 +962,17 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
         kiosks={availableKiosks}
         selectedKioskIds={selectedKioskIds}
         selectedPhotoCount={state.photos.length}
-        metadataOnly={kioskHandlers.metadataOnly}
-        onMetadataOnlyChange={kioskHandlers.setMetadataOnly}
-        onToggleKiosk={kioskHandlers.handlers.handleToggleKiosk}
+        metadataOnly={kioskMetadataOnly}
+        onMetadataOnlyChange={setKioskMetadataOnly}
+        onToggleKiosk={kioskHandlers.handleToggleKiosk}
         onSelectAll={() =>
-          kioskHandlers.setSelectedKioskIds(
+          setSelectedKioskIds(
             new Set(availableKiosks.map((k) => k.id))
           )
         }
-        onClearAll={() => kioskHandlers.setSelectedKioskIds(new Set())}
-        onConfirm={kioskHandlers.handlers.handleKioskConfirm}
-        onCancel={() => kioskHandlers.setIsKioskModalOpen(false)}
+        onClearAll={() => setSelectedKioskIds(new Set())}
+        onConfirm={kioskHandlers.handleKioskConfirm}
+        onCancel={() => setIsKioskModalOpen(false)}
       />
     </div>
   );

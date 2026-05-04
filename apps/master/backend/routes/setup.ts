@@ -114,7 +114,7 @@ export default function setupRoutes(context: SetupContext): Router {
         },
       });
     } catch (error) {
-      return sendError(res, 500, 'Failed to get setup status');
+      return sendError(res, 500, 'Internal Server Error', 'Failed to get setup status');
     }
   });
 
@@ -124,7 +124,7 @@ export default function setupRoutes(context: SetupContext): Router {
       const steps = stateMachine.getDeploymentSteps();
       return res.json({ steps });
     } catch (error) {
-      return sendError(res, 500, 'Failed to get progress');
+      return sendError(res, 500, 'Internal Server Error', 'Failed to get progress');
     }
   });
 
@@ -146,7 +146,7 @@ export default function setupRoutes(context: SetupContext): Router {
       return res.json({ success: true, message: 'Rollback completed' });
     } catch (error) {
       logger.error('[Setup] Rollback error', { error: error instanceof Error ? error.message : String(error) });
-      return sendError(res, 500, 'Rollback failed');
+      return sendError(res, 500, 'Internal Server Error', 'Rollback failed');
     }
   });
 
@@ -169,7 +169,7 @@ export default function setupRoutes(context: SetupContext): Router {
         return res.status(401).json({ success: false, message: 'Invalid Cloudflare credentials' });
       }
     } catch (error) {
-      return sendError(res, 500, 'Validation failed');
+      return sendError(res, 500, 'Internal Server Error', 'Validation failed');
     }
   });
 
@@ -183,7 +183,7 @@ export default function setupRoutes(context: SetupContext): Router {
         website: `https://${domain}`,
       });
     } catch (error) {
-      return sendError(res, 500, 'Failed to get endpoints');
+      return sendError(res, 500, 'Internal Server Error', 'Failed to get endpoints');
     }
   });
 

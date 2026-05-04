@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { cullingService, AICullingResult } from '../../services/api/cullingService';
 import { useParams } from 'react-router-dom';
+import { Photo } from '../../types';
 
 export const AICullingDashboard: React.FC = () => {
     const { albumId } = useParams<{ albumId: string }>();
@@ -57,7 +58,7 @@ export const AICullingDashboard: React.FC = () => {
     if (!albumId) return <div className="p-20 text-center text-slate-400">Album context not found.</div>;
 
     // Groups are returned, flat map their photos for the simple dashboard
-    const allPhotos = results.flatMap(g => g.photos);
+    const allPhotos = results.flatMap(g => g.photos).filter((p): p is Photo => typeof p !== 'string');
     const bestPhotos = allPhotos.filter(p => p.cullingStatus === 'Selected');
     const rejectedPhotos = allPhotos.filter(p => p.cullingStatus === 'Rejected');
 

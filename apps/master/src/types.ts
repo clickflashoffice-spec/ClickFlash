@@ -49,4 +49,9 @@ export interface ShootIdea {
   tags: string[];
   difficulty: "Easy" | "Medium" | "Hard";
   equipmentNeeded: string[];
+  settings?: {
+    aperture?: string;
+    shutter_speed?: string;
+    iso?: number | string;
+  };
 }

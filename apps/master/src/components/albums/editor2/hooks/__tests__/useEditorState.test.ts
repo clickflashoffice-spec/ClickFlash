@@ -81,15 +81,15 @@ describe("useEditorState", () => {
         result.current.actions.updateEdit({ exposure: 20 });
       });
 
-      expect(result.current.state.history.past).toHaveLength(1);
+      expect(result.current.history.past).toHaveLength(1);
 
       // Switch photos - history should reset
       act(() => {
         result.current.actions.setActivePhoto("photo-2");
       });
 
-      expect(result.current.state.history.past).toHaveLength(0);
-      expect(result.current.state.history.future).toHaveLength(0);
+      expect(result.current.history.past).toHaveLength(0);
+      expect(result.current.history.future).toHaveLength(0);
     });
 
     it("should set photos and preserve dirty edits", () => {
@@ -278,7 +278,7 @@ describe("useEditorState", () => {
       });
 
       expect(result.current.canRedo).toBe(false);
-      expect(result.current.state.history.future).toHaveLength(0);
+      expect(result.current.history.future).toHaveLength(0);
     });
 
     it("should handle multiple undo/redo operations", () => {
@@ -380,13 +380,13 @@ describe("useEditorState", () => {
         result.current.actions.updateEdit({ exposure: 50 });
       });
 
-      const historyLengthBefore = result.current.state.history.past.length;
+      const historyLengthBefore = result.current.history.past.length;
 
       act(() => {
         result.current.actions.resetEdits("photo-1");
       });
 
-      expect(result.current.state.history.past).toHaveLength(
+      expect(result.current.history.past).toHaveLength(
         historyLengthBefore + 1,
       );
       expect(result.current.canUndo).toBe(true);

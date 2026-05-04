@@ -1,4 +1,4 @@
-import { pb, localPB, PocketRecord } from './pb';
+import { pb, localPB } from './pb';
 import { isCloudMode } from '../utils/appMode';
 import { networkManager } from './networkManager';
 import { dataVersionManager, CollectionName } from './dataVersionManager';
@@ -152,14 +152,14 @@ class CloudSyncService {
         // Check for conflicts using dataVersionManager
         const conflict = dataVersionManager.detectConflict(
             collection,
-            remoteItem.version || 0,
-            remoteItem.updated
+            (remoteItem.version as number) || 0,
+            remoteItem.updated ?? ''
         );
 
         if (conflict) {
             logger.info(`[SyncService] Conflict detected for ${collection}:${remoteItem.id}. Resolving via ${conflict.resolution}`);
 
-            if (conflict.resolution === 'server' || (remoteItem.updated > (localItem.updated || ''))) {
+            if (conflict.resolution === 'server' || ((remoteItem.updated ?? '') > (localItem.updated || ''))) {
                 // Last Write Wins - Server or newer wins
                 await this.saveLocalItem(collection, remoteItem);
             } else {
@@ -168,7 +168,7 @@ class CloudSyncService {
             }
         } else {
             // No conflict, just update if remote is newer
-            if (remoteItem.updated > (localItem.updated || '')) {
+            if ((remoteItem.updated ?? '') > (localItem.updated || '')) {
                 await this.saveLocalItem(collection, remoteItem);
             }
         }

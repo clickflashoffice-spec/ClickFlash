@@ -79,7 +79,7 @@ class HiResLoader {
             }
 
             // Combine chunks into blob
-            const blob = new Blob(chunks, { type: 'image/jpeg' });
+            const blob = new Blob(chunks as BlobPart[], { type: 'image/jpeg' });
 
             // Update cache (evict old entries if needed)
             this.updateCache(photoId, blob);

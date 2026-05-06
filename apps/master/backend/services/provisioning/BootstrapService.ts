@@ -3,7 +3,7 @@ import path from 'path';
 import { z } from 'zod';
 import { Logger } from '../../shared/logger';
 import DatabaseManager from '../../shared/db';
-import { DeploymentStateMachine, ProvisioningContext, ProvisioningResult } from './DeploymentStateMachine';
+import { DeploymentStateMachine, ProvisioningContext, DeploymentResult } from './DeploymentStateMachine';
 import { HardwareService } from '../../shared/hardwareService';
 
 const BootstrapConfigSchema = z.object({
@@ -162,7 +162,7 @@ export class BootstrapService {
                 if (step.error) this.logger.error(`[Bootstrap] Step ${step.id} error`, { error: step.error });
             });
 
-            const result: ProvisioningResult = await stateMachine.execute(config);
+            const result: DeploymentResult = await stateMachine.execute(config);
 
             if (result.success) {
                 this.logger.info('[Bootstrap] Headless deployment COMPLETED successfully.');
@@ -210,7 +210,7 @@ export class BootstrapService {
             return;
         }
 
-        const machineId = await HardwareService.getMachineId();
+        const machineId = await HardwareService.getMachineId(this.db.getRawDb());
         this.logger.info('[Bootstrap] Initiating resilient Auto-ZTP handshake', { machineId });
 
         let attempt = 0;

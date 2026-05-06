@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Shield, Lock, X, AlertCircle, Loader2 } from 'lucide-react';
+import { Shield, Lock, X, ChevronRight, AlertCircle, Key, Loader2 } from 'lucide-react';
 import { securityService } from '../../services/api/securityService';
 
 interface AdminPINChallengeProps {

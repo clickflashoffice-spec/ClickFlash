@@ -119,7 +119,7 @@ class DataExportService {
     const data: ExportData = {};
 
     for (const category of request.dataCategories) {
-      (data as Record<DataCategory, object | object[]>)[category] = await this.gatherData(userId, category);
+      data[category] = await this.gatherData(userId, category);
     }
 
     const totalRecords = Object.values(data).flat().length;
@@ -228,7 +228,7 @@ class DataExportService {
     return ['account', 'profile', 'orders', 'photos', 'payments', 'preferences'];
   }
 
-  private async gatherData(_userId: string, _category: DataCategory): Promise<object | object[]> {
+  private async gatherData(userId: string, category: DataCategory): Promise<object | object[]> {
     // Implementation would fetch actual user data
     return [];
   }

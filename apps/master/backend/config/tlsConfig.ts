@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import http from 'http';
 import https from 'https';
 
@@ -18,7 +19,7 @@ export interface TLSConfig {
 
 export function getTLSConfig(): TLSConfig {
   const enabled = process.env.TLS_ENABLED === 'true';
-  
+
   if (!enabled) {
     return { enabled: false };
   }
@@ -75,7 +76,7 @@ export function createSecureServer(
 
     const server = https.createServer(httpsOptions, app);
     console.log(`[HTTPS] TLS enabled, server will use HTTPS on port ${port}`);
-    
+
     return {
       server,
       config: {
@@ -88,7 +89,7 @@ export function createSecureServer(
 
   const server = http.createServer(app);
   console.log(`[HTTP] TLS not enabled, using HTTP on port ${port}`);
-  
+
   return {
     server,
     config: {

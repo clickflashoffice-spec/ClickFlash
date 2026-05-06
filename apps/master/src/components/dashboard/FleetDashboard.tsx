@@ -8,6 +8,7 @@ import {
   RefreshCw,
   Clock,
   ShieldCheck,
+  AlertTriangle
 } from 'lucide-react';
 import { apiService } from '../../services/apiService';
 import { logger } from '../../utils/logger';
@@ -30,7 +31,7 @@ const FleetDashboard: React.FC = () => {
   const fetchFleet = async () => {
     try {
       setRefreshing(true);
-      const data = await (apiService as any).get('/pairing/kiosks');
+      const data = await apiService.get('/pairing/kiosks');
       setKiosks(data);
     } catch (err) {
       logger.error('[FleetDashboard] Failed to fetch kiosk fleet', err);
@@ -49,7 +50,7 @@ const FleetDashboard: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (!window.confirm(`Are you sure you want to unpair Kiosk ${id}? It will lose access to this master.`)) return;
     try {
-      await (apiService as any).delete(`/pairing/kiosks/${id}`);
+      await apiService.delete(`/pairing/kiosks/${id}`);
       setKiosks(kiosks.filter(k => k.id !== id));
     } catch (err) {
       logger.error('[FleetDashboard] Failed to unpair kiosk', err);

@@ -1,6 +1,5 @@
 import { localPB } from "./pb";
 import { logger } from "../utils/logger";
-import { cloudSyncService } from "./cloudSyncService";
 import { isCloudMode } from "../utils/appMode";
 
 export interface PhotographerDailyAudit {
@@ -73,22 +72,22 @@ class MetricsAggregationService {
         const pId = photographer.id;
 
         // Filter orders for this photographer
-        const pOrders = dailyOrders.filter((o) => o.photographerId === pId);
+        const pOrders = dailyOrders.filter((o: any) => o.photographerId === pId);
         const salesRevenue = pOrders.reduce(
-          (acc, order) => acc + (order.totalAmount || order.total || 0),
+          (acc: any, order: any) => acc + (order.totalAmount || order.total || 0),
           0,
         );
 
         // Customers = unique emails + distinct orders without emails
         const customerEmails = new Set(
-          pOrders.map((o) => o.email).filter((e) => !!e),
+          pOrders.map((o: any) => o.email).filter((e: any) => !!e),
         );
-        const ordersWithoutEmails = pOrders.filter((o) => !o.email).length;
+        const ordersWithoutEmails = pOrders.filter((o: any) => !o.email).length;
         const totalCustomers = customerEmails.size + ordersWithoutEmails;
 
         // Filter photos
         const pPhotos = dailyPhotos.filter(
-          (p) =>
+          (p: any) =>
             p.photographerId === pId ||
             p.expand?.albumId?.photographerId === pId,
         );
@@ -96,11 +95,11 @@ class MetricsAggregationService {
 
         // Sold photos (status = purchased, or part of paid orders)
         const soldPhotos = pPhotos.filter(
-          (p) => p.status === "purchased",
+          (p: any) => p.status === "purchased",
         ).length;
 
         // Bad Quality Photos (has quality_flags json array with elements, or manual flag)
-        const badQualityPhotos = pPhotos.filter((p) => {
+        const badQualityPhotos = pPhotos.filter((p: any) => {
           if (!p.quality_flags) return false;
           try {
             const flags =

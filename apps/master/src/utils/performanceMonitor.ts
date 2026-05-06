@@ -17,7 +17,7 @@ const metrics: PerformanceMetrics = {
 
 const SLOW_RENDER_THRESHOLD = 50; // ms
 const SLOW_API_THRESHOLD = 1000; // ms
-const SLOW_DB_THRESHOLD = 100; // ms
+const _SLOW_DB_THRESHOLD = 100; // ms
 
 /**
  * Measure component render time

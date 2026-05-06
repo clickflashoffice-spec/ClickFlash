@@ -60,7 +60,7 @@ class FeatureFlagService {
   private flags: Map<keyof FeatureFlags, FeatureFlag>;
   
   constructor() {
-    this.flags = new Map(Object.entries(DEFAULT_FLAGS) as [keyof FeatureFlags, FeatureFlag][]);
+    this.flags = new Map(Object.entries(DEFAULT_FLAGS));
   }
   
   /**

@@ -218,7 +218,7 @@ export function createBlurPlaceholder(
  * React hook for lazy loading images
  */
 export function useLazyImage(src: string, placeholderSrc?: string) {
-  const [imageSrc, setImageSrc] = React.useState(placeholderSrc || '');
+  const [imageSrc, _setImageSrc] = React.useState(placeholderSrc || '');
   const [isLoaded, setIsLoaded] = React.useState(false);
   const imgRef = React.useRef<HTMLImageElement>(null);
   

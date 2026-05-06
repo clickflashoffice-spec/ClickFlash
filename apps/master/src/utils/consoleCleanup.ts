@@ -18,7 +18,7 @@ export function initConsoleCleanup(): void {
     const isTest = import.meta.env.MODE === 'test';
 
     // Store original console methods
-    const originalConsole = {
+    const _originalConsole = {
         log: console.log,
         warn: console.warn,
         error: console.error,

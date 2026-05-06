@@ -1,8 +1,10 @@
-import React, { ReactElement, ReactNode } from 'react';
+import { ReactElement, ReactNode } from 'react';
 import { render, RenderOptions, RenderResult } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
+// @ts-ignore — react-i18next not installed
 import { I18nextProvider } from 'react-i18next';
+// @ts-ignore — i18n module not present
 import i18n from './i18n';
 
 interface WrapperProps {
@@ -76,4 +78,5 @@ export function renderWithQueryClient(
 }
 
 export * from '@testing-library/react';
+// @ts-ignore — @testing-library/user-event not installed
 export { default as userEvent } from '@testing-library/user-event';

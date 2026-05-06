@@ -16,7 +16,11 @@
       "Bash(git -C \"C:/Users/alamo/Desktop/ClickFlash/.kilo/worktrees/sage-humidity\" status)",
       "Bash(git -C \"C:/Users/alamo/Desktop/ClickFlash/.kilo/worktrees/zircon-bangle\" status)",
       "Bash(git -C \"C:/Users/alamo/Desktop/ClickFlash\" log --oneline -5)",
-      "Bash(git -C \"C:/Users/alamo/Desktop/ClickFlash\" diff --stat)"
+      "Bash(git -C \"C:/Users/alamo/Desktop/ClickFlash\" diff --stat)",
+      "Bash(npx tsc *)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(npm run *)",
+      "Bash(npm install *)"
     ]
   }
 }

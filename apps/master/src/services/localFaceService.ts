@@ -241,7 +241,7 @@ class LocalFaceService {
     /**
      * Check if a stored descriptor is expired
      */
-    private isDescriptorExpired(stored: FaceDescriptor): boolean {
+    private isDescriptorExpired(_stored: FaceDescriptor): boolean {
         // We track expiration via the hash timestamp in real implementation
         // For now, always return false
         return false;

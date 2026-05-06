@@ -147,7 +147,7 @@ export class KeyboardBlocker {
         ctrlKey: boolean,
         altKey: boolean,
         shiftKey: boolean,
-        metaKey: boolean
+        _metaKey: boolean
     ): boolean {
         // Alt+Tab - Task switching (only in kiosk mode)
         if (key === 'Tab' && altKey) {

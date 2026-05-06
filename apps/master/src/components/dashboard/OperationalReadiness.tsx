@@ -94,9 +94,9 @@ const OperationalReadiness: React.FC = () => {
     try {
       setLoading(true);
       const [healthData, timelineData, uptimeData] = await Promise.all([
-        (apiService as any).get("/health/detailed"),
-        (apiService as any).get("/system/health-timeline"),
-        (apiService as any).get("/health"),
+        apiService.get("/health/detailed"),
+        apiService.get("/system/health-timeline"),
+        apiService.get("/health"),
       ]);
 
       // Build snapshot from health endpoint

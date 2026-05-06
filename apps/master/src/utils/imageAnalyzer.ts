@@ -207,7 +207,7 @@ export async function detectSubjectBounds(imageUrl: string): Promise<{ x: number
     for (let y = 1; y < height - 1; y++) {
         for (let x = 1; x < width - 1; x++) {
             const idx = (y * width + x) * 4;
-            const lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+            const _lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
 
             // Horizontal gradient
             const leftIdx = (y * width + (x - 1)) * 4;

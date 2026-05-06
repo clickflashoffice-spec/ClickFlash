@@ -1,4 +1,11 @@
 /* stylelint-disable at-rule-no-unknown */
+/* ClickFlash Unified Design System Tokens */
+@import "../../../packages/ui/src/styles/tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Base Layout */
 html,
 body,
@@ -7,13 +14,6 @@ body,
   margin: 0;
   padding: 0;
 }
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* ClickFlash Unified Design System Tokens */
-@import "../../../packages/ui/src/styles/tokens.css";
 
 @layer components {
   /* Refined Glassmorphism Utilities */

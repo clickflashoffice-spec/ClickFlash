@@ -1,11 +1,9 @@
 'use client';
 
 import React, { memo, useCallback, useMemo } from 'react';
-// @ts-ignore — next/image not installed in this app
 import Image from 'next/image';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-// @ts-ignore — @clickflash/types not installed in this app
 import type { Photo } from '@clickflash/types';
 
 interface PhotoCardProps {

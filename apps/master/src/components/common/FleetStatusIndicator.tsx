@@ -8,7 +8,7 @@ const FleetStatusIndicator: React.FC = () => {
 
   const fetchStatus = async () => {
     try {
-      const data = await (apiService as any).get('/pairing/kiosks');
+      const data = await apiService.get('/pairing/kiosks');
       const now = Date.now();
       const online = data.filter((k: any) => {
         if (!k.last_seen) return false;

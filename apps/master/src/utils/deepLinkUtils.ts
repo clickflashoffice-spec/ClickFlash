@@ -25,7 +25,7 @@
  * // Returns: 'clickflash://album/album-123/photo/photo-456'
  */
 export function getDeepLinkUrl(
-    baseUrl: string,
+    _baseUrl: string,
     albumId: string,
     photoId?: string
 ): string {

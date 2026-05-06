@@ -176,7 +176,7 @@ class SQLiteConcurrencyManager {
         params?: unknown[]
     ): Promise<{ changes: number; lastInsertRowid: number }> {
         return this.executeWithRetry(async () => {
-            const result = await db.run(query, params);
+            const _result = await db.run(query, params);
             return {
                 changes: dbChanges(),
                 lastInsertRowid: dbLastInsertRowid(),
@@ -247,7 +247,7 @@ class SQLiteConcurrencyManager {
         freelistCount: number;
         schemaVersion: number;
     }> {
-        const result = await db.all('PRAGMA page_info');
+        const _result = await db.all('PRAGMA page_info');
 
         return {
             pageSize: (await db.all('PRAGMA page_size'))[0] as unknown as number,

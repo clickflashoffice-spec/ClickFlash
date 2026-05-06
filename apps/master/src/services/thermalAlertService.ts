@@ -89,7 +89,7 @@ class ThermalAlertService {
     /**
      * Process a thermal reading and generate alerts if needed
      */
-    public processReading(temp: number | null, workerLimit: number = 4): {
+    public processReading(temp: number | null, _workerLimit: number = 4): {
         status: 'normal' | 'warning' | 'critical';
         shouldScale: boolean;
         recommendation: string;

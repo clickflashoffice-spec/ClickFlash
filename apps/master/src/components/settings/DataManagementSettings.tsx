@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { 
-  Database, 
-  Trash2, 
-  ShieldAlert, 
-  History, 
+import {
+  Database,
+  Trash2,
+  History,
   HardDrive,
   RefreshCw,
   Gauge,
-  Clock,
   ShieldCheck,
   AlertTriangle
 } from "lucide-react";
 import Card from "../common/Card.tsx";
 import { apiService } from "../../services/apiService";
 import { logger } from "../../utils/logger";
-import { safeStorage } from "../../utils/safeStorage";
 
 interface RetentionStats {
   disk: {

@@ -1160,7 +1160,7 @@ const Albums: React.FC<AlbumsProps> = ({
 
   // Filter hook
   const {
-    isPending: isFiltering,
+    isPending: _isFiltering,
     dateRange,
     setDateRange,
     selectedPhotographer,

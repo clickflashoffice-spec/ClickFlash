@@ -4,10 +4,9 @@ import fs from "fs";
 import path from "path";
 import { Logger } from "../../shared/logger";
 import DatabaseManager from "../../shared/db";
-import { UPLOAD_DIR, DATA_DIR } from "../../config/constants";
-import { sendInternalError, sendInvalidInputError, sendNotFoundError, sendDatabaseError } from "../../shared/errorHandler";
+import { UPLOAD_DIR, DATA_DIR as _DATA_DIR } from "../../config/constants";
+import { sendInternalError, sendInvalidInputError } from "../../shared/errorHandler";
 import { TransferService } from "../../services/TransferService";
-import { VectorIndexService } from "../../services/VectorIndexService";
 
 interface OperationsContext {
   dbManager: DatabaseManager;
@@ -153,7 +152,7 @@ export default function operationsRoutes(context: OperationsContext): Router {
   /**
    * @route GET /login-history
    */
-  router.get("/login-history", (req: Request, res: Response) => {
+  router.get("/login-history", (_req: Request, res: Response) => {
     const logs = dbManager.query<any>("SELECT * FROM login_history ORDER BY created_at DESC LIMIT 100");
     res.json(logs);
   });
@@ -217,7 +216,7 @@ export default function operationsRoutes(context: OperationsContext): Router {
   /**
    * @route POST /scale-validate
    */
-  router.post("/scale-validate", async (req: Request, res: Response) => {
+  router.post("/scale-validate", async (_req: Request, res: Response) => {
     try {
       const { ScaleValidator } = await import("../../services/ScaleValidator");
       const validator = new ScaleValidator(dbManager, logger);

@@ -4,7 +4,6 @@ import { Photographer, DestinationFeatures } from '../../types.ts';
 import { usePermissions } from '../../hooks/usePermissions.ts';
 import { isCloudMode } from '../../services/pb.ts';
 import { useDebounce } from '../../hooks/useDebounce.ts';
-import Spinner from '../common/Spinner';
 import AdminPINChallenge from './AdminPINChallenge';
 import {
     Settings,
@@ -19,7 +18,6 @@ import {
     Users,
     Shield,
     BookOpen,
-    Wrench,
     Activity,
     Zap,
     Layout,
@@ -116,7 +114,7 @@ interface NavItemProps {
 }
 
 const NavItem: React.FC<NavItemProps> = ({
-    id,
+    id: _id,
     label,
     icon: Icon,
     isActive,

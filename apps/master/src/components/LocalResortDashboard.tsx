@@ -320,7 +320,7 @@ const LocalResortDashboard: React.FC = () => {
             color: "text-orange-600",
             trend: "Live",
           },
-        ].map((item, i) => (
+        ].map((item, _i) => (
           <div
             key={item.label}
             className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all"

@@ -7,7 +7,7 @@ export default function sessionTypeRoutes(context: any): Router {
     const service: SessionTypeService = new SessionTypeService(context.dbManager, context.logger);
 
     // GET / (List)
-    router.get('/', (req: Request, res: Response) => {
+    router.get('/', (_req: Request, res: Response) => {
         try {
             const types = service.getAll();
             res.status(200).json(types);

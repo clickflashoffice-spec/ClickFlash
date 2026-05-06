@@ -1,6 +1,5 @@
 import DatabaseManager from '../shared/db';
 import { Logger } from '../shared/logger';
-import path from 'path';
 import crypto from 'crypto';
 
 interface AICullingConfig {
@@ -26,7 +25,7 @@ export class AICullingService {
      * Simulation of AI Analysis
      * In a real implementation, this would load a model or call an external API
      */
-    async analyzePhoto(photoId: string, filePath: string): Promise<Record<string, number>> {
+    async analyzePhoto(photoId: string, _filePath: string): Promise<Record<string, number>> {
         this.logger.info(`Starting AI analysis for photo ${photoId}`);
 
         // Mock Analysis: Generate deterministic random scores based on file hash or ID

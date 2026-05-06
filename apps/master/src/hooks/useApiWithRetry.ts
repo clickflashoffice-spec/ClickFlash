@@ -199,7 +199,7 @@ export function defaultShouldRetry(error: Error): boolean {
  */
 export function useFetchWithRetry<T>(
   fetchFunction: (...args: any[]) => Promise<T>,
-  immediate: boolean = false,
+  _immediate: boolean = false,
   config: RetryConfig = {}
 ) {
   const { execute, ...state } = useApiWithRetry(fetchFunction, config);

@@ -134,7 +134,6 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
   });
 
   const { data: photographers = [] } = usePhotographers();
-  const currentPhotographers = photographers.filter((p) => !p.disabled);
   const activePhotographer = photographers.find(
     (p) => p.id === album?.photographerId,
   );
@@ -740,19 +739,6 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
     const coverPhoto = state.photos.find(p => p.url === album.coverPhotoUrl || p.thumbnailUrl === album.coverPhotoUrl);
     return coverPhoto?.id ?? null;
   }, [album?.coverPhotoUrl, state.photos]);
-
-  const handleSetAsCover = React.useCallback(async (photoId: string) => {
-    const photo = state.photos.find(p => p.id === photoId);
-    if (!photo || !albumId) return;
-    const newCoverUrl = photo.url || photo.thumbnailUrl;
-    try {
-      await apiService.updateAlbum(albumId, { coverPhotoUrl: newCoverUrl });
-      showToast("Cover photo updated!");
-    } catch (error) {
-      logger.error("Failed to set cover photo", error);
-      showToast("Failed to update cover photo");
-    }
-  }, [albumId, state.photos, showToast]);
 
   const renderFilmstrip = (
     <Filmstrip

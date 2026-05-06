@@ -1,0 +1,22 @@
+{
+  "name": "ClickFlash Customer Gallery",
+  "short_name": "ClickFlash",
+  "description": "View and purchase your professional photography",
+  "start_url": "/gallery/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait",
+  "scope": "/gallery/",
+  "icons": [
+    {
+      "src": "/gallery/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["photography", "shopping", "lifestyle"],
+  "lang": "en",
+  "dir": "ltr"
+}

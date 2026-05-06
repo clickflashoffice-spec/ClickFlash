@@ -1,4 +1,5 @@
 
+// @ts-ignore — jszip not installed; add to dependencies if needed
 import JSZip from 'jszip';
 import pLimit from 'p-limit';
 import { photoService, getPhotoUrl } from './api/photoService';

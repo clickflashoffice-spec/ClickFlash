@@ -14,7 +14,7 @@ jest.mock('../../pb', () => ({
 }));
 
 describe('albumService', () => {
-    const baseUrl = 'http://localhost:8090';
+    const _baseUrl = 'http://localhost:8090';
 
     beforeEach(() => {
         resetPbMocks();

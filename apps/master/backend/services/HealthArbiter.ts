@@ -36,7 +36,7 @@ export class HealthArbiter {
   private static instance: HealthArbiter | null = null;
 
   private currentState: SystemState = "NOMINAL";
-  private reasons: string[] = [];
+  private _reasons: string[] = [];
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private thresholds: HealthThresholds;
   private lastSnapshot: HealthSnapshot | null = null;

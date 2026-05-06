@@ -14,7 +14,6 @@ import {
     Target,
     Shield,
     X,
-    ChevronDown,
     Download,
     Image as ImageIcon,
     Star
@@ -283,7 +282,7 @@ const Photographers: React.FC<PhotographersProps> = ({ currentUser, photographer
     const [selectedPhotographer, setSelectedPhotographer] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const debouncedSearch = useDebounce(searchTerm, 300);
-    const { can } = usePermissions(currentUser);
+    const { can: _can } = usePermissions(currentUser);
     const { formatCurrency } = useCurrency();
 
     // Calculate enriched photographer data - memoized

@@ -49,7 +49,7 @@ export function authMiddleware(
   // However, if used globally, this list is needed.
   // In current server.js structure, authMiddleware might be applied globally or per route.
   // Keeping logic for safety.
-  const publicPaths = [
+  const _publicPaths = [
     "/api/health",
     "/api/mode",
     "/api/ip",

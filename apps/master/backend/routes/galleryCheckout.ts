@@ -218,7 +218,7 @@ export default function galleryCheckoutRoutes(
             if (emailService && emailService.isConfigured()) {
               try {
                 const parsedItems = JSON.parse(galleryOrder.items || "[]");
-                const itemCount = Array.isArray(parsedItems)
+                const _itemCount = Array.isArray(parsedItems)
                   ? parsedItems.length
                   : 1;
 
@@ -287,9 +287,9 @@ export default function galleryCheckoutRoutes(
     try {
       const { token, orderId } = req.params;
 
-      let payload: any;
+      let _payload: any;
       try {
-        payload = jwt.verify(token as string, JWT_SECRET) as any;
+        _payload = jwt.verify(token as string, JWT_SECRET) as any;
       } catch (error) {
         return res.status(401).json({ error: "Invalid or expired token" });
       }

@@ -8,8 +8,8 @@ interface SyncStatusIndicatorProps {
 }
 
 const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ isOnline }) => {
-    const [status, setStatus] = useState<'synced' | 'syncing' | 'offline'>('offline');
-    const [lastSyncTime, setLastSyncTime] = useLocalStorage<string | null>('lastSyncTime', null);
+    const [_status, setStatus] = useState<'synced' | 'syncing' | 'offline'>('offline');
+    const [_lastSyncTime, setLastSyncTime] = useLocalStorage<string | null>('lastSyncTime', null);
 
     useEffect(() => {
         let syncTimeout: number | undefined;

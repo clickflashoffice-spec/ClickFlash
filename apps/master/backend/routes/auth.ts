@@ -347,7 +347,7 @@ export default function authRoutes(context: AppContext) {
       });
 
       if (req.session) {
-        req.session.destroy((err: any) => {});
+        req.session.destroy((_err: any) => {});
       }
 
       res.writeHead(200, { "Content-Type": "application/json" });

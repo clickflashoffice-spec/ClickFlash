@@ -37,7 +37,7 @@ export default function healthRoutes(context: HealthContext): Router {
    * @route GET /ip
    * @description Network interface discovery
    */
-  router.get("/ip", (req: Request, res: Response) => {
+  router.get("/ip", (_req: Request, res: Response) => {
     try {
       const results: { name: string; ip: string }[] = [];
       const nets = os.networkInterfaces();

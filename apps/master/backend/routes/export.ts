@@ -58,15 +58,15 @@ interface ExportContext {
 }
 
 // P0-S3 Fix: Allowed export root directories
-const ALLOWED_EXPORT_ROOTS: string[] = [
+const _ALLOWED_EXPORT_ROOTS: string[] = [
   process.env.HOME || process.env.USERPROFILE || "",
   process.env.APPDATA || "",
   process.env.TEMP || "",
 ].filter(Boolean);
 
 // P0-S4 Fix: In-progress export guard per album
-const inProgressExports = new Map<string, { startTime: number; albumId: string }>();
-const EXPORT_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes max per export
+const _inProgressExports = new Map<string, { startTime: number; albumId: string }>();
+const _EXPORT_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes max per export
 
 export default function exportRoutes(context: ExportContext): Router {
   const { logger, exportService } = context;

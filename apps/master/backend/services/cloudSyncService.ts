@@ -564,7 +564,7 @@ export class CloudSyncService {
 
       // --- Phase 13/32: Parallelized Intent Synchronization ---
       // We run these in parallel so a slow order poll doesn't block intent pushing.
-      const results = await Promise.allSettled([
+      await Promise.allSettled([
         this.syncOperationLogs(),
         this.syncLedgerEntries(), // Payroll sync
         this.syncExpenses(), // Expenses sync
@@ -588,7 +588,7 @@ export class CloudSyncService {
       ]);
 
       // Check for failures
-      const _rejectedCount = results.filter(r => r.status === 'rejected').length;
+      // rejectedCount unused; sync success handled by consecutiveFailures reset below
       
       this._lastSuccessfulSync = new Date();
       this.consecutiveFailures = 0;
@@ -1773,7 +1773,6 @@ export class CloudSyncService {
    * Pushes orders created at this Master station to the cloud.
    */
   public async syncOrdersToGallery() {
-    const _startTime = Date.now();
     
     try {
       // Find orders that haven't been synced yet or failed previously
@@ -2190,7 +2189,7 @@ export class CloudSyncService {
 
       if (stats.length === 0) return;
 
-      const _res = await executeWithRetry(async () => {
+      await executeWithRetry(async () => {
         const r = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/yield`, {
           method: "POST",
           headers: await this.getHeaders(),

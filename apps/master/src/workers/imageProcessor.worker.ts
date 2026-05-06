@@ -354,8 +354,7 @@ async function extractExif(imageBuffer: ArrayBuffer): Promise<ExifData> {
         
         // APP1 marker (EXIF)
         if (marker === 0xFFE1) {
-            const _length = view.getUint16(offset + 2, false);
-            // Basic EXIF extraction would go here
+            // Basic EXIF extraction would go here (length at offset+2)
             // For now, return empty data
             break;
         }

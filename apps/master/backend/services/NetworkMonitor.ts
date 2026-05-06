@@ -21,13 +21,11 @@ interface PerClientStats {
 }
 
 export class NetworkMonitor {
-  private _logger: Logger;
   private events: TransferEvent[] = [];
   private readonly MAX_EVENTS = 2000;
   private readonly WINDOW_MS = 60_000; // 1-minute rolling window
 
-  constructor(logger: Logger) {
-    this._logger = logger;
+  constructor(_logger: Logger) {
   }
 
   /** Record a transfer event (upload or download). */

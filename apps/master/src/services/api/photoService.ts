@@ -343,7 +343,6 @@ export const photoService = {
             return { items: [], successCount: 0, failureCount: skipped };
         }
 
-        const _baseUrl = pb.baseUrlValue;
 
         try {
             // Single PATCH /api/collections/photos/records/batch — one DB transaction.

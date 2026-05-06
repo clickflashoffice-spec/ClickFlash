@@ -45,19 +45,6 @@ export function authMiddleware(
   const clientIp = req.socket.remoteAddress || "unknown";
 
   // Public paths that don't require authentication
-  // Note: This list is illustrative; explicit use of authMiddleware on routes is preferred over global middleware with exclusion list.
-  // However, if used globally, this list is needed.
-  // In current server.js structure, authMiddleware might be applied globally or per route.
-  // Keeping logic for safety.
-  const _publicPaths = [
-    "/api/health",
-    "/api/mode",
-    "/api/ip",
-    "/api/auth/login",
-    "/api/auth/logout",
-    "/api/init/default-user",
-  ];
-
   // Check if user is authenticated via session
   if (req.session && req.session.user) {
     req.user = req.session.user;

@@ -348,7 +348,7 @@ class SmartCullingService {
             }
 
             const totalPixels = data.length / 4;
-            const _threshold = totalPixels * 0.01; // 1% threshold
+            // threshold (totalPixels * 0.01) not used in this basic check
 
             // Check for underexposure (many dark pixels)
             for (let i = 0; i < 30; i++) {

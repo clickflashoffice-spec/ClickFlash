@@ -21,7 +21,7 @@ export class StressTestService {
    */
   async injectSimulatedPhotos(
     count: number,
-    siteCode: string,
+    _siteCode: string,
   ): Promise<{ albumId: string; count: number }> {
     const albumId = `stress_album_${uuidv4().substring(0, 8)}`;
     const date = new Date().toISOString().split("T")[0];

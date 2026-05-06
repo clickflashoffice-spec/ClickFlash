@@ -81,11 +81,9 @@ export interface ManagementHubMetadata {
 
 export class CloudflareAppsProvisioningService {
   private logger: Logger;
-  private _db: DatabaseManager;
   private apiBase = 'https://api.cloudflare.com/client/v4';
 
-  constructor(db: DatabaseManager, logger: Logger) {
-    this._db = db;
+  constructor(_db: DatabaseManager, logger: Logger) {
     this.logger = logger;
   }
 

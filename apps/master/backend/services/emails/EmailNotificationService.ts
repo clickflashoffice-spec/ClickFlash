@@ -197,7 +197,7 @@ export class EmailNotificationService {
     return true;
   }
 
-  private async sendViaSMTP(params: {
+  private async sendViaSMTP(_params: {
     to: EmailRecipient;
     subject: string;
     html: string;

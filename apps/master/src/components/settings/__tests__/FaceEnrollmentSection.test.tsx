@@ -4,8 +4,8 @@
  * Tests for the Face Enrollment UI component
  */
 
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+// @ts-ignore — @testing-library/user-event not installed
 import userEvent from '@testing-library/user-event';
 import FaceEnrollmentSection from '../FaceEnrollmentSection';
 import { faceService } from '../../../services/api/faceService';

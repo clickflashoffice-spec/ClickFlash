@@ -4,6 +4,7 @@
 
 import type { Request, Response, NextFunction } from "express";
 import helmet from "helmet";
+// @ts-ignore — express-rate-limit types may not be installed
 import rateLimit from "express-rate-limit";
 
 // CSP for Electron app
@@ -32,7 +33,7 @@ export const authLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => process.env.NODE_ENV === "development",
+  skip: (_req: any) => process.env.NODE_ENV === "development",
 });
 
 export const apiLimiter = rateLimit({
@@ -65,7 +66,7 @@ export const securityHeaders = helmet({
 
 // Custom security middleware
 export function securityMiddleware(
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ): void {

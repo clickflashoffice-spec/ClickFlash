@@ -34,17 +34,6 @@ interface RemoteOperation {
   retry_count?: number;
 }
 
-interface OperationResult {
-  success: boolean;
-  error?: string;
-}
-
-interface CloudApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
-
 interface EmailService {
   setCloudConfig: (url: string, token: string) => void;
 }
@@ -599,7 +588,7 @@ export class CloudSyncService {
       ]);
 
       // Check for failures
-      const rejectedCount = results.filter(r => r.status === 'rejected').length;
+      const _rejectedCount = results.filter(r => r.status === 'rejected').length;
       
       this._lastSuccessfulSync = new Date();
       this.consecutiveFailures = 0;
@@ -1784,7 +1773,7 @@ export class CloudSyncService {
    * Pushes orders created at this Master station to the cloud.
    */
   public async syncOrdersToGallery() {
-    const startTime = Date.now();
+    const _startTime = Date.now();
     
     try {
       // Find orders that haven't been synced yet or failed previously
@@ -2201,7 +2190,7 @@ export class CloudSyncService {
 
       if (stats.length === 0) return;
 
-      const res = await executeWithRetry(async () => {
+      const _res = await executeWithRetry(async () => {
         const r = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/yield`, {
           method: "POST",
           headers: await this.getHeaders(),

@@ -79,7 +79,7 @@ async function generateStressData() {
 
     const startAlbum = Date.now();
     const albumId = albumIds[0];
-    const albumPhotos = dbManager.query("SELECT * FROM photos WHERE albumId = ? LIMIT 100", [albumId]);
+    const _albumPhotos = dbManager.query("SELECT * FROM photos WHERE albumId = ? LIMIT 100", [albumId]);
     console.log(`- Fetch 100 Photos from Album Time: ${Date.now() - startAlbum}ms`);
 
     dbManager.close();

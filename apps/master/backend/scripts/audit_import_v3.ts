@@ -3,7 +3,6 @@ import fs from 'fs';
 import path from 'path';
 const Database = require('better-sqlite3-multiple-ciphers');
 import dotenv from 'dotenv';
-import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config();
 

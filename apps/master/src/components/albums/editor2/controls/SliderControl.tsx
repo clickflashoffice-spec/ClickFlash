@@ -29,7 +29,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
   showValue = true,
   unit = "",
   isModified = false,
-  defaultValue,
+  defaultValue: _defaultValue,
   onStart,
   onEnd,
   className = "",

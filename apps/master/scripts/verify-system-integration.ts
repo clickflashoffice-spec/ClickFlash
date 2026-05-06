@@ -1,8 +1,6 @@
 
 // import fetch from 'node-fetch'; // Removed to rely on global fetch
 import FormData from 'form-data';
-import fs from 'fs';
-import path from 'path';
 
 // --- Configuration ---
 const BASE_URL = 'http://localhost:8090'; // Assuming default port

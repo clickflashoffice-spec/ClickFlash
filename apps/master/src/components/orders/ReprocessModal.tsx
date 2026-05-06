@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Modal from '../common/Modal';
 import { SliderControl } from '../common/SliderControl';
-import { Photo, ManualEdits, Order, OrderItem } from '../../types';
+import { ManualEdits, Order } from '../../types';
 import { initialEdits } from '../../constants/photoConstants';
 import { getPhotoStyle } from '../../utils/styleUtils';
 import { EditEngine } from '../../utils/canvas/EditEngine';
@@ -30,7 +30,7 @@ const ReprocessModal: React.FC<ReprocessModalProps> = ({
     initialItemId,
     showToast
 }) => {
-    const [activeItemId, setActiveItemId] = useState<string | null>(initialItemId || order.items[0]?.id || null);
+    const [activeItemId, _setActiveItemId] = useState<string | null>(initialItemId || order.items[0]?.id || null);
     const activeItem = useMemo(() => order.items.find(i => i.id === activeItemId), [order.items, activeItemId]);
     const photo = activeItem?.photo;
 

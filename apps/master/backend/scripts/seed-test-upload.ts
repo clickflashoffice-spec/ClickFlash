@@ -1,7 +1,6 @@
 import { DatabaseManager } from "../shared/db";
 import path from "path";
 import fs from "fs";
-import crypto from "crypto";
 
 const DATA_DIR = "E:\\ClickFlash\\apps\\master\\pb_data";
 const DB_FILE = path.join(DATA_DIR, "master.db");

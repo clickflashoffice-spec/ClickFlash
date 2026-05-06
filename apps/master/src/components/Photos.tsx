@@ -6,7 +6,6 @@ import Button from './common/Button';
 import Spinner from './common/Spinner';
 import LazyImage from './common/LazyImage';
 import Input from './common/Input';
-import { logger } from '../utils/logger';
 import { Grid } from 'react-window';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import { Sparkles, CheckSquare, Square } from 'lucide-react';

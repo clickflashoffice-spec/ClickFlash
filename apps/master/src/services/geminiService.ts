@@ -18,8 +18,8 @@ export interface AlbumSuggestion {
  * Generate shoot ideas based on location and occasion
  */
 export const generateShootIdeas = async (
-    location: string,
-    occasion: string
+    _location: string,
+    _occasion: string
 ): Promise<ShootIdea[]> => {
     // Mock implementation - in real app this would call Gemini API
     return [
@@ -36,7 +36,7 @@ export const generateShootIdeas = async (
  */
 export const editImageWithAI = async (
     imageData: string,
-    prompt: string
+    _prompt: string
 ): Promise<string> => {
     // Mock implementation - in real app this would call Gemini API
     return imageData; // Return original image for now
@@ -46,8 +46,8 @@ export const editImageWithAI = async (
  * Generate album suggestions based on photos
  */
 export const generateAlbumSuggestions = async (
-    photoCount: number,
-    eventType: string
+    _photoCount: number,
+    _eventType: string
 ): Promise<AlbumSuggestion[]> => {
     // Mock implementation - in real app this would call Gemini API
     return [

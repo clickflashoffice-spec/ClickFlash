@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../../common/Card.tsx';
 import { webSocketService } from '../../../services/webSocketService';
-import { logger } from '../../../utils/logger';
-
 interface KioskInfo {
     id: string;
     name: string;

@@ -1,0 +1,13 @@
+{
+  "locationName": "ClickFlash Studio",
+  "adminEmail": "admin@clicketflash.com",
+  "adminPassword": "ClickFlash2025!",
+  "cloudflareApiToken": "CF_API_TOKEN_PLACEHOLDER",
+  "cloudflareAccountId": "<REDACTED:CF_ACCOUNT_ID>",
+  "cloudflareZoneId": "ee19683b3549e5a183f1b61da7164d45",
+  "cloudflareDomain": "clicketflash.com",
+  "setupEmailRouting": true,
+  "alertsEmail": "alerts@clicketflash.com",
+  "ordersEmail": "orders@clicketflash.com",
+  "port": 8090
+}

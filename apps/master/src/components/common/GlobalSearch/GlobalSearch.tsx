@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Command, User, FileText, Settings, LayoutGrid, Image as ImageIcon, Loader2, Camera, Hash } from 'lucide-react';
+import { Search, X, Command, User, FileText, Settings, LayoutGrid, Image as ImageIcon, Loader2, Camera } from 'lucide-react';
 import { useGlobalSearch, SearchResult } from '../../../context/GlobalSearchContext';
 import { SearchResultItem } from './SearchResultItem';
 import { useKeyboardShortcuts } from '../../../hooks/useKeyboardShortcuts';

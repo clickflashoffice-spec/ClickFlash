@@ -1,6 +1,5 @@
 
 import Database from 'better-sqlite3-multiple-ciphers';
-import path from 'path';
 
 const dbPath = 'E:/ClickFlash/master-app/react-new-backup/pb_data/master.db';
 

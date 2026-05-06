@@ -301,7 +301,7 @@ export default function fileRoutes(context: FilesContext): Router {
       maxFileSize: 5 * 1024 * 1024, // 5MB
     });
 
-    form.parse(req, async (err, fields, files) => {
+    form.parse(req, async (err, _fields, files) => {
       if (err) {
         logger.error("Logo upload error", { error: err.message });
         sendInternalError(res, `Upload failed: ${err.message}`);
@@ -389,7 +389,7 @@ export default function fileRoutes(context: FilesContext): Router {
    * @route GET /settings/logo
    * @description Get logo URL
    */
-  router.get("/settings/logo", (req: Request, res: Response) => {
+  router.get("/settings/logo", (_req: Request, res: Response) => {
     try {
       const settingsRow = dbManager.get<{ value: string }>(
         "SELECT value FROM settings WHERE key = 'logoUrl'",

@@ -1,5 +1,5 @@
 import express, { Request, Response, Router } from 'express';
-import { DeploymentStateMachine, DeploymentStep, ProvisioningContext } from '../services/provisioning';
+import { DeploymentStateMachine } from '../services/provisioning';
 import { Logger } from '../shared/logger';
 import DatabaseManager from '../shared/db';
 import { z } from 'zod';
@@ -86,7 +86,7 @@ export default function setupRoutes(context: SetupContext): Router {
     }
   });
 
-  router.get('/status', (req: Request, res: Response) => {
+  router.get('/status', (_req: Request, res: Response) => {
     try {
       const checkSetting = (id: string) => {
         const row = dbManager.get<{ value: string }>(`SELECT value FROM settings WHERE id = ?`, [id]);
@@ -118,7 +118,7 @@ export default function setupRoutes(context: SetupContext): Router {
     }
   });
 
-  router.get('/progress', async (req: Request, res: Response) => {
+  router.get('/progress', async (_req: Request, res: Response) => {
     try {
       const stateMachine = new DeploymentStateMachine(dbManager, logger);
       const steps = stateMachine.getDeploymentSteps();
@@ -173,7 +173,7 @@ export default function setupRoutes(context: SetupContext): Router {
     }
   });
 
-  router.get('/endpoints', (req: Request, res: Response) => {
+  router.get('/endpoints', (_req: Request, res: Response) => {
     try {
       const domain = process.env.CLOUDFLARE_DOMAIN || 'clickflash.photo';
       return res.json({

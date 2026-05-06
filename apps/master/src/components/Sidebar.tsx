@@ -10,7 +10,7 @@ import { usePermissions } from "../hooks/usePermissions.ts";
 import { Photographer, View, DestinationFeatures } from "../types.ts";
 import { pb } from "../services/pb.ts";
 import { useSync } from "../context/SyncContext";
-import { Bell, BellOff, BarChart3 } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import DailyResortStatsModal from "./modals/DailyResortStatsModal";
 
 interface SidebarProps {
@@ -265,7 +265,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   );
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const [isDailyStatsOpen, setIsDailyStatsOpen] = useState(false);
-  const [isSavingStats, setIsSavingStats] = useState(false);
+  const [_isSavingStats, _setIsSavingStats] = useState(false);
   const [kioskClicks, setKioskClicks] = useState(0);
   const [lastKioskClick, setLastKioskClick] = useState(0);
   const isElectron = (window as any).electron;

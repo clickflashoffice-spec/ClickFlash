@@ -1,0 +1,5 @@
+src/app/api/health/route.ts(1,30): error TS2307: Cannot find module 'next/server' or its corresponding type declarations.
+src/app/layout.tsx(1,31): error TS2307: Cannot find module 'next' or its corresponding type declarations.
+src/app/layout.tsx(2,35): error TS2307: Cannot find module 'next/font/google' or its corresponding type declarations.
+src/app/page.tsx(114,11): error TS6133: '_jobId' is declared but its value is never read.
+src/utils/exif.ts(43,11): error TS6133: 'ifd0Offset' is declared but its value is never read.

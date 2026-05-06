@@ -8,7 +8,7 @@ interface DashboardContext {
 export default ({ cloudSyncService }: DashboardContext) => {
     const router = Router();
 
-    router.get('/system-health', (req, res) => {
+    router.get('/system-health', (_req, res) => {
         try {
             const stats = cloudSyncService.getStats();
             res.json(stats);

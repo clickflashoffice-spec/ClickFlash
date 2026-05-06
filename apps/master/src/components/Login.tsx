@@ -23,7 +23,7 @@ const Login: React.FC<LoginProps> = ({
   portalName,
   onLoginSuccess,
   authService,
-  onBack,
+  onBack: _onBack,
 }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -9,7 +9,7 @@ export default function assistanceRoutes(context: any) {
   const logger: Logger = context.logger;
 
   // GET /api/assistance - List pending requests
-  router.get("/assistance", (req: Request, res: Response) => {
+  router.get("/assistance", (_req: Request, res: Response) => {
     try {
       const requests = dbManager.query(
         "SELECT * FROM assistance_requests WHERE status = ? ORDER BY createdAt DESC",

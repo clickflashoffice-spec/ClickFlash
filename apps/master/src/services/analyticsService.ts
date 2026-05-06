@@ -23,13 +23,6 @@ interface PerformanceMetric {
   context?: Record<string, any>;
 }
 
-interface UserSession {
-  id: string;
-  startTime: number;
-  userId?: string;
-  userAgent: string;
-  viewport: { width: number; height: number };
-}
 
 // Configuration
 const ANALYTICS_CONFIG = {

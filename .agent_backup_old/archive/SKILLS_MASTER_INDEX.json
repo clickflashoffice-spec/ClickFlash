@@ -1,0 +1,178 @@
+{
+  "metadata": {
+    "total_skills": 280,
+    "version": "2.0",
+    "generated": "2026-01-31",
+    "location": "E:\\ClickFlash\\.agent\\skills"
+  },
+  "categories": {
+    "security": {
+      "count": 45,
+      "skills": [
+        "vulnerability-scanner", "pentest-checklist", "pentest-commands",
+        "sql-injection-testing", "xss-html-injection", "broken-authentication",
+        "idor-testing", "file-path-traversal", "top-web-vulnerabilities",
+        "api-fuzzing-bug-bounty", "burp-suite-testing", "html-injection-testing",
+        "linux-privilege-escalation", "windows-privilege-escalation",
+        "active-directory-attacks", "cloud-penetration-testing",
+        "aws-penetration-testing", "ssh-penetration-testing",
+        "smtp-penetration-testing", "network-101", "shodan-reconnaissance",
+        "wireshark-analysis", "scanning-tools", "privilege-escalation-methods",
+        "red-team-tactics", "red-team-tools", "ethical-hacking-methodology",
+        "metasploit-framework", "sqlmap-database-pentesting",
+        "wordpress-penetration-testing"
+      ]
+    },
+    "frontend": {
+      "count": 35,
+      "skills": [
+        "react-best-practices", "react-patterns", "react-ui-patterns",
+        "nextjs-best-practices", "frontend-dev-guidelines",
+        "frontend-design", "ui-ux-pro-max", "tailwind-patterns",
+        "mobile-design", "web-design-guidelines", "3d-web-experience",
+        "interactive-portfolio", "algorithmic-art", "canvas-design",
+        "d3-viz", "theme-factory", "core-components", "scroll-experience"
+      ]
+    },
+    "backend": {
+      "count": 30,
+      "skills": [
+        "backend-dev-guidelines", "nodejs-best-practices", "api-patterns",
+        "api-documentation-generator", "api-security-best-practices",
+        "nestjs-expert", "database-design", "prisma-expert",
+        "neon-postgres", "postgres-best-practices", "nosql-expert",
+        "firebase", "graphql", "stripe-integration", "clerk-auth",
+        "file-uploads", "hubspot-integration", "plaid-fintech",
+        "bullmq-specialist", "inngest", "upstash-qstash", "trigger-dev"
+      ]
+    },
+    "ai_ml": {
+      "count": 30,
+      "skills": [
+        "ai-agents-architect", "langgraph", "crewai", "llm-app-patterns",
+        "rag-engineer", "mcp-builder", "agent-memory-systems",
+        "agent-memory-mcp", "agent-tool-builder", "autonomous-agents",
+        "ai-product", "ai-wrapper-product", "prompt-engineering",
+        "prompt-engineer", "computer-use-agents", "loki-mode",
+        "context-window-management", "prompt-caching"
+      ]
+    },
+    "marketing": {
+      "count": 30,
+      "skills": [
+        "content-creator", "copywriting", "copy-editing", "marketing-ideas",
+        "marketing-psychology", "launch-strategy", "pricing-strategy",
+        "email-sequence", "email-systems", "paid-ads", "seo-fundamentals",
+        "seo-audit", "geo-fundamentals", "programmatic-seo", "schema-markup",
+        "social-content", "page-cro", "form-cro", "popup-cro",
+        "onboarding-cro", "paywall-upgrade-cro", "signup-flow-cro",
+        "ab-test-setup", "competitor-alternatives", "free-tool-strategy",
+        "referral-program"
+      ]
+    },
+    "devops": {
+      "count": 25,
+      "skills": [
+        "aws-serverless", "gcp-cloud-run", "azure-functions",
+        "vercel-deployment", "docker-expert", "deployment-procedures",
+        "server-management", "github-workflow-automation", "git-pushing",
+        "using-git-worktrees", "finishing-a-development-branch",
+        "linux-shell-scripting", "bash-linux", "powershell-windows",
+        "busybox-on-windows", "environment-setup-guide"
+      ]
+    },
+    "testing": {
+      "count": 20,
+      "skills": [
+        "testing-patterns", "test-driven-development", "tdd-workflow",
+        "test-fixing", "verification-tdd", "verification-before-completion",
+        "playwright-skill", "webapp-testing", "clean-code",
+        "lint-and-validate", "codex-review", "code-review-checklist",
+        "receiving-code-review", "requesting-code-review", "kaizen",
+        "performance-profiling", "web-performance-optimization"
+      ]
+    },
+    "product": {
+      "count": 20,
+      "skills": [
+        "app-builder", "micro-saas-launcher", "ai-wrapper-product",
+        "product-manager-toolkit", "app-store-optimization",
+        "browser-extension-builder", "discord-bot-architect",
+        "slack-bot-builder", "telegram-bot-builder", "notion-template-business",
+        "shopify-apps", "shopify-development",
+        "game-development", "2d-games", "3d-games", "mobile-games",
+        "pc-games", "multiplayer", "game-design", "game-art", "game-audio"
+      ]
+    },
+    "documentation": {
+      "count": 15,
+      "skills": [
+        "documentation-templates", "doc-coauthoring", "docx-official",
+        "pdf-official", "pptx-official", "xlsx-official",
+        "plan-writing", "writing-plans", "concise-planning",
+        "executing-plans", "planning-with-files", "writing-skills",
+        "skill-creator", "skill-developer"
+      ]
+    },
+    "tools": {
+      "count": 15,
+      "skills": [
+        "typescript-expert", "python-patterns", "javascript-mastery",
+        "cc-skill-coding-standards", "cc-skill-backend-patterns",
+        "cc-skill-frontend-patterns", "cc-skill-security-review",
+        "cc-skill-clickhouse-io", "context7-auto-research", "exa-search",
+        "tavily-web", "firecrawl-scraper", "algolia-search", "notebooklm",
+        "obsidian-clipper-template-creator", "file-organizer", "research-engineer"
+      ]
+    },
+    "agent_ops": {
+      "count": 10,
+      "skills": [
+        "behavioral-modes", "blockrun", "parallel-agents",
+        "dispatching-parallel-agents", "subagent-driven-development",
+        "agent-manager-skill", "agent-evaluation", "systematic-debugging",
+        "multi-agent-brainstorming", "brainstorming", "design-orchestration",
+        "using-superpowers"
+      ]
+    }
+  },
+  "top_skills_by_use_case": {
+    "daily_development": [
+      "clean-code", "react-best-practices", "backend-dev-guidelines",
+      "typescript-expert", "testing-patterns"
+    ],
+    "security_focus": [
+      "api-security-best-practices", "vulnerability-scanner",
+      "pentest-checklist", "sql-injection-testing"
+    ],
+    "performance_focus": [
+      "react-best-practices", "performance-profiling",
+      "web-performance-optimization", "database-design"
+    ],
+    "ai_integration": [
+      "ai-agents-architect", "llm-app-patterns", "rag-engineer",
+      "mcp-builder", "prompt-engineering"
+    ],
+    "deployment": [
+      "docker-expert", "vercel-deployment", "aws-serverless",
+      "github-workflow-automation"
+    ]
+  },
+  "activation_keywords": {
+    "optimize React": "react-best-practices",
+    "secure API": "api-security-best-practices",
+    "database": "database-design",
+    "test": "testing-patterns",
+    "docker": "docker-expert",
+    "AI agent": "ai-agents-architect",
+    "refactor": "clean-code",
+    "pentest": "pentest-checklist",
+    "deploy": "deployment-procedures",
+    "lint": "lint-and-validate",
+    "graphql": "graphql",
+    "stripe": "stripe-integration",
+    "content": "content-creator",
+    "SEO": "seo-fundamentals",
+    "documentation": "doc-coauthoring"
+  }
+}

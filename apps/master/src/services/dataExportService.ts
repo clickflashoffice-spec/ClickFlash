@@ -228,7 +228,7 @@ class DataExportService {
     return ['account', 'profile', 'orders', 'photos', 'payments', 'preferences'];
   }
 
-  private async gatherData(userId: string, category: DataCategory): Promise<object | object[]> {
+  private async gatherData(_userId: string, _category: DataCategory): Promise<object | object[]> {
     // Implementation would fetch actual user data
     return [];
   }

@@ -1,6 +1,5 @@
 import { DatabaseManager } from '../shared/db';
 import { Logger } from '../shared/logger';
-import { randomUUID } from 'crypto';
 
 export interface InventoryItem {
     id: string;

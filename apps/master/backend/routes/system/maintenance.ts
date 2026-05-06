@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import { Logger } from "../../shared/logger";
 import DatabaseManager from "../../shared/db";
-import { IMPORT_DIR, DATA_DIR, BACKUP_DIR, LOGS_DIR } from "../../config/constants";
+import { IMPORT_DIR, DATA_DIR as _DATA_DIR, BACKUP_DIR, LOGS_DIR } from "../../config/constants";
 import { sendInternalError } from "../../shared/errorHandler";
 
 interface MaintenanceContext {

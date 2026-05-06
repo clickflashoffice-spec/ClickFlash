@@ -1,8 +1,7 @@
 import { DatabaseManager } from '../backend/shared/db';
 import { PhotoProcessor } from '../backend/shared/photoProcessor';
 import path from 'path';
-import fs from 'fs';
-import { DATA_DIR, UPLOAD_DIR, DB_FILE } from '../backend/config/constants';
+import { DATA_DIR as _DATA_DIR, UPLOAD_DIR, DB_FILE } from '../backend/config/constants';
 
 async function verifyFixes() {
     console.log('--- Phase 34: Verification of Import Fixes ---');

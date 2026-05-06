@@ -117,7 +117,7 @@ class CloudSyncService {
                     const BATCH_SIZE = 10;
                     for (let i = 0; i < serverItems.length; i += BATCH_SIZE) {
                         const batch = serverItems.slice(i, i + BATCH_SIZE);
-                        await Promise.all(batch.map(item => this.applyUpdate(collection, item)));
+                        await Promise.all(batch.map((item: any) => this.applyUpdate(collection, item)));
 
                         // Small yield to let UI breathe
                         if (i + BATCH_SIZE < serverItems.length) {

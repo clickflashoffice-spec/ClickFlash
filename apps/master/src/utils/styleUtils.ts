@@ -161,8 +161,6 @@ export const getPhotoStyle = (
   const transformParts = [transformStr];
   if (zoomLevel !== 1) {
     // Zoom-from-center framing (Rule 12/15 scale handling)
-    const _originX = centerX * 100;
-    const _originY = centerY * 100;
     transformParts.push(`scale(${zoomLevel})`);
     // Note: transform-origin should be set in style object if using this
   }

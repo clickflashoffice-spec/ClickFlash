@@ -10,7 +10,7 @@ const logger = new Logger(path.resolve(process.cwd(), "pb_data"));
 
 // Maximum allowed file size (50 MB). Must match formidable's maxFileSize so
 // any file that bypassed the upload parser is still rejected here.
-const MAX_PHOTO_SIZE_BYTES = 50 * 1024 * 1024;
+// MAX_PHOTO_SIZE_BYTES = 50MB is enforced by formidable at upload level
 
 interface PhotoMetadata {
   url: string;

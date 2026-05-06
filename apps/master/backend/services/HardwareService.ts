@@ -44,14 +44,12 @@ export interface PrintJob {
 
 export class HardwareService {
     private logger: Logger;
-    private _db: DatabaseManager;
     private inventoryService: InventoryService;
     private queue: PrintJob[] = [];
     private isProcessing: boolean = false;
 
-    constructor(logger: Logger, db: DatabaseManager, inventoryService: InventoryService) {
+    constructor(logger: Logger, _db: DatabaseManager, inventoryService: InventoryService) {
         this.logger = logger;
-        this._db = db;
         this.inventoryService = inventoryService;
     }
 

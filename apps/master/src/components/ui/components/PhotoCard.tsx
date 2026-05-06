@@ -1,9 +1,11 @@
 'use client';
 
 import React, { memo, useCallback, useMemo } from 'react';
+// @ts-ignore — next/image not installed; PhotoCard is a Next.js shared component
 import Image from 'next/image';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+// @ts-ignore — @clickflash/types not installed in master app
 import type { Photo } from '@clickflash/types';
 
 interface PhotoCardProps {

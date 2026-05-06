@@ -9,7 +9,6 @@ export class TimeService {
   private static instance: TimeService;
   private driftOffset: number = 0; // ms: HubTime - LocalTime
   private logger: Logger;
-  private lastUpdate: number = 0;
 
   private constructor() {
     this.logger = new Logger(process.env.DATA_DIR || './pb_data');
@@ -37,7 +36,6 @@ export class TimeService {
       // Only update if drift is significant (> 1s) to avoid jitter
       if (Math.abs(skew) > 1000) {
         this.driftOffset = skew;
-        this.lastUpdate = localTime;
         
         if (Math.abs(skew) > 300000) { // 5 minutes
           this.logger.error(`[TimeService] CRITICAL CLOCK SKEW DETECTED: ${Math.round(skew / 1000)}s. Correction applied.`);

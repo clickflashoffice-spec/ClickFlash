@@ -91,12 +91,6 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onError })
     return Object.keys(errors).length === 0;
   }, [formData]);
 
-  const _updateProgress = useCallback((stepId: DeploymentStep, status: DeploymentProgress['status'], message: string, errorMsg?: string) => {
-    setProgress(prev => prev.map(p => 
-      p.step === stepId ? { ...p, status, message, error: errorMsg } : p
-    ));
-  }, []);
-
   const handleDeploy = useCallback(async () => {
     if (!validateForm()) return;
 

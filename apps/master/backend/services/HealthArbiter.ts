@@ -36,7 +36,6 @@ export class HealthArbiter {
   private static instance: HealthArbiter | null = null;
 
   private currentState: SystemState = "NOMINAL";
-  private reasons: string[] = [];
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private thresholds: HealthThresholds;
   private lastSnapshot: HealthSnapshot | null = null;
@@ -137,7 +136,7 @@ export class HealthArbiter {
           newState = "CRITICAL";
         } else if (usedPercent > this.thresholds.diskWarnPercent) {
           reasons.push(`Disk pressure: ${usedPercent.toFixed(1)}% used`);
-          if (newState !== "CRITICAL") newState = "DEGRADED";
+          newState = "DEGRADED";
         }
 
         // Update snapshot metrics
@@ -205,7 +204,6 @@ export class HealthArbiter {
     }
 
     this.currentState = newState;
-    this.reasons = reasons;
   }
 
   // ── State Machine ─────────────────────────────────────────────────────

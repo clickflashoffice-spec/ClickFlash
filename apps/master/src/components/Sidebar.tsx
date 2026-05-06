@@ -265,7 +265,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   );
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const [isDailyStatsOpen, setIsDailyStatsOpen] = useState(false);
-  const [_isSavingStats, _setIsSavingStats] = useState(false);
+  const [_isSavingStats, setIsSavingStats] = useState(false);
   const [kioskClicks, setKioskClicks] = useState(0);
   const [lastKioskClick, setLastKioskClick] = useState(0);
   const isElectron = (window as any).electron;

@@ -217,11 +217,6 @@ export default function galleryCheckoutRoutes(
             // D. Phase 62: Send Purchase Receipt via Email Relay
             if (emailService && emailService.isConfigured()) {
               try {
-                const parsedItems = JSON.parse(galleryOrder.items || "[]");
-                const _itemCount = Array.isArray(parsedItems)
-                  ? parsedItems.length
-                  : 1;
-
                 // Let the Hub format the exact professional HTML, we just send a generic one
                 // fallback or explicitly call a specific Hub Endpoint if we had one.
                 // However, since emailService.sendTransactional just forwards the raw HTML,
@@ -287,9 +282,8 @@ export default function galleryCheckoutRoutes(
     try {
       const { token, orderId } = req.params;
 
-      let _payload: any;
       try {
-        _payload = jwt.verify(token as string, JWT_SECRET) as any;
+        jwt.verify(token as string, JWT_SECRET);
       } catch (error) {
         return res.status(401).json({ error: "Invalid or expired token" });
       }

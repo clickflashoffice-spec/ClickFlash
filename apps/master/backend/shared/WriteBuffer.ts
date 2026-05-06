@@ -1,4 +1,3 @@
-import { DatabaseManager } from './db';
 
 /**
  * Generic WriteBuffer for batching high-frequency DB updates.

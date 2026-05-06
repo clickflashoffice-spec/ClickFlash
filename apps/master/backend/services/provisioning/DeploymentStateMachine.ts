@@ -34,6 +34,9 @@ export interface ProvisioningResult {
   rollbackPerformed?: boolean;
 }
 
+/** Alias for ProvisioningResult — kept for backward compat with BootstrapService */
+export type DeploymentResult = ProvisioningResult;
+
 export interface DeploymentStep {
   id: string;
   label: string;
@@ -400,7 +403,6 @@ export class DeploymentStateMachine {
 
   private async registerWithHub(context: ProvisioningContext): Promise<{ success: boolean; error?: string }> {
     const hubUrl = context.hubUrl || process.env.CLOUD_API_URL || 'https://hub.clickflash.photo';
-    const domain = context.cloudflareConfig?.domain || 'clickflash.photo';
 
     this.logger.info('[DeploymentStateMachine] Checking Hub health...', { hubUrl });
     

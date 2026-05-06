@@ -59,9 +59,8 @@ const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser
         setDbEngineStatus('checking');
         
         // Check App Health (with actual verification)
-        const startTime = performance.now();
         const appHealth = await diagnosticsService.verifyAppHealth();
-        const _checkDuration = Math.round(performance.now() - startTime);
+        // timing logged by diagnosticsService
         
         if (appHealth.healthy) {
             setAppServerStatus('connected');

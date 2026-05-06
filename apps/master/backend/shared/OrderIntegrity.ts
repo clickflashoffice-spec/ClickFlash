@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+// @ts-ignore — @clickflash/types not installed in master; types are local
 import { Order, OrderItem } from '@clickflash/types';
 
 export class OrderIntegrity {

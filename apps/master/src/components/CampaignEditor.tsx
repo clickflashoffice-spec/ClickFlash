@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-// @ts-ignore — @mui/material not installed; component kept for future use
 import {
   Dialog,
   DialogTitle,
@@ -16,6 +15,7 @@ import {
   Chip,
   Alert,
   CircularProgress,
+// @ts-ignore — @mui/material not installed; component kept for future use
 } from "@mui/material";
 import { logger } from "../utils/logger";
 import { emailService } from "../services/emailService";

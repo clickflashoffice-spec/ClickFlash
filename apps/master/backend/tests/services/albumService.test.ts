@@ -40,7 +40,7 @@ describe("AlbumService", () => {
       };
 
       // Mock DB for Photographer Inheritance
-      mockDbManager.get.mockImplementation((query, params) => {
+      mockDbManager.get.mockImplementation((query, _params) => {
         if (query.includes("photographerId")) {
           // Simulating the album has photographer 'admin'
           return { photographerId: "admin" };
@@ -92,7 +92,7 @@ describe("AlbumService", () => {
         url: "/test/photo.jpg",
       };
 
-      mockDbManager.get.mockImplementation((query, params) => {
+      mockDbManager.get.mockImplementation((query, _params) => {
         if (query.includes("photographerId")) {
           return { photographerId: "admin" };
         }

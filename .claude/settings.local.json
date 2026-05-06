@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"C:\\\\Users\\\\alamo\\\\Desktop\\\\ClickFlash\\\\.claude\\\\skills\")",
+      "Bash(powershell -Command \"\\(Get-Content CLAUDE.md\\).Count\")",
+      "Bash(powershell -Command \"Get-Content .claude\\\\settings.json | ConvertFrom-Json | ConvertTo-Json -Depth 5\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(gh pr *)",
+      "Bash(git merge *)"
+    ]
+  }
+}

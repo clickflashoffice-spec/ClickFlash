@@ -15,12 +15,22 @@
  *  4. Load renderer via http://localhost:8090
  */
 
-const { app, BrowserWindow, ipcMain, globalShortcut, dialog, protocol, net, session } = require("electron");
+const { app, BrowserWindow, ipcMain, globalShortcut, dialog, protocol, net, session, Tray, Menu, powerSaveBlocker } = require("electron");
 const path   = require("path");
 const fs     = require("fs");
 const http   = require("http");
 const crypto = require("crypto");
 const { fork, spawn } = require("child_process");
+
+// ─── Auto-Updater (production only) ──────────────────────────────────────────
+// initAutoUpdater is compiled from src/main/autoUpdater.ts — not available pre-build.
+let initAutoUpdater = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  initAutoUpdater = require('./dist/main/autoUpdater.js').initAutoUpdater;
+} catch (_) {
+  console.warn('[Main] autoUpdater module not available (run `npm run build:backend` first)');
+}
 
 // ─── Protocol Registration ────────────────────────────────────────────────────
 // Must be called before app.whenReady()
@@ -65,6 +75,10 @@ let backendProcess = null;
 /** @type {import("child_process").ChildProcess | null} */
 let guardianProcess = null;
 let isQuitting = false;
+/** Power save blocker ID — prevents display sleep during photo sessions. */
+let powerSaveId = null;
+/** @type {Tray | null} */
+let tray = null;
 
 // ─── Backend ──────────────────────────────────────────────────────────────────
 
@@ -286,6 +300,21 @@ async function createWindow() {
   }
 
   spawnGuardian();
+
+  // ── Phase 1-A: Auto-updater ────────────────────────────────────────────────
+  // Only runs in packaged production — silently skipped in dev.
+  if (app.isPackaged && initAutoUpdater && mainWindow && !mainWindow.isDestroyed()) {
+    initAutoUpdater(mainWindow);
+    console.log("[Main] Auto-updater initialized");
+  }
+
+  // ── Phase 2-C: Power save blocker ─────────────────────────────────────────
+  // Prevents the display from sleeping during photo sessions / kiosk idle.
+  if (powerSaveId === null) {
+    powerSaveId = powerSaveBlocker.start('prevent-display-sleep');
+    console.log("[Main] Power save blocker started (id:", powerSaveId, ")");
+  }
+
   console.log("[Main] Window ready");
 }
 
@@ -562,7 +591,45 @@ function shutdown() {
   killGuardian();
   if (backendProcess && !backendProcess.killed) backendProcess.kill();
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.destroy();
+  // Stop power save blocker
+  if (powerSaveId !== null && powerSaveBlocker.isStarted(powerSaveId)) {
+    powerSaveBlocker.stop(powerSaveId);
+    powerSaveId = null;
+  }
+  // Destroy tray
+  try { if (tray && !tray.isDestroyed()) tray.destroy(); } catch (_) {}
   app.quit();
+}
+
+// ─── System Tray (Phase 2-B) ──────────────────────────────────────────────────
+
+function createTray() {
+  const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'tray-icon.png')
+    : path.join(__dirname, 'public', 'favicon.png');
+
+  try {
+    tray = new Tray(iconPath);
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'Show ClickFlash',
+        click: () => { if (mainWindow) { mainWindow.show(); mainWindow.focus(); } },
+      },
+      {
+        label: 'Lock Kiosk',
+        click: () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('kiosk:show-unlock-dialog'); },
+      },
+      { type: 'separator' },
+      { label: 'Quit ClickFlash', click: () => shutdown() },
+    ]);
+    tray.setToolTip('ClickFlash Master OS');
+    tray.setContextMenu(contextMenu);
+    tray.on('double-click', () => { if (mainWindow) { mainWindow.show(); mainWindow.focus(); } });
+    console.log('[Main] System tray created');
+  } catch (err) {
+    // Non-fatal — tray is a convenience feature
+    console.warn('[Main] Failed to create system tray:', err.message);
+  }
 }
 
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
@@ -647,6 +714,7 @@ app.whenReady().then(async () => {
   }
 
   createWindow();
+  createTray();
   scheduleBackups();
 }).catch((err) => {
   console.error("[Main] Fatal startup error:", err);

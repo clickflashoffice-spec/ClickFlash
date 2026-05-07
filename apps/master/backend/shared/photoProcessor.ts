@@ -258,8 +258,16 @@ export class PhotoProcessor {
       });
 
       // --- Post-Worker Resolution ---
+      if (!workerResult || workerResult.success === false) {
+        throw new Error(workerResult?.error || "Worker processing failed");
+      }
+
       const assets = workerResult.assets;
       const fileHash = workerResult.hash;
+
+      if (!assets || !assets.highres) {
+        throw new Error(`Worker returned incomplete assets for photo ${photoId}`);
+      }
 
       // Duplicate Check (Post-Worker to avoid Main Thread Blocking)
       if (this.db && fileHash) {

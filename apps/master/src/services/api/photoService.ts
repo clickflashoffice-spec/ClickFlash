@@ -86,7 +86,7 @@ export function validateManualEdits(edits: Partial<ManualEdits>): ManualEdits {
 export function getPhotoUrl(photo: PocketRecord | Photo, baseUrl?: string): string {
     const base = baseUrl || pb.baseUrlValue;
     // Handle Photo type
-    let url = (photo.url as string) || '';
+    const url = (photo.url as string) || '';
 
     // If it's a full URL or blob, return it
     if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:')) {

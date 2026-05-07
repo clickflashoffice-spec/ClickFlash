@@ -310,7 +310,7 @@ class CustomPocketBaseAdapter {
         };
       },
       getOne: async (id: string, options?: CollectionOptions) => {
-        let filter = `id="${id}"`;
+        const filter = `id="${id}"`;
         let query = `?filter=${encodeURIComponent(filter)}`;
         if (options && options.expand) {
           query += `&expand=${encodeURIComponent(options.expand)}`;

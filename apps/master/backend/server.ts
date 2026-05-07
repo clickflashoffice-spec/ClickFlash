@@ -31,6 +31,7 @@ import { getTLSConfig, createSecureServer } from "./config/tlsConfig";
 // Shared Modules
 import rateLimiter, {
   strictRateLimiter,
+  userRateLimiter,
   setAuditLogger as setRateLimiterAuditLogger,
 } from "./shared/rateLimiter";
 import { getLocalNetworkIPs } from "./shared/networkDetection";
@@ -55,6 +56,7 @@ import { createSessionMiddleware } from "./middleware/session";
 import { csrfMiddleware } from "./middleware/csrf";
 import { initCsrfTokenStore } from "./shared/csrf";
 import { authMiddleware } from "./middleware/auth";
+import { createMutationAuditMiddleware } from "./middleware/mutationAudit";
 
 // Routes
 import authRoutes from "./routes/auth";
@@ -554,8 +556,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// Rate Limiter
+// Rate Limiters — IP-based global first, then per-user for authenticated routes
 app.use(rateLimiter);
+app.use(userRateLimiter); // Phase 5-B: per-user 200 req/min (keyed by user ID)
+
+// Phase 5-C: Mutation Audit — logs every successful PUT/PATCH/DELETE to /api/*
+app.use(createMutationAuditMiddleware(auditLogger));
 
 // Logging Middleware
 app.use((req: Request, res: Response, next: NextFunction) => {

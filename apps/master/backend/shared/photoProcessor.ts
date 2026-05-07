@@ -8,10 +8,6 @@ import sharp from "sharp";
 
 const logger = new Logger(path.resolve(process.cwd(), "pb_data"));
 
-// Maximum allowed file size (50 MB). Must match formidable's maxFileSize so
-// any file that bypassed the upload parser is still rejected here.
-const MAX_PHOTO_SIZE_BYTES = 50 * 1024 * 1024;
-
 interface PhotoMetadata {
   url: string;
   tinyUrl?: string;

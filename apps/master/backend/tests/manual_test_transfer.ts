@@ -13,17 +13,11 @@ const mockDbManager = {
 };
 const mockLogger = { info: console.log, warn: console.warn, error: console.error, debug: console.log } as any;
 
-// Mock FS parts we need to pass
-const originalExistsSync = fs.existsSync;
-const originalMkdirSync = fs.mkdirSync;
-const originalCopyFile = fs.promises.copyFile;
-const originalWriteFile = fs.promises.writeFile;
-
 // We will just spy with console.log instead of jest.fn
-fs.existsSync = ((path: any) => true) as any;
-fs.mkdirSync = ((path: any) => console.log(`mkdir ${path}`)) as any;
+fs.existsSync = ((_path: any) => true) as any;
+fs.mkdirSync = ((_path: any) => console.log(`mkdir ${_path}`)) as any;
 fs.promises.copyFile = (async (src: any, dest: any) => console.log(`copy ${src} -> ${dest}`)) as any;
-fs.promises.writeFile = (async (path: any, data: any) => console.log(`write metadata to ${path}`)) as any;
+fs.promises.writeFile = (async (_path: any, _data: any) => console.log(`write metadata to ${_path}`)) as any;
 
 async function runTest() {
     console.log('Starting TransferService Test...');

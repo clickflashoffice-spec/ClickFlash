@@ -1,6 +1,5 @@
 
 import fs from 'fs';
-import path from 'path';
 const Database = require('better-sqlite3-multiple-ciphers');
 import dotenv from 'dotenv';
 

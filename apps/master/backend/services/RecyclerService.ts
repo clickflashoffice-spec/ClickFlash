@@ -98,11 +98,7 @@ export class RecyclerService {
 
     // Safeguard 2: Cloud Sync Required
     if (settings.cloudSyncRequired) {
-      const unsyncedPhotos = this.dbManager.get<{ count: number }>(
-        "SELECT COUNT(*) as count FROM main.photos WHERE albumId = ? AND sync_status != 'synced'",
-        [albumId]
-      );
-      // Note: If album is already moved to archive.db, it won't be in main.photos. 
+      // Note: If album is already moved to archive.db, it won't be in main.photos.
       // ArchiveService only archives FULLY SYNCED albums, so this is implicitly handled.
     }
 

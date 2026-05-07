@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { randomUUID } from 'crypto';
 import { Logger } from '../../shared/logger';
 import DatabaseManager from '../../shared/db';
 
@@ -82,11 +81,9 @@ export interface ManagementHubMetadata {
 
 export class CloudflareAppsProvisioningService {
   private logger: Logger;
-  private db: DatabaseManager;
   private apiBase = 'https://api.cloudflare.com/client/v4';
 
-  constructor(db: DatabaseManager, logger: Logger) {
-    this.db = db;
+  constructor(_db: DatabaseManager, logger: Logger) {
     this.logger = logger;
   }
 
@@ -135,7 +132,7 @@ export class CloudflareAppsProvisioningService {
   async registerGalleryApp(
     config: CloudflareAppsConfig,
     locationName: string,
-    metadata: GalleryMetadata,
+    _metadata: GalleryMetadata,
     githubConfig?: { owner: string; repo: string; branch: string }
   ): Promise<{ app?: CloudflareApp; error?: string; rollbackActions?: RollbackAction[] }> {
     const appName = `ClickFlash Gallery - ${locationName}`;
@@ -225,7 +222,7 @@ export class CloudflareAppsProvisioningService {
   async registerManagementHubApp(
     config: CloudflareAppsConfig,
     locationName: string,
-    metadata: ManagementHubMetadata,
+    _metadata: ManagementHubMetadata,
     githubConfig?: { owner: string; repo: string; branch: string }
   ): Promise<{ app?: CloudflareApp; error?: string; rollbackActions?: RollbackAction[] }> {
     const appName = `ClickFlash Management - ${locationName}`;
@@ -373,7 +370,7 @@ export class CloudflareAppsProvisioningService {
     };
   }
 
-  async configureDNS(config: CloudflareAppsConfig, locationName: string, tunnelId: string): Promise<{
+  async configureDNS(config: CloudflareAppsConfig, _locationName: string, tunnelId: string): Promise<{
     dnsRecords?: DnsRecord[];
     error?: string;
     rollbackActions?: RollbackAction[]

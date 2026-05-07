@@ -11,7 +11,6 @@ import Database from 'better-sqlite3-multiple-ciphers';
 import { DatabaseManager } from '../shared/db';
 import galleryCheckoutRoutes from '../routes/galleryCheckout';
 import stripeService from '../services/stripeService';
-import { randomUUID } from 'crypto';
 
 // Mock Stripe Service
 jest.mock('../services/stripeService', () => ({

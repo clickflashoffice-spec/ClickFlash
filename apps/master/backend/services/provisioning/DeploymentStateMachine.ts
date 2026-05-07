@@ -326,6 +326,7 @@ export class DeploymentStateMachine {
 
       this.logger.info('[DeploymentStateMachine] Deployment completed successfully');
 
+      const domain = context.cloudflareConfig?.domain || 'clickflash.photo';
       return {
         success: true,
         locationName: context.locationName,
@@ -400,7 +401,6 @@ export class DeploymentStateMachine {
 
   private async registerWithHub(context: ProvisioningContext): Promise<{ success: boolean; error?: string }> {
     const hubUrl = context.hubUrl || process.env.CLOUD_API_URL || 'https://hub.clickflash.photo';
-    const domain = context.cloudflareConfig?.domain || 'clickflash.photo';
 
     this.logger.info('[DeploymentStateMachine] Checking Hub health...', { hubUrl });
     

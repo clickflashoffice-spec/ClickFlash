@@ -344,7 +344,7 @@ export class ScaleValidator {
     let failed = 0;
     const latencies: number[] = [];
 
-    const touchRequest = (touchId: number, endpoint: string): Promise<void> =>
+    const touchRequest = (_touchId: number, endpoint: string): Promise<void> =>
       new Promise((resolve) => {
         const t0 = Date.now();
         const req = http.get(

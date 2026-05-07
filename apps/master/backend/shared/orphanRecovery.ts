@@ -49,7 +49,6 @@ async function scanForOrphans(uploadDir: string): Promise<OrphanFile[]> {
         if (!isImageFile(file)) continue;
 
         const filepath = path.join(highresDir, file);
-        const stat = fs.statSync(filepath);
 
         // Check if file exists in database
         // We'll check by filename pattern (photoId is part of filename)
@@ -146,7 +145,7 @@ export async function recoverOrphanedFiles(
 
         // Attempt to process and register the orphan
         if (photoProcessor) {
-          const metadata = await photoProcessor.processPhoto(
+          await photoProcessor.processPhoto(
             {
               filepath: orphan.filepath,
               originalFilename: orphan.originalFilename,

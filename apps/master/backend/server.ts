@@ -20,7 +20,6 @@ if (process.env.SENTRY_DSN) {
 
 import express, { Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
-import http from "http";
 import fs from "fs";
 import path from "path";
 import { Bonjour } from "bonjour-service";
@@ -53,7 +52,7 @@ console.log(`[Environment] Running in ${isElectron ? "Electron" : "Web"} mode`);
 // Middleware
 import { createSessionMiddleware } from "./middleware/session";
 import { csrfMiddleware } from "./middleware/csrf";
-import { initCsrfTokenStore, initCsrfStore } from "./shared/csrf";
+import { initCsrfTokenStore } from "./shared/csrf";
 import { authMiddleware } from "./middleware/auth";
 
 // Routes
@@ -782,7 +781,7 @@ server.listen(PORT, "0.0.0.0", async () => {
             if (failures.length > 0) {
                 logger.error(
                     `[Shutdown] ${failures.length}/${serviceStoppers.length} services failed: ${
-                        failures.map((_, i) => serviceStoppers[results.indexOf(_)].name).join(', ')
+                        failures.map((_, _i) => serviceStoppers[results.indexOf(_)].name).join(', ')
                     }`,
                 );
             } else {

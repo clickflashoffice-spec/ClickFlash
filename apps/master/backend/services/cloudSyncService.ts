@@ -34,17 +34,6 @@ interface RemoteOperation {
   retry_count?: number;
 }
 
-interface OperationResult {
-  success: boolean;
-  error?: string;
-}
-
-interface CloudApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
-
 interface EmailService {
   setCloudConfig: (url: string, token: string) => void;
 }
@@ -574,7 +563,7 @@ export class CloudSyncService {
 
       // --- Phase 13/32: Parallelized Intent Synchronization ---
       // We run these in parallel so a slow order poll doesn't block intent pushing.
-      const results = await Promise.allSettled([
+      await Promise.allSettled([
         this.syncOperationLogs(),
         this.syncLedgerEntries(), // Payroll sync
         this.syncExpenses(), // Expenses sync
@@ -597,9 +586,6 @@ export class CloudSyncService {
         ),
       ]);
 
-      // Check for failures
-      const rejectedCount = results.filter(r => r.status === 'rejected').length;
-      
       this._lastSuccessfulSync = new Date();
       this.consecutiveFailures = 0;
       this.currentInterval = MIN_SYNC_INTERVAL;
@@ -1783,8 +1769,6 @@ export class CloudSyncService {
    * Pushes orders created at this Master station to the cloud.
    */
   public async syncOrdersToGallery() {
-    const startTime = Date.now();
-    
     try {
       // Find orders that haven't been synced yet or failed previously
       const pendingOrders = this.dbManager.query(`
@@ -2200,7 +2184,7 @@ export class CloudSyncService {
 
       if (stats.length === 0) return;
 
-      const res = await executeWithRetry(async () => {
+      await executeWithRetry(async () => {
         const r = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/yield`, {
           method: "POST",
           headers: await this.getHeaders(),
@@ -2209,7 +2193,7 @@ export class CloudSyncService {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r;
       }, { maxRetries: 2 });
-      
+
       this.logger.info(`[CloudSync] Yield intelligence synced successfully.`);
     } catch (e: unknown) {
       this.logger.error(`[CloudSync] Yield Sync Error: ${getErrorMessage(e)}`);

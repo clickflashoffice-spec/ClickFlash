@@ -51,14 +51,12 @@ export function getLocalNetworkIPs(): IPObject[] {
 export class NetworkDetectionManager {
     private dbManager: DatabaseManager;
     private auditLogger: AuditLogger;
-    private logger: Logger;
     private whitelist: Set<string> = new Set();
     private whitelistEnabled: boolean = true;
 
-    constructor(dbManager: DatabaseManager, auditLogger: AuditLogger, logger: Logger) {
+    constructor(dbManager: DatabaseManager, auditLogger: AuditLogger, _logger: Logger) {
         this.dbManager = dbManager;
         this.auditLogger = auditLogger;
-        this.logger = logger;
         this.loadWhitelist();
     }
 

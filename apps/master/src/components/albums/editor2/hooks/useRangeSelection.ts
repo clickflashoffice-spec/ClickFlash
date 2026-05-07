@@ -85,14 +85,6 @@ export function useRangeSelection({
           }
         });
         return;
-      } else if (event.key === 'a' && (event.ctrlKey || event.metaKey)) {
-        event.preventDefault();
-        allPhotoIds.forEach(id => {
-          if (isSelected(id)) {
-            toggleSelection(id);
-          }
-        });
-        return;
       }
 
       if (newTargetIndex !== currentIndex) {

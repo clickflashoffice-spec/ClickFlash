@@ -88,8 +88,13 @@ export default [
 
         // File API
         FileList: "readonly",
+        BlobPart: "readonly",
         EventTarget: "readonly",
         EventListener: "readonly",
+
+        // Notifications & Error APIs
+        Notification: "readonly",
+        DOMException: "readonly",
 
         // Canvas and images
         CanvasRenderingContext2D: "readonly",

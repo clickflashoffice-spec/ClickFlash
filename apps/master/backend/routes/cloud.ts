@@ -1,24 +1,27 @@
 import { Router, Request, Response } from "express";
+import { Logger } from "../shared/logger";
+import { CloudSyncService } from "../services/cloudSyncService";
 
-export default (context: any) => {
+interface CloudRouteContext {
+  logger: Logger;
+  // cloudSyncService is always initialized before routes mount (server.ts)
+  cloudSyncService: CloudSyncService;
+  dbManager: { query: (sql: string, params?: unknown[]) => unknown[] };
+}
+
+export default (context: CloudRouteContext) => {
   const router = Router();
   const { logger, cloudSyncService } = context;
 
-  // GET /api/cloud/status
+  // GET /api/cloud/status — delegates to getStats() for real sync state
   router.get("/status", (_req: Request, res: Response) => {
     if (!cloudSyncService) {
       return res
         .status(503)
         .json({ success: false, msg: "Cloud Service not initialized" });
     }
-    // Expose internal state (enabled, isSyncing) via public getters we need to add to Service
-    // For now, assuming we add getters or make them public-ish
-    res.json({
-      success: true,
-      status: "online", // Stub
-      // We should probably redirect to getStats which now returns status
-      // But for now, keep as is
-    });
+    const stats = cloudSyncService.getStats();
+    res.json({ success: true, ...stats });
   });
 
   // POST /api/cloud/queue/pause
@@ -62,8 +65,8 @@ export default (context: any) => {
   // POST /api/cloud/candidates/:id/action
   router.post("/candidates/:id/action", (req: Request, res: Response) => {
     if (!cloudSyncService) return res.status(503).json({ success: false });
-    const { id } = req.params;
-    const { action } = req.body; // 'exclude' | 'upload' | 'delete'
+    const id = String(req.params.id);
+    const action = String(req.body?.action ?? "") as "exclude" | "upload" | "delete";
 
     if (!["exclude", "upload", "delete"].includes(action)) {
       return res.status(400).json({ success: false, msg: "Invalid action" });

@@ -264,8 +264,13 @@ try {
   );
 
   // Email & Marketing (Rule 01, 14)
+  // All email is routed through the Cloudflare Hub Worker (/api/email/relay → Resend).
   emailService = new EmailService(logger);
-  bookingService = new BookingService(logger);
+  emailService.setCloudConfig(
+    process.env.CLOUD_API_URL || '',
+    process.env.CLOUD_API_TOKEN || '',
+  );
+  bookingService = new BookingService(logger, emailService);
 
   campaignScheduler = new CampaignScheduler(logger, dbManager, emailService);
 

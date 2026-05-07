@@ -17,7 +17,6 @@
 import fs from "fs";
 import path from "path";
 import os from "os";
-import { pipeline } from "stream/promises";
 import archiver from "archiver";
 import AdmZip from "adm-zip";
 import { Logger } from "../shared/logger";

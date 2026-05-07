@@ -8,8 +8,6 @@ directories:
 
 files:
   - dist/**/*
-  - electron-main.js
-  - preload.js
   - package.json
   - "!pb_data/**/*"
   - "!storage/**/*"

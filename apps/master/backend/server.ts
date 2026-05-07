@@ -80,6 +80,7 @@ import healthRoutes from "./routes/health";
 import exportRoutes from "./routes/export";
 import { createResortAnalyticsRoutes } from "./routes/resortAnalytics";
 import setupRoutes from "./routes/setup";
+import backupRoutes from "./routes/backup";
 
 // Services
 import startFolderMonitor from "./services/folderMonitor";
@@ -588,6 +589,7 @@ app.use("/api/marketing", marketingRoutes(context));
 app.use("/api/dashboard", dashboardRoutes(context)); // Handles /dashboard/system-health
 app.use("/api/health", healthRoutes(dbManager, thermalService)); // Federated deep diagnostics
 app.use("/api/export", exportRoutes(context as any)); // Phase P3: Backend Batch Export
+app.use("/api/backup", backupRoutes(context));      // Backup / Restore (admin-only)
 app.use(
   "/api/resort-analytics",
   createResortAnalyticsRoutes(resortAnalytics, logger),

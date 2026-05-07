@@ -129,8 +129,16 @@ function startBackend() {
     console.log("[Main] DATA_DIR:", dataDir);
     console.log("[Main] Working dir:", appDir);
 
+    // Phase 4-D: Enforce NODE_ENV in production so backend doesn't default to "development"
+    const backendEnv = {
+      ...process.env,
+      ELECTRON_RUN_AS_NODE: "1",
+      DATA_DIR: dataDir,
+      NODE_ENV: app.isPackaged ? "production" : (process.env.NODE_ENV || "development"),
+    };
+
     backendProcess = fork(serverPath, [], {
-      env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", DATA_DIR: dataDir },
+      env: backendEnv,
       execArgv: ["--max-old-space-size=8192"],
       stdio: ["pipe", "pipe", "pipe", "ipc"],
       cwd: appDir,

@@ -1,12 +1,15 @@
 import express, { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { randomUUID } from "crypto";
 import { verifyPassword } from "../shared/auth";
 import {
   sendAuthError,
   sendAuthorizationError,
   sendInternalError,
   sendValidationError,
+  sendNotFoundError,
 } from "../shared/errorHandler";
 import { strictRateLimiter } from "../shared/rateLimiter";
 
@@ -103,6 +106,25 @@ export default function authRoutes(context: AppContext) {
           JWT_SECRET,
           { expiresIn: "7d" },
         );
+
+        // Track session for concurrent session management (Phase 5-D)
+        try {
+          const sessionId = randomUUID();
+          const tokenHash = crypto.createHash("sha256").update(token).digest("hex").slice(0, 16);
+          const ua = (req.headers["user-agent"] ?? "").slice(0, 200);
+          const now = new Date().toISOString();
+          dbManager.run(
+            `INSERT INTO user_sessions (id, user_id, user_email, token_hash, device_info, ip_address, created_at, last_seen)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [sessionId, user.id, user.email, tokenHash, ua, clientIp, now, now],
+          );
+          if (req.session) {
+            (req.session as any).sessionId = sessionId;
+          }
+        } catch (sessionErr: any) {
+          // Non-fatal — login still succeeds even if session tracking fails
+          logger.warn("[Auth] Failed to record user session", { error: sessionErr.message });
+        }
 
         delete user.password;
 
@@ -248,10 +270,23 @@ export default function authRoutes(context: AppContext) {
 
   /**
    * @route POST /logout
-   * @description Logout endpoint - destroys user session
+   * @description Logout endpoint - destroys user session and revokes tracked session record
    * @access Public
    */
   router.post("/logout", (req: Request, res: Response) => {
+    // Revoke the tracked session record (Phase 5-D)
+    const trackedSessionId = (req.session as any)?.sessionId;
+    if (trackedSessionId) {
+      try {
+        dbManager.run(
+          "UPDATE user_sessions SET is_active = 0, revoked_at = ? WHERE id = ?",
+          [new Date().toISOString(), trackedSessionId],
+        );
+      } catch (e: any) {
+        logger.warn("[Auth] Failed to revoke session record", { error: e.message });
+      }
+    }
+
     if (req.session) {
       req.session.destroy((err: any) => {
         if (err) {
@@ -424,6 +459,116 @@ export default function authRoutes(context: AppContext) {
         stack: error.stack,
       });
       sendInternalError(res, error, "data export endpoint");
+    }
+  });
+
+  // ---------------------------------------------------------------------------
+  // Session Management (Phase 5-D) — concurrent session listing & revocation
+  // ---------------------------------------------------------------------------
+
+  /**
+   * @route GET /sessions
+   * @description List all active sessions for the authenticated user
+   * @access Requires authentication
+   */
+  router.get("/sessions", (req: Request, res: Response) => {
+    const sessionUser = (req.session as any)?.user ?? (req as any).user;
+    if (!sessionUser?.id) {
+      sendAuthError(res, "Not authenticated");
+      return;
+    }
+    try {
+      const sessions = dbManager.query<{
+        id: string;
+        token_hash: string;
+        device_info: string | null;
+        ip_address: string | null;
+        created_at: string;
+        last_seen: string;
+      }>(
+        `SELECT id, token_hash, device_info, ip_address, created_at, last_seen
+         FROM user_sessions
+         WHERE user_id = ? AND is_active = 1
+         ORDER BY last_seen DESC`,
+        [sessionUser.id],
+      );
+      const currentSessionId = (req.session as any)?.sessionId ?? null;
+      res.json({ sessions, currentSessionId });
+    } catch (e) {
+      sendInternalError(res, e as Error, "sessions list");
+    }
+  });
+
+  /**
+   * @route DELETE /sessions/:id
+   * @description Revoke a specific session by ID (log out that device)
+   * @access Requires authentication — users can only revoke their own sessions
+   */
+  router.delete("/sessions/:id", (req: Request, res: Response) => {
+    const sessionUser = (req.session as any)?.user ?? (req as any).user;
+    if (!sessionUser?.id) {
+      sendAuthError(res, "Not authenticated");
+      return;
+    }
+    const { id } = req.params;
+    try {
+      const session = dbManager.get<{ id: string; user_id: number }>(
+        "SELECT id, user_id FROM user_sessions WHERE id = ? AND is_active = 1",
+        [id],
+      );
+      if (!session) {
+        sendNotFoundError(res, "Session");
+        return;
+      }
+      // Prevent revoking another user's session
+      if (String(session.user_id) !== String(sessionUser.id)) {
+        sendAuthorizationError(res, "Cannot revoke another user's session");
+        return;
+      }
+      dbManager.run(
+        "UPDATE user_sessions SET is_active = 0, revoked_at = ? WHERE id = ?",
+        [new Date().toISOString(), id],
+      );
+      auditLogger.logSecurityEvent("SESSION_REVOKED", {
+        revokedSessionId: id,
+        byUserId: sessionUser.id,
+        byEmail: sessionUser.email,
+      });
+      res.json({ success: true });
+    } catch (e) {
+      sendInternalError(res, e as Error, "session revoke");
+    }
+  });
+
+  /**
+   * @route DELETE /sessions
+   * @description Revoke ALL other sessions (log out all other devices)
+   * @access Requires authentication
+   */
+  router.delete("/sessions", (req: Request, res: Response) => {
+    const sessionUser = (req.session as any)?.user ?? (req as any).user;
+    if (!sessionUser?.id) {
+      sendAuthError(res, "Not authenticated");
+      return;
+    }
+    const currentSessionId = (req.session as any)?.sessionId ?? null;
+    try {
+      const result = dbManager.run(
+        `UPDATE user_sessions
+         SET is_active = 0, revoked_at = ?
+         WHERE user_id = ? AND is_active = 1${currentSessionId ? " AND id != ?" : ""}`,
+        currentSessionId
+          ? [new Date().toISOString(), sessionUser.id, currentSessionId]
+          : [new Date().toISOString(), sessionUser.id],
+      );
+      auditLogger.logSecurityEvent("ALL_OTHER_SESSIONS_REVOKED", {
+        byUserId: sessionUser.id,
+        byEmail: sessionUser.email,
+        revokedCount: result.changes,
+      });
+      res.json({ success: true, revokedCount: result.changes });
+    } catch (e) {
+      sendInternalError(res, e as Error, "revoke all sessions");
     }
   });
 

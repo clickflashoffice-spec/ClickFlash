@@ -83,6 +83,7 @@ export const CampaignEditor: React.FC<CampaignEditorProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [activeField, setActiveField] = useState<'subjectTemplate' | 'bodyHtml' | 'bodyText'>('bodyHtml');
 
   useEffect(() => {
     if (campaign) {
@@ -115,10 +116,9 @@ export const CampaignEditor: React.FC<CampaignEditorProps> = ({
   };
 
   const insertVariable = (variable: string) => {
-    const cursorField = "bodyHtml"; // TODO: Track which field has focus
     setFormData((prev) => ({
       ...prev,
-      [cursorField]: prev[cursorField] + ` {${variable}}`,
+      [activeField]: prev[activeField] + ` {${variable}}`,
     }));
   };
 
@@ -324,6 +324,7 @@ export const CampaignEditor: React.FC<CampaignEditorProps> = ({
               fullWidth
               value={formData.subjectTemplate}
               onChange={(e: any) => handleChange("subjectTemplate", e.target.value)}
+              onFocus={() => setActiveField('subjectTemplate')}
               error={!!errors.subjectTemplate}
               helperText={errors.subjectTemplate}
               placeholder="Your photos are ready! 🎉"
@@ -338,6 +339,7 @@ export const CampaignEditor: React.FC<CampaignEditorProps> = ({
               rows={10}
               value={formData.bodyHtml}
               onChange={(e: any) => handleChange("bodyHtml", e.target.value)}
+              onFocus={() => setActiveField('bodyHtml')}
               error={!!errors.bodyHtml}
               helperText={errors.bodyHtml}
               placeholder="<h1>Hi {customer_name}!</h1><p>Your photos are ready.</p>"
@@ -352,6 +354,7 @@ export const CampaignEditor: React.FC<CampaignEditorProps> = ({
               rows={6}
               value={formData.bodyText}
               onChange={(e: any) => handleChange("bodyText", e.target.value)}
+              onFocus={() => setActiveField('bodyText')}
               error={!!errors.bodyText}
               helperText={errors.bodyText}
               placeholder="Hi {customer_name}! Your photos are ready."

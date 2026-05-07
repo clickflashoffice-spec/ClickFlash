@@ -42,6 +42,7 @@ import { ThermalService } from "./shared/thermalService";
 import { ResourceMonitor } from "./shared/ResourceMonitor";
 
 import { sendNotFoundError } from "./shared/errorHandler";
+import { createErrorMiddleware } from "./shared/apiError";
 import { initDefaultUser } from "./shared/init-default-user";
 import { tunnelService } from "./services/tunnelService";
 
@@ -631,19 +632,9 @@ app.get(/.*/, (_req: Request, res: Response) => {
   }
 });
 
-// Error handling middleware — catch-all for unhandled errors
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  logger.error("Unhandled Server Error", {
-    error: err.message,
-    stack: err.stack,
-    url: _req.url,
-    method: _req.method,
-  });
-  if (!res.headersSent) {
-    // Never leak stack traces or internal details to client
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-});
+// Error handling middleware — ApiError (4xx/5xx structured) + catch-all 500
+// createErrorMiddleware unifies Pattern C (throw ApiError) with Pattern A (sendError)
+app.use(createErrorMiddleware(logger));
 
 // NOTE: uncaughtException and unhandledRejection handlers are registered
 // below in the Phase 55 block (after server.listen). Registering them here

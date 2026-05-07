@@ -49,20 +49,24 @@ export const createCheckoutSession = async (
         quantity: item.quantity
     }));
 
-    // Create Checkout Session
-    const session = await getStripe().checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: lineItems,
-        mode: 'payment',
-        success_url: successUrl,
-        cancel_url: cancelUrl,
-        customer_email: customerEmail,
-        metadata: {
-            orderId,
-            source: 'gallery'
+    // Create Checkout Session — idempotencyKey prevents double-charging on
+    // network retries; key is stable per orderId so a duplicate request is a no-op.
+    const session = await getStripe().checkout.sessions.create(
+        {
+            payment_method_types: ['card'],
+            line_items: lineItems,
+            mode: 'payment',
+            success_url: successUrl,
+            cancel_url: cancelUrl,
+            customer_email: customerEmail,
+            metadata: {
+                orderId,
+                source: 'gallery'
+            },
+            allow_promotion_codes: true
         },
-        allow_promotion_codes: true
-    });
+        { idempotencyKey: `checkout-session-${orderId}` }
+    );
 
     return session;
 };

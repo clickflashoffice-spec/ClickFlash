@@ -9,7 +9,7 @@ import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
 
-import { validateImageMagicNumber } from "../shared/validateImage";
+import { validateImageMagicNumber } from "../shared/validateImage.ts";
 
 if (!parentPort) {
   throw new Error("This file must be run as a worker thread");

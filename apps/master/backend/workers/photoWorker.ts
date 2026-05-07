@@ -100,6 +100,11 @@ async function handleProcessJob(job: WorkerJob) {
   const previewPath = path.join(outputDir, previewFilename);
   const tinyPath = path.join(outputDir, tinyFilename);
 
+  // P13: Decouple HI-RES processing (Stripping & Correction) from main thread
+  // Defined here so it's accessible in both the happy-path and the corrupt-JPEG repair path.
+  const strippedHighResFilename = `${photoId}_highres${ext}`;
+  const strippedHighResPath = path.join(outputDir, strippedHighResFilename);
+
   let imageInstance = sharp(filepath, { failOnError: false });
   try {
     // 1. Calculate Hash (Stream-based) - Low Memory Footprint
@@ -131,10 +136,6 @@ async function handleProcessJob(job: WorkerJob) {
     } catch {
       console.warn(`[PhotoWorker] Failed to compute stats for ${photoId}`);
     }
-
-    // P13: Decouple HI-RES processing (Stripping & Correction) from main thread
-    const strippedHighResFilename = `${photoId}_highres${ext}`;
-    const strippedHighResPath = path.join(outputDir, strippedHighResFilename);
 
     await Promise.all([
       // 1. Generate High-Res (Stripped & Corrected orientation)
@@ -186,6 +187,7 @@ async function handleProcessJob(job: WorkerJob) {
         let buffer: Buffer | null = fs.readFileSync(filepath);
 
         await Promise.all([
+          sharp(buffer, { failOnError: false }).rotate().withMetadata({ exif: Buffer.alloc(0) } as any).toFile(strippedHighResPath),
           sharp(buffer, { failOnError: false }).resize(400, 400, { fit: "inside", withoutEnlargement: true }).toFile(thumbnailPath),
           sharp(buffer, { failOnError: false }).resize(2048, 2048, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 85, mozjpeg: true }).toFile(previewPath),
           sharp(buffer, { failOnError: false }).resize(100, 100, { fit: "inside", withoutEnlargement: true }).toFormat("webp", { quality: 80 }).toFile(tinyPath),
@@ -205,7 +207,7 @@ async function handleProcessJob(job: WorkerJob) {
             orientation: repairMetadata.orientation || 1,
           },
           quality_flags: [],
-          assets: { thumbnail: thumbnailFilename, preview: previewFilename, tiny: tinyFilename },
+          assets: { highres: strippedHighResFilename, thumbnail: thumbnailFilename, preview: previewFilename, tiny: tinyFilename },
           warning: "Recovered from corruption/partial data",
         });
         buffer = null; // Memory management: Clear large buffer

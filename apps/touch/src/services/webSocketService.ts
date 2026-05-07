@@ -38,6 +38,8 @@ class WebSocketService {
 
     private reconnectAttempts = 0;
     private readonly MAX_RECONNECT_ATTEMPTS = 100; // Keep trying for a long time
+    private pendingMessages: unknown[] = [];
+    private readonly MAX_QUEUE_SIZE = 50;
     private reconnectTimeout: number | null = null;
     private isIntentionallyDisconnected = false;
 
@@ -111,6 +113,18 @@ class WebSocketService {
                         type: 'REGISTER_CLIENT',
                         payload: this.clientInfo
                     });
+                }
+
+                // Drain pending messages (this.ws is guaranteed open here)
+                const activeWs = this.ws;
+                if (activeWs) {
+                    const pending = this.pendingMessages.splice(0);
+                    for (const msg of pending) {
+                        activeWs.send(JSON.stringify(msg));
+                    }
+                    if (pending.length > 0) {
+                        logger.info(`[WebSocketService] Drained ${pending.length} queued message(s)`);
+                    }
                 }
             };
 
@@ -216,6 +230,9 @@ class WebSocketService {
 
     public disconnect(intentional = true) {
         this.isIntentionallyDisconnected = intentional;
+        if (intentional) {
+            this.pendingMessages = [];
+        }
         this.stopHeartbeat();
         if (this.reconnectTimeout) {
             clearTimeout(this.reconnectTimeout);
@@ -232,7 +249,11 @@ class WebSocketService {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify(message));
         } else {
-            logger.warn('[WebSocketService] Cannot send message, not connected');
+            if (this.pendingMessages.length < this.MAX_QUEUE_SIZE) {
+                this.pendingMessages.push(message);
+            } else {
+                logger.warn('[WebSocketService] Message queue full, dropping message');
+            }
         }
     }
 
@@ -244,7 +265,8 @@ class WebSocketService {
             lastConnectionTime: this.lastConnectionTime,
             reconnectAttempts: this.reconnectAttempts,
             retryCount: this.reconnectAttempts,
-            wsUrl: this.wsUrl
+            wsUrl: this.wsUrl,
+            queuedMessages: this.pendingMessages.length
         };
     }
 }

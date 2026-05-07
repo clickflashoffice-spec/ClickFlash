@@ -1,11 +1,18 @@
 import { Logger } from '../shared/logger';
 
+export interface EmailAttachment {
+    filename: string;
+    content: string;  // base64-encoded file content
+    type?: string;    // MIME type, e.g. "application/pdf"
+}
+
 export interface EmailOptions {
     to: string;
     subject: string;
     html: string;
     text: string;
     trackingId?: string;
+    attachments?: EmailAttachment[];
 }
 
 export interface CampaignEmail extends EmailOptions {
@@ -64,9 +71,25 @@ export class EmailService {
     /** Direct Resend fallback — used when hub is not yet configured (local dev). */
     private async sendViaResendDirect(payload: {
         to: string; subject: string; html: string; text: string;
+        attachments?: EmailAttachment[];
     }): Promise<string | null> {
         const apiKey = process.env.RESEND_API_KEY;
         if (!apiKey) return null;
+
+        const body: Record<string, unknown> = {
+            from: `${this.fromName} <${this.fromEmail}>`,
+            to:   [payload.to],
+            subject: payload.subject,
+            html: payload.html,
+            text: payload.text,
+        };
+        if (payload.attachments?.length) {
+            body.attachments = payload.attachments.map((a) => ({
+                filename: a.filename,
+                content: a.content,
+                ...(a.type ? { type: a.type } : {}),
+            }));
+        }
 
         const response = await fetch('https://api.resend.com/emails', {
             method: 'POST',
@@ -74,13 +97,7 @@ export class EmailService {
                 Authorization: `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                from: `${this.fromName} <${this.fromEmail}>`,
-                to:   [payload.to],
-                subject: payload.subject,
-                html: payload.html,
-                text: payload.text,
-            }),
+            body: JSON.stringify(body),
         });
         if (response.ok) {
             const data = await response.json() as { id?: string };
@@ -149,6 +166,7 @@ export class EmailService {
             const fallback = await this.sendViaResendDirect({
                 to: options.to, subject: options.subject,
                 html: options.html, text: options.text,
+                attachments: options.attachments,
             });
             if (!fallback) {
                 this.logger.warn('[EmailService] No transport configured — transactional email dropped');

@@ -31,6 +31,7 @@ export interface Env {
   ALLOWED_ORIGINS: string;
   RESEND_API_KEY?: string;
   FROM_EMAIL?: string;
+  ADMIN_NOTIFICATION_EMAIL?: string;
   GOOGLE_API_KEY?: string;
   SENTRY_DSN?: string; // Sentry DSN — optional; monitoring disabled when absent
 }
@@ -86,6 +87,7 @@ const managementHandler = {
       console,
       env.RESEND_API_KEY,
       env.FROM_EMAIL,
+      env.ADMIN_NOTIFICATION_EMAIL,
     );
     const recordService = new RecordService(dbManager, emailRelayService);
     const analyticsService = new AnalyticsService(dbManager);
@@ -1298,7 +1300,7 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
 
             await emailRelayService.sendEmail({
               to: order.email,
-              from: env.FROM_EMAIL || "support@clicketflash.com",
+              from: env.FROM_EMAIL || "support@clickflash.com",
               fromName: "ClickFlash Photography",
               subject: "Your High-Res Photos are Ready for Download",
               html: emailHtml,
@@ -1964,6 +1966,7 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
             subject: string;
             html: string;
             text?: string;
+            bcc?: string | string[];
           };
 
           if (!body.to || !body.subject || !body.html) {
@@ -1980,11 +1983,12 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
 
           const success = await emailRelayService.sendEmail({
             to: body.to,
-            from: body.from || "support@clicketflash.com",
+            from: body.from || "support@clickflash.com",
             fromName: body.fromName || "ClickFlash",
             subject: body.subject,
             html: body.html,
             text: body.text || body.html.replace(/<[^>]*>?/gm, ""),
+            bcc: body.bcc,
           });
 
           if (!success) {
@@ -2293,6 +2297,8 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
     const emailRelayService = new EmailRelayService(
       console,
       env.RESEND_API_KEY,
+      undefined,
+      env.ADMIN_NOTIFICATION_EMAIL,
     );
     const marketingService = new MarketingAutomationService(
       dbManager,

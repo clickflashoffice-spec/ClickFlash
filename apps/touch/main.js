@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, session } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, session, powerSaveBlocker, globalShortcut } = require("electron");
 const path = require("path");
 const http = require("http");
 const fs = require("fs");
@@ -9,6 +9,12 @@ const { initAutoUpdater } = require("./autoUpdater");
 
 // Load environment variables
 require("dotenv").config();
+
+// ─── PIN unlock state (module-level so it survives IPC re-registration) ──────
+const pinAttempts = { count: 0, lockedUntil: 0 };
+const PIN_MAX_ATTEMPTS = 5;
+const PIN_LOCKOUT_MS = 60 * 60 * 1000; // 60-minute lockout
+const ADMIN_SHORTCUT = "CommandOrControl+Alt+Shift+X";
 
 /**
  * Rule 05: Universal Environment Parity
@@ -31,6 +37,7 @@ class TouchApp {
     this.server = null;
     this.serverPort = null;
     this.useViteDevServer = false;
+    this.powerSaveId = null;
 
     this.init();
   }
@@ -58,7 +65,13 @@ class TouchApp {
       });
     });
 
-    app.on("will-quit", () => this.stopBackend());
+    app.on("will-quit", () => {
+      this.stopBackend();
+      if (this.powerSaveId !== null && powerSaveBlocker.isStarted(this.powerSaveId)) {
+        powerSaveBlocker.stop(this.powerSaveId);
+      }
+      globalShortcut.unregisterAll();
+    });
 
     app.on("window-all-closed", () => {
       if (process.platform !== "darwin") {
@@ -143,6 +156,29 @@ class TouchApp {
         callback({ requestHeaders: headers });
       },
     );
+
+    // CSP via response headers (correct Electron API — session.setContentSecurityPolicy does not exist)
+    const CSP_POLICY = [
+      "default-src 'self'",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: clickflash://",
+      "font-src 'self' data:",
+      "connect-src 'self' http://localhost:*",
+      "frame-src 'none'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; ");
+
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          "Content-Security-Policy": [CSP_POLICY],
+        },
+      });
+    });
   }
 
   getMimeType(filePath) {
@@ -428,6 +464,23 @@ class TouchApp {
     // Initialize auto-updater
     initAutoUpdater(this.mainWindow);
 
+    // Prevent display sleep — kiosk must never blank the screen
+    this.powerSaveId = powerSaveBlocker.start("prevent-display-sleep");
+
+    // Global shortcuts: admin unlock dialog + OS-level key blocking
+    try {
+      globalShortcut.register(ADMIN_SHORTCUT, () => {
+        if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+          this.mainWindow.webContents.send("kiosk:show-unlock-dialog");
+        }
+      });
+      for (const sc of ["Alt+Tab", "Super", "Super+D", "Super+Tab", "Super+L", "Super+E"]) {
+        try { globalShortcut.register(sc, () => false); } catch (_) { /* non-critical */ }
+      }
+    } catch (e) {
+      console.warn("[Touch] Global shortcut registration failed:", e.message);
+    }
+
     this.setupSecurityFilters();
 
     // Crash Recovery: Auto-restore kiosk and reload on renderer crash
@@ -501,6 +554,81 @@ class TouchApp {
         return true;
       }
       return false;
+    });
+
+    // ── Kiosk mode toggle ──────────────────────────────────────────────────────
+    ipcMain.removeHandler("enter-kiosk");
+    ipcMain.handle("enter-kiosk", () => {
+      if (this.mainWindow) {
+        this.mainWindow.setKiosk(true);
+        this.mainWindow.setFullScreen(true);
+        this.mainWindow.setAlwaysOnTop(true);
+      }
+      return { success: true };
+    });
+
+    ipcMain.removeHandler("kiosk:lock");
+    ipcMain.handle("kiosk:lock", () => {
+      if (this.mainWindow) {
+        this.mainWindow.setKiosk(true);
+        this.mainWindow.setFullScreen(true);
+        this.mainWindow.setAlwaysOnTop(true);
+      }
+      return { success: true };
+    });
+
+    // ── App lifecycle ──────────────────────────────────────────────────────────
+    ipcMain.removeHandler("get-app-version");
+    ipcMain.handle("get-app-version", () => app.getVersion());
+
+    ipcMain.removeHandler("restart-app");
+    ipcMain.handle("restart-app", () => {
+      app.relaunch();
+      app.exit(0);
+    });
+
+    // ── PIN unlock with attempt lockout ────────────────────────────────────────
+    ipcMain.removeHandler("kiosk:unlock");
+    ipcMain.handle("kiosk:unlock", (_event, rawPin) => {
+      const expected = process.env.ADMIN_PIN || (!app.isPackaged ? "000000" : null);
+      if (!expected) {
+        return { success: false, error: "Kiosk unlock not configured. Set ADMIN_PIN env var." };
+      }
+
+      const now = Date.now();
+      if (pinAttempts.lockedUntil > now) {
+        const secsLeft = Math.ceil((pinAttempts.lockedUntil - now) / 1000);
+        return { success: false, error: `Too many attempts. Try again in ${secsLeft}s` };
+      }
+
+      const pin = typeof rawPin === "string" ? rawPin : "";
+      let isValid = false;
+      if (pin.length !== expected.length) {
+        // Dummy equal-length compare to prevent timing leak
+        require("crypto").timingSafeEqual(Buffer.alloc(expected.length), Buffer.alloc(expected.length));
+        isValid = false;
+      } else {
+        isValid = require("crypto").timingSafeEqual(Buffer.from(pin, "utf8"), Buffer.from(expected, "utf8"));
+      }
+
+      if (!isValid) {
+        pinAttempts.count += 1;
+        if (pinAttempts.count >= PIN_MAX_ATTEMPTS) {
+          pinAttempts.lockedUntil = now + PIN_LOCKOUT_MS;
+          pinAttempts.count = 0;
+          return { success: false, error: "Too many attempts. Locked for 60 minutes." };
+        }
+        return { success: false, error: "Invalid PIN" };
+      }
+
+      pinAttempts.count = 0;
+      pinAttempts.lockedUntil = 0;
+      if (this.mainWindow) {
+        this.mainWindow.setKiosk(false);
+        this.mainWindow.setFullScreen(false);
+        this.mainWindow.setAlwaysOnTop(false);
+      }
+      return { success: true };
     });
 
     ipcMain.removeHandler("getPrinters");

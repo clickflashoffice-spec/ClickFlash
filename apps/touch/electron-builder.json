@@ -10,8 +10,7 @@
   },
   "files": [
     "dist/**/*",
-    "main.js",
-    "preload.js",
+    "autoUpdater.js",
     "package.json",
     "!pb_data/**/*",
     "!node_modules/**/*"

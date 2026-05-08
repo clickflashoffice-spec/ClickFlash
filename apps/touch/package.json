@@ -2,7 +2,7 @@
   "name": "clickflash-touch",
   "version": "4.2.0",
   "private": true,
-  "main": "main.js",
+  "main": "dist/electron/main.js",
   "scripts": {
     "dev": "vite",
     "dev:watch": "vite build --watch",
@@ -16,9 +16,10 @@
     "dev:backend": "npx tsx watch backend/server.ts",
     "build": "vite build",
     "build:backend": "esbuild backend/server.ts --bundle --minify --platform=node --target=node20 --outfile=dist/backend/server.js --external:better-sqlite3-multiple-ciphers --external:sharp --external:bcrypt --external:bonjour-service && npx tsx scripts/copy-assets.ts",
+    "build:electron-ts": "tsc -p tsconfig.electron.json",
     "preview": "vite preview",
     "start": "node dist/backend/server.js",
-    "build:electron": "npm run build && npm run build:backend && electron-builder --config electron-builder.json --win -c.win.certificateSubjectName=\"\"",
+    "build:electron": "npm run build && npm run build:backend && npm run build:electron-ts && electron-builder --config electron-builder.json --win -c.win.certificateSubjectName=\"\"",
     "dist": "npm run build:electron",
     "postdist": "copyfiles -f release/touch/*.exe ../distribution",
     "test:e2e": "playwright test",
@@ -27,7 +28,8 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:update-snapshots": "playwright test --update-snapshots",
     "playwright:install": "playwright install chromium",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "typecheck:ci": "tsc --noEmit && tsc --noEmit -p tsconfig.electron.json"
   },
   "dependencies": {
     "@sentry/node": "^10.48.0",

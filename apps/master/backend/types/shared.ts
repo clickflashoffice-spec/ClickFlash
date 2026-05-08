@@ -280,6 +280,7 @@ export interface Order extends BaseRecord {
   roomNumber?: string;
   rfidTag?: string;
   updatedAt?: string;
+  checksum?: string; // Integrity check — SHA-256 of critical order fields
 }
 
 // --- BUSINESS & MANAGEMENT ---

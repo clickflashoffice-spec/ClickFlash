@@ -1,6 +1,22 @@
 {
   "permissions": {
     "allow": [
+      "Bash(mkdir -p \"C:\\\\Users\\\\alamo\\\\Desktop\\\\ClickFlash\\\\.claude\\\\skills\")",
+      "Bash(powershell -Command \"\\(Get-Content CLAUDE.md\\).Count\")",
+      "Bash(powershell -Command \"Get-Content .claude\\\\settings.json | ConvertFrom-Json | ConvertTo-Json -Depth 5\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(gh pr *)",
+      "Bash(git merge *)",
+      "Bash(git -C \"C:/Users/alamo/Desktop/ClickFlash\" status)",
+      "Bash(git -C \"C:/Users/alamo/Desktop/ClickFlash/.claude/worktrees/adoring-khorana\" status)",
+      "Bash(git -C \"C:/Users/alamo/Desktop/ClickFlash/.claude/worktrees/laughing-blackwell-f03c04\" status)",
+      "Bash(git -C \"C:/Users/alamo/Desktop/ClickFlash/.kilo/worktrees/obvious-meteorology\" status)",
+      "Bash(git -C \"C:/Users/alamo/Desktop/ClickFlash/.kilo/worktrees/sage-humidity\" status)",
+      "Bash(git -C \"C:/Users/alamo/Desktop/ClickFlash/.kilo/worktrees/zircon-bangle\" status)",
+      "Bash(git -C \"C:/Users/alamo/Desktop/ClickFlash\" log --oneline -5)",
+      "Bash(git -C \"C:/Users/alamo/Desktop/ClickFlash\" diff --stat)",
       "Bash(npx tsc *)",
       "Bash(node_modules/.bin/tsc --noEmit)",
       "Bash(npm run *)",

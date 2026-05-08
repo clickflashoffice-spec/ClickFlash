@@ -23,7 +23,7 @@ interface IpInterface {
 }
 
 export default class SystemController {
-    static async getHealth(req: IncomingMessage, res: ServerResponse, context: Context): Promise<void> {
+    static async getHealth(_req: IncomingMessage, res: ServerResponse, context: Context): Promise<void> {
         const { dbManager } = context;
         try {
             // Verify database connection
@@ -49,7 +49,7 @@ export default class SystemController {
         }
     }
 
-    static async getMode(req: IncomingMessage, res: ServerResponse, context: Context): Promise<void> {
+    static async getMode(_req: IncomingMessage, res: ServerResponse, context: Context): Promise<void> {
         const { PORT, logger } = context;
         try {
             res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -67,7 +67,7 @@ export default class SystemController {
         }
     }
 
-    static async getIp(req: IncomingMessage, res: ServerResponse, context: Context): Promise<void> {
+    static async getIp(_req: IncomingMessage, res: ServerResponse, context: Context): Promise<void> {
         const { logger } = context;
         try {
             const interfaces = os.networkInterfaces();
@@ -109,7 +109,7 @@ export default class SystemController {
         }
     }
 
-    static async getNetworkSettings(req: IncomingMessage, res: ServerResponse, context: Context): Promise<void> {
+    static async getNetworkSettings(_req: IncomingMessage, res: ServerResponse, context: Context): Promise<void> {
         const { DATA_DIR, logger } = context;
         try {
             const settingsPath = path.join(DATA_DIR, 'network_settings.json');
@@ -181,7 +181,7 @@ export default class SystemController {
         });
     }
 
-    static async getKioskSessions(req: IncomingMessage, res: ServerResponse, context: Context): Promise<void> {
+    static async getKioskSessions(_req: IncomingMessage, res: ServerResponse, context: Context): Promise<void> {
         const { dbManager, logger } = context;
         try {
             // Get active kiosk sessions from database

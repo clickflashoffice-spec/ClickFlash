@@ -5,6 +5,8 @@ import { Logger } from "../shared/logger";
 import DatabaseManager from "../shared/db";
 import stripeService from "../services/stripeService";
 import { EmailService } from "../services/emailService";
+import { ReceiptPDFService } from "../services/ReceiptPDFService";
+import { DATA_DIR } from "../config/constants";
 
 interface GalleryCheckoutContext {
   dbManager: DatabaseManager;
@@ -20,6 +22,7 @@ export default function galleryCheckoutRoutes(
   context: GalleryCheckoutContext,
 ): Router {
   const { dbManager, logger, JWT_SECRET, syncManager, emailService } = context;
+  const receiptPDFService = new ReceiptPDFService(DATA_DIR, logger);
   const router = express.Router();
 
   /**
@@ -214,61 +217,80 @@ export default function galleryCheckoutRoutes(
               syncManager.broadcastOrderStatus(mainOrderId, "Processing");
             }
 
-            // D. Phase 62: Send Purchase Receipt via Email Relay
+            // D. Phase 1-D: Send Purchase Receipt via Email with PDF attachment
             if (emailService && emailService.isConfigured()) {
-              try {
-                const parsedItems = JSON.parse(galleryOrder.items || "[]");
-                const itemCount = Array.isArray(parsedItems)
-                  ? parsedItems.length
-                  : 1;
+              // Run PDF generation + email send asynchronously so we don't block
+              // the Stripe webhook response (must reply < 30 s).
+              (async () => {
+                try {
+                  // Parse line items from JSON stored in DB
+                  let lineItems: Array<{ description: string; quantity: number; unitPrice: number }> = [];
+                  try {
+                    const parsed = JSON.parse(galleryOrder.items || "[]") as Array<any>;
+                    lineItems = parsed.map((item: any) => ({
+                      description: item.name ?? item.description ?? "Photo package",
+                      quantity: item.quantity ?? 1,
+                      unitPrice: item.price ?? item.unitPrice ?? 0,
+                    }));
+                  } catch {
+                    lineItems = [{ description: "Photo package", quantity: 1, unitPrice: galleryOrder.total }];
+                  }
 
-                // Let the Hub format the exact professional HTML, we just send a generic one
-                // fallback or explicitly call a specific Hub Endpoint if we had one.
-                // However, since emailService.sendTransactional just forwards the raw HTML,
-                // we should let the Hub handle it, or we compose a basic one here that gets relayed.
-                // To perfectly match Phase 62 spec, we will send an HTTP post to the Hub's specialized receipt sender if it existed,
-                // but since Hub uses `EmailRelayService.sendPurchaseReceipt`, it's actually best to trigger the Hub API directly.
+                  const displayId = galleryOrderId.substring(0, 8).toUpperCase();
 
-                // For offline-first robustness, we'll compose the receipt HTML here and pass it through the relay:
-                const receiptHtml = `
-                            <!DOCTYPE html>
-                            <html>
-                            <body style="font-family: sans-serif; padding: 20px; background: #f8fafc;">
-                                <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px;">
-                                    <h2 style="color: #0f172a;">ClickFlash Receipt</h2>
-                                    <p>Thank you for your purchase! Your order (#${galleryOrderId.substring(0, 8)}) is confirmed.</p>
-                                    <p><strong>Total Paid:</strong> €${galleryOrder.total.toFixed(2)}</p>
-                                    <p>Your high-resolution photos are now unlocked in your digital gallery.</p>
-                                </div>
-                            </body>
-                            </html>
-                            `;
+                  // Generate PDF (saved to DATA_DIR/receipts/<orderId>.pdf)
+                  let pdfBase64: string | null = null;
+                  try {
+                    const pdfResult = await receiptPDFService.generate({
+                      orderId: galleryOrderId,
+                      displayId,
+                      customerName: "Valued Customer",
+                      customerEmail: galleryOrder.customerEmail,
+                      albumName: tokenRecord.albumId ?? "Your Gallery",
+                      lineItems,
+                      totalAmount: galleryOrder.total,
+                      currency: "EUR",
+                      paidAt: new Date().toISOString(),
+                    });
+                    pdfBase64 = pdfResult.base64;
+                    logger.info("[GalleryCheckout] Receipt PDF generated", { galleryOrderId });
+                  } catch (pdfErr: any) {
+                    logger.warn("[GalleryCheckout] PDF generation failed, sending plain email", { error: pdfErr.message });
+                  }
 
-                emailService
-                  .sendTransactional({
+                  const receiptHtml = `
+                    <!DOCTYPE html>
+                    <html>
+                    <body style="font-family:sans-serif;padding:20px;background:#f8fafc;">
+                      <div style="max-width:600px;margin:0 auto;background:white;padding:30px;border-radius:8px;">
+                        <h2 style="color:#0f172a;">ClickFlash Receipt</h2>
+                        <p>Thank you for your purchase! Your order (<strong>#${displayId}</strong>) is confirmed.</p>
+                        <p><strong>Total Paid:</strong> €${galleryOrder.total.toFixed(2)}</p>
+                        <p>Your high-resolution photos are now unlocked in your digital gallery.</p>
+                        ${pdfBase64 ? '<p style="color:#64748b;font-size:12px;">Your PDF receipt is attached.</p>' : ""}
+                      </div>
+                    </body>
+                    </html>`;
+
+                  const sent = await emailService.sendTransactional({
                     to: galleryOrder.customerEmail,
-                    subject: `ClickFlash Receipt - Order #${galleryOrderId.substring(0, 8)}`,
+                    subject: `ClickFlash Receipt - Order #${displayId}`,
                     html: receiptHtml,
-                    text: `Thank you for your purchase! Order #${galleryOrderId.substring(0, 8)} confirmed. Total: €${galleryOrder.total.toFixed(2)}.`,
-                  })
-                  .then((sent) => {
-                    if (sent)
-                      logger.info(
-                        "[GalleryCheckout] Receipt email queued for delivery",
-                        { galleryOrderId },
-                      );
-                    else
-                      logger.warn(
-                        "[GalleryCheckout] Receipt email failed to send",
-                        { galleryOrderId },
-                      );
+                    text: `Thank you for your purchase! Order #${displayId} confirmed. Total: €${galleryOrder.total.toFixed(2)}.`,
+                    attachments: pdfBase64
+                      ? [{ filename: `receipt-${displayId}.pdf`, content: pdfBase64, type: "application/pdf" }]
+                      : undefined,
                   });
-              } catch (e: any) {
-                logger.error(
-                  "[GalleryCheckout] Failed to dispatch receipt email",
-                  { error: e.message },
-                );
-              }
+
+                  if (sent) {
+                    logger.info("[GalleryCheckout] Receipt email with PDF sent", { galleryOrderId });
+                  } else {
+                    logger.warn("[GalleryCheckout] Receipt email failed to send", { galleryOrderId });
+                  }
+                } catch (e: any) {
+                  logger.error("[GalleryCheckout] Failed to dispatch receipt email", { error: e.message });
+                }
+              })();
             }
           });
         }
@@ -287,9 +309,8 @@ export default function galleryCheckoutRoutes(
     try {
       const { token, orderId } = req.params;
 
-      let payload: any;
       try {
-        payload = jwt.verify(token as string, JWT_SECRET) as any;
+        jwt.verify(token as string, JWT_SECRET);
       } catch (error) {
         return res.status(401).json({ error: "Invalid or expired token" });
       }

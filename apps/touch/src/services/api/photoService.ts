@@ -10,12 +10,12 @@ export const photoService = {
             const records = await pb.collection('albums').getFullList({ sort: '-created' });
 
             if (!Array.isArray(records)) {
-                console.warn('getAlbums: records is not an array', records);
+                logger.warn('getAlbums: records is not an array', records);
                 return [];
             }
 
             if (records == null) {
-                console.warn('getAlbums: records is null or undefined');
+                logger.warn('getAlbums: records is null or undefined');
                 return [];
             }
 
@@ -47,7 +47,7 @@ export const photoService = {
                                             manualEdits = p.manualEdits;
                                         }
                                     } catch (parseError) {
-                                        console.warn('Failed to parse manualEdits for photo', p.id, parseError);
+                                        logger.warn('Failed to parse manualEdits for photo', { photoId: p.id, parseError });
                                         manualEdits = {};
                                     }
 
@@ -67,7 +67,7 @@ export const photoService = {
                             coverPhotoUrl = photos[0].url;
                         }
                     } catch (photoError) {
-                        console.warn('Failed to fetch photos for album', r.id, photoError);
+                        logger.warn('Failed to fetch photos for album', { albumId: r.id, photoError });
                     }
 
                     let categories: any[] = [];
@@ -79,7 +79,7 @@ export const photoService = {
                             categories = r.categories;
                         }
                     } catch (parseError) {
-                        console.warn('Failed to parse categories for album', r.id, parseError);
+                        logger.warn('Failed to parse categories for album', { albumId: r.id, parseError });
                         categories = [];
                     }
 
@@ -98,13 +98,13 @@ export const photoService = {
                 }));
 
             if (!Array.isArray(albumsWithPhotos)) {
-                console.warn('getAlbums: albumsWithPhotos is not an array', albumsWithPhotos);
+                logger.warn('getAlbums: albumsWithPhotos is not an array', albumsWithPhotos);
                 return [];
             }
 
             return albumsWithPhotos;
         } catch (error) {
-            console.error('getAlbums: Error fetching albums', error);
+            logger.error('getAlbums: Error fetching albums', error instanceof Error ? error : undefined);
             return [];
         }
     },
@@ -114,7 +114,7 @@ export const photoService = {
             const record = await pb.collection('albums').getOne(id, { expand: 'photos_via_album' }) as PocketRecord & { expand?: { photos_via_album?: PocketRecord[] } };
 
             if (!record || typeof record !== 'object') {
-                console.warn('Album not found or invalid record returned', { albumId: id });
+                logger.warn('Album not found or invalid record returned', { albumId: id });
                 return null;
             }
 
@@ -141,7 +141,7 @@ export const photoService = {
                                     manualEdits = p.manualEdits;
                                 }
                             } catch (parseError) {
-                                console.warn('Failed to parse manualEdits for photo', p.id, parseError);
+                                logger.warn('Failed to parse manualEdits for photo', { photoId: p.id, parseError });
                                 manualEdits = {};
                             }
 
@@ -156,11 +156,11 @@ export const photoService = {
                             };
                         });
                 } else {
-                    console.warn('getAlbum: photosList is not an array for album', id, photosList);
+                    logger.warn('getAlbum: photosList is not an array for album', { albumId: id, photosList });
                     photos = [];
                 }
             } catch (photoError) {
-                console.warn('Failed to fetch photos for album', photoError);
+                logger.warn('Failed to fetch photos for album', { photoError });
                 if (record && record.expand && typeof record.expand === 'object' && record.expand.photos_via_album) {
                     const expandedPhotos = record.expand.photos_via_album;
                     if (Array.isArray(expandedPhotos)) {
@@ -182,7 +182,7 @@ export const photoService = {
                                         manualEdits = p.manualEdits;
                                     }
                                 } catch (parseError) {
-                                    console.warn('Failed to parse manualEdits for photo', p.id, parseError);
+                                    logger.warn('Failed to parse manualEdits for photo', { photoId: p.id, parseError });
                                     manualEdits = {};
                                 }
 
@@ -211,7 +211,7 @@ export const photoService = {
                     }
                 }
             } catch (parseError) {
-                console.warn('Failed to parse categories for album', record?.id || 'unknown', parseError);
+                logger.warn('Failed to parse categories for album', { albumId: record?.id ?? 'unknown', parseError });
                 categories = [];
             }
 
@@ -237,7 +237,7 @@ export const photoService = {
                 photos: photos
             };
         } catch (error) {
-            console.error('Failed to fetch album', error);
+            logger.error('Failed to fetch album', error instanceof Error ? error : undefined);
 
             if (error instanceof Error) {
                 const errorMessage = error.message.toLowerCase();
@@ -348,7 +348,7 @@ export const photoService = {
                     }
                 }
             } catch (error) {
-                console.warn(`Failed to fetch blob for photo ${photoId}:`, error);
+                logger.warn(`Failed to fetch blob for photo ${photoId}`, { error });
             }
         }
 

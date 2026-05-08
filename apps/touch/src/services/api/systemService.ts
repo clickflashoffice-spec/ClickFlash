@@ -79,15 +79,44 @@ export const systemService = {
     },
 
     async verifyDataIntegrity(): Promise<{ counts: { albums: number; photos: number; orders: number }; issues: string[]; storageUsageBytes: number }> {
-        return {
-            counts: { albums: 0, photos: 0, orders: 0 },
-            issues: [],
-            storageUsageBytes: 0
-        };
+        try {
+            const [albums, photos, orders] = await Promise.all([
+                pb.collection('albums').getList(1, 1, { fields: 'id' }),
+                pb.collection('photos').getList(1, 1, { fields: 'id' }),
+                pb.collection('orders').getList(1, 1, { fields: 'id' }).catch(() => ({ totalItems: 0 })),
+            ]);
+            // Estimate storage: rough heuristic — photos ~150 KB each, records ~2 KB each
+            const storageEstimate =
+                photos.totalItems * 150 * 1024 +
+                (albums.totalItems + orders.totalItems) * 2 * 1024;
+            return {
+                counts: { albums: albums.totalItems, photos: photos.totalItems, orders: orders.totalItems },
+                issues: [],
+                storageUsageBytes: storageEstimate,
+            };
+        } catch (err) {
+            logger.warn('verifyDataIntegrity failed', { err });
+            return { counts: { albums: 0, photos: 0, orders: 0 }, issues: [], storageUsageBytes: 0 };
+        }
     },
 
     async performMaintenance(): Promise<{ success: boolean; cleaned: number }> {
-        return { success: true, cleaned: 0 };
+        let cleaned = 0;
+        try {
+            // Clean stale kiosk sessions older than 24 hours
+            const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+            const staleSessions = await pb.collection('kiosk_sessions').getFullList({
+                filter: `lastSeen < "${cutoff}"`,
+                fields: 'id',
+            }).catch(() => [] as { id: string }[]);
+            for (const session of staleSessions) {
+                await pb.collection('kiosk_sessions').delete(session.id).catch(() => {});
+                cleaned++;
+            }
+        } catch (err) {
+            logger.warn('performMaintenance encountered errors', { err });
+        }
+        return { success: true, cleaned };
     },
 
     // --- Destinations ---
@@ -113,7 +142,7 @@ export const systemService = {
                             .join(', ');
                         errorMessage = validationErrors || errorMessage;
                     } catch (entriesError) {
-                        console.warn('Failed to process validation errors', entriesError);
+                        logger.warn('Failed to process validation errors', { entriesError });
                     }
                 } else if (pbError.error) {
                     errorMessage = pbError.error;
@@ -275,7 +304,7 @@ export const systemService = {
                 status: r.status || 'Disconnected'
             }));
         } catch (error) {
-            console.error('Failed to fetch kiosks:', error);
+            logger.error('Failed to fetch kiosks', error instanceof Error ? error : undefined);
             return [];
         }
     },
@@ -295,7 +324,7 @@ export const systemService = {
                 });
                 return new Set(records.map((r: any) => r.kioskId).filter(Boolean));
             } catch (fallbackError) {
-                console.error('Failed to fetch active kiosk sessions:', fallbackError);
+                logger.error('Failed to fetch active kiosk sessions', fallbackError instanceof Error ? fallbackError : undefined);
                 return new Set();
             }
         }
@@ -359,7 +388,7 @@ export const systemService = {
                 errorMessage.includes('Cannot connect to backend');
 
             if (!isNetworkError) {
-                console.warn('[apiService] initDb failed:', e);
+                logger.warn('[systemService] initDb failed', { error: e });
             }
         }
     },

@@ -86,7 +86,7 @@ export function validateManualEdits(edits: Partial<ManualEdits>): ManualEdits {
 export function getPhotoUrl(photo: PocketRecord | Photo, baseUrl?: string): string {
     const base = baseUrl || pb.baseUrlValue;
     // Handle Photo type
-    let url = (photo.url as string) || '';
+    const url = (photo.url as string) || '';
 
     // If it's a full URL or blob, return it
     if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:')) {
@@ -281,7 +281,7 @@ export const photoService = {
                 }
             }
 
-            const record = await pb.collection('photos').update(id, photoData);
+            const record = await pb.collection('photos').update(id, photoData as any);
             const baseUrl = pb.baseUrlValue;
 
             // Use our standard transform for consistency in return value
@@ -343,11 +343,10 @@ export const photoService = {
             return { items: [], successCount: 0, failureCount: skipped };
         }
 
-        const baseUrl = pb.baseUrlValue;
 
         try {
             // Single PATCH /api/collections/photos/records/batch — one DB transaction.
-            const response = await pb.send('/api/collections/photos/records/batch', {
+            const response = await (pb as any).send('/api/collections/photos/records/batch', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ items }),

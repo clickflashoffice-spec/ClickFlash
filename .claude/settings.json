@@ -1,0 +1,56 @@
+{
+  "model": "claude-sonnet-4-5",
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(git branch*)",
+      "Bash(git worktree*)",
+      "Bash(git stash*)",
+      "Bash(git fetch*)",
+      "Bash(npm --prefix apps/master run *)",
+      "Bash(npm --prefix apps/touch run *)",
+      "Bash(npm --prefix apps/gallery run *)",
+      "Bash(npm --prefix apps/management run *)",
+      "Bash(npm --prefix apps/website run *)",
+      "Bash(npm --prefix apps/moneytrash run *)",
+      "Bash(npm run lint:all)",
+      "Bash(npm run typecheck:all)",
+      "Bash(npm run test:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx tsx *)",
+      "Bash(npx tsc --noEmit*)",
+      "Bash(npx jest*)",
+      "Bash(curl -sf http://localhost:*/api/health)",
+      "Bash(cat *)",
+      "Bash(ls *)",
+      "Bash(dir *)",
+      "Bash(Get-Content *)",
+      "Bash(Get-ChildItem *)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)",
+      "Bash(rm -rf *)",
+      "Bash(wrangler secret put*)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c \"cd \\\"$CLAUDE_PROJECT_DIR\\\" && git diff --quiet HEAD 2>/dev/null || (git add -A && git commit -m 'chore(claude): auto-commit session changes' && git push 2>/dev/null)\""
+          }
+        ]
+      }
+    ]
+  }
+}

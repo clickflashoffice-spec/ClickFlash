@@ -114,7 +114,7 @@ export const apiService = {
                         try {
                             await this.createUser(user);
                         } catch (err) {
-                            console.warn('Failed to import user:', user.id, err);
+                            logger.warn('Failed to import user', { id: user.id, err });
                         }
                     }
                 }
@@ -129,7 +129,7 @@ export const apiService = {
                         try {
                             await this.createProduct(product);
                         } catch (err) {
-                            console.warn('Failed to import product:', product.id, err);
+                            logger.warn('Failed to import product', { id: product.id, err });
                         }
                     }
                 }
@@ -144,7 +144,7 @@ export const apiService = {
                         try {
                             await this.createPack(pack);
                         } catch (err) {
-                            console.warn('Failed to import pack:', pack.id, err);
+                            logger.warn('Failed to import pack', { id: pack.id, err });
                         }
                     }
                 }
@@ -159,7 +159,7 @@ export const apiService = {
                         try {
                             await this.createDestination(destination);
                         } catch (err) {
-                            console.warn('Failed to import destination:', destination.id, err);
+                            logger.warn('Failed to import destination', { id: destination.id, err });
                         }
                     }
                 }
@@ -174,7 +174,7 @@ export const apiService = {
                         try {
                             await this.createAlbum(album);
                         } catch (err) {
-                            console.warn('Failed to import album:', album.id, err);
+                            logger.warn('Failed to import album', { id: album.id, err });
                         }
                     }
                 }
@@ -189,7 +189,7 @@ export const apiService = {
                     try {
                         await this.createPhoto(photo);
                     } catch (err) {
-                        console.warn('Failed to import photo:', photo.id, err);
+                        logger.warn('Failed to import photo', { id: photo.id, err });
                     }
                 }
             }
@@ -203,7 +203,7 @@ export const apiService = {
                         try {
                             await this.createOrder(order);
                         } catch (err) {
-                            console.warn('Failed to import order:', order.id, err);
+                            logger.warn('Failed to import order', { id: order.id, err });
                         }
                     }
                 }
@@ -218,7 +218,7 @@ export const apiService = {
                         try {
                             await this.createBooking(booking);
                         } catch (err) {
-                            console.warn('Failed to import booking:', booking.id, err);
+                            logger.warn('Failed to import booking', { id: booking.id, err });
                         }
                     }
                 }
@@ -233,7 +233,7 @@ export const apiService = {
                         try {
                             await this.createExpense(expense);
                         } catch (err) {
-                            console.warn('Failed to import expense:', expense.id, err);
+                            logger.warn('Failed to import expense', { id: expense.id, err });
                         }
                     }
                 }
@@ -248,7 +248,7 @@ export const apiService = {
                         try {
                             await this.createAdjustment(adjustment);
                         } catch (err) {
-                            console.warn('Failed to import adjustment:', adjustment.id, err);
+                            logger.warn('Failed to import adjustment', { id: adjustment.id, err });
                         }
                     }
                 }
@@ -263,7 +263,7 @@ export const apiService = {
                         try {
                             await this.createLoan(loan);
                         } catch (err) {
-                            console.warn('Failed to import loan:', loan.id, err);
+                            logger.warn('Failed to import loan', { id: loan.id, err });
                         }
                     }
                 }
@@ -293,7 +293,7 @@ export const apiService = {
                         try {
                             await this.createSessionType(sessionType);
                         } catch (err) {
-                            console.warn('Failed to import session type:', sessionType.id, err);
+                            logger.warn('Failed to import session type', { id: sessionType.id, err });
                         }
                     }
                 }
@@ -308,7 +308,7 @@ export const apiService = {
                         try {
                             await this.createExpenseCategory(category);
                         } catch (err) {
-                            console.warn('Failed to import expense category:', category.id, err);
+                            logger.warn('Failed to import expense category', { id: category.id, err });
                         }
                     }
                 }

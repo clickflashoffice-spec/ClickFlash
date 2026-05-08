@@ -1,3 +1,4 @@
+
 /**
  * Generic WriteBuffer for batching high-frequency DB updates.
  * Reduces SQLite locking contention by grouping writes into transactions.

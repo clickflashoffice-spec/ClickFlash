@@ -7,7 +7,7 @@ export default function sessionTypeRoutes(context: any): Router {
     const service: SessionTypeService = new SessionTypeService(context.dbManager, context.logger);
 
     // GET / (List)
-    router.get('/', (req: Request, res: Response) => {
+    router.get('/', (_req: Request, res: Response) => {
         try {
             const types = service.getAll();
             res.status(200).json(types);
@@ -31,7 +31,7 @@ export default function sessionTypeRoutes(context: any): Router {
 
     // GET /:id (Available for detailed view if needed)
     router.get('/:id', (req: Request, res: Response) => {
-        const id = req.params.id;
+        const id = String(req.params.id);
         const item = service.getById(id);
         if (item) res.status(200).json(item);
         else sendNotFoundError(res, 'Session Type not found');
@@ -39,7 +39,7 @@ export default function sessionTypeRoutes(context: any): Router {
 
     // PUT /:id (Update)
     router.put('/:id', (req: Request, res: Response) => {
-        const id = req.params.id;
+        const id = String(req.params.id);
         try {
             const updated = service.update(id, req.body);
             res.status(200).json(updated);
@@ -51,7 +51,7 @@ export default function sessionTypeRoutes(context: any): Router {
 
     // DELETE /:id (Delete)
     router.delete('/:id', (req: Request, res: Response) => {
-        const id = req.params.id;
+        const id = String(req.params.id);
         try {
             service.delete(id);
             res.status(200).json({ success: true, id });

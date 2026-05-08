@@ -28,12 +28,13 @@ export const UpdateNotification: React.FC = () => {
 
   useEffect(() => {
     // Listen for update events from main process
-    if (window.electron?.ipcRenderer) {
-      window.electron.ipcRenderer.on('updater:checking', () => {
+    const ipc = (window.electron as any)?.ipcRenderer;
+    if (ipc) {
+      ipc.on('updater:checking', () => {
         setStatus(prev => ({ ...prev, checking: true }));
       });
 
-      window.electron.ipcRenderer.on('updater:available', (_, info) => {
+      ipc.on('updater:available', (_: unknown, info: any) => {
         setStatus(prev => ({
           ...prev,
           checking: false,
@@ -44,15 +45,15 @@ export const UpdateNotification: React.FC = () => {
         setIsVisible(true);
       });
 
-      window.electron.ipcRenderer.on('updater:progress', (_, progress) => {
+      ipc.on('updater:progress', (_: unknown, progress: any) => {
         setStatus(prev => ({ ...prev, progress: progress.percent }));
       });
 
-      window.electron.ipcRenderer.on('updater:downloaded', () => {
+      ipc.on('updater:downloaded', () => {
         setStatus(prev => ({ ...prev, downloaded: true, progress: 100 }));
       });
 
-      window.electron.ipcRenderer.on('updater:error', (_, error) => {
+      ipc.on('updater:error', (_: unknown, error: any) => {
         setStatus(prev => ({ ...prev, error: error.message, checking: false }));
       });
     }
@@ -61,7 +62,7 @@ export const UpdateNotification: React.FC = () => {
   const handleCheckForUpdates = async () => {
     setStatus(prev => ({ ...prev, checking: true }));
     try {
-      await window.electron?.ipcRenderer.invoke('updater:check');
+      await (window.electron as any)?.ipcRenderer.invoke('updater:check');
     } catch (error) {
       console.error('Failed to check for updates:', error);
     }
@@ -69,14 +70,14 @@ export const UpdateNotification: React.FC = () => {
 
   const handleDownload = async () => {
     try {
-      await window.electron?.ipcRenderer.invoke('updater:download');
+      await (window.electron as any)?.ipcRenderer.invoke('updater:download');
     } catch (error) {
       console.error('Failed to download update:', error);
     }
   };
 
   const handleInstall = () => {
-    window.electron?.ipcRenderer.invoke('updater:install');
+    (window.electron as any)?.ipcRenderer.invoke('updater:install');
   };
 
   const handleDismiss = () => {

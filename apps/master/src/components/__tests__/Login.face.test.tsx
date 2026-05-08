@@ -4,7 +4,6 @@
  * Tests for Face ID login functionality in the Login component
  */
 
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Login from '../Login';
 import { apiService } from '../../services/apiService';

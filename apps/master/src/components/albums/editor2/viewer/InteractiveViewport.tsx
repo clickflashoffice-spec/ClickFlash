@@ -142,7 +142,6 @@ const InteractiveViewportComponent = forwardRef<
       <div ref={containerRef} className={styles.viewport}>
         {/* Transformable content - strictly virtual sized, fixed in middle */}
         <div
-          /* eslint-disable-next-line react/forbid-component-props */
           style={
             {
               "--content-width": `${contentWidth || 800}px`,

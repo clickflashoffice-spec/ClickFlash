@@ -9,15 +9,15 @@ import { ManualEdits } from '../types/shared';
 const initialEdits: ManualEdits = {
     brightness: 0,
     contrast: 0,
-    saturation: 0,
+    saturate: 0,
     exposure: 0,
     highlights: 0,
     shadows: 0,
-    warmth: 0,
+    temperature: 0,
     tint: 0,
-    sharpness: 0,
+    sharpen: 0,
     vignette: 0,
-};
+} as unknown as ManualEdits;
 
 describe('useEditHistory', () => {
     it('should initialize with initial edits', () => {

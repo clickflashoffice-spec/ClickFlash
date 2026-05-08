@@ -207,7 +207,7 @@ export class WorkerPool {
     this.activeWorkers.set(id, { worker, jobId, lastHeartbeat: Date.now(), timeout });
 
     const onMessage = (result: WorkerResult) => {
-      if (result === "pong" || result?.type === "heartbeat") {
+      if ((result as any) === "pong" || result?.type === "heartbeat") {
         const info = this.activeWorkers.get(id);
         if (info) info.lastHeartbeat = Date.now();
         return;

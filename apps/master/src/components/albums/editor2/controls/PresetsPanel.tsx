@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ManualEdits } from '@/types';
 import { FILTER_PRESETS } from '@/utils/imageFilters';
 import { PresetManager, Preset } from '../utils/PresetManager';
-import { Plus, Trash2, Check, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Sparkles } from 'lucide-react';
 import { PresetSaveModal } from './PresetSaveModal';
 
 interface PresetsPanelProps {

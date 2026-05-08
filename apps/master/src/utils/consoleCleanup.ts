@@ -17,15 +17,6 @@ export function initConsoleCleanup(): void {
     const isDev = import.meta.env.DEV;
     const isTest = import.meta.env.MODE === 'test';
 
-    // Store original console methods
-    const originalConsole = {
-        log: console.log,
-        warn: console.warn,
-        error: console.error,
-        info: console.info,
-        debug: console.debug
-    };
-
     // In production, suppress all console output
     if (!isDev && !isTest) {
         console.log = () => {};

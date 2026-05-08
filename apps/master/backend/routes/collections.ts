@@ -1077,7 +1077,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
                     );
                     if (existingByHash) {
                       logger.warn(
-                        `[Duplicate Detection] Duplicate photo detected! Hash: ${fileHash.substring(0, 8)}..., Existing photo: ${existingByHash.id} in album ${existingByHash.album_id}`
+                        `[Duplicate Detection] Duplicate photo detected! Hash: ${fileHash!.substring(0, 8)}..., Existing photo: ${existingByHash.id} in album ${existingByHash.album_id}`
                       );
                       throw new Error(
                         `DUPLICATE_PHOTO: A photo with identical content already exists (photo: ${existingByHash.id})`
@@ -1278,7 +1278,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
   router.patch("/:collection/records/:id", (req: Request, res: Response) => {
     // The collection middleware only runs for /:collection/records (no :id).
     // Resolve table directly from the URL param so this route is self-contained.
-    const collection = req.params.collection;
+    const collection = String(req.params.collection);
     const table = TABLE_MAP[collection as keyof typeof TABLE_MAP];
     if (!table || !ALLOWED_COLUMNS[table]) {
       return sendNotFoundError(res, `Collection '${collection}'`);
@@ -1296,7 +1296,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
    * @description Delete record
    */
   router.delete("/:collection/records/:id", (req: Request, res: Response) => {
-    const collection = req.params.collection;
+    const collection = String(req.params.collection);
     const table = TABLE_MAP[collection as keyof typeof TABLE_MAP];
     if (!table || !ALLOWED_COLUMNS[table]) {
       return sendNotFoundError(res, `Collection '${collection}'`);

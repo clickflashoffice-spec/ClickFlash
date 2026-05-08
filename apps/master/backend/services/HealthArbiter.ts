@@ -136,7 +136,7 @@ export class HealthArbiter {
           newState = "CRITICAL";
         } else if (usedPercent > this.thresholds.diskWarnPercent) {
           reasons.push(`Disk pressure: ${usedPercent.toFixed(1)}% used`);
-          if (newState !== "CRITICAL") newState = "DEGRADED";
+          newState = "DEGRADED";
         }
 
         // Update snapshot metrics

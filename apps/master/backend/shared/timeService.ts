@@ -36,6 +36,7 @@ export class TimeService {
       // Only update if drift is significant (> 1s) to avoid jitter
       if (Math.abs(skew) > 1000) {
         this.driftOffset = skew;
+        
         if (Math.abs(skew) > 300000) { // 5 minutes
           this.logger.error(`[TimeService] CRITICAL CLOCK SKEW DETECTED: ${Math.round(skew / 1000)}s. Correction applied.`);
         } else {

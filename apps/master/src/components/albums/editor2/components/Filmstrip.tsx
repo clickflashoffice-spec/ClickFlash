@@ -434,7 +434,7 @@ const FilmstripComponent: React.FC<FilmstripProps> = ({
   selectedPhotoIds,
   dirtyPhotoIds,
   edits,
-  coverPhotoId,
+  coverPhotoId: _coverPhotoId,
   onSetActivePhoto,
   onToggleSelection,
   onSelectAll,

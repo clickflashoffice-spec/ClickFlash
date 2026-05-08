@@ -77,36 +77,6 @@ const FormField: React.FC<{
     </div>
 );
 
-// Toggle component
-const Toggle: React.FC<{
-    enabled: boolean;
-    onChange: () => void;
-    label: string;
-    description?: string;
-    disabled?: boolean;
-}> = ({ enabled, onChange, label, description, disabled }) => (
-    <div className={`flex items-center justify-between p-4 rounded-xl border ${enabled ? 'border-cyan-200 dark:border-cyan-800 bg-cyan-50/50 dark:bg-cyan-900/10' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'} transition-colors`}>
-        <div className="flex-1">
-            <p className="font-medium text-slate-900 dark:text-white">{label}</p>
-            {description && <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{description}</p>}
-        </div>
-        <button
-            onClick={onChange}
-            disabled={disabled}
-            className={`
-                relative w-12 h-6 rounded-full transition-colors duration-200
-                ${enabled ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-600'}
-                ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-            `}
-        >
-            <span className={`
-                absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200
-                ${enabled ? 'translate-x-6' : 'translate-x-0'}
-            `} />
-        </button>
-    </div>
-);
-
 const GeneralSettings: React.FC<GeneralSettingsProps> = ({ 
     currentUser, 
     onCurrentUserUpdate, 
@@ -133,7 +103,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
     const [cloudConfig, setCloudConfig] = useLocalStorage('masterCloudSettings', { url: '', key: '' });
     const [masterLocalIp, setMasterLocalIp] = useLocalStorage('MASTER_LOCAL_IP_ADDRESS', DEFAULT_API_HOST);
     const [availableInterfaces, setAvailableInterfaces] = useState<NetworkInterface[]>([]);
-    const [detectingIP, setDetectingIP] = useState(false);
+    const [_detectingIP, _setDetectingIP] = useState(false);
     const [isSavingNetwork, setIsSavingNetwork] = useState(false);
 
     const canManageSettings = can('manageLocalSettings');

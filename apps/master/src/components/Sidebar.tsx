@@ -10,7 +10,7 @@ import { usePermissions } from "../hooks/usePermissions.ts";
 import { Photographer, View, DestinationFeatures } from "../types.ts";
 import { pb } from "../services/pb.ts";
 import { useSync } from "../context/SyncContext";
-import { Bell, BellOff, BarChart3 } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import DailyResortStatsModal from "./modals/DailyResortStatsModal";
 
 interface SidebarProps {
@@ -259,13 +259,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleCollapse,
 }) => {
   const { can } = usePermissions(currentUser);
-  const { isDndMode, setIsDndMode } = useSync();
+  const { isDndMode: _isDndMode, setIsDndMode: _setIsDndMode } = useSync();
   const visibleNavItems = NAV_ITEMS_CONFIG.filter((item) =>
     can(item.permission as any),
   );
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const [isDailyStatsOpen, setIsDailyStatsOpen] = useState(false);
-  const [isSavingStats, setIsSavingStats] = useState(false);
+  const [_isSavingStats, setIsSavingStats] = useState(false);
   const [kioskClicks, setKioskClicks] = useState(0);
   const [lastKioskClick, setLastKioskClick] = useState(0);
   const isElectron = (window as any).electron;

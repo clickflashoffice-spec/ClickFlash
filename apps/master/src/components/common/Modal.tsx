@@ -1,4 +1,4 @@
-import React, { memo, ReactNode, useEffect } from 'react';
+import { memo, ReactNode, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 interface ModalProps {

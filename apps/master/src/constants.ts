@@ -139,8 +139,8 @@ export const MOCK_ORDERS: Order[] = [
 ];
 
 export const MOCK_OBJECTIVES: DailyObjective[] = [
-    { id: 'obj1', photographerId: '1', date: '2025-10-24', photoTarget: 500, status: 'Pending' },
-    { id: 'obj2', photographerId: '1', date: '2025-10-23', photoTarget: 500, status: 'Completed' },
+    { id: 'obj1', photographer_id: '1', date: '2025-10-24', target: 500, status: 'Pending' },
+    { id: 'obj2', photographer_id: '1', date: '2025-10-23', target: 500, status: 'Completed' },
 ];
 
 export const MOCK_LOGIN_HISTORY: LoginHistory[] = [

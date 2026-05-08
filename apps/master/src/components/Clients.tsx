@@ -120,7 +120,7 @@ const Clients: React.FC<ClientsProps> = ({ currentUser, refreshTrigger }) => {
     }, [orders, currentUser, can]);
 
     const filteredAndSortedClients = useMemo(() => {
-        let result = clients.filter(c => {
+        const result = clients.filter(c => {
             // Status filter
             if (statusFilter !== 'all') {
                 const orderCount = c.orders.length;

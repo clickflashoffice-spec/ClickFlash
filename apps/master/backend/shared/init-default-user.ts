@@ -131,7 +131,7 @@ export async function initDefaultUser(
       "viewGrowth",
     ];
 
-    const PERMISSIONS: PermissionMap = {
+    const PERMISSIONS: Record<string, string[]> = {
       Photographer: [
         "viewDashboard",
         "viewAlbums",

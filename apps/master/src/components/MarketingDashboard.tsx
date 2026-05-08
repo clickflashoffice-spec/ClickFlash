@@ -11,7 +11,7 @@ interface MarketingDashboardProps {
     currentUser?: Photographer;
 }
 
-const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ currentUser }) => {
+const MarketingDashboard: React.FC<MarketingDashboardProps> = ({ currentUser: _currentUser }) => {
     const [loading, setLoading] = useState(true);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [analytics, setAnalytics] = useState<CampaignAnalytics | null>(null);

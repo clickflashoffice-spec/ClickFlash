@@ -1,0 +1,26 @@
+{
+  "locationName": "Paradise Resort",
+  "adminEmail": "admin@paradise.clickflash.photo",
+  "adminPassword": "${ADMIN_PASSWORD}",
+  "hubUrl": "https://hub.clickflash.photo",
+  "cloudflareConfig": {
+    "apiToken": "${CLOUDFLARE_API_TOKEN}",
+    "accountId": "${CLOUDFLARE_ACCOUNT_ID}",
+    "zoneId": "${CLOUDFLARE_ZONE_ID}",
+    "domain": "clickflash.photo"
+  }
+}
+
+---
+QUICK START (Recommended):
+1. Set environment variable: export ADMIN_PASSWORD=your_secure_password
+2. Run: npm run bootstrap -- --destination "Paradise Resort"
+3. Start: npm run dev:full
+4. Done! System auto-provisions.
+
+OR use Cloudflare tokens:
+export ADMIN_PASSWORD=your_password
+export CLOUDFLARE_API_TOKEN=your_cf_token
+export CLOUDFLARE_ACCOUNT_ID=your_account_id
+export CLOUDFLARE_ZONE_ID=your_zone_id
+npm run bootstrap -- --destination "Paradise Resort"

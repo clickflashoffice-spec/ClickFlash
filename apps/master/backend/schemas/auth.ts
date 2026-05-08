@@ -8,6 +8,6 @@ export const loginSchema = z.object({
 export const mutationSchema = z.object({
     entity: z.string().min(1, 'Entity is required'),
     action: z.enum(['create', 'update', 'delete', 'update_many', 'upsert']),
-    data: z.record(z.any()), // Allow any object for data, but strictly object
+    data: z.record(z.string(), z.any()), // Allow any object for data, but strictly object
     clientId: z.string().optional()
 });

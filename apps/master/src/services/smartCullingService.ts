@@ -252,7 +252,7 @@ class SmartCullingService {
         }
 
         // Find best in each group
-        for (const [groupId, photos] of groups) {
+        for (const [_groupId, photos] of groups) {
             const best = photos.reduce((a, b) => a.overall > b.overall ? a : b);
             for (const photo of photos) {
                 if (photo.photoId !== best.photoId) {
@@ -348,7 +348,7 @@ class SmartCullingService {
             }
 
             const totalPixels = data.length / 4;
-            const threshold = totalPixels * 0.01; // 1% threshold
+            // threshold (totalPixels * 0.01) not used in this basic check
 
             // Check for underexposure (many dark pixels)
             for (let i = 0; i < 30; i++) {
@@ -426,7 +426,7 @@ class SmartCullingService {
 
         // Mark duplicates
         let groupId = 0;
-        for (const [hash, photos] of hashGroups) {
+        for (const [_hash, photos] of hashGroups) {
             if (photos.length > 1) {
                 for (const photo of photos) {
                     photo.isDuplicate = true;

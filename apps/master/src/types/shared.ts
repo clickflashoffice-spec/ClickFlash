@@ -63,6 +63,7 @@ export interface User extends BaseRecord {
   workingHours?: WorkingHours;
   password?: string;
   faceDescriptor?: string;
+  disabled?: boolean;
 }
 
 export type Photographer = User;
@@ -385,18 +386,20 @@ export interface Expense extends BaseRecord {
   photographerId?: string;
 }
 
+export interface LoanPayment {
+  id: string;
+  loanId: string;
+  date: string;
+  amount: number;
+}
+
 export interface Loan extends BaseRecord {
   date: string;
   source: string;
   amount: number;
   interestRate: number;
   status: "Active" | "Paid Off";
-  payments: Array<{
-    id: string;
-    loanId: string;
-    date: string;
-    amount: number;
-  }>;
+  payments: LoanPayment[];
 }
 
 export interface Adjustment extends BaseRecord {
@@ -432,6 +435,8 @@ export interface TouchKiosk extends BaseRecord {
   settings?: Record<string, unknown>;
   ipAddress?: string;
   version?: string;
+  uploadFolderPath?: string;
+  ordersFolderPath?: string;
 }
 
 export interface AssistanceRequest {

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../../common/Card.tsx';
 import { webSocketService } from '../../../services/webSocketService';
-import { logger } from '../../../utils/logger';
-
 interface KioskInfo {
     id: string;
     name: string;
@@ -29,7 +27,7 @@ const SyncStatusWidget: React.FC = () => {
             });
         };
 
-        webSocketService.subscribe('KIOSK_STATUS_UPDATE', handleKioskUpdate);
+        webSocketService.subscribe('KIOSK_STATUS_UPDATE', handleKioskUpdate as (data: unknown) => void);
 
         // Polling for general connection stats
         const interval = setInterval(() => {
@@ -41,7 +39,7 @@ const SyncStatusWidget: React.FC = () => {
         }, 5000);
 
         return () => {
-            webSocketService.unsubscribe('KIOSK_STATUS_UPDATE', handleKioskUpdate);
+            webSocketService.unsubscribe('KIOSK_STATUS_UPDATE', handleKioskUpdate as (data: unknown) => void);
             clearInterval(interval);
         };
     }, []);

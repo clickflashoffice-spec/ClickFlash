@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Loader2, CheckCircle2, AlertCircle, XCircle } from "lucide-react";
 
 export type SaveStatus = "IDLE" | "SAVING" | "SUCCESS" | "ERROR";
@@ -22,7 +22,7 @@ export const SaveStateMachine: React.FC<SaveStateMachineProps> = ({
   savingLabel = "Saving...",
   disabled = false,
   className = "",
-  successDuration = 3000,
+  successDuration: _successDuration = 3000,
 }) => {
   const isSaving = status === "SAVING";
   const isSuccess = status === "SUCCESS";

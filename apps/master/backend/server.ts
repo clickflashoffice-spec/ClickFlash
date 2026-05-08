@@ -31,6 +31,7 @@ import { getTLSConfig, createSecureServer } from "./config/tlsConfig";
 // Shared Modules
 import rateLimiter, {
   strictRateLimiter,
+  userRateLimiter,
   setAuditLogger as setRateLimiterAuditLogger,
 } from "./shared/rateLimiter";
 import { getLocalNetworkIPs } from "./shared/networkDetection";
@@ -42,6 +43,7 @@ import { ThermalService } from "./shared/thermalService";
 import { ResourceMonitor } from "./shared/ResourceMonitor";
 
 import { sendNotFoundError } from "./shared/errorHandler";
+import { createErrorMiddleware } from "./shared/apiError";
 import { initDefaultUser } from "./shared/init-default-user";
 import { tunnelService } from "./services/tunnelService";
 
@@ -54,6 +56,7 @@ import { createSessionMiddleware } from "./middleware/session";
 import { csrfMiddleware } from "./middleware/csrf";
 import { initCsrfTokenStore } from "./shared/csrf";
 import { authMiddleware } from "./middleware/auth";
+import { createMutationAuditMiddleware } from "./middleware/mutationAudit";
 
 // Routes
 import authRoutes from "./routes/auth";
@@ -80,6 +83,7 @@ import healthRoutes from "./routes/health";
 import exportRoutes from "./routes/export";
 import { createResortAnalyticsRoutes } from "./routes/resortAnalytics";
 import setupRoutes from "./routes/setup";
+import backupRoutes from "./routes/backup";
 
 // Services
 import startFolderMonitor from "./services/folderMonitor";
@@ -264,8 +268,13 @@ try {
   );
 
   // Email & Marketing (Rule 01, 14)
+  // All email is routed through the Cloudflare Hub Worker (/api/email/relay → Resend).
   emailService = new EmailService(logger);
-  bookingService = new BookingService(logger);
+  emailService.setCloudConfig(
+    process.env.CLOUD_API_URL || '',
+    process.env.CLOUD_API_TOKEN || '',
+  );
+  bookingService = new BookingService(logger, emailService);
 
   campaignScheduler = new CampaignScheduler(logger, dbManager, emailService);
 
@@ -547,8 +556,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// Rate Limiter
+// Rate Limiters — IP-based global first, then per-user for authenticated routes
 app.use(rateLimiter);
+app.use(userRateLimiter); // Phase 5-B: per-user 200 req/min (keyed by user ID)
+
+// Phase 5-C: Mutation Audit — logs every successful PUT/PATCH/DELETE to /api/*
+app.use(createMutationAuditMiddleware(auditLogger));
 
 // Logging Middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -583,6 +596,7 @@ app.use("/api/marketing", marketingRoutes(context));
 app.use("/api/dashboard", dashboardRoutes(context)); // Handles /dashboard/system-health
 app.use("/api/health", healthRoutes(dbManager, thermalService)); // Federated deep diagnostics
 app.use("/api/export", exportRoutes(context as any)); // Phase P3: Backend Batch Export
+app.use("/api/backup", backupRoutes(context));      // Backup / Restore (admin-only)
 app.use(
   "/api/resort-analytics",
   createResortAnalyticsRoutes(resortAnalytics, logger),
@@ -624,19 +638,9 @@ app.get(/.*/, (_req: Request, res: Response) => {
   }
 });
 
-// Error handling middleware — catch-all for unhandled errors
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  logger.error("Unhandled Server Error", {
-    error: err.message,
-    stack: err.stack,
-    url: _req.url,
-    method: _req.method,
-  });
-  if (!res.headersSent) {
-    // Never leak stack traces or internal details to client
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-});
+// Error handling middleware — ApiError (4xx/5xx structured) + catch-all 500
+// createErrorMiddleware unifies Pattern C (throw ApiError) with Pattern A (sendError)
+app.use(createErrorMiddleware(logger));
 
 // NOTE: uncaughtException and unhandledRejection handlers are registered
 // below in the Phase 55 block (after server.listen). Registering them here
@@ -706,7 +710,7 @@ const initializeEcosystem = async () => {
                     logger.warn("[Startup] Cloudflare Tunnel: Failed to start - check credentials and network.");
                 }
             }).catch((err: Error) => {
-                logger.error("[Startup] Cloudflare Tunnel error:", err.message);
+                logger.error("[Startup] Cloudflare Tunnel error:", { error: err?.message ?? String(err) });
             });
         } else {
             logger.info("[Startup] Cloudflare Tunnel: Not configured (TUNNEL_ID not set).");
@@ -781,7 +785,7 @@ server.listen(PORT, "0.0.0.0", async () => {
             if (failures.length > 0) {
                 logger.error(
                     `[Shutdown] ${failures.length}/${serviceStoppers.length} services failed: ${
-                        failures.map((_, _i) => serviceStoppers[results.indexOf(_)].name).join(', ')
+                        failures.map((_) => serviceStoppers[results.indexOf(_)].name).join(', ')
                     }`,
                 );
             } else {
@@ -791,15 +795,15 @@ server.listen(PORT, "0.0.0.0", async () => {
             try {
                 await dbWriteQueue.shutdown();
                 logger.info("[Shutdown] DbWriteQueue drained.");
-            } catch (err) {
-                logger.error("[Shutdown] DbWriteQueue drain failed:", err);
+            } catch (err: any) {
+                logger.error("[Shutdown] DbWriteQueue drain failed:", { error: err?.message ?? String(err) });
             }
             // Terminate photo/ML worker pools (P8 audit fix — prevents thread leaks on exit)
             try {
                 await photoProcessor?.shutdown?.();
                 logger.info("[Shutdown] Worker pools terminated.");
-            } catch (err) {
-                logger.error("[Shutdown] Worker pool shutdown failed:", err);
+            } catch (err: any) {
+                logger.error("[Shutdown] Worker pool shutdown failed:", { error: err?.message ?? String(err) });
             }
             bonjour.unpublishAll(() => {
                 server.close(() => {

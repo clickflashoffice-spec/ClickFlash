@@ -6,6 +6,25 @@ import { ZoomPanState } from "./useZoomPan";
 const MAX_HISTORY = 50;
 
 /**
+ * Evicts history entries for non-visible, non-active photos to free memory.
+ * Keeps the active photo and visibleIds photos; removes all others.
+ */
+function evictLRUHistories(
+  histories: Record<string, { past: ManualEdits[]; future: ManualEdits[] }>,
+  activePhotoId: string,
+  visibleIds: Set<string>,
+  _maxHistory: number,
+): Record<string, { past: ManualEdits[]; future: ManualEdits[] }> {
+  const result = { ...histories };
+  for (const photoId of Object.keys(result)) {
+    if (photoId !== activePhotoId && !visibleIds.has(photoId)) {
+      delete result[photoId];
+    }
+  }
+  return result;
+}
+
+/**
  * Returns the per-photo history depth appropriate for the current album size.
  * Keeps memory bounded: 200 photos × 20 entries × ~30 fields ≈ manageable RAM.
  */
@@ -159,7 +178,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
 
       // P1-A4 Fix: LRU eviction for non-visible photos
       const visibleIds = new Set(state.photos.slice(0, 10).map(p => p.id)); // Assume first 10 visible
-      const newHistories = evictLRUHistories(state.histories, state.activePhotoId, visibleIds, maxHistory);
+      const newHistories = evictLRUHistories(state.histories, state.activePhotoId ?? '', visibleIds, maxHistory);
       newHistories[state.activePhotoId] = {
         past: trimmedPast,
         future: [],
@@ -202,7 +221,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
 
       // P1-A4 Fix: LRU eviction for non-visible photos
       const visibleIds = new Set(state.photos.slice(0, 10).map(p => p.id));
-      const newHistories = evictLRUHistories(state.histories, state.activePhotoId, visibleIds, maxHistory);
+      const newHistories = evictLRUHistories(state.histories, state.activePhotoId ?? '', visibleIds, maxHistory);
       newHistories[photoId] = {
         past: trimmedPast,
         future: [],
@@ -598,5 +617,7 @@ export function useEditorState(initialPhotos: Photo[] = []) {
     actions,
     canUndo: activeHistory.past.length > 0,
     canRedo: activeHistory.future.length > 0,
+    /** Convenience alias for the active photo's undo/redo history. */
+    history: activeHistory,
   };
 }

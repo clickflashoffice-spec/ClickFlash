@@ -226,7 +226,7 @@ export default function pairingRoutes(context: PairingContext): Router {
    * @route GET /pairing/active
    * @description Get active pairing tokens (debug/monitoring)
    */
-  router.get("/pairing/active", (req: Request, res: Response) => {
+  router.get("/pairing/active", (_req: Request, res: Response) => {
     try {
       const now = new Date().toISOString();
       const activeTokens = dbManager.query<{

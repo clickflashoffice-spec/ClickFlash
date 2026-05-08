@@ -49,6 +49,13 @@ const TrashRetentionWidget = React.lazy(() =>
   })),
 );
 
+// New dashboard widgets (Phase 3 — previously empty placeholder files)
+const CalendarWidget   = React.lazy(() => import("./dashboard/CalendarWidget"));
+const ChartPlaceholder = React.lazy(() => import("./dashboard/ChartPlaceholder"));
+const RatingWidget     = React.lazy(() => import("./dashboard/RatingWidget"));
+const Toolbar          = React.lazy(() => import("./dashboard/Toolbar"));
+const UserStatsWidget  = React.lazy(() => import("./dashboard/UserStatsWidget"));
+
 // ============================================================================
 // Types & Interfaces
 // ============================================================================
@@ -693,6 +700,9 @@ const DashboardComponent: React.FC<DashboardProps> = ({
                         }}
                         className="space-y-8"
                       >
+                        {/* Quick-action toolbar */}
+                        <Toolbar onNavigate={onNavigate} />
+
                         <motion.div
                           variants={{
                             hidden: { opacity: 0 },
@@ -831,6 +841,28 @@ const DashboardComponent: React.FC<DashboardProps> = ({
                             orders={safeData.orders}
                           />
                           <ProductMixWidget orders={safeData.orders} />
+                        </motion.div>
+
+                        {/* Phase 3: New widgets row */}
+                        <motion.div
+                          variants={{
+                            hidden: { opacity: 0, y: 20 },
+                            show: {
+                              opacity: 1,
+                              y: 0,
+                              transition: { duration: 0.5, delay: 0.15 },
+                            },
+                          }}
+                          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                        >
+                          <CalendarWidget />
+                          <RatingWidget orders={safeData.orders} />
+                          <ChartPlaceholder orders={safeData.orders} />
+                          <UserStatsWidget
+                            photographers={safeData.photographers}
+                            orders={safeData.orders}
+                            albums={safeData.albums}
+                          />
                         </motion.div>
                       </motion.div>
                     ) : (

@@ -5,7 +5,6 @@
  */
 
 import { userService } from '../userService';
-import { pb } from '../../pb';
 import { mockCollection, resetPbMocks } from '../../__mocks__/pb';
 
 jest.mock('../../pb', () => ({

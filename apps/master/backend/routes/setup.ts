@@ -1,5 +1,5 @@
 import express, { Request, Response, Router } from 'express';
-import { DeploymentStateMachine, DeploymentStep, ProvisioningContext } from '../services/provisioning';
+import { DeploymentStateMachine } from '../services/provisioning';
 import { Logger } from '../shared/logger';
 import DatabaseManager from '../shared/db';
 import { z } from 'zod';
@@ -31,7 +31,7 @@ export default function setupRoutes(context: SetupContext): Router {
       const validation = SetupDeploymentSchema.safeParse(req.body);
       
       if (!validation.success) {
-        const errors = validation.error.errors.map(e => `${e.path.join('.')}: ${e.message}`);
+        const errors = validation.error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`);
         return sendValidationError(res, errors.join('; '));
       }
 
@@ -86,7 +86,7 @@ export default function setupRoutes(context: SetupContext): Router {
     }
   });
 
-  router.get('/status', (req: Request, res: Response) => {
+  router.get('/status', (_req: Request, res: Response) => {
     try {
       const checkSetting = (id: string) => {
         const row = dbManager.get<{ value: string }>(`SELECT value FROM settings WHERE id = ?`, [id]);
@@ -114,17 +114,17 @@ export default function setupRoutes(context: SetupContext): Router {
         },
       });
     } catch (error) {
-      return sendError(res, 500, 'Failed to get setup status');
+      return sendError(res, 500, 'Internal Server Error', 'Failed to get setup status');
     }
   });
 
-  router.get('/progress', async (req: Request, res: Response) => {
+  router.get('/progress', async (_req: Request, res: Response) => {
     try {
       const stateMachine = new DeploymentStateMachine(dbManager, logger);
       const steps = stateMachine.getDeploymentSteps();
       return res.json({ steps });
     } catch (error) {
-      return sendError(res, 500, 'Failed to get progress');
+      return sendError(res, 500, 'Internal Server Error', 'Failed to get progress');
     }
   });
 
@@ -146,7 +146,7 @@ export default function setupRoutes(context: SetupContext): Router {
       return res.json({ success: true, message: 'Rollback completed' });
     } catch (error) {
       logger.error('[Setup] Rollback error', { error: error instanceof Error ? error.message : String(error) });
-      return sendError(res, 500, 'Rollback failed');
+      return sendError(res, 500, 'Internal Server Error', 'Rollback failed');
     }
   });
 
@@ -169,11 +169,11 @@ export default function setupRoutes(context: SetupContext): Router {
         return res.status(401).json({ success: false, message: 'Invalid Cloudflare credentials' });
       }
     } catch (error) {
-      return sendError(res, 500, 'Validation failed');
+      return sendError(res, 500, 'Internal Server Error', 'Validation failed');
     }
   });
 
-  router.get('/endpoints', (req: Request, res: Response) => {
+  router.get('/endpoints', (_req: Request, res: Response) => {
     try {
       const domain = process.env.CLOUDFLARE_DOMAIN || 'clickflash.photo';
       return res.json({
@@ -183,7 +183,7 @@ export default function setupRoutes(context: SetupContext): Router {
         website: `https://${domain}`,
       });
     } catch (error) {
-      return sendError(res, 500, 'Failed to get endpoints');
+      return sendError(res, 500, 'Internal Server Error', 'Failed to get endpoints');
     }
   });
 

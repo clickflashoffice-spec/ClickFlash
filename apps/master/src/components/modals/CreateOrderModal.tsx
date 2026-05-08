@@ -55,7 +55,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
   const createOrderMutation = useCreateOrder();
   const { data: photographers = [] } = usePhotographers();
 
-  const [optimisticItems, addOptimisticItem, removeOptimisticItem] = useOptimistic<OrderItem[]>(
+  const [optimisticItems, dispatchOptimistic] = useOptimistic<OrderItem[], { type: 'add'; item: OrderItem } | { type: 'remove'; id: string } | { type: 'update'; id: string; field: keyof OrderItem; value: string | number }>(
     [],
     (state, action: { type: 'add'; item: OrderItem } | { type: 'remove'; id: string } | { type: 'update'; id: string; field: keyof OrderItem; value: string | number }) => {
       switch (action.type) {
@@ -70,6 +70,8 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
       }
     }
   );
+  const addOptimisticItem = dispatchOptimistic;
+  const removeOptimisticItem = dispatchOptimistic;
 
   const subtotal = useMemo(() => {
     return optimisticItems.reduce((acc, item) => acc + item.quantity * item.price, 0);
@@ -167,7 +169,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
       // Reset form
       setClientName('');
       setEmail('');
-      setItems([]);
+      // optimisticItems resets via useOptimistic on parent re-render
       setAppliedDiscount(0);
       setPaymentMethod('Cash');
       setSelectedPhotographerId(currentUser.id);

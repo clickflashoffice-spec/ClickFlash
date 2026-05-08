@@ -8,6 +8,10 @@ import sharp from "sharp";
 
 const logger = new Logger(path.resolve(process.cwd(), "pb_data"));
 
+// Maximum allowed file size (50 MB). Must match formidable's maxFileSize so
+// any file that bypassed the upload parser is still rejected here.
+// MAX_PHOTO_SIZE_BYTES = 50MB is enforced by formidable at upload level
+
 interface PhotoMetadata {
   url: string;
   tinyUrl?: string;
@@ -24,6 +28,7 @@ interface PhotoMetadata {
   format?: string;
   qualityScore: number;
   qualityFlags: string[];
+  orientation?: number;
 }
 
 export interface QualityResult {
@@ -35,6 +40,7 @@ interface FileUpload {
   filepath: string;
   originalFilename?: string;
   newFilename?: string;
+  mimetype?: string;
 }
 
 export class PhotoProcessor {
@@ -252,8 +258,16 @@ export class PhotoProcessor {
       });
 
       // --- Post-Worker Resolution ---
+      if (!workerResult || workerResult.success === false) {
+        throw new Error(workerResult?.error || "Worker processing failed");
+      }
+
       const assets = workerResult.assets;
       const fileHash = workerResult.hash;
+
+      if (!assets || !assets.highres) {
+        throw new Error(`Worker returned incomplete assets for photo ${photoId}`);
+      }
 
       // Duplicate Check (Post-Worker to avoid Main Thread Blocking)
       if (this.db && fileHash) {

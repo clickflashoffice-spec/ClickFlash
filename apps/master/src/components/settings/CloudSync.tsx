@@ -52,7 +52,7 @@ const CloudSync: React.FC<CloudSyncProps> = ({ showToast }) => {
   const handleStartUpload = async () => {
     // Load the hub URL from unified config — no more localStorage dependency
     const config = await cloudConfigService.load();
-    const { hubUrl, hubEmail, hubPassword } = config;
+    const { hubUrl, hubEmail: _hubEmail, hubPassword } = config;
 
     if (!hubUrl) {
       showToast(

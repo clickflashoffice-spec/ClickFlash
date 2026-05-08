@@ -7,6 +7,8 @@ export interface RelayEmailOptions {
   subject: string;
   html: string;
   text: string;
+  /** Extra BCC recipients (in addition to the service-level adminBccEmail). */
+  bcc?: string | string[];
 }
 
 /**
@@ -19,12 +21,14 @@ export default class EmailRelayService {
   private logger: any;
   private resendApiKey: string;
   private defaultSender: string;
+  /** Always BCC'd on every outgoing email so the owner stays in the loop. */
+  private adminBccEmail: string | undefined;
 
-  constructor(logger: any, resendApiKey?: string, fromEmail?: string) {
+  constructor(logger: any, resendApiKey?: string, fromEmail?: string, adminBccEmail?: string) {
     this.logger = logger;
     this.resendApiKey = resendApiKey || "";
-    this.defaultSender =
-      fromEmail || "ClickFlash Support <support@clickflash.com>";
+    this.defaultSender = fromEmail || "ClickFlash Support <support@clickflash.com>";
+    this.adminBccEmail = adminBccEmail;
   }
 
   async sendEmail(options: RelayEmailOptions): Promise<boolean> {
@@ -41,6 +45,17 @@ export default class EmailRelayService {
         `[EmailRelay] Sending email via Resend to ${options.to}`,
       );
 
+      // Build BCC list: service-level admin + any per-call bcc, deduped, never == to
+      const bccSet = new Set<string>();
+      if (this.adminBccEmail && this.adminBccEmail !== options.to) {
+        bccSet.add(this.adminBccEmail);
+      }
+      if (options.bcc) {
+        const extra = Array.isArray(options.bcc) ? options.bcc : [options.bcc];
+        extra.forEach((b) => { if (b && b !== options.to) bccSet.add(b); });
+      }
+      const bcc = bccSet.size ? [...bccSet] : undefined;
+
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -50,6 +65,7 @@ export default class EmailRelayService {
         body: JSON.stringify({
           from: options.from || this.defaultSender,
           to: options.to,
+          ...(bcc ? { bcc } : {}),
           subject: options.subject,
           html: options.html,
           text: options.text || options.html.replace(/<[^>]*>?/gm, " ").trim(),

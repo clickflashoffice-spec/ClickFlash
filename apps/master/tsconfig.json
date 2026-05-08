@@ -31,7 +31,8 @@
       "@utils/*": ["./src/utils/*"],
       "@types/*": ["./src/types/*"],
       "@clickflash/ui/*": ["../../packages/ui/src/*"],
-      "@clickflash/ui": ["../../packages/ui/src/index.ts"]
+      "@clickflash/ui": ["../../packages/ui/src/index.ts"],
+      "@clickflash/types": ["../../packages/types/src/index.ts"]
     }
   },
   "include": ["src", "backend", "scripts"]

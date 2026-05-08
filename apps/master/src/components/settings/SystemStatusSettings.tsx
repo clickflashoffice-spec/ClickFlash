@@ -59,9 +59,8 @@ const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser
         setDbEngineStatus('checking');
         
         // Check App Health (with actual verification)
-        const startTime = performance.now();
         const appHealth = await diagnosticsService.verifyAppHealth();
-        const checkDuration = Math.round(performance.now() - startTime);
+        // timing logged by diagnosticsService
         
         if (appHealth.healthy) {
             setAppServerStatus('connected');
@@ -197,7 +196,7 @@ const SystemStatusSettings: React.FC<SystemStatusSettingsProps> = ({ currentUser
         addLog("Health Check: PASSED", 'success');
         setProgress(15);
 
-        const backendStats = await getBackendStats();
+        const backendStats = await getBackendStats() as any;
         if (backendStats && backendStats.status === 'online') {
             addLog(`Engine Status: ONLINE [Port ${DEFAULT_MASTER_PORT}]`, 'success');
             addLog(`Latency Check: ${latency || '<1'}ms`, 'success');

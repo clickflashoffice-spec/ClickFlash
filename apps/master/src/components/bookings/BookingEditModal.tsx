@@ -14,14 +14,14 @@ interface BookingEditModalProps {
 const BookingEditModal: React.FC<BookingEditModalProps> = ({ isOpen, onClose, onSave, bookingToEdit, photographers, sessionTypes }) => {
     const isNew = !bookingToEdit;
     const [booking, setBooking] = useState<Partial<Booking>>(
-        bookingToEdit || { status: 'Pending', destinationId: 'dest1' }
+        bookingToEdit || { status: 'Pending' } as Partial<Booking>
     );
 
     const inputStyles = "w-full bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md px-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none";
 
 
     useEffect(() => {
-        setBooking(bookingToEdit || { status: 'Pending', destinationId: 'dest1' });
+        setBooking(bookingToEdit || { status: 'Pending' } as Partial<Booking>);
     }, [bookingToEdit, isOpen]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

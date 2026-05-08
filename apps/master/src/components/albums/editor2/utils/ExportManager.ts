@@ -47,7 +47,7 @@ export class ExportManager {
     const opts = { ...defaultExportOptions, ...options };
 
     // Calculate output dimensions
-    let { width, height } = this.calculateDimensions(
+    const { width, height } = this.calculateDimensions(
       image.naturalWidth,
       image.naturalHeight,
       opts,

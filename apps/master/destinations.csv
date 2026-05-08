@@ -1,0 +1,21 @@
+# ClickFlash Destinations Registry
+# Format: locationName,adminEmail,timezone
+# Secrets should be set via environment variables, not in this file
+#
+# Environment Variables Required:
+#   ADMIN_PASSWORD - Password for all destinations (set once, use everywhere)
+#   CLOUDFLARE_API_TOKEN - Cloudflare API token for auto-provisioning
+#   CLOUDFLARE_ACCOUNT_ID - Cloudflare Account ID
+#   CLOUDFLARE_ZONE_ID - Cloudflare Zone ID
+#
+# Usage:
+#   npm run bootstrap -- --destination "Paradise Resort"
+#   npm run bootstrap -- --destination "Ocean Hotel" --email admin@ocean.com
+#
+# Example entries:
+
+Paradise Resort,admin@paradise.clickflash.photo,Africa/Tunis
+Ocean Hotel,admin@ocean.clickflash.photo,Europe/Paris
+Desert Palace,admin@desert.clickflash.photo,Africa/Casablanca
+Mountain Lodge,admin@mountain.clickflash.photo,Europe/Madrid
+City Center,admin@city.clickflash.photo,Europe/London

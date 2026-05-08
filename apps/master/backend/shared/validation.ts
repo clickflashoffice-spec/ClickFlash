@@ -44,14 +44,13 @@ export const albumSchema = z.object({
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}/, 'Date must be in YYYY-MM-DD format'),
     photographerId: z.union([z.number().int().positive(), z.string(), z.null()]).optional().refine(
         (val) => {
-            if (!val) return true;
-            if (typeof val === 'string') {
-                const parsed = parseInt(val, 10);
-                return !isNaN(parsed) && parsed > 0;
-            }
+            if (!val && val !== 0) return true;
+            if (typeof val === 'number') return Number.isFinite(val) && val > 0;
+            // Allow any non-empty string including UUIDs (users table uses UUID IDs)
+            if (typeof val === 'string') return val.trim().length > 0;
             return true;
         },
-        { message: 'Photographer ID must be a positive number' }
+        { message: 'Photographer ID must be a valid ID' }
     ),
     roomNumber: z.string().max(50, 'Room number is too long').optional(),
     source: z.string().max(100, 'Source is too long').optional(),
@@ -104,13 +103,13 @@ export const orderSchema = z.object({
     total: z.number().min(0, 'Total must be non-negative').max(999999.99, 'Total is too large').optional(),
     photographerId: z.union([z.number().int().positive(), z.string()]).optional().refine(
         (val) => {
-            if (typeof val === 'string') {
-                const parsed = parseInt(val, 10);
-                return !isNaN(parsed) && parsed > 0;
-            }
+            if (!val && val !== 0) return true;
+            if (typeof val === 'number') return Number.isFinite(val) && val > 0;
+            // Allow any non-empty string including UUIDs (users table uses UUID IDs)
+            if (typeof val === 'string') return val.trim().length > 0;
             return true;
         },
-        { message: 'Photographer ID must be a positive number' }
+        { message: 'Photographer ID must be a valid ID' }
     ),
     items: z.array(orderItemSchema).min(1, 'At least one item is required'),
     customer: customerSchema.optional(),

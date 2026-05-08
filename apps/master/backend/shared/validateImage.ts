@@ -37,6 +37,7 @@ export async function validateImageMagicNumber(
       }
 
       // Detect format from magic bytes
+
       // JPEG: FF D8 FF
       if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
         detectedFormat = "jpeg";

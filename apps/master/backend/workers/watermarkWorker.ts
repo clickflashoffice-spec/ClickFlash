@@ -1,4 +1,5 @@
 // backend/workers/watermarkWorker.ts
+export {};
 const { parentPort, threadId } = require('worker_threads');
 const fs = require('fs');
 const path = require('path');

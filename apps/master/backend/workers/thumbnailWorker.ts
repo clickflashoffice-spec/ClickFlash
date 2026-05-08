@@ -1,11 +1,11 @@
-
+export {};
 const { parentPort } = require('worker_threads');
 const sharp = require('sharp');
 const fs = require('fs');
 
 if (!parentPort) throw new Error('Worker must be spawned from main thread');
 
-parentPort.on('message', async (task) => {
+parentPort.on('message', async (task: any) => {
     try {
         const { filepath, width = 400, quality = 80 } = task;
 

@@ -259,7 +259,7 @@ const ImportAlbumModal: React.FC<ImportAlbumModalProps> = ({
   return (
     <Modal
       isOpen={isOpen}
-      onClose={isImporting ? undefined : onClose}
+      onClose={isImporting ? () => {} : onClose}
       title="Import New Album"
       size="xl"
     >

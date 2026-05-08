@@ -12,10 +12,9 @@
  * @version 1.0.0
  */
 
-import { logger } from '../utils/logger';
 
 // Worker context type
-declare const self: DedicatedWorkerGlobalScope;
+declare const self: Worker & typeof globalThis;
 
 /**
  * Message types for worker communication
@@ -355,8 +354,7 @@ async function extractExif(imageBuffer: ArrayBuffer): Promise<ExifData> {
         
         // APP1 marker (EXIF)
         if (marker === 0xFFE1) {
-            const length = view.getUint16(offset + 2, false);
-            // Basic EXIF extraction would go here
+            // Basic EXIF extraction would go here (length at offset+2)
             // For now, return empty data
             break;
         }
@@ -426,7 +424,7 @@ async function applyFilters(
  * Detect faces using simple detection (placeholder for ML model)
  * In production, this would use TensorFlow.js or similar
  */
-async function detectFaces(imageBuffer: ArrayBuffer): Promise<FaceDetectionResult> {
+async function detectFaces(_imageBuffer: ArrayBuffer): Promise<FaceDetectionResult> {
     // Placeholder implementation
     // Real implementation would load a face detection model
     const startTime = performance.now();
@@ -571,7 +569,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
             processingTime: performance.now() - startTime,
         };
         
-        self.postMessage(response, result instanceof ArrayBuffer ? [result] : undefined);
+        (self as any).postMessage(response, result instanceof ArrayBuffer ? [result] : undefined);
         
     } catch (error) {
         const response: WorkerResponse = {

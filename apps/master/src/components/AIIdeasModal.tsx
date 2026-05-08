@@ -70,9 +70,9 @@ const AIIdeasModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOp
                         <h3 className="text-lg font-bold text-blue-600 dark:text-blue-400">{idea.title}</h3>
                         <p className="text-slate-600 dark:text-slate-300 mt-1">{idea.description}</p>
                         <div className="flex space-x-4 mt-3 text-sm border-t border-slate-200 dark:border-slate-700 pt-3 text-slate-500 dark:text-slate-400">
-                            <span>Aperture: {idea.settings.aperture}</span>
-                            <span>Shutter: {idea.settings.shutter_speed}</span>
-                            <span>ISO: {idea.settings.iso}</span>
+                            <span>Aperture: {idea.settings?.aperture}</span>
+                            <span>Shutter: {idea.settings?.shutter_speed}</span>
+                            <span>ISO: {idea.settings?.iso}</span>
                         </div>
                     </div>
                 ))}

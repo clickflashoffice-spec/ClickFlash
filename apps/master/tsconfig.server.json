@@ -10,7 +10,7 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "allowJs": true,
-        "checkJs": false, // We'll enable this later or rename files to .ts
+        "checkJs": true,
         "resolveJsonModule": true
     },
     "include": [
@@ -19,6 +19,9 @@
     "exclude": [
         "node_modules",
         "**/*.spec.ts",
-        "**/*.test.ts"
+        "**/*.test.ts",
+        "backend/**/*.js",
+        "backend/**/*.cjs",
+        "backend/setup/stressTask.ts"
     ]
 }

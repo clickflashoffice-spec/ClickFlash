@@ -310,7 +310,7 @@ class CustomPocketBaseAdapter {
         };
       },
       getOne: async (id: string, options?: CollectionOptions) => {
-        let filter = `id="${id}"`;
+        const filter = `id="${id}"`;
         let query = `?filter=${encodeURIComponent(filter)}`;
         if (options && options.expand) {
           query += `&expand=${encodeURIComponent(options.expand)}`;
@@ -417,9 +417,9 @@ class CustomPocketBaseAdapter {
               method: "POST",
               headers,
               body,
+              timeoutMs: 60000, // timeoutMs override
             },
             0,
-            60000, // timeoutMs override
           );
           if (!res.ok) {
             let errorMessage = `Create failed (HTTP ${res.status})`;
@@ -493,9 +493,9 @@ class CustomPocketBaseAdapter {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(data),
+              timeoutMs: 60000, // timeoutMs override
             },
             0,
-            60000, // timeoutMs override
           );
           if (!res.ok) {
             let errorMessage = "Update failed";

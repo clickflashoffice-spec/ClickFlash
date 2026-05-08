@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { Order, OrderItem } from '@clickflash/types';
+import { Order, OrderItem } from '../types/shared';
 
 export class OrderIntegrity {
   /**
@@ -9,7 +9,7 @@ export class OrderIntegrity {
   public static calculateChecksum(order: Partial<Order>): string {
     const items = order.items || [];
     const itemsString = items
-      .map((item: OrderItem) => `${item.photoId || item.id}-${item.quantity}-${item.price}`)
+      .map((item: OrderItem) => `${item.photo?.id ?? item.id}-${item.quantity}-${item.price}`)
       .sort()
       .join('|');
 

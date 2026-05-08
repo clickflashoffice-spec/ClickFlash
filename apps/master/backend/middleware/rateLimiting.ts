@@ -3,8 +3,6 @@
 
 import { Request, Response, NextFunction } from 'express';
 import rateLimiter from '../shared/rateLimiter';
-import { sendRateLimitError } from '../shared/errorHandler';
-import { Logger } from '../shared/logger';
 
 /**
  * Rate Limiting Middleware
@@ -12,7 +10,7 @@ import { Logger } from '../shared/logger';
  * Protects API endpoints from abuse by limiting request frequency.
  * Uses the shared rateLimiter service with configurable limits.
  */
-export function rateLimitMiddleware(req: Request, res: Response, next: NextFunction, logger?: Logger): boolean | void {
+export function rateLimitMiddleware(req: Request, res: Response, next: NextFunction): boolean | void {
     const clientIp = req.socket.remoteAddress || 'unknown';
 
     // Check rate limit

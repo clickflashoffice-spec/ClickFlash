@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Building2, User, Lock, Globe, CheckCircle, AlertCircle, Loader2, RotateCcw } from 'lucide-react';
+import { Building2, User, Lock, Globe, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { setupService } from '@/services/setupService';
 import { logger } from '@/utils/logger';
 
@@ -90,12 +90,6 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onError })
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   }, [formData]);
-
-  const updateProgress = useCallback((stepId: DeploymentStep, status: DeploymentProgress['status'], message: string, errorMsg?: string) => {
-    setProgress(prev => prev.map(p => 
-      p.step === stepId ? { ...p, status, message, error: errorMsg } : p
-    ));
-  }, []);
 
   const handleDeploy = useCallback(async () => {
     if (!validateForm()) return;

@@ -58,7 +58,7 @@ describe('useNetworkStatus', () => {
         const { result } = renderHook(() => useNetworkStatus());
 
         // Get the callback that was passed to subscribe
-        const subscribeCallback = mockSubscribe.mock.calls[0][0];
+        const subscribeCallback = (mockSubscribe.mock.calls as any[][])[0][0] as (state: unknown) => void;
 
         // Simulate network change
         act(() => {

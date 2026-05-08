@@ -13,7 +13,7 @@ interface SendingProgressOverlayProps {
 const SendingProgressOverlay: React.FC<SendingProgressOverlayProps> = ({
     open,
     progress,
-    message,
+    message: _message,
     current,
     total,
     destination

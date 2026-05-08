@@ -30,7 +30,7 @@ export const analyticsExportService = {
     /**
      * Export photographer performance to CSV
      */
-    exportPerformanceToCSV(photographers: PhotographerStat[], days: number): void {
+    exportPerformanceToCSV(photographers: PhotographerStat[], _days: number): void {
         const rows = [
             ['Photographer Name', 'Orders', 'Total Revenue', 'Avg Order Value']
         ];

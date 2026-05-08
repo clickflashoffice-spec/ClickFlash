@@ -25,7 +25,7 @@ async function testR2Upload() {
     const cloudSync = new CloudSyncService(
         dbManager,
         logger,
-        null, // emailService
+        null as any, // emailService
         null, // resourceMonitor
         null  // resortAnalytics
     );

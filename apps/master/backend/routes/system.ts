@@ -9,6 +9,7 @@ import networkRoutes from "./system/network";
 import hardwareRoutes from "./system/hardware";
 import maintenanceRoutes from "./system/maintenance";
 import operationsRoutes from "./system/operations";
+import securityRoutes from "./system/security";
 
 interface SystemContext {
   dbManager: DatabaseManager;
@@ -38,6 +39,7 @@ export default function systemRoutes(context: SystemContext): Router {
   router.use("/hardware", hardwareRoutes(context));
   router.use("/maintenance", maintenanceRoutes(context));
   router.use("/ops", operationsRoutes(context));
+  router.use("/security", securityRoutes(context));
 
   // Legacy/Compatibility Root Routes (if not covered by healthRoutes)
   // router.get("/ip", ...); // Already in healthRoutes

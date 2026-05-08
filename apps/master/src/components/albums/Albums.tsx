@@ -1160,7 +1160,7 @@ const Albums: React.FC<AlbumsProps> = ({
 
   // Filter hook
   const {
-    isPending: isFiltering,
+    isPending: _isFiltering,
     dateRange,
     setDateRange,
     selectedPhotographer,
@@ -1350,6 +1350,16 @@ const Albums: React.FC<AlbumsProps> = ({
                 : typeof photoError === "string"
                   ? photoError
                   : "Unknown error";
+
+            // Duplicate photo — already exists in the DB, counts as success, never retry.
+            if (
+              photoError?.status === 409 ||
+              errorMessage.includes("Duplicate photo") ||
+              errorMessage.includes("DUPLICATE_PHOTO")
+            ) {
+              logger.info(`Skipping duplicate photo: ${file.name}`);
+              return { success: true };
+            }
 
             logger.error(
               `Failed to upload photo ${file.name} (attempt ${retryCount + 1}/${MAX_RETRIES + 1})`,

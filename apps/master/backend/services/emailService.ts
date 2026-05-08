@@ -1,5 +1,10 @@
-import { Resend } from 'resend';
 import { Logger } from '../shared/logger';
+
+export interface EmailAttachment {
+    filename: string;
+    content: string;  // base64-encoded file content
+    type?: string;    // MIME type, e.g. "application/pdf"
+}
 
 export interface EmailOptions {
     to: string;
@@ -7,6 +12,7 @@ export interface EmailOptions {
     html: string;
     text: string;
     trackingId?: string;
+    attachments?: EmailAttachment[];
 }
 
 export interface CampaignEmail extends EmailOptions {
@@ -16,222 +22,188 @@ export interface CampaignEmail extends EmailOptions {
 
 /**
  * Backend Email Service
- * 
- * Handles email sending via Resend (Primary) with Hub Relay fallback.
+ *
+ * All email is routed through the Cloudflare Management Hub Worker
+ * (POST /api/email/relay → Resend API).  A direct Resend fallback
+ * is available when RESEND_API_KEY is set and the hub is not configured.
  */
 export class EmailService {
-    private initialized = false;
-    private resend: Resend | null = null;
     private fromEmail = process.env.SENDGRID_FROM_EMAIL || 'noreply@clickflash.com';
-    private fromName = process.env.SENDGRID_FROM_NAME || 'ClickFlash Photography';
+    private fromName  = process.env.SENDGRID_FROM_NAME  || 'ClickFlash Photography';
     private cloudApiUrl: string | null = null;
     private cloudToken: string | null = null;
     private logger: Logger;
 
     constructor(logger: Logger) {
         this.logger = logger;
-        this.initialize();
     }
 
-    /**
-     * Configure Cloud Hub Relay
-     */
+    /** Configure the Cloudflare Hub Relay. Called from server.ts after construction. */
     public setCloudConfig(apiUrl: string, token: string): void {
+        if (!apiUrl || !token) return;
         this.cloudApiUrl = apiUrl;
-        this.cloudToken = token;
-        this.initialized = !!(apiUrl && token);
-        if (this.initialized) {
-            this.logger.info('[EmailService] Hub Relay configured successfully');
-        }
+        this.cloudToken  = token;
+        this.logger.info('[EmailService] Cloudflare Hub relay configured');
     }
 
-    private initialize(): void {
+    private get isHubConfigured(): boolean {
+        return !!(this.cloudApiUrl && this.cloudToken);
+    }
+
+    /** Send via the Management Hub Worker → Resend. Returns the message ID or null. */
+    private async sendViaHub(payload: {
+        to: string; from: string; fromName: string;
+        subject: string; html: string; text: string;
+    }): Promise<string | null> {
+        const response = await fetch(`${this.cloudApiUrl}/api/email/relay`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.cloudToken}`,
+            },
+            body: JSON.stringify(payload),
+        });
+        if (response.ok) return 'SENT_VIA_HUB';
+        const err = await response.text();
+        throw new Error(`Hub relay failed (${response.status}): ${err}`);
+    }
+
+    /** Direct Resend fallback — used when hub is not yet configured (local dev). */
+    private async sendViaResendDirect(payload: {
+        to: string; subject: string; html: string; text: string;
+        attachments?: EmailAttachment[];
+    }): Promise<string | null> {
         const apiKey = process.env.RESEND_API_KEY;
-        if (apiKey) {
-            this.resend = new Resend(apiKey);
-            this.initialized = true;
-            this.logger.info('[EmailService] Initialized with Resend (Primary)');
-        } else if (process.env.SENDGRID_API_KEY) {
-            // Legacy SendGrid Fallback
-            this.initialized = true;
-            this.logger.info('[EmailService] Initialized with SendGrid (Direct Fallback)');
+        if (!apiKey) return null;
+
+        const body: Record<string, unknown> = {
+            from: `${this.fromName} <${this.fromEmail}>`,
+            to:   [payload.to],
+            subject: payload.subject,
+            html: payload.html,
+            text: payload.text,
+        };
+        if (payload.attachments?.length) {
+            body.attachments = payload.attachments.map((a) => ({
+                filename: a.filename,
+                content: a.content,
+                ...(a.type ? { type: a.type } : {}),
+            }));
         }
+
+        const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+        if (response.ok) {
+            const data = await response.json() as { id?: string };
+            return data.id || 'SENT_VIA_RESEND';
+        }
+        const err = await response.text();
+        throw new Error(`Resend direct failed (${response.status}): ${err}`);
     }
 
-    /**
-     * Send campaign email with tracking
-     */
+    /** Send campaign email with open-tracking pixel and unsubscribe footer. */
     async sendCampaignEmail(options: CampaignEmail): Promise<string | null> {
-        if (!this.initialized) {
-            this.logger.error('[EmailService] Cannot send email - not initialized');
-            return null;
-        }
-
         try {
-            // Add tracking pixel for open tracking
-            const backendUrl = process.env.BACKEND_URL || 'http://localhost:8090';
-            const trackingPixelUrl = `${backendUrl}/api/marketing/track-open/${options.trackingId}`;
-            const htmlWithTracking = options.html + `<img src="${trackingPixelUrl}" width="1" height="1" alt="" />`;
+            const backendUrl  = process.env.BACKEND_URL || 'http://localhost:8090';
+            const trackingUrl = `${backendUrl}/api/marketing/track-open/${options.trackingId}`;
+            const unsubUrl    = `${backendUrl}/api/marketing/unsubscribe?email=${encodeURIComponent(options.to)}`;
 
-            // Add unsubscribe link (CAN-SPAM compliance)
-            const unsubscribeUrl = `${backendUrl}/api/marketing/unsubscribe?email=${encodeURIComponent(options.to)}`;
-            const htmlWithUnsubscribe = htmlWithTracking + `
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #999; text-align: center;">
-          <a href="${unsubscribeUrl}" style="color: #999;">Unsubscribe</a>
-        </div>
-      `;
+            const htmlWithExtras = options.html
+                + `<img src="${trackingUrl}" width="1" height="1" alt="" />`
+                + `<div style="margin-top:30px;padding-top:20px;border-top:1px solid #ddd;font-size:12px;color:#999;text-align:center;">
+                     <a href="${unsubUrl}" style="color:#999;">Unsubscribe</a>
+                   </div>`;
 
-            const relayBody = {
+            const payload = {
                 to: options.to,
                 from: this.fromEmail,
                 fromName: this.fromName,
                 subject: options.subject,
+                html: htmlWithExtras,
                 text: options.text,
-                html: htmlWithUnsubscribe
             };
 
-            if (this.resend) {
-                // Primary: Resend
-                const { data, error } = await this.resend.emails.send({
-                    from: `${this.fromName} <${this.fromEmail}>`,
-                    to: [options.to],
-                    subject: options.subject,
-                    text: options.text,
-                    html: htmlWithUnsubscribe
-                });
-                if (error) throw error;
-                return data?.id || 'SENT_VIA_RESEND';
-            } else if (this.cloudApiUrl && this.cloudToken) {
-                const response = await fetch(`${this.cloudApiUrl}/api/email/relay`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${this.cloudToken}`
-                    },
-                    body: JSON.stringify(relayBody)
-                });
-
-                if (response.ok) {
-                    this.logger.info(`[EmailService] Campaign email sent to ${options.to} via Hub Relay`);
-                    return 'SENT_VIA_HUB';
-                } else {
-                    const err = await response.text();
-                    throw new Error(`Hub Relay failed (${response.status}): ${err}`);
-                }
-            } else if (process.env.SENDGRID_API_KEY) {
-                // Secondary Fallback: SendGrid
-                const sgMail = require('@sendgrid/mail');
-                sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-                const [response] = await sgMail.send({
-                    ...relayBody,
-                    from: { email: relayBody.from, name: relayBody.fromName }
-                });
-                return (response.headers['x-message-id'] as string) || 'SENT_VIA_SENDGRID';
+            if (this.isHubConfigured) {
+                return this.sendViaHub(payload);
             }
 
-            return null;
-        } catch (error: any) {
-            this.logger.error('[EmailService] Failed to send campaign email', { error: error.message });
+            const fallback = await this.sendViaResendDirect({
+                to: options.to, subject: options.subject,
+                html: htmlWithExtras, text: options.text,
+            });
+            if (!fallback) this.logger.warn('[EmailService] No transport configured — campaign email dropped');
+            return fallback;
+        } catch (error: unknown) {
+            const msg = error instanceof Error ? error.message : String(error);
+            this.logger.error('[EmailService] Failed to send campaign email', { error: msg });
             return null;
         }
     }
 
-    /**
-     * Send transactional email (order confirmations, etc.)
-     */
+    /** Send a transactional email (order confirmations, alerts, gallery access, etc.). */
     async sendTransactional(options: EmailOptions): Promise<boolean> {
-        if (!this.initialized) {
-            this.logger.error('[EmailService] Cannot send email - not initialized');
-            return false;
-        }
-
         try {
-            const relayBody = {
+            const payload = {
                 to: options.to,
                 from: this.fromEmail,
                 fromName: this.fromName,
                 subject: options.subject,
+                html: options.html,
                 text: options.text,
-                html: options.html
             };
 
-            if (this.resend) {
-                // Primary: Resend
-                const { error } = await this.resend.emails.send({
-                    from: `${this.fromName} <${this.fromEmail}>`,
-                    to: [options.to],
-                    subject: options.subject,
-                    text: options.text,
-                    html: options.html
-                });
-                if (error) throw error;
-                return true;
-            } else if (this.cloudApiUrl && this.cloudToken) {
-                const response = await fetch(`${this.cloudApiUrl}/api/email/relay`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${this.cloudToken}`
-                    },
-                    body: JSON.stringify(relayBody)
-                });
-                return response.ok;
-            } else if (process.env.SENDGRID_API_KEY) {
-                const sgMail = require('@sendgrid/mail');
-                sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-                await sgMail.send({
-                    ...relayBody,
-                    from: { email: relayBody.from, name: relayBody.fromName }
-                });
+            if (this.isHubConfigured) {
+                await this.sendViaHub(payload);
                 return true;
             }
-            return false;
-        } catch (error: any) {
-            this.logger.error('[EmailService] Failed to send transactional email', { error: error.message });
+
+            const fallback = await this.sendViaResendDirect({
+                to: options.to, subject: options.subject,
+                html: options.html, text: options.text,
+                attachments: options.attachments,
+            });
+            if (!fallback) {
+                this.logger.warn('[EmailService] No transport configured — transactional email dropped');
+                return false;
+            }
+            return true;
+        } catch (error: unknown) {
+            const msg = error instanceof Error ? error.message : String(error);
+            this.logger.error('[EmailService] Failed to send transactional email', { error: msg });
             return false;
         }
     }
 
-    /**
-     * Send test email for campaign preview
-     */
+    /** Convenience wrapper used by campaign routes. */
     async sendTestEmail(to: string, subject: string, html: string, text: string): Promise<boolean> {
         return this.sendTransactional({ to, subject, html, text });
     }
 
-    /**
-     * Render plain-text template with variables.
-     * Values are NOT HTML-escaped — use renderHtmlTemplate for HTML emails.
-     */
+    /** Render plain-text template — values NOT HTML-escaped. */
     renderTemplate(template: string, variables: Record<string, string>): string {
-        return template.replace(/{(\w+)}/g, (match, key) => {
-            return variables[key] !== undefined ? variables[key] : match;
-        });
+        return template.replace(/{(\w+)}/g, (match, key) =>
+            variables[key] !== undefined ? variables[key] : match
+        );
     }
 
-    /**
-     * Render HTML email template with variables.
-     * Values are HTML-escaped to prevent malformed markup when customer-supplied
-     * data (names, album titles) contains special characters such as < > & " '.
-     */
+    /** Render HTML template — values are HTML-escaped to prevent markup injection. */
     renderHtmlTemplate(template: string, variables: Record<string, string>): string {
-        const escapeHtml = (str: string): string =>
-            str
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
+        const escape = (s: string) =>
+            s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+             .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-        return template.replace(/{(\w+)}/g, (match, key) => {
-            return variables[key] !== undefined ? escapeHtml(variables[key]) : match;
-        });
+        return template.replace(/{(\w+)}/g, (match, key) =>
+            variables[key] !== undefined ? escape(variables[key]) : match
+        );
     }
 
-    /**
-     * Check if service is configured
-     */
     isConfigured(): boolean {
-        return this.initialized;
+        return this.isHubConfigured || !!process.env.RESEND_API_KEY;
     }
 }

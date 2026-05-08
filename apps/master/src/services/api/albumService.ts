@@ -317,8 +317,7 @@ export const albumService = {
       // Ensure photos array is populated
       if (!album.photos || album.photos.length === 0) {
         // Try to get photos from expand
-        const expandedPhotos = (record as unknown as Record<string, unknown>)
-          .expand?.photos_via_albumId;
+        const expandedPhotos = (record as any).expand?.photos_via_albumId;
         if (Array.isArray(expandedPhotos)) {
           album.photos = expandedPhotos.map((p) =>
             transformPhoto(p as PocketRecord, baseUrl),

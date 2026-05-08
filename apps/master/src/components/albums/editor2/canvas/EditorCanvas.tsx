@@ -77,7 +77,7 @@ const EditorCanvasComponent: React.FC<EditorCanvasProps> = ({
     true, // enable animation
   );
 
-  // Handle image load to sync dimensions
+  // Handle image load to sync dimensions and trigger initial auto-fit
   const handleImageLoad = () => {
     if (imageRef.current) {
       const width = imageRef.current.naturalWidth;
@@ -85,17 +85,31 @@ const EditorCanvasComponent: React.FC<EditorCanvasProps> = ({
       setDimensions({ width, height });
       setImageLoaded(true);
 
-      // Restore persisted zoom if available
+      // Restore persisted zoom if the user had previously zoomed this photo
       if (persistedZoom && persistedZoom.scale !== 1) {
         setZoom(persistedZoom.scale);
-        // Note: offsets are applied via CSS transform, will be set by zoomState
       }
+      // fitToViewport useEffect handles auto-fit once dimensions + containerSize are both known
     }
   };
 
   // Reset image loaded state when photo changes
   useEffect(() => {
     setImageLoaded(false);
+  }, [photo?.id]);
+
+  // Handle images already in browser cache — onLoad won't fire for cached images.
+  // Runs after the reset effect (same dep, defined later → runs second in React's order).
+  useEffect(() => {
+    const img = imageRef.current;
+    if (img && img.complete && img.naturalWidth > 0) {
+      setDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+      setImageLoaded(true);
+      if (persistedZoom && persistedZoom.scale !== 1) {
+        setZoom(persistedZoom.scale);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [photo?.id]);
 
   // Track container size for zoom/pan calculations
@@ -126,8 +140,9 @@ const EditorCanvasComponent: React.FC<EditorCanvasProps> = ({
       dimensions.height === 0 ||
       containerSize.width === 0 ||
       containerSize.height === 0
-    )
+    ) {
       return;
+    }
 
     const padding = 40; // Padding around the image
     const availableWidth = containerSize.width - padding * 2;
@@ -143,7 +158,8 @@ const EditorCanvasComponent: React.FC<EditorCanvasProps> = ({
     resetOffsets();
   }, [dimensions, containerSize, setZoom, resetOffsets]);
 
-  // Auto-fit when image dimensions are first known
+  // Auto-fit fallback: fires after containerSize is measured by ResizeObserver.
+  // Covers the case where containerSize was still 0 when handleImageLoad ran.
   useEffect(() => {
     if (imageLoaded && dimensions.width > 0 && containerSize.width > 0) {
       fitToViewport();
@@ -349,10 +365,15 @@ const EditorCanvasComponent: React.FC<EditorCanvasProps> = ({
           onLoad={handleImageLoad}
           className="object-contain pointer-events-none select-none shadow-2xl"
           style={{
+            // Render at natural pixel dimensions; the transform on the wrapper div
+            // handles all scaling. maxWidth/maxHeight must be "none" to override
+            // Tailwind's preflight (which sets max-width: 100% on all img elements).
+            // Without this, the image is CSS-constrained before scale() is applied,
+            // causing incorrect fit calculations.
             width: dimensions.width || "auto",
             height: dimensions.height || "auto",
-            maxWidth: containerSize.width > 0 ? containerSize.width : "100%",
-            maxHeight: containerSize.height > 0 ? containerSize.height : "100%",
+            maxWidth: "none",
+            maxHeight: "none",
             filter: filterString,
           }}
           draggable={false}

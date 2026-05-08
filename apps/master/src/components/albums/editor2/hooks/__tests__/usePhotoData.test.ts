@@ -286,8 +286,8 @@ describe("usePhotoData", () => {
 
   describe("Parallel Fetching", () => {
     it("should fetch album and photos in parallel", async () => {
-      let albumResolve: (value: unknown) => void;
-      let photosResolve: (value: unknown) => void;
+      let albumResolve!: (value: unknown) => void;
+      let photosResolve!: (value: unknown) => void;
 
       const albumPromise = new Promise((resolve) => {
         albumResolve = resolve;

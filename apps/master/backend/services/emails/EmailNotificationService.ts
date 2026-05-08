@@ -6,6 +6,7 @@
 
 import { Logger } from '../../shared/logger';
 import { z } from 'zod';
+import { EmailService } from '../emailService';
 
 export const EmailConfigSchema = z.object({
   smtpHost: z.string().optional(),
@@ -43,11 +44,11 @@ export interface AlertNotification {
 
 export class EmailNotificationService {
   private logger: Logger;
-  private config: EmailConfig;
+  private emailService: EmailService;
 
-  constructor(logger: Logger, config: EmailConfig) {
+  constructor(logger: Logger, _config: EmailConfig, emailService: EmailService) {
     this.logger = logger;
-    this.config = config;
+    this.emailService = emailService;
   }
 
   async sendOrderConfirmation(recipient: EmailRecipient, order: OrderNotification): Promise<boolean> {
@@ -142,69 +143,17 @@ export class EmailNotificationService {
     html: string;
     cc?: EmailRecipient[];
   }): Promise<boolean> {
-    try {
-      this.logger.info('[EmailService] Sending email', {
-        to: params.to.email,
-        subject: params.subject,
-      });
-
-      if (this.config.useCloudflareEmail) {
-        return this.sendViaCloudflare(params);
-      } else {
-        return this.sendViaSMTP(params);
-      }
-    } catch (error) {
-      this.logger.error('[EmailService] Failed to send email', error as Error);
-      return false;
-    }
-  }
-
-  private async sendViaCloudflare(params: {
-    to: EmailRecipient;
-    subject: string;
-    html: string;
-  }): Promise<boolean> {
-    // Cloudflare Email uses Mailchannels API
-    const mailchannelsEndpoint = 'https://api.mailchannels.net/tx/v1/send';
-
-    const response = await fetch(mailchannelsEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: {
-          name: this.config.fromName,
-          address: this.config.fromEmail,
-        },
-        to: [
-          {
-            name: params.to.name,
-            address: params.to.email,
-          },
-        ],
-        subject: params.subject,
-        html: params.html,
-      }),
+    this.logger.info('[EmailNotificationService] Sending email', {
+      to: params.to.email,
+      subject: params.subject,
     });
-
-    if (!response.ok) {
-      const error = await response.text();
-      this.logger.error('[EmailService] Cloudflare email failed', { error });
-      return false;
-    }
-
-    return true;
-  }
-
-  private async sendViaSMTP(_params: {
-    to: EmailRecipient;
-    subject: string;
-    html: string;
-  }): Promise<boolean> {
-    // Fallback SMTP implementation would go here
-    this.logger.warn('[EmailService] SMTP not fully implemented, use Cloudflare Email');
-    return false;
+    // Delegate all sending to EmailService → Cloudflare Hub Worker → Resend
+    return this.emailService.sendTransactional({
+      to: params.to.email,
+      subject: params.subject,
+      html: params.html,
+      text: params.html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
+    });
   }
 
   private getOrderEmailTemplate(order: OrderNotification): string {

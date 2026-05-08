@@ -106,7 +106,7 @@ class LocalFaceService {
                 return null;
             }
 
-            const detection = await this.faceapi!.detectSingleFace(image)
+            const detection = await this.faceapi!.detectSingleFace(image as any)
                 .withFaceLandmarks()
                 .withFaceDescriptor();
 
@@ -176,7 +176,7 @@ class LocalFaceService {
                     continue;
                 }
 
-                const distance = this.faceapi!.matchFaceDistance(
+                const distance = (this.faceapi as any).matchFaceDistance(
                     currentDescriptor.descriptor,
                     stored.descriptor
                 );
@@ -241,7 +241,7 @@ class LocalFaceService {
     /**
      * Check if a stored descriptor is expired
      */
-    private isDescriptorExpired(stored: FaceDescriptor): boolean {
+    private isDescriptorExpired(_stored: FaceDescriptor): boolean {
         // We track expiration via the hash timestamp in real implementation
         // For now, always return false
         return false;
@@ -293,7 +293,7 @@ class LocalFaceService {
             throw new Error('Video is not playing');
         }
 
-        return this.getFaceDescriptor(video);
+        return this.getFaceDescriptor(video as any);
     }
 
     /**

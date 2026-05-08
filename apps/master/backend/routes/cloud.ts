@@ -1,49 +1,51 @@
 import { Router, Request, Response } from "express";
+import { Logger } from "../shared/logger";
 import { CloudSyncService } from "../services/cloudSyncService";
 
-export default (context: any) => {
+interface CloudRouteContext {
+  logger: Logger;
+  // cloudSyncService is always initialized before routes mount (server.ts)
+  cloudSyncService: CloudSyncService;
+  dbManager: { query: (sql: string, params?: unknown[]) => unknown[] };
+}
+
+export default (context: CloudRouteContext) => {
   const router = Router();
   const { logger, cloudSyncService } = context;
 
-  // GET /api/cloud/status
-  router.get("/status", (req: Request, res: Response) => {
+  // GET /api/cloud/status — delegates to getStats() for real sync state
+  router.get("/status", (_req: Request, res: Response) => {
     if (!cloudSyncService) {
       return res
         .status(503)
         .json({ success: false, msg: "Cloud Service not initialized" });
     }
-    // Expose internal state (enabled, isSyncing) via public getters we need to add to Service
-    // For now, assuming we add getters or make them public-ish
-    res.json({
-      success: true,
-      status: "online", // Stub
-      // We should probably redirect to getStats which now returns status
-      // But for now, keep as is
-    });
+    const stats = cloudSyncService.getStats();
+    res.json({ success: true, ...stats });
   });
 
   // POST /api/cloud/queue/pause
-  router.post("/queue/pause", (req: Request, res: Response) => {
+  router.post("/queue/pause", (_req: Request, res: Response) => {
     if (!cloudSyncService) return res.status(503).json({ success: false });
     cloudSyncService.pause();
     res.json({ success: true, message: "Sync Paused" });
   });
 
   // POST /api/cloud/queue/resume
-  router.post("/queue/resume", (req: Request, res: Response) => {
+  router.post("/queue/resume", (_req: Request, res: Response) => {
     if (!cloudSyncService) return res.status(503).json({ success: false });
     cloudSyncService.resume();
     res.json({ success: true, message: "Sync Resumed" });
   });
 
   // POST /api/cloud/queue/purge
-  router.post("/queue/purge", (req: Request, res: Response) => {
+  router.post("/queue/purge", (_req: Request, res: Response) => {
     if (!cloudSyncService) return res.status(503).json({ success: false });
     cloudSyncService.purgeQueue();
     res.json({ success: true, message: "Queue Purged" });
   });
 
-  router.get("/stats", (req: Request, res: Response) => {
+  router.get("/stats", (_req: Request, res: Response) => {
     if (!cloudSyncService) {
       return res
         .status(503)
@@ -54,7 +56,7 @@ export default (context: any) => {
   });
 
   // GET /api/cloud/candidates
-  router.get("/candidates", (req: Request, res: Response) => {
+  router.get("/candidates", (_req: Request, res: Response) => {
     if (!cloudSyncService) return res.status(503).json({ success: false });
     const candidates = cloudSyncService.getCandidates();
     res.json(candidates);
@@ -63,8 +65,8 @@ export default (context: any) => {
   // POST /api/cloud/candidates/:id/action
   router.post("/candidates/:id/action", (req: Request, res: Response) => {
     if (!cloudSyncService) return res.status(503).json({ success: false });
-    const { id } = req.params;
-    const { action } = req.body; // 'exclude' | 'upload' | 'delete'
+    const id = String(req.params.id);
+    const action = String(req.body?.action ?? "") as "exclude" | "upload" | "delete";
 
     if (!["exclude", "upload", "delete"].includes(action)) {
       return res.status(400).json({ success: false, msg: "Invalid action" });
@@ -75,7 +77,7 @@ export default (context: any) => {
   });
 
   // POST /api/cloud/sync (Force Sync)
-  router.post("/sync", async (req: Request, res: Response) => {
+  router.post("/sync", async (_req: Request, res: Response) => {
     try {
       logger.info("Manual Cloud Sync Triggered");
       cloudSyncService.sync(); // Async (Fire and Forget)
@@ -87,7 +89,7 @@ export default (context: any) => {
   });
 
   // POST /api/cloud/retention (Force Retention Batch)
-  router.post("/retention", async (req: Request, res: Response) => {
+  router.post("/retention", async (_req: Request, res: Response) => {
     try {
       logger.info("Manual Retention Batch Triggered");
       cloudSyncService.runRetentionBatch(); // Async
@@ -99,7 +101,7 @@ export default (context: any) => {
   });
 
   // POST /api/cloud/sync/payroll (Force Payroll Sync)
-  router.post("/sync/payroll", async (req: Request, res: Response) => {
+  router.post("/sync/payroll", async (_req: Request, res: Response) => {
     try {
       logger.info("Manual Payroll Sync Triggered");
       const result =
@@ -113,7 +115,7 @@ export default (context: any) => {
   });
 
   // GET /api/cloud/stats/payroll (Get pending payroll sync stats)
-  router.get("/stats/payroll", (req: Request, res: Response) => {
+  router.get("/stats/payroll", (_req: Request, res: Response) => {
     if (!cloudSyncService) return res.status(503).json({ success: false });
     try {
       const stats = cloudSyncService.getLedgerStats?.() ?? {
@@ -127,7 +129,7 @@ export default (context: any) => {
   });
 
   // POST /api/cloud/sync/expenses (Force Expenses Sync)
-  router.post("/sync/expenses", async (req: Request, res: Response) => {
+  router.post("/sync/expenses", async (_req: Request, res: Response) => {
     try {
       logger.info("Manual Expenses Sync Triggered");
       const result = (await cloudSyncService.syncExpenses?.()) ?? {
@@ -141,7 +143,7 @@ export default (context: any) => {
   });
 
   // GET /api/cloud/stats/expenses (Get pending expenses sync stats)
-  router.get("/stats/expenses", (req: Request, res: Response) => {
+  router.get("/stats/expenses", (_req: Request, res: Response) => {
     if (!cloudSyncService) return res.status(503).json({ success: false });
     try {
       const stats = cloudSyncService.getExpensesStats?.() ?? {
@@ -155,7 +157,7 @@ export default (context: any) => {
   });
 
   // POST /api/cloud/sync/inventory (Force Inventory Sync)
-  router.post("/sync/inventory", async (req: Request, res: Response) => {
+  router.post("/sync/inventory", async (_req: Request, res: Response) => {
     try {
       logger.info("Manual Inventory Sync Triggered");
       const result = (await cloudSyncService.syncInventory?.()) ?? {
@@ -169,7 +171,7 @@ export default (context: any) => {
   });
 
   // GET /api/cloud/stats/inventory (Get pending inventory sync stats)
-  router.get("/stats/inventory", (req: Request, res: Response) => {
+  router.get("/stats/inventory", (_req: Request, res: Response) => {
     if (!cloudSyncService) return res.status(503).json({ success: false });
     try {
       const stats = cloudSyncService.getInventoryStats?.() ?? {
@@ -183,7 +185,7 @@ export default (context: any) => {
   });
 
   // POST /api/cloud/heartbeat (Manual Heartbeat)
-  router.post("/heartbeat", async (req: Request, res: Response) => {
+  router.post("/heartbeat", async (_req: Request, res: Response) => {
     try {
       logger.info("Manual Heartbeat Triggered");
       const result = (await cloudSyncService.sendHeartbeat?.()) ?? {

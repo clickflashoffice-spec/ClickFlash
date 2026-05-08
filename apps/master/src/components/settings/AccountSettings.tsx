@@ -12,7 +12,7 @@ interface AccountSettingsProps {
 
 const AccountSettings: React.FC<AccountSettingsProps> = ({
     currentUser,
-    onCurrentUserUpdate,
+    onCurrentUserUpdate: _onCurrentUserUpdate,
     showToast
 }) => {
     const [hasFaceRegistered, setHasFaceRegistered] = useState(false);

@@ -175,7 +175,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({
         aspectRatio || dragStart.crop.width / dragStart.crop.height;
 
       const startCrop = dragStart.crop;
-      let newBox = { ...startCrop };
+      const newBox = { ...startCrop };
 
       if (activeHandle) {
         // Resize from handle

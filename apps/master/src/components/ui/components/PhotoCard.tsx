@@ -1,7 +1,6 @@
 'use client';
 
 import React, { memo, useCallback, useMemo } from 'react';
-import Image from 'next/image';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { Photo } from '@clickflash/types';
@@ -84,19 +83,16 @@ export const PhotoCard = memo<PhotoCardProps>(
         />
 
         <div className="absolute inset-0">
-          <Image
+          <img
             src={imageUrl}
             alt={photo.title || `Photo ${photo.id}`}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className={clsx(
-              'object-cover transition-all duration-700 ease-in-out',
+              'absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out',
               'group-hover:scale-110 group-hover:rotate-1',
               isSelected ? 'brightness-75' : 'brightness-100'
             )}
-            priority={priority}
-            placeholder="blur"
-            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+            loading={priority ? 'eager' : 'lazy'}
+            draggable={false}
           />
         </div>
 

@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import Modal from '../common/Modal.tsx';
 import { User } from '../../types.ts';
-import { MOCK_OBJECTIVES } from '../../constants.ts';
 
 interface ObjectivesModalProps {
     isOpen: boolean;

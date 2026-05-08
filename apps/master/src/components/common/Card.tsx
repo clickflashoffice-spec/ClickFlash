@@ -1,4 +1,4 @@
-import React, { memo, HTMLAttributes } from 'react';
+import { memo, HTMLAttributes } from 'react';
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'outlined' | 'elevated';

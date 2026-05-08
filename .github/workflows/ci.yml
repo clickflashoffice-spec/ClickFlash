@@ -159,15 +159,13 @@ jobs:
 
       - name: Start backend server
         run: |
-          cd apps/master
-          npm run dev:backend &
+          npm --prefix apps/master run dev:backend &
           echo "Polling backend health endpoint..."
           timeout 60 bash -c 'until curl -sf http://localhost:8090/api/health; do sleep 2; done'
 
       - name: Start frontend dev server
         run: |
-          cd apps/master
-          npm run dev &
+          npm --prefix apps/master run dev &
           echo "Polling frontend..."
           timeout 60 bash -c 'until curl -sf http://localhost:5173; do sleep 2; done'
 
@@ -299,9 +297,8 @@ jobs:
 
       - name: Start dev server
         run: |
-          cd apps/master
-          npm run dev &
-          sleep 25
+          npm --prefix apps/master run dev &
+          timeout 60 bash -c 'until curl -sf http://localhost:5173; do sleep 2; done'
 
       - name: Run accessibility tests
         run: npm run test:a11y --workspace=apps/master
@@ -410,16 +407,17 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          cd apps/master
-          npm run dev:full &
-          Start-Sleep -Seconds 30
+          Start-Process -NoNewWindow npm -ArgumentList "--prefix","apps/master","run","dev:full"
+          $timeout = 60; $elapsed = 0
+          do { Start-Sleep -Seconds 2; $elapsed += 2 } until (
+            (Invoke-WebRequest -Uri "http://localhost:5173" -UseBasicParsing -ErrorAction SilentlyContinue).StatusCode -eq 200 -or $elapsed -ge $timeout
+          )
 
       - name: Start dev server
         if: matrix.os == 'macos-latest'
         run: |
-          cd apps/master
-          npm run dev:full &
-          sleep 30
+          npm --prefix apps/master run dev:full &
+          timeout 60 bash -c 'until curl -sf http://localhost:5173; do sleep 2; done'
 
       - name: Run smoke tests
         run: npm run test:e2e:smoke --workspace=apps/master || echo "No smoke tests"

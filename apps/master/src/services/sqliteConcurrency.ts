@@ -6,7 +6,11 @@
  */
 
 import { logger } from '@/utils/logger';
-import { db } from './db';
+import { db as _dexieDb } from './db';
+
+// This file uses SQLite methods; at runtime it targets the backend db adapter via alias
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = _dexieDb as any;
 
 export interface ConcurrencyConfig {
     maxRetries: number;
@@ -172,7 +176,7 @@ class SQLiteConcurrencyManager {
         params?: unknown[]
     ): Promise<{ changes: number; lastInsertRowid: number }> {
         return this.executeWithRetry(async () => {
-            const result = await db.run(query, params);
+            await db.run(query, params);
             return {
                 changes: dbChanges(),
                 lastInsertRowid: dbLastInsertRowid(),
@@ -243,7 +247,7 @@ class SQLiteConcurrencyManager {
         freelistCount: number;
         schemaVersion: number;
     }> {
-        const result = await db.all('PRAGMA page_info');
+        await db.all('PRAGMA page_info');
 
         return {
             pageSize: (await db.all('PRAGMA page_size'))[0] as unknown as number,

@@ -93,7 +93,7 @@ export class ArchiveService {
                 dbManager.run(`DELETE FROM main.photos WHERE albumId = ?`, [albumId]);
                 dbManager.run(`DELETE FROM main.orders WHERE albumId = ?`, [albumId]);
                 dbManager.run(`DELETE FROM main.albums WHERE id = ?`, [albumId]);
-            })();
+            });
 
             logger.info(`[ArchiveService] Successfully archived album ${albumId} and its dependencies.`);
             return true;

@@ -1,5 +1,5 @@
 import { logger } from '../utils/logger';
-import { aiModelService, Face, ColorStats } from './aiModelService';
+import { aiModelService, Face } from './aiModelService';
 
 interface ColorAdjustments {
     exposure: number;

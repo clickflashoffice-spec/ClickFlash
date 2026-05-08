@@ -69,7 +69,6 @@ const KioskConnections: React.FC = () => {
             }
         };
         // Note: pb is a stable singleton export, so it doesn't need to be in deps
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const displayedKiosks = useMemo((): TouchKiosk[] => {

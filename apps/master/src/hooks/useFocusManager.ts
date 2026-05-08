@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 interface FocusManagerOptions {
   trapFocus?: boolean;
@@ -6,11 +6,6 @@ interface FocusManagerOptions {
   returnFocus?: boolean;
 }
 
-interface FocusableElement {
-  id: string;
-  element: HTMLElement;
-  tabIndex: number;
-}
 
 /**
  * Hook for managing focus within a component

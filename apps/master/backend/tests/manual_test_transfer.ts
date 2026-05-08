@@ -15,9 +15,9 @@ const mockLogger = { info: console.log, warn: console.warn, error: console.error
 
 // We will just spy with console.log instead of jest.fn
 fs.existsSync = ((_path: any) => true) as any;
-fs.mkdirSync = ((_path: any) => console.log(`mkdir ${_path}`)) as any;
+fs.mkdirSync = ((path: any) => console.log(`mkdir ${path}`)) as any;
 fs.promises.copyFile = (async (src: any, dest: any) => console.log(`copy ${src} -> ${dest}`)) as any;
-fs.promises.writeFile = (async (_path: any, _data: any) => console.log(`write metadata to ${_path}`)) as any;
+fs.promises.writeFile = (async (path: any, _data: any) => console.log(`write metadata to ${path}`)) as any;
 
 async function runTest() {
     console.log('Starting TransferService Test...');

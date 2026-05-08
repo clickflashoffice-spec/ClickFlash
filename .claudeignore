@@ -1,0 +1,88 @@
+# Root markdown noise (135+ audit reports, fix logs, migration notes — not code)
+/*.md
+!/CLAUDE.md
+!/AGENTS.md
+!/README.md
+
+# Audit artifacts in .claude/
+.claude/AUDIT_FINDINGS.md
+.claude/EXECUTIVE_AUDIT_REPORT.md
+.claude/MASTER_APP_AUDIT_360.md
+
+# Build outputs — never need to read
+**/dist/
+**/build/
+**/out/
+**/.next/
+**/.turbo/
+**/.wrangler/
+**/release/
+**/release_v2/
+**/unified-dist/
+**/out_deploy*/
+
+# Dependencies — largest token waste
+**/node_modules/
+.pnpm-store/
+
+# Electron binaries
+**/*.exe
+**/*.dmg
+**/*.AppImage
+
+# Tauri compiled targets
+**/target/
+apps/moneytrash/src-tauri/target/
+apps/moneytrash/src-tauri/gen/
+
+# Databases and binary data
+**/*.sqlite
+**/*.db
+**/pb_data/
+
+# Test / coverage artifacts
+**/coverage/
+**/playwright-report/
+**/test-results/
+**/.nyc_output/
+
+# Logs and ad-hoc debug scripts
+**/*.log
+apps/master/check_*.js
+apps/master/debug_*.js
+apps/master/verify_*.js
+apps/master/inspect_*.js
+
+# Images and fonts (never useful for code understanding)
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.gif
+**/*.webp
+**/*.ico
+**/*.woff
+**/*.woff2
+**/*.ttf
+**/*.eot
+
+# Lock files (too large, not useful for reasoning)
+pnpm-lock.yaml
+**/package-lock.json
+
+# Secrets — belt-and-suspenders (already in .gitignore)
+**/.env
+**/*.env
+
+# Temporary and batch artifacts
+_tmp_*/
+**/*.patch
+**/*.bak
+**/*.tmp
+**/test_uploads/
+**/scren shots/
+
+# Non-Claude tooling worktrees/state
+.stratus/
+.kilo/
+.agent/
+.agents/

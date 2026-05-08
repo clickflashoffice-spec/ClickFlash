@@ -29,7 +29,7 @@ export const INITIAL_EDITS: ManualEdits = {
 
 export const getPhotoStyle = (
   edits: ManualEdits,
-  isExport: boolean = false,
+  _isExport: boolean = false,
   imageWidth?: number,
   imageHeight?: number,
   photoId?: string,
@@ -161,8 +161,6 @@ export const getPhotoStyle = (
   const transformParts = [transformStr];
   if (zoomLevel !== 1) {
     // Zoom-from-center framing (Rule 12/15 scale handling)
-    const originX = centerX * 100;
-    const originY = centerY * 100;
     transformParts.push(`scale(${zoomLevel})`);
     // Note: transform-origin should be set in style object if using this
   }

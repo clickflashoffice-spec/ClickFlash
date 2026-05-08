@@ -4,7 +4,6 @@
  * Tests for Master-to-Hub synchronization verification
  */
 
-import { pb } from '../../pb';
 
 // Mock fetch for Hub API calls
 global.fetch = jest.fn();

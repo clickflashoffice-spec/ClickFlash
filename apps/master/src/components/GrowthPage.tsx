@@ -4,9 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { logger } from '../utils/logger';
 import { cloudService } from '../services/api/cloudService';
 import { marketingService, Campaign, CampaignAnalytics } from '../services/api/marketingService';
-import Spinner from './common/Spinner';
-import PageHeader from './common/PageHeader';
-import { UploadErrorBoundary } from './UploadErrorBoundary';
 import { Photographer } from '../types';
 import CampaignEditor from './marketing/CampaignEditor';
 
@@ -44,32 +41,32 @@ const GrowthPage: React.FC<GrowthPageProps> = ({ currentUser }) => {
     const [activeTab, setActiveTab] = useState<'campaigns' | 'retention'>('campaigns');
 
     // --- Marketing State ---
-    const [marketingLoading, setMarketingLoading] = useState(true);
+    const [_marketingLoading, setMarketingLoading] = useState(true);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [marketingAnalytics, setMarketingAnalytics] = useState<CampaignAnalytics | null>(null);
     const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [testEmail, setTestEmail] = useState('');
     const [showTestModal, setShowTestModal] = useState(false);
-    const [marketingSaving, setMarketingSaving] = useState(false);
-    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [_marketingSaving, setMarketingSaving] = useState(false);
+    const [_deletingId, setDeletingId] = useState<string | null>(null);
 
     // --- Retention State ---
-    const [retentionLoading, setRetentionLoading] = useState(true);
+    const [_retentionLoading, setRetentionLoading] = useState(true);
     const [retentionStats, setRetentionStats] = useState<MoneyTrashStats | null>(null);
     const [cloudStatus, setCloudStatus] = useState<'online' | 'offline' | 'checking'>('checking');
     const [candidates, setCandidates] = useState<RetentionCandidate[]>([]);
     const [showCandidates, setShowCandidates] = useState(false);
-    const [retentionSuccess, setRetentionSuccess] = useState(false);
-    const [retentionError, setRetentionError] = useState<string | null>(null);
+    const [_retentionSuccess, setRetentionSuccess] = useState(false);
+    const [_retentionError, setRetentionError] = useState<string | null>(null);
 
     // Config State (Retention)
     const [retentionEnabled, setRetentionEnabled] = useState(false);
     const [retentionDays, setRetentionDays] = useState(7);
     const [retentionPrice, setRetentionPrice] = useState(4.99);
     const [retentionSaving, setRetentionSaving] = useState(false);
-    const [watermarkEnabled, setWatermarkEnabled] = useState(true);
-    const [watermarkOpacity, setWatermarkOpacity] = useState(0.5);
+    const [watermarkEnabled, _setWatermarkEnabled] = useState(true);
+    const [watermarkOpacity, _setWatermarkOpacity] = useState(0.5);
 
     // Refs
     const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -223,16 +220,6 @@ const GrowthPage: React.FC<GrowthPageProps> = ({ currentUser }) => {
             setRetentionError(msg);
         } finally {
             setRetentionSaving(false);
-        }
-    };
-
-    const triggerRetention = async () => {
-        try {
-            await cloudService.triggerRetention();
-            logger.info('Retention batch triggered');
-            setTimeout(() => { loadRetentionData(false); fetchCandidates(); }, 1000);
-        } catch (e) {
-            setRetentionError('Failed to trigger retention');
         }
     };
 

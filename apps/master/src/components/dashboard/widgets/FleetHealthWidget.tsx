@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { StationStatus } from "../../../types/shared";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface FleetHealthWidgetProps {
   status: StationStatus | null;

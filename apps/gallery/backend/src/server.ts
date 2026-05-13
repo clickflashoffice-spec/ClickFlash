@@ -20,6 +20,32 @@ export interface Env {
   RESEND_API_KEY?: string; // Resend API key for transactional email notifications
 }
 
+/**
+ * D1-backed per-IP rate limiter for public (unauthenticated) endpoints.
+ * Returns false if the IP has exceeded `limit` requests within `windowMs`.
+ */
+async function checkPublicRateLimit(
+  db: any,
+  ip: string,
+  endpoint: string,
+  limit: number,
+  windowMs: number,
+): Promise<boolean> {
+  const since = new Date(Date.now() - windowMs).toISOString();
+  const row = await db
+    .prepare(
+      `SELECT COUNT(*) as cnt FROM rate_limit_events WHERE ip=? AND endpoint=? AND ts>?`,
+    )
+    .bind(ip, endpoint, since)
+    .first<{ cnt: number }>();
+  if ((row?.cnt ?? 0) >= limit) return false;
+  await db
+    .prepare(`INSERT INTO rate_limit_events (ip, endpoint, ts) VALUES (?,?,?)`)
+    .bind(ip, endpoint, new Date().toISOString())
+    .run();
+  return true;
+}
+
 const galleryHandler = {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -87,6 +113,14 @@ const galleryHandler = {
 
         // Public: Stripe Checkout (no auth required for customers)
         if (pathName === "/api/checkout" && request.method === "POST") {
+          // Rate limit: 10 Stripe session creations per minute per IP
+          const checkoutIp = request.headers.get("CF-Connecting-IP") ?? "unknown";
+          if (!await checkPublicRateLimit(env.WEBSITE_DB, checkoutIp, "checkout", 10, 60_000)) {
+            return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
+              status: 429,
+              headers: { "Content-Type": "application/json", "Retry-After": "60", ...corsHeaders },
+            });
+          }
           if (!env.STRIPE_SECRET_KEY) {
             return new Response(
               JSON.stringify({ error: "Stripe not configured" }),
@@ -743,6 +777,14 @@ const galleryHandler = {
         // --- Website API Routes (Public) ---
         // Contact Form
         if (pathName === "/api/website/contact" && request.method === "POST") {
+          // Rate limit: 5 contact form submissions per 10 minutes per IP
+          const contactIp = request.headers.get("CF-Connecting-IP") ?? "unknown";
+          if (!await checkPublicRateLimit(env.WEBSITE_DB, contactIp, "contact", 5, 600_000)) {
+            return new Response(JSON.stringify({ error: "Rate limit exceeded", message: "Too many requests. Please try again later." }), {
+              status: 429,
+              headers: { "Content-Type": "application/json", "Retry-After": "600", ...corsHeaders },
+            });
+          }
           const { name, email, service, message } = (await request.json()) as any;
 
           if (!name || !email || !message) {
@@ -775,6 +817,14 @@ const galleryHandler = {
 
         // Bookings
         if (pathName === "/api/website/bookings" && request.method === "POST") {
+          // Rate limit: 3 booking submissions per 10 minutes per IP
+          const bookingIp = request.headers.get("CF-Connecting-IP") ?? "unknown";
+          if (!await checkPublicRateLimit(env.WEBSITE_DB, bookingIp, "bookings", 3, 600_000)) {
+            return new Response(JSON.stringify({ error: "Rate limit exceeded", message: "Too many booking requests. Please try again later." }), {
+              status: 429,
+              headers: { "Content-Type": "application/json", "Retry-After": "600", ...corsHeaders },
+            });
+          }
           const booking = (await request.json()) as any;
 
           // Normalise fields — website form sends name/service_type/event_date/event_location
@@ -842,9 +892,24 @@ const galleryHandler = {
       }
     })();
 
-    // Apply CORS headers to every response
+    // Apply CORS headers + security hardening headers to every response
     const headers = new Headers(response.headers);
     Object.entries(corsHeaders).forEach(([key, value]) => {
+      headers.set(key, value);
+    });
+
+    // Security headers — this worker serves JSON APIs, not HTML pages
+    const securityHeaders: Record<string, string> = {
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+      "Content-Security-Policy":
+        "default-src 'none'; img-src * data: blob:; " +
+        "connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+    };
+    Object.entries(securityHeaders).forEach(([key, value]) => {
       headers.set(key, value);
     });
 

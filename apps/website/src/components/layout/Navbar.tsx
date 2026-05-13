@@ -83,18 +83,6 @@ export function Navbar() {
           <Logo variant="light" size="xl" />
         </Link>
 
-        {/* Status Badge */}
-        <a
-          href="https://www.pixelholiday.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(
-            "ml-2 flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[7px] font-bold tracking-widest text-slate-400 uppercase transition-all duration-500 hover:scale-105 hover:border-cyan-500 hover:text-cyan-500 md:ml-4 md:px-3 md:text-[8px]"
-          )}
-        >
-          <span className="hidden sm:inline">Powered by </span>PixelHoliday
-        </a>
-
         {/* Navigation Links */}
         <div className="hidden items-center gap-4 lg:flex xl:gap-7">
           {navLinks.map((link) => {
@@ -172,16 +160,6 @@ export function Navbar() {
                   {getTranslation(language, "btn_book")}
                 </Link>
 
-                <div className="mt-4 flex flex-col items-center pt-10">
-                  <a
-                    href="https://www.pixelholiday.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-[10px] font-black tracking-widest text-slate-400 uppercase transition-all hover:bg-slate-50"
-                  >
-                    Powered by PixelHoliday
-                  </a>
-                </div>
               </div>
             </motion.div>
           )}

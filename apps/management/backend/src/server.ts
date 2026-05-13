@@ -2265,6 +2265,42 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
         }
       }
 
+      // POST /api/ai/shoot-ideas
+      if (url.pathname === "/api/ai/shoot-ideas" && request.method === "POST") {
+        if (!payload) return sendAuthError("Auth required");
+        try {
+          const { location, theme, expertise } = (await request.json()) as any;
+          const ideas = await geminiService.generateShootIdeas(location ?? "", theme ?? "", expertise ?? "");
+          return Response.json({ success: true, ideas }, { headers: corsHeaders });
+        } catch (e: any) {
+          return createErrorResponse(500, "AI Error", e.message);
+        }
+      }
+
+      // POST /api/ai/album-suggestions
+      if (url.pathname === "/api/ai/album-suggestions" && request.method === "POST") {
+        if (!payload) return sendAuthError("Auth required");
+        try {
+          const { images, categories } = (await request.json()) as any;
+          const suggestions = await geminiService.generateAlbumSuggestions(images ?? [], categories ?? []);
+          return Response.json({ success: true, ...suggestions }, { headers: corsHeaders });
+        } catch (e: any) {
+          return createErrorResponse(500, "AI Error", e.message);
+        }
+      }
+
+      // POST /api/ai/sales-forecast
+      if (url.pathname === "/api/ai/sales-forecast" && request.method === "POST") {
+        if (!payload) return sendAuthError("Auth required");
+        try {
+          const { metrics } = (await request.json()) as any;
+          const forecast = await geminiService.generateSalesForecast(metrics ?? {});
+          return Response.json({ success: true, ...forecast }, { headers: corsHeaders });
+        } catch (e: any) {
+          return createErrorResponse(500, "AI Error", e.message);
+        }
+      }
+
       return sendNotFoundError("Route", url.pathname);
       } catch (e: any) {
         console.error("Worker Error:", e);

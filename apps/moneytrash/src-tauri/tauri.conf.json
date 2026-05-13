@@ -46,8 +46,6 @@
             "fs:allow-rename",
             "fs:allow-exists",
             "fs:allow-stat",
-            "fs:scope-appdata",
-            "fs:scope-home",
             "fs:scope-desktop",
             "fs:scope-document",
             "fs:scope-download",

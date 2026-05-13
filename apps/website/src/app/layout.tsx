@@ -6,6 +6,7 @@ import { JsonLd, organizationSchema } from "@/components/seo/JsonLd";
 import { FloatingWhatsApp } from "@/components/ui/FloatingWhatsApp";
 import { fetchWebsiteSettings } from "@/lib/settings";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { baseMetadata, viewport as siteViewport } from "./metadata";
 import "./globals.css";
 
@@ -65,16 +66,18 @@ export default async function RootLayout({
         </a>
 
         <LanguageProvider>
-          <div id="main-content" className="relative w-full" role="main">
-            {children}
-          </div>
-          <Navbar />
-          <Footer settings={settings} />
-          <FloatingWhatsApp />
+          <ErrorBoundary>
+            <div id="main-content" className="relative w-full" role="main">
+              {children}
+            </div>
+            <Navbar />
+            <Footer settings={settings} />
+            <FloatingWhatsApp />
+          </ErrorBoundary>
         </LanguageProvider>
 
-        {/* Analytics Scripts - Load conditionally in production */}
-        {process.env.NODE_ENV === "production" && (
+        {/* Analytics Scripts - Load conditionally in production when GA ID is set */}
+        {process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_GA_ID && (
           <>
             {/* Google Analytics 4 */}
             <script

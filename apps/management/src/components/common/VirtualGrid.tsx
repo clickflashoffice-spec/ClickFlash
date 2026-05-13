@@ -1,9 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
-// @ts-ignore
-import * as ReactWindow from "react-window";
-// @ts-ignore
-const { FixedSizeGrid: Grid } = ((ReactWindow as any).default ||
-  ReactWindow) as any;
+import { FixedSizeGrid as Grid } from "react-window";
 import { logger } from "../../utils/logger";
 
 interface VirtualGridProps<T> {

@@ -7,11 +7,7 @@ import Card from "./common/Card.tsx";
 import { useCurrency } from "./CurrencyContext.tsx";
 import ClientDetailsModal from "./modals/ClientDetailsModal.tsx";
 import { usePermissions } from "../hooks/usePermissions.ts";
-// @ts-ignore
-import * as ReactWindow from "react-window";
-// @ts-ignore
-const { FixedSizeList: List } = ((ReactWindow as any).default ||
-  ReactWindow) as any;
+import { FixedSizeList as List } from "react-window";
 import { useOrders } from "../hooks/useOrders.ts";
 
 interface Client {

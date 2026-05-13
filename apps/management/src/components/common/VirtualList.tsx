@@ -1,9 +1,5 @@
 import React from "react";
-// @ts-ignore
-import * as ReactWindow from "react-window";
-// @ts-ignore
-const { FixedSizeList: List } = ((ReactWindow as any).default ||
-  ReactWindow) as any;
+import { FixedSizeList as List } from "react-window";
 
 interface VirtualListProps<T> {
   items: T[];

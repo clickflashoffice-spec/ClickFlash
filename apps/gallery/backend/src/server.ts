@@ -17,6 +17,7 @@ export interface Env {
   SENTRY_DSN?: string; // Sentry DSN — optional; monitoring disabled when absent
   GEO_RESTRICTED?: string; // "true" to enable country allowlist enforcement
   ALLOWED_COUNTRIES?: string; // Comma-separated ISO-3166-1 alpha-2 codes, e.g. "MA,TN,FR,US"
+  RESEND_API_KEY?: string; // Resend API key for transactional email notifications
 }
 
 const galleryHandler = {
@@ -775,16 +776,51 @@ const galleryHandler = {
         // Bookings
         if (pathName === "/api/website/bookings" && request.method === "POST") {
           const booking = (await request.json()) as any;
-          const fullName = `${booking.firstName} ${booking.lastName}`;
 
-          const stmt = env.WEBSITE_DB.prepare(`
-                      INSERT INTO bookings (name, email, phone, service_type, event_date, event_location, message, status)
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                  `);
+          // Normalise fields — website form sends name/service_type/event_date/event_location
+          const name = booking.name || `${booking.firstName ?? ""} ${booking.lastName ?? ""}`.trim();
+          const email = booking.email ?? "";
+          const phone = booking.phone ?? null;
+          const serviceType = booking.service_type || booking.sessionType || null;
+          const eventDate = booking.event_date || booking.date || null;
+          const location = booking.event_location || booking.location || null;
+          const message = booking.message || null;
 
-          await stmt
-            .bind(fullName, booking.email, booking.phone || null, booking.sessionType, booking.date, booking.location || null, booking.message || null, "pending")
-            .run();
+          await env.WEBSITE_DB.prepare(
+            `INSERT INTO bookings (name, email, phone, service_type, event_date, event_location, message, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+          ).bind(name, email, phone, serviceType, eventDate, location, message, "pending").run();
+
+          // Email notification via Resend — non-fatal, booking is already saved if this fails
+          if (env.RESEND_API_KEY) {
+            const html = `
+              <h2 style="font-family:sans-serif;color:#0f172a;">New Booking Request</h2>
+              <table style="font-family:sans-serif;border-collapse:collapse;width:100%;max-width:560px;">
+                <tr><td style="padding:6px 12px;font-weight:bold;color:#475569;">Name</td><td style="padding:6px 12px;">${name}</td></tr>
+                <tr style="background:#f8fafc;"><td style="padding:6px 12px;font-weight:bold;color:#475569;">Email</td><td style="padding:6px 12px;"><a href="mailto:${email}" style="color:#06b6d4;">${email}</a></td></tr>
+                <tr><td style="padding:6px 12px;font-weight:bold;color:#475569;">Phone</td><td style="padding:6px 12px;">${phone ?? "—"}</td></tr>
+                <tr style="background:#f8fafc;"><td style="padding:6px 12px;font-weight:bold;color:#475569;">Service</td><td style="padding:6px 12px;">${serviceType ?? "—"}</td></tr>
+                <tr><td style="padding:6px 12px;font-weight:bold;color:#475569;">Date</td><td style="padding:6px 12px;">${eventDate ?? "—"}</td></tr>
+                <tr style="background:#f8fafc;"><td style="padding:6px 12px;font-weight:bold;color:#475569;">Location</td><td style="padding:6px 12px;">${location ?? "—"}</td></tr>
+                <tr><td style="padding:6px 12px;font-weight:bold;color:#475569;">Message</td><td style="padding:6px 12px;">${message ?? "—"}</td></tr>
+              </table>
+              <p style="font-family:sans-serif;font-size:12px;color:#94a3b8;margin-top:24px;">Sent by ClickFlash Booking System</p>
+            `;
+            await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${env.RESEND_API_KEY}`,
+              },
+              body: JSON.stringify({
+                from: "ClickFlash Bookings <onboarding@resend.dev>",
+                to: ["clickflash.office@gmail.com"],
+                reply_to: email || undefined,
+                subject: `New Booking — ${name} (${serviceType ?? "Photography"})`,
+                html,
+              }),
+            }).catch(() => {}); // swallow — booking is already persisted
+          }
 
           return new Response(
             JSON.stringify({ success: true, message: "Booking received" }),

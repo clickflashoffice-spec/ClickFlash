@@ -65,7 +65,6 @@ const RecentGlobalActivityWidget: React.FC<RecentGlobalActivityWidgetProps> = ({
         metadata: {
           status: album.status,
           photographer: album.photographerId?.toString(),
-          // @ts-ignore - destinationId might not be on the Album type in types.ts
           destination: album.destinationId?.toString(),
         },
       });

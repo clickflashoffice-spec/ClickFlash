@@ -9,11 +9,7 @@ import { useDebounce } from "../hooks/useDebounce.ts";
 import { OrderCardSkeleton, ListItemSkeleton } from "./common/Skeleton.tsx";
 import { useOrders, useUpdateOrder } from "../hooks/useOrders.ts";
 import { usePhotographers } from "../hooks/usePhotographers.ts";
-// @ts-ignore
-import * as ReactWindow from "react-window";
-// @ts-ignore
-const { FixedSizeList: List } = ((ReactWindow as any).default ||
-  ReactWindow) as any;
+import { FixedSizeList as List } from "react-window";
 
 /**
  * Orders Component Props

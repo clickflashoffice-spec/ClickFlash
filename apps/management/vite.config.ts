@@ -36,7 +36,6 @@ export default defineConfig(({ mode }) => ({
           "vendor-router": ["react-router-dom"],
           "vendor-query": ["@tanstack/react-query"],
           "vendor-charts": ["recharts"],
-          "vendor-ai": ["@google/generative-ai"],
         },
       },
     },

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { MessageSquare, Bot, X, Send } from "lucide-react";
 
 interface Message {
@@ -37,30 +36,24 @@ const AIChatBot: React.FC = () => {
     setIsTyping(true);
 
     try {
-      const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY;
-      if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
-        throw new Error("Gemini API Key missing. Please configure VITE_GEMINI_API_KEY.");
-      }
+      const apiUrl = (import.meta as any).env.VITE_API_URL ?? "";
+      const token = localStorage.getItem("authToken") ?? "";
 
-      const genAI = new GoogleGenerativeAI(apiKey);
-      
-      // Attempt to use the latest model but fallback to stable v1 behavior
-      // Using gemini-2.0-flash-exp (requested auto-select pattern) with deep search context
-      const model = genAI.getGenerativeModel(
-        { model: "gemini-3-flash" }, 
-        { apiVersion: "v1" } // Critical fix for 404/SDK mismatch
-      );
+      const res = await fetch(`${apiUrl}/api/ai/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          message: `System: You are PixelFounder AI, the governance intelligence for ClickFlash Photography. Help HQ manage a network of photography sites. Focus on yield optimisation, fleet triage, regional training, and B2B growth. Use a professional, authoritative, but helpful tone.\n\nUser: ${inputValue}`,
+          context: "ClickFlash Photography Management",
+        }),
+      });
 
-      // Prepend system instruction to ensure it's used even if top-level field fails
-      const prompt = `System Instruction: You are PixelFounder AI, the governance intelligence for ClickFlash Photography. 
-      Your goal is to help HQ manage a network of photography sites. Focus on yield optimization, fleet triage, regional training needs, and B2B growth. 
-      Use a professional, authoritative, but helpful tone.
-      IMPORTANT: Perform deep analysis on the following user input.
-      
-      User Question: ${inputValue}`;
-
-      const result = await model.generateContent(prompt);
-      const responseText = result.response.text();
+      if (!res.ok) throw new Error(`AI service error: ${res.status}`);
+      const data = await res.json() as any;
+      const responseText: string = data.response ?? "No response from AI service.";
 
       const aiMsg: Message = {
         id: Date.now().toString(),

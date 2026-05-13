@@ -23,7 +23,6 @@
     "playwright:install": "playwright install"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.0",
     "@sentry/react": "^10.39.0",
     "@sentry/tracing": "^7.120.4",
     "@supabase/supabase-js": "^2.97.0",

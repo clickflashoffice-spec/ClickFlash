@@ -12,7 +12,7 @@ interface FooterProps {
 }
 
 export function Footer({ settings = {} }: FooterProps) {
-  const { language, setLanguage } = useLanguage();
+  const { language } = useLanguage();
   const {
     footerCopyright = "© 2026 CLICKFLASH. All Rights Reserved.",
     contactEmail = "clickflash.office@gmail.com",
@@ -149,52 +149,6 @@ export function Footer({ settings = {} }: FooterProps) {
           </div>
 
           <div>
-            <h4 className="mb-6 text-lg font-bold text-slate-900">
-              {getTranslation(language, "footer_language_title")}
-            </h4>
-            <div className="mb-8 flex flex-col gap-3">
-              <div
-                onClick={() => setLanguage("en")}
-                className={`flex cursor-pointer items-center gap-2 hover:opacity-80 ${language === "en" ? "font-bold text-cyan-500" : ""}`}
-              >
-                <span className="text-lg">🇬🇧</span> <span className="text-sm">English</span>
-              </div>
-              <div
-                onClick={() => setLanguage("fr")}
-                className={`flex cursor-pointer items-center gap-2 hover:opacity-80 ${language === "fr" ? "font-bold text-cyan-500" : ""}`}
-              >
-                <span className="text-lg">🇫🇷</span>{" "}
-                <span className="text-sm text-slate-600">Français</span>
-              </div>
-              <div
-                onClick={() => setLanguage("de")}
-                className={`flex cursor-pointer items-center gap-2 hover:opacity-80 ${language === "de" ? "font-bold text-cyan-500" : ""}`}
-              >
-                <span className="text-lg">🇩🇪</span>{" "}
-                <span className="text-sm text-slate-600">Deutsch</span>
-              </div>
-              <div
-                onClick={() => setLanguage("gr")}
-                className={`flex cursor-pointer items-center gap-2 hover:opacity-80 ${language === "gr" ? "font-bold text-cyan-500" : ""}`}
-              >
-                <span className="text-lg">🇬🇷</span> <span className="text-sm">Greek</span>
-              </div>
-              <div
-                onClick={() => setLanguage("es")}
-                className={`flex cursor-pointer items-center gap-2 hover:opacity-80 ${language === "es" ? "font-bold text-cyan-500" : ""}`}
-              >
-                <span className="text-lg">🇪🇸</span>{" "}
-                <span className="text-sm text-slate-600">Spanish</span>
-              </div>
-              <div
-                onClick={() => setLanguage("ar")}
-                className={`flex cursor-pointer items-center gap-2 hover:opacity-80 ${language === "ar" ? "font-bold text-cyan-500" : ""}`}
-              >
-                <span className="text-lg">🇦🇪</span>{" "}
-                <span className="text-sm text-slate-600">Arabic</span>
-              </div>
-            </div>
-
             <h4 className="mb-4 text-lg font-bold text-slate-900">
               {getTranslation(language, "footer_social_title")}
             </h4>

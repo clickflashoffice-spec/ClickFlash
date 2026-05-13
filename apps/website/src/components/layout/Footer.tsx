@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Instagram, Facebook, Mail, Linkedin } from "lucide-react";
+import { Instagram, Facebook, Mail, Linkedin, Globe } from "lucide-react";
 import type { WebsiteSettings } from "@/lib/settings";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getTranslation } from "@/lib/translations";
@@ -113,39 +113,55 @@ export function Footer({ settings = {} }: FooterProps) {
 
           {/* Pixel Groupe */}
           <div>
-            <h4 className="mb-6 text-lg font-bold text-slate-900">Pixel Groupe</h4>
-            <ul className="space-y-3 text-sm text-slate-500">
-              <li>
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50">
+                <Globe className="h-5 w-5 text-cyan-400" />
+              </div>
+              <span className="text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                Pixel Groupe
+              </span>
+            </div>
+            <div className="space-y-5">
+              <div>
+                <p className="mb-0.5 text-[10px] font-bold tracking-[0.18em] text-cyan-500 uppercase">
+                  Resorts &amp; Travel Europe
+                </p>
                 <a
                   href="https://www.pixelholiday.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition-colors hover:text-cyan-500"
+                  className="text-sm font-bold text-slate-800 transition-colors hover:text-cyan-500"
                 >
                   www.pixelholiday.com
                 </a>
-              </li>
-              <li>
+              </div>
+              <div>
+                <p className="mb-0.5 text-[10px] font-bold tracking-[0.18em] text-cyan-500 uppercase">
+                  Global Attractions
+                </p>
                 <a
                   href="https://www.pixelattractions.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition-colors hover:text-cyan-500"
+                  className="text-sm font-bold text-slate-800 transition-colors hover:text-cyan-500"
                 >
                   www.pixelattractions.com
                 </a>
-              </li>
-              <li>
+              </div>
+              <div>
+                <p className="mb-0.5 text-[10px] font-bold tracking-[0.18em] text-cyan-500 uppercase">
+                  Resorts &amp; Travel Magrab
+                </p>
                 <a
                   href="https://www.clicketflash.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition-colors hover:text-cyan-500"
+                  className="text-sm font-bold text-slate-800 transition-colors hover:text-cyan-500"
                 >
                   www.clicketflash.com
                 </a>
-              </li>
-            </ul>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -205,6 +221,7 @@ export function Footer({ settings = {} }: FooterProps) {
 
         <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-100 pt-8 text-xs font-medium text-slate-500 md:flex-row">
           <p>{footerCopyright}</p>
+          <p className="tracking-[0.25em] text-slate-400 uppercase">Member of Pixel Groupe.</p>
         </div>
       </div>
     </footer>

@@ -25,7 +25,7 @@ export function Footer({ settings = {} }: FooterProps) {
   return (
     <footer className="border-t border-slate-100 bg-white pt-20 pb-10">
       <div className="container mx-auto px-6">
-        <div className="mb-16 grid grid-cols-1 gap-12 md:grid-cols-5">
+        <div className="mb-16 grid grid-cols-1 gap-12 md:grid-cols-6">
           {/* Brand */}
           <div className="md:col-span-2">
             <div className="mb-8">
@@ -107,6 +107,43 @@ export function Footer({ settings = {} }: FooterProps) {
                 <Link href="/services" className="transition-colors hover:text-cyan-500">
                   Weddings
                 </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Pixel Groupe */}
+          <div>
+            <h4 className="mb-6 text-lg font-bold text-slate-900">Pixel Groupe</h4>
+            <ul className="space-y-3 text-sm text-slate-500">
+              <li>
+                <a
+                  href="https://www.pixelholiday.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-cyan-500"
+                >
+                  www.pixelholiday.com
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.pixelattractions.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-cyan-500"
+                >
+                  www.pixelattractions.com
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.clicketflash.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-cyan-500"
+                >
+                  www.clicketflash.com
+                </a>
               </li>
             </ul>
           </div>

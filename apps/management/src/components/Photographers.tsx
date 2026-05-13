@@ -1,9 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-// @ts-ignore
-import * as ReactWindow from "react-window";
-// @ts-ignore
-const FixedSizeList = ((ReactWindow as any).default ||
-  ReactWindow) as any;
+import { FixedSizeList } from "react-window";
 import { Photographer } from "../types.ts";
 import Card from "./common/Card.tsx";
 import WorkingTimeModal from "./photographers/WorkingTimeModal.tsx";

@@ -256,6 +256,7 @@ export interface Album extends BaseRecord {
   title: string;
   date: string; // YYYY-MM-DD
   photographerId: string | number;
+  destinationId?: string | number;
   roomNumber?: string;
   source?: string;
   eventType?: string;

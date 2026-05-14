@@ -6,7 +6,7 @@ import Button from './common/Button';
 import Spinner from './common/Spinner';
 import LazyImage from './common/LazyImage';
 import Input from './common/Input';
-import { Grid } from 'react-window';
+import { FixedSizeGrid } from 'react-window';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import { Sparkles, CheckSquare, Square } from 'lucide-react';
 import AIBatchActions from './common/AIBatchActions';
@@ -165,54 +165,38 @@ const Photos: React.FC = () => {
               const rowCount = Math.ceil(filteredPhotos.length / columnCount);
               const rowHeight = columnWidth; // Square aspect ratio
 
-              const cellProps = {
-                photos: filteredPhotos,
-                columnCount,
-                gutter,
-                hasNextPage,
-                isFetchingNextPage,
-                fetchNextPage,
-                selectedPhotoIds,
-                handlePhotoSelect,
-                width,
-                rowCount
-              };
-
               return (
                 <div className="relative h-full w-full">
-                  <Grid
+                  <FixedSizeGrid
                     columnCount={columnCount}
                     columnWidth={columnWidth + gutter}
                     rowCount={rowCount + (hasNextPage ? 1 : 0)}
                     rowHeight={rowHeight + gutter}
-                    style={{ height, width }}
-                    cellProps={cellProps}
-                    cellComponent={({ columnIndex, rowIndex, style, photos, columnCount: cCount, gutter: g, hasNextPage: hp, isFetchingNextPage: ifnp, fetchNextPage: fnp, selectedPhotoIds: sIds, handlePhotoSelect: hps, width: _w, rowCount: rCount }: any) => {
-                      // Check if this is the "Load More" trigger row
-                      if (rowIndex === rCount && columnIndex === 0) {
+                    height={height}
+                    width={width}
+                  >
+                    {({ columnIndex, rowIndex, style }) => {
+                      if (rowIndex === rowCount && columnIndex === 0) {
                         return (
                           <motion.div
                             className="flex justify-center items-center pb-[var(--gutter-size)]"
-                            style={{ ...style, '--gutter-size': `${g}px` } as any}
+                            style={{ ...style, '--gutter-size': `${gutter}px` } as any}
                             ref={(el) => {
-                              if (el && hp && !ifnp) {
-                                // Simple Intersection Observer injection
+                              if (el && hasNextPage && !isFetchingNextPage) {
                                 const observer = new IntersectionObserver((entries) => {
-                                  if (entries[0].isIntersecting) {
-                                    fnp();
-                                  }
+                                  if (entries[0].isIntersecting) fetchNextPage();
                                 }, { threshold: 0.1 });
                                 observer.observe(el);
                               }
                             }}
                           >
-                            {ifnp && <Spinner size="medium" />}
+                            {isFetchingNextPage && <Spinner size="medium" />}
                           </motion.div>
                         );
                       }
 
-                      const index = rowIndex * cCount + columnIndex;
-                      const photo = photos[index];
+                      const index = rowIndex * columnCount + columnIndex;
+                      const photo = filteredPhotos[index];
                       if (!photo) return null;
 
                       return (
@@ -222,25 +206,25 @@ const Photos: React.FC = () => {
                           transition={{ duration: 0.3, ease: 'easeOut' }}
                           style={{
                             ...style,
-                            paddingRight: columnIndex === cCount - 1 ? 0 : g,
-                            paddingBottom: g
+                            paddingRight: columnIndex === columnCount - 1 ? 0 : gutter,
+                            paddingBottom: gutter
                           }}
                         >
                           <motion.div
                             whileHover={{ scale: 1.02, y: -4 }}
                             whileTap={{ scale: 0.98 }}
-                            className={`group relative w-full h-full bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden border-2 transition-all shadow-sm cursor-pointer ${sIds.has(photo.id)
+                            className={`group relative w-full h-full bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden border-2 transition-all shadow-sm cursor-pointer ${selectedPhotoIds.has(photo.id)
                               ? 'border-blue-500 ring-2 ring-blue-500 ring-offset-2'
                               : 'border-slate-200 dark:border-slate-700 hover:ring-2 hover:ring-blue-300'
                               }`}
-                            onClick={() => hps(photo.id)}
+                            onClick={() => handlePhotoSelect(photo.id)}
                           >
                             <LazyImage
                               src={photo.url}
                               alt={photo.title || 'Photo'}
                               className="w-full h-full object-cover"
                             />
-                            {sIds.has(photo.id) && (
+                            {selectedPhotoIds.has(photo.id) && (
                               <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
                                 <CheckSquare className="h-4 w-4" />
                               </div>
@@ -252,7 +236,7 @@ const Photos: React.FC = () => {
                         </motion.div>
                       );
                     }}
-                  />
+                  </FixedSizeGrid>
                 </div>
               );
             }}

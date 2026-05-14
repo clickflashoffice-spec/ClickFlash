@@ -1,5 +1,4 @@
 import { Router, Request, Response } from 'express';
-import fs from 'fs';
 import { AICullingService } from '../services/aiCullingService';
 import { sendInternalError, sendInvalidInputError } from '../shared/errorHandler';
 // import { Context } from '../types'; // Assuming types file, or use any for now if not strict
@@ -11,7 +10,7 @@ export default function cullingRoutes(context: any): Router {
     // POST /api/culling/analyze/:albumId
     // Triggers full analysis and grouping for an album
     router.post('/analyze/:albumId', async (req: Request, res: Response) => {
-        const albumId = String(req.params.albumId);
+        const albumId = req.params.albumId as string;
         if (!albumId) return sendInvalidInputError(res, 'Album ID is required');
 
         try {
@@ -48,7 +47,7 @@ export default function cullingRoutes(context: any): Router {
     // GET /api/culling/results/:albumId
     // Get groups and selection status for review UI
     router.get('/results/:albumId', async (req: Request, res: Response) => {
-        const albumId = String(req.params.albumId);
+        const { albumId } = req.params;
         if (!albumId) return sendInvalidInputError(res, 'Album ID is required');
 
         try {

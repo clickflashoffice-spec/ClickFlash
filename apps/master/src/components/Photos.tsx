@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useInfinitePhotos } from '../hooks/usePhotos';
 import Card from './common/Card';
@@ -12,6 +12,37 @@ import { Sparkles, CheckSquare, Square } from 'lucide-react';
 import AIBatchActions from './common/AIBatchActions';
 import PageHeader from './common/PageHeader';
 import { PhotoGridSkeleton } from './common/Skeleton';
+
+const SentinelCell = React.memo(({ style, gutter, hasNextPage, isFetchingNextPage, fetchNextPage }: {
+  style: React.CSSProperties;
+  gutter: number;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  fetchNextPage: () => void;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !hasNextPage || isFetchingNextPage) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) fetchNextPage();
+    }, { threshold: 0.1 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  return (
+    <div
+      ref={ref}
+      className="flex justify-center items-center pb-[var(--gutter-size)]"
+      style={{ ...style, '--gutter-size': `${gutter}px` } as React.CSSProperties}
+    >
+      {isFetchingNextPage && <Spinner size="medium" />}
+    </div>
+  );
+});
+SentinelCell.displayName = 'SentinelCell';
 
 const Photos: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -178,20 +209,14 @@ const Photos: React.FC = () => {
                     {({ columnIndex, rowIndex, style }) => {
                       if (rowIndex === rowCount && columnIndex === 0) {
                         return (
-                          <motion.div
-                            className="flex justify-center items-center pb-[var(--gutter-size)]"
-                            style={{ ...style, '--gutter-size': `${gutter}px` } as any}
-                            ref={(el) => {
-                              if (el && hasNextPage && !isFetchingNextPage) {
-                                const observer = new IntersectionObserver((entries) => {
-                                  if (entries[0].isIntersecting) fetchNextPage();
-                                }, { threshold: 0.1 });
-                                observer.observe(el);
-                              }
-                            }}
-                          >
-                            {isFetchingNextPage && <Spinner size="medium" />}
-                          </motion.div>
+                          <SentinelCell
+                            key="sentinel"
+                            style={style}
+                            gutter={gutter}
+                            hasNextPage={!!hasNextPage}
+                            isFetchingNextPage={isFetchingNextPage}
+                            fetchNextPage={fetchNextPage}
+                          />
                         );
                       }
 

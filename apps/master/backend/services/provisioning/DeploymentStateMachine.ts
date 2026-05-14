@@ -329,7 +329,6 @@ export class DeploymentStateMachine {
 
       this.logger.info('[DeploymentStateMachine] Deployment completed successfully');
 
-      const domain = context.cloudflareConfig?.domain || 'clickflash.photo';
       return {
         success: true,
         locationName: context.locationName,

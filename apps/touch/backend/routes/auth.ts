@@ -8,6 +8,7 @@ import { isDefaultPassword } from '../shared/passwordValidator';
 import { DatabaseManager } from '../shared/db';
 import { Logger } from '../shared/logger';
 import AuditLogger from '../shared/auditLogger';
+import { strictRateLimiter } from '../shared/rateLimiter';
 
 interface AuthContext {
     dbManager: DatabaseManager;
@@ -24,7 +25,7 @@ export default function createAuthRouter(context: AuthContext): Router {
      * @route POST /api/init/default-user
      * @description Initialize or reset default admin user
      */
-    router.post('/init/default-user', async (req: Request, res: Response) => {
+    router.post('/init/default-user', strictRateLimiter, async (req: Request, res: Response) => {
         try {
             const urlObj = new URL(req.url || '', `http://${req.headers.host}`);
             const force = urlObj.searchParams.get('force') === 'true';
@@ -105,7 +106,7 @@ export default function createAuthRouter(context: AuthContext): Router {
      * @route POST /api/auth/login
      * @description User authentication endpoint
      */
-    router.post('/auth/login', async (req: Request, res: Response) => {
+    router.post('/auth/login', strictRateLimiter, async (req: Request, res: Response) => {
         try {
             const parsedBody = req.body;
             const validation = validateLogin(parsedBody);
@@ -223,7 +224,7 @@ export default function createAuthRouter(context: AuthContext): Router {
      * @route POST /api/collections/users/auth-with-password
      * @description Standard PocketBase authentication endpoint
      */
-    router.post('/collections/users/auth-with-password', async (req: Request, res: Response) => {
+    router.post('/collections/users/auth-with-password', strictRateLimiter, async (req: Request, res: Response) => {
         try {
             const parsedBody = req.body;
             const loginData = {

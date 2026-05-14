@@ -39,6 +39,7 @@ export default defineConfig({
           'virtual-vendor': ['react-window'],
           // Offline-first DB (Dexie IDB)
           'db-vendor': ['dexie'],
+          'face-api-vendor': ['@vladmandic/face-api'],
         },
         // Optimize asset naming
         assetFileNames: 'assets/[name].[hash].[ext]',

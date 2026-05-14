@@ -2,6 +2,8 @@
   "name": "clickflash-touch",
   "version": "4.2.0",
   "private": true,
+  "description": "ClickFlash - Touch Kiosk Application",
+  "author": "ClickFlash Photography",
   "main": "dist/electron/main.js",
   "scripts": {
     "dev": "vite",

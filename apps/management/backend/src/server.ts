@@ -237,14 +237,12 @@ const managementHandler = {
 
         // Hash password and create user
         const hashedPassword = await hashPassword(password);
-        const userId = crypto.randomUUID();
         const now = new Date().toISOString();
 
-        await dbManager.run(
-          `INSERT INTO users (id, email, password, role, desk_id, machine_id, name, location, created_at, updated_at)
-           VALUES (?, ?, ?, 'desk', ?, ?, ?, ?, ?, ?)`,
+        const insertResult = await dbManager.run(
+          `INSERT INTO users (email, password, role, desk_id, machine_id, name, location, created_at, updated_at)
+           VALUES (?, ?, 'desk', ?, ?, ?, ?, ?, ?)`,
           [
-            userId,
             email,
             hashedPassword,
             deskId,
@@ -255,6 +253,7 @@ const managementHandler = {
             now,
           ],
         );
+        const userId = insertResult?.meta?.last_row_id ?? insertResult?.lastInsertRowid ?? 0;
 
         // Issue JWT for the newly registered desk
         const jwtPayload = {

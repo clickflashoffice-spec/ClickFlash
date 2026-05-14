@@ -2198,7 +2198,7 @@ export class CloudSyncService {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r;
       }, { maxRetries: 2 });
-      
+
       this.logger.info(`[CloudSync] Yield intelligence synced successfully.`);
     } catch (e: any) {
       this.logger.error(`[CloudSync] Yield Sync Error: ${getErrorMessage(e)}`);

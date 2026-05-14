@@ -62,7 +62,8 @@
       "Bash(git -C \"C:/Users/alamo/Desktop/ClickFlash\" push)",
       "Bash(ls \"C:/Users/alamo/Downloads/\" 2>/dev/null | head -20 && ls \"C:/Users/alamo/AppData/Local/Temp/\" 2>/dev/null | grep -iE \"\\\\.\\(png|ico|jpg|jpeg|svg|webp\\)\" | head -20)",
       "Bash(python3 -c ' *)",
-      "Bash(ls \"C:/Users/alamo/Downloads/\" | grep -iE \"\\(logo|click|flash|icon|favicon\\)\" && echo \"---\" && ls \"C:/Users/alamo/.claude/\" && echo \"---\" && ls \"C:/Users/alamo/.claude/projects/C--Users-alamo-Desktop-ClickFlash/\" 2>/dev/null)"
+      "Bash(ls \"C:/Users/alamo/Downloads/\" | grep -iE \"\\(logo|click|flash|icon|favicon\\)\" && echo \"---\" && ls \"C:/Users/alamo/.claude/\" && echo \"---\" && ls \"C:/Users/alamo/.claude/projects/C--Users-alamo-Desktop-ClickFlash/\" 2>/dev/null)",
+      "Bash(npx wrangler *)"
     ]
   }
 }

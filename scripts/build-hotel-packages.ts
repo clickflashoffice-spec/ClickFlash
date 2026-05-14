@@ -206,11 +206,393 @@ CLOUD SYNC:
 `;
 }
 
+function generateCredentialsTxt(hotel: HotelConfig): string {
+  return `CLICKFLASH CREDENTIALS - ${hotel.name}
+${"=".repeat(40 + hotel.name.length)}
+CONFIDENTIAL - Keep this document secure. Do not share publicly.
+Generated: ${new Date().toISOString().split("T")[0]}
+
+HOTEL IDENTITY
+  Hotel:        ${hotel.name}
+  Desk ID:      ${hotel.deskId}
+  Machine ID:   ${hotel.machineId}
+  Location:     ${hotel.location}
+
+MASTER ADMIN LOGIN
+  Email:        ${hotel.adminEmail}
+  Password:     ${hotel.adminPassword}
+  Admin PIN:    ${hotel.adminPin}
+
+KIOSK EXIT
+  Password:     ${hotel.kioskPassword}
+  Shortcut:     Ctrl+Alt+Shift+X then enter PIN
+
+CLOUD MANAGEMENT HUB
+  URL:          ${HUB_URL}
+  Email:        ${CLOUD_EMAIL}
+  Password:     ${CLOUD_PASSWORD}
+
+CUSTOMER GALLERY
+  URL:          ${GALLERY_URL}
+
+MONEYTRASH PRICING
+  Price/photo:  ${hotel.moneytrashPrice} EUR
+  Retention:    7 days
+
+PROVISIONING
+  Secret:       ${PROVISIONING_SECRET}
+  JWT Secret:   ${hotel.jwtSecret}
+
+NETWORK PORTS
+  Master API:   8090 (HTTP + WebSocket)
+  Touch Backend: 8091
+  Touch Frontend: 8001
+`;
+}
+
+function generateInstallManualTxt(hotel: HotelConfig): string {
+  return `CLICKFLASH INSTALLATION & CONFIGURATION MANUAL
+${hotel.name} (${hotel.deskId})
+${"=".repeat(60)}
+
+TABLE OF CONTENTS
+  1. Prerequisites
+  2. Master PC Installation
+  3. Touch Kiosk PC Installation
+  4. Network Configuration
+  5. First Boot & Provisioning
+  6. Cloud Sync Verification
+  7. Troubleshooting
+  8. Maintenance
+
+${"=".repeat(60)}
+1. PREREQUISITES
+${"=".repeat(60)}
+
+Hardware Requirements:
+  Master PC:
+    - Windows 10/11 (64-bit)
+    - 8 GB RAM minimum
+    - 256 GB SSD minimum
+    - USB ports for camera/card reader
+    - Ethernet or stable Wi-Fi
+
+  Touch Kiosk PC:
+    - Windows 10/11 (64-bit)
+    - 4 GB RAM minimum
+    - 128 GB SSD minimum
+    - Touchscreen display (1080p recommended)
+    - Ethernet or stable Wi-Fi (same LAN as Master)
+
+Network Requirements:
+    - Both PCs on the same LAN subnet
+    - Internet access for cloud sync
+    - Firewall: allow ports 8090, 8091, 8001 on local network
+
+${"=".repeat(60)}
+2. MASTER PC INSTALLATION
+${"=".repeat(60)}
+
+Step 1: Install the application
+    - Right-click "ClickFlash-Master-OS-Setup.exe"
+    - Select "Run as Administrator"
+    - Follow the NSIS installer wizard
+    - Install to default location: C:\\Program Files\\ClickFlash Master OS\\
+    - Do NOT launch the application yet
+
+Step 2: Deploy configuration files
+    - Open File Explorer
+    - Navigate to: C:\\Users\\<your-username>\\AppData\\Local\\clickflash-master\\
+      (If the folder does not exist, create it)
+    - Copy "config\\.env" from this package into that folder
+    - Create subfolder "pb_data" if it does not exist
+    - Copy "config\\bootstrap.json" into the pb_data subfolder
+
+    Final structure:
+      C:\\Users\\<user>\\AppData\\Local\\clickflash-master\\
+        .env
+        pb_data\\
+          bootstrap.json
+
+Step 3: Windows Firewall
+    - Open Windows Firewall > Advanced Settings
+    - Add Inbound Rule: Allow TCP port 8090 (for Touch to connect)
+    - Name it: "ClickFlash Master API"
+
+Step 4: Disable Windows Updates auto-restart
+    - Open Group Policy (gpedit.msc)
+    - Computer Configuration > Administrative Templates > Windows Update
+    - Set "No auto-restart with logged on users" to Enabled
+    - This prevents kiosk interruptions
+
+Step 5: Auto-start (optional)
+    - Create shortcut to "ClickFlash Master OS" in:
+      C:\\Users\\<user>\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\
+
+${"=".repeat(60)}
+3. TOUCH KIOSK PC INSTALLATION
+${"=".repeat(60)}
+
+Step 1: Install the application
+    - Right-click "ClickFlash-Touch-Kiosk-Setup.exe"
+    - Select "Run as Administrator"
+    - Follow the installer wizard
+    - Install to default location
+
+Step 2: Deploy configuration
+    - Navigate to: C:\\Users\\<your-username>\\AppData\\Local\\clickflash-touch\\
+      (Create if not exists)
+    - Copy "config\\.env" from the touch folder into that directory
+
+Step 3: Windows Firewall
+    - Add Inbound Rule: Allow TCP ports 8091 and 8001
+    - Name it: "ClickFlash Touch Kiosk"
+
+Step 4: Kiosk Mode Setup
+    - Set Windows to auto-login (netplwiz > uncheck "Users must enter...")
+    - Place ClickFlash Touch shortcut in Startup folder
+    - Disable Windows notifications: Settings > System > Notifications > Off
+    - Disable screen timeout: Settings > System > Power > Screen: Never
+    - Hide taskbar: Right-click taskbar > Taskbar settings > Auto-hide
+
+${"=".repeat(60)}
+4. NETWORK CONFIGURATION
+${"=".repeat(60)}
+
+Both PCs must be on the same local network:
+    - Use wired Ethernet for best reliability
+    - Master IP should be static (recommended)
+    - Touch auto-discovers Master via port 8090 on local network
+
+To set Master static IP:
+    1. Open Network & Internet Settings > Ethernet > IP assignment > Edit
+    2. Set to Manual, enable IPv4
+    3. IP: 192.168.X.10 (replace X with your subnet)
+    4. Subnet: 255.255.255.0
+    5. Gateway: your router IP
+    6. DNS: 8.8.8.8, 8.8.4.4
+
+Verify connectivity:
+    From Touch PC, open cmd:
+    > ping 192.168.X.10
+    > curl http://192.168.X.10:8090/api/health
+
+${"=".repeat(60)}
+5. FIRST BOOT & PROVISIONING
+${"=".repeat(60)}
+
+Master First Boot:
+    1. Launch "ClickFlash Master OS" from Start Menu
+    2. Application reads .env and bootstrap.json
+    3. Zero-Touch Provisioning (ZTP) runs automatically:
+       - Creates local database
+       - Registers with cloud hub (${HUB_URL})
+       - Downloads any existing albums/settings from cloud
+    4. Admin login screen appears
+    5. Login with:
+       Email:    ${hotel.adminEmail}
+       Password: ${hotel.adminPassword}
+
+Touch First Boot:
+    1. Ensure Master is running and accessible on the network
+    2. Launch "ClickFlash Touch" from Start Menu
+    3. Touch discovers Master automatically via LAN
+    4. Welcome screen appears - kiosk is ready for customers
+
+${"=".repeat(60)}
+6. CLOUD SYNC VERIFICATION
+${"=".repeat(60)}
+
+After first boot, verify cloud connectivity:
+
+    1. On Master, go to Settings > Cloud Sync
+    2. Status should show "Connected" with green indicator
+    3. Desk ID: ${hotel.deskId}
+    4. Last sync timestamp should be recent
+
+    To verify from cloud side:
+    - Open ${HUB_URL} in a browser
+    - Login with: ${CLOUD_EMAIL} / ${CLOUD_PASSWORD}
+    - Check Desks list - ${hotel.name} should appear with "Online" status
+
+${"=".repeat(60)}
+7. TROUBLESHOOTING
+${"=".repeat(60)}
+
+Master won't start:
+    - Check .env file exists in AppData\\Local\\clickflash-master\\
+    - Run as Administrator
+    - Check Windows Event Viewer for errors
+    - Verify port 8090 is not used: netstat -an | findstr 8090
+
+Touch can't find Master:
+    - Verify Master is running (http://master-ip:8090/api/health)
+    - Check both PCs are on the same subnet
+    - Disable Windows Firewall temporarily to test
+    - Check Touch .env has correct ports
+
+Cloud sync not working:
+    - Verify internet connection on Master
+    - Check CLOUD_EMAIL and CLOUD_PASSWORD in .env
+    - Check ${HUB_URL}/api/health is reachable
+    - Look at Master logs: AppData\\Local\\clickflash-master\\logs\\
+
+Admin locked out:
+    - Use Ctrl+Alt+Shift+X to open admin unlock
+    - Enter PIN: ${hotel.adminPin}
+    - If PIN doesn't work, check .env ADMIN_PIN value
+
+Kiosk exit:
+    - Press Ctrl+Alt+Shift+X
+    - Enter exit password: ${hotel.kioskPassword}
+
+${"=".repeat(60)}
+8. MAINTENANCE
+${"=".repeat(60)}
+
+Daily:
+    - Verify cloud sync status in Master settings
+    - Check disk space (photos can accumulate)
+
+Weekly:
+    - Review MoneyTrash: expired photos auto-delete after 7 days
+    - Check for Windows updates (apply manually during off-hours)
+
+Monthly:
+    - Backup pb_data folder from Master:
+      C:\\Users\\<user>\\AppData\\Local\\clickflash-master\\pb_data\\
+    - Review cloud dashboard for any sync errors
+    - Clean touchscreen physically
+
+Updates:
+    - Application updates are delivered via auto-updater
+    - Master and Touch check for updates on launch
+    - Updates download and install automatically on next restart
+`;
+}
+
+function generateUserManualTxt(hotel: HotelConfig): string {
+  return `CLICKFLASH USER MANUAL
+${hotel.name}
+${"=".repeat(60)}
+
+Welcome to ClickFlash - the hotel photo kiosk system.
+This manual explains daily operation for hotel staff.
+
+${"=".repeat(60)}
+DAILY OPERATIONS
+${"=".repeat(60)}
+
+STARTING THE SYSTEM
+    1. Power on the Master PC first
+    2. ClickFlash Master OS launches automatically (if auto-start configured)
+    3. Wait for "System Ready" status
+    4. Power on the Touch Kiosk PC
+    5. Touch screen shows Welcome screen - ready for guests
+
+SHUTTING DOWN
+    1. On Touch kiosk: Ctrl+Alt+Shift+X > enter PIN ${hotel.adminPin}
+    2. Click "Exit Kiosk" > enter password: ${hotel.kioskPassword}
+    3. Close Touch application, then shut down Touch PC
+    4. On Master: close the application, then shut down Master PC
+    Always shut down Touch BEFORE Master.
+
+${"=".repeat(60)}
+MASTER PC - STAFF INTERFACE
+${"=".repeat(60)}
+
+LOGIN
+    Email:    ${hotel.adminEmail}
+    Password: ${hotel.adminPassword}
+
+CREATING A NEW ALBUM
+    1. Login to Master
+    2. Click "Albums" in the sidebar
+    3. Click "+ New Album"
+    4. Enter album name (e.g., guest name, room number, event)
+    5. Import photos from camera/SD card/USB
+    6. Photos are automatically processed and synced to cloud
+
+MANAGING ORDERS
+    1. Click "Orders" in the sidebar
+    2. View pending/completed/cancelled orders
+    3. Click on an order to see details
+    4. Print receipts or resend gallery links
+
+MONEYTRASH (PHOTO PRICING)
+    - Price per photo: ${hotel.moneytrashPrice} EUR
+    - Guests select photos on the Touch kiosk
+    - Payment processed at reception
+    - Unpurchased photos auto-delete after 7 days
+
+CLOUD SYNC
+    - Albums, photos, and orders sync to cloud automatically
+    - Check sync status: Settings > Cloud Sync
+    - Manual sync: Settings > Cloud Sync > Sync Now
+
+${"=".repeat(60)}
+TOUCH KIOSK - GUEST INTERFACE
+${"=".repeat(60)}
+
+HOW GUESTS USE THE KIOSK
+    1. Guest approaches the touchscreen
+    2. Welcome screen with hotel branding
+    3. Guest enters their album code / room number / scans QR
+    4. Photos from their album appear in a grid
+    5. Guest selects photos they want to purchase
+    6. Guest confirms selection
+    7. Order is sent to Master for staff processing
+    8. Guest receives gallery link (QR code / email)
+
+ADMIN ACCESS ON TOUCH KIOSK
+    - Press Ctrl+Alt+Shift+X on a keyboard
+    - Enter admin PIN: ${hotel.adminPin}
+    - Admin menu allows:
+      * View system status
+      * Restart application
+      * Exit kiosk mode (requires password: ${hotel.kioskPassword})
+      * View connection status to Master
+
+${"=".repeat(60)}
+CUSTOMER GALLERY
+${"=".repeat(60)}
+
+    - Guests access their photos online at:
+      ${GALLERY_URL}
+    - Each album has a unique access code
+    - Guests can view, download, and share their photos
+    - Gallery links are sent via QR code or email
+
+${"=".repeat(60)}
+QUICK REFERENCE
+${"=".repeat(60)}
+
+    Admin Email:      ${hotel.adminEmail}
+    Admin Password:   ${hotel.adminPassword}
+    Admin PIN:        ${hotel.adminPin}
+    Kiosk Exit:       ${hotel.kioskPassword}
+    Admin Shortcut:   Ctrl+Alt+Shift+X
+    Desk ID:          ${hotel.deskId}
+    Photo Price:      ${hotel.moneytrashPrice} EUR
+    Master Port:      8090
+    Touch Ports:      8091 (backend), 8001 (frontend)
+    Cloud Hub:        ${HUB_URL}
+    Gallery:          ${GALLERY_URL}
+`;
+}
+
 function findInstaller(dir: string, pattern: RegExp): string | null {
   if (!fs.existsSync(dir)) return null;
   const files = fs.readdirSync(dir);
-  const match = files.find((f) => pattern.test(f) && f.endsWith(".exe"));
-  return match ? path.join(dir, match) : null;
+  const matches = files
+    .filter((f) => pattern.test(f) && f.endsWith(".exe") && !f.includes("blockmap"))
+    .sort((a, b) => {
+      // Sort by modification time descending — pick newest build
+      const aStat = fs.statSync(path.join(dir, a));
+      const bStat = fs.statSync(path.join(dir, b));
+      return bStat.mtimeMs - aStat.mtimeMs;
+    });
+  return matches.length > 0 ? path.join(dir, matches[0]) : null;
 }
 
 function main() {
@@ -289,15 +671,27 @@ function main() {
       generateTouchEnv(hotel),
     );
 
-    // Write SETUP.txt
+    // Write documentation files
     fs.writeFileSync(
       path.join(hotelDir, "SETUP.txt"),
       generateSetupTxt(hotel),
     );
+    fs.writeFileSync(
+      path.join(hotelDir, "CREDENTIALS.txt"),
+      generateCredentialsTxt(hotel),
+    );
+    fs.writeFileSync(
+      path.join(hotelDir, "INSTALL-MANUAL.txt"),
+      generateInstallManualTxt(hotel),
+    );
+    fs.writeFileSync(
+      path.join(hotelDir, "USER-MANUAL.txt"),
+      generateUserManualTxt(hotel),
+    );
 
     console.log(`  master/  - installer + config/.env + config/bootstrap.json`);
     console.log(`  touch/   - installer + config/.env`);
-    console.log(`  SETUP.txt`);
+    console.log(`  SETUP.txt  CREDENTIALS.txt  INSTALL-MANUAL.txt  USER-MANUAL.txt`);
   }
 
   console.log(`\nDone! ${HOTELS.length} deployment packages ready at:`);

@@ -20,7 +20,7 @@
     "build:electron-ts": "tsc -p tsconfig.electron.json",
     "preview": "vite preview",
     "start": "node dist/backend/server.js",
-    "build:electron": "npm run build && npm run build:backend && npm run build:electron-ts && electron-builder --config electron-builder.json --win -c.win.certificateSubjectName=\"\"",
+    "build:electron": "npm run build && npm run build:backend && npm run build:electron-ts && electron-builder --config electron-builder.json --win",
     "dist": "npm run build:electron",
     "postdist": "copyfiles -f release/touch/*.exe ../distribution",
     "test:e2e": "playwright test",

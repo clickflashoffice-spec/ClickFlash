@@ -20,6 +20,10 @@ const BLOCK_THRESHOLD = 3; // Block after 3 rate limit hits
 const BLOCK_DURATION_MS = 5 * 60 * 1000; // Block for 5 minutes
 const blockedIPs = new Map<string, number>();
 
+const STRICT_LIMIT = 5;
+const strictIpCounters = new Map<string, RateLimitRecord>();
+const strictBlockedIPs = new Map<string, number>();
+
 export function setAuditLogger(logger: AuditLogger): void {
     auditLogger = logger;
 }
@@ -107,6 +111,60 @@ export function rateLimiter(req: Request, res: Response, next: NextFunction): bo
         }
         
         errorHandler.sendRateLimitError(res, `Rate limit exceeded. Maximum ${DEFAULT_LIMIT} requests per minute allowed.`);
+        return false;
+    }
+
+    next();
+    return true;
+}
+
+export function strictRateLimiter(req: Request, res: Response, next: NextFunction): boolean | void {
+    const ip = req.socket.remoteAddress || 'unknown';
+    if (ip === '::1' || ip === '127.0.0.1' || ip === 'localhost' || ip === '::ffff:127.0.0.1') {
+        next();
+        return true;
+    }
+
+    const blockedUntil = strictBlockedIPs.get(ip);
+    if (blockedUntil && Date.now() < blockedUntil) {
+        errorHandler.sendRateLimitError(res, 'IP temporarily blocked due to repeated violations.');
+        return false;
+    }
+
+    const now = Date.now();
+    let record = strictIpCounters.get(ip);
+    if (!record) {
+        record = { count: 1, startTime: now, blocked: false };
+        strictIpCounters.set(ip, record);
+    } else {
+        if (now - record.startTime >= WINDOW_MS) {
+            record.count = 1;
+            record.startTime = now;
+            record.blocked = false;
+        } else {
+            record.count += 1;
+        }
+    }
+
+    if (record.count > STRICT_LIMIT) {
+        if (auditLogger) {
+            auditLogger.logRateLimitExceeded(ip, req.url || 'unknown');
+        }
+
+        if (!record.blocked) {
+            const existingViolations = Math.floor((record.count - STRICT_LIMIT) / STRICT_LIMIT);
+            if (existingViolations >= BLOCK_THRESHOLD) {
+                strictBlockedIPs.set(ip, Date.now() + BLOCK_DURATION_MS);
+                record.blocked = true;
+                if (auditLogger) {
+                    auditLogger.logUnauthorizedAccess(req.url || 'unknown', ip, 'IP_BLOCKED_RATE_LIMIT');
+                }
+                errorHandler.sendRateLimitError(res, `IP temporarily blocked for ${BLOCK_DURATION_MS / 1000} seconds.`);
+                return false;
+            }
+        }
+
+        errorHandler.sendRateLimitError(res, `Rate limit exceeded. Maximum ${STRICT_LIMIT} requests per minute allowed.`);
         return false;
     }
 

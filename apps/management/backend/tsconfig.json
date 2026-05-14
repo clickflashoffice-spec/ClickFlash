@@ -20,17 +20,6 @@
     "src/rateLimiter.ts",
     "src/startupGuard.ts",
     "src/utils.ts",
-    "src/services/recordService.ts",
-    "src/routes/systemRoutes.ts",
-    "src/routes/yieldRoutes.ts",
-    "src/routes/syncRoutes.ts",
-    "src/routes/prospectingRoutes.ts",
-    "src/routes/analyticsRoutes.ts",
-    "src/routes/customerRoutes.ts",
-    "src/routes/fleetRoutes.ts",
-    "src/routes/hrRoutes.ts",
-    "src/routes/paymentRoutes.ts",
-    "src/routes/records.ts",
     "src/__tests__"
   ]
 }

@@ -46,10 +46,19 @@ function cleanupExpiredRecords(): void {
             ipCounters.delete(ip);
         }
     }
-    // Clean up blocked IPs
     for (const [ip, blockedUntil] of blockedIPs.entries()) {
         if (now >= blockedUntil) {
             blockedIPs.delete(ip);
+        }
+    }
+    for (const [ip, info] of strictIpCounters.entries()) {
+        if (now - info.startTime >= WINDOW_MS) {
+            strictIpCounters.delete(ip);
+        }
+    }
+    for (const [ip, blockedUntil] of strictBlockedIPs.entries()) {
+        if (now >= blockedUntil) {
+            strictBlockedIPs.delete(ip);
         }
     }
 }

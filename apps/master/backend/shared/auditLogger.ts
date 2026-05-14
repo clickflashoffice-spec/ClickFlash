@@ -2,9 +2,6 @@
 import fs from 'fs';
 import path from 'path';
 
-const RETENTION_DAYS = 30;
-const MAX_LOG_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB per day file
-
 class AuditLogger {
     private dataDir: string;
     private logDir: string;
@@ -13,7 +10,6 @@ class AuditLogger {
         this.dataDir = dataDir;
         this.logDir = path.join(dataDir, 'audit_logs');
         this.ensureLogDirectory();
-        this.rotateLogs();
     }
 
     private ensureLogDirectory(): void {
@@ -22,31 +18,6 @@ class AuditLogger {
         }
         if (!fs.existsSync(this.logDir)) {
             fs.mkdirSync(this.logDir, { recursive: true });
-        }
-    }
-
-    /** Delete log files older than RETENTION_DAYS and any file exceeding MAX_LOG_SIZE_BYTES. */
-    private rotateLogs(): void {
-        try {
-            const files = fs.readdirSync(this.logDir);
-            const cutoff = Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000;
-            for (const file of files) {
-                if (!file.startsWith('audit-') || !file.endsWith('.log')) continue;
-                const filePath = path.join(this.logDir, file);
-                try {
-                    const stat = fs.statSync(filePath);
-                    const isExpired = stat.mtimeMs < cutoff;
-                    const isOversized = stat.size > MAX_LOG_SIZE_BYTES;
-                    if (isExpired || isOversized) {
-                        fs.unlinkSync(filePath);
-                        console.info(`[AuditLogger] Rotated ${file} (expired=${isExpired}, oversized=${isOversized})`);
-                    }
-                } catch {
-                    /* skip files we can't stat/delete */
-                }
-            }
-        } catch (err: any) {
-            console.error('[AuditLogger] Log rotation failed:', err.message);
         }
     }
 
@@ -121,7 +92,7 @@ class AuditLogger {
         this.log('ERROR', 'SYSTEM_ERROR', { message: error.message, stack: error.stack, ...context });
     }
 
-    public logSecurityEvent(event: string, details: Record<string, any> = {}): void {
+    public logSecurityEvent(event: string, details: Record<string, any>): void {
         this.log('WARN', event, details);
     }
 }

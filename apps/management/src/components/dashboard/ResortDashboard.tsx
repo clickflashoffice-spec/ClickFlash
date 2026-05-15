@@ -118,7 +118,9 @@ const ResortDashboard: React.FC<ResortDashboardProps> = ({ currentUser }) => {
                 Object.keys(themes).forEach(t => {
                     photoThemes[t] = (photoThemes[t] || 0) + themes[t];
                 });
-            } catch (e) {}
+            } catch (_e) {
+                // Malformed JSON in photos_made_themes — skip silently
+            }
         });
 
         // Computed metrics

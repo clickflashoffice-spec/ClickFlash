@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { FixedSizeList as List } from "react-window";
+import { logger } from "../../utils/logger";
 
 interface VirtualListProps<T> {
   items: T[];
@@ -43,109 +44,43 @@ export function VirtualList<T>({
   // Ensure items is always a valid array
   const items = Array.isArray(itemsProp) ? itemsProp : [];
 
-  // Early return if items is empty
-  if (items.length === 0) {
-    return null;
-  }
-
   // Validate numeric props - react-window requires valid numbers
   const containerHeight =
     typeof containerHeightProp === "number" &&
-    !isNaN(containerHeightProp) &&
+    isFinite(containerHeightProp) &&
     containerHeightProp > 0
       ? containerHeightProp
-      : 600; // fallback
+      : 600;
 
   const validItemHeight =
     typeof itemHeightProp === "number" &&
-    !isNaN(itemHeightProp) &&
+    isFinite(itemHeightProp) &&
     itemHeightProp > 0
       ? itemHeightProp
-      : 50; // fallback
+      : 50;
 
   const safeOverscan =
-    typeof overscanCount === "number" && overscanCount >= 0 ? overscanCount : 5;
+    typeof overscanCount === "number" && isFinite(overscanCount) && overscanCount >= 0
+      ? overscanCount
+      : 5;
 
-  // Determine width value
   const safeWidth =
     typeof containerWidth === "string"
       ? containerWidth
       : typeof containerWidth === "number" &&
-          !isNaN(containerWidth) &&
+          isFinite(containerWidth) &&
           containerWidth > 0
         ? containerWidth
         : "100%";
 
-  // Ensure all props are valid before rendering List
-  if (!renderItem || typeof renderItem !== "function") {
-    return null;
-  }
+  // --- All hooks called unconditionally below ---
 
-  // Build props object without undefined values to avoid react-window issues
-  // React-window calls Object.values() internally and fails if any prop is undefined/null
-  const listProps: {
-    height: number;
-    itemCount: number;
-    itemSize: number;
-    width: number | string;
-    overscanCount: number;
-  } = {
-    height: containerHeight,
-    itemCount: items.length,
-    itemSize: validItemHeight,
-    width: safeWidth,
-    overscanCount: safeOverscan,
-  };
-
-  // Validate all props are valid numbers/values
-  if (
-    typeof listProps.height !== "number" ||
-    isNaN(listProps.height) ||
-    listProps.height <= 0 ||
-    typeof listProps.itemCount !== "number" ||
-    isNaN(listProps.itemCount) ||
-    listProps.itemCount < 0 ||
-    typeof listProps.itemSize !== "number" ||
-    isNaN(listProps.itemSize) ||
-    listProps.itemSize <= 0 ||
-    typeof listProps.overscanCount !== "number" ||
-    isNaN(listProps.overscanCount) ||
-    listProps.overscanCount < 0
-  ) {
-    return null;
-  }
-
-  // Create a clean props object and validate no undefined/null values exist
-  // React-window will fail on Object.values() if any prop values are undefined/null
-  const cleanProps = {
-    height: listProps.height,
-    itemCount: listProps.itemCount,
-    itemSize: listProps.itemSize,
-    width: listProps.width,
-    overscanCount: listProps.overscanCount,
-  };
-
-  // Final validation - ensure no undefined/null values (react-window calls Object.values() internally)
-  const propValues = Object.values(cleanProps);
-  if (
-    propValues.some(
-      (val) =>
-        val === undefined ||
-        val === null ||
-        (typeof val === "number" && isNaN(val)),
-    )
-  ) {
-    return null;
-  }
-
-  // Define Row component as a stable function reference
-  const Row = React.useCallback(
+  const Row = useCallback(
     ({ index, style }: { index: number; style: React.CSSProperties }) => {
-      // Ensure style is always a valid object
       const safeStyle: React.CSSProperties =
         style && typeof style === "object" && !Array.isArray(style)
           ? style
-          : { position: "absolute", top: 0, left: 0 };
+          : { position: "absolute" as const, top: 0, left: 0 };
 
       if (index < 0 || index >= items.length) {
         return <div style={safeStyle} />;
@@ -161,45 +96,49 @@ export function VirtualList<T>({
           <div style={safeStyle}>{renderItem(item, index, safeStyle)}</div>
         );
       } catch (error) {
-        console.error("Error rendering item in VirtualList:", error);
+        logger.error(
+          "Error rendering item in VirtualList",
+          error instanceof Error ? error : undefined,
+          { itemIndex: index, totalItems: items.length },
+        );
         return <div style={safeStyle} />;
       }
     },
     [items, renderItem],
   );
 
-  // Final validation that Row is a function
-  if (typeof Row !== "function") {
+  // --- All hooks called above. Guard returns below. ---
+
+  if (items.length === 0) {
     return null;
   }
 
-  // Ensure cleanProps is a valid object before passing to react-window
-  if (
-    !cleanProps ||
-    typeof cleanProps !== "object" ||
-    Array.isArray(cleanProps)
-  ) {
+  if (!renderItem || typeof renderItem !== "function") {
     return null;
   }
 
-  // Wrap in try-catch to handle any react-window internal errors
   try {
-    // Explicitly pass props to avoid any spread operator issues
-    // React-window internally calls Object.values() on props, so we must ensure
-    // the props object itself is never undefined/null
     return (
       <List
-        height={cleanProps.height}
-        itemCount={cleanProps.itemCount}
-        itemSize={cleanProps.itemSize}
-        width={cleanProps.width}
-        overscanCount={cleanProps.overscanCount}
+        height={containerHeight}
+        itemCount={items.length}
+        itemSize={validItemHeight}
+        width={safeWidth}
+        overscanCount={safeOverscan}
       >
         {Row}
       </List>
     );
   } catch (error) {
-    console.error("Error rendering react-window List:", error);
+    logger.error(
+      "Error rendering react-window List",
+      error instanceof Error ? error : undefined,
+      {
+        height: containerHeight,
+        itemCount: items.length,
+        itemSize: validItemHeight,
+      },
+    );
     return null;
   }
 }

@@ -172,8 +172,12 @@ No test verifies the master → cloud sync → gallery → customer view pipelin
 Build ecosystem-level Playwright tests.
 **Effort:** 1 week
 
-### P5-T3. Management ESLint Setup
-Lint script is `echo No lint issues found.` — add real ESLint config.
+### P5-T3. Management ESLint Setup ✅
+ESLint 10 flat config with TypeScript + React hooks rules. Replaced `echo` stub
+with real `eslint src --max-warnings 500`. Fixed all errors: conditional hooks
+in VirtualGrid/VirtualList (restructured hook ordering), empty catches, useless
+try/catch wrappers, stale inline disable comments. 0 errors, 470 warnings (all
+pre-existing `any`/unused-vars/no-console).
 **Effort:** 2 hours
 
 ### P5-T4. Shared Logger Package

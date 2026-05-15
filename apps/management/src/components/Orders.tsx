@@ -198,7 +198,7 @@ const Orders: React.FC<OrdersProps> = ({
     );
 
     return (
-      // eslint-disable-next-line react/forbid-component-props, react/forbid-dom-props, @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       <div
         style={style as any}
         className="flex border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group"

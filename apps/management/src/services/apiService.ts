@@ -1581,7 +1581,9 @@ export const apiService = {
         for (const photo of data.photos) {
           try {
             await this.deletePhoto(photo.id);
-          } catch {}
+          } catch {
+            // Ignore — photo may not exist yet
+          }
           try {
             await this.createPhoto(photo);
           } catch (err) {

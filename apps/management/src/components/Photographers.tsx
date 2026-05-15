@@ -350,7 +350,7 @@ const Photographers: React.FC<PhotographersProps> = ({ currentUser }) => {
     style: React.CSSProperties;
   }) => (
     <div
-      // eslint-disable-next-line react/forbid-component-props, react/forbid-dom-props, @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       style={style as any}
       className="flex items-center border-b border-white/5 hover:bg-white/5 transition-colors px-4 min-h-[64px]"
     >

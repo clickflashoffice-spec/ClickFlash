@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.wrangler/
+
+# Environment
+.dev.vars
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Test
+coverage/
+playwright-report/
+test-results/
+
+# TypeScript
+*.tsbuildinfo

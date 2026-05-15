@@ -85,9 +85,11 @@ to pass typecheck. These need real type fixes, not exclusions.
 - Touch duplicates Button, Card, Input, Modal, Spinner from `packages/ui` — refactor to import (remaining)
 **Effort:** 1 day | **Impact:** DRY, maintenance burden
 
-### P2-A6. Fix Migration Numbering Conflicts
-Management has duplicate migration numbers (two `011_*`, two `014_*`, two `019_*`).
-Renumber to sequential order. Add a migration naming convention doc.
+### P2-A6. Fix Migration Numbering Conflicts ✅
+Management had duplicate migration numbers (two `002_*`, `003_*`, `011_*`, `014_*`, `019_*`)
+plus `01_sync_columns.sql` and `v2_crm_hr.sql` with non-standard naming.
+Renumbered 7 files to `023_`–`029_` with traceability comments. All 29 migrations now
+have unique 3-digit sequential prefixes.
 **Effort:** 2 hours | **Impact:** D1 migration reliability
 
 ---

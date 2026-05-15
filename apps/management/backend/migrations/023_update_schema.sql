@@ -1,3 +1,4 @@
+-- Renumbered from: 002_update_schema.sql (duplicate 002 prefix)
 -- 1. Fix Settings Table to use ID as Primary Key
 DROP TABLE IF EXISTS settings;
 CREATE TABLE settings (

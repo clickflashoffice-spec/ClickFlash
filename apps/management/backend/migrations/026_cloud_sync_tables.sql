@@ -1,3 +1,4 @@
+-- Renumbered from: 014_cloud_sync_tables.sql (duplicate 014 prefix)
 -- Migration 014: Phase 39 Cloud Sync Tables
 -- Adds tables for cross-master operation log, fleet heartbeats, and retention stats
 

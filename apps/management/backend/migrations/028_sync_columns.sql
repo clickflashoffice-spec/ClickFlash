@@ -1,3 +1,4 @@
+-- Renumbered from: 01_sync_columns.sql (non-standard numbering)
 -- Only add columns if they don't exist
 -- desk_id, original_id for orders
 ALTER TABLE orders ADD COLUMN desk_id TEXT;

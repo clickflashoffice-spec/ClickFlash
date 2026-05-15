@@ -1,3 +1,4 @@
+-- Renumbered from: v2_crm_hr.sql (non-standard numbering)
 -- Add CRM Leads Table
 CREATE TABLE IF NOT EXISTS crm_leads (
     id TEXT PRIMARY KEY,

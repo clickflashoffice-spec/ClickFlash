@@ -20,7 +20,7 @@ export const SupportedCurrencies = ['usd', 'eur', 'gbp', 'cad', 'aud'] as const;
  * Currency code validation
  */
 export const currencySchema = z.enum(SupportedCurrencies, {
-  errorMap: () => ({ message: 'Invalid currency code' }),
+  error: 'Invalid currency code',
 });
 
 /**
@@ -31,8 +31,7 @@ export const currencySchema = z.enum(SupportedCurrencies, {
  */
 export const amountSchema = z
   .number({
-    required_error: 'Amount is required',
-    invalid_type_error: 'Amount must be a number',
+    error: 'Amount is required and must be a number',
   })
   .positive('Amount must be positive')
   .max(1000000, 'Amount exceeds maximum allowed')
@@ -71,7 +70,7 @@ export const createPaymentIntentSchema = z.object({
     .optional(),
   
   metadata: z
-    .record(z.string().max(500, 'Metadata value too long'))
+    .record(z.string(), z.string().max(500, 'Metadata value too long'))
     .optional(),
 });
 
@@ -250,8 +249,8 @@ export const webhookPayloadSchema = z.object({
   api_version: z.string().optional(),
   created: z.number(),
   data: z.object({
-    object: z.record(z.unknown()),
-    previous_attributes: z.record(z.unknown()).optional(),
+    object: z.record(z.string(), z.unknown()),
+    previous_attributes: z.record(z.string(), z.unknown()).optional(),
   }),
   livemode: z.boolean(),
   pending_webhooks: z.number(),
@@ -280,7 +279,7 @@ export const refundRequestSchema = z.object({
     .enum(['duplicate', 'fraudulent', 'requested_by_customer', 'other'])
     .optional(),
   
-  metadata: z.record(z.string()).optional(),
+  metadata: z.record(z.string(), z.string()).optional(),
 });
 
 // ============================================================================

@@ -4,7 +4,16 @@
  */
 
 import { EventEmitter } from 'events';
-import { Photo, Product, CartItem } from '../types';
+import { Photo, Product, CartItem as BaseCartItem } from '../types';
+
+/**
+ * Extended CartItem for persistent cart that includes product metadata.
+ * The base CartItem only has `photo`; the persistent cart also tracks
+ * the associated `product` for duplicate detection and display.
+ */
+interface CartItem extends BaseCartItem {
+  product: Product;
+}
 
 interface CartState {
   items: CartItem[];

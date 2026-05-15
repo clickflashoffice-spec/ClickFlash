@@ -14,7 +14,7 @@ import { loadStripe, Stripe, StripeElements, StripeCardElement } from '@stripe/s
 // Initialize Stripe
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
 
-let stripePromise: Promise<Stripe | null>;
+let stripePromise: Promise<Stripe | null> = Promise.resolve(null);
 
 if (!STRIPE_PUBLISHABLE_KEY) {
     console.error('[StripeService] Missing VITE_STRIPE_PUBLISHABLE_KEY');
@@ -35,6 +35,7 @@ export interface CheckoutSession {
     url: string;
     clientSecret?: string;
     paymentIntentId?: string;
+    error?: string;
 }
 
 export interface PaymentMethod {
@@ -50,7 +51,7 @@ export interface PaymentMethod {
 
 export interface StripeConfig {
     appearance?: {
-        theme?: 'stripe' | 'night' | 'flat' | 'none';
+        theme?: 'stripe' | 'night' | 'flat';
         variables?: Record<string, string>;
         rules?: Record<string, Record<string, string>>;
     };
@@ -278,7 +279,10 @@ class StripeEdgeService {
             return null;
         }
 
-        this.elements = this.stripe.elements(this.config);
+        this.elements = this.stripe.elements({
+            appearance: this.config.appearance,
+            fonts: this.config.fonts,
+        });
 
         const defaultStyle = {
             base: {
@@ -351,7 +355,7 @@ class StripeEdgeService {
         }
 
         try {
-            const { error, paymentIntent } = await this.stripe.authenticateCardPayment(clientSecret);
+            const { error, paymentIntent } = await this.stripe.handleCardAction(clientSecret);
 
             if (error) {
                 return { success: false, error: error.message };
@@ -434,11 +438,18 @@ class StripeEdgeService {
 
         if (!this.stripe) return false;
 
-        // Check for Apple Pay
-        const isApplePayAvailable = await this.stripe.applePay?.isSupported();
-        
-        // Google Pay availability is checked during payment request creation
-        return !!isApplePayAvailable;
+        // Check wallet availability via paymentRequest API
+        try {
+            const paymentRequest = this.stripe.paymentRequest({
+                country: 'US',
+                currency: 'usd',
+                total: { label: 'Check', amount: 0 },
+            });
+            const result = await paymentRequest.canMakePayment();
+            return !!(result?.applePay || result?.googlePay);
+        } catch {
+            return false;
+        }
     }
 
     /**

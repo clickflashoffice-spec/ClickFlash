@@ -355,7 +355,7 @@ export const apiService = {
                       title: (p.title as string) || "",
                       url: photoUrl,
                       photographerId: p.photographerId as string,
-                      category: (p.category as string) || null,
+                      category: (p.category as string) || undefined,
                       manualEdits: manualEdits,
                     };
                   });
@@ -397,7 +397,7 @@ export const apiService = {
               title: (r.title as string) || "",
               date: (r.date as string) || "",
               photographerId:
-                r.photographerId != null ? (r.photographerId as string) : null,
+                (r.photographerId != null ? (r.photographerId as string) : "") as string | number,
               coverPhotoUrl: coverPhotoUrl as string,
               source: (r.source as string) || "",
               roomNumber: (r.roomNumber as string) || "",
@@ -484,7 +484,7 @@ export const apiService = {
                 title: (p.title as string) || "",
                 url: photoUrl,
                 photographerId: p.photographerId as string,
-                category: (p.category as string) || null,
+                category: (p.category as string) || undefined,
                 manualEdits: manualEdits,
               };
             });

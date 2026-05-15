@@ -176,7 +176,7 @@ const SliderControl: React.FC<{
     };
 
 // Grid Overlay Component for Straighten Editor
-const GridOverlay: React.FC<{ show: boolean; containerRef: React.RefObject<HTMLDivElement> }> = ({ show, containerRef }) => {
+const GridOverlay: React.FC<{ show: boolean; containerRef: React.RefObject<HTMLDivElement | null> }> = ({ show, containerRef }) => {
     const [gridSize, setGridSize] = useState({ width: 0, height: 0 });
 
     useEffect(() => {

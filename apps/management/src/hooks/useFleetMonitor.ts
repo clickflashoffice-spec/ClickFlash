@@ -35,7 +35,7 @@ export interface FleetMetrics {
 const DEFAULT_CONFIG: Required<FleetMonitorConfig> = {
     refreshInterval: 30000, // 30 seconds
     enableRealtime: true,
-    stationId: undefined,
+    stationId: undefined as unknown as string,
 };
 
 export function useFleetMonitor(config?: FleetMonitorConfig) {

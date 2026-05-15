@@ -185,8 +185,8 @@ const PhotographerDetailModal: React.FC<PhotographerDetailModalProps> = ({
                     <XAxis dataKey="date" hide />
                     <YAxis hide domain={[0, "auto"]} />
                     <Tooltip
-                      formatter={(v: number) => [
-                        formatCurrency(v),
+                      formatter={(v) => [
+                        formatCurrency(Number(v)),
                         "Daily Sales",
                       ]}
                       cursor={{

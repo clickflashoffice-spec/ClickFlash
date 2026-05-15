@@ -100,11 +100,11 @@ const SalesLineChart: React.FC<SalesLineChartProps> = ({ orders }) => {
             }
           />
           <Tooltip
-            formatter={(v: number) => [
+            formatter={(v) => [
               new Intl.NumberFormat(undefined, {
                 style: "currency",
                 currency: currency.code,
-              }).format(v),
+              }).format(Number(v)),
               `Sales in ${currency.code}`,
             ]}
             cursor={{ stroke: "rgba(59,130,246,0.3)", strokeWidth: 1 }}

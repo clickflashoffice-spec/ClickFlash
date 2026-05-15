@@ -1,6 +1,0 @@
-index-DJ08Wi_L.js: 2 mb-4",children:[u.jsxDEV(fv,{label:"CPU",value:i.metrics?.cpuUsage||0,color:"bg-blue-500",warning:85},void 0,!1,{fileN
-index-DJ08Wi_L.js: u.jsxDEV("span",{className:`text-xs font-bold ${(t.metrics?.cpuUsage||0)>80?"text-red-500":"text-slate-700"}`,children:[
-index-DJ08Wi_L.js: )>80?"text-red-500":"text-slate-700"}`,children:[t.metrics?.cpuUsage||0,"%"]},void 0,!0,{fileName:"E:/ClickFlash/apps/ma
-index-DJ08Wi_L.js: -full transition-all duration-500 ease-in-out ${(t.metrics?.cpuUsage||0)>80?"bg-red-500":(t.metrics?.cpuUsage||0)>60?"bg
-index-DJ08Wi_L.js: -out ${(t.metrics?.cpuUsage||0)>80?"bg-red-500":(t.metrics?.cpuUsage||0)>60?"bg-yellow-500":"bg-cyan-500"}`,style:{width
-index-DJ08Wi_L.js: ?"bg-yellow-500":"bg-cyan-500"}`,style:{width:`${t.metrics?.cpuUsage||0}%`}},void 0,!1,{fileName:"E:/ClickFlash/apps/man

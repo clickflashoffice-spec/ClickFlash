@@ -1,7 +1,0 @@
-apps/master/src/components/albums/REFACTORING.md:90:  useKeyboardShortcuts({ onNext, onPrev, onSave });
-apps/master/src/components/albums/editor2/utils/KeyboardShortcuts.ts:74:export function useKeyboardShortcuts(
-apps/master/src/components/albums/hooks/useKeyboardShortcuts.ts:16:export function useKeyboardShortcuts(
-apps/master/src/components/common/GlobalSearch/GlobalSearch.tsx:96:    useKeyboardShortcuts('ArrowDown', (e) => {
-apps/master/src/components/common/GlobalSearch/GlobalSearch.tsx:102:    useKeyboardShortcuts('ArrowUp', (e) => {
-apps/master/src/components/common/GlobalSearch/GlobalSearch.tsx:107:    useKeyboardShortcuts('Enter', (e) => {
-apps/master/src/components/common/GlobalSearch/GlobalSearch.tsx:114:    useKeyboardShortcuts('Escape', () => close());

@@ -1,6 +1,0 @@
-apps/master/src/components/albums/REFACTORING.md:25:### `hooks/useKeyboardShortcuts.ts`
-apps/master/src/components/albums/REFACTORING.md:90:  useKeyboardShortcuts({ onNext, onPrev, onSave });
-apps/master/src/components/albums/editor2/index.ts:16:    useKeyboardShortcuts,
-apps/master/src/components/albums/editor2/utils/KeyboardShortcuts.ts:74:export function useKeyboardShortcuts(
-apps/master/src/components/albums/hooks/index.ts:3:export { useKeyboardShortcuts } from './useKeyboardShortcuts';
-apps/master/src/components/albums/hooks/useKeyboardShortcuts.ts:16:export function useKeyboardShortcuts(

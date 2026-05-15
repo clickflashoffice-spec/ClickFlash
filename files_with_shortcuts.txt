@@ -1,7 +1,0 @@
-apps/master/src/components/albums/REFACTORING.md
-apps/master/src/components/albums/editor2/index.ts
-apps/master/src/components/albums/editor2/utils/KeyboardShortcuts.ts
-apps/master/src/components/albums/hooks/index.ts
-apps/master/src/components/albums/hooks/useKeyboardShortcuts.ts
-apps/master/src/components/common/GlobalSearch/GlobalSearch.tsx
-apps/master/src/hooks/useKeyboardShortcuts.ts

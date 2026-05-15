@@ -1,3 +1,0 @@
-[Database] Connected to ./apps/master/pb_data/master.db (WAL Mode Active)
-{"albums":6,"photos":1807,"retention":1700}
-[Database] Connection closed

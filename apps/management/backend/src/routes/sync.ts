@@ -128,13 +128,21 @@ export async function handleSync(
     const ALLOWED = ["system_stats", "fleet_heartbeats", "retention_stats"];
     if (!ALLOWED.includes(table)) return createErrorResponse(400, "Bad Request", `Table '${table}' not allowed`);
 
+    const ALLOWED_COLUMNS: Record<string, string[]> = {
+      system_stats: ["desk_id", "retention_queue_size", "retention_potential_value", "retention_status", "last_updated"],
+      fleet_heartbeats: ["desk_id", "last_seen", "metrics", "updated_at"],
+      retention_stats: ["id", "desk_id", "month", "returning_customers", "new_customers", "retention_rate", "created_at"],
+    };
+
     let count = 0;
     for (const item of items) {
       try {
-        const keys = Object.keys(item);
+        const keys = Object.keys(item).filter((k) => ALLOWED_COLUMNS[table].includes(k));
+        if (keys.length === 0) continue;
         const placeholders = keys.map(() => "?").join(", ");
         const setClause = keys.map((k) => `${k} = excluded.${k}`).join(", ");
-        await dbManager.run(`INSERT INTO ${table} (${keys.join(", ")}) VALUES (${placeholders}) ON CONFLICT(desk_id) DO UPDATE SET ${setClause}`, Object.values(item));
+        const values = keys.map((k) => (item as Record<string, unknown>)[k]);
+        await dbManager.run(`INSERT INTO ${table} (${keys.join(", ")}) VALUES (${placeholders}) ON CONFLICT(desk_id) DO UPDATE SET ${setClause}`, values);
         count++;
       } catch (e) {
         console.error(`[SyncBatch] Failed:`, e);

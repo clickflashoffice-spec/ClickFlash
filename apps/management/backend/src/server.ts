@@ -1340,18 +1340,26 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
             `Table '${table}' not allowed for batch upsert`,
           );
 
+        const ALLOWED_COLUMNS: Record<string, string[]> = {
+          system_stats: ["desk_id", "retention_queue_size", "retention_potential_value", "retention_status", "last_updated"],
+          fleet_heartbeats: ["desk_id", "last_seen", "metrics", "updated_at"],
+          retention_stats: ["id", "desk_id", "month", "returning_customers", "new_customers", "retention_rate", "created_at"],
+        };
+
         let count = 0;
         for (const item of items) {
           try {
-            const keys = Object.keys(item);
+            const keys = Object.keys(item).filter((k) => ALLOWED_COLUMNS[table].includes(k));
+            if (keys.length === 0) continue;
             const placeholders = keys.map(() => "?").join(", ");
             const setClause = keys
               .map((k) => `${k} = excluded.${k}`)
               .join(", ");
+            const values = keys.map((k) => (item as Record<string, unknown>)[k]);
             await dbManager.run(
               `INSERT INTO ${table} (${keys.join(", ")}) VALUES (${placeholders})
                ON CONFLICT(desk_id) DO UPDATE SET ${setClause}`,
-              Object.values(item),
+              values,
             );
             count++;
           } catch (e) {
@@ -2315,9 +2323,18 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
       }
     })();
 
-    // Apply unified CORS headers (guarantees single-value Access-Control-Allow-Origin)
+    // Apply unified CORS + security headers to every response
     const headers = new Headers(response.headers);
     Object.entries(corsHeaders).forEach(([k, v]) => headers.set(k, v));
+
+    // Security headers — matches gallery worker hardening
+    headers.set("X-Content-Type-Options", "nosniff");
+    headers.set("X-Frame-Options", "DENY");
+    headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+    headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    headers.set("Content-Security-Policy",
+      "default-src 'none'; img-src * data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
 
     return new Response(response.body, {
       status: response.status,
@@ -2448,14 +2465,16 @@ export default {
     if (!env.SENTRY_DSN) {
       return managementHandler.fetch(request, env);
     }
-    return Sentry.withSentry(
+    const wrapped = Sentry.withSentry(
       () => ({
         dsn: env.SENTRY_DSN!,
         tracesSampleRate: 0.1,
         environment: "production",
         release: "clickflash-management@4.2.0",
       }),
-      managementHandler,
-    ).fetch(request, env, ctx);
+      // Custom Env conflicts with Cloudflare.Env global — safe cast
+      managementHandler as unknown as ExportedHandler,
+    ) as unknown as { fetch: (r: Request, e: Env, c: ExecutionContext) => Promise<Response> };
+    return wrapped.fetch(request, env, ctx);
   },
 };

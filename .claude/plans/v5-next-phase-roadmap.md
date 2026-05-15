@@ -49,7 +49,7 @@ can log into the Windows kiosk user account.
 
 ## PHASE 2: ARCHITECTURE STABILIZATION (v4.3.0)
 
-### P2-A1. Unify Dependency Versions
+### P2-A1. Unify Dependency Versions ✅ (28c0f0a)
 | Package | Current State | Target |
 |---------|--------------|--------|
 | react-router-dom | master v7 vs management v6 | v7 everywhere |
@@ -61,7 +61,7 @@ can log into the Windows kiosk user account.
 | vite | moneytrash v6 vs others v7 | v7 everywhere |
 **Effort:** 1 day | **Impact:** Build reliability, security patch coverage
 
-### P2-A2. Fix Management tsconfig (Strict Is a Lie)
+### P2-A2. Fix Management tsconfig (Strict Is a Lie) ✅ (526dc3b + 28c0f0a)
 **File:** `apps/management/backend/tsconfig.json`
 Currently sets `strict: true` but explicitly disables `strictNullChecks`,
 `strictFunctionTypes`, `strictBindCallApply`, `strictPropertyInitialization`,
@@ -69,7 +69,7 @@ Currently sets `strict: true` but explicitly disables `strictNullChecks`,
 **Fix:** Remove the overrides, fix resulting type errors.
 **Effort:** 4 hours | **Impact:** Null safety in production
 
-### P2-A3. Remove Gallery's electron-builder
+### P2-A3. Remove Gallery's electron-builder ✅ (28c0f0a)
 Gallery is a CF Worker PWA — it has `electron-builder` in devDependencies.
 Dead dependency from copy-paste.
 **Effort:** 5 min

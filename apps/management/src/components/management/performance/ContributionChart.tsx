@@ -72,11 +72,11 @@ const ContributionChart: React.FC<ContributionChartProps> = ({ data }) => {
           width={80}
         />
         <Tooltip
-          formatter={(value: number) => [
+          formatter={(value) => [
             new Intl.NumberFormat(undefined, {
               style: "currency",
               currency: currency.code,
-            }).format(value),
+            }).format(Number(value)),
             `Net Contribution in ${currency.code}`,
           ]}
           cursor={{ fill: "rgba(59,130,246,0.05)" }}

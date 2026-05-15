@@ -1,3 +1,4 @@
+-- Renumbered from: 019_add_fleet_heartbeats_table.sql (duplicate 019 prefix)
 -- Migration: Add fleet_heartbeats table for latest desk status
 -- Created: March 13, 2026
 -- Issue: Heartbeat endpoint was failing with 500 error because table didn't exist

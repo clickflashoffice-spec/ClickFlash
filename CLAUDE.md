@@ -30,7 +30,7 @@
 - All `tsx` in npm scripts must use `npx tsx` (bare `tsx` fails on Windows with `--prefix`)
 
 **Apps**: `master` (Electron :8090), `touch` (Electron :8091), `gallery` (CF Worker PWA), `management` (CF Worker), `website` (Next.js), `moneytrash` (Tauri)
-**Packages**: `@clickflash/types`, `ui`, `shared`, `backup-service`, `lib`, `utils`
+**Packages**: `@clickflash/types`, `ui`
 
 **React** (all apps: 19.2.0)
 - Top-level `<ErrorBoundary>` required in every `main.tsx`

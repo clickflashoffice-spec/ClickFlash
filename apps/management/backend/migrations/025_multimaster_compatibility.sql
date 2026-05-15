@@ -1,3 +1,4 @@
+-- Renumbered from: 011_multimaster_compatibility.sql (duplicate 011 prefix)
 -- Add MultiMaster Scoping Columns
 -- Phase: Global Multi-Tenant Expansion
 -- Albums: Add desk_id and original_id

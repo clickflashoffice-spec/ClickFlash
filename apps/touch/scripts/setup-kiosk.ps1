@@ -55,8 +55,10 @@ $user = Get-LocalUser -Name $KioskUsername -ErrorAction SilentlyContinue
 
 if (-not $user) {
     if (-not $KioskPassword) {
-        # Default secure password if none provided (In prod, use a better secret management)
-        $KioskPassword = ConvertTo-SecureString "StarMaster123!" -AsPlainText -Force
+        # SECURITY: No hardcoded fallback — require password as deployment parameter
+        Write-Host "[!] ERROR: -KioskPassword is required. Example:" -ForegroundColor Red
+        Write-Host '    .\setup-kiosk.ps1 -KioskPassword (ConvertTo-SecureString "YourSecurePassword" -AsPlainText -Force)' -ForegroundColor Yellow
+        exit 1
     }
     
     New-LocalUser -Name $KioskUsername -Password $KioskPassword -FullName "Star Master Kiosk User" -PasswordNeverExpires -Description "Auto-login user for Kiosk mode"

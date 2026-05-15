@@ -3,7 +3,7 @@
   "version": "4.2.0",
   "private": true,
   "scripts": {
-    "dev": "vite",
+    "dev": "npx vite",
     "dev:backend": "npx tsx watch backend/server.js",
     "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
     "build": "vite build",

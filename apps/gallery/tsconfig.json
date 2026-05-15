@@ -58,18 +58,6 @@
     "**/__tests__/**",
     "playwright.config.ts",
     "jest.config.ts",
-    "vite.config.ts",
-    "src/services/aiSearchService.ts",
-    "src/schemas/payment.ts",
-    "src/services/stripeEdgeService.ts",
-    "src/services/geminiService.ts",
-    "src/utils/testUtils.tsx",
-    "src/utils/sentry.ts",
-    "src/services/performanceMonitor.ts",
-    "src/components/error-boundaries/FeatureErrorBoundary.tsx",
-    "src/services/advancedCheckout.ts",
-    "src/services/persistentCart.ts",
-    "src/components/photos/PhotoGrid.tsx",
-    "src/stores/useCartStore.ts"
+    "vite.config.ts"
   ]
 }

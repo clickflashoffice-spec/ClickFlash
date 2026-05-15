@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { ShootIdea, PhotoCategory } from "../types.ts";
+import { ShootIdea, PhotoCategory } from "../types";
 
 const apiKey = import.meta.env.VITE_GOOGLE_API_KEY || (typeof process !== 'undefined' ? process.env.API_KEY : undefined) || '';
 const ai = new GoogleGenAI({ apiKey });

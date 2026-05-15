@@ -116,7 +116,7 @@ class AIGallerySearchService {
         try {
             const photos = await pb.collection('photos').getFullList({
                 filter: `albumId = "${albumId}" && (filename ~ "${query}" || tags ~ "${query}")`,
-                limit: maxResults,
+                perPage: maxResults,
             });
 
             return photos.map((photo: Photo) => ({
@@ -329,7 +329,7 @@ class AIGallerySearchService {
      * Get cached embeddings for a photo
      */
     public getCachedEmbedding(photoId: string): SemanticEmbedding | undefined {
-        return this_embeddingsCache.get(photoId);
+        return this.embeddingsCache.get(photoId);
     }
 
     /**

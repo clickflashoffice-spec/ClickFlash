@@ -74,9 +74,11 @@ Gallery is a CF Worker PWA — it has `electron-builder` in devDependencies.
 Dead dependency from copy-paste.
 **Effort:** 5 min
 
-### P2-A4. Clean Up Gallery tsconfig Exclusions
-Gallery excludes 10 source files (PhotoGrid, useCartStore, sentry, payment schemas)
-to pass typecheck. These need real type fixes, not exclusions.
+### P2-A4. Clean Up Gallery tsconfig Exclusions ✅
+Gallery excluded 12 source files to pass typecheck. Fixed all type errors:
+aiSearchService typo, Zod v4 API migration, Stripe SDK method corrections,
+Sentry v10 migration, path alias fixes, local CartItem interface extensions.
+All 12 `src/` exclusions removed — `tsc --noEmit` passes clean under strict.
 **Effort:** 4 hours | **Impact:** Type safety
 
 ### P2-A5. Consolidate Shared Packages (partial ✅)

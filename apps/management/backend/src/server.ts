@@ -2323,9 +2323,18 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
       }
     })();
 
-    // Apply unified CORS headers (guarantees single-value Access-Control-Allow-Origin)
+    // Apply unified CORS + security headers to every response
     const headers = new Headers(response.headers);
     Object.entries(corsHeaders).forEach(([k, v]) => headers.set(k, v));
+
+    // Security headers — matches gallery worker hardening
+    headers.set("X-Content-Type-Options", "nosniff");
+    headers.set("X-Frame-Options", "DENY");
+    headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+    headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    headers.set("Content-Security-Policy",
+      "default-src 'none'; img-src * data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
 
     return new Response(response.body, {
       status: response.status,

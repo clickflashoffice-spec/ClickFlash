@@ -178,5 +178,8 @@ apps/master/nul
 tmp/
 nul
 
+# One-time cleanup scripts
+/cleanup-local.ps1
+
 # Deployment packages (binary installers + credentials)
 deployment/

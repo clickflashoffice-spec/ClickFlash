@@ -102,8 +102,18 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 
-# Agentic Ecosystem
-.agent/
+# Agentic Ecosystem (all variants)
+.agent*/
+.claire/
+.kilo/
+.kilocodemodes
+.hintrc
+
+# Claude worktrees (managed by Claude Code, never commit)
+.claude/worktrees/
+
+# Audit artifacts
+artifacts/
 
 # Generated docs and reports
 *.patch
@@ -113,6 +123,45 @@ _tmp_*
 *-complete*.md
 *-report*.md
 *-checklist*.md
+
+# Root orphan stubs (0-byte files from failed npm installs)
+/expo
+/next
+/node
+/npm
+/mobile@*
+/main-website@*
+
+# Root ad-hoc debug/fix scripts (one-off dev artifacts)
+/apply_migration*.js
+/check_schema*.ts
+/clone_*.js
+/clone_tools.py
+/create_admin_user.js
+/d1_test.json
+/deploy-ecosystem.js
+/dump_schema.js
+/dump_settings.js
+/find_missing_card.js
+/fix_*.js
+/index-*.js
+/list_tables.js
+/mass_node_ingestion.sql
+/read_logs.js
+/restore_script.js
+/seed-test-management.sql
+/setup_tools*.js
+/setup_tools*.py
+/verify_vector_index.ts
+/apply_test_data.js
+
+# Root misc orphans
+/claude-code
+/opencode.json
+/install-clickflash.sh
+
+# Root debug logs (*.txt at root only, not in subdirs)
+/*.txt
 
 # Build logs
 *build_log*.txt
@@ -124,10 +173,7 @@ apps/Gemini_Generated_Image_*.png
 
 # Stratus
 .stratus/
-.kilocodemodes
 .husky/
-node_modules
-node_modules
 apps/master/nul
 tmp/
 nul

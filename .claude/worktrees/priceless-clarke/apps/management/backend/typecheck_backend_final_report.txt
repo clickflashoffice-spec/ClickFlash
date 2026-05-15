@@ -1,2 +1,0 @@
-src/__tests__/server.test.ts(146,48): error TS2345: Argument of type '{ id: string; clientName: string; email: string; status: string; total: number; access_pin: string; items: string; }' is not assignable to parameter of type 'never'.
-src/__tests__/server.test.ts(169,48): error TS2345: Argument of type '{ id: string; clientName: string; magic_link_token: string; }' is not assignable to parameter of type 'never'.

@@ -1,8 +1,0 @@
-/* Base layout reset — extracted from index.html inline style (Vite 7.2.7 html-proxy fix) */
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}

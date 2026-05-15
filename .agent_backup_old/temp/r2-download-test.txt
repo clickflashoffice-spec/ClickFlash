@@ -1,2 +1,0 @@
-This is a test file to verify R2 storage connectivity.
-Timestamp: 2026-02-19T17:50:00Z

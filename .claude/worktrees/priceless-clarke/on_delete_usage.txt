@@ -1,5 +1,0 @@
-apps/master/src/components/Orders.tsx:304:    onDelete: () => void;
-apps/master/src/components/ProductsPage.tsx:20:    onDelete: (id: string, name: string) => void;
-apps/master/src/components/albums/Albums.tsx:476:  onDelete: () => void;
-apps/master/src/components/albums/Albums.tsx:594:  onDelete: () => void;
-apps/master/src/components/settings/ProductsAndPricing.tsx:20:    onDelete: (id: string, name: string) => void;

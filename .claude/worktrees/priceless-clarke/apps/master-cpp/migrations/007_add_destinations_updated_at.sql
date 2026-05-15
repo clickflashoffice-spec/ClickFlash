@@ -1,2 +1,0 @@
--- Add updated_at column to destinations table
--- ALTER TABLE destinations ADD COLUMN updated_at DATETIME;

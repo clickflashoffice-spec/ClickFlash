@@ -1,2 +1,0 @@
-apps/master/src/components/albums/editor2/index.ts:16:    useKeyboardShortcuts,
-apps/master/src/components/albums/editor2/utils/KeyboardShortcuts.ts:74:export function useKeyboardShortcuts(

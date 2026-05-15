@@ -1,1 +1,0 @@
-ALTER TABLE kiosks ADD COLUMN settings JSON;

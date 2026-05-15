@@ -108,6 +108,11 @@ export class RecordService {
     }
   }
 
+  async saveRecord(collection: string, data: any, isUpdate: boolean, deskId?: string): Promise<any> {
+    const table = TABLE_MAP[collection] || collection;
+    return this.processRecordCreation(isUpdate ? "PATCH" : "POST", table, data, deskId);
+  }
+
   async processRecordCreation(
     method: string,
     table: string,

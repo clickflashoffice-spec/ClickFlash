@@ -20,6 +20,6 @@
     "src/rateLimiter.ts",
     "src/startupGuard.ts",
     "src/utils.ts",
-    "src/services/recordService.ts"
+    "src/__tests__"
   ]
 }

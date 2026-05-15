@@ -28,7 +28,7 @@
     {
       "name": "Management Hub (Frontend :5175)",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev:management"],
+      "runtimeArgs": ["--prefix", "apps/management", "run", "dev"],
       "port": 5175
     },
     {

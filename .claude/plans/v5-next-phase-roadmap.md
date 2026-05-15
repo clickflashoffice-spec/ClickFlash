@@ -79,10 +79,10 @@ Gallery excludes 10 source files (PhotoGrid, useCartStore, sentry, payment schem
 to pass typecheck. These need real type fixes, not exclusions.
 **Effort:** 4 hours | **Impact:** Type safety
 
-### P2-A5. Consolidate Shared Packages
-- `@clickflash/shared` and `@clickflash/backup-service` are declared but unused — delete or implement
-- `packages/lib` and `packages/utils` referenced in CLAUDE.md don't exist — update docs
-- Touch duplicates Button, Card, Input, Modal, Spinner from `packages/ui` — refactor to import
+### P2-A5. Consolidate Shared Packages (partial ✅)
+- ~~`@clickflash/shared` and `@clickflash/backup-service` are declared but unused~~ — DELETED (zero imports confirmed)
+- ~~`packages/lib` and `packages/utils` referenced in CLAUDE.md don't exist~~ — DELETED empty dirs, updated CLAUDE.md
+- Touch duplicates Button, Card, Input, Modal, Spinner from `packages/ui` — refactor to import (remaining)
 **Effort:** 1 day | **Impact:** DRY, maintenance burden
 
 ### P2-A6. Fix Migration Numbering Conflicts

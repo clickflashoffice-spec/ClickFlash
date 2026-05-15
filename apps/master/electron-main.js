@@ -42,7 +42,7 @@ protocol.registerSchemesAsPrivileged([
       standard: true,
       supportFetchAPI: true,
       allowServiceWorkers: true,
-      bypassCSP: true,
+      // SECURITY: bypassCSP removed — prevents unrestricted script execution via clickflash:// URIs
     },
   },
 ]);

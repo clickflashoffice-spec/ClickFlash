@@ -5,7 +5,7 @@
  * Implements Core Web Vitals tracking and custom performance markers.
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 
 // ============================================================================
 // Types

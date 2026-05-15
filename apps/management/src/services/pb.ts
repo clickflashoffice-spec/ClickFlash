@@ -319,66 +319,60 @@ class CustomPocketBaseAdapter {
 
         const authHeaders = this.getAuthHeaders();
         const allHeaders = { ...authHeaders, ...headers };
-        try {
-          const res = await fetch(
-            `${this.baseUrl}/api/collections/${name}/records`,
-            {
-              method: "POST",
-              headers: allHeaders,
-              body,
-            },
-          );
-          if (!res.ok) {
-            let errorMessage = `Create failed (HTTP ${res.status})`;
-            let errorData: any = { message: errorMessage };
-            try {
-              const responseText = await res.text();
-              errorData = JSON.parse(responseText);
-              errorMessage =
-                errorData.message || errorData.error || responseText;
-            } catch (e) {}
-
-            const error: any = new Error(errorMessage);
-            error.status = res.status;
-            error.response = { status: res.status, data: errorData };
-            throw error;
+        const res = await fetch(
+          `${this.baseUrl}/api/collections/${name}/records`,
+          {
+            method: "POST",
+            headers: allHeaders,
+            body,
+          },
+        );
+        if (!res.ok) {
+          let errorMessage = `Create failed (HTTP ${res.status})`;
+          let errorData: any = { message: errorMessage };
+          try {
+            const responseText = await res.text();
+            errorData = JSON.parse(responseText);
+            errorMessage =
+              errorData.message || errorData.error || responseText;
+          } catch {
+            // Response body not valid JSON — use default error message
           }
-          return await res.json();
-        } catch (error: any) {
+
+          const error: any = new Error(errorMessage);
+          error.status = res.status;
+          error.response = { status: res.status, data: errorData };
           throw error;
         }
+        return await res.json();
       },
       update: async (id: string, data: Partial<PocketRecord>) => {
         const authHeaders = this.getAuthHeaders();
-        try {
-          const res = await fetch(
-            `${this.baseUrl}/api/collections/${name}/records/${id}`,
-            {
-              method: "PATCH",
-              headers: { ...authHeaders, "Content-Type": "application/json" },
-              body: JSON.stringify(data),
-            },
-          );
-          if (!res.ok) {
-            // Try to extract error message from response
-            let errorMessage = "Update failed";
-            let errorData: any = { message: errorMessage };
-            try {
-              errorData = await res.json();
-              if (errorData.message) errorMessage = errorData.message;
-              else if (errorData.error) errorMessage = errorData.error;
-            } catch (e) {
-              errorMessage = res.statusText || "Update failed";
-            }
-            const error: any = new Error(errorMessage);
-            error.status = res.status;
-            error.response = { status: res.status, data: errorData };
-            throw error;
+        const res = await fetch(
+          `${this.baseUrl}/api/collections/${name}/records/${id}`,
+          {
+            method: "PATCH",
+            headers: { ...authHeaders, "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          },
+        );
+        if (!res.ok) {
+          // Try to extract error message from response
+          let errorMessage = "Update failed";
+          let errorData: any = { message: errorMessage };
+          try {
+            errorData = await res.json();
+            if (errorData.message) errorMessage = errorData.message;
+            else if (errorData.error) errorMessage = errorData.error;
+          } catch (_e) {
+            errorMessage = res.statusText || "Update failed";
           }
-          return await res.json();
-        } catch (error: any) {
+          const error: any = new Error(errorMessage);
+          error.status = res.status;
+          error.response = { status: res.status, data: errorData };
           throw error;
         }
+        return await res.json();
       },
       delete: async (id: string) => {
         const res = await fetch(

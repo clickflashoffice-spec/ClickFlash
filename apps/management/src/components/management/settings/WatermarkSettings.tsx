@@ -345,7 +345,7 @@ export const WatermarkSettings: React.FC = () => {
                   src={settings.imageUrl}
                   alt="Watermark"
                   className={`absolute pointer-events-none ${settings.dynamicProtection ? "animate-pulse" : ""}`}
-                  // eslint-disable-next-line react/forbid-component-props, react/forbid-dom-props, @typescript-eslint/no-explicit-any
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   style={
                     {
                       ...getPositionStyle(settings.position),
@@ -359,7 +359,7 @@ export const WatermarkSettings: React.FC = () => {
               {settings.enabled && !settings.imageUrl && (
                 <div
                   className="absolute pointer-events-none bg-white/80 text-slate-900 px-4 py-2 rounded-lg shadow-lg font-black text-base uppercase tracking-tighter"
-                  // eslint-disable-next-line react/forbid-component-props, react/forbid-dom-props, @typescript-eslint/no-explicit-any
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   style={
                     {
                       ...getPositionStyle(settings.position),

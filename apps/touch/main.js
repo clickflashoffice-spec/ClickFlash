@@ -261,7 +261,7 @@ class TouchApp {
           results.push({ name: "Loopback", ip: "127.0.0.1" });
         res.writeHead(200, {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Origin": "http://localhost",
         });
         res.end(JSON.stringify({ interfaces: results }));
         return;
@@ -270,7 +270,7 @@ class TouchApp {
       if (req.url === "/api/mode") {
         res.writeHead(200, {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Origin": "http://localhost",
         });
         res.end(
           JSON.stringify({
@@ -317,7 +317,7 @@ class TouchApp {
         }
         const headers = {
           "Content-Type": this.getMimeType(filePath),
-          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Origin": "http://localhost",
         };
         if (path.extname(filePath).toLowerCase() === ".html") {
           const isProduction = process.env.NODE_ENV === "production" || app.isPackaged;
@@ -331,7 +331,8 @@ class TouchApp {
       });
     });
 
-    this.server.listen(this.config.frontendPort, "0.0.0.0", () => {
+    // SECURITY: Bind to localhost only — prevents LAN devices from querying /api/ip
+    this.server.listen(this.config.frontendPort, "127.0.0.1", () => {
       this.serverPort = this.server.address().port;
       this.startBackend();
       this.createWindow();
@@ -536,17 +537,45 @@ class TouchApp {
         return false;
       }
 
-      // Constant-time check
       if (typeof password !== 'string') return false;
-      let isValid = true;
-      if (password.length !== KIOSK_PASSWORD.length) {
-        isValid = false;
-        const dummy = Buffer.alloc(KIOSK_PASSWORD.length);
-        require('crypto').timingSafeEqual(dummy, dummy);
+
+      // SECURITY: Support both bcrypt hashes and legacy plaintext passwords
+      // Bcrypt hashes start with $2a$ or $2b$ — use bcrypt.compare for timing-safe check
+      let isValid = false;
+      if (KIOSK_PASSWORD.startsWith('$2a$') || KIOSK_PASSWORD.startsWith('$2b$')) {
+        const bcrypt = require('bcrypt');
+        isValid = await bcrypt.compare(password, KIOSK_PASSWORD);
       } else {
-        const p1 = Buffer.from(password, 'utf8');
-        const p2 = Buffer.from(KIOSK_PASSWORD, 'utf8');
-        isValid = require('crypto').timingSafeEqual(p1, p2);
+        // Legacy plaintext — constant-time comparison
+        if (password.length !== KIOSK_PASSWORD.length) {
+          isValid = false;
+          const dummy = Buffer.alloc(KIOSK_PASSWORD.length);
+          require('crypto').timingSafeEqual(dummy, dummy);
+        } else {
+          const p1 = Buffer.from(password, 'utf8');
+          const p2 = Buffer.from(KIOSK_PASSWORD, 'utf8');
+          isValid = require('crypto').timingSafeEqual(p1, p2);
+        }
+        // If plaintext matched, auto-upgrade to bcrypt hash in DB
+        if (isValid) {
+          try {
+            const bcrypt = require('bcrypt');
+            const hash = await bcrypt.hash(KIOSK_PASSWORD, 12);
+            const isPackaged = app.isPackaged;
+            const dataDir = isPackaged
+              ? path.join(app.getPath("userData"), "pb_data")
+              : path.join(__dirname, "pb_data");
+            const dbPath = path.join(dataDir, "touch.db");
+            if (fs.existsSync(dbPath)) {
+              const db = new Database(dbPath);
+              db.prepare("UPDATE settings SET value = ? WHERE key = 'password'").run(hash);
+              db.close();
+              console.log("[Electron] Kiosk password auto-upgraded to bcrypt hash.");
+            }
+          } catch (upgradeErr) {
+            console.error("[Electron] Failed to auto-upgrade password hash:", upgradeErr);
+          }
+        }
       }
 
       if (isValid) {

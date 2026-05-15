@@ -8,8 +8,8 @@
 import React, { ReactElement, ReactNode } from 'react';
 import { render, RenderOptions, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CurrencyProvider } from '@/components/CurrencyContext';
-import { ThemeProvider } from '@/components/ThemeContext';
+import { CurrencyProvider } from '../components/CurrencyContext';
+import { ThemeProvider } from '../components/ThemeContext';
 
 // ============================================================================
 // Stripe Mocks
@@ -209,21 +209,17 @@ export function mockPaymentLoading(): void {
 
 interface AllProvidersProps {
   children: ReactNode;
-  initialCurrency?: string;
-  initialTheme?: 'light' | 'dark';
 }
 
 /**
  * All providers wrapper for tests
  */
-const AllTheProviders = ({ 
-  children, 
-  initialCurrency = 'EUR',
-  initialTheme = 'light'
+const AllTheProviders = ({
+  children,
 }: AllProvidersProps) => {
   return (
-    <ThemeProvider initialTheme={initialTheme}>
-      <CurrencyProvider initialCurrency={initialCurrency}>
+    <ThemeProvider>
+      <CurrencyProvider>
         {children}
       </CurrencyProvider>
     </ThemeProvider>
@@ -233,10 +229,7 @@ const AllTheProviders = ({
 /**
  * Custom render options
  */
-interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
-  initialCurrency?: string;
-  initialTheme?: 'light' | 'dark';
-}
+type CustomRenderOptions = Omit<RenderOptions, 'wrapper'>;
 
 /**
  * Custom render function that wraps components with all necessary providers
@@ -245,22 +238,17 @@ export function customRender(
   ui: ReactElement,
   options: CustomRenderOptions = {}
 ): ReturnType<typeof render> & { user: ReturnType<typeof userEvent.setup> } {
-  const { initialCurrency, initialTheme, ...renderOptions } = options;
-  
   const user = userEvent.setup();
-  
+
   const result = render(ui, {
     wrapper: ({ children }) => (
-      <AllTheProviders 
-        initialCurrency={initialCurrency} 
-        initialTheme={initialTheme}
-      >
+      <AllTheProviders>
         {children}
       </AllTheProviders>
     ),
-    ...renderOptions,
+    ...options,
   });
-  
+
   return { ...result, user };
 }
 

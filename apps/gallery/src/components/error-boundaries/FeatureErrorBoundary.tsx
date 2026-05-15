@@ -8,7 +8,7 @@
  */
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { logger } from '@/utils/logger';
+import { logger } from '../../utils/logger';
 
 export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 

@@ -100,6 +100,19 @@ class CustomPocketBaseAdapter {
     return this;
   }
 
+  /**
+   * Generic HTTP request helper for custom API endpoints (e.g. AI search).
+   * Returns the raw Response so callers can check `.ok` and parse the body.
+   */
+  async request(path: string, init?: RequestInit): Promise<Response> {
+    const url = `${this.baseUrl}${path}`;
+    const headers: HeadersInit = {
+      ...this.getAuthHeaders(),
+      ...(init?.headers ?? {}),
+    };
+    return fetch(url, { ...init, headers });
+  }
+
   // Mocking the 'collection' interface
   collection(name: string) {
     return {

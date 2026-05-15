@@ -139,26 +139,126 @@ const galleryHandler = {
           }
 
           const { items, customerEmail, albumId } = body || {};
-          const total = items ? items.reduce((sum: number, item: any) => sum + (item.price * item.quantity || 0), 0) : 0;
+
+          // SECURITY: Server-side price validation — never trust client prices
+          if (!items || !Array.isArray(items) || items.length === 0) {
+            return new Response(
+              JSON.stringify({ error: "At least one item is required" }),
+              { status: 400, headers: { "Content-Type": "application/json" } }
+            );
+          }
 
           try {
+            // Look up canonical prices from D1 products table
+            const productIds = items.map((item: any) => item.productId || item.id).filter(Boolean);
+            if (productIds.length === 0) {
+              return new Response(
+                JSON.stringify({ error: "Each item must have a productId" }),
+                { status: 400, headers: { "Content-Type": "application/json" } }
+              );
+            }
+
+            const placeholders = productIds.map(() => "?").join(", ");
+            const dbProducts = await env.GALLERY_DB.prepare(
+              `SELECT id, name, price, category FROM products WHERE id IN (${placeholders}) AND (status IS NULL OR status = 'Active')`
+            ).bind(...productIds).all();
+
+            const productMap = new Map<string, { name: string; price: number; category: string }>();
+            if (dbProducts.results) {
+              for (const p of dbProducts.results as any[]) {
+                productMap.set(p.id, { name: p.name, price: p.price, category: p.category });
+              }
+            }
+
+            // Also check album-level pricing if albumId is provided
+            let albumPricing: { price_single: number; price_full: number; title: string } | null = null;
+            if (albumId) {
+              const album = await env.GALLERY_DB.prepare(
+                "SELECT title, price_single, price_full, pricePerPhoto, fullGalleryPrice FROM albums WHERE id = ? LIMIT 1"
+              ).bind(albumId).first() as any;
+              if (album) {
+                albumPricing = {
+                  title: album.title || "Gallery",
+                  price_single: album.price_single || album.pricePerPhoto || 0,
+                  price_full: album.price_full || album.fullGalleryPrice || 0,
+                };
+              }
+            }
+
+            // Build verified line items with server-side prices
+            const lineItems: Array<{ name: string; unitAmount: number; quantity: number }> = [];
+            for (const item of items as any[]) {
+              const pid = item.productId || item.id;
+              const quantity = Math.max(1, Math.floor(Number(item.quantity) || 1));
+
+              // Try product catalog first
+              const product = productMap.get(pid);
+              if (product) {
+                lineItems.push({
+                  name: product.name,
+                  unitAmount: Math.round(product.price * 100),
+                  quantity,
+                });
+                continue;
+              }
+
+              // Try album-based pricing for special product types
+              if (albumPricing && pid === "album_full" && albumPricing.price_full > 0) {
+                lineItems.push({
+                  name: `Full Album - ${albumPricing.title}`,
+                  unitAmount: Math.round(albumPricing.price_full * 100),
+                  quantity: 1,
+                });
+                continue;
+              }
+              if (albumPricing && pid === "album_single" && albumPricing.price_single > 0) {
+                lineItems.push({
+                  name: `Single Photo - ${albumPricing.title}`,
+                  unitAmount: Math.round(albumPricing.price_single * 100),
+                  quantity,
+                });
+                continue;
+              }
+
+              // Unknown product — reject
+              return new Response(
+                JSON.stringify({ error: `Unknown product: ${pid}` }),
+                { status: 400, headers: { "Content-Type": "application/json" } }
+              );
+            }
+
+            // Verify total is positive
+            const serverTotal = lineItems.reduce((sum, li) => sum + li.unitAmount * li.quantity, 0);
+            if (serverTotal <= 0) {
+              return new Response(
+                JSON.stringify({ error: "Order total must be greater than zero" }),
+                { status: 400, headers: { "Content-Type": "application/json" } }
+              );
+            }
+
+            // Build Stripe checkout session with per-line-item pricing
+            const stripeParams = new URLSearchParams();
+            stripeParams.append("payment_method_types[]", "card");
+            stripeParams.append("mode", "payment");
+            stripeParams.append("success_url", `https://gallery.clickflash.com/success?session_id={CHECKOUT_SESSION_ID}`);
+            stripeParams.append("cancel_url", `https://gallery.clickflash.com/cancel`);
+            if (customerEmail) stripeParams.append("customer_email", customerEmail);
+            if (albumId) stripeParams.append("metadata[albumId]", albumId);
+
+            for (let i = 0; i < lineItems.length; i++) {
+              stripeParams.append(`line_items[${i}][price_data][currency]`, "eur");
+              stripeParams.append(`line_items[${i}][price_data][product_data][name]`, lineItems[i].name);
+              stripeParams.append(`line_items[${i}][price_data][unit_amount]`, String(lineItems[i].unitAmount));
+              stripeParams.append(`line_items[${i}][quantity]`, String(lineItems[i].quantity));
+            }
+
             const stripeResponse = await fetch('https://api.stripe.com/v1/checkout/sessions', {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${env.STRIPE_SECRET_KEY}`,
                 'Content-Type': 'application/x-www-form-urlencoded',
               },
-              body: new URLSearchParams({
-                'payment_method_types[]': 'card',
-                'line_items[][price_data][currency]': 'usd',
-                'line_items[][price_data][product_data][name]': `Photo Package - ${albumId || 'Gallery'}`,
-                'line_items[][price_data][unit_amount]': String(Math.round(total * 100)),
-                'line_items[][quantity]': '1',
-                'mode': 'payment',
-                'success_url': `https://gallery.clickflash.com/success?session_id={CHECKOUT_SESSION_ID}`,
-                'cancel_url': `https://gallery.clickflash.com/cancel`,
-                'customer_email': customerEmail || '',
-              }),
+              body: stripeParams,
             });
 
             const session = await stripeResponse.json() as any;
@@ -175,8 +275,9 @@ const galleryHandler = {
               { status: 200, headers: { "Content-Type": "application/json" } }
             );
           } catch (e: any) {
+            console.error("[Checkout] Error:", e);
             return new Response(
-              JSON.stringify({ error: e.message }),
+              JSON.stringify({ error: "Checkout failed. Please try again." }),
               { status: 500, headers: { "Content-Type": "application/json" } }
             );
           }

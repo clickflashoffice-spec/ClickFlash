@@ -4,7 +4,16 @@
  */
 
 import { EventEmitter } from 'events';
-import { CartItem, Order } from '../types';
+import { CartItem as BaseCartItem, Order, Product, Photo } from '../types';
+
+/**
+ * Extended CartItem for checkout flows that includes product metadata.
+ * The base CartItem only has `photo`; checkout operations also need
+ * `product` and an optional `size` for order-line generation.
+ */
+interface CartItem extends BaseCartItem {
+  product: Product;
+}
 
 interface TaxRate {
   country: string;

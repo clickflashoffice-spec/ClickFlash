@@ -13,7 +13,7 @@ const DailyObjectivesWidget: React.FC<DailyObjectivesWidgetProps> = ({ currentUs
   const todayString = new Date().toISOString().split('T')[0];
   const photosToday = albums
     .filter(album => album.photographerId === currentUser.id && album.date === todayString)
-    .reduce((total, album) => total + album.photos.length, 0);
+    .reduce((total, album) => total + (album.photos?.length ?? 0), 0);
 
   const target = currentUser.dailyPhotoTarget || 0;
   const progress = target > 0 ? (photosToday / target) * 100 : 0;

@@ -153,7 +153,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ context }) => {
       filtered = filtered.filter(
         (p) =>
           p.name.toLowerCase().includes(searchLower) ||
-          p.category.toLowerCase().includes(searchLower),
+          (p.category ?? '').toLowerCase().includes(searchLower),
       );
     }
 
@@ -543,16 +543,16 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ context }) => {
                         <td className="p-4 text-right">
                           <span
                             className={`px-2 py-1 rounded text-xs font-semibold ${
-                              p.stock === 9999
+                              (p.stock ?? 0) === 9999
                                 ? "bg-blue-100 text-blue-700"
-                                : p.stock > 10
+                                : (p.stock ?? 0) > 10
                                   ? "bg-green-100 text-green-700"
-                                  : p.stock > 0
+                                  : (p.stock ?? 0) > 0
                                     ? "bg-amber-100 text-amber-700"
                                     : "bg-red-100 text-red-700"
                             }`}
                           >
-                            {p.stock === 9999 ? "Unlimited" : p.stock}
+                            {(p.stock ?? 0) === 9999 ? "Unlimited" : p.stock ?? 0}
                           </span>
                         </td>
                         <td className="p-4 text-center space-x-2">

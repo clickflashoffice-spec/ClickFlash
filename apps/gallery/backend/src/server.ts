@@ -293,7 +293,26 @@ const galleryHandler = {
           }
 
           try {
-            const event = await request.json() as any;
+            const body = await request.text();
+            const sigHeader = request.headers.get('stripe-signature');
+            if (!sigHeader) {
+              return new Response(
+                JSON.stringify({ error: 'Missing Stripe-Signature header' }),
+                { status: 400 }
+              );
+            }
+
+            const { default: Stripe } = await import('stripe');
+            const stripe = new Stripe(env.STRIPE_SECRET_KEY);
+            let event: any;
+            try {
+              event = await stripe.webhooks.constructEventAsync(body, sigHeader, env.STRIPE_WEBHOOK_SECRET);
+            } catch (verifyErr: any) {
+              return new Response(
+                JSON.stringify({ error: `Webhook signature verification failed: ${verifyErr.message}` }),
+                { status: 400 }
+              );
+            }
 
             if (event.type === 'checkout.session.completed') {
               const session = event.data.object;

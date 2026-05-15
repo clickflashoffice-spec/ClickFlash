@@ -260,8 +260,8 @@ class MarketingAutomationService extends EventEmitter {
     context: any,
   ): boolean {
     // Check destination
-    if (targeting.destinations?.length > 0) {
-      if (!targeting.destinations.includes(context.destinationId)) {
+    if ((targeting.destinations?.length ?? 0) > 0) {
+      if (!targeting.destinations?.includes(context.destinationId)) {
         return false;
       }
     }

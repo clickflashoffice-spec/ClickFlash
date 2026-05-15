@@ -84,11 +84,11 @@ const IncomeByPhotographerChart: React.FC<IncomeByPhotographerChartProps> = ({
               width={90}
             />
             <Tooltip
-              formatter={(value: number) => [
+              formatter={(value) => [
                 new Intl.NumberFormat(undefined, {
                   style: "currency",
                   currency: currency.code,
-                }).format(value),
+                }).format(Number(value)),
                 `Sales in ${currency.code}`,
               ]}
               cursor={{ fill: "rgba(59,130,246,0.05)" }}

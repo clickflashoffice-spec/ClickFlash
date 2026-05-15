@@ -146,8 +146,8 @@ const DashboardProfitability: React.FC<DashboardProfitabilityProps> = ({
                   width={100}
                 />
                 <Tooltip
-                  formatter={(value: number) => [
-                    formatCurrency(value),
+                  formatter={(value) => [
+                    formatCurrency(Number(value)),
                     "Net Profit",
                   ]}
                   cursor={{ fill: "rgba(59,130,246,0.04)" }}

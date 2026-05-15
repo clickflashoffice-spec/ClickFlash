@@ -191,7 +191,7 @@ const DashboardIncomeAnalytics: React.FC<DashboardIncomeAnalyticsProps> = ({
                 tickFormatter={(v) => formatCurrency(v)}
               />
               <Tooltip
-                formatter={(v: number) => [formatCurrency(v), "Revenue"]}
+                formatter={(v) => [formatCurrency(Number(v)), "Revenue"]}
                 cursor={{ stroke: "rgba(6,182,212,0.3)", strokeWidth: 1 }}
               />
               <Area

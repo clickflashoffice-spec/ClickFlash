@@ -73,12 +73,12 @@ const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses }) => {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) =>
+              formatter={(value) =>
                 new Intl.NumberFormat(undefined, {
                   style: "currency",
                   currency: "EUR",
                   minimumFractionDigits: 2,
-                }).format(value)
+                }).format(Number(value))
               }
             />
             <Legend

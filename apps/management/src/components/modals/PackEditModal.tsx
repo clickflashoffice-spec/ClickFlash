@@ -37,7 +37,7 @@ const PackEditModal: React.FC<PackEditModalProps> = ({ isOpen, onClose, onSave, 
       alert('Pack name is required');
       return;
     }
-    if (!pack.description.trim()) {
+    if (!(pack.description ?? '').trim()) {
       alert('Description is required');
       return;
     }

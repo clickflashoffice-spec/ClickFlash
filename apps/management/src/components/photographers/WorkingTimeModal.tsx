@@ -12,7 +12,7 @@ const ShiftControls: React.FC<{
     shift: 'shift1' | 'shift2';
     day: DayOfWeek;
     data: { start: string; end: string; enabled: boolean };
-    onChange: (day: DayOfWeek, shift: 'shift1' | 'shift2', field: string, value: any) => void;
+    onChange: (day: DayOfWeek, shift: 'shift1' | 'shift2', field: 'start' | 'end' | 'enabled', value: any) => void;
 }> = ({ shift, day, data, onChange }) => (
     <div className="flex flex-col space-y-2 bg-slate-100 dark:bg-slate-800/50 p-3 rounded-lg">
         <div className="flex items-center space-x-2">
@@ -49,7 +49,7 @@ const ShiftControls: React.FC<{
 const DayRow: React.FC<{ 
     day: string; 
     hours: DayWorkingHours;
-    onChange: (day: DayOfWeek, shift: 'shift1' | 'shift2', field: string, value: any) => void;
+    onChange: (day: DayOfWeek, shift: 'shift1' | 'shift2', field: 'start' | 'end' | 'enabled', value: any) => void;
 }> = ({ day, hours, onChange }) => (
     <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr_2fr] items-start gap-x-6 gap-y-2 py-4 border-b border-slate-200 dark:border-slate-700 last:border-b-0">
         <div className="capitalize font-semibold pt-2">{day}</div>

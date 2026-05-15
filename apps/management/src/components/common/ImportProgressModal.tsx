@@ -28,7 +28,7 @@ const ImportProgressModal: React.FC<ImportProgressModalProps> = ({
   return (
     <Modal 
       isOpen={isOpen} 
-      onClose={isComplete && onClose ? onClose : undefined}
+      onClose={isComplete && onClose ? onClose : () => {}}
       title={isComplete ? "Import Complete" : "Importing Photos"}
       size="md"
     >

@@ -69,7 +69,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({ isOpen, onClose, on
       alert('Price must be a positive number');
       return;
     }
-    if (product.stock < 0) {
+    if ((product.stock ?? 0) < 0) {
       alert('Stock must be a positive number');
       return;
     }

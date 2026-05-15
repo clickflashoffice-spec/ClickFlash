@@ -332,10 +332,13 @@ const OperationalCommandCenter: React.FC<OperationalCommandCenterProps> = ({
                     }
                   />
                   <Tooltip
-                    formatter={(v: number) => [
-                      `€${v >= 1000 ? (v / 1000).toFixed(2) + "k" : v}`,
-                      "Gross Volume",
-                    ]}
+                    formatter={(v) => {
+                      const n = Number(v);
+                      return [
+                        `€${n >= 1000 ? (n / 1000).toFixed(2) + "k" : n}`,
+                        "Gross Volume",
+                      ];
+                    }}
                     cursor={{ stroke: "rgba(59,130,246,0.3)", strokeWidth: 1 }}
                     contentStyle={{
                       backgroundColor: "#1e293b",

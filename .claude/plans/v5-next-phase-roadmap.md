@@ -1,14 +1,43 @@
 # ClickFlash v5.0 — Next-Phase Roadmap
 
-## Current State (v4.2.0 — completed)
+## Current State (v4.2.1 — completed)
 
-Phase 1-2 hardening is done. Security headers, rate limiting, SQL injection prevention,
-dead code cleanup, strict TypeScript, Sentry instrumentation, and deployment configs
-are all verified and committed. **4 commits shipped** this session.
+Phase 1-2 hardening and Phase 0 repo cleanup are done. Security headers, rate limiting,
+SQL injection prevention, dead code cleanup, strict TypeScript, Sentry instrumentation,
+deployment configs, and full repo organization are all verified and committed.
+
+### Phase 0 Cleanup Summary (v4.2.1, 7 commits, 2026-05-15)
+- Removed 6,651 tracked artifacts (~3 GB) from git index
+- Hardened `.gitignore` with 40+ new patterns
+- Archived 120 stale root `.md` files to `docs/archive/`
+- Updated CHANGELOG from v1.0.0 through v4.2.0
+- Generated 5 new production docs (monitoring, DR, data sync, scripts, PR template)
+- Fixed stale references in README.md and ARCHITECTURE.md
 
 ---
 
-## PHASE 1: CRITICAL SECURITY FIXES (Ship before hotel go-live)
+## PHASE 0: REPO CLEANUP (v4.2.1) ✅ COMPLETE
+
+| # | Task | Commit | Files |
+|---|------|--------|-------|
+| 1 | Remove 6,651 tracked artifacts from git index | `4b902eb` | ~6,550 deletions |
+| 2 | Harden .gitignore + app-level ignores | `0128791` | 3 files |
+| 3 | Archive 120 stale root .md files | `eed03a4` | 121 moves + 1 new |
+| 4 | Update CHANGELOG v1.0.0 → v4.2.0 | `db27347` | 1 edit |
+| 5 | Generate 5 missing production docs | `b76781e` | 5 new files |
+| 6 | Fix stale references in README + ARCHITECTURE | `5cf14dd` | 2 edits |
+| 7 | Update v5 roadmap with cleanup phase | (this commit) | 1 edit |
+
+**New docs created:**
+- `docs/MONITORING.md` — Sentry, health endpoints, audit logs, alert config
+- `docs/DISASTER_RECOVERY.md` — Recovery procedures for 7 failure scenarios
+- `docs/DATA_SYNC.md` — Master-to-cloud, touch-to-master, offline, R2 protocol
+- `scripts/README.md` — Operational scripts documentation
+- `.github/pull_request_template.md` — Standardized PR checklist
+
+---
+
+## PHASE 1: CRITICAL SECURITY FIXES (Ship before hotel go-live) ✅ COMPLETE
 
 ### P1-S1. Server-Side Price Validation (CRITICAL)
 **File:** `apps/gallery/backend/src/server.ts` line 142
@@ -190,13 +219,14 @@ Extract to `@clickflash/logger` package.
 
 ## Priority Matrix
 
-| Priority | Items | Timeline |
-|----------|-------|----------|
-| BEFORE GO-LIVE | P1-S1 through P1-S5 | This week |
-| v4.3.0 | P2-A1 through P2-A6 | 1-2 weeks |
-| v5.0.0 | P3-R1 through P3-R5 | 1-2 months |
-| v5.1.0 | P4-I1 through P4-I5 | 2-3 months |
-| Ongoing | P5-T1 through P5-T4 | Continuous |
+| Priority | Items | Timeline | Status |
+|----------|-------|----------|--------|
+| REPO CLEANUP | Phase 0 (7 tasks) | Done | ✅ Complete |
+| BEFORE GO-LIVE | P1-S1 through P1-S5 | Done | ✅ Complete |
+| v4.3.0 | P2-A1 through P2-A6 | Done (A5 partial) | ✅ Mostly complete |
+| v5.0.0 | P3-R1 through P3-R5 | 1-2 months | Next up |
+| v5.1.0 | P4-I1 through P4-I5 | 2-3 months | Planned |
+| Ongoing | P5-T1 through P5-T4 | Continuous | In progress |
 
 ---
 

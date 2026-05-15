@@ -2,9 +2,8 @@
 
 > **A complete 6-app platform for professional photography businesses**
 
-[![CI](https://github.com/alamo/ClickFlash/actions/workflows/ci.yml/badge.svg)](https://github.com/alamo/ClickFlash/actions/workflows/ci.yml)
-[![CD](https://github.com/alamo/ClickFlash/actions/workflows/cd.yml/badge.svg)](https://github.com/alamo/ClickFlash/actions/workflows/cd.yml)
-[![Nightly](https://github.com/alamo/ClickFlash/actions/workflows/nightly.yml/badge.svg)](https://github.com/alamo/ClickFlash/actions/workflows/nightly.yml)
+[![CI](https://github.com/alaeddinekhemiri/ClickFlash/actions/workflows/ci.yml/badge.svg)](https://github.com/alaeddinekhemiri/ClickFlash/actions/workflows/ci.yml)
+[![CD](https://github.com/alaeddinekhemiri/ClickFlash/actions/workflows/cd.yml/badge.svg)](https://github.com/alaeddinekhemiri/ClickFlash/actions/workflows/cd.yml)
 
 [![Master Portal](https://img.shields.io/badge/Master%20Portal-v4.2.0-blue)](./apps/master/)
 [![Touch Kiosk](https://img.shields.io/badge/Touch%20Kiosk-v4.2.0-green)](./apps/touch/)
@@ -66,16 +65,13 @@ E:\ClickFlash\
 │   └── 📂 website/             # 🌐 Main Website (Next.js 15)
 │
 ├── 📂 packages/                # Shared packages
-│   ├── 📂 types/               # Shared TypeScript types
-│   ├── 📂 ui/                  # Shared UI components
-│   └── 📂 utils/               # Shared utilities
+│   ├── 📂 types/               # @clickflash/types — shared TypeScript types
+│   └── 📂 ui/                  # @clickflash/ui — shared UI components
 │
-├── 📂 tools/                   # Build & deployment tools
-│   └── 📂 scripts/             # Automation scripts
-│
-├── 📂 deployment/              # Docker & deployment configs
-├── 📂 docs/                    # Documentation
-├── 📄 package.json             # Root workspace config
+├── 📂 scripts/                 # Operational scripts (build, deploy, rotate keys)
+├── 📂 docs/                    # Production guides (monitoring, DR, data sync)
+│   └── 📂 archive/             # Historical dev records (120 files)
+├── 📄 package.json             # Root workspace config (pnpm workspaces)
 └── 📄 README.md                # This file
 ```
 
@@ -150,18 +146,18 @@ npm run dev:moneytrash    # Port 3000
 ### 4. 📊 Management Hub (100% Online)
 
 **Location:** `apps/management/`  
-**Type:** React 19 + Vite + Express + SQLite (Cloud App)
+**Type:** React 19 + Vite + CF Worker + D1 (Cloud App)
 
-Fully online business management dashboard deployed to the cloud. Self-contained Express backend with SQLite database.
+Fully online business management dashboard deployed as a Cloudflare Worker with D1 database.
 
 - **Features:** Advanced analytics, 12+ management pages, payroll, reports, settings
-- **Stack:** React 19 + Vite + Express + SQLite + Tailwind CSS
-- **Deployment:** Docker / Cloud Run
+- **Stack:** React 19 + Vite + Cloudflare Worker + D1 + Tailwind CSS
+- **Deployment:** Cloudflare Workers
 - **Status:** ✅ Complete
 
 ```bash
-npm run dev:management    # Frontend (Vite dev server)
-npm start                 # Backend API (Express + SQLite)
+npm run dev               # Frontend (Vite dev server)
+npm run dev:backend       # Backend (wrangler dev)
 ```
 
 ---
@@ -169,18 +165,18 @@ npm start                 # Backend API (Express + SQLite)
 ### 5. 🛍️ Customer Gallery (100% Online)
 
 **Location:** `apps/gallery/`  
-**Type:** React 19 + Vite + Express + SQLite (Cloud App)
+**Type:** React 19 + Vite + CF Worker + D1 + R2 (Cloud App)
 
-Fully online customer portal deployed to the cloud. Self-contained Express backend with SQLite database and Stripe integration.
+Fully online customer portal deployed as a Cloudflare Worker with D1 database, R2 photo storage, and Stripe payments.
 
 - **Features:** Photo browsing, lightbox, favorites, shopping cart, Stripe payments, downloads
-- **Stack:** React 19 + Vite + Express + SQLite + Stripe
-- **Deployment:** Docker / Cloud Run
+- **Stack:** React 19 + Vite + Cloudflare Worker + D1 + R2 + Stripe
+- **Deployment:** Cloudflare Workers
 - **Status:** ✅ Complete
 
 ```bash
-npm run dev:gallery       # Frontend (Vite dev server)
-npm start                 # Backend API (Express + SQLite)
+npm run dev               # Frontend (Vite dev server)
+npm run dev:backend       # Backend (wrangler dev)
 ```
 
 ---
@@ -265,26 +261,30 @@ For automated local setup and deployment, the following scripts are available in
 
 ### Web Apps (100% Online)
 
-- **Money Trash Uploader** - Next.js 16 standalone
-- **Management Hub** - React + Express + SQLite (own backend, cloud-deployed)
-- **Customer Gallery** - React + Express + SQLite + Stripe (own backend, cloud-deployed)
-- **Main Website** - Next.js 15 marketing site (Cloudflare Pages)
+- **Money Trash Uploader** - Tauri desktop app (local upload gateway)
+- **Management Hub** - CF Worker + D1 (cloud-deployed)
+- **Customer Gallery** - CF Worker + D1 + R2 + Stripe (cloud-deployed)
+- **Main Website** - Next.js 15 marketing site
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Technology   | Version | Usage          |
-| ------------ | ------- | -------------- |
-| React        | 19.x    | UI Framework   |
-| Next.js      | 15-16.x | Web Apps       |
-| Electron     | 29.x    | Desktop Apps   |
-| Vite         | 7.x     | Build Tool     |
-| TypeScript   | 5.x     | Language       |
-| Tailwind CSS | 4.x     | Styling        |
-| SQLite       | 3.x     | Local Database |
-| Express.js   | 4.x     | Backend API    |
-| Stripe       | 14.x    | Payments       |
+| Technology   | Version | Usage                          |
+| ------------ | ------- | ------------------------------ |
+| React        | 19.x    | UI Framework (all apps)        |
+| Next.js      | 15.x    | Website                        |
+| Electron     | 39.x    | Desktop Apps (master, touch)   |
+| Tauri         | 2.x     | Desktop App (moneytrash)       |
+| Vite         | 7.x     | Build Tool                     |
+| TypeScript   | 5.x     | Language                       |
+| Tailwind CSS | 3.x     | Styling                        |
+| SQLite       | 3.x     | Local Database (master, touch) |
+| D1           | --      | Cloud Database (gallery, mgmt) |
+| R2           | --      | Object Storage (gallery)       |
+| Express.js   | 5.x     | Backend API (master, touch)    |
+| CF Workers   | --      | Edge Backend (gallery, mgmt)   |
+| Stripe       | 20.x    | Payments                       |
 
 ---
 
@@ -307,14 +307,14 @@ E2E Tests: 68 passing
 
 #### App Completion Status
 
-| App                  | Status      | Port | Stack               |
-| :------------------- | :---------- | :--- | :------------------ |
-| **Master Portal**    | ✅ Complete | 8090 | Electron + React 19 |
-| **Touch Kiosk**      | ✅ Complete | 8091 | Electron + React 19 |
-| **Money Trash**      | ✅ Complete | 3000 | Next.js 16          |
-| **Management Hub**   | ✅ Complete | 8092 | React 19 + Express  |
-| **Customer Gallery** | ✅ Complete | 8093 | React 19 + Express  |
-| **Website**          | ✅ Active   | 3001 | Next.js 15          |
+| App                  | Status      | Port | Stack                    |
+| :------------------- | :---------- | :--- | :----------------------- |
+| **Master Portal**    | ✅ Complete | 8090 | Electron + React 19      |
+| **Touch Kiosk**      | ✅ Complete | 8091 | Electron + React 19      |
+| **Money Trash**      | ✅ Complete | --   | Tauri + React 19         |
+| **Management Hub**   | ✅ Complete | --   | CF Worker + D1           |
+| **Customer Gallery** | ✅ Complete | --   | CF Worker + D1 + R2      |
+| **Website**          | ✅ Active   | 3001 | Next.js 15               |
 
 **Overall: 6/6 Apps Complete (100%)**
 
@@ -322,10 +322,15 @@ E2E Tests: 68 passing
 
 ## 📚 Documentation
 
-- [Architecture](./.agent/ARCHITECTURE.md) - System design & data flow
-- [File Structure](./.agent/FILE_STRUCTURE.md) - Directory organization
-- [Tech Stack](./.agent/TECH_STACK.md) - Technology specifications
-- [TODO](./.agent/TODO.md) - Active tasks & roadmap
+- [Architecture](./ARCHITECTURE.md) - System design & data flow
+- [API Reference](./API.md) - API endpoints and contracts
+- [Deployment Guide](./DEPLOYMENT.md) - Production deployment procedures
+- [Setup Guide](./SETUP.md) - Development environment setup
+- [Testing Guide](./TESTING_GUIDE.md) - Test strategy and execution
+- [Monitoring](./docs/MONITORING.md) - Production observability
+- [Disaster Recovery](./docs/DISASTER_RECOVERY.md) - Recovery procedures
+- [Data Sync](./docs/DATA_SYNC.md) - Sync architecture and offline support
+- [Changelog](./CHANGELOG.md) - Version history (v1.0.0 - v4.2.0)
 
 ---
 
@@ -352,5 +357,5 @@ Private - ClickFlash Photography Solutions
 
 ---
 
-**Last Updated:** February 2026  
+**Last Updated:** May 2026  
 **Version:** 4.2.0

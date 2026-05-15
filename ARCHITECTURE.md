@@ -35,7 +35,7 @@ graph TB
 |-----|------|------|---------|------|
 | **Master Station** | Local (Electron) | 8090 | Express + SQLite | Photo processing, face recognition, cloud sync gateway |
 | **Touch Kiosk** | Local (Electron) | 8091 | Express + SQLite | Customer-facing selection and order creation |
-| **Money Trash** | Local (Next.js) | 3000 | Next.js | Lead capture uploader |
+| **Money Trash** | Local (Tauri) | — | Tauri + React | Photo upload gateway |
 | **Management Hub** | Cloud | — | Cloudflare Worker + D1 | Business analytics and centralized management |
 | **Customer Gallery** | Cloud | — | Cloudflare Worker + R2 | Customer photo access and purchase |
 | **Website** | Cloud | — | Cloudflare Pages | Marketing and public presence |
@@ -71,10 +71,12 @@ ClickFlash/
 │   ├── gallery/         # Customer Gallery (Cloudflare Worker)
 │   │   ├── backend/     # Worker source (wrangler)
 │   │   └── src/         # React frontend
-│   ├── website/         # Main Website (Next.js static export)
-│   └── shared/          # Shared cloud schema
+│   └── website/         # Main Website (Next.js static export)
 ├── packages/
-│   └── backup-service/  # Backup automation
+│   ├── types/           # @clickflash/types — shared TypeScript types
+│   └── ui/              # @clickflash/ui — shared UI components
+├── scripts/             # Operational scripts (build, deploy, rotate keys)
+├── docs/                # Production guides + archived dev records
 ├── start-all.bat        # Launch all local apps
 ├── kill-all.bat         # Terminate all local processes
 ├── install-all.bat      # Install all local dependencies

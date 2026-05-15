@@ -207,8 +207,8 @@ Extract to `@clickflash/logger` package.
 - [x] Auth rate limiting (both workers)
 - [x] AuditLogger log rotation (master)
 - [x] Vite dev script fix (management)
-- [ ] **P1-S1: Server-side price validation** (BLOCKS GO-LIVE)
-- [ ] P1-S2: Touch bind to localhost
-- [ ] P1-S3: Remove bypassCSP
-- [ ] P1-S4: Hash kiosk password
-- [ ] P1-S5: Remove hardcoded setup password
+- [x] P1-S1: Server-side Stripe price validation (53325f3)
+- [x] P1-S2: Touch bind to localhost (877b0d4)
+- [x] P1-S3: Remove bypassCSP (877b0d4)
+- [x] P1-S4: Hash kiosk password with bcrypt auto-upgrade (877b0d4)
+- [x] P1-S5: Remove hardcoded setup password (877b0d4)

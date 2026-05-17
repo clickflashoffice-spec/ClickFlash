@@ -27,7 +27,7 @@ interface CheckoutModalProps {
 }
 
 const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, cart, total, onClose, onUpdateQuantity, clientName, email, photographerId, destinationId, onCheckoutSuccess }) => {
-    const { formatCurrency } = useCurrency();
+    const { formatCurrency, currency } = useCurrency();
     const [isLoading, setIsLoading] = useState(false);
 
     const handleCheckout = async () => {
@@ -106,6 +106,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, cart, total, onCl
                             amount={total}
                             orderId={`TEMP-${Date.now()}`} // Ideally create order first, then pay
                             email={email}
+                            currency={currency.code.toLowerCase()}
                             onSuccess={handleCheckoutSuccessLocal}
                             onCancel={() => setShowPayment(false)}
                         />

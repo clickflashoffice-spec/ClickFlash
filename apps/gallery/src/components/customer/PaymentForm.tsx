@@ -95,17 +95,18 @@ interface PaymentFormProps {
     amount: number;
     orderId: string;
     email?: string;
+    currency?: string;
     onSuccess: () => void;
     onCancel: () => void;
 }
 
-export const PaymentForm: React.FC<PaymentFormProps> = ({ amount, orderId, email, onSuccess, onCancel }) => {
+export const PaymentForm: React.FC<PaymentFormProps> = ({ amount, orderId, email, currency = 'eur', onSuccess, onCancel }) => {
     const [clientSecret, setClientSecret] = useState("");
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         // Create PaymentIntent as soon as the page loads
-        stripeService.createPaymentIntent(orderId, amount, email)
+        stripeService.createPaymentIntent(orderId, amount, email, currency)
             .then((data) => {
                 if (data.error) {
                     setError(data.error);

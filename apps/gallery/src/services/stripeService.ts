@@ -18,7 +18,7 @@ export const stripeService = {
     /**
      * Create a Checkout Payment Intent on the backend
      */
-    async createPaymentIntent(orderId: string, amount: number, email?: string): Promise<PaymentIntentResponse> {
+    async createPaymentIntent(orderId: string, amount: number, email?: string, currency: string = 'eur'): Promise<PaymentIntentResponse> {
         try {
             // Determine API URL (similar to apiService)
             const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8092';
@@ -31,7 +31,7 @@ export const stripeService = {
                 body: JSON.stringify({
                     orderId,
                     amount: Math.round(amount * 100), // Convert to cents
-                    currency: 'usd',
+                    currency: currency.toLowerCase(),
                     email
                 }),
             });

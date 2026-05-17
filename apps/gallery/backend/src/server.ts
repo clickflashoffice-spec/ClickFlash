@@ -455,6 +455,91 @@ const galleryHandler = {
           );
         }
 
+        // Public: Abandoned Cart Snapshot (no auth — customers don't have accounts)
+        if (pathName === "/api/cart/snapshot" && request.method === "POST") {
+          const cartIp = request.headers.get("CF-Connecting-IP") ?? "unknown";
+          if (!await checkPublicRateLimit(env.WEBSITE_DB, cartIp, "cart_snapshot", 30, 60_000)) {
+            return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
+              status: 429,
+              headers: { "Content-Type": "application/json", "Retry-After": "60" },
+            });
+          }
+
+          let body: any;
+          try {
+            body = await request.json();
+          } catch {
+            return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
+          }
+
+          const { email, albumId, items, total, currency, sessionId } = body || {};
+          if (!email || !items || !Array.isArray(items) || items.length === 0 || !sessionId) {
+            return new Response(
+              JSON.stringify({ error: "email, items[], and sessionId are required" }),
+              { status: 400, headers: { "Content-Type": "application/json" } }
+            );
+          }
+
+          try {
+            // Upsert by session_id — only one active cart per browser session
+            await env.GALLERY_DB.prepare(`
+              INSERT INTO abandoned_carts (id, email, album_id, items, total, currency, session_id, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+              ON CONFLICT(session_id) DO UPDATE SET
+                email = excluded.email,
+                album_id = excluded.album_id,
+                items = excluded.items,
+                total = excluded.total,
+                currency = excluded.currency,
+                updated_at = CURRENT_TIMESTAMP
+            `).bind(
+              crypto.randomUUID(),
+              String(email).toLowerCase().trim(),
+              albumId || null,
+              JSON.stringify(items),
+              Number(total) || 0,
+              String(currency || "eur").toLowerCase(),
+              String(sessionId)
+            ).run();
+
+            return new Response(JSON.stringify({ success: true }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          } catch (e: any) {
+            console.error("[CartSnapshot] Error:", e);
+            return new Response(
+              JSON.stringify({ error: "Failed to save cart snapshot" }),
+              { status: 500, headers: { "Content-Type": "application/json" } }
+            );
+          }
+        }
+
+        // Public: Mark cart as recovered (called after successful checkout)
+        if (pathName === "/api/cart/recovered" && request.method === "POST") {
+          let body: any;
+          try {
+            body = await request.json();
+          } catch {
+            return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
+          }
+
+          const { sessionId } = body || {};
+          if (!sessionId) {
+            return new Response(JSON.stringify({ error: "sessionId required" }), { status: 400 });
+          }
+
+          try {
+            await env.GALLERY_DB.prepare(`
+              UPDATE abandoned_carts SET recovered = 1, recovered_at = CURRENT_TIMESTAMP
+              WHERE session_id = ?
+            `).bind(String(sessionId)).run();
+            return new Response(JSON.stringify({ success: true }), { status: 200 });
+          } catch {
+            return new Response(JSON.stringify({ error: "Failed" }), { status: 500 });
+          }
+        }
+
         if (pathName === "/api/auth/login" && request.method === "POST") {
           const parsed = (await request.json()) as any;
           const validation = validateLogin(parsed);
@@ -1047,6 +1132,85 @@ const galleryHandler = {
   },
 };
 
+/**
+ * Abandoned Cart Recovery — Cron Trigger
+ * Runs hourly to find carts idle for >1 hour and sends recovery emails via Resend.
+ */
+async function handleScheduled(env: Env): Promise<void> {
+  if (!env.RESEND_API_KEY) {
+    console.log("[Cron] RESEND_API_KEY not set — skipping abandoned cart emails");
+    return;
+  }
+
+  // Find carts that are:
+  // - older than 1 hour (customer had time to come back)
+  // - not yet recovered (recovered = 0)
+  // - first email not yet sent (recovery_sent = 0)
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const result = await env.GALLERY_DB.prepare(`
+    SELECT id, email, album_id, items, total, currency
+    FROM abandoned_carts
+    WHERE recovery_sent = 0 AND recovered = 0 AND updated_at < ?
+    LIMIT 20
+  `).bind(oneHourAgo).all();
+
+  if (!result.results || result.results.length === 0) return;
+
+  for (const cart of result.results as any[]) {
+    try {
+      const items = JSON.parse(cart.items || "[]");
+      const itemSummary = items.slice(0, 3).map((i: any) => i.name || "Photo").join(", ");
+      const currencySymbol = cart.currency === "usd" ? "$" : cart.currency === "gbp" ? "£" : cart.currency === "tnd" ? "TND " : "€";
+      const totalFormatted = `${currencySymbol}${Number(cart.total).toFixed(2)}`;
+
+      const galleryLink = cart.album_id
+        ? `https://gallery.clickflash.com/album/${cart.album_id}`
+        : "https://gallery.clickflash.com";
+
+      const emailHtml = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+          <h2 style="color: #1e293b;">You left something behind!</h2>
+          <p style="color: #475569; font-size: 16px;">
+            Hi there! We noticed you had some beautiful photos in your cart but didn't complete your purchase.
+          </p>
+          <div style="background: #f8fafc; border-radius: 8px; padding: 16px; margin: 20px 0;">
+            <p style="margin: 0 0 8px; color: #64748b; font-size: 14px;">Your items:</p>
+            <p style="margin: 0; font-weight: 600; color: #1e293b;">${itemSummary}${items.length > 3 ? ` + ${items.length - 3} more` : ""}</p>
+            <p style="margin: 8px 0 0; font-size: 20px; font-weight: 700; color: #16a34a;">${totalFormatted}</p>
+          </div>
+          <a href="${galleryLink}" style="display: inline-block; background: #16a34a; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            Complete Your Purchase
+          </a>
+          <p style="color: #94a3b8; font-size: 13px; margin-top: 24px;">
+            Your photos are waiting for you. If you have any questions, just reply to this email.
+          </p>
+        </div>
+      `;
+
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: "ClickFlash Gallery <gallery@clickflash.com>",
+          to: [cart.email],
+          subject: "Your photos are still waiting for you!",
+          html: emailHtml,
+        }),
+      });
+
+      // Mark as sent
+      await env.GALLERY_DB.prepare(
+        `UPDATE abandoned_carts SET recovery_sent = 1 WHERE id = ?`
+      ).bind(cart.id).run();
+    } catch (e) {
+      console.error(`[Cron] Failed to send recovery email to ${cart.email}:`, e);
+    }
+  }
+}
+
 export default {
   fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     if (!env.SENTRY_DSN) {
@@ -1062,5 +1226,9 @@ export default {
       }),
       galleryHandler,
     ).fetch(request, env, ctx);
+  },
+
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(handleScheduled(env));
   },
 };

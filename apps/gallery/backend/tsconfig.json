@@ -6,6 +6,9 @@
         "lib": [
             "ESNext"
         ],
+        "types": [
+            "@cloudflare/workers-types"
+        ],
         "outDir": "dist",
         "rootDir": "src",
         "strict": true,

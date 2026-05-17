@@ -13,6 +13,7 @@ import ProofingModal from "./ProofingModal";
 import ShareModal from "./ShareModal";
 import { MOCK_PRODUCTS } from "../../constants.ts";
 import { MoneyTrashGallery } from "./MoneyTrashGallery";
+import { useCartSync, markCartRecovered } from "../../hooks/useCartSync.ts";
 
 type CustomerView =
   | "Gallery"
@@ -62,6 +63,9 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     (order?.items.map((item) => item.photo).filter(Boolean) as Photo[]) || [];
   const [photosWithProofing, setPhotosWithProofing] =
     useState<Photo[]>(photosInOrder);
+
+  // Sync cart to D1 for abandoned cart recovery emails
+  useCartSync(order?.email, order?.destinationId);
 
   useEffect(() => {
     setPhotosWithProofing(photosInOrder);
@@ -130,6 +134,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     setCart([]);
     setIsCheckoutModalOpen(false);
     setView("Status");
+    markCartRecovered(); // Tell D1 this cart converted — don't send recovery email
   };
 
   const handleUpdateProofingStatus = useCallback(

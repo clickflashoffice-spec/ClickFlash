@@ -42,5 +42,8 @@ SENTRY_PROJECT = "clickflash-gallery"
 # wrangler secret put STRIPE_WEBHOOK_SECRET --env production
 # wrangler secret put SENTRY_DSN --env production
 
+[triggers]
+crons = ["0 * * * *"]  # Every hour — abandoned cart recovery emails
+
 [observability]
 enabled = true

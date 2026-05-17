@@ -142,7 +142,7 @@ class StripeEdgeService {
                 body: JSON.stringify({
                     orderId,
                     amount: Math.round(amount * 100),
-                    currency: 'usd',
+                    currency: 'eur',
                     email,
                 }),
             });
@@ -177,7 +177,7 @@ class StripeEdgeService {
                 },
                 body: JSON.stringify({
                     amount: Math.round(options.amount * 100),
-                    currency: options.currency || 'usd',
+                    currency: options.currency || 'eur',
                     email: options.customerEmail,
                     metadata: options.metadata,
                     paymentMethodTypes: options.paymentMethodTypes || ['card'],

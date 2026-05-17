@@ -136,13 +136,13 @@ to touch's auditLogger.
 
 ## PHASE 3: REVENUE & GROWTH (v5.0.0)
 
-### P3-R1. WhatsApp Gallery Delivery (~80% complete)
+### P3-R1. WhatsApp Gallery Delivery ✅
 FloatingWhatsApp exists on website. Gallery already generates magic links.
-Connect them: photographer sends gallery link via `wa.me` deep link from
-master app order screen. WhatsApp is the dominant channel in Tunisia.
-**Remaining:** Add share button to master order detail screen, wire `wa.me`
-deep link with pre-filled message containing gallery magic link.
-**Effort:** 1 day remaining | **Impact:** 3-5x gallery open rate vs email
+WhatsApp share button added to both OrderManagementView (detail header)
+and OrdersList (action menu). Opens `wa.me` deep link with pre-filled
+message containing gallery magic link (uses `magic_link_token` or `albumId`).
+Button only renders when `albumId` is present on the order.
+**Impact:** 3-5x gallery open rate vs email
 
 ### P3-R2. Dynamic Pricing Engine (~65% complete)
 `MOCK_PRODUCTS` with hardcoded prices in constants files. Master already has
@@ -152,13 +152,17 @@ admin pricing UI in management, implement per-hotel pricing tiers, seasonal
 rates, bundle discounts, volume pricing rules.
 **Effort:** 4 days remaining | **Impact:** Revenue per hotel, upsell potential
 
-### P3-R3. Multi-Currency Checkout (~75% complete)
+### P3-R3. Multi-Currency Checkout ✅
 `AVAILABLE_CURRENCIES` and `useCurrency` hooks already exist. Currency
 formatting helpers are wired through gallery and touch.
-**Remaining:** Stripe checkout currently hardcoded to USD — pass selected
-currency to `stripe.checkout.sessions.create()`. Wire currency selector
-into gallery checkout UI and touch kiosk order flow.
-**Effort:** 1 day remaining | **Impact:** Conversion rate for international guests
+Stripe checkout now accepts currency from request body (gallery backend
+`server.ts`, master `stripeService.ts`). Both validate against allowlist
+`[eur, usd, gbp, tnd]` with `eur` as default. Frontend services
+(`stripeService.ts`, `stripeEdgeService.ts`) pass selected currency.
+`CheckoutModal` reads `useCurrency()` and passes `currency.code` through
+`PaymentForm` to the payment intent API call.
+**Remaining:** Wire currency selector into touch kiosk order flow.
+**Impact:** Conversion rate for international guests
 
 ### P3-R4. Abandoned Cart Recovery (~60% complete)
 CampaignEditor UI with trigger events is fully built. Backend services
@@ -264,7 +268,7 @@ These must be resolved before first hotel go-live:
 | REPO CLEANUP | Phase 0 (7 tasks) | Done | ✅ Complete |
 | BEFORE GO-LIVE | P1-S1 through P1-S5 | Done | ✅ Complete |
 | v4.3.0 | P2-A1 through P2-A7 | Done (A5 partial, A7 new) | ✅ Mostly complete |
-| v5.0.0 | P3-R1 through P3-R5 | 1-2 months | Next up (60-80% scaffolded) |
+| v5.0.0 | P3-R1 through P3-R5 | 1-2 months | R1 ✅ R3 ✅ (R2/R4/R5 remaining) |
 | v5.1.0 | P4-I1 through P4-I5 | 2-3 months | Planned |
 | Ongoing | P5-T1 through P5-T5 | Continuous | In progress |
 | Deploy | D1 through D5 | Before go-live | Blocking |

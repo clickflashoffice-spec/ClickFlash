@@ -66,6 +66,10 @@ jobs:
         run: npm ci --workspace=apps/website && npm run typecheck --workspace=apps/website
         continue-on-error: false
 
+      - name: Type check (moneytrash)
+        run: npm ci --workspace=apps/moneytrash && npm run typecheck --workspace=apps/moneytrash
+        continue-on-error: false
+
   # Phase 1: Unit Tests with Jest
   unit-tests:
     name: Unit Tests

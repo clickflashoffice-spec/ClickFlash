@@ -138,7 +138,13 @@ const galleryHandler = {
             );
           }
 
-          const { items, customerEmail, albumId } = body || {};
+          const { items, customerEmail, albumId, currency: rawCurrency } = body || {};
+
+          // Validate currency — Stripe ISO 4217 lowercase codes
+          const ALLOWED_CURRENCIES = ["eur", "usd", "gbp", "tnd"];
+          const currency = ALLOWED_CURRENCIES.includes(String(rawCurrency).toLowerCase())
+            ? String(rawCurrency).toLowerCase()
+            : "eur";
 
           // SECURITY: Server-side price validation — never trust client prices
           if (!items || !Array.isArray(items) || items.length === 0) {
@@ -246,7 +252,7 @@ const galleryHandler = {
             if (albumId) stripeParams.append("metadata[albumId]", albumId);
 
             for (let i = 0; i < lineItems.length; i++) {
-              stripeParams.append(`line_items[${i}][price_data][currency]`, "eur");
+              stripeParams.append(`line_items[${i}][price_data][currency]`, currency);
               stripeParams.append(`line_items[${i}][price_data][product_data][name]`, lineItems[i].name);
               stripeParams.append(`line_items[${i}][price_data][unit_amount]`, String(lineItems[i].unitAmount));
               stripeParams.append(`line_items[${i}][quantity]`, String(lineItems[i].quantity));

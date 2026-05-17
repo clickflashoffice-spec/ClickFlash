@@ -26,6 +26,7 @@ export interface CheckoutSessionParams {
     customerEmail: string;
     successUrl: string;
     cancelUrl: string;
+    currency?: string;
 }
 
 /**
@@ -34,12 +35,18 @@ export interface CheckoutSessionParams {
 export const createCheckoutSession = async (
     params: CheckoutSessionParams
 ): Promise<Stripe.Checkout.Session> => {
-    const { orderId, items, customerEmail, successUrl, cancelUrl } = params;
+    const { orderId, items, customerEmail, successUrl, cancelUrl, currency: rawCurrency } = params;
+
+    // Validate currency — Stripe ISO 4217 lowercase codes
+    const ALLOWED_CURRENCIES = ['eur', 'usd', 'gbp', 'tnd'];
+    const currency = ALLOWED_CURRENCIES.includes(String(rawCurrency || '').toLowerCase())
+        ? String(rawCurrency).toLowerCase()
+        : 'eur';
 
     // Convert cart items to Stripe line items
     const lineItems = items.map(item => ({
         price_data: {
-            currency: 'usd',
+            currency,
             product_data: {
                 name: `Photo ${item.photoId.substring(0, 8)} - ${item.product}`,
                 description: getProductDescription(item.product)

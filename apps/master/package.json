@@ -79,7 +79,7 @@
     "lucide-react": "^0.562.0",
     "nodemailer": "^8.0.5",
     "pdf-to-printer": "^5.6.1",
-    "pdfmake": "^0.3.8",
+    "pdfmake": "~0.2.23",
     "qrcode": "^1.5.4",
     "react": "^19.2.0",
     "react-apexcharts": "^1.4.1",

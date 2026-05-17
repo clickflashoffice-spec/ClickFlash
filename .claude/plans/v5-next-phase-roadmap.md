@@ -123,39 +123,59 @@ Renumbered 7 files to `023_`–`029_` with traceability comments. All 29 migrati
 have unique 3-digit sequential prefixes.
 **Effort:** 2 hours | **Impact:** D1 migration reliability
 
+### P2-A7. Sync Touch auditLogger with Master (NEW)
+Touch's `auditLogger.ts` is missing log rotation and security event categories
+that master already has. Master logs critical auth events (failed logins, privilege
+escalation attempts, rate limit triggers) while touch only logs generic audit entries.
+**Fix:** Backport master's log rotation (file-size-based rotation, `maxFiles` config)
+and security event categories (`AUTH_FAILURE`, `RATE_LIMIT`, `PRIVILEGE_ESCALATION`)
+to touch's auditLogger.
+**Effort:** 4 hours | **Impact:** Security observability at kiosk level
+
 ---
 
 ## PHASE 3: REVENUE & GROWTH (v5.0.0)
 
-### P3-R1. WhatsApp Gallery Delivery
+### P3-R1. WhatsApp Gallery Delivery (~80% complete)
 FloatingWhatsApp exists on website. Gallery already generates magic links.
 Connect them: photographer sends gallery link via `wa.me` deep link from
 master app order screen. WhatsApp is the dominant channel in Tunisia.
-**Effort:** 2 days | **Impact:** 3-5x gallery open rate vs email
+**Remaining:** Add share button to master order detail screen, wire `wa.me`
+deep link with pre-filled message containing gallery magic link.
+**Effort:** 1 day remaining | **Impact:** 3-5x gallery open rate vs email
 
-### P3-R2. Dynamic Pricing Engine
-`MOCK_PRODUCTS` with hardcoded prices in constants files.
-Build: D1-backed product catalog, per-hotel pricing tiers, seasonal rates,
-bundle discounts, volume pricing.
-**Effort:** 1 week | **Impact:** Revenue per hotel, upsell potential
+### P3-R2. Dynamic Pricing Engine (~65% complete)
+`MOCK_PRODUCTS` with hardcoded prices in constants files. Master already has
+product CRUD UI and database tables for local products.
+**Remaining:** Create D1 `products` table for cloud-synced catalog, build
+admin pricing UI in management, implement per-hotel pricing tiers, seasonal
+rates, bundle discounts, volume pricing rules.
+**Effort:** 4 days remaining | **Impact:** Revenue per hotel, upsell potential
 
-### P3-R3. Multi-Currency Checkout
-`AVAILABLE_CURRENCIES` and `useCurrency` hooks already exist.
-Wire the currency selector into gallery checkout and touch kiosk.
-Tourists pay in their preferred currency.
-**Effort:** 2 days | **Impact:** Conversion rate for international guests
+### P3-R3. Multi-Currency Checkout (~75% complete)
+`AVAILABLE_CURRENCIES` and `useCurrency` hooks already exist. Currency
+formatting helpers are wired through gallery and touch.
+**Remaining:** Stripe checkout currently hardcoded to USD — pass selected
+currency to `stripe.checkout.sessions.create()`. Wire currency selector
+into gallery checkout UI and touch kiosk order flow.
+**Effort:** 1 day remaining | **Impact:** Conversion rate for international guests
 
-### P3-R4. Abandoned Cart Recovery (Complete the Loop)
+### P3-R4. Abandoned Cart Recovery (~60% complete)
 CampaignEditor UI with trigger events is fully built. Backend services
 are stubbed with `@ts-ignore`. Wire `marketingService` to Resend (already
 a dependency). Management cron handler already has the abandoned cart query.
-**Effort:** 3 days | **Impact:** 5-15% revenue recovery
+**Remaining:** Create cart tracking table in D1, implement cart persistence
+on gallery, wire abandoned cart scheduler in management cron, connect
+Resend email templates.
+**Effort:** 2 days remaining | **Impact:** 5-15% revenue recovery
 
-### P3-R5. AI Photo-to-Guest Matching
+### P3-R5. AI Photo-to-Guest Matching (~70% complete)
 Face detection UI scaffolding exists in Photos.tsx. Service layer stubbed.
-Connect to Cloudflare Workers AI or AWS Rekognition for automatic
-guest-photo matching by face. Single most impactful feature for conversion.
-**Effort:** 2 weeks | **Impact:** Massive UX improvement, photographer time savings
+Master has BlazeFace/face-api.js integration for local face detection.
+**Remaining:** Pre-compute face embeddings during photo import (batch worker),
+build embedding index for fast search, connect touch kiosk face-search UI
+to master's face matching API.
+**Effort:** 1 week remaining | **Impact:** Massive UX improvement, photographer time savings
 
 ---
 
@@ -215,6 +235,26 @@ Management and gallery rely on Sentry alone with no structured logger.
 Extract to `@clickflash/logger` package.
 **Effort:** 1 day
 
+### P5-T5. Add MoneyTrash to CI Typecheck (NEW)
+MoneyTrash app is missing from the `typecheck:ci` job in `.github/workflows/ci.yml`.
+All other 5 apps have `tsc --noEmit` steps — moneytrash was never added.
+**Fix:** Add `npm --prefix apps/moneytrash run typecheck` step to the CI typecheck job.
+**Effort:** 15 min | **Impact:** Prevents type regressions in moneytrash
+
+---
+
+## Deployment Gaps (discovered 2026-05-17)
+
+These must be resolved before first hotel go-live:
+
+| # | Gap | Severity | Fix |
+|---|-----|----------|-----|
+| D1 | Cloud secrets not automated | HIGH | `wrangler secret put` must be run manually for JWT_SECRET, STRIPE_SECRET_KEY, R2 credentials. No `.env.production` template exists. Create a `scripts/provision-secrets.sh` checklist. |
+| D2 | D1 migrations not automated | HIGH | No CI step runs `wrangler d1 migrations apply`. Migrations must be applied manually before each deploy. Add to deploy pipeline. |
+| D3 | Electron code signing disabled | MEDIUM | `apps/master/electron-builder.yml` and `apps/touch/electron-builder.yml` have no `certificateFile` / `certificatePassword`. Windows SmartScreen will block unsigned installers. |
+| D4 | Touch electron-builder version mismatch | LOW | Master uses electron-builder v26, touch uses v24. May cause inconsistent installer behavior. Align to v26 (tracked in P2-A1). |
+| D5 | Master migration prefix collisions | LOW | 6 pairs of migrations share the same numeric prefix (001, 002, 005, 025, 046, 053, 056, 057, 058). Run order is alphabetical within prefix — safe but fragile. Renumber on next schema change. |
+
 ---
 
 ## Priority Matrix
@@ -223,10 +263,37 @@ Extract to `@clickflash/logger` package.
 |----------|-------|----------|--------|
 | REPO CLEANUP | Phase 0 (7 tasks) | Done | ✅ Complete |
 | BEFORE GO-LIVE | P1-S1 through P1-S5 | Done | ✅ Complete |
-| v4.3.0 | P2-A1 through P2-A6 | Done (A5 partial) | ✅ Mostly complete |
-| v5.0.0 | P3-R1 through P3-R5 | 1-2 months | Next up |
+| v4.3.0 | P2-A1 through P2-A7 | Done (A5 partial, A7 new) | ✅ Mostly complete |
+| v5.0.0 | P3-R1 through P3-R5 | 1-2 months | Next up (60-80% scaffolded) |
 | v5.1.0 | P4-I1 through P4-I5 | 2-3 months | Planned |
-| Ongoing | P5-T1 through P5-T4 | Continuous | In progress |
+| Ongoing | P5-T1 through P5-T5 | Continuous | In progress |
+| Deploy | D1 through D5 | Before go-live | Blocking |
+
+---
+
+## Full Ecosystem Test Results (v4.2.1, 2026-05-17)
+
+All 6 apps tested end-to-end. 27-photo album imported from real portfolio.
+
+| App | Port | Startup | UI Render | Key Features Tested |
+|-----|------|---------|-----------|-------------------|
+| Master Backend | :8090 | ✅ | N/A | Health API 200, v4.2.0, SQLite WAL, worker pools |
+| Master Frontend | :5174 | ✅ | ✅ | Login, dashboard, albums (27-photo import), photo editor, orders, Resort BI |
+| Touch Kiosk | :5175 | ✅ | ✅ | Welcome screen, master connection UI, photo browsing, kiosk navigation lock |
+| Gallery | :5176 | ✅ | ✅ | Customer service landing, B2B access code input, buy/download tabs |
+| Management | :5177 | ✅ | ✅ | Login portal, access identifier, security passphrase, initialize flow |
+| Website | :3001 | ✅ | ✅ (curl) | Next.js SSR compilation, homepage 200, all routes compile |
+| MoneyTrash | :5178 | ✅ | ✅ (curl) | Vite dev server, upload interface serves |
+
+**Issues found:**
+- `pdfmake` 0.3.x breaks CJS `require()` — pinned to `~0.2.23` (fix committed)
+- `npm --prefix` doesn't add `node_modules/.bin` to PATH on Windows — use `npx` from app directory
+- Website SSR first-compile takes ~15s per page (expected Next.js behavior)
+- Master migration prefixes have 6 collisions (tracked in D5 above)
+- Admin PIN verification uses separate `admin_pin_hash` in settings table (not user password)
+
+**No critical errors.** Zero uncaught exceptions in Management console. Gallery and Touch
+render clean professional UIs. All apps start without crashes.
 
 ---
 

@@ -42,6 +42,24 @@
     "concurrently": "^9.2.1",
     "husky": "^9.0.0"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@google/genai",
+      "@sentry/cli",
+      "bcrypt",
+      "better-sqlite3",
+      "better-sqlite3-multiple-ciphers",
+      "core-js",
+      "electron",
+      "electron-winstaller",
+      "esbuild",
+      "msw",
+      "protobufjs",
+      "sharp",
+      "unrs-resolver",
+      "workerd"
+    ]
+  },
   "packageManager": "pnpm@10.28.2",
   "engines": {
     "node": ">=20.0.0"

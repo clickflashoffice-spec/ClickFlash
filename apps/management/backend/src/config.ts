@@ -36,6 +36,8 @@ export const TABLE_MAP: Record<string, string> = {
   equipment: "equipment",
   daily_resort_stats: "daily_resort_stats",
   photographer_performance: "photographer_performance",
+  pricing_overrides: "pricing_overrides",
+  seasonal_rates: "seasonal_rates",
 };
 
 export const JSON_COLUMNS: Record<string, string[]> = {
@@ -112,6 +114,10 @@ export const ALLOWED_COLUMNS: Record<string, string[]> = {
     "price",
     "category",
     "status",
+    "description",
+    "tier",
+    "stock",
+    "isFeatured",
     "created_at",
     "updated_at",
   ],
@@ -226,6 +232,26 @@ export const ALLOWED_COLUMNS: Record<string, string[]> = {
     "photos_made_themes",
     "total_session_seconds",
     "session_count",
+    "updated_at",
+  ],
+  pricing_overrides: [
+    "id",
+    "product_id",
+    "hotel_id",
+    "price",
+    "created_at",
+    "updated_at",
+  ],
+  seasonal_rates: [
+    "id",
+    "name",
+    "hotel_id",
+    "multiplier",
+    "start_date",
+    "end_date",
+    "priority",
+    "is_active",
+    "created_at",
     "updated_at",
   ],
 };

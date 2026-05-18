@@ -9,6 +9,7 @@ import Card from "./common/Card.tsx";
 import { useDebounce } from "../hooks/useDebounce.ts";
 import { syncPricingToSupabase } from "../services/pricingSync.ts";
 import { HOTELS } from "../constants.ts";
+import PricingRulesPanel from "./products/PricingRulesPanel.tsx";
 
 /**
  * ProductsPage Component
@@ -21,7 +22,7 @@ interface ProductsPageProps {
 }
 
 const ProductsPage: React.FC<ProductsPageProps> = ({ context }) => {
-  const [activeTab, setActiveTab] = useState<"products" | "packs">("products");
+  const [activeTab, setActiveTab] = useState<"products" | "packs" | "pricing">("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [packs, setPacks] = useState<Pack[]>([]);
   const [loading, setLoading] = useState(true);
@@ -272,6 +273,30 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ context }) => {
               />
             </svg>
             Packages
+          </button>
+          <button
+            onClick={() => setActiveTab("pricing")}
+            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 ${
+              activeTab === "pricing"
+                ? "bg-white text-cyan-600 shadow-sm ring-1 ring-slate-200"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+              />
+            </svg>
+            Pricing Rules
           </button>
         </div>
       </div>
@@ -760,6 +785,8 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ context }) => {
           )}
         </div>
       )}
+
+      {activeTab === "pricing" && <PricingRulesPanel />}
 
       {isProductModalOpen && (
         <ProductEditModal

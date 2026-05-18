@@ -540,6 +540,69 @@ const galleryHandler = {
           }
         }
 
+        // Public: Resolve effective prices for a hotel (dynamic pricing)
+        if (pathName === "/api/pricing" && request.method === "GET") {
+          const hotelId = url.searchParams.get("hotelId") || null;
+          const dateStr = url.searchParams.get("date") || new Date().toISOString().split("T")[0];
+
+          try {
+            // 1. Fetch all active products
+            const productsResult = await env.GALLERY_DB.prepare(
+              `SELECT id, name, category, price, tier, description FROM products WHERE status = 'Active' OR status IS NULL`
+            ).all();
+            const products = (productsResult.results || []) as any[];
+
+            // 2. Fetch hotel-specific overrides (if hotelId provided)
+            let overrideMap = new Map<string, number>();
+            if (hotelId) {
+              const overrides = await env.GALLERY_DB.prepare(
+                `SELECT product_id, price FROM pricing_overrides WHERE hotel_id = ?`
+              ).bind(hotelId).all();
+              for (const o of (overrides.results || []) as any[]) {
+                overrideMap.set(o.product_id, o.price);
+              }
+            }
+
+            // 3. Find applicable seasonal rate (highest priority wins)
+            let multiplier = 1.0;
+            const seasonQuery = hotelId
+              ? `SELECT multiplier FROM seasonal_rates WHERE is_active = 1 AND start_date <= ? AND end_date >= ? AND (hotel_id IS NULL OR hotel_id = ?) ORDER BY priority DESC LIMIT 1`
+              : `SELECT multiplier FROM seasonal_rates WHERE is_active = 1 AND start_date <= ? AND end_date >= ? AND hotel_id IS NULL ORDER BY priority DESC LIMIT 1`;
+            const seasonParams = hotelId ? [dateStr, dateStr, hotelId] : [dateStr, dateStr];
+            const seasonResult = await env.GALLERY_DB.prepare(seasonQuery).bind(...seasonParams).first<{ multiplier: number }>();
+            if (seasonResult?.multiplier) {
+              multiplier = seasonResult.multiplier;
+            }
+
+            // 4. Compute effective prices
+            const resolved = products.map((p: any) => {
+              const basePrice = overrideMap.has(p.id) ? overrideMap.get(p.id)! : p.price;
+              return {
+                id: p.id,
+                name: p.name,
+                category: p.category,
+                tier: p.tier,
+                description: p.description,
+                basePrice: p.price,
+                effectivePrice: Math.round(basePrice * multiplier * 100) / 100,
+                multiplier,
+                hasOverride: overrideMap.has(p.id),
+              };
+            });
+
+            return new Response(JSON.stringify({ products: resolved, date: dateStr, hotelId, multiplier }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          } catch (e: any) {
+            console.error("[Pricing] Error:", e);
+            return new Response(JSON.stringify({ error: "Failed to resolve pricing" }), {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+        }
+
         if (pathName === "/api/auth/login" && request.method === "POST") {
           const parsed = (await request.json()) as any;
           const validation = validateLogin(parsed);

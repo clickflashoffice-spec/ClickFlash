@@ -123,14 +123,10 @@ Renumbered 7 files to `023_`–`029_` with traceability comments. All 29 migrati
 have unique 3-digit sequential prefixes.
 **Effort:** 2 hours | **Impact:** D1 migration reliability
 
-### P2-A7. Sync Touch auditLogger with Master (NEW)
-Touch's `auditLogger.ts` is missing log rotation and security event categories
-that master already has. Master logs critical auth events (failed logins, privilege
-escalation attempts, rate limit triggers) while touch only logs generic audit entries.
-**Fix:** Backport master's log rotation (file-size-based rotation, `maxFiles` config)
-and security event categories (`AUTH_FAILURE`, `RATE_LIMIT`, `PRIVILEGE_ESCALATION`)
-to touch's auditLogger.
-**Effort:** 4 hours | **Impact:** Security observability at kiosk level
+### P2-A7. Sync Touch auditLogger with Master ✅ (ac11a34)
+Backported master's log rotation (RETENTION_DAYS=30, MAX_LOG_SIZE_BYTES=50MB,
+`rotateLogs()` on init) and `logSecurityEvent()` method to touch's auditLogger.
+**Effort:** 30 min | **Impact:** Security observability at kiosk level
 
 ---
 
@@ -144,13 +140,14 @@ message containing gallery magic link (uses `magic_link_token` or `albumId`).
 Button only renders when `albumId` is present on the order.
 **Impact:** 3-5x gallery open rate vs email
 
-### P3-R2. Dynamic Pricing Engine (~65% complete)
-`MOCK_PRODUCTS` with hardcoded prices in constants files. Master already has
-product CRUD UI and database tables for local products.
-**Remaining:** Create D1 `products` table for cloud-synced catalog, build
-admin pricing UI in management, implement per-hotel pricing tiers, seasonal
-rates, bundle discounts, volume pricing rules.
-**Effort:** 4 days remaining | **Impact:** Revenue per hotel, upsell potential
+### P3-R2. Dynamic Pricing Engine ✅ (41bbd29)
+D1 migrations add `pricing_overrides` (per-hotel) and `seasonal_rates` (date-range
+multipliers) tables to both gallery and management. Gallery worker serves
+`GET /api/pricing?hotelId=&date=` to resolve effective prices. Management UI has
+full PricingRulesPanel with CRUD for overrides and seasonal multipliers.
+Products table enhanced with `status`, `description`, `tier` columns.
+**Remaining:** Volume pricing rules, bundle discount logic.
+**Impact:** Revenue per hotel, upsell potential
 
 ### P3-R3. Multi-Currency Checkout ✅
 `AVAILABLE_CURRENCIES` and `useCurrency` hooks already exist. Currency
@@ -164,14 +161,14 @@ Stripe checkout now accepts currency from request body (gallery backend
 **Remaining:** Wire currency selector into touch kiosk order flow.
 **Impact:** Conversion rate for international guests
 
-### P3-R4. Abandoned Cart Recovery (~60% complete)
-CampaignEditor UI with trigger events is fully built. Backend services
-are stubbed with `@ts-ignore`. Wire `marketingService` to Resend (already
-a dependency). Management cron handler already has the abandoned cart query.
-**Remaining:** Create cart tracking table in D1, implement cart persistence
-on gallery, wire abandoned cart scheduler in management cron, connect
-Resend email templates.
-**Effort:** 2 days remaining | **Impact:** 5-15% revenue recovery
+### P3-R4. Abandoned Cart Recovery ✅ (6ef2652)
+D1 migration 013 creates `abandoned_carts` table with session-based dedup.
+Gallery worker adds `POST /api/cart/snapshot` (public, rate-limited) and
+`POST /api/cart/recovered` endpoints. Hourly Cron Trigger queries carts idle
+>1 hour and sends Resend recovery emails with gallery deep links.
+Frontend `useCartSync` hook debounces (5s) cart snapshots to D1 when email is
+known. `markCartRecovered()` called on checkout success to suppress false positives.
+**Impact:** 5-15% revenue recovery
 
 ### P3-R5. AI Photo-to-Guest Matching (~70% complete)
 Face detection UI scaffolding exists in Photos.tsx. Service layer stubbed.
@@ -267,8 +264,8 @@ These must be resolved before first hotel go-live:
 |----------|-------|----------|--------|
 | REPO CLEANUP | Phase 0 (7 tasks) | Done | ✅ Complete |
 | BEFORE GO-LIVE | P1-S1 through P1-S5 | Done | ✅ Complete |
-| v4.3.0 | P2-A1 through P2-A7 | Done (A5 partial, A7 new) | ✅ Mostly complete |
-| v5.0.0 | P3-R1 through P3-R5 | 1-2 months | R1 ✅ R3 ✅ (R2/R4/R5 remaining) |
+| v4.3.0 | P2-A1 through P2-A7 | Done (A5 partial) | ✅ Complete |
+| v5.0.0 | P3-R1 through P3-R5 | 1-2 months | R1 ✅ R2 ✅ R3 ✅ R4 ✅ (R5 remaining) |
 | v5.1.0 | P4-I1 through P4-I5 | 2-3 months | Planned |
 | Ongoing | P5-T1 through P5-T5 | Continuous | In progress |
 | Deploy | D1 through D5 | Before go-live | Blocking |

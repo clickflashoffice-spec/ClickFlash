@@ -170,13 +170,19 @@ Frontend `useCartSync` hook debounces (5s) cart snapshots to D1 when email is
 known. `markCartRecovered()` called on checkout success to suppress false positives.
 **Impact:** 5-15% revenue recovery
 
-### P3-R5. AI Photo-to-Guest Matching (~70% complete)
+### P3-R5. AI Photo-to-Guest Matching ✅ COMPLETE
 Face detection UI scaffolding exists in Photos.tsx. Service layer stubbed.
 Master has BlazeFace/face-api.js integration for local face detection.
-**Remaining:** Pre-compute face embeddings during photo import (batch worker),
-build embedding index for fast search, connect touch kiosk face-search UI
-to master's face matching API.
-**Effort:** 1 week remaining | **Impact:** Massive UX improvement, photographer time savings
+**Implemented:** `FaceIndexingWorker` background batch processor drains
+`face_indexing_queue` every 30s (master) / 45s (touch), runs face-api.js
+detection via WorkerPool, stores descriptors in `photo_faces`, and
+updates VP-Tree index for fast search. `albumService.registerPhoto()` and
+`registerPhotosBatch()` now auto-queue photos for face indexing on import.
+Touch sync route also auto-queues synced photos. Gallery stub service
+replaced with real API delegation to master's `/api/faces/search`.
+**Commit:** (pending)
+**Remaining:** Performance tuning for >10K photos, face clustering UI
+**Impact:** Massive UX improvement, photographer time savings
 
 ---
 
@@ -265,7 +271,7 @@ These must be resolved before first hotel go-live:
 | REPO CLEANUP | Phase 0 (7 tasks) | Done | ✅ Complete |
 | BEFORE GO-LIVE | P1-S1 through P1-S5 | Done | ✅ Complete |
 | v4.3.0 | P2-A1 through P2-A7 | Done (A5 partial) | ✅ Complete |
-| v5.0.0 | P3-R1 through P3-R5 | 1-2 months | R1 ✅ R2 ✅ R3 ✅ R4 ✅ (R5 remaining) |
+| v5.0.0 | P3-R1 through P3-R5 | 1-2 months | ✅ All 5 complete |
 | v5.1.0 | P4-I1 through P4-I5 | 2-3 months | Planned |
 | Ongoing | P5-T1 through P5-T5 | Continuous | In progress |
 | Deploy | D1 through D5 | Before go-live | Blocking |

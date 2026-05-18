@@ -112,6 +112,7 @@ import { MaintenancePoller } from "./services/MaintenancePoller";
 import { ExportService } from "./services/ExportService";
 import { ResortAnalyticsService } from "./services/ResortAnalyticsService";
 import { DiagnosticSyncService } from "./services/DiagnosticSyncService";
+import { FaceIndexingWorker } from "./services/FaceIndexingWorker";
 import startOrderWatcher from "./services/orderWatcher";
 
 // Configuration
@@ -242,6 +243,7 @@ let ledgerService: LedgerService;
 let exportService: ExportService;
 let resortAnalytics: ResortAnalyticsService;
 let diagnosticSync: DiagnosticSyncService;
+let faceIndexingWorker: FaceIndexingWorker;
 
 try {
   // Write Queue (Zero-Block IO)
@@ -282,6 +284,7 @@ try {
   inventoryService = new InventoryService(dbManager, logger);
   ledgerService = new LedgerService(dbManager, logger);
   vectorIndex = VectorIndexService.getInstance(dbManager, logger);
+  faceIndexingWorker = new FaceIndexingWorker(dbManager, logger, vectorIndex, UPLOAD_DIR);
 
   // --- P3: Export Service (Law 14) ---
   exportService = new ExportService(logger, dbManager);
@@ -675,7 +678,8 @@ const initializeEcosystem = async () => {
 
         // 2. Critical: Vector Index
         await vectorIndex.initialize();
-        logger.info("[Startup] AI Layer: Vector Index initialized.");
+        faceIndexingWorker.start();
+        logger.info("[Startup] AI Layer: Vector Index + Face Indexing Worker initialized.");
 
         // 3. Operational: Queue & Sync
         queueProcessor.start();

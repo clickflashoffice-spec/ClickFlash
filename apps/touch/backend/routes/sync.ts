@@ -141,6 +141,17 @@ export default function createSyncRouter(context: SyncContext): Router {
 
             logger.info(`[Sync] Photo downloaded and processed successfully`, { photoId, size: processed.fileSize });
 
+            // Queue for face indexing (P3-R5: auto-index synced photos)
+            try {
+                dbManager.run(
+                    `INSERT OR IGNORE INTO face_indexing_queue (photoId, priority, status) VALUES (?, 0, 'pending')`,
+                    [photoId]
+                );
+            } catch (faceErr: any) {
+                // Non-fatal — don't block sync if face queue insert fails
+                logger.warn(`[Sync] Failed to queue face indexing for ${photoId}`, { error: faceErr.message });
+            }
+
             if (realtimeService) {
                 realtimeService.broadcast({
                     collection: 'photos',

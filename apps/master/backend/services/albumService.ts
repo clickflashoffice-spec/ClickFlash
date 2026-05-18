@@ -216,7 +216,10 @@ export default class AlbumService {
         values,
       );
 
-      // 3. Ensure Album Cover
+      // 3. Queue for face indexing (P3-R5: auto-index on import)
+      this.queueFaceIndexing(photoData.id);
+
+      // 4. Ensure Album Cover
       const photoUrlForCover =
         photoData.thumbnailUrl || photoData.previewUrl || photoData.url;
 
@@ -224,7 +227,7 @@ export default class AlbumService {
         this.ensureAlbumCover(photoData.albumId, photoUrlForCover);
       }
 
-      // 4. Realtime Broadcast
+      // 5. Realtime Broadcast
       if (this.realtimeService) {
         this.realtimeService.broadcast({
           collection: "photos",
@@ -333,7 +336,10 @@ export default class AlbumService {
             values,
           );
 
-          // 3. Ensure Album Cover
+          // 3. Queue for face indexing (P3-R5: auto-index on import)
+          this.queueFaceIndexing(photoData.id);
+
+          // 4. Ensure Album Cover
           const photoUrlForCover =
             photoData.thumbnailUrl || photoData.previewUrl || photoData.url;
 
@@ -343,7 +349,7 @@ export default class AlbumService {
         }
       });
 
-      // 4. Batch Realtime Broadcast
+      // 5. Batch Realtime Broadcast
       if (this.realtimeService && batch.length > 0) {
         this.realtimeService.broadcast({
           collection: "photos",
@@ -364,6 +370,28 @@ export default class AlbumService {
         });
       }
       throw err;
+    }
+  }
+
+  /**
+   * Queue a photo for background face indexing.
+   * Uses INSERT OR IGNORE to avoid duplicates if the photo is already queued.
+   */
+  private queueFaceIndexing(photoId: string): void {
+    try {
+      this.dbManager.run(
+        `INSERT OR IGNORE INTO face_indexing_queue (photoId, priority, status)
+         VALUES (?, 0, 'pending')`,
+        [photoId],
+      );
+    } catch (err) {
+      // Non-fatal — face indexing is best-effort, don't block photo registration
+      if (this.logger && this.logger.warn) {
+        this.logger.warn(
+          `[AlbumService] Failed to queue face indexing for ${photoId}`,
+          { error: err },
+        );
+      }
     }
   }
 }

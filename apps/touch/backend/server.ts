@@ -35,6 +35,7 @@ import RealtimeService from "./services/realtimeService";
 import { AlbumService } from "./services/albumService";
 import WatcherService from "./services/watcherService";
 import { VectorIndexService } from "./services/VectorIndexService";
+import { FaceIndexingWorker } from "./services/FaceIndexingWorker";
 
 import {
   sendError,
@@ -223,9 +224,12 @@ try {
 // --- Vector Index ---
 logger.info("[Init] Initializing Vector Index...");
 const vectorIndex = VectorIndexService.getInstance(dbManager, logger);
+const faceIndexingWorker = new FaceIndexingWorker(dbManager, logger, vectorIndex, UPLOAD_DIR);
 setImmediate(async () => {
   try {
     await vectorIndex.initialize();
+    faceIndexingWorker.start();
+    logger.info("[Init] Vector Index + Face Indexing Worker initialized.");
   } catch (err: unknown) {
     logger.error(
       "[Init] Vector Index failed",

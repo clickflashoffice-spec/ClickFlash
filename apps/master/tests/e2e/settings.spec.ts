@@ -4,6 +4,8 @@ import { login, navigateToView } from "./helpers/auth";
 test.describe("Settings", () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
+    // Wait for sidebar to be fully rendered after login
+    await page.locator('button:has-text("Settings")').waitFor({ state: "visible", timeout: 15000 });
   });
 
   test("should navigate to Settings view without PIN", async ({ page }) => {

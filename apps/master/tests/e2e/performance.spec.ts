@@ -6,12 +6,8 @@ test.describe("Performance Tests", () => {
     await login(page);
   });
 
-  test("dashboard should load within 3 seconds after login", async ({
-    page,
-  }) => {
-    // After login the app lands at "/" (Dashboard view). Measure navigation back.
+  test("dashboard should load within 3 seconds after login", async ({ page }) => {
     const startTime = Date.now();
-    // Re-navigate to reset timing
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.waitForLoadState("domcontentloaded");
     const loadTime = Date.now() - startTime;
@@ -19,40 +15,107 @@ test.describe("Performance Tests", () => {
   });
 
   test("should measure page navigation performance", async ({ page }) => {
-    // Simple performance mark — verify PerformanceNavigation API is available
     const timing = await page.evaluate(() => {
       const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
       return nav ? nav.loadEventEnd - nav.startTime : null;
     });
-    // If timing is available, it should complete within 5 s
     if (timing !== null) {
       expect(timing).toBeLessThan(5000);
     }
   });
 
-  test("album list should render within reasonable time", async ({ page }) => {
-    // App uses view-state routing — navigate via sidebar
+  test("album list should render within 2 seconds", async ({ page }) => {
     const startTime = Date.now();
     await page.click('button:has-text("Albums")');
     await expect(page.locator('text=Album Workflow')).toBeVisible({ timeout: 10000 });
     const renderTime = Date.now() - startTime;
-
-    // Albums view should be visible within 5 s of clicking the nav button
-    expect(renderTime).toBeLessThan(5000);
+    expect(renderTime).toBeLessThan(2000);
   });
 
-  test("sidebar navigation should be instant", async ({ page }) => {
+  test("sidebar navigation should be instant (<1s)", async ({ page }) => {
     const views = ["Albums", "Dashboard"];
     for (const view of views) {
       const startTime = Date.now();
       await page.click(`button:has-text("${view}")`);
-      // Wait for the nav button to become active (aria-current="page")
-      await page
-        .locator(`button[aria-current="page"]:has-text("${view}")`)
-        .waitFor({ timeout: 5000 });
+      await page.locator(`button[aria-current="page"]:has-text("${view}")`).waitFor({ timeout: 5000 });
       const navTime = Date.now() - startTime;
-      // Client-side view switch should be fast
-      expect(navTime).toBeLessThan(2000);
+      expect(navTime).toBeLessThan(1000);
+    }
+  });
+
+  test("editor should open within 2 seconds", async ({ page }) => {
+    await page.click('button:has-text("Albums")');
+    await expect(page.locator('text=Album Workflow')).toBeVisible({ timeout: 10000 });
+
+    const albumCard = page.locator('[data-testid="album-item"]').first();
+    if (!(await albumCard.isVisible({ timeout: 5000 }).catch(() => false))) {
+      test.skip(true, "No albums available");
+    }
+
+    const startTime = Date.now();
+    await albumCard.click();
+    await page.waitForSelector('[data-testid="album-editor"]', { timeout: 15000 });
+    const editorTime = Date.now() - startTime;
+    expect(editorTime).toBeLessThan(2000);
+  });
+
+  test("settings page should load within 2 seconds", async ({ page }) => {
+    const startTime = Date.now();
+    await page.click('button:has-text("Settings")');
+    await expect(page.locator('h1:has-text("Settings")')).toBeVisible({ timeout: 10000 });
+    const settingsTime = Date.now() - startTime;
+    expect(settingsTime).toBeLessThan(2000);
+  });
+
+  test("orders page should load within 2 seconds", async ({ page }) => {
+    const startTime = Date.now();
+    await page.click('button:has-text("Orders")');
+    await expect(page.locator('button[aria-current="page"]:has-text("Orders")')).toBeVisible({ timeout: 10000 });
+    const ordersTime = Date.now() - startTime;
+    expect(ordersTime).toBeLessThan(2000);
+  });
+
+  test("health endpoint responds within 500ms", async ({ page }) => {
+    const startTime = Date.now();
+    const response = await page.request.get("/api/health");
+    const elapsed = Date.now() - startTime;
+    expect(response.status()).toBe(200);
+    expect(elapsed).toBeLessThan(500);
+  });
+
+  test("no JS errors on dashboard load", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (err) => errors.push(err.message));
+
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2000);
+
+    // Filter out known non-critical errors (e.g. ResizeObserver)
+    const criticalErrors = errors.filter(
+      (e) => !e.includes("ResizeObserver") && !e.includes("Script error")
+    );
+    expect(criticalErrors).toHaveLength(0);
+  });
+
+  test("memory usage stays reasonable after multiple navigations", async ({ page }) => {
+    const views = ["Albums", "Dashboard", "Orders", "Settings", "Albums", "Dashboard"];
+    for (const view of views) {
+      await page.click(`button:has-text("${view}")`);
+      await page.waitForTimeout(500);
+    }
+
+    const metrics = await page.evaluate(() => {
+      // @ts-ignore
+      if (performance.memory) {
+        // @ts-ignore
+        return { usedJSHeapSize: performance.memory.usedJSHeapSize };
+      }
+      return null;
+    });
+
+    if (metrics) {
+      // Heap should stay under 200MB after 6 navigations
+      expect(metrics.usedJSHeapSize).toBeLessThan(200 * 1024 * 1024);
     }
   });
 });

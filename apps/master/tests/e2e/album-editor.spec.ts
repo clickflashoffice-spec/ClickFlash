@@ -10,29 +10,25 @@ import { login } from "./helpers/auth";
  * Requires at least one album with photos to be present in the test DB.
  */
 
-async function openFirstAlbumEditor(page: Page): Promise<boolean> {
+async function openFirstAlbumEditor(page: Page): Promise<void> {
   await login(page);
   // App uses view-state routing — URL stays at /. Navigate by clicking sidebar.
   await page.click('button:has-text("Albums")');
+  await expect(page.locator('text=Album Workflow')).toBeVisible({ timeout: 15000 });
 
   // Wait for the Albums list to render
   const albumCard = page.locator('[data-testid="album-item"]').first();
-
-  if (!(await albumCard.isVisible({ timeout: 10000 }).catch(() => false))) {
-    return false; // No albums available
-  }
+  await expect(albumCard).toBeVisible({ timeout: 15000 });
 
   await albumCard.click();
 
   // Wait for the editor to appear
   await page.waitForSelector('[data-testid="album-editor"]', { timeout: 15000 });
-  return true;
 }
 
 test.describe("Album Editor", () => {
   test("should open editor and show toolbar", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     await expect(page.locator('[data-testid="album-editor"]')).toBeVisible();
     await expect(page.locator('[data-testid="back-button"]')).toBeVisible();
@@ -45,8 +41,7 @@ test.describe("Album Editor", () => {
   });
 
   test("should display filmstrip with photos", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     await expect(page.locator('[data-testid="filmstrip"]')).toBeVisible();
 
@@ -56,11 +51,9 @@ test.describe("Album Editor", () => {
   });
 
   test("should activate photo on filmstrip click", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     const photos = page.locator('[data-testid="filmstrip-photo"]');
-    if ((await photos.count()) < 2) test.skip(true, "Need ≥2 photos");
 
     // Click second photo
     await photos.nth(1).click();
@@ -69,11 +62,9 @@ test.describe("Album Editor", () => {
   });
 
   test("should navigate photos with arrow keys", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     const photos = page.locator('[data-testid="filmstrip-photo"]');
-    if ((await photos.count()) < 2) test.skip(true, "Need ≥2 photos");
 
     // Activate first photo
     await photos.first().click();
@@ -91,8 +82,7 @@ test.describe("Album Editor", () => {
   });
 
   test("should select photo with checkbox", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     // Hover to reveal checkbox, then click it
     const firstCard = page
@@ -107,24 +97,21 @@ test.describe("Album Editor", () => {
   });
 
   test("undo button should be disabled initially", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     await expect(page.locator('[data-testid="undo-button"]')).toBeDisabled();
     await expect(page.locator('[data-testid="redo-button"]')).toBeDisabled();
   });
 
   test("save button should be disabled when no changes", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     // Save status is 'Save Changes' and button is disabled when no dirty state
     await expect(page.locator('[data-testid="save-button"]')).toBeDisabled();
   });
 
   test("before/after button should be visible and toggleable", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     const baBtn = page.locator('[data-testid="before-after-button"]');
     await expect(baBtn).toBeVisible();
@@ -140,8 +127,7 @@ test.describe("Album Editor", () => {
   });
 
   test("export button should be visible and not disabled", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     const exportBtn = page.locator('[data-testid="export-button"]');
     await expect(exportBtn).toBeVisible();
@@ -152,8 +138,7 @@ test.describe("Album Editor", () => {
   test("back button should navigate to albums when no unsaved changes", async ({
     page,
   }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     await page.click('[data-testid="back-button"]');
     // Back returns to Album list (view-state routing — URL stays at /)
@@ -163,31 +148,28 @@ test.describe("Album Editor", () => {
   test("back button should confirm when there are unsaved changes", async ({
     page,
   }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
-    // Trigger a change by adjusting an edit slider (if panel visible)
+    // Trigger a change by adjusting an edit slider
     const exposureSlider = page.locator('[data-testid="exposure-slider"]');
-    if (await exposureSlider.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await exposureSlider.fill("20");
-      await page.waitForTimeout(300);
+    await expect(exposureSlider).toBeVisible({ timeout: 10000 });
+    await exposureSlider.fill("20");
+    await page.waitForTimeout(300);
 
-      // Back button should now show amber color (dirty state)
-      const backBtn = page.locator('[data-testid="back-button"]');
-      await expect(backBtn).toHaveClass(/text-amber-600/);
+    // Back button should now show amber color (dirty state)
+    const backBtn = page.locator('[data-testid="back-button"]');
+    await expect(backBtn).toHaveClass(/text-amber-600/);
 
-      // Dismiss confirm dialog
-      page.once("dialog", (dialog) => dialog.dismiss());
-      await backBtn.click();
+    // Dismiss confirm dialog
+    page.once("dialog", (dialog) => dialog.dismiss());
+    await backBtn.click();
 
-      // Should still be in editor
-      await expect(page.locator('[data-testid="album-editor"]')).toBeVisible();
-    }
+    // Should still be in editor
+    await expect(page.locator('[data-testid="album-editor"]')).toBeVisible();
   });
 
   test("editor layout has photo viewer area", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     // The canvas area should exist
     await expect(

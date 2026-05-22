@@ -51,9 +51,7 @@ test.describe("Performance Tests", () => {
     await expect(page.locator('text=Album Workflow')).toBeVisible({ timeout: 10000 });
 
     const albumCard = page.locator('[data-testid="album-item"]').first();
-    if (!(await albumCard.isVisible({ timeout: 5000 }).catch(() => false))) {
-      test.skip(true, "No albums available");
-    }
+    await expect(albumCard).toBeVisible({ timeout: 15000 });
 
     const startTime = Date.now();
     await albumCard.click();

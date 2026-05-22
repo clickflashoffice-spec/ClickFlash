@@ -5,8 +5,7 @@ const ASPECT_RATIOS = ["Free", "1:1", "4:3", "16:9", "3:2", "2:3"];
 
 test.describe("Editor — Crop Tab", () => {
   test("should switch to crop tab", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     const cropTab = page.locator('#crop-tab, button:has-text("Crop")').first();
     await cropTab.click();
@@ -15,57 +14,47 @@ test.describe("Editor — Crop Tab", () => {
 
   for (const ratio of ASPECT_RATIOS) {
     test(`should show "${ratio}" aspect ratio button`, async ({ page }) => {
-      const opened = await openFirstAlbumEditor(page);
-      if (!opened) test.skip(true, "No albums available");
+      await openFirstAlbumEditor(page);
 
       await page.locator('#crop-tab, button:has-text("Crop")').first().click();
       const ratioBtn = page.locator(`button:has-text("${ratio}")`).first();
-      if (await ratioBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await expect(ratioBtn).toBeVisible();
-      }
+      await expect(ratioBtn).toBeVisible({ timeout: 10000 });
     });
   }
 
   test("should have Start Cropping button", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     await page.locator('#crop-tab, button:has-text("Crop")').first().click();
     const startBtn = page.locator('button:has-text("Start Cropping")').first();
-    if (await startBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await expect(startBtn).toBeVisible();
-    }
+    await expect(startBtn).toBeVisible({ timeout: 10000 });
   });
 
   test("should have custom W/H inputs with swap", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     await page.locator('#crop-tab, button:has-text("Crop")').first().click();
     const widthInput = page.locator('input[placeholder*="W" i], input[aria-label*="width" i]').first();
     const heightInput = page.locator('input[placeholder*="H" i], input[aria-label*="height" i]').first();
-    const swapBtn = page.locator('button[aria-label*="swap" i], button:has-text("⇄")').first();
 
-    if (await widthInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await expect(widthInput).toBeVisible();
-      await expect(heightInput).toBeVisible();
-      if (await swapBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await swapBtn.click();
-      }
+    await expect(widthInput).toBeVisible({ timeout: 10000 });
+    await expect(heightInput).toBeVisible({ timeout: 10000 });
+
+    const swapBtn = page.locator('button[aria-label*="swap" i], button:has-text("⇄")').first();
+    if (await swapBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await swapBtn.click();
     }
   });
 
   test("ESC cancels crop mode", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     await page.locator('#crop-tab, button:has-text("Crop")').first().click();
     const startBtn = page.locator('button:has-text("Start Cropping")').first();
-    if (await startBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await startBtn.click();
-      await page.waitForTimeout(500);
-      await page.keyboard.press("Escape");
-      await page.waitForTimeout(300);
-    }
+    await expect(startBtn).toBeVisible({ timeout: 10000 });
+    await startBtn.click();
+    await page.waitForTimeout(500);
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
   });
 });

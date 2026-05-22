@@ -40,20 +40,18 @@ test.describe("Navigation", () => {
 
   test("should navigate to Resort BI from sidebar", async ({ page }) => {
     const biBtn = page.locator('button:has-text("Resort BI")').first();
-    if (await biBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await biBtn.click();
-      await expect(page.locator('button[aria-current="page"]:has-text("Resort BI")')).toBeVisible({ timeout: 10000 });
-    }
+    await expect(biBtn).toBeVisible({ timeout: 10000 });
+    await biBtn.click();
+    await expect(page.locator('button[aria-current="page"]:has-text("Resort BI")')).toBeVisible({ timeout: 10000 });
   });
 
   test("should toggle sidebar collapse/expand", async ({ page }) => {
     const collapseBtn = page.locator('[data-testid="sidebar-toggle"], button[aria-label*="collapse" i]').first();
-    if (await collapseBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await collapseBtn.click();
-      await page.waitForTimeout(300);
-      await collapseBtn.click();
-      await page.waitForTimeout(300);
-    }
+    await expect(collapseBtn).toBeVisible({ timeout: 10000 });
+    await collapseBtn.click();
+    await page.waitForTimeout(300);
+    await collapseBtn.click();
+    await page.waitForTimeout(300);
   });
 
   test("should open global search with Ctrl+K", async ({ page }) => {

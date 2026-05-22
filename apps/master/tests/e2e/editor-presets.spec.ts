@@ -15,33 +15,25 @@ const CATEGORIES = ["All", "Basic", "Portrait", "Nature", "Vintage", "B&W", "Art
 
 test.describe("Editor — Presets", () => {
   test("should display preset grid", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     const presetArea = page.locator('text=/Presets|Filters/i').first();
-    if (await presetArea.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await expect(presetArea).toBeVisible();
-    }
+    await expect(presetArea).toBeVisible({ timeout: 10000 });
   });
 
   for (const preset of EDITOR_PRESETS) {
     test(`should apply "${preset}" editor preset`, async ({ page }) => {
-      const opened = await openFirstAlbumEditor(page);
-      if (!opened) test.skip(true, "No albums available");
+      await openFirstAlbumEditor(page);
 
       const presetBtn = page.locator(`button:has-text("${preset}"), [data-testid="preset-${preset.toLowerCase()}"]`).first();
-      if (await presetBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await presetBtn.click();
-        await page.waitForTimeout(300);
-      } else {
-        test.skip(true, `Preset "${preset}" not visible`);
-      }
+      await expect(presetBtn).toBeVisible({ timeout: 10000 });
+      await presetBtn.click();
+      await page.waitForTimeout(300);
     });
   }
 
   test("should filter presets by category tabs", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     for (const cat of CATEGORIES) {
       const catTab = page.locator(`button:has-text("${cat}")`).first();
@@ -53,25 +45,21 @@ test.describe("Editor — Presets", () => {
   });
 
   test("should show preset thumbnails with filter previews", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     const thumbnails = page.locator('[data-testid*="preset-thumb"], [class*="preset"] img, [class*="preset"] canvas');
-    if (await thumbnails.first().isVisible({ timeout: 5000 }).catch(() => false)) {
-      const count = await thumbnails.count();
-      expect(count).toBeGreaterThan(0);
-    }
+    await expect(thumbnails.first()).toBeVisible({ timeout: 10000 });
+    const count = await thumbnails.count();
+    expect(count).toBeGreaterThan(0);
   });
 
   test("active preset shows selection indicator", async ({ page }) => {
-    const opened = await openFirstAlbumEditor(page);
-    if (!opened) test.skip(true, "No albums available");
+    await openFirstAlbumEditor(page);
 
     const vividPreset = page.locator('button:has-text("Vivid"), [data-testid="preset-vivid"]').first();
-    if (await vividPreset.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await vividPreset.click();
-      await page.waitForTimeout(300);
-      await expect(vividPreset).toHaveClass(/active|selected|ring|border-blue/);
-    }
+    await expect(vividPreset).toBeVisible({ timeout: 10000 });
+    await vividPreset.click();
+    await page.waitForTimeout(300);
+    await expect(vividPreset).toHaveClass(/active|selected|ring|border-blue/);
   });
 });

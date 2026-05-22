@@ -49,7 +49,9 @@ test.describe("API Integration", () => {
   });
 
   test("backup endpoint is reachable", async ({ page }) => {
-    const response = await page.request.get("/api/backup");
+    // Base router mount is /api/backup; sub-route is /export
+    const response = await page.request.get("/api/backup/export");
+    // 401 (not logged in via API context) or 200 are both acceptable — just not 404
     expect(response.status()).not.toBe(404);
   });
 
@@ -88,12 +90,12 @@ test.describe("API Integration", () => {
   });
 
   test("dashboard endpoint is reachable", async ({ page }) => {
-    const response = await page.request.get("/api/dashboard");
+    const response = await page.request.get("/api/dashboard/system-health");
     expect(response.status()).not.toBe(404);
   });
 
   test("resort analytics endpoint is reachable", async ({ page }) => {
-    const response = await page.request.get("/api/resort-analytics");
+    const response = await page.request.get("/api/resort-analytics/daily-report");
     expect(response.status()).not.toBe(404);
   });
 });

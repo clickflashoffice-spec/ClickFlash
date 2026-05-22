@@ -13,7 +13,11 @@ test.describe("Orders — Full Coverage", () => {
   });
 
   test("should show order list or empty state", async ({ page }) => {
-    const content = page.locator('table, [data-testid="orders-list"], text=/No orders|Create your first/i').first();
+    // Use .or() instead of comma-mixing CSS and text selectors
+    const content = page
+      .locator('table, [data-testid="orders-list"]')
+      .or(page.getByText(/No orders|Create your first/i))
+      .first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 

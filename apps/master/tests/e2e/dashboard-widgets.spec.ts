@@ -25,44 +25,32 @@ test.describe("Dashboard Widgets", () => {
       .locator('[class*="glass-card"] [class*="text-2xl"], [class*="glass-card"] [class*="text-3xl"]')
       .or(page.locator('[class*="glass-card"]').filter({ hasText: /\d+/ }))
       .first();
-    if (await statValues.isVisible({ timeout: 10000 }).catch(() => false)) {
-      await expect(statValues).toBeVisible();
-    }
+    await expect(statValues).toBeVisible({ timeout: 10000 });
   });
 
   test("should render chart canvas in sales widget", async ({ page }) => {
     const chart = page.locator('canvas').first();
-    if (await chart.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await expect(chart).toBeVisible();
-    }
+    await expect(chart).toBeVisible({ timeout: 10000 });
   });
 
   test("should display recent orders section", async ({ page }) => {
     const recentOrders = page.locator('text=/Recent Orders|Latest Orders/i').first();
-    if (await recentOrders.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await expect(recentOrders).toBeVisible();
-    }
+    await expect(recentOrders).toBeVisible({ timeout: 10000 });
   });
 
   test("should display albums to process section", async ({ page }) => {
     const albumsSection = page.locator('text=/Albums to Process|Unprocessed/i').first();
-    if (await albumsSection.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await expect(albumsSection).toBeVisible();
-    }
+    await expect(albumsSection).toBeVisible({ timeout: 10000 });
   });
 
   test("should show cloud health indicator", async ({ page }) => {
     const cloudStatus = page.locator('[class*="cloud"], [data-testid*="cloud"]').first();
-    if (await cloudStatus.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await expect(cloudStatus).toBeVisible();
-    }
+    await expect(cloudStatus).toBeVisible({ timeout: 10000 });
   });
 
   test("should show fleet health indicator", async ({ page }) => {
     const fleetStatus = page.locator('[class*="fleet"], [data-testid*="fleet"]').first();
-    if (await fleetStatus.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await expect(fleetStatus).toBeVisible();
-    }
+    await expect(fleetStatus).toBeVisible({ timeout: 10000 });
   });
 
   test("should load dashboard within 3 seconds", async ({ page }) => {
@@ -74,11 +62,10 @@ test.describe("Dashboard Widgets", () => {
 
   test("dashboard refresh button reloads data", async ({ page }) => {
     const refreshBtn = page.locator('button[aria-label*="refresh" i], button:has-text("Refresh")').first();
-    if (await refreshBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await refreshBtn.click();
-      await page.waitForTimeout(1000);
-      const widgets = page.locator('[class*="glass-card"]');
-      await expect(widgets.first()).toBeVisible({ timeout: 5000 });
-    }
+    await expect(refreshBtn).toBeVisible({ timeout: 10000 });
+    await refreshBtn.click();
+    await page.waitForTimeout(1000);
+    const widgets = page.locator('[class*="glass-card"]');
+    await expect(widgets.first()).toBeVisible({ timeout: 5000 });
   });
 });

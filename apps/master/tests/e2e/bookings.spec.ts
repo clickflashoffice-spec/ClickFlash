@@ -5,58 +5,46 @@ test.describe("Bookings", () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
     const bookingsBtn = page.locator('button:has-text("Bookings")').first();
-    if (await bookingsBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await bookingsBtn.click();
-      await page.waitForTimeout(1000);
+    if (!(await bookingsBtn.isVisible({ timeout: 3000 }).catch(() => false))) {
+      test.skip(true, "Bookings view not in sidebar — internal view");
+      return;
     }
+    await bookingsBtn.click();
+    await page.waitForTimeout(1000);
   });
 
   test("should render bookings view or calendar", async ({ page }) => {
     const content = page.locator('[class*="calendar"], [data-testid*="booking"], text=/Bookings|Calendar/i').first();
-    if (await content.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await expect(content).toBeVisible();
-    }
+    await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test("should display current month in calendar", async ({ page }) => {
     const monthLabel = page.locator('text=/January|February|March|April|May|June|July|August|September|October|November|December/').first();
-    if (await monthLabel.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await expect(monthLabel).toBeVisible();
-    }
+    await expect(monthLabel).toBeVisible({ timeout: 10000 });
   });
 
   test("should have create booking button", async ({ page }) => {
     const createBtn = page.locator('button:has-text("New Booking"), button:has-text("Create Booking"), button:has-text("Add")').first();
-    if (await createBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await expect(createBtn).toBeVisible();
-    }
+    await expect(createBtn).toBeVisible({ timeout: 10000 });
   });
 
   test("clicking create opens booking modal", async ({ page }) => {
     const createBtn = page.locator('button:has-text("New Booking"), button:has-text("Create Booking")').first();
-    if (await createBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await createBtn.click();
-      const modal = page.locator('[role="dialog"]');
-      if (await modal.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await expect(modal).toBeVisible();
-        await page.keyboard.press("Escape");
-      }
-    }
+    await expect(createBtn).toBeVisible({ timeout: 10000 });
+    await createBtn.click();
+    const modal = page.locator('[role="dialog"]');
+    await expect(modal).toBeVisible({ timeout: 10000 });
+    await page.keyboard.press("Escape");
   });
 
   test("booking modal has required fields", async ({ page }) => {
     const createBtn = page.locator('button:has-text("New Booking"), button:has-text("Create Booking")').first();
-    if (await createBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await createBtn.click();
-      const modal = page.locator('[role="dialog"]');
-      if (await modal.isVisible({ timeout: 5000 }).catch(() => false)) {
-        const nameField = modal.locator('input[name*="name" i], input[placeholder*="name" i]').first();
-        const dateField = modal.locator('input[type="date"], input[name*="date" i]').first();
-        if (await nameField.isVisible({ timeout: 2000 }).catch(() => false)) {
-          await expect(nameField).toBeVisible();
-        }
-        await page.keyboard.press("Escape");
-      }
-    }
+    await expect(createBtn).toBeVisible({ timeout: 10000 });
+    await createBtn.click();
+    const modal = page.locator('[role="dialog"]');
+    await expect(modal).toBeVisible({ timeout: 10000 });
+    const nameField = modal.locator('input[name*="name" i], input[placeholder*="name" i]').first();
+    await expect(nameField).toBeVisible({ timeout: 10000 });
+    await page.keyboard.press("Escape");
   });
 });

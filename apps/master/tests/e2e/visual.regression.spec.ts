@@ -131,9 +131,7 @@ test.describe("Visual Regression — Authenticated Pages", () => {
     await expect(page.locator("text=Album Workflow")).toBeVisible({ timeout: 10000 });
 
     const albumCard = page.locator('[data-testid="album-item"]').first();
-    if (!(await albumCard.isVisible({ timeout: 5000 }).catch(() => false))) {
-      test.skip(true, "No albums available for editor snapshot");
-    }
+    await expect(albumCard).toBeVisible({ timeout: 15000 });
     await albumCard.click();
     await page.waitForSelector('[data-testid="album-editor"]', { timeout: 15000 });
     await page.waitForTimeout(1000);
@@ -164,34 +162,31 @@ test.describe("Visual Regression — Authenticated Pages", () => {
     const collapseBtn = page
       .locator('button[aria-label*="Collapse"], button[aria-label*="collapse"], button:has-text("≪")')
       .first();
-    if (await collapseBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await collapseBtn.click();
-      await page.waitForTimeout(500);
-      await expect(page).toHaveScreenshot("sidebar-collapsed.png", {
-        maxDiffPixelRatio: 0.03,
-      });
-    }
+    await expect(collapseBtn).toBeVisible({ timeout: 10000 });
+    await collapseBtn.click();
+    await page.waitForTimeout(500);
+    await expect(page).toHaveScreenshot("sidebar-collapsed.png", {
+      maxDiffPixelRatio: 0.03,
+    });
   });
 
   test("Growth page snapshot (no PIN)", async ({ page }) => {
     const growthBtn = page.locator('button:has-text("Growth")');
-    if (await growthBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await growthBtn.click();
-      await page.waitForTimeout(1000);
-      await expect(page).toHaveScreenshot("growth-page.png", {
-        maxDiffPixelRatio: 0.03,
-      });
-    }
+    await expect(growthBtn).toBeVisible({ timeout: 10000 });
+    await growthBtn.click();
+    await page.waitForTimeout(1000);
+    await expect(page).toHaveScreenshot("growth-page.png", {
+      maxDiffPixelRatio: 0.03,
+    });
   });
 
   test("Photographers page snapshot (no PIN)", async ({ page }) => {
     const photogBtn = page.locator('button:has-text("Photographers")');
-    if (await photogBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await photogBtn.click();
-      await expect(page.locator('h1:has-text("Photographers")')).toBeVisible({ timeout: 10000 });
-      await expect(page).toHaveScreenshot("photographers-page.png", {
-        maxDiffPixelRatio: 0.03,
-      });
-    }
+    await expect(photogBtn).toBeVisible({ timeout: 10000 });
+    await photogBtn.click();
+    await expect(page.locator('h1:has-text("Photographers")')).toBeVisible({ timeout: 10000 });
+    await expect(page).toHaveScreenshot("photographers-page.png", {
+      maxDiffPixelRatio: 0.03,
+    });
   });
 });

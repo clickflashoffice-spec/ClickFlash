@@ -25,9 +25,7 @@ test.describe("User Management — Photographers View", () => {
     await navigateToView(page, "Photographers");
     await page.waitForTimeout(1000);
     const countText = page.locator("text=/\\d+ of \\d+ photographer/");
-    if (await countText.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await expect(countText).toBeVisible();
-    }
+    await expect(countText).toBeVisible({ timeout: 10000 });
   });
 
   test("should navigate between photographers and dashboard", async ({ page }) => {
@@ -57,14 +55,11 @@ test.describe("User Management — Settings Users Tab", () => {
     await page.waitForTimeout(1000);
 
     const usersTab = page.locator('button:has-text("Users"), button:has-text("User Management")').first();
-    if (await usersTab.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await usersTab.click();
-      await page.waitForTimeout(500);
-      const userContent = page.locator('text=/user|email|role/i').first();
-      if (await userContent.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await expect(userContent).toBeVisible();
-      }
-    }
+    await expect(usersTab).toBeVisible({ timeout: 10000 });
+    await usersTab.click();
+    await page.waitForTimeout(500);
+    const userContent = page.locator('text=/user|email|role/i').first();
+    await expect(userContent).toBeVisible({ timeout: 10000 });
   });
 
   test("should show Add User button in User Management", async ({ page }) => {
@@ -72,16 +67,12 @@ test.describe("User Management — Settings Users Tab", () => {
     await page.waitForTimeout(1000);
 
     const usersTab = page.locator('button:has-text("Users"), button:has-text("User Management")').first();
-    if (!(await usersTab.isVisible({ timeout: 3000 }).catch(() => false))) {
-      test.skip(true, "Users tab not visible");
-    }
+    await expect(usersTab).toBeVisible({ timeout: 10000 });
     await usersTab.click();
     await page.waitForTimeout(500);
 
     const addBtn = page.locator('button:has-text("Add User"), button:has-text("Add"), button:has-text("Create User")').first();
-    if (await addBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await expect(addBtn).toBeVisible();
-    }
+    await expect(addBtn).toBeVisible({ timeout: 10000 });
   });
 
   test("should open Add User modal", async ({ page }) => {
@@ -89,23 +80,17 @@ test.describe("User Management — Settings Users Tab", () => {
     await page.waitForTimeout(1000);
 
     const usersTab = page.locator('button:has-text("Users"), button:has-text("User Management")').first();
-    if (!(await usersTab.isVisible({ timeout: 3000 }).catch(() => false))) {
-      test.skip(true, "Users tab not visible");
-    }
+    await expect(usersTab).toBeVisible({ timeout: 10000 });
     await usersTab.click();
     await page.waitForTimeout(500);
 
     const addBtn = page.locator('button:has-text("Add User"), button:has-text("Add"), button:has-text("Create User")').first();
-    if (!(await addBtn.isVisible({ timeout: 3000 }).catch(() => false))) {
-      test.skip(true, "Add User button not visible");
-    }
+    await expect(addBtn).toBeVisible({ timeout: 10000 });
     await addBtn.click();
 
     // Modal may use role="dialog", a custom modal class, or a data-testid
     const modal = page.locator('[role="dialog"], [class*="modal"], [data-testid*="modal"]').first();
-    if (await modal.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await expect(modal).toBeVisible();
-    }
+    await expect(modal).toBeVisible({ timeout: 10000 });
   });
 
   test("should display user list with role column", async ({ page }) => {
@@ -113,16 +98,12 @@ test.describe("User Management — Settings Users Tab", () => {
     await page.waitForTimeout(1000);
 
     const usersTab = page.locator('button:has-text("Users"), button:has-text("User Management")').first();
-    if (!(await usersTab.isVisible({ timeout: 3000 }).catch(() => false))) {
-      test.skip(true, "Users tab not visible");
-    }
+    await expect(usersTab).toBeVisible({ timeout: 10000 });
     await usersTab.click();
     await page.waitForTimeout(500);
 
     const roleIndicator = page.locator('text=/admin|viewer|photographer|manager/i').first();
-    if (await roleIndicator.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await expect(roleIndicator).toBeVisible();
-    }
+    await expect(roleIndicator).toBeVisible({ timeout: 10000 });
   });
 
   test("should navigate to Permissions settings", async ({ page }) => {
@@ -130,13 +111,10 @@ test.describe("User Management — Settings Users Tab", () => {
     await page.waitForTimeout(1000);
 
     const permTab = page.locator('button:has-text("Permissions")').first();
-    if (await permTab.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await permTab.click();
-      await page.waitForTimeout(500);
-      const permContent = page.locator('text=/permission|role|access/i').first();
-      if (await permContent.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await expect(permContent).toBeVisible();
-      }
-    }
+    await expect(permTab).toBeVisible({ timeout: 10000 });
+    await permTab.click();
+    await page.waitForTimeout(500);
+    const permContent = page.locator('text=/permission|role|access/i').first();
+    await expect(permContent).toBeVisible({ timeout: 10000 });
   });
 });

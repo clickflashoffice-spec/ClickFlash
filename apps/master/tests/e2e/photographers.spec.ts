@@ -22,16 +22,12 @@ test.describe("Photographers", () => {
 
   test("should display photographer list or empty state", async ({ page }) => {
     const content = page.locator('table, [data-testid*="photographer"], text=/Photographers|No photographers/i').first();
-    if (await content.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await expect(content).toBeVisible();
-    }
+    await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test("should show photographer stats", async ({ page }) => {
     const stats = page.locator('[class*="stat"], [data-testid*="stat"], text=/Sessions|Photos|Albums/i').first();
-    if (await stats.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await expect(stats).toBeVisible();
-    }
+    await expect(stats).toBeVisible({ timeout: 10000 });
   });
 
   test("should navigate back to dashboard", async ({ page }) => {

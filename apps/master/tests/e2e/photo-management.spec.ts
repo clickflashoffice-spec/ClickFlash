@@ -4,17 +4,15 @@ import { login } from "./helpers/auth";
 /**
  * Opens the first album in the editor via sidebar navigation.
  * Assumes the user is already logged in (called after beforeEach login).
- * Returns false and skips the test if no albums are available.
+ * Asserts album availability (will fail test if no albums).
  */
-async function openFirstAlbum(page: any): Promise<boolean> {
+async function openFirstAlbum(page: any): Promise<void> {
   await page.click('button:has-text("Albums")');
+  await expect(page.locator('text=Album Workflow')).toBeVisible({ timeout: 15000 });
   const albumCard = page.locator('[data-testid="album-item"]').first();
-  if (!(await albumCard.isVisible({ timeout: 8000 }).catch(() => false))) {
-    return false;
-  }
+  await expect(albumCard).toBeVisible({ timeout: 15000 });
   await albumCard.click();
   await page.waitForSelector('[data-testid="album-editor"]', { timeout: 15000 });
-  return true;
 }
 
 test.describe("Photo Management", () => {
@@ -28,60 +26,37 @@ test.describe("Photo Management", () => {
   });
 
   test("should open album editor with photo filmstrip", async ({ page }) => {
-    if (!(await openFirstAlbum(page))) {
-      test.skip(true, 'No albums available');
-      return;
-    }
+    await openFirstAlbum(page);
     await expect(page.locator('[data-testid="album-editor"]')).toBeVisible();
     // Filmstrip renders if album has photos
     const filmstrip = page.locator('[data-testid="filmstrip"]');
-    if (await filmstrip.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await expect(filmstrip).toBeVisible();
-    }
+    await expect(filmstrip).toBeVisible({ timeout: 10000 });
   });
 
   test("should select a photo in the filmstrip", async ({ page }) => {
-    if (!(await openFirstAlbum(page))) {
-      test.skip(true, 'No albums available');
-      return;
-    }
+    await openFirstAlbum(page);
     const firstPhoto = page.locator('[data-testid="filmstrip-photo"]').first();
-    if (!(await firstPhoto.isVisible({ timeout: 5000 }).catch(() => false))) {
-      test.skip(true, 'No photos in album');
-      return;
-    }
+    await expect(firstPhoto).toBeVisible({ timeout: 10000 });
     await firstPhoto.click();
     // Navigation succeeded — no error thrown
   });
 
   test("should navigate photos with arrow keys", async ({ page }) => {
-    if (!(await openFirstAlbum(page))) {
-      test.skip(true, 'No albums available');
-      return;
-    }
+    await openFirstAlbum(page);
     const firstPhoto = page.locator('[data-testid="filmstrip-photo"]').first();
-    if (!(await firstPhoto.isVisible({ timeout: 5000 }).catch(() => false))) {
-      test.skip(true, 'No photos in album');
-      return;
-    }
+    await expect(firstPhoto).toBeVisible({ timeout: 10000 });
     await firstPhoto.click();
     await page.keyboard.press('ArrowRight');
     // Navigation succeeded — no error thrown
   });
 
   test("should show save status indicator", async ({ page }) => {
-    if (!(await openFirstAlbum(page))) {
-      test.skip(true, 'No albums available');
-      return;
-    }
+    await openFirstAlbum(page);
     await expect(page.locator('[data-testid="save-status"]')).toBeVisible();
   });
 
   test("should return to album list via back button", async ({ page }) => {
-    if (!(await openFirstAlbum(page))) {
-      test.skip(true, 'No albums available');
-      return;
-    }
+    await openFirstAlbum(page);
     await page.click('[data-testid="back-button"]');
     await expect(page.locator('text=Album Workflow')).toBeVisible({ timeout: 10000 });
   });

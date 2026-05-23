@@ -46,31 +46,18 @@ export async function login(
 }
 
 /**
- * Navigate to a sensitive view (Settings, Photographers, Growth) that requires
- * re-authentication via the Admin Verification password modal.
- *
- * After clicking the sidebar button the modal intercepts navigation.
- * This helper enters the admin password and waits for the view to open.
+ * Navigate to a view via sidebar button click.
+ * PIN lock has been removed — all views load directly now.
  */
-export async function navigateToSensitiveView(
+export async function navigateToView(
   page: Page,
   viewLabel: string,
-  password = TEST_CREDENTIALS.password,
 ): Promise<void> {
   await page.click(`button:has-text("${viewLabel}")`);
-
-  // The modal title is "Admin Verification"
-  const modal = page.locator('[role="dialog"]');
-  const modalVisible = await modal.isVisible({ timeout: 3000 }).catch(() => false);
-
-  if (modalVisible) {
-    // Fill password and submit
-    await page.fill('input[type="password"]', password);
-    await page.click('button[type="submit"], button:has-text("Confirm")');
-    // Wait for modal to close
-    await modal.waitFor({ state: "hidden", timeout: 10000 });
-  }
 }
+
+/** @deprecated PIN lock removed — use navigateToView instead */
+export const navigateToSensitiveView = navigateToView;
 
 /**
  * Logout current user

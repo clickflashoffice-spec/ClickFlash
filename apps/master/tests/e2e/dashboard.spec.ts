@@ -39,19 +39,17 @@ test.describe("Dashboard", () => {
 
   test("should navigate to Orders from sidebar", async ({ page }) => {
     const ordersLink = page.locator('button:has-text("Orders")').first();
-    if (await ordersLink.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await ordersLink.click();
-      // Verify the Orders nav item is now active
-      await expect(page.locator('button[aria-current="page"]:has-text("Orders")')).toBeVisible({ timeout: 10000 });
-    }
+    await expect(ordersLink).toBeVisible({ timeout: 10000 });
+    await ordersLink.click();
+    // Verify the Orders nav item is now active
+    await expect(page.locator('button[aria-current="page"]:has-text("Orders")')).toBeVisible({ timeout: 10000 });
   });
 
   test("should navigate to Settings from sidebar", async ({ page }) => {
     const settingsLink = page.locator('button:has-text("Settings")').first();
-    if (await settingsLink.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await settingsLink.click();
-      await expect(page.locator('button[aria-current="page"]:has-text("Settings")')).toBeVisible({ timeout: 10000 });
-    }
+    await expect(settingsLink).toBeVisible({ timeout: 10000 });
+    await settingsLink.click();
+    await expect(page.locator('button[aria-current="page"]:has-text("Settings")')).toBeVisible({ timeout: 10000 });
   });
 
   test("health endpoint returns ok", async ({ page }) => {

@@ -15,7 +15,7 @@ const TEST_ALBUM = {
   id: "e2e-test-album-001",
   title: "E2E Test Album",
   date: "2026-01-15",
-  status: "imported",
+  status: "Draft",
   source: "e2e-test",
 };
 

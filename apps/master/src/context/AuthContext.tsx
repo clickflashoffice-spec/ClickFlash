@@ -32,10 +32,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 // This gets us the latest XSRF-TOKEN cookie and syncs the pb adapter
                 await authService.syncCsrf();
 
-                // Try backend session next
+                // Try backend session next (with timeout to prevent indefinite loading spinner)
+                const meController = new AbortController();
+                const meTimeout = setTimeout(() => meController.abort(), 10000);
                 const response = await fetch(`${pb.baseUrl}/api/auth/me`, {
-                    credentials: 'include'
+                    credentials: 'include',
+                    signal: meController.signal,
                 });
+                clearTimeout(meTimeout);
 
                 if (response.ok) {
                     const data = await response.json();

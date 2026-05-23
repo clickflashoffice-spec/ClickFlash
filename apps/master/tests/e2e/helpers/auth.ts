@@ -22,16 +22,16 @@ export async function login(
   // Use "load" not "networkidle" — the app has background polling that keeps
   // the network busy indefinitely, which would cause networkidle to time out.
   await page.goto("/login", { waitUntil: "load" });
-  
-  // Wait for the login form elements to be visible
-  await page.waitForSelector('[data-testid="username-input"]', { state: "visible", timeout: 10000 });
-  await page.waitForSelector('[data-testid="password-input"]', { state: "visible", timeout: 10000 });
-  await page.waitForSelector('[data-testid="login-button"]', { state: "visible", timeout: 10000 });
-  
+
+  // Wait for auth check to complete and login form to render.
+  // Under concurrent test load, the AuthContext.checkSession() may take longer
+  // than usual — allow up to 30s for the loading spinner to resolve.
+  await page.waitForSelector('[data-testid="username-input"]', { state: "visible", timeout: 30000 });
+
   // Fill in credentials
   await page.fill('[data-testid="username-input"]', username);
   await page.fill('[data-testid="password-input"]', password);
-  
+
   // Click login and wait for navigation away from /login.
   // Use waitUntil:"commit" — the app has WebSocket + polling that keeps the
   // network busy indefinitely, which causes the default "load" waitUntil to
@@ -41,8 +41,10 @@ export async function login(
     page.click('[data-testid="login-button"]'),
   ]);
 
-  // Wait for main content to be rendered
-  await page.waitForLoadState("domcontentloaded");
+  // Wait for the app to fully render — the sidebar Dashboard button proves
+  // that AuthProvider resolved, MainLayout lazy-loaded, and the sidebar rendered.
+  // This prevents tests from interacting with elements before the app is ready.
+  await page.waitForSelector('button:has-text("Dashboard")', { state: "visible", timeout: 30000 });
 }
 
 /**

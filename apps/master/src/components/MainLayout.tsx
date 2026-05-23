@@ -8,7 +8,6 @@ import React, {
 } from "react";
 import { Sidebar } from "./Sidebar";
 import Header from "./Header";
-import PasswordModal from "./common/PasswordModal";
 // Import Orders normally to avoid chunk loading issues
 import Orders from "./Orders";
 // Lazy load components
@@ -123,16 +122,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const [printOrderData, setPrintOrderData] = useState<Order | null>(null);
   const [receiptOrderData, setReceiptOrderData] = useState<Order | null>(null);
   const [labFolderOrder, setLabFolderOrder] = useState<Order | null>(null);
-
-  // Phase P6: Security & Identity Resilience (Law 16)
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [pendingView, setPendingView] = useState<View | null>(null);
-  const [pendingParams, setPendingParams] = useState<unknown>(null);
-  const [authenticatedViews, setAuthenticatedViews] = useState<Set<View>>(
-    new Set(),
-  );
-
-  const sensitiveViews: View[] = ["Settings", "Growth", "Photographers"];
 
   const [dashboardData, setDashboardData] = useState<{
     orders: Order[];
@@ -372,30 +361,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const [viewParams, setViewParams] = useState<any>(null);
 
   const handleNavigate = (view: View, params?: any) => {
-    // Law 16: Intercept sensitive views with password protection
-    if (sensitiveViews.includes(view) && !authenticatedViews.has(view)) {
-      setPendingView(view);
-      setPendingParams(params);
-      setIsAuthModalOpen(true);
-      return;
-    }
-
     setCurrentView(view);
     setViewParams(params);
     setLabFolderOrder(null);
-  };
-
-  const handleAuthSuccess = () => {
-    if (pendingView) {
-      setAuthenticatedViews((prev) => new Set(prev).add(pendingView));
-      setCurrentView(pendingView);
-      setViewParams(pendingParams);
-      setLabFolderOrder(null);
-
-      setPendingView(null);
-      setPendingParams(null);
-      showToast("Identity verified");
-    }
   };
 
   const renderView = () => {
@@ -794,18 +762,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
       )}
 
-      {/* Law 16: Route Protection Guard */}
-      <PasswordModal
-        isOpen={isAuthModalOpen}
-        onClose={() => {
-          setIsAuthModalOpen(false);
-          setPendingView(null);
-          setPendingParams(null);
-        }}
-        onSuccess={handleAuthSuccess}
-        title="Admin Verification"
-        message={`Please enter the admin password to access ${pendingView}.`}
-      />
     </div>
   );
 };

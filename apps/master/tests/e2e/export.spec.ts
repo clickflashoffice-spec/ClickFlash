@@ -64,9 +64,7 @@ test.describe("Batch Export", () => {
     // App uses view-state routing — navigate via sidebar
     await page.click('button:has-text("Albums")');
     const albumCard = page.locator('[data-testid="album-item"]').first();
-    if (!(await albumCard.isVisible({ timeout: 8000 }).catch(() => false))) {
-      test.skip(true, "No albums available");
-    }
+    await expect(albumCard).toBeVisible({ timeout: 15000 });
 
     await albumCard.click();
     await page.waitForSelector('[data-testid="album-editor"]', { timeout: 15000 });
@@ -82,9 +80,7 @@ test.describe("Batch Export", () => {
     // App uses view-state routing — navigate via sidebar
     await page.click('button:has-text("Albums")');
     const albumCard = page.locator('[data-testid="album-item"]').first();
-    if (!(await albumCard.isVisible({ timeout: 8000 }).catch(() => false))) {
-      test.skip(true, "No albums available");
-    }
+    await expect(albumCard).toBeVisible({ timeout: 15000 });
 
     await albumCard.click();
     await page.waitForSelector('[data-testid="export-button"]', { timeout: 15000 });

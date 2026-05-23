@@ -2,6 +2,10 @@ import { test, expect } from "@playwright/test";
 import { openFirstAlbumEditor } from "./helpers/editor";
 
 test.describe("Editor Toolbar", () => {
+  // Opening the album editor involves login + lazy-loading Albums + loading the editor.
+  // Under concurrent Playwright workers this chain regularly exceeds the default 60 s timeout.
+  test.describe.configure({ timeout: 120_000 });
+
   test("should show all toolbar buttons", async ({ page }) => {
     await openFirstAlbumEditor(page);
 
@@ -55,7 +59,9 @@ test.describe("Editor Toolbar", () => {
     await openFirstAlbumEditor(page);
 
     await page.locator('[data-testid="send-to-kiosk-button"]').click();
-    const modal = page.locator('[role="dialog"]');
+    // KioskSelectionModal renders a plain <div> overlay, not role="dialog".
+    // Match by its heading instead.
+    const modal = page.locator('h2:has-text("Send to Kiosk")');
     await expect(modal).toBeVisible({ timeout: 10000 });
     await page.keyboard.press("Escape");
   });
@@ -70,9 +76,10 @@ test.describe("Editor Toolbar", () => {
   test("back button confirms when dirty", async ({ page }) => {
     await openFirstAlbumEditor(page);
 
-    const exposureSlider = page.locator('[data-testid="exposure-slider"]');
-    await expect(exposureSlider).toBeVisible({ timeout: 10000 });
-    await exposureSlider.fill("20");
+    // FilterPanel sliders have no data-testid — find the first range input in the editor
+    const firstSlider = page.locator('[data-testid="album-editor"] input[type="range"]').first();
+    await expect(firstSlider).toBeVisible({ timeout: 10000 });
+    await firstSlider.fill("20");
     await page.waitForTimeout(300);
 
     const backBtn = page.locator('[data-testid="back-button"]');

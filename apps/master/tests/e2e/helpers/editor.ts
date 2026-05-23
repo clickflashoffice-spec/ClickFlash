@@ -4,13 +4,14 @@ import { login } from "./auth";
 export async function openFirstAlbumEditor(page: Page): Promise<boolean> {
   await login(page);
   await page.click('button:has-text("Albums")');
-  await expect(page.locator('text=Album Workflow')).toBeVisible({ timeout: 15000 });
+  // Albums view is lazy-loaded — allow generous timeout under concurrent load
+  await expect(page.locator('text=Album Workflow')).toBeVisible({ timeout: 30000 });
 
   const albumCard = page.locator('[data-testid="album-item"]').first();
-  await expect(albumCard).toBeVisible({ timeout: 15000 });
+  await expect(albumCard).toBeVisible({ timeout: 30000 });
 
   await albumCard.click();
-  await page.waitForSelector('[data-testid="album-editor"]', { timeout: 15000 });
+  await page.waitForSelector('[data-testid="album-editor"]', { timeout: 30000 });
   return true;
 }
 

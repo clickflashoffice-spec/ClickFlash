@@ -5,7 +5,8 @@
       "name": "Master App (Frontend + Backend)",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev:master"],
-      "port": 5173
+      "port": 5173,
+      "autoPort": false
     },
     {
       "name": "Master Backend (Express :8090)",

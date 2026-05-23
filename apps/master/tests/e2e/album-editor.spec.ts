@@ -23,10 +23,14 @@ async function openFirstAlbumEditor(page: Page): Promise<void> {
   await albumCard.click();
 
   // Wait for the editor to appear
-  await page.waitForSelector('[data-testid="album-editor"]', { timeout: 15000 });
+  await page.waitForSelector('[data-testid="album-editor"]', { timeout: 30000 });
 }
 
 test.describe("Album Editor", () => {
+  // Opening the album editor involves login + lazy-loading Albums + loading the editor.
+  // Under concurrent Playwright workers this chain regularly exceeds the default 60 s timeout.
+  test.describe.configure({ timeout: 120_000 });
+
   test("should open editor and show toolbar", async ({ page }) => {
     await openFirstAlbumEditor(page);
 
@@ -150,8 +154,8 @@ test.describe("Album Editor", () => {
   }) => {
     await openFirstAlbumEditor(page);
 
-    // Trigger a change by adjusting an edit slider
-    const exposureSlider = page.locator('[data-testid="exposure-slider"]');
+    // FilterPanel sliders have no data-testid — find the first range input in the editor
+    const exposureSlider = page.locator('[data-testid="album-editor"] input[type="range"]').first();
     await expect(exposureSlider).toBeVisible({ timeout: 10000 });
     await exposureSlider.fill("20");
     await page.waitForTimeout(300);

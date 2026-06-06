@@ -1,3 +1,5 @@
+account_id = "<REDACTED:CF_ACCOUNT_ID>"
+
 # MoneyTrash Cloudflare Configuration
 # Deploy with: wrangler deploy
 

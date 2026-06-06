@@ -1,3 +1,5 @@
+account_id = "<REDACTED:CF_ACCOUNT_ID>"
+
 name = "gallery-backend"
 main = "src/server.ts"
 compatibility_date = "2024-10-01"
@@ -47,3 +49,4 @@ crons = ["0 * * * *"]  # Every hour — abandoned cart recovery emails
 
 [observability]
 enabled = true
+

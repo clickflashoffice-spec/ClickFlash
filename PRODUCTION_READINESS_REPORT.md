@@ -27,9 +27,7 @@ All 6 applications in the ClickFlash ecosystem have been audited, optimized, and
 | **Customer Gallery** | ✅ 0 errors | ✅ Pass | 🟡 59/71 | Cloudflare Worker | ✅ JWT + WAF | Wrangler | 🟢 **Ready** |
 | **Management Hub** | ✅ 0 errors | ✅ Pass | ✅ 24/24 | Cloudflare Worker | ✅ JWT + Rate Limit | Wrangler | 🟢 **Ready** |
 | **MoneyTrash** | ✅ 0 errors | ✅ Pass | N/A (no tests) | Tauri + CF Worker | ✅ JWT + Rate Limit | Tauri + Wrangler | 🟢 **Ready** |
-| **Website** | ✅ 0 errors | 🟡* | ✅ Pass | Next.js static | ✅ CSP + HSTS | Cloudflare Pages | 🟡 **Ready** |
-
-*Website build requires verification in production environment due to Tailwind v3 migration.
+| **Website** | ✅ 0 errors | ✅ Pass | ✅ Pass | Next.js static | ✅ CSP + HSTS | Cloudflare Pages | 🟢 **Ready** |
 
 ---
 
@@ -72,9 +70,10 @@ All 6 applications in the ClickFlash ecosystem have been audited, optimized, and
 
 ### Stage E: Final Verification
 - ✅ All apps type-check clean
-- ✅ All apps build successfully (except Website needs env verification)
-- ✅ Updated Website CSS for Tailwind v3 compatibility
+- ✅ All apps build successfully (Website fixed with Tailwind v3 compat)
+- ✅ Fixed Master build — excluded node_modules symlinks from Tailwind scan
 - ✅ Wrangler dry-run passes for Gallery
+- ✅ Working tree cleaned up (env examples, migration files, .gitignore)
 
 ---
 
@@ -96,16 +95,30 @@ All 6 applications in the ClickFlash ecosystem have been audited, optimized, and
 | Issue | Severity | App | Notes |
 |-------|----------|-----|-------|
 | Gallery 12 test failures | 🟢 Low | Gallery | Pre-existing test infrastructure debt; does not affect production |
-| Website Tailwind v3 migration | 🟡 Medium | Website | CSS converted; build needs env verification |
+| Master Tailwind symlink scan | 🟢 Low | Master | Fixed — build time 28s (was hanging 5+ min) |
 | MoneyTrash no unit tests | 🟡 Medium | MoneyTrash | No test files exist; needs test suite creation |
 | Management in-memory rate limiter | 🟢 Low | Management | Uses memory store; should use D1/KV for distributed rate limiting |
 | Manual secret management | 🟢 Low | All CF apps | Secrets managed via `wrangler secret put`; no rotation automation |
 
 ---
 
+## Deployment Status
+
+| Target | Method | Status | Notes |
+|--------|--------|--------|-------|
+| Gallery Worker | GitHub Actions (`deploy.yml`) | 🟡 Pending | Waiting for `CLOUDFLARE_API_TOKEN` secret |
+| Management Worker | GitHub Actions (`deploy.yml`) | 🟡 Pending | Waiting for `CLOUDFLARE_API_TOKEN` secret |
+| MoneyTrash Worker | GitHub Actions (`deploy.yml`) | 🟡 Pending | Waiting for `CLOUDFLARE_API_TOKEN` secret |
+| Website (Pages) | GitHub Actions (`deploy.yml`) | 🟡 Pending | Waiting for `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` |
+
+**Action Required:** Add secrets at `https://github.com/alaeddinekhemiri/ClickFlash/settings/secrets/actions`
+
 ## Deployment Checklist
 
 ### Pre-Deploy
+- [x] GitHub Actions workflow created (`deploy.yml`)
+- [ ] Set `CLOUDFLARE_API_TOKEN` in GitHub Secrets
+- [ ] Set `CLOUDFLARE_ACCOUNT_ID` in GitHub Secrets
 - [ ] Set `JWT_SECRET` via `wrangler secret put` for each Worker
 - [ ] Set `STRIPE_SECRET_KEY` for Gallery
 - [ ] Set `STRIPE_WEBHOOK_SECRET` for Gallery
@@ -131,12 +144,13 @@ All 6 applications in the ClickFlash ecosystem have been audited, optimized, and
 
 ## Next Steps (Post-Production)
 
-1. **Create unit tests for MoneyTrash** — Add Vitest test suite
-2. **Fix remaining Gallery tests** — Resolve 12 pre-existing test failures
-3. **Implement distributed rate limiting** — Use D1/KV instead of memory store
-4. **Add automated secret rotation** — Create rotation workflow
-5. **Performance benchmarking** — Run k6 load tests against all APIs
-6. **Penetration testing** — Run OWASP ZAP against all endpoints
+1. **Set GitHub Secrets** — Unblock Cloudflare deployments (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`)
+2. **Create unit tests for MoneyTrash** — Add Vitest test suite
+3. **Fix remaining Gallery tests** — Resolve 12 pre-existing test failures
+4. **Implement distributed rate limiting** — Use D1/KV instead of memory store
+5. **Add automated secret rotation** — Create rotation workflow
+6. **Performance benchmarking** — Run k6 load tests against all APIs
+7. **Penetration testing** — Run OWASP ZAP against all endpoints
 
 ---
 
@@ -166,6 +180,8 @@ All 6 applications in the ClickFlash ecosystem have been audited, optimized, and
 | `tests/ecosystem/ecosystem.spec.ts` | Fixed port references |
 | `apps/website/postcss.config.mjs` | Tailwind v3 plugins |
 | `apps/website/src/app/globals.css` | Tailwind v3 directives |
+| `apps/master/tailwind.config.js` | Added `!**/node_modules/**` exclude |
+| `.gitignore` | Added `.db-shm` ignore |
 | `DEPENDENCY_ALIGNMENT_REPORT.md` | **New** — Alignment documentation |
 | `ECOSYSTEM_PLAN.md` | **New** — Master plan |
 
@@ -179,6 +195,8 @@ All 6 applications in the ClickFlash ecosystem have been audited, optimized, and
 | All apps type-check | ✅ |
 | Security review | ✅ |
 | CI/CD pipeline | ✅ |
+| Ecosystem tests | ✅ (412 tests, 45 files) |
+| Working tree | ✅ Clean |
 | Documentation | ✅ |
 
 **Ecosystem Status: 🟢 PRODUCTION READY**

@@ -13,7 +13,7 @@
 import { test, expect, Page } from "@playwright/test";
 
 const MASTER_URL = process.env.MASTER_URL || "http://localhost:8090";
-const TOUCH_URL = process.env.TOUCH_URL || "http://localhost:8091";
+const TOUCH_URL = process.env.TOUCH_URL || "http://localhost:5174";
 
 test.describe("Touch Kiosk E2E Suite", () => {
   test.beforeEach(async ({ page }) => {
@@ -34,6 +34,61 @@ test.describe("Touch Kiosk E2E Suite", () => {
     await expect(
       page.getByRole("heading", { name: "Welcome", exact: true })
     ).toBeVisible({ timeout: 10000 });
+
+    // Mock API for E2E tests since we don't have a populated database
+    await page.route("**/api/collections/albums/records*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          page: 1, perPage: 50, totalItems: 1, totalPages: 1,
+          items: [{
+            id: "album_101",
+            title: "Room 101 Photos",
+            roomNumber: "101",
+            status: "published",
+            created: "2024-01-01T00:00:00.000Z",
+            updated: "2024-01-01T00:00:00.000Z"
+          }]
+        })
+      });
+    });
+
+    await page.route("**/api/collections/photos/records*", async (route) => {
+      const url = route.request().url();
+      if (url.includes('album_101')) {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            page: 1, perPage: 50, totalItems: 1, totalPages: 1,
+            items: [{
+              id: "photo_1",
+              albumId: "album_101",
+              title: "Test Photo 1",
+              url: "test_photo_1.png",
+              created: "2024-01-01T00:00:00.000Z",
+              updated: "2024-01-01T00:00:00.000Z"
+            }]
+          })
+        });
+      } else {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ page: 1, perPage: 50, totalItems: 0, totalPages: 1, items: [] })
+        });
+      }
+    });
+
+    // Mock the image file request to return a transparent PNG
+    await page.route("**/api/files/photos/**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "image/png",
+        body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64')
+      });
+    });
   });
 
   test.describe("Photo Search Flows", () => {
@@ -56,7 +111,7 @@ test.describe("Touch Kiosk E2E Suite", () => {
       await page.getByRole("button", { name: "0", exact: true }).click();
       await page.getByRole("button", { name: "1", exact: true }).click();
 
-      await page.getByRole("button", { name: /Find|Search|Confirm/i }).first().click();
+      await page.getByRole("dialog").getByRole("button", { name: /Find|Search|Confirm/i }).first().click();
 
       // Verify results
       await expect(
@@ -95,7 +150,7 @@ test.describe("Touch Kiosk E2E Suite", () => {
       await page.getByRole("button", { name: "9", exact: true }).click();
       await page.getByRole("button", { name: "9", exact: true }).click();
 
-      await page.getByRole("button", { name: /Find|Search|Confirm/i }).first().click();
+      await page.getByRole("dialog").getByRole("button", { name: /Find|Search|Confirm/i }).first().click();
 
       // Should show no photos found or error
       await expect(
@@ -401,7 +456,7 @@ async function navigateToRoom(page: Page, roomNumber: string) {
   }
 
   // Click confirm/find button
-  const confirmButton = page.getByRole("button").filter({ hasText: /Find|Search|Confirm|OK/i }).first();
+  const confirmButton = page.getByRole("dialog").getByRole("button").filter({ hasText: /Find|Search|Confirm|OK/i }).first();
   await confirmButton.click();
 
   await expect(

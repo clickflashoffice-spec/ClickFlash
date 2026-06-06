@@ -183,3 +183,4 @@ nul
 
 # Deployment packages (binary installers + credentials)
 deployment/
+apps/touch/pb_data/*.db-shm

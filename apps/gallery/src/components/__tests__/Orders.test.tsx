@@ -11,25 +11,27 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from './test-utils';
 import '@testing-library/jest-dom';
 import Orders from '../Orders';
 import { Order, Photographer } from '../../types';
 
 // Mock dependencies
-const mockGetOrders = jest.fn();
-const mockCreateOrder = jest.fn();
-const mockUpdateOrder = jest.fn();
-const mockDeleteOrder = jest.fn();
-
 jest.mock('../../services/apiService', () => ({
     apiService: {
-        getOrders: mockGetOrders,
-        createOrder: mockCreateOrder,
-        updateOrder: mockUpdateOrder,
-        deleteOrder: mockDeleteOrder
+        getOrders: jest.fn(),
+        createOrder: jest.fn(),
+        updateOrder: jest.fn(),
+        deleteOrder: jest.fn()
     }
 }));
+
+import { apiService } from '../../services/apiService';
+
+const mockGetOrders = apiService.getOrders as jest.Mock;
+const mockCreateOrder = apiService.createOrder as jest.Mock;
+const mockUpdateOrder = apiService.updateOrder as jest.Mock;
+const mockDeleteOrder = apiService.deleteOrder as jest.Mock;
 
 const mockCurrentUser: Photographer = {
     id: 1,
@@ -187,4 +189,3 @@ describe('Orders Component', () => {
         });
     });
 });
-

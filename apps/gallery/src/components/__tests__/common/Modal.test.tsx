@@ -74,7 +74,7 @@ describe('Modal Component', () => {
             </Modal>
         );
         
-        const backdrop = screen.getByRole('dialog').parentElement;
+        const backdrop = screen.getByRole('dialog');
         if (backdrop) {
             fireEvent.click(backdrop);
             expect(mockOnClose).toHaveBeenCalledTimes(1);

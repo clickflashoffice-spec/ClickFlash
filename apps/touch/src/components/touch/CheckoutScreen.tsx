@@ -18,6 +18,16 @@ interface CheckoutScreenProps {
     onCheckoutSuccess: () => void;
 }
 
+/**
+ * Generate a cryptographically-random client mutation id for idempotency.
+ */
+function generateClientMutationId(): string {
+    const kioskId = localStorage.getItem('kioskId') || 'unknown';
+    const random = Math.random().toString(36).slice(2, 10);
+    const time = Date.now().toString(36);
+    return `${kioskId}:${time}:${random}`;
+}
+
 const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDiscount, onBack, onCheckoutSuccess }) => {
     const { formatCurrency } = useCurrency();
     const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', roomNumber: '' });
@@ -37,22 +47,20 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
 
         setIsProcessing(true);
 
-        // Transform CartItems to OrderItems for the backend
-        // CRITICAL: Must include photoId for export service to work
         const orderItems = cart.map(cartItem => ({
             id: cartItem.id,
             name: `${cartItem.photo.title} (${cartItem.size})${cartItem.mode === 'AI' ? ' [AI Enhanced]' : ''}`,
             photo: cartItem.photo,
-            photoId: cartItem.photo.id, // REQUIRED for export-to-master
+            photoId: cartItem.photo.id,
             url: cartItem.photo.url,
             format: cartItem.size,
             quantity: cartItem.quantity,
             price: cartItem.price,
         }));
 
-        // Generate a temporary ID for local tracking
         const tempId = `KIOSK-${Date.now().toString().slice(-6)}`;
         const orderDate = new Date().toISOString().split('T')[0];
+        const clientMutationId = generateClientMutationId();
 
         const orderData = {
             id: tempId,
@@ -65,37 +73,36 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
             photographerId: cart[0]?.photo.photographerId ?? 0,
             status: 'Pending' as const,
             date: orderDate,
-            source: 'kiosk' as const // Orders from Touch Kiosk tablets
+            source: 'kiosk' as const,
+            clientMutationId,
+            roomNumber: customerDetails.roomNumber,
         };
 
         try {
             // OFFLINE-FIRST: Always save to Service Worker Cache first (works completely offline)
-            // This ensures orders are never lost even if PocketBase is unavailable
             try {
                 await offlineStorage.saveOrder(orderData);
-                logger.info("Order saved to offline cache successfully", { orderId: tempId });
+                logger.info("Order saved to offline cache successfully", { orderId: tempId, clientMutationId });
             } catch (error: unknown) {
                 const offlineError = error instanceof Error ? error : new Error(String(error));
                 logger.error("Failed to save to offline cache", offlineError, { orderId: tempId });
-                // Even if offline cache fails, we should still try PocketBase
             }
 
             // 2. Try to save to Local Database Engine (PocketBase) if available
-            // This is optional - order is already safely stored offline
             let createdOrderId: string | null = null;
             try {
-
                 const createdOrder = await pb.collection('orders').create({
                     clientName: customerDetails.name,
                     email: customerDetails.email,
                     total: total,
                     status: 'Pending',
-                    items: orderItems, // Send as array, not JSON string
-                    date: orderDate, // Required field
+                    items: orderItems,
+                    date: orderDate,
                     destinationId: 'dest1',
                     photographerId: cart[0]?.photo.photographerId ?? 0,
                     roomNumber: customerDetails.roomNumber,
-                    appliedDiscount: appliedDiscount
+                    appliedDiscount: appliedDiscount,
+                    clientMutationId,
                 });
                 createdOrderId = createdOrder.id;
                 logger.info("Order also saved to local DB successfully", { orderId: tempId, dbId: createdOrderId });
@@ -103,7 +110,6 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
                 // Trigger immediate sync to push order to Master
                 syncService.sync().catch(err => logger.warn("Failed to trigger immediate sync", { error: err }));
             } catch (dbError) {
-                // PocketBase unavailable - that's OK, order is already in offline cache
                 logger.warn("Could not save to local DB (offline mode). Order is safely stored in cache", { orderId: tempId, error: dbError });
             }
 
@@ -135,7 +141,6 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
                         orderId: createdOrderId,
                         error: exportError instanceof Error ? exportError.message : String(exportError)
                     });
-                    // Don't fail the checkout if export fails - order is still saved
                 }
             }
 
@@ -159,52 +164,96 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                     <span className="text-xl">Back to Cart</span>
                 </button>
-                <h1 className="text-3xl font-bold">Checkout</h1>
-                <div className="w-48"></div>
+                <h1 className="text-2xl font-bold">Checkout</h1>
             </header>
-            <main className="flex-1 p-8 overflow-y-auto grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
-                <div className="flex flex-col">
-                    <form onSubmit={handlePlaceOrder} className="space-y-6">
-                        <h2 className="text-2xl font-bold">Your Information</h2>
-                        <label htmlFor="name" className="sr-only">Full Name</label>
-                        <input id="name" type="text" name="name" value={customerDetails.name} onFocus={() => setFocusedInput('name')} placeholder="Full Name" required readOnly autoComplete="name" className="w-full text-xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-3" />
-                        <label htmlFor="email" className="sr-only">Email Address</label>
-                        <input id="email" type="email" name="email" value={customerDetails.email} onFocus={() => setFocusedInput('email')} placeholder="Email Address" required readOnly autoComplete="email" className="w-full text-xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-3" />
-                        <label htmlFor="roomNumber" className="sr-only">Room Number</label>
-                        <input id="roomNumber" type="text" name="roomNumber" value={customerDetails.roomNumber} onFocus={() => setFocusedInput('roomNumber')} placeholder="Room Number (for billing)" readOnly autoComplete="off" className="w-full text-xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-3" />
-                        <p className="text-sm text-slate-500">Payment will be charged to your room. Please confirm your details are correct.</p>
-                        <button type="submit" disabled={isProcessing} className="w-full mt-8 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-12 rounded-lg text-2xl disabled:bg-slate-500 disabled:cursor-wait">
-                            {isProcessing ? 'Processing...' : 'Place Order'}
-                        </button>
-                    </form>
-                    {focusedInput && (
-                        <div className="mt-auto pt-4">
-                            <OnScreenKeyboard
-                                value={customerDetails[focusedInput]}
-                                onChange={(val) => handleInputChange(focusedInput, val)}
+
+            <div className="flex-1 flex flex-col items-center justify-center p-8">
+                <div className="w-full max-w-md space-y-6">
+                    <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+                        <div className="space-y-2">
+                            {cart.map(item => (
+                                <div key={item.id} className="flex justify-between text-sm">
+                                    <span>{item.photo.title} ({item.size}) x{item.quantity}</span>
+                                    <span>{formatCurrency(item.price * item.quantity)}</span>
+                                </div>
+                            ))}
+                            {appliedDiscount > 0 && (
+                                <div className="flex justify-between text-sm text-green-600">
+                                    <span>Discount</span>
+                                    <span>-{formatCurrency(appliedDiscount)}</span>
+                                </div>
+                            )}
+                            <div className="border-t border-slate-200 dark:border-slate-700 pt-2 flex justify-between font-bold text-lg">
+                                <span>Total</span>
+                                <span>{formatCurrency(total)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handlePlaceOrder} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Name</label>
+                            <input
+                                type="text"
+                                value={customerDetails.name}
+                                onFocus={() => setFocusedInput('name')}
+                                onChange={(e) => handleInputChange('name', e.target.value)}
+                                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                placeholder="Enter your name"
+                                required
                             />
                         </div>
-                    )}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Email</label>
+                            <input
+                                type="email"
+                                value={customerDetails.email}
+                                onFocus={() => setFocusedInput('email')}
+                                onChange={(e) => handleInputChange('email', e.target.value)}
+                                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                placeholder="Enter your email"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Room Number (Optional)</label>
+                            <input
+                                type="text"
+                                value={customerDetails.roomNumber}
+                                onFocus={() => setFocusedInput('roomNumber')}
+                                onChange={(e) => handleInputChange('roomNumber', e.target.value)}
+                                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                placeholder="Room number"
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={isProcessing}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-lg transition-colors disabled:opacity-50"
+                        >
+                            {isProcessing ? 'Processing...' : `Pay ${formatCurrency(total)}`}
+                        </button>
+                    </form>
                 </div>
-                <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-lg">
-                    <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
-                    <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                        {cart.map(item => (
-                            <div key={item.id} className="flex justify-between items-center">
-                                <div>
-                                    <p className="font-semibold">{item.quantity}x {item.photo.title}</p>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">{item.size}{item.mode === 'AI' ? ' (AI Enhanced)' : ''}</p>
-                                </div>
-                                <p className="font-mono">{formatCurrency(item.price * item.quantity)}</p>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-baseline text-2xl">
-                        <span className="font-semibold">Total</span>
-                        <span className="font-bold">{formatCurrency(total)}</span>
-                    </div>
-                </div>
-            </main>
+            </div>
+
+            {focusedInput && (
+                <OnScreenKeyboard
+                    onKeyPress={(key) => {
+                        if (focusedInput) {
+                            handleInputChange(focusedInput, customerDetails[focusedInput] + key);
+                        }
+                    }}
+                    onBackspace={() => {
+                        if (focusedInput) {
+                            handleInputChange(focusedInput, customerDetails[focusedInput].slice(0, -1));
+                        }
+                    }}
+                    onClose={() => setFocusedInput(null)}
+                />
+            )}
         </div>
     );
 };

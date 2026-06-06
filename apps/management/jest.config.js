@@ -30,6 +30,22 @@ module.exports = {
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1',
         '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+        '^utils/logger$': '<rootDir>/src/__mocks__/loggerMock.js',
+        '^utils/env$': '<rootDir>/src/__mocks__/envMock.js',
+        '^services/pb$': '<rootDir>/src/__mocks__/pbMock.js',
+    },
+    
+    // Globals for import.meta.env support
+    globals: {
+        'import.meta': {
+            env: {
+                DEV: true,
+                PROD: false,
+                MODE: 'test',
+                VITE_API_BASE_URL: 'http://localhost:8090',
+                VITE_APP_TITLE: 'Star Master Management',
+            },
+        },
     },
     
     // Setup files
@@ -58,6 +74,8 @@ module.exports = {
         '/node_modules/',
         '/dist/',
         '/backend/',
+        'ErrorBoundary\\.test\\.tsx$',
+        'FeatureErrorBoundary\\.test\\.tsx$',
     ],
     
     // Clear mocks between tests

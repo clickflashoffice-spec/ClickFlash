@@ -16,6 +16,104 @@ global.TextEncoder = TextEncoder as typeof global.TextEncoder;
 global.TextDecoder = TextDecoder as typeof global.TextDecoder;
 
 // ============================================================================
+// Canvas Mock — for Chart.js components in tests
+// ============================================================================
+
+class MockCanvasContext {
+  fillRect = jest.fn();
+  clearRect = jest.fn();
+  getImageData = jest.fn(() => ({ data: new Array(4) }));
+  putImageData = jest.fn();
+  createImageData = jest.fn(() => ({ data: new Array(4) }));
+  setTransform = jest.fn();
+  drawImage = jest.fn();
+  save = jest.fn();
+  fillText = jest.fn();
+  restore = jest.fn();
+  beginPath = jest.fn();
+  moveTo = jest.fn();
+  lineTo = jest.fn();
+  closePath = jest.fn();
+  stroke = jest.fn();
+  translate = jest.fn();
+  scale = jest.fn();
+  rotate = jest.fn();
+  arc = jest.fn();
+  fill = jest.fn();
+  measureText = jest.fn(() => ({ width: 0 }));
+  transform = jest.fn();
+  rect = jest.fn();
+  clip = jest.fn();
+}
+
+Object.defineProperty(global, 'HTMLCanvasElement', {
+  value: class HTMLCanvasElement {
+    getContext = jest.fn(() => new MockCanvasContext());
+    toDataURL = jest.fn();
+  },
+});
+
+// ============================================================================
+// PocketBase Service Mock — prevents import.meta.env syntax errors in Jest
+// ============================================================================
+
+jest.mock('./services/pb', () => ({
+  pb: {
+    collection: () => ({
+      getList: jest.fn(),
+      getOne: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
+    }),
+    authStore: {
+      token: '',
+      model: null,
+      isValid: jest.fn(() => false),
+      onChange: jest.fn(),
+    },
+    authWithPassword: jest.fn(),
+    authRefresh: jest.fn(),
+    logout: jest.fn(),
+  },
+  isCloudMode: true,
+  default: {
+    collection: () => ({
+      getList: jest.fn(),
+      getOne: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    }),
+  },
+}));
+
+// ============================================================================
+// Logger Mock — prevents import.meta syntax errors in Jest
+// ============================================================================
+
+jest.mock('@/utils/logger', () => ({
+  logger: {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    payment: jest.fn(),
+    security: jest.fn(),
+  },
+  default: {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    payment: jest.fn(),
+    security: jest.fn(),
+  },
+}));
+
+// ============================================================================
 // Stripe.js Mock
 // ============================================================================
 

@@ -15,16 +15,16 @@ test.describe("Full Ecosystem Lifecycle", () => {
   test("Should ingestion photos in Master, select in Touch, sync to Hub, and view in Gallery", async ({ page, browser }) => {
     // 1. Master Portal: Ingestion
     console.log("--- Step 1: Master Ingestion ---");
-    await page.goto("http://localhost:5173");
+    await page.goto("http://localhost:8090");
     await page.fill('[data-testid="username-input"]', "admin@starmaster.photo");
     await page.fill('[data-testid="password-input"]', "admin123");
     await page.click('[data-testid="login-button"]');
-    await page.waitForURL("http://localhost:5173/", { timeout: 30000 });
+    await page.waitForURL("http://localhost:8090/", { timeout: 30000 });
 
     // 2. Touch Kiosk: Customer Selection
     console.log("--- Step 2: Touch Selection ---");
     const touchPage = await browser.newPage();
-    await touchPage.goto("http://localhost:5174");
+    await touchPage.goto("http://localhost:8091");
     
     // Handle initial setup if visible
     try {

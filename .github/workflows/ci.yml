@@ -19,75 +19,84 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Lint (master)
-        run: npm run lint --workspace=apps/master
+        run: pnpm --filter ./apps/master run lint
 
       - name: Lint (gallery)
-        run: npm run lint --workspace=apps/gallery
+        run: pnpm --filter ./apps/gallery run lint
 
       - name: Lint (management)
-        run: npm run lint --workspace=apps/management
+        run: pnpm --filter ./apps/management run lint
 
       - name: Lint (touch)
-        run: npm run lint --workspace=apps/touch
+        run: pnpm --filter ./apps/touch run lint
 
       - name: Lint (website)
-        run: npm run lint --workspace=apps/website
+        run: pnpm --filter ./apps/website run lint
 
       - name: Lint (moneytrash)
-        run: npm run lint --workspace=apps/moneytrash
+        run: pnpm --filter ./apps/moneytrash run lint
 
       - name: Type check (master)
-        run: npx tsc --noEmit --workspace=apps/master
+        run: pnpm --filter ./apps/master run typecheck:ci
 
-      # Type-check remaining apps — install per-app to respect workspace boundaries
       - name: Type check (gallery)
-        run: npm ci --workspace=apps/gallery && npm run typecheck --workspace=apps/gallery
+        run: pnpm --filter ./apps/gallery run typecheck
         continue-on-error: false
 
       - name: Type check (management)
-        run: npm ci --workspace=apps/management && npm run typecheck --workspace=apps/management
+        run: pnpm --filter ./apps/management run typecheck
         continue-on-error: false
 
       - name: Type check (touch)
-        run: npm ci --workspace=apps/touch && npm run typecheck --workspace=apps/touch
+        run: pnpm --filter ./apps/touch run typecheck
         continue-on-error: false
 
       - name: Type check (website)
-        run: npm ci --workspace=apps/website && npm run typecheck --workspace=apps/website
+        run: pnpm --filter ./apps/website run typecheck
         continue-on-error: false
 
       - name: Type check (moneytrash)
-        run: npm ci --workspace=apps/moneytrash && npm run typecheck --workspace=apps/moneytrash
+        run: pnpm --filter ./apps/moneytrash run typecheck
         continue-on-error: false
 
-  # Phase 1: Unit Tests with Jest
-  unit-tests:
-    name: Unit Tests
+  # Phase 1: Unit Tests (parallel per app)
+  unit-tests-master:
+    name: Unit Tests — Master
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci --workspace=apps/master
+        run: pnpm install --frozen-lockfile
 
       - name: Run unit tests with coverage
-        run: npm run test:ci --workspace=apps/master
+        run: pnpm --filter ./apps/master run test:ci
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -102,10 +111,220 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: jest-results
+          name: jest-results-master
           path: |
             apps/master/test-results/
             apps/master/coverage/
+          retention-days: 30
+
+  unit-tests-touch:
+    name: Unit Tests — Touch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests with coverage
+        run: pnpm --filter ./apps/touch run test:ci
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./apps/touch/coverage/unit/coverage-final.json
+          flags: unittests
+          name: touch-unit
+        continue-on-error: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jest-results-touch
+          path: |
+            apps/touch/test-results/
+            apps/touch/coverage/
+          retention-days: 30
+
+  unit-tests-gallery:
+    name: Unit Tests — Gallery
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests with coverage
+        run: pnpm --filter ./apps/gallery run test:ci
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./apps/gallery/coverage/unit/coverage-final.json
+          flags: unittests
+          name: gallery-unit
+        continue-on-error: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jest-results-gallery
+          path: |
+            apps/gallery/test-results/
+            apps/gallery/coverage/
+          retention-days: 30
+
+  unit-tests-management:
+    name: Unit Tests — Management
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests with coverage
+        run: pnpm --filter ./apps/management run test:ci
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./apps/management/coverage/unit/coverage-final.json
+          flags: unittests
+          name: management-unit
+        continue-on-error: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jest-results-management
+          path: |
+            apps/management/test-results/
+            apps/management/coverage/
+          retention-days: 30
+
+  unit-tests-website:
+    name: Unit Tests — Website
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests with coverage
+        run: pnpm --filter ./apps/website run test:ci
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./apps/website/coverage/unit/coverage-final.json
+          flags: unittests
+          name: website-unit
+        continue-on-error: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vitest-results-website
+          path: |
+            apps/website/test-results/
+            apps/website/coverage/
+          retention-days: 30
+
+  unit-tests-moneytrash:
+    name: Unit Tests — MoneyTrash
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests with coverage
+        run: pnpm --filter ./apps/moneytrash run test:ci
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./apps/moneytrash/coverage/unit/coverage-final.json
+          flags: unittests
+          name: moneytrash-unit
+        continue-on-error: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vitest-results-moneytrash
+          path: |
+            apps/moneytrash/test-results/
+            apps/moneytrash/coverage/
           retention-days: 30
 
   # Phase 2: Integration Tests with Supertest
@@ -115,17 +334,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci --workspace=apps/master
+        run: pnpm install --frozen-lockfile
 
       - name: Run integration tests
-        run: npm run test:integration --workspace=apps/master
+        run: pnpm --filter ./apps/master run test:integration
         env:
           NODE_ENV: test
           JWT_SECRET: ${{ env.JWT_SECRET }}
@@ -149,34 +373,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci --workspace=apps/master
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Start backend server
         run: |
-          npm --prefix apps/master run dev:backend &
+          pnpm --filter ./apps/master run dev:backend &
           echo "Polling backend health endpoint..."
           timeout 60 bash -c 'until curl -sf http://localhost:8090/api/health; do sleep 2; done'
 
       - name: Start frontend dev server
         run: |
-          npm --prefix apps/master run dev &
+          pnpm --filter ./apps/master run dev &
           echo "Polling frontend..."
           timeout 60 bash -c 'until curl -sf http://localhost:5173; do sleep 2; done'
 
       - name: Run E2E tests (sharded)
         run: |
           cd apps/master
-          npx playwright test \
+          pnpm exec playwright test \
             --shard=${{ matrix.shard }} \
             --reporter=list \
             --timeout=60000
@@ -209,14 +438,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci --workspace=apps/master
+        run: pnpm install --frozen-lockfile
 
       - name: Install k6
         run: |
@@ -247,28 +481,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci --workspace=apps/master
+        run: pnpm install --frozen-lockfile
 
       - name: Run npm audit
         # Fail on high/critical CVEs — not continue-on-error so security blocks merge
-        run: npm audit --audit-level=high --workspace=apps/master
+        run: pnpm audit --audit-level high
 
       - name: Run Snyk security scan
         # Snyk requires SNYK_TOKEN; skip gracefully when secret is absent (forks/untrusted PRs)
-        run: npx snyk test --workspace=apps/master
+        run: pnpm exec snyk test
         continue-on-error: ${{ secrets.SNYK_TOKEN == '' }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Run electronegativity
-        run: npx electronegativity -i -o electronegativity-results.json --workspace=apps/master
+        run: pnpm exec electronegativity -i apps/master -o electronegativity-results.json
         continue-on-error: true
 
       - name: Upload security results
@@ -277,7 +516,7 @@ jobs:
         with:
           name: security-results
           path: |
-            apps/master/electronegativity-results.json
+            electronegativity-results.json
           retention-days: 30
 
   # Phase 6: Accessibility Tests
@@ -287,25 +526,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci --workspace=apps/master
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Start dev server
         run: |
-          npm --prefix apps/master run dev &
+          pnpm --filter ./apps/master run dev &
           timeout 60 bash -c 'until curl -sf http://localhost:5173; do sleep 2; done'
 
       - name: Run accessibility tests
-        run: npm run test:a11y --workspace=apps/master
+        run: pnpm --filter ./apps/master run test:a11y
 
       - name: Upload accessibility results
         uses: actions/upload-artifact@v4
@@ -326,31 +570,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci --workspace=apps/master
+        run: pnpm install --frozen-lockfile
 
       - name: Build backend
-        run: npm run build:backend --workspace=apps/master
+        run: pnpm --filter ./apps/master run build:backend
 
       - name: Build frontend
-        run: npm run build --workspace=apps/master
+        run: pnpm --filter ./apps/master run build
 
       - name: Electron builder dry-run
         if: matrix.os == 'ubuntu-latest'
-        run: npx electron-builder build --win --dir --config=apps/master/electron-builder.yml || echo "electron-builder not configured"
+        run: pnpm exec electron-builder build --win --dir --config=apps/master/electron-builder.yml || echo "electron-builder not configured"
 
   # Allure Report Generation
   report:
     name: Generate Test Report
     runs-on: ubuntu-latest
     if: always()
-    needs: [unit-tests, integration-tests, e2e-tests]
+    needs: [unit-tests-master, integration-tests, e2e-tests]
     steps:
       - uses: actions/checkout@v4
 
@@ -395,23 +644,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci --workspace=apps/master
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Start dev server
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          Start-Process -NoNewWindow npm -ArgumentList "--prefix","apps/master","run","dev:full"
+          Start-Process -NoNewWindow pnpm -ArgumentList "--filter","./apps/master","run","dev:full"
           $timeout = 60; $elapsed = 0
           do { Start-Sleep -Seconds 2; $elapsed += 2 } until (
             (Invoke-WebRequest -Uri "http://localhost:5173" -UseBasicParsing -ErrorAction SilentlyContinue).StatusCode -eq 200 -or $elapsed -ge $timeout
@@ -420,11 +674,11 @@ jobs:
       - name: Start dev server
         if: matrix.os == 'macos-latest'
         run: |
-          npm --prefix apps/master run dev:full &
+          pnpm --filter ./apps/master run dev:full &
           timeout 60 bash -c 'until curl -sf http://localhost:5173; do sleep 2; done'
 
       - name: Run smoke tests
-        run: npm run test:e2e:smoke --workspace=apps/master || echo "No smoke tests"
+        run: pnpm --filter ./apps/master run test:e2e:smoke || echo "No smoke tests"
 
       - name: Upload results
         uses: actions/upload-artifact@v4

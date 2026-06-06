@@ -1,60 +1,86 @@
 # ClickFlash Development Environment
 # Run with: docker-compose -f docker-compose.dev.yml up -d
+# Uses pnpm for package management (monorepo standard)
 
 version: '3.8'
 
 services:
   # ==========================================
-  # Master App (Electron - requires host X11)
+  # Master Station (Backend + Frontend)
   # ==========================================
   master:
     build:
       context: .
       dockerfile: apps/master/Dockerfile.dev
-    container_name: clickflash-master
+    container_name: clickflash-master-dev
     volumes:
       - ./apps/master:/app
+      - ./packages:/packages
       - master-node-modules:/app/node_modules
       - master-data:/app/data
+      - master-uploads:/app/uploads
     ports:
       - "8090:8090"
     environment:
       - NODE_ENV=development
-      - DISPLAY=${DISPLAY:-:0}
+      - PORT=8090
+      - DATABASE_PATH=/app/data/clickflash.db
+      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret-do-not-use-in-production}
+      - CLOUD_HUB_URL=${CLOUD_HUB_URL:-}
+      - CLOUD_HUB_API_KEY=${CLOUD_HUB_API_KEY:-}
     networks:
       - clickflash-network
-    profiles: ["electron"]  # Not started by default
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8090/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   # ==========================================
-  # Touch App (Electron - requires host X11)
+  # Touch Kiosk (Backend + Frontend)
   # ==========================================
   touch:
     build:
       context: .
       dockerfile: apps/touch/Dockerfile.dev
-    container_name: clickflash-touch
+    container_name: clickflash-touch-dev
     volumes:
       - ./apps/touch:/app
+      - ./packages:/packages
       - touch-node-modules:/app/node_modules
+      - touch-data:/app/data
     ports:
       - "8091:8091"
     environment:
       - NODE_ENV=development
-      - DISPLAY=${DISPLAY:-:0}
+      - PORT=8091
+      - DATABASE_PATH=/app/data/touch.db
+      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret-do-not-use-in-production}
+      - MASTER_URL=http://master:8090
     networks:
       - clickflash-network
-    profiles: ["electron"]  # Not started by default
+    depends_on:
+      master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8091/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   # ==========================================
-  # Management Hub
+  # Management Hub (Vite dev server)
   # ==========================================
   management:
     build:
       context: .
       dockerfile: apps/management/Dockerfile.dev
-    container_name: clickflash-management
+    container_name: clickflash-management-dev
     volumes:
       - ./apps/management:/app
+      - ./packages:/packages
       - management-node-modules:/app/node_modules
     ports:
       - "5173:5173"
@@ -63,18 +89,25 @@ services:
       - VITE_API_URL=http://localhost:8090
     networks:
       - clickflash-network
-    command: npm run dev -- --host
+    command: pnpm dev -- --host
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5173', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   # ==========================================
-  # Customer Gallery
+  # Customer Gallery (Vite dev server)
   # ==========================================
   gallery:
     build:
       context: .
       dockerfile: apps/gallery/Dockerfile.dev
-    container_name: clickflash-gallery
+    container_name: clickflash-gallery-dev
     volumes:
       - ./apps/gallery:/app
+      - ./packages:/packages
       - gallery-node-modules:/app/node_modules
     ports:
       - "5174:5174"
@@ -83,18 +116,25 @@ services:
       - VITE_API_URL=http://localhost:8090
     networks:
       - clickflash-network
-    command: npm run dev -- --host
+    command: pnpm dev -- --host
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5174', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   # ==========================================
-  # Website (Next.js)
+  # Website (Next.js dev server)
   # ==========================================
   website:
     build:
       context: .
       dockerfile: apps/website/Dockerfile.dev
-    container_name: clickflash-website
+    container_name: clickflash-website-dev
     volumes:
       - ./apps/website:/app
+      - ./packages:/packages
       - website-node-modules:/app/node_modules
       - website-next-cache:/app/.next
     ports:
@@ -103,47 +143,64 @@ services:
       - NODE_ENV=development
     networks:
       - clickflash-network
-    command: npm run dev
+    command: pnpm dev
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   # ==========================================
-  # MoneyTrash (Tauri - requires host)
+  # MoneyTrash (Vite dev server for frontend)
   # ==========================================
   moneytrash:
     build:
       context: .
       dockerfile: apps/moneytrash/Dockerfile.dev
-    container_name: clickflash-moneytrash
+    container_name: clickflash-moneytrash-dev
     volumes:
       - ./apps/moneytrash:/app
+      - ./packages:/packages
       - moneytrash-node-modules:/app/node_modules
     ports:
       - "1420:1420"
     environment:
       - NODE_ENV=development
-      - DISPLAY=${DISPLAY:-:0}
     networks:
       - clickflash-network
-    profiles: ["desktop"]  # Not started by default
+    command: pnpm dev -- --host
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:1420', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   # ==========================================
   # Shared Services
   # ==========================================
-  
+
   # Redis (for caching/sessions)
   redis:
     image: redis:7-alpine
-    container_name: clickflash-redis
+    container_name: clickflash-redis-dev
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
     networks:
       - clickflash-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   # MinIO (S3-compatible storage for local dev)
   minio:
     image: minio/minio:latest
-    container_name: clickflash-minio
+    container_name: clickflash-minio-dev
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -155,11 +212,16 @@ services:
     networks:
       - clickflash-network
     command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Mailhog (email testing)
   mailhog:
     image: mailhog/mailhog:latest
-    container_name: clickflash-mailhog
+    container_name: clickflash-mailhog-dev
     ports:
       - "1025:1025"  # SMTP
       - "8025:8025"  # Web UI
@@ -172,7 +234,9 @@ services:
 volumes:
   master-node-modules:
   master-data:
+  master-uploads:
   touch-node-modules:
+  touch-data:
   management-node-modules:
   gallery-node-modules:
   website-node-modules:

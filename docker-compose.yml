@@ -1,40 +1,125 @@
-# ClickFlash Development Environment
+# ClickFlash Ecosystem - Production Environment
 # Run with: docker-compose up -d
+# Includes all 6 apps + shared services
 
 version: '3.8'
 
 services:
   # ==========================================
-  # API Server (Master Backend)
+  # Master Station (Backend + Frontend)
   # ==========================================
-  api:
+  master:
     build:
-      context: ./apps/master/backend
+      context: ./apps/master
       dockerfile: Dockerfile
-    container_name: clickflash-api
+    container_name: clickflash-master
     ports:
       - "8090:8090"
     environment:
-      - NODE_ENV=${NODE_ENV:-development}
+      - NODE_ENV=${NODE_ENV:-production}
       - PORT=8090
       - DATABASE_PATH=/data/clickflash.db
-      # JWT_SECRET must be set in .env or host environment — never hard-coded
-      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required. Copy .env.example to .env and set it.}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      - CLOUD_HUB_URL=${CLOUD_HUB_URL}
+      - CLOUD_HUB_API_KEY=${CLOUD_HUB_API_KEY}
     volumes:
-      - ./data:/data
-      - ./uploads:/uploads
+      - master-data:/data
+      - master-uploads:/uploads
     networks:
       - clickflash-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8090/api/health"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8090/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 15s
 
   # ==========================================
-  # MoneyTrash (Next.js)
+  # Touch Kiosk (Backend + Frontend)
+  # ==========================================
+  touch:
+    build:
+      context: ./apps/touch
+      dockerfile: Dockerfile
+    container_name: clickflash-touch
+    ports:
+      - "8091:8091"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=8091
+      - DATABASE_PATH=/data/touch.db
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      - MASTER_URL=http://master:8090
+    volumes:
+      - touch-data:/data
+    networks:
+      - clickflash-network
+    restart: unless-stopped
+    depends_on:
+      master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8091/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ==========================================
+  # Management Hub (Cloudflare Worker - local simulation)
+  # ==========================================
+  management:
+    build:
+      context: ./apps/management
+      dockerfile: Dockerfile
+    container_name: clickflash-management
+    ports:
+      - "8092:8092"
+    environment:
+      - NODE_ENV=production
+      - PORT=8092
+      - DATA_DIR=/data
+    volumes:
+      - management-data:/data
+    networks:
+      - clickflash-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8092/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ==========================================
+  # Customer Gallery (Cloudflare Worker - local simulation)
+  # ==========================================
+  gallery:
+    build:
+      context: ./apps/gallery
+      dockerfile: Dockerfile
+    container_name: clickflash-gallery
+    ports:
+      - "8093:8093"
+    environment:
+      - NODE_ENV=production
+      - PORT=8093
+      - DATA_DIR=/data
+    volumes:
+      - gallery-data:/data
+    networks:
+      - clickflash-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8093/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ==========================================
+  # MoneyTrash Uploader (Tauri - local dev server)
   # ==========================================
   moneytrash:
     build:
@@ -44,66 +129,20 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=development
-      - DATABASE_URL=sqlite:/data/moneytrash.db
-      - API_URL=http://api:8090/api
-    volumes:
-      - ./data:/data
-      - ./apps/moneytrash:/app
-      - /app/node_modules
-    depends_on:
-      api:
-        condition: service_healthy
+      - NODE_ENV=production
+      - PORT=3000
     networks:
       - clickflash-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   # ==========================================
-  # Management Hub (Vite)
-  # ==========================================
-  management:
-    build:
-      context: ./apps/management
-      dockerfile: Dockerfile
-    container_name: clickflash-management
-    ports:
-      - "5173:5173"
-    environment:
-      - VITE_API_URL=http://localhost:8090/api
-    volumes:
-      - ./apps/management:/app
-      - /app/node_modules
-    depends_on:
-      api:
-        condition: service_healthy
-    networks:
-      - clickflash-network
-    restart: unless-stopped
-
-  # ==========================================
-  # Gallery (Vite)
-  # ==========================================
-  gallery:
-    build:
-      context: ./apps/gallery
-      dockerfile: Dockerfile
-    container_name: clickflash-gallery
-    ports:
-      - "5174:5174"
-    environment:
-      - VITE_API_URL=http://localhost:8090/api
-    volumes:
-      - ./apps/gallery:/app
-      - /app/node_modules
-    depends_on:
-      api:
-        condition: service_healthy
-    networks:
-      - clickflash-network
-    restart: unless-stopped
-
-  # ==========================================
-  # Website (Next.js)
+  # Website (Next.js static export)
   # ==========================================
   website:
     build:
@@ -113,67 +152,94 @@ services:
     ports:
       - "3001:3000"
     environment:
-      - NODE_ENV=development
-    volumes:
-      - ./apps/website:/app
-      - /app/node_modules
+      - NODE_ENV=production
+      - PORT=3000
     networks:
       - clickflash-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   # ==========================================
-  # PostgreSQL (Optional - for production)
+  # PostgreSQL (for production data)
   # ==========================================
-  # postgres:
-  #   image: postgres:16-alpine
-  #   container_name: clickflash-postgres
-  #   ports:
-  #     - "5432:5432"
-  #   environment:
-  #     - POSTGRES_USER=clickflash
-  #     - POSTGRES_PASSWORD=clickflash
-  #     - POSTGRES_DB=clickflash
-  #   volumes:
-  #     - postgres-data:/var/lib/postgresql/data
-  #   networks:
-  #     - clickflash-network
-  #   restart: unless-stopped
+  postgres:
+    image: postgres:16-alpine
+    container_name: clickflash-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=clickflash
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-clickflash}
+      - POSTGRES_DB=clickflash
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - clickflash-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clickflash"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # ==========================================
-  # Redis (Optional - for caching/sessions)
+  # Redis (for caching/sessions)
   # ==========================================
-  # redis:
-  #   image: redis:7-alpine
-  #   container_name: clickflash-redis
-  #   ports:
-  #     - "6379:6379"
-  #   networks:
-  #     - clickflash-network
-  #   restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    container_name: clickflash-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - clickflash-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   # ==========================================
-  # MinIO (S3-compatible storage - optional)
+  # MinIO (S3-compatible storage)
   # ==========================================
-  # minio:
-  #   image: minio/minio:latest
-  #   container_name: clickflash-minio
-  #   ports:
-  #     - "9000:9000"
-  #     - "9001:9001"
-  #   environment:
-  #     - MINIO_ROOT_USER=minioadmin
-  #     - MINIO_ROOT_PASSWORD=minioadmin
-  #   volumes:
-  #     - minio-data:/data
-  #   command: server /data --console-address ":9001"
-  #   networks:
-  #     - clickflash-network
-  #   restart: unless-stopped
+  minio:
+    image: minio/minio:latest
+    container_name: clickflash-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio-data:/data
+    networks:
+      - clickflash-network
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   clickflash-network:
     driver: bridge
 
 volumes:
+  master-data:
+  master-uploads:
+  touch-data:
+  management-data:
+  gallery-data:
   postgres-data:
+  redis-data:
   minio-data:

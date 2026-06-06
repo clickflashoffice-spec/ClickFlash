@@ -32,12 +32,12 @@ async function checkPublicRateLimit(
   windowMs: number,
 ): Promise<boolean> {
   const since = new Date(Date.now() - windowMs).toISOString();
-  const row = await db
+  const row = (await db
     .prepare(
       `SELECT COUNT(*) as cnt FROM rate_limit_events WHERE ip=? AND endpoint=? AND ts>?`,
     )
     .bind(ip, endpoint, since)
-    .first<{ cnt: number }>();
+    .first()) as { cnt: number } | null;
   if ((row?.cnt ?? 0) >= limit) return false;
   await db
     .prepare(`INSERT INTO rate_limit_events (ip, endpoint, ts) VALUES (?,?,?)`)
@@ -47,7 +47,7 @@ async function checkPublicRateLimit(
 }
 
 const galleryHandler = {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, _ctx?: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const pathName = url.pathname;
 
@@ -128,7 +128,7 @@ const galleryHandler = {
             );
           }
 
-          let body;
+          let body: any;
           try {
             body = await request.json();
           } catch {
@@ -308,8 +308,8 @@ const galleryHandler = {
               );
             }
 
-            const { default: Stripe } = await import('stripe');
-            const stripe = new Stripe(env.STRIPE_SECRET_KEY);
+            const { default: Stripe } = await import('stripe') as any;
+            const stripe = new Stripe(env.STRIPE_SECRET_KEY) as any;
             let event: any;
             try {
               event = await stripe.webhooks.constructEventAsync(body, sigHeader, env.STRIPE_WEBHOOK_SECRET);
@@ -569,7 +569,7 @@ const galleryHandler = {
               ? `SELECT multiplier FROM seasonal_rates WHERE is_active = 1 AND start_date <= ? AND end_date >= ? AND (hotel_id IS NULL OR hotel_id = ?) ORDER BY priority DESC LIMIT 1`
               : `SELECT multiplier FROM seasonal_rates WHERE is_active = 1 AND start_date <= ? AND end_date >= ? AND hotel_id IS NULL ORDER BY priority DESC LIMIT 1`;
             const seasonParams = hotelId ? [dateStr, dateStr, hotelId] : [dateStr, dateStr];
-            const seasonResult = await env.GALLERY_DB.prepare(seasonQuery).bind(...seasonParams).first<{ multiplier: number }>();
+            const seasonResult = (await env.GALLERY_DB.prepare(seasonQuery).bind(...seasonParams).first()) as { multiplier: number } | null;
             if (seasonResult?.multiplier) {
               multiplier = seasonResult.multiplier;
             }
@@ -991,7 +991,7 @@ const galleryHandler = {
 
           try {
             const formData = await request.formData();
-            const file = formData.get("file") as File;
+            const file = formData.get("file") as unknown as File;
             const photoId = formData.get("photoId") as string;
             const albumId = formData.get("albumId") as string;
             const deskId = formData.get("desk_id") as string;
@@ -1280,15 +1280,15 @@ export default {
       // Sentry DSN not configured — run without instrumentation
       return galleryHandler.fetch(request, env);
     }
-    return Sentry.withSentry(
+    return (Sentry.withSentry(
       () => ({
         dsn: env.SENTRY_DSN!,
         tracesSampleRate: 0.1,
         environment: "production",
         release: "clickflash-gallery@4.2.0",
       }),
-      galleryHandler,
-    ).fetch(request, env, ctx);
+      galleryHandler as any,
+    ) as any).fetch(request, env, ctx);
   },
 
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {

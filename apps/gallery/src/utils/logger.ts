@@ -75,11 +75,11 @@ class Logger {
   private version: string;
 
   constructor() {
-    const envLevel = (import.meta.env.VITE_LOG_LEVEL || 'INFO').toUpperCase();
+    const envLevel = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_LOG_LEVEL ? import.meta.env.VITE_LOG_LEVEL : 'INFO').toUpperCase();
     this.level = LogLevel[envLevel as keyof typeof LogLevel] ?? LogLevel.INFO;
-    this.isDevelopment = import.meta.env.DEV || import.meta.env.MODE === 'development';
+    this.isDevelopment = typeof import.meta !== 'undefined' && (import.meta.env?.DEV || import.meta.env?.MODE === 'development');
     this.appName = 'gallery';
-    this.version = import.meta.env.VITE_APP_VERSION || '4.1.0';
+    this.version = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_APP_VERSION) ? import.meta.env.VITE_APP_VERSION : '4.2.0';
   }
 
   /**

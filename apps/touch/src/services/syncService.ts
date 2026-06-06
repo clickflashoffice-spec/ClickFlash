@@ -1,12 +1,14 @@
 import { pb } from './pb';
 import { logger } from '../utils/logger';
 import { syncCheckpointService, SyncCheckpoint } from './syncCheckpointService';
+import { db } from './db';
+import { connectivityService } from './connectivityService';
 
 /**
  * SyncService Class
- * 
+ *
  * Synchronizes data between Touch Kiosk (Local DB on port 8091) and Master Station (Remote DB on port 8090).
- * 
+ *
  * Features:
  * - Bidirectional sync: Push orders to Master, pull albums from Master
  * - Automatic sync loop with configurable interval
@@ -14,12 +16,14 @@ import { syncCheckpointService, SyncCheckpoint } from './syncCheckpointService';
  * - Conflict resolution and duplicate detection
  * - Health check before sync operations
  * - Error handling with logging
- * 
+ * - OFFLINE-FIRST: Orders are queued persistently and pushed when connectivity returns
+ * - IDEMPOTENCY: clientMutationId prevents duplicate orders on retries
+ *
  * Sync Flow:
  * 1. Push pending orders from Touch to Master
  * 2. Pull finalized albums from Master to Touch
  * 3. Download and sync photo files (JPEG) for each album
- * 
+ *
  * @class SyncService
  */
 interface FailedPhotoTransfer {
@@ -31,7 +35,23 @@ interface FailedPhotoTransfer {
     lastError?: string;
 }
 
-// Helper to reliably detect network errors across browsers (duplicated to avoid circular deps if Utils not avail)
+interface SyncProgress {
+    albumsProcessed: number;
+    photosProcessed: number;
+    photosTotal: number;
+    bytesTransferred: number;
+    startTime: number;
+    currentAlbum?: string;
+}
+
+interface SyncState {
+    isSyncing: boolean;
+    lastSyncAt: number | null;
+    lastSyncError: string | null;
+    pendingOrdersCount: number;
+}
+
+// Helper to reliably detect network errors across browsers
 const isNetworkError = (error: any): boolean => {
     if (!error) return false;
     const msg = (error.message || '').toLowerCase();
@@ -45,65 +65,61 @@ const isNetworkError = (error: any): boolean => {
     ) || msg.includes('err_connection_refused');
 };
 
-interface SyncProgress {
-    albumsProcessed: number;
-    photosProcessed: number;
-    photosTotal: number;
-    bytesTransferred: number;
-    startTime: number;
-    currentAlbum?: string;
-}
-
 class SyncService {
     private masterUrl: string | null = null;
     private isSyncing = false;
     private syncInterval: number | null = null;
-    private processedPhotoIdsClearInterval: number | null = null; // Track interval for cleanup
+    private processedPhotoIdsClearInterval: number | null = null;
     private failedPhotoQueue: FailedPhotoTransfer[] = [];
     private readonly MAX_RETRY_ATTEMPTS = 3;
-    private readonly PHOTO_DOWNLOAD_TIMEOUT = 120000; // 2 minutes for large photos
-    private readonly RETRY_BACKOFF_BASE = 1000; // 1 second base delay
-    private readonly MAX_CONCURRENT_DOWNLOADS = 3; // Process 3 photos at a time
-    private readonly BATCH_SIZE = 5; // Process albums in batches of 5
+    private readonly PHOTO_DOWNLOAD_TIMEOUT = 120000;
+    private readonly RETRY_BACKOFF_BASE = 1000;
+    private readonly MAX_CONCURRENT_DOWNLOADS = 3;
+    private readonly BATCH_SIZE = 5;
     private syncProgress: SyncProgress | null = null;
-    private readonly processedPhotoIds = new Set<string>(); // Track processed photos to prevent duplicates
-    private readonly realtimeReceivedAlbums = new Set<string>(); // Track albums received via real-time to skip in sync
+    private readonly processedPhotoIds = new Set<string>();
+    private readonly realtimeReceivedAlbums = new Set<string>();
 
-    /**
-     * Mark an album as received via real-time (to skip in sync)
-     */
+    // Observable sync state for UI components
+    private syncState: SyncState = {
+        isSyncing: false,
+        lastSyncAt: null,
+        lastSyncError: null,
+        pendingOrdersCount: 0,
+    };
+    private stateListeners: Array<(state: SyncState) => void> = [];
+
     public markAlbumReceivedViaRealtime(albumId: string) {
         this.realtimeReceivedAlbums.add(albumId);
         logger.debug("[SyncService] Marked album as received via real-time", { albumId });
     }
 
-    /**
-     * Clear real-time received albums tracking (called periodically or on demand)
-     */
     public clearRealtimeReceivedAlbums() {
         this.realtimeReceivedAlbums.clear();
         logger.debug("[SyncService] Cleared real-time received albums tracking");
     }
 
+    private syncTimer: ReturnType<typeof setTimeout> | null = null;
+    private currentInterval = 15000;
+    private baseInterval = 15000;
+    private readonly MAX_INTERVAL = 300000; // 5 minutes
+    private readonly BACKOFF_FACTOR = 2;
+    private consecutiveSyncFailures = 0;
+    private connectivityUnsubscribe: (() => void) | null = null;
+
     constructor() {
         const savedIp = localStorage.getItem('masterLocalIPAddress');
         if (savedIp) {
-            // Master default port is 8090
             this.masterUrl = `http://${savedIp}:8090`;
         }
 
-        // Load failed photo queue from localStorage on initialization
         this.loadFailedPhotoQueue();
 
-        // Clear processed photos set periodically (every hour) to allow re-processing if needed
         this.processedPhotoIdsClearInterval = window.setInterval(() => {
             this.processedPhotoIds.clear();
-        }, 3600000); // 1 hour
+        }, 3600000);
     }
 
-    /**
-     * Load failed photo queue from localStorage
-     */
     private loadFailedPhotoQueue() {
         try {
             const saved = localStorage.getItem('syncServiceFailedPhotos');
@@ -117,9 +133,6 @@ class SyncService {
         }
     }
 
-    /**
-     * Save failed photo queue to localStorage
-     */
     private saveFailedPhotoQueue() {
         try {
             localStorage.setItem('syncServiceFailedPhotos', JSON.stringify(this.failedPhotoQueue));
@@ -128,11 +141,7 @@ class SyncService {
         }
     }
 
-    /**
-     * Add photo to retry queue with exponential backoff
-     */
     private addToRetryQueue(photo: FailedPhotoTransfer) {
-        // Check if already in queue
         const existingIndex = this.failedPhotoQueue.findIndex(p => p.photoId === photo.photoId);
         if (existingIndex >= 0) {
             this.failedPhotoQueue[existingIndex] = photo;
@@ -143,76 +152,131 @@ class SyncService {
         logger.info("[SyncService] Added photo to retry queue", { photoId: photo.photoId, retryCount: photo.retryCount });
     }
 
-    /**
-     * Remove photo from retry queue (successful transfer)
-     */
     private removeFromRetryQueue(photoId: string) {
         this.failedPhotoQueue = this.failedPhotoQueue.filter(p => p.photoId !== photoId);
         this.saveFailedPhotoQueue();
     }
 
-    /**
-     * Update the Master Station IP address
-     * 
-     * @param {string} ip - IP address of the Master Station
-     */
     public updateMasterIp(ip: string) {
         this.masterUrl = `http://${ip}:8090`;
         localStorage.setItem('masterLocalIPAddress', ip);
         logger.info("[SyncService] Master IP updated", { ip, masterUrl: this.masterUrl });
     }
 
-    /**
-     * Start the automatic sync loop
-     * 
-     * Runs sync immediately, then at regular intervals.
-     * 
-     * @param {number} intervalMs - Sync interval in milliseconds (default: 15000 = 15 seconds)
-     */
     public startSyncLoop(intervalMs = 15000) {
-        // Interval logic removed to favor pure realtime/event-driven sync.
-        // We still perform one initial sync to ensure baseline data is pulled.
-        this.sync();
-        logger.info("[SyncService] Initial sync performed (auto-polling disabled)");
+        this.baseInterval = intervalMs;
+        this.currentInterval = intervalMs;
+        this.scheduleNextSync(0); // Immediate first sync
+        logger.info("[SyncService] Auto-polling started", { baseInterval: intervalMs });
+
+        // Start proactive connectivity detection
+        connectivityService.updateMasterUrl(this.masterUrl?.replace('http://', '').replace(':8090', '') || '');
+        connectivityService.start();
+        this.connectivityUnsubscribe = connectivityService.subscribe((isOnline) => {
+            if (isOnline) {
+                logger.info("[SyncService] Master connectivity restored — triggering immediate sync");
+                this.consecutiveSyncFailures = 0;
+                this.currentInterval = this.baseInterval;
+                this.scheduleNextSync(0);
+            } else {
+                logger.info("[SyncService] Master connectivity lost — sync will resume when online");
+                this.setSyncState({ lastSyncError: 'Master unreachable' });
+            }
+        });
     }
 
-    /**
-     * Stop the automatic sync loop
-     */
+    private scheduleNextSync(delayMs?: number) {
+        if (this.syncTimer) {
+            clearTimeout(this.syncTimer);
+            this.syncTimer = null;
+        }
+        const delay = delayMs ?? this.currentInterval;
+        this.syncTimer = setTimeout(() => this.runSyncCycle(), delay);
+    }
+
+    private async runSyncCycle() {
+        if (!this.masterUrl || this.isSyncing) {
+            this.scheduleNextSync();
+            return;
+        }
+
+        try {
+            await this.sync();
+            // Success: reset backoff
+            this.consecutiveSyncFailures = 0;
+            this.currentInterval = this.baseInterval;
+        } catch (e) {
+            this.consecutiveSyncFailures++;
+            const nextInterval = Math.min(
+                this.MAX_INTERVAL,
+                this.baseInterval * Math.pow(this.BACKOFF_FACTOR, this.consecutiveSyncFailures)
+            );
+            this.currentInterval = nextInterval;
+            logger.warn("[SyncService] Sync cycle failed, increasing backoff", {
+                consecutiveFailures: this.consecutiveSyncFailures,
+                nextIntervalMs: nextInterval,
+            });
+        } finally {
+            this.scheduleNextSync();
+        }
+    }
+
     public stopSyncLoop() {
-        // No-op as syncInterval is removed
-        // Cleanup processed photos clear interval
+        if (this.syncTimer) {
+            clearTimeout(this.syncTimer);
+            this.syncTimer = null;
+        }
         if (this.processedPhotoIdsClearInterval !== null) {
             clearInterval(this.processedPhotoIdsClearInterval);
             this.processedPhotoIdsClearInterval = null;
         }
+        if (this.connectivityUnsubscribe) {
+            this.connectivityUnsubscribe();
+            this.connectivityUnsubscribe = null;
+        }
+        connectivityService.stop();
+        logger.info("[SyncService] Auto-polling stopped");
     }
 
     /**
-     * Perform a single sync operation
-     * 
-     * Syncs data between Touch Kiosk and Master Station:
-     * - Pushes pending orders to Master
-     * - Pulls finalized albums and photos from Master
-     * - Retries failed photo transfers from previous attempts
-     * 
-     * @returns {Promise<void>}
+     * Subscribe to sync state changes. Returns unsubscribe function.
      */
+    public subscribe(listener: (state: SyncState) => void): () => void {
+        this.stateListeners.push(listener);
+        listener(this.syncState);
+        return () => {
+            this.stateListeners = this.stateListeners.filter(l => l !== listener);
+        };
+    }
+
+    private setSyncState(partial: Partial<SyncState>) {
+        this.syncState = { ...this.syncState, ...partial };
+        for (const listener of this.stateListeners) {
+            try {
+                listener(this.syncState);
+            } catch (e) {
+                // ignore listener errors
+            }
+        }
+    }
+
+    public getSyncState(): SyncState {
+        return { ...this.syncState };
+    }
+
     public async sync() {
         if (!this.masterUrl || this.isSyncing) return;
         this.isSyncing = true;
+        this.setSyncState({ isSyncing: true, lastSyncError: null });
 
         try {
-            // Check if Master is reachable
-            // Heartbeat / Health Check
-            // We use a dedicated heartbeat endpoint to register presence + check health
             const kioskId = localStorage.getItem('kioskId') || 'unknown';
             const healthRes = await fetch(`${this.masterUrl}/api/kiosk/heartbeat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     kioskId,
-                    ip: 'auto', // Master will detect IP
+                    ip: 'auto',
                     status: 'Syncing',
                     version: '1.0'
                 }),
@@ -221,17 +285,22 @@ class SyncService {
 
             if (!healthRes || !healthRes.ok) {
                 logger.debug("[SyncService] Master unavailable (Heartbeat failed)", { masterUrl: this.masterUrl });
+                this.setSyncState({ isSyncing: false, lastSyncError: 'Master unavailable' });
                 return;
             }
 
             await this.pushOrdersToMaster();
             await this.pullAlbumsFromMaster();
 
-            // Retry failed photo transfers
             if (this.failedPhotoQueue.length > 0) {
                 await this.retryFailedPhotos();
             }
 
+            this.setSyncState({
+                isSyncing: false,
+                lastSyncAt: Date.now(),
+                lastSyncError: null,
+            });
         } catch (e) {
             const errorMsg = e instanceof Error ? e.message : String(e);
             if (isNetworkError(e)) {
@@ -239,23 +308,16 @@ class SyncService {
             } else {
                 logger.warn("[SyncService] Sync failed", { error: errorMsg, masterUrl: this.masterUrl });
             }
+            this.setSyncState({ isSyncing: false, lastSyncError: errorMsg });
         } finally {
             this.isSyncing = false;
         }
     }
 
-    /**
-     * Retry failed photo transfers from the queue
-     * Uses exponential backoff based on retry count
-     * 
-     * @private
-     * @returns {Promise<void>}
-     */
     private async retryFailedPhotos() {
         const photosToRetry = [...this.failedPhotoQueue];
 
         for (const photo of photosToRetry) {
-            // Exponential backoff: wait longer for each retry
             const delay = this.RETRY_BACKOFF_BASE * Math.pow(2, photo.retryCount);
 
             if (photo.retryCount >= this.MAX_RETRY_ATTEMPTS) {
@@ -268,13 +330,11 @@ class SyncService {
                 continue;
             }
 
-            // Wait before retrying (except first retry)
             if (photo.retryCount > 0) {
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
 
             try {
-                // Extract photo metadata from existing record if available
                 let photoTitle: string | undefined;
                 let originalFilename: string | undefined;
                 let photographerId = 0;
@@ -320,76 +380,97 @@ class SyncService {
     }
 
     /**
-     * Push pending orders from Touch Kiosk to Master Station
-     * 
-     * Finds all orders with status 'Pending' and sends them to Master.
-     * Updates order status to 'Synced' after successful push.
-     * 
-     * @private
-     * @returns {Promise<void>}
+     * Push pending orders from Touch Kiosk to Master Station.
+     * Uses clientMutationId for idempotency and persists queue in IndexedDB.
      */
     private async pushOrdersToMaster() {
-        // In our local DB architecture, orders are stored in 'orders' collection.
-        // We find orders that are 'Pending' (assuming newly created ones).
-        const pendingOrders = await pb.collection('orders').getFullList({
-            filter: `status = "Pending"`
-        });
+        // Fetch pending orders from local PocketBase
+        let pendingOrders: any[] = [];
+        try {
+            pendingOrders = await pb.collection('orders').getFullList({
+                filter: `status = "Pending"`
+            });
+        } catch (e) {
+            logger.warn("[SyncService] Could not fetch pending orders from local DB", { error: e instanceof Error ? e.message : String(e) });
+            return;
+        }
+
+        // Also check IndexedDB offline queue for orders that never made it to PB
+        try {
+            const offlineOrders = await db.orders.where('status').equals('Pending').toArray();
+            const pbIds = new Set(pendingOrders.map(o => o.id));
+            for (const offlineOrder of offlineOrders) {
+                if (!pbIds.has(offlineOrder.id)) {
+                    pendingOrders.push(offlineOrder);
+                }
+            }
+        } catch (e) {
+            // IndexedDB may be empty or unavailable
+        }
+
+        this.setSyncState({ pendingOrdersCount: pendingOrders.length });
+        if (pendingOrders.length === 0) return;
+
+        logger.info(`[SyncService] Pushing ${pendingOrders.length} pending orders to Master`);
 
         for (const order of pendingOrders) {
             try {
-                // Send to Master
-                const res = await fetch(`${this.masterUrl}/api/collections/orders/records`, {
+                const clientMutationId = order.clientMutationId || `kiosk-${order.id}-${order.created || Date.now()}`;
+                const kioskId = localStorage.getItem('kioskId') || 'unknown';
+
+                const res = await fetch(`${this.masterUrl}/api/orders/kiosk/orders`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        ...order,
-                        // Ensure we don't conflict IDs if Master generates them
-                    })
+                        clientMutationId,
+                        clientDeviceId: kioskId,
+                        items: order.items || [],
+                        clientName: order.clientName || '',
+                        email: order.email || '',
+                        total: order.total || 0,
+                        status: order.status || 'Pending',
+                        date: order.date || new Date().toISOString().split('T')[0],
+                        destinationId: order.destinationId || 'dest1',
+                        photographerId: order.photographerId || 0,
+                        roomNumber: order.roomNumber || '',
+                        appliedDiscount: order.appliedDiscount || 0,
+                    }),
+                    signal: AbortSignal.timeout(15000)
                 });
 
-                if (res.ok) {
+                if (res.ok || res.status === 208) {
+                    // Success or deduplicated
+                    const result = await res.json().catch(() => ({}));
+                    logger.info(`[SyncService] Order pushed to Master`, { orderId: order.id, masterId: result.id, deduplicated: result.deduplicated });
+
                     // Mark as synced locally
-                    await pb.collection('orders').update(order.id, { status: 'Synced' });
-                    logger.info(`[SyncService] Pushed order to master`, { orderId: order.id });
+                    try {
+                        await pb.collection('orders').update(order.id, { status: 'Synced' });
+                    } catch (pbErr) {
+                        logger.warn("[SyncService] Failed to update local order status", { orderId: order.id });
+                    }
+
+                    // Remove from IndexedDB offline queue if present
+                    try {
+                        await db.orders.delete(order.id);
+                    } catch (e) {
+                        // may not exist in IndexedDB
+                    }
+                } else {
+                    const txt = await res.text();
+                    logger.warn(`[SyncService] Master rejected order`, { orderId: order.id, status: res.status, error: txt });
                 }
             } catch (e) {
                 logger.error(`[SyncService] Failed to push order`, e instanceof Error ? e : undefined, { orderId: order.id });
             }
         }
+
+        this.setSyncState({ pendingOrdersCount: 0 });
     }
 
-    /**
-     * Pull finalized albums and photos from Master Station to Touch Kiosk
-     * 
-     * Fetches finalized albums from Master, creates them locally if they don't exist,
-     * and downloads all associated photo files (JPEG) from Master to Touch PC.
-     * 
-     * Enhanced with:
-     * - Batch processing for albums
-     * - Concurrent photo downloads with limits
-     * - Duplicate detection
-     * - Progress tracking
-     * - Checkpoint/resume capability
-     * 
-     * Process:
-     * 1. Check for existing checkpoint and resume if available
-     * 2. Fetch finalized albums from Master
-     * 3. Filter out already processed albums (from checkpoint)
-     * 4. Process albums in batches
-     * 5. For each album, check if it exists locally
-     * 6. If not, create the album locally
-     * 7. Download all photos for the album (JPEG files) with concurrent limits
-     * 8. Upload photos to Touch backend (saves to Touch PC)
-     * 9. Save checkpoint after each album
-     * 10. Clear checkpoint on successful completion
-     * 
-     * @private
-     * @returns {Promise<void>}
-     */
     private async pullAlbumsFromMaster() {
         try {
-            // Check for existing checkpoint
-            const checkpoint = syncCheckpointService.loadCheckpoint();
+            const checkpoint = await syncCheckpointService.loadCheckpoint();
             const isResume = checkpoint !== null;
 
             if (isResume) {
@@ -399,7 +480,6 @@ class SyncService {
                 });
             }
 
-            // Fetch finalized albums from Master
             const res = await fetch(`${this.masterUrl}/api/collections/albums/records?filter=(status='Finalized')&expand=photos_via_album`);
             if (!res.ok) {
                 logger.warn("[SyncService] Failed to fetch albums from Master", { status: res.status, statusText: res.statusText });
@@ -411,14 +491,12 @@ class SyncService {
 
             if (masterAlbums.length === 0) {
                 logger.debug("[SyncService] No finalized albums to sync");
-                // Clear checkpoint if no albums to sync
                 if (checkpoint) {
-                    syncCheckpointService.clearCheckpoint();
+                    await syncCheckpointService.clearCheckpoint();
                 }
                 return;
             }
 
-            // Filter out already processed albums if resuming
             if (isResume && checkpoint) {
                 const processedCount = masterAlbums.length;
                 masterAlbums = masterAlbums.filter((album: any) =>
@@ -431,7 +509,6 @@ class SyncService {
                 });
             }
 
-            // Initialize progress tracking
             const totalPhotos = masterAlbums.reduce((sum: number, album: any) =>
                 sum + (album.expand?.photos_via_album?.length || 0), 0);
 
@@ -448,9 +525,8 @@ class SyncService {
                 startTime
             };
 
-            // Create or update checkpoint
             if (!checkpoint) {
-                syncCheckpointService.saveCheckpoint({
+                await syncCheckpointService.saveCheckpoint({
                     timestamp: Date.now(),
                     albumsProcessed: [],
                     photosProcessed: [],
@@ -468,14 +544,12 @@ class SyncService {
                 isResume
             });
 
-            // Process albums in batches
             for (let i = 0; i < masterAlbums.length; i += this.BATCH_SIZE) {
                 const batch = masterAlbums.slice(i, i + this.BATCH_SIZE);
                 await Promise.all(batch.map((album: any) => this.processAlbum(album)));
 
-                // Save checkpoint after each batch
                 if (this.syncProgress) {
-                    syncCheckpointService.updateCheckpoint({
+                    await syncCheckpointService.updateCheckpoint({
                         albumsProcessed: Array.from(new Set([
                             ...(checkpoint?.albumsProcessed || []),
                             ...batch.map((a: any) => a.id)
@@ -489,7 +563,6 @@ class SyncService {
                 }
             }
 
-            // Log sync completion
             if (this.syncProgress) {
                 const duration = Date.now() - this.syncProgress.startTime;
                 logger.info("[SyncService] Album sync completed", {
@@ -500,36 +573,24 @@ class SyncService {
                     durationMs: duration
                 });
 
-                // Clear checkpoint on successful completion
-                syncCheckpointService.clearCheckpoint();
+                await syncCheckpointService.clearCheckpoint();
                 this.syncProgress = null;
             }
         } catch (e) {
             logger.error("[SyncService] Failed to pull albums from Master", e instanceof Error ? e : undefined, {});
-            // Don't clear checkpoint on error - allows resume on next sync
         }
     }
 
-    /**
-     * Process a single album (create if needed, download photos)
-     * 
-     * @private
-     * @param rAlbum - Album record from Master
-     * @returns {Promise<void>}
-     */
     private async processAlbum(rAlbum: any): Promise<void> {
         try {
-            // Skip albums that were already received via real-time to prevent duplicates
             if (this.realtimeReceivedAlbums.has(rAlbum.id)) {
                 logger.debug("[SyncService] Skipping album received via real-time", { albumId: rAlbum.id });
                 return;
             }
 
-            // Check if album exists locally
             const localExists = await pb.collection('albums').getOne(rAlbum.id).catch(() => null);
 
-            // Skip if album was already processed (from checkpoint)
-            if (syncCheckpointService.isAlbumProcessed(rAlbum.id)) {
+            if (await syncCheckpointService.isAlbumProcessed(rAlbum.id)) {
                 logger.debug("[SyncService] Album already processed (checkpoint)", { albumId: rAlbum.id });
                 return;
             }
@@ -537,7 +598,6 @@ class SyncService {
             if (!localExists) {
                 logger.info(`[SyncService] Pulling new album`, { albumId: rAlbum.id, albumTitle: rAlbum.title });
 
-                // Create Album locally
                 await pb.collection('albums').create({
                     id: rAlbum.id,
                     title: rAlbum.title,
@@ -554,14 +614,11 @@ class SyncService {
                 }
             } else {
                 logger.debug(`[SyncService] Album already exists locally`, { albumId: rAlbum.id });
-                // Ensure kiosk_ready is set to 1 for existing albums
                 await pb.collection('albums').update(rAlbum.id, { kiosk_ready: 1 });
             }
 
-            // Mark album as processed in checkpoint
-            syncCheckpointService.markAlbumProcessed(rAlbum.id);
+            await syncCheckpointService.markAlbumProcessed(rAlbum.id);
 
-            // Process Photos - Download JPEG files from Master and copy to Touch PC
             const photos = rAlbum.expand?.photos_via_album || [];
             if (photos.length > 0) {
                 await this.processPhotosBatch(rAlbum, photos);
@@ -571,16 +628,7 @@ class SyncService {
         }
     }
 
-    /**
-     * Process photos in batches with concurrent download limits
-     * 
-     * @private
-     * @param album - Album record
-     * @param photos - Array of photo records
-     * @returns {Promise<void>}
-     */
     private async processPhotosBatch(album: any, photos: any[]): Promise<void> {
-        // Filter out photos that are already processed (duplicate detection)
         const photosToProcess = photos.filter(photo => {
             if (this.processedPhotoIds.has(photo.id)) {
                 logger.debug("[SyncService] Photo already processed in this session", { photoId: photo.id });
@@ -589,27 +637,16 @@ class SyncService {
             return true;
         });
 
-        // Process photos in concurrent batches
         for (let i = 0; i < photosToProcess.length; i += this.MAX_CONCURRENT_DOWNLOADS) {
             const batch = photosToProcess.slice(i, i + this.MAX_CONCURRENT_DOWNLOADS);
-
             await Promise.allSettled(
                 batch.map(photo => this.processPhoto(album, photo))
             );
         }
     }
 
-    /**
-     * Process a single photo (download and save)
-     * 
-     * @private
-     * @param album - Album record
-     * @param photo - Photo record
-     * @returns {Promise<void>}
-     */
     private async processPhoto(album: any, photo: any): Promise<void> {
-        // Skip if photo was already processed (from checkpoint)
-        if (syncCheckpointService.isPhotoProcessed(photo.id)) {
+        if (await syncCheckpointService.isPhotoProcessed(photo.id)) {
             logger.debug("[SyncService] Photo already processed (checkpoint)", { photoId: photo.id });
             this.processedPhotoIds.add(photo.id);
             if (this.syncProgress) {
@@ -618,13 +655,12 @@ class SyncService {
             return;
         }
 
-        // Check if photo already exists locally (duplicate detection)
         try {
             const localPhotoExists = await pb.collection('photos').getOne(photo.id).catch(() => null);
             if (localPhotoExists) {
                 logger.debug(`[SyncService] Photo already exists locally, skipping`, { photoId: photo.id });
                 this.processedPhotoIds.add(photo.id);
-                syncCheckpointService.markPhotoProcessed(photo.id);
+                await syncCheckpointService.markPhotoProcessed(photo.id);
                 if (this.syncProgress) {
                     this.syncProgress.photosProcessed++;
                 }
@@ -634,28 +670,19 @@ class SyncService {
             logger.warn("[SyncService] Error checking if photo exists", { photoId: photo.id });
         }
 
-        // Construct photo URL with multiple fallback strategies
         let photoPath = photo.url || photo.storagePath || photo.originalFilename || '';
-
-        // Fallback strategies for photo path
         if (!photoPath || (!photoPath.includes('/') && !photoPath.includes('.'))) {
-            // Fix: Do not prepend album.id, just use photo.id with jpg extension
-            // Standard PB pattern is just the filename
             photoPath = `${photo.id}.jpg`;
         }
 
-        // Try multiple URL patterns
-        // Standard PB: /api/files/COLLECTION/RECORD_ID/FILENAME
         const urlPatterns = [
             `${this.masterUrl}/api/files/photos/${photo.id}/${encodeURIComponent(photoPath)}`,
-            // Legacy/Alternative pattern checks
             photo.url?.startsWith('http') ? photo.url : null,
         ].filter(Boolean) as string[];
 
         let success = false;
         let lastError: string | undefined;
 
-        // Try each URL pattern
         for (const remoteUrl of urlPatterns) {
             try {
                 success = await this.downloadAndSavePhoto(
@@ -670,7 +697,7 @@ class SyncService {
 
                 if (success) {
                     this.processedPhotoIds.add(photo.id);
-                    syncCheckpointService.markPhotoProcessed(photo.id);
+                    await syncCheckpointService.markPhotoProcessed(photo.id);
                     if (this.syncProgress) {
                         this.syncProgress.photosProcessed++;
                     }
@@ -686,7 +713,6 @@ class SyncService {
             }
         }
 
-        // All URL patterns failed - add to retry queue
         logger.warn("[SyncService] All URL patterns failed for photo", {
             photoId: photo.id,
             albumId: album.id,
@@ -703,19 +729,6 @@ class SyncService {
         });
     }
 
-    /**
-     * Download a photo from Master and save it to Touch backend
-     * 
-     * @private
-     * @param albumId - Album ID
-     * @param photoId - Photo ID
-     * @param remoteUrl - Full URL to download photo from Master
-     * @param photoPath - Relative path of the photo
-     * @param photoTitle - Photo title (optional)
-     * @param originalFilename - Original filename (optional)
-     * @param photographerId - Photographer ID
-     * @returns Promise<boolean> - true if successful, false otherwise
-     */
     private async downloadAndSavePhoto(
         albumId: string,
         photoId: string,
@@ -733,15 +746,11 @@ class SyncService {
                 albumId
             });
 
-            // Extract filename
             let filename = originalFilename || photoPath.split('/').pop() || `${photoId}.jpg`;
-            // Ensure filename has .jpg extension
             if (!filename.toLowerCase().endsWith('.jpg') && !filename.toLowerCase().endsWith('.jpeg')) {
                 filename = `${filename}.jpg`;
             }
 
-            // Call the backend to pull the file directly
-            // We use the local backend URL from pb instance
             const baseUrl = pb.baseUrlValue || 'http://127.0.0.1:8092';
 
             const res = await fetch(`${baseUrl}/api/sync/pull-photo`, {
@@ -778,7 +787,6 @@ class SyncService {
                 size: result.size
             });
 
-            // Update progress tracking
             if (this.syncProgress) {
                 this.syncProgress.bytesTransferred += (result.size || 0);
             }
@@ -787,7 +795,6 @@ class SyncService {
 
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
-            // Check for network error reaching our OWN backend
             if (isNetworkError(error)) {
                 logger.error(`[SyncService] Failed to contact local backend for photo pull`, { error: errorMsg, photoId });
             } else {
@@ -796,7 +803,6 @@ class SyncService {
             return false;
         }
     }
-
 }
 
 export const syncService = new SyncService();

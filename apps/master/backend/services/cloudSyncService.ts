@@ -15,6 +15,12 @@ import { timeService } from "../shared/timeService";
 import { Order } from "../types/shared";
 import crypto from "crypto";
 
+interface PipelineResult {
+  name: string;
+  success: boolean;
+  error?: string;
+}
+
 interface SyncConfig {
   enabled: boolean;
   retentionDays: number;
@@ -103,6 +109,11 @@ export class CloudSyncService {
   private auditService: AuditService;
   private circuitState: CircuitState = 'CLOSED';
   private circuitOpenedAt: number | null = null;
+
+  // Per-pipeline failure tracking for granular circuit breaking
+  private failuresByPipeline = new Map<string, number>();
+  private readonly PIPELINE_FAILURE_THRESHOLD = 5;
+  private readonly PIPELINE_CIRCUIT_TIMEOUT = 2 * 60 * 1000; // 2 minutes
 
   // Config
   // SECURITY: All cloud credentials can be set via environment variables (Bootstrap)
@@ -540,11 +551,81 @@ export class CloudSyncService {
     }
   }
 
+  private generateIdempotencyKey(pipeline: string, seq: number): string {
+    const raw = `${this.deskId}:${pipeline}:${seq}:${Date.now()}`;
+    return crypto.createHash('sha256').update(raw).digest('hex');
+  }
+
+  private recordPipelineResult(name: string, success: boolean, error?: string): void {
+    if (success) {
+      this.failuresByPipeline.delete(name);
+      try {
+        this.dbManager.run(
+          `INSERT INTO sync_pipeline_health (pipeline_name, consecutive_failures, last_success_at, circuit_state, updated_at)
+           VALUES (?, 0, datetime('now'), 'CLOSED', datetime('now'))
+           ON CONFLICT(pipeline_name) DO UPDATE SET
+             consecutive_failures = 0,
+             last_success_at = datetime('now'),
+             circuit_state = 'CLOSED',
+             updated_at = datetime('now')`,
+          [name]
+        );
+      } catch (e: any) {
+        if (!e.message?.includes('no such table')) {
+          this.logger.warn(`[CloudSync] Failed to update pipeline health`, { pipeline: name, error: e.message });
+        }
+      }
+    } else {
+      const current = (this.failuresByPipeline.get(name) || 0) + 1;
+      this.failuresByPipeline.set(name, current);
+      try {
+        this.dbManager.run(
+          `INSERT INTO sync_pipeline_health (pipeline_name, consecutive_failures, last_failure_at, circuit_state, updated_at)
+           VALUES (?, ?, datetime('now'), CASE WHEN ? >= ? THEN 'OPEN' ELSE 'CLOSED' END, datetime('now'))
+           ON CONFLICT(pipeline_name) DO UPDATE SET
+             consecutive_failures = excluded.consecutive_failures,
+             last_failure_at = datetime('now'),
+             circuit_state = CASE WHEN excluded.consecutive_failures >= ? THEN 'OPEN' ELSE sync_pipeline_health.circuit_state END,
+             updated_at = datetime('now')`,
+          [name, current, current, this.PIPELINE_FAILURE_THRESHOLD, this.PIPELINE_FAILURE_THRESHOLD]
+        );
+      } catch (e: any) {
+        if (!e.message?.includes('no such table')) {
+          this.logger.warn(`[CloudSync] Failed to update pipeline health`, { pipeline: name, error: e.message });
+        }
+      }
+    }
+  }
+
+  private isPipelineOpen(name: string): boolean {
+    const failures = this.failuresByPipeline.get(name) || 0;
+    if (failures >= this.PIPELINE_FAILURE_THRESHOLD) {
+      // Check if timeout has passed since last failure
+      try {
+        const row = this.dbManager.get<{ last_failure_at: string; circuit_state: string }>(
+          `SELECT last_failure_at, circuit_state FROM sync_pipeline_health WHERE pipeline_name = ?`,
+          [name]
+        );
+        if (row && row.circuit_state === 'OPEN' && row.last_failure_at) {
+          const elapsed = Date.now() - new Date(row.last_failure_at).getTime();
+          if (elapsed >= this.PIPELINE_CIRCUIT_TIMEOUT) {
+            this.failuresByPipeline.set(name, Math.floor(this.PIPELINE_FAILURE_THRESHOLD / 2));
+            return false;
+          }
+        }
+      } catch (e: any) {
+        // ignore
+      }
+      return true;
+    }
+    return false;
+  }
+
   public async sync() {
     if (this.isPaused) return;
     if (this.isSyncing) return;
 
-    // Circuit Breaker: Check if we should allow sync attempts
+    // Global Circuit Breaker
     if (this.circuitState === 'OPEN') {
       const timeSinceOpen = Date.now() - (this.circuitOpenedAt || 0);
       if (timeSinceOpen < CIRCUIT_BREAKER_TIMEOUT) {
@@ -558,47 +639,80 @@ export class CloudSyncService {
     }
 
     this.isSyncing = true;
+    const results: PipelineResult[] = [];
+
+    const runPipeline = async (name: string, fn: () => Promise<void>): Promise<void> => {
+      if (this.isPipelineOpen(name)) {
+        this.logger.debug(`[CloudSync] Pipeline ${name} circuit OPEN, skipping`);
+        results.push({ name, success: false, error: 'Pipeline circuit OPEN' });
+        return;
+      }
+      try {
+        await fn();
+        results.push({ name, success: true });
+      } catch (e: any) {
+        results.push({ name, success: false, error: getErrorMessage(e) });
+      }
+    };
+
     try {
       await this.authenticate();
       if (!this.token) return;
 
-      // --- Phase 13/32: Parallelized Intent Synchronization ---
-      // We run these in parallel so a slow order poll doesn't block intent pushing.
       await Promise.allSettled([
-        this.syncOperationLogs(),
-        this.syncLedgerEntries(), // Payroll sync
-        this.syncExpenses(), // Expenses sync
-        this.syncInventory(), // Inventory sync
-        this.syncOrdersToGallery(), // Order sync to Gallery
-        this.sendHeartbeat(), // Fleet heartbeat & Triage
-        this.syncYieldIntelligence(), // Phase 80: Yield metrics
-        this.syncProspectingCRM(), // Phase 85: B2B CRM sync
-        this.sendFleetTriage(), // Phase 90: Deep health triage
-        this.pullRemoteOperations(),
-        this.pullGlobalSettings(), // Phase 51: Hub → Master settings propagation
-        this.pollPaidOrders(),
-        this.processRetentionQueue(), // Phase 61: High-volume retention sync
-        this.syncRetentionStats(),
-        this.syncDailyAnalytics(), // Phase 70: Photographer audit metrics → Management Hub
-        this.syncResortBI(), // Phase 75: Resort BI Dashboard Sync
-        ArchiveService.checkAndArchiveSyncCandidates(
-          this.dbManager,
-          this.logger,
-        ),
+        runPipeline('operation_logs', () => this.syncOperationLogs()),
+        runPipeline('ledger', () => this.syncLedgerEntries()),
+        runPipeline('expenses', () => this.syncExpenses()),
+        runPipeline('inventory', () => this.syncInventory()),
+        runPipeline('orders_to_gallery', () => this.syncOrdersToGallery()),
+        runPipeline('heartbeat', () => this.sendHeartbeat()),
+        runPipeline('yield_intelligence', () => this.syncYieldIntelligence()),
+        runPipeline('prospecting_crm', () => this.syncProspectingCRM()),
+        runPipeline('fleet_triage', () => this.sendFleetTriage()),
+        runPipeline('remote_operations', () => this.pullRemoteOperations()),
+        runPipeline('global_settings', () => this.pullGlobalSettings()),
+        runPipeline('paid_orders', () => this.pollPaidOrders()),
+        runPipeline('retention_queue', () => this.processRetentionQueue()),
+        runPipeline('retention_stats', () => this.syncRetentionStats()),
+        runPipeline('daily_analytics', () => this.syncDailyAnalytics()),
+        runPipeline('resort_bi', () => this.syncResortBI()),
+        runPipeline('archive', () => ArchiveService.checkAndArchiveSyncCandidates(this.dbManager, this.logger)),
       ]);
 
-      // Check for failures
-      // rejectedCount unused; sync success handled by consecutiveFailures reset below
-      
-      this._lastSuccessfulSync = new Date();
-      this.consecutiveFailures = 0;
-      this.currentInterval = MIN_SYNC_INTERVAL;
-      
-      // Circuit Breaker: If sync succeeded, close the circuit
-      if (this.circuitState !== 'CLOSED') {
-        this.logger.info(`[CloudSync] Circuit breaker CLOSED - sync recovered`);
-        this.circuitState = 'CLOSED';
-        this.circuitOpenedAt = null;
+      const failedPipelines = results.filter(r => !r.success);
+      const allSucceeded = failedPipelines.length === 0;
+
+      // Record per-pipeline results
+      for (const r of results) {
+        this.recordPipelineResult(r.name, r.success, r.error);
+      }
+
+      if (allSucceeded) {
+        this._lastSuccessfulSync = new Date();
+        this.consecutiveFailures = 0;
+        this.currentInterval = MIN_SYNC_INTERVAL;
+        if (this.circuitState !== 'CLOSED') {
+          this.logger.info(`[CloudSync] Circuit breaker CLOSED - all pipelines recovered`);
+          this.circuitState = 'CLOSED';
+          this.circuitOpenedAt = null;
+        }
+      } else {
+        this.consecutiveFailures++;
+        this.currentInterval = Math.min(
+          MAX_SYNC_INTERVAL,
+          this.currentInterval * BACKOFF_FACTOR,
+        );
+        this.logger.warn(`[CloudSync] ${failedPipelines.length} pipeline(s) failed`, {
+          pipelines: failedPipelines.map(p => p.name),
+        });
+
+        if (this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+          this.logger.warn(`[CloudSync] Circuit breaker OPEN - ${this.consecutiveFailures} consecutive failures`);
+          this.circuitState = 'OPEN';
+          this.circuitOpenedAt = Date.now();
+          this.scheduleNextSync(CIRCUIT_BREAKER_TIMEOUT);
+          return;
+        }
       }
     } catch (e: any) {
       this.logger.error(`[CloudSync] Sync Cycle Error: ${getErrorMessage(e)} `);
@@ -608,7 +722,6 @@ export class CloudSyncService {
         this.currentInterval * BACKOFF_FACTOR,
       );
 
-      // Circuit Breaker: Check if threshold exceeded
       if (this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
         this.logger.warn(`[CloudSync] Circuit breaker OPEN - ${this.consecutiveFailures} consecutive failures`);
         this.circuitState = 'OPEN';
@@ -638,13 +751,34 @@ export class CloudSyncService {
       `[CloudSync] Syncing ${ops.length} user intents to Cloud Hub (Desk: ${this.deskId})...`,
     );
 
+    // Idempotency: generate a key for this batch
+    const firstSeq = ops[0]?.sequence_number ?? Date.now();
+    const idempotencyKey = this.generateIdempotencyKey('operation_logs', firstSeq);
+
     try {
+      // Store idempotency key locally before sending
+      try {
+        this.dbManager.run(
+          `INSERT INTO sync_idempotency_keys (idempotency_key, desk_id, pipeline_name, created_at)
+           VALUES (?, ?, ?, datetime('now'))`,
+          [idempotencyKey, this.deskId, 'operation_logs']
+        );
+      } catch (e: any) {
+        if (!e.message?.includes('no such table')) {
+          this.logger.warn(`[CloudSync] Failed to store idempotency key`, { error: e.message });
+        }
+      }
+
       const res = await executeWithRetry(async () => {
+        const headers = await this.getHeaders();
         return await fetchFn(
           `${this.cloudApiUrl}/api/cloud/sync/operations`,
           {
             method: "POST",
-            headers: await this.getHeaders(),
+            headers: {
+              ...headers,
+              'X-Idempotency-Key': idempotencyKey,
+            },
             body: JSON.stringify({
               desk_id: this.deskId,
               operations: ops.map((op: OperationLogRow): OutgoingOperation => ({
@@ -688,12 +822,22 @@ export class CloudSyncService {
           );
         }
         
-        // Handle partial failures explicitly (the server didn't process them)
         const failedIds = ops.map((op: OperationLogRow) => op.id).filter((id: string) => !processedIds.includes(id));
         if (failedIds.length > 0) {
            this.handleFailedOperations(failedIds, "Remote Hub rejected record");
         }
 
+      } else if (res.status === 208) {
+        // Hub already processed this batch
+        this.logger.info(`[CloudSync] Hub reports batch already processed (208)`);
+        this.dbManager.transaction(() => {
+          const stmt = this.dbManager.prepare(
+            `UPDATE operation_logs SET status = 'synced', last_error = NULL WHERE id = ?`,
+          );
+          for (const op of ops) {
+            stmt.run(op.id);
+          }
+        });
       } else {
         const txt = await res.text();
         this.logger.error(`[CloudSync] Operations Sync Failed: ${txt}`);

@@ -2,6 +2,8 @@ import { WebSocket } from 'ws';
 import { Logger } from '../shared/logger';
 import DatabaseManager from '../shared/db';
 import { TABLE_MAP, JSON_COLUMNS, ALLOWED_COLUMNS } from '../config/constants';
+import { z } from 'zod';
+import crypto from 'crypto';
 
 interface VectorClock {
   [clientId: string]: number;
@@ -22,6 +24,21 @@ interface ConnectedClient {
     lastHeartbeat: number;
     clientId: string;
     ip: string;
+}
+
+const mutationPayloadSchema = z.object({
+    entity: z.string().min(1, 'Entity is required'),
+    action: z.enum(['create', 'update', 'delete', 'update_many', 'upsert']),
+    data: z.record(z.string(), z.any()).refine((val) => typeof val === 'object' && val !== null, {
+        message: 'Data must be an object',
+    }),
+    clientId: z.string().optional(),
+    vectorClock: z.record(z.string(), z.number()).optional(),
+});
+
+function hashPayload(payload: any): string {
+    const canonical = JSON.stringify(payload, Object.keys(payload).sort());
+    return crypto.createHash('sha256').update(canonical).digest('hex');
 }
 
 export class SyncManager {
@@ -85,13 +102,28 @@ export class SyncManager {
                 break;
 
             case 'MUTATION':
-                await this.handleMutation(payload, client.clientId);
-                client.ws.send(JSON.stringify({
-                    type: 'MUTATION_ACK',
-                    id: payload.data?.id,
-                    status: 'APPLIED',
-                    timestamp: Date.now()
-                }));
+                try {
+                    const ack = await this.handleMutation(payload, client.clientId);
+                    if (client.ws.readyState === WebSocket.OPEN) {
+                        client.ws.send(JSON.stringify({
+                            type: 'MUTATION_ACK',
+                            id: payload.data?.id,
+                            status: ack.status,
+                            timestamp: Date.now()
+                        }));
+                    }
+                } catch (error: any) {
+                    this.logger.error(`[SyncManager] Mutation failed for ${client.clientId}`, { error: error.message });
+                    if (client.ws.readyState === WebSocket.OPEN) {
+                        client.ws.send(JSON.stringify({
+                            type: 'MUTATION_ACK',
+                            id: payload.data?.id,
+                            status: 'ERROR',
+                            error: error.message,
+                            timestamp: Date.now()
+                        }));
+                    }
+                }
                 break;
 
             case 'SYNC_REQUEST':
@@ -105,8 +137,6 @@ export class SyncManager {
                 break;
 
             default:
-                // Other message types (REGISTER_CLIENT, etc.) are handled by the main websocket.ts loop
-                // but we might want to acknowledge them if they come through here.
                 break;
         }
     }
@@ -125,10 +155,8 @@ export class SyncManager {
         if (!table || !ALLOWED_COLUMNS[table]) return;
 
         try {
-            // Fetch records updated after the client's last sync
             const records = this.db.query(`SELECT * FROM ${table} WHERE updated_at > ?`, [new Date(timestamp).toISOString()]);
 
-            // Parse JSON columns
             const jsonCols = JSON_COLUMNS[table] || [];
             const parsedRecords = records.map(r => {
                 const parsed = { ...r };
@@ -179,18 +207,46 @@ export class SyncManager {
     return result;
   }
 
-  public async handleMutation(payload: SyncPayload, clientId: string) {
+  public async handleMutation(payload: SyncPayload, clientId: string): Promise<{ status: string }> {
         const { entity, action, data, vectorClock } = payload;
 
         if (!entity || !action || !data || !data.id) {
             this.logger.warn(`[SyncManager] Invalid mutation payload from ${clientId}`);
-            return;
+            return { status: 'REJECTED' };
+        }
+
+        // Zod validation
+        const validation = mutationPayloadSchema.safeParse({ entity, action, data, clientId, vectorClock });
+        if (!validation.success) {
+            this.logger.warn(`[SyncManager] Validation failed for mutation from ${clientId}`, {
+                errors: validation.error.errors.map(e => e.message)
+            });
+            return { status: 'INVALID' };
         }
 
         const table = TABLE_MAP[entity as keyof typeof TABLE_MAP];
         if (!table || !ALLOWED_COLUMNS[table]) {
             this.logger.error(`[SyncManager] Security: Rejected unknown table "${entity}"`);
-            return;
+            return { status: 'REJECTED' };
+        }
+
+        // Idempotency check
+        const mutationId = data.id as string;
+        const payloadHash = hashPayload(data);
+        try {
+            const acked = this.db.get<{ id: string }>(
+                `SELECT id FROM mutation_ack_log WHERE client_id = ? AND mutation_id = ? AND payload_hash = ?`,
+                [clientId, mutationId, payloadHash]
+            );
+            if (acked) {
+                this.logger.info(`[SyncManager] Mutation ${mutationId} already applied for ${clientId}, returning ACK`);
+                return { status: 'ALREADY_APPLIED' };
+            }
+        } catch (e: any) {
+            // Table may not exist yet on very old DBs without migration 069
+            if (!e.message?.includes('no such table')) {
+                this.logger.warn(`[SyncManager] Idempotency check failed`, { error: e.message });
+            }
         }
 
         this.logger.info(`[SyncManager] Applying mutation: ${entity}.${action} (ID: ${data.id})`);
@@ -265,7 +321,24 @@ export class SyncManager {
                 }
             });
 
+            // Persist ack for idempotency
+            try {
+                this.db.run(
+                    `INSERT INTO mutation_ack_log (id, client_id, mutation_id, payload_hash, applied_at)
+                     VALUES (?, ?, ?, ?, datetime('now'))
+                     ON CONFLICT(client_id, mutation_id) DO UPDATE SET
+                       payload_hash = excluded.payload_hash,
+                       applied_at = datetime('now')`,
+                    [`${clientId}:${mutationId}`, clientId, mutationId, payloadHash]
+                );
+            } catch (e: any) {
+                if (!e.message?.includes('no such table')) {
+                    this.logger.warn(`[SyncManager] Failed to record mutation ack`, { error: e.message });
+                }
+            }
+
             this.broadcastUpdate(payload, clientId);
+            return { status: 'APPLIED' };
 
         } catch (error: any) {
             this.logger.error(`[SyncManager] Mutation error:`, { error: error.message || String(error), entity, id: data.id });

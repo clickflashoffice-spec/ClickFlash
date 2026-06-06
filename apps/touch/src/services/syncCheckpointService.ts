@@ -4,11 +4,11 @@
  * Manages sync checkpoints to enable resuming interrupted sync operations.
  * 
  * Features:
- * - Save sync progress checkpoints
+ * - Save sync progress checkpoints to IndexedDB (Dexie)
  * - Resume from last checkpoint
  * - Track processed albums and photos
- * - Persist checkpoints to localStorage
  * - Automatic checkpoint cleanup
+ * - One-time migration from legacy localStorage
  * 
  * Checkpoint Structure:
  * {
@@ -25,6 +25,7 @@
  */
 
 import { logger } from '../utils/logger';
+import { db, SyncCheckpointRecord } from './db';
 
 interface SyncCheckpoint {
     timestamp: number;
@@ -41,25 +42,75 @@ interface SyncCheckpoint {
 
 const CHECKPOINT_KEY = 'syncServiceCheckpoint';
 const CHECKPOINT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+const CHECKPOINT_ID = 'default';
+
+let migrationAttempted = false;
+
+async function migrateFromLocalStorage(): Promise<void> {
+    if (migrationAttempted) return;
+    migrationAttempted = true;
+    try {
+        const saved = localStorage.getItem(CHECKPOINT_KEY);
+        if (!saved) return;
+
+        const legacy = JSON.parse(saved) as SyncCheckpoint & { timestamp: number };
+        const age = Date.now() - legacy.timestamp;
+        if (age > CHECKPOINT_EXPIRY_MS) {
+            logger.info('[SyncCheckpoint] Legacy checkpoint expired, clearing');
+            localStorage.removeItem(CHECKPOINT_KEY);
+            return;
+        }
+
+        await db.checkpoints.put({
+            id: CHECKPOINT_ID,
+            timestamp: legacy.timestamp,
+            albumsProcessed: legacy.albumsProcessed || [],
+            photosProcessed: legacy.photosProcessed || [],
+            currentAlbumId: legacy.currentAlbumId,
+            currentPhotoIndex: legacy.currentPhotoIndex,
+            totalAlbums: legacy.totalAlbums || 0,
+            totalPhotos: legacy.totalPhotos || 0,
+            bytesTransferred: legacy.bytesTransferred || 0,
+            startTime: legacy.startTime || legacy.timestamp,
+            syncType: legacy.syncType || 'full',
+        });
+
+        localStorage.removeItem(CHECKPOINT_KEY);
+        logger.info('[SyncCheckpoint] Migrated legacy checkpoint from localStorage to IndexedDB');
+    } catch (error) {
+        logger.warn('[SyncCheckpoint] Failed to migrate legacy checkpoint', {
+            error: error instanceof Error ? error.message : String(error),
+        });
+    }
+}
 
 class SyncCheckpointService {
     /**
      * Save a sync checkpoint
      */
-    saveCheckpoint(checkpoint: SyncCheckpoint): void {
+    async saveCheckpoint(checkpoint: SyncCheckpoint): Promise<void> {
         try {
-            const data = {
-                ...checkpoint,
-                timestamp: Date.now()
+            const data: SyncCheckpointRecord = {
+                id: CHECKPOINT_ID,
+                timestamp: Date.now(),
+                albumsProcessed: checkpoint.albumsProcessed,
+                photosProcessed: checkpoint.photosProcessed,
+                currentAlbumId: checkpoint.currentAlbumId,
+                currentPhotoIndex: checkpoint.currentPhotoIndex,
+                totalAlbums: checkpoint.totalAlbums,
+                totalPhotos: checkpoint.totalPhotos,
+                bytesTransferred: checkpoint.bytesTransferred,
+                startTime: checkpoint.startTime,
+                syncType: checkpoint.syncType,
             };
-            localStorage.setItem(CHECKPOINT_KEY, JSON.stringify(data));
-            logger.debug('[SyncCheckpoint] Checkpoint saved', {
+            await db.checkpoints.put(data);
+            logger.debug('[SyncCheckpoint] Checkpoint saved to IndexedDB', {
                 albumsProcessed: checkpoint.albumsProcessed.length,
-                photosProcessed: checkpoint.photosProcessed.length
+                photosProcessed: checkpoint.photosProcessed.length,
             });
         } catch (error) {
             logger.warn('[SyncCheckpoint] Failed to save checkpoint', {
-                error: error instanceof Error ? error.message : String(error)
+                error: error instanceof Error ? error.message : String(error),
             });
         }
     }
@@ -67,33 +118,43 @@ class SyncCheckpointService {
     /**
      * Load the last sync checkpoint
      */
-    loadCheckpoint(): SyncCheckpoint | null {
+    async loadCheckpoint(): Promise<SyncCheckpoint | null> {
+        await migrateFromLocalStorage();
         try {
-            const saved = localStorage.getItem(CHECKPOINT_KEY);
-            if (!saved) {
+            const record = await db.checkpoints.get(CHECKPOINT_ID);
+            if (!record) {
                 return null;
             }
-
-            const checkpoint = JSON.parse(saved) as SyncCheckpoint & { timestamp: number };
 
             // Check if checkpoint is expired
-            const age = Date.now() - checkpoint.timestamp;
+            const age = Date.now() - record.timestamp;
             if (age > CHECKPOINT_EXPIRY_MS) {
                 logger.info('[SyncCheckpoint] Checkpoint expired, clearing', { age });
-                this.clearCheckpoint();
+                await this.clearCheckpoint();
                 return null;
             }
 
-            logger.info('[SyncCheckpoint] Checkpoint loaded', {
-                albumsProcessed: checkpoint.albumsProcessed.length,
-                photosProcessed: checkpoint.photosProcessed.length,
-                age: Math.floor(age / 1000) + 's'
+            logger.info('[SyncCheckpoint] Checkpoint loaded from IndexedDB', {
+                albumsProcessed: record.albumsProcessed.length,
+                photosProcessed: record.photosProcessed.length,
+                age: Math.floor(age / 1000) + 's',
             });
 
-            return checkpoint;
+            return {
+                timestamp: record.timestamp,
+                albumsProcessed: record.albumsProcessed,
+                photosProcessed: record.photosProcessed,
+                currentAlbumId: record.currentAlbumId,
+                currentPhotoIndex: record.currentPhotoIndex,
+                totalAlbums: record.totalAlbums,
+                totalPhotos: record.totalPhotos,
+                bytesTransferred: record.bytesTransferred,
+                startTime: record.startTime,
+                syncType: record.syncType,
+            };
         } catch (error) {
             logger.warn('[SyncCheckpoint] Failed to load checkpoint', {
-                error: error instanceof Error ? error.message : String(error)
+                error: error instanceof Error ? error.message : String(error),
             });
             return null;
         }
@@ -102,13 +163,14 @@ class SyncCheckpointService {
     /**
      * Clear the checkpoint
      */
-    clearCheckpoint(): void {
+    async clearCheckpoint(): Promise<void> {
         try {
-            localStorage.removeItem(CHECKPOINT_KEY);
+            await db.checkpoints.delete(CHECKPOINT_ID);
+            localStorage.removeItem(CHECKPOINT_KEY); // Also clear legacy
             logger.debug('[SyncCheckpoint] Checkpoint cleared');
         } catch (error) {
             logger.warn('[SyncCheckpoint] Failed to clear checkpoint', {
-                error: error instanceof Error ? error.message : String(error)
+                error: error instanceof Error ? error.message : String(error),
             });
         }
     }
@@ -116,21 +178,21 @@ class SyncCheckpointService {
     /**
      * Check if a checkpoint exists and is valid
      */
-    hasValidCheckpoint(): boolean {
-        const checkpoint = this.loadCheckpoint();
+    async hasValidCheckpoint(): Promise<boolean> {
+        const checkpoint = await this.loadCheckpoint();
         return checkpoint !== null;
     }
 
     /**
      * Update checkpoint with current progress
      */
-    updateCheckpoint(updates: Partial<SyncCheckpoint>): void {
-        const existing = this.loadCheckpoint();
+    async updateCheckpoint(updates: Partial<SyncCheckpoint>): Promise<void> {
+        const existing = await this.loadCheckpoint();
         if (existing) {
-            this.saveCheckpoint({
+            await this.saveCheckpoint({
                 ...existing,
                 ...updates,
-                timestamp: Date.now()
+                timestamp: Date.now(),
             });
         }
     }
@@ -138,12 +200,12 @@ class SyncCheckpointService {
     /**
      * Mark an album as processed
      */
-    markAlbumProcessed(albumId: string): void {
-        const checkpoint = this.loadCheckpoint();
+    async markAlbumProcessed(albumId: string): Promise<void> {
+        const checkpoint = await this.loadCheckpoint();
         if (checkpoint) {
             if (!checkpoint.albumsProcessed.includes(albumId)) {
                 checkpoint.albumsProcessed.push(albumId);
-                this.saveCheckpoint(checkpoint);
+                await this.saveCheckpoint(checkpoint);
             }
         }
     }
@@ -151,12 +213,12 @@ class SyncCheckpointService {
     /**
      * Mark a photo as processed
      */
-    markPhotoProcessed(photoId: string): void {
-        const checkpoint = this.loadCheckpoint();
+    async markPhotoProcessed(photoId: string): Promise<void> {
+        const checkpoint = await this.loadCheckpoint();
         if (checkpoint) {
             if (!checkpoint.photosProcessed.includes(photoId)) {
                 checkpoint.photosProcessed.push(photoId);
-                this.saveCheckpoint(checkpoint);
+                await this.saveCheckpoint(checkpoint);
             }
         }
     }
@@ -164,8 +226,8 @@ class SyncCheckpointService {
     /**
      * Check if an album has been processed
      */
-    isAlbumProcessed(albumId: string): boolean {
-        const checkpoint = this.loadCheckpoint();
+    async isAlbumProcessed(albumId: string): Promise<boolean> {
+        const checkpoint = await this.loadCheckpoint();
         if (!checkpoint) return false;
         return checkpoint.albumsProcessed.includes(albumId);
     }
@@ -173,8 +235,8 @@ class SyncCheckpointService {
     /**
      * Check if a photo has been processed
      */
-    isPhotoProcessed(photoId: string): boolean {
-        const checkpoint = this.loadCheckpoint();
+    async isPhotoProcessed(photoId: string): Promise<boolean> {
+        const checkpoint = await this.loadCheckpoint();
         if (!checkpoint) return false;
         return checkpoint.photosProcessed.includes(photoId);
     }
@@ -182,18 +244,18 @@ class SyncCheckpointService {
     /**
      * Get checkpoint statistics
      */
-    getCheckpointStats(): {
+    async getCheckpointStats(): Promise<{
         exists: boolean;
         albumsProcessed: number;
         photosProcessed: number;
         age?: number;
-    } {
-        const checkpoint = this.loadCheckpoint();
+    }> {
+        const checkpoint = await this.loadCheckpoint();
         if (!checkpoint) {
             return {
                 exists: false,
                 albumsProcessed: 0,
-                photosProcessed: 0
+                photosProcessed: 0,
             };
         }
 
@@ -201,11 +263,10 @@ class SyncCheckpointService {
             exists: true,
             albumsProcessed: checkpoint.albumsProcessed.length,
             photosProcessed: checkpoint.photosProcessed.length,
-            age: Date.now() - checkpoint.timestamp
+            age: Date.now() - checkpoint.timestamp,
         };
     }
 }
 
 export const syncCheckpointService = new SyncCheckpointService();
 export type { SyncCheckpoint };
-

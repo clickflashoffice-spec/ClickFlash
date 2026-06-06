@@ -14,10 +14,12 @@ module.exports = {
   // Root directories for tests
   roots: ['<rootDir>/src'],
   
-  // Test file patterns - only run specific test files that work
+  // Test file patterns - run all test files
   testMatch: [
-    '**/orderAccess.test.ts',
-    '**/galleryHelpers.test.ts',
+    '**/__tests__/**/*.ts',
+    '**/__tests__/**/*.tsx',
+    '**/?(*.)+(spec|test).ts',
+    '**/?(*.)+(spec|test).tsx',
   ],
 
   // Ignore problematic directories
@@ -25,6 +27,7 @@ module.exports = {
     '/node_modules/',
     '/dist/',
     '/backend/',
+    'test-utils\\.tsx?$',
   ],
   
   // Transform TypeScript files
@@ -43,6 +46,7 @@ module.exports = {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': 
       '<rootDir>/src/__mocks__/fileMock.js',
+    '^@/services/pb$': '<rootDir>/src/__mocks__/pbMock.js',
   },
   
   // Setup files to run after Jest is initialized
@@ -52,7 +56,7 @@ module.exports = {
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
-    '!src/setupTests.ts',
+    '!src/setupTests.tsx',
     '!src/main.tsx',
     '!src/**/__tests__/**',
     '!src/**/__mocks__/**',
@@ -88,6 +92,7 @@ module.exports = {
     '/node_modules/',
     '/dist/',
     '/backend/',
+    'test-utils\\.tsx?$',
   ],
   
   // Transform ignore patterns (ensure Stripe modules are transformed)

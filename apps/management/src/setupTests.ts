@@ -7,6 +7,40 @@
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
 
+// ============================================================================
+// Logger Mock — prevents import.meta syntax errors in Jest
+// ============================================================================
+
+jest.mock('./utils/logger', () => ({
+  logger: {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    payment: jest.fn(),
+    security: jest.fn(),
+  },
+  default: {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    payment: jest.fn(),
+    security: jest.fn(),
+  },
+}));
+
+// Mock env module to prevent import.meta issues
+jest.mock('./utils/env', () => ({
+  getEnv: jest.fn(() => ({
+    VITE_LOG_LEVEL: 'INFO',
+    DEV: true,
+    MODE: 'test',
+    VITE_API_BASE_URL: 'http://localhost:8090',
+    VITE_APP_TITLE: 'Star Master Management'
+  })),
+}));
+
 // Clean up after each test
 afterEach(() => {
     cleanup();

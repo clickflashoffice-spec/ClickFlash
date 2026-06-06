@@ -1,4 +1,8 @@
 # ClickFlash Customer Gallery - Production Build
+# NOTE: Backend is now a Cloudflare Worker (backend/src/server.ts).
+# This Dockerfile builds and serves the static frontend only.
+# Deploy the Worker separately with: cd backend && npx wrangler deploy
+
 FROM node:20-alpine AS builder
 RUN apk add --no-cache python3 make g++
 
@@ -16,26 +20,20 @@ RUN npm run build
 
 # --- Production Runner ---
 FROM node:20-alpine
-RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
-# Install prod dependencies
-COPY package*.json ./
-RUN npm ci --only=production
+# Install serve for static file hosting
+RUN npm install -g serve
 
-# Copy backend and built frontend
-COPY backend ./backend
+# Copy built frontend
 COPY --from=builder /app/dist ./dist
 
-# Create data directory
-RUN mkdir -p pb_data/data
-ENV DATA_DIR=./pb_data
-ENV PORT=8093
+ENV PORT=3000
 ENV NODE_ENV=production
 
 # Expose port
-EXPOSE 8093
+EXPOSE 3000
 
-# Start Backend
-CMD ["node", "backend/server.js"]
+# Serve static frontend
+CMD ["serve", "-s", "dist", "-l", "3000"]

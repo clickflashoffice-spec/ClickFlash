@@ -139,6 +139,34 @@ ClickFlash/
 - **Touch App**: Strict LAN-only (`setupNetworkIsolation` in `main.js`). Blocks all non-private IPs, restricts ports, strips Referer headers.
 - **Master App**: Offline-first with optional cloud sync. Only Master communicates with Cloudflare.
 
+## Synchronization Architecture
+
+### Master ↔ Touch Kiosk (LAN)
+- **Transport**: WebSocket (primary) + HTTP fallback (`/api/sync/mutation`)
+- **Conflict Resolution**: Vector clocks per entity. Each mutation carries `vectorClock: { [clientId]: number }`.
+- **Idempotency**: `mutation_ack_log` table keyed by `(client_id, mutation_id)`. Duplicates receive `ALREADY_APPLIED` ack without re-applying.
+- **Mutation Validation**: All mutations pass through Zod schema validation before database transaction.
+- **Order Sync**: Touch pushes pending orders to `/api/orders/kiosk/orders` with `clientMutationId`. Master deduplicates via `orders.client_mutation_id`.
+
+### Master ↔ Cloud Hub
+- **Transport**: HTTPS with RS256 JWT + hardware fingerprinting
+- **Batching**: Operation logs are grouped by pipeline and sent in batches
+- **Idempotency**: `X-Idempotency-Key` header per batch = `sha256(desk_id + pipeline + sequence_number + timestamp)`
+- **Circuit Breaker**: Per-pipeline failure tracking. Global counter only resets when all 15+ pipelines succeed.
+- **Retry Policy**: Exponential backoff with jitter. DLQ after 5 consecutive failures.
+
+### Touch Offline-First
+- **Local Storage**: IndexedDB (Dexie) for albums/orders cache + PocketBase for structured local backend
+- **Queue**: Orders saved to IndexedDB first (never blocks), then PocketBase, then Master
+- **Checkpoint/Resume**: `syncCheckpointService` tracks album/photo progress in `localStorage`. Interruptions resume from last checkpoint.
+- **Conflict Flag**: If an order is edited on both Touch and Master while disconnected, Master sets `conflict_flag = 1` for staff review.
+
+### Persistent Write Queue (Master)
+- **Purpose**: Deferred database writes that survive power cycles
+- **Table**: `pending_writes` — `id, table_name, record_id, payload_json, priority, status, retry_count, created_at, updated_at`
+- **Flow**: `enqueue()` → INSERT into `pending_writes` → add to in-memory Map → `flush()` → UPDATE target table → DELETE from `pending_writes`
+- **Recovery**: On boot, `DbWriteQueue` hydrates pending rows and immediately flushes before accepting new writes.
+
 ### Authentication
 
 - **Master**: JWT + Express sessions, CSRF protection
@@ -171,6 +199,6 @@ ClickFlash/
 
 | Database | App | Engine | Key Tables |
 |----------|-----|--------|------------|
-| `master.db` | Master | SQLite (better-sqlite3) | photos, albums, orders, kiosks, settings, operation_logs |
+| `master.db` | Master | SQLite (better-sqlite3) | photos, albums, orders, kiosks, settings, operation_logs, pending_writes, mutation_ack_log |
 | `touch.db` | Touch | SQLite (better-sqlite3) | orders, settings, sync_state |
 | `clickflash-hub-db` | Management + Gallery | Cloudflare D1 | desks, orders, photos, daily_objectives, campaigns |

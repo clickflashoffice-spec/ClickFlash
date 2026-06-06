@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Persistent Write Queue (Master)**: `DbWriteQueue` now persists all pending writes to SQLite `pending_writes` table before flushing. Survives power cycles and app crashes. Auto-hydrates and flushes recovered writes on boot.
+- **2-Phase Commit (DbWriteQueue)**: `flush()` now uses `pending` → `flushing` → delete pattern. If power is lost mid-flush, recovered `flushing` rows are re-applied on boot. Zero data loss.
+- **Application-Level JSON Merge**: Replaced non-standard `json_patch()` SQL with JS-level merge in `DbWriteQueue.enqueue()`. Compatible with all SQLite builds.
+- **Mutation Idempotency (Master)**: `SyncManager.handleMutation` now checks `mutation_ack_log` before applying. Duplicate mutations are ignored with `ALREADY_APPLIED` ack.
+- **Cloud Sync Idempotency**: `CloudSyncService` generates SHA-256 `X-Idempotency-Key` headers per batch. Hub returns `208 Already Reported` for duplicates; client treats as success.
+- **Per-Pipeline Circuit Breaker**: `CloudSyncService` tracks `failuresByPipeline` per sync pipeline. Global `consecutiveFailures` only resets when **all** pipelines succeed.
+- **Touch Order Idempotency**: `syncService.pushOrdersToMaster` attaches `clientMutationId` to every order. Master `/api/orders/kiosk/orders` deduplicates by `client_mutation_id`.
+- **Touch Auto-Polling**: `syncService.startSyncLoop()` now runs a proper polling loop with exponential backoff (up to 5min). Resets to base interval on success. Wires `window.online` event for immediate retry.
+- **Touch Offline-First Queue**: Orders are saved to IndexedDB offline cache first, then PocketBase, then pushed to Master. ACK from Master clears local queue.
+- **Touch ConnectivityService**: Proactive Master health probes every 10s when offline. Debounced state changes (2s). Emits `online`/`offline` events to `syncService` and `SyncStatusIndicator`.
+- **Touch SyncStatusIndicator**: Now shows 5 states including `unreachable` (yellow) when browser is online but Master is unreachable.
+- **IndexedDB Checkpoints**: `syncCheckpointService` migrated from `localStorage` to IndexedDB (Dexie). Supports large datasets without quota overflow. One-time migration from legacy `localStorage`.
+- **Touch Conflict Tracking**: Added `conflicts` table to Dexie schema. `offlineStorage.saveConflict()` stores unresolved conflicts. `SyncStatusIndicator` displays conflict count.
+- **Zod Validation**: `mutationSchema` now requires `clientMutationId` and validates mutation payloads before transaction.
+- **Rate Limiting on Kiosk Orders**: `strictRateLimiter` applied to `/api/orders/kiosk/orders` to prevent burst abuse.
+- **Migration 069**: `pending_writes` table for power-cycle-safe deferred writes.
+- **Migration 070**: `client_mutation_id`, `client_device_id`, and `mutation_timestamp` columns on `orders` table.
+- **Unit Tests**: Full coverage for `DbWriteQueue`, `SyncManager`, `CloudSyncService` (21 passing).
+- **Integration Tests**: `sync-integration.test.ts` verifies offline→online sync, deduplication, and power-cycle recovery (4 passing).
+- **E2E Tests**: `sync-reliability.spec.ts` covers kiosk order creation, idempotency stress, and dashboard resilience.
+- **Simulation Script**: `scripts/simulate-kiosk-usage.ts` runs autonomous verification scenarios against a live Master backend.
+- **Documentation**: `docs/OFFLINE_FIRST_STANDARDS.md` documents queue design, idempotency contracts, conflict resolution, retry policies, connectivity detection, and testing requirements.
+
+### Fixed
+- **DbWriteQueue infinite recursion**: `flush()` now self-manages `isFlushing` state, preventing stack overflow when transaction failures trigger re-enqueue.
+- **DbWriteQueue `json_patch` incompatibility**: Replaced non-standard SQLite `json_patch()` with application-level JSON merge.
+- **Touch syncService tests**: Added `AbortSignal.timeout` polyfill for jsdom compatibility.
+- **Integration test stability**: `sync-integration.test.ts` now pre-creates target table rows before testing recovery (DbWriteQueue does UPDATE, not INSERT).
+- **E2E hardcoded path**: `preview-verification.spec.ts` now uses `testInfo.outputPath()` instead of a machine-specific absolute path.
+- **Touch auto-polling disabled**: `startSyncLoop()` now implements a full polling loop instead of running once and stopping.
+- **`localStorage` checkpoint quota risk**: Migrated to IndexedDB to support unlimited-size checkpoint arrays.
+
+---
+
 ## [4.2.0] - 2026-05-15
 
 ### Changed

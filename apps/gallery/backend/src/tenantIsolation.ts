@@ -6,7 +6,7 @@
  */
 
 import { jwtVerify } from 'jose';
-import { DatabaseManager } from './db.js';
+import DatabaseManager from './db.js';
 
 export interface AuthContext {
   userId?: string;
@@ -134,7 +134,7 @@ export async function validateOrderItemsAccess(
 
     // Verify all photos belong to the same destination
     const placeholders = photoIds.map(() => '?').join(',');
-    const photos = await dbManager.all(
+    const photos = await dbManager.query(
       `SELECT id FROM photos WHERE id IN (${placeholders}) AND destinationId = ?`,
       [...photoIds, tenantScope.destinationId]
     );
@@ -161,7 +161,7 @@ export function withTenantIsolation(
       );
     }
 
-    const dbManager = new DatabaseManager(env['GALLERY_DB'] as D1Database);
+    const dbManager = new DatabaseManager(env['GALLERY_DB'] as any);
     const tenantScope = await extractTenantScope(request, dbManager, jwtSecret);
 
     if (!tenantScope) {

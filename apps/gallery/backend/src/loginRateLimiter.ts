@@ -8,7 +8,7 @@
  * Uses the login_attempts table (migration 012_add_login_attempts.sql).
  */
 
-import type { DatabaseManager } from './db.js';
+import DatabaseManager from './db.js';
 
 const MAX_ATTEMPTS_EMAIL = 5;
 const MAX_ATTEMPTS_IP    = 20;

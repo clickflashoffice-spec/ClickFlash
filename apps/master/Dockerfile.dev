@@ -1,0 +1,23 @@
+# ClickFlash Master Station - Development
+# Uses pnpm for package management
+
+FROM node:20-alpine
+
+RUN apk add --no-cache libc6-compat python3 make g++ git
+
+WORKDIR /app
+
+# Install pnpm globally
+RUN npm install -g pnpm
+
+# Copy package files
+COPY package.json pnpm-lock.yaml* ./
+
+# Install dependencies (including devDependencies)
+RUN pnpm install
+
+# Expose ports
+EXPOSE 8090
+
+# Start development server (backend + frontend)
+CMD ["pnpm", "run", "dev:full"]

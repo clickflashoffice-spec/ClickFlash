@@ -35,12 +35,12 @@ export class R2SignedUrlService {
     /**
      * Generate a signed URL for an R2 object
      */
-    public generateSignedUrl(storageKey: string, ttlSeconds?: number): string {
+    public async generateSignedUrl(storageKey: string, ttlSeconds?: number): Promise<string> {
         const ttl = Math.min(ttlSeconds ?? this.defaultTtl, this.maxTtl);
         const expires = Math.floor(Date.now() / 1000) + ttl;
         const path = `/${SIGNED_URL_VERSION}/${storageKey}`;
         
-        const signature = this.createSignature(path, expires);
+        const signature = await this.createSignature(path, expires);
         
         const params = new URLSearchParams({
             e: expires.toString(),
@@ -53,7 +53,7 @@ export class R2SignedUrlService {
     /**
      * Validate a signed URL
      */
-    public validateSignedUrl(url: string): { valid: boolean; path?: string; error?: string } {
+    public async validateSignedUrl(url: string): Promise<{ valid: boolean; path?: string; error?: string }> {
         try {
             const parsedUrl = new URL(url);
             const pathname = parsedUrl.pathname;
@@ -81,7 +81,7 @@ export class R2SignedUrlService {
             }
 
             // Verify signature
-            const expectedSignature = this.createSignature(`/${SIGNED_URL_VERSION}/${storageKey}`, expires);
+            const expectedSignature = await this.createSignature(`/${SIGNED_URL_VERSION}/${storageKey}`, expires);
             if (!this.constantTimeCompare(signature, expectedSignature)) {
                 return { valid: false, error: 'Invalid signature' };
             }
@@ -93,18 +93,26 @@ export class R2SignedUrlService {
     }
 
     /**
-     * Create HMAC-SHA256 signature
+     * Create HMAC-SHA256 signature using Web Crypto API
      */
-    private createSignature(path: string, expires: number): string {
+    private async createSignature(path: string, expires: number): Promise<string> {
         const data = `${path}:${expires}`;
-        const key = new Uint8Array(this.secret.normalize('UTF-8').split('').map(c => c.charCodeAt(0)));
-        const message = new TextEncoder().encode(data);
-        
-        // Use Web Crypto API for HMAC
-        // Note: In Cloudflare Workers, crypto.subtle is available
-        const hmacKey = crypto.createHmac('sha256', this.secret);
-        hmacKey.update(data);
-        return hmacKey.digest('base64url');
+        const encoder = new TextEncoder();
+        const keyData = encoder.encode(this.secret);
+        const messageData = encoder.encode(data);
+
+        const cryptoKey = await crypto.subtle.importKey(
+            'raw',
+            keyData,
+            { name: 'HMAC', hash: 'SHA-256' },
+            false,
+            ['sign']
+        );
+
+        const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, messageData);
+        const signatureArray = Array.from(new Uint8Array(signatureBuffer));
+        const base64 = signatureArray.map(b => String.fromCharCode(b)).join('');
+        return btoa(base64).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     }
 
     /**

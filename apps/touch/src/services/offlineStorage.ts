@@ -50,10 +50,47 @@ export const offlineStorage = {
         }
     },
 
+    async saveConflict(orderId: string, details?: string) {
+        try {
+            await db.conflicts.put({
+                id: `conflict-${orderId}-${Date.now()}`,
+                orderId,
+                detectedAt: Date.now(),
+                resolved: false,
+                details: details || 'Order modified on both sides while disconnected',
+            });
+            logger.warn('[OfflineStorage] Conflict recorded', { orderId });
+        } catch (error) {
+            logger.error('[OfflineStorage] Failed to save conflict', error);
+        }
+    },
+
+    async getUnresolvedConflicts(): Promise<Array<{ orderId: string; detectedAt: number; details?: string }>> {
+        try {
+            return await db.conflicts
+                .where('resolved')
+                .equals(0)
+                .toArray();
+        } catch (error) {
+            logger.error('[OfflineStorage] Failed to load conflicts', error);
+            return [];
+        }
+    },
+
+    async resolveConflict(id: string) {
+        try {
+            await db.conflicts.update(id, { resolved: true });
+            logger.info('[OfflineStorage] Conflict resolved', { id });
+        } catch (error) {
+            logger.error('[OfflineStorage] Failed to resolve conflict', error);
+        }
+    },
+
     async clearAll() {
         try {
             await db.albums.clear();
             await db.orders.clear();
+            await db.conflicts.clear();
             logger.info('[OfflineStorage] Cleared all offline data');
         } catch (error) {
             logger.error('[OfflineStorage] Failed to clear all data', error);

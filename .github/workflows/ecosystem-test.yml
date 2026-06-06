@@ -1,0 +1,77 @@
+name: Ecosystem Test
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  JWT_SECRET: test-secret-for-ci-min-32-chars!!
+  DEFAULT_ADMIN_PASSWORD: test-password
+  NODE_ENV: test
+
+jobs:
+  ecosystem-test:
+    name: Full Ecosystem E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Start ecosystem via docker-compose
+        run: |
+          docker-compose -f docker-compose.dev.yml up -d
+          echo "Waiting for services to be healthy..."
+          timeout 180 bash -c 'until curl -sf http://localhost:8090/api/health; do sleep 2; done'
+          timeout 60 bash -c 'until curl -sf http://localhost:8091/api/health; do sleep 2; done'
+          timeout 60 bash -c 'until curl -sf http://localhost:5173; do sleep 2; done'
+          timeout 60 bash -c 'until curl -sf http://localhost:5174; do sleep 2; done'
+          timeout 60 bash -c 'until curl -sf http://localhost:3000; do sleep 2; done'
+          timeout 60 bash -c 'until curl -sf http://localhost:1420; do sleep 2; done'
+
+      - name: Run ecosystem tests
+        run: pnpm exec playwright test --config=playwright.ecosystem.config.ts
+        env:
+          NODE_ENV: test
+          JWT_SECRET: ${{ env.JWT_SECRET }}
+
+      - name: Upload ecosystem test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ecosystem-test-results
+          path: |
+            test-results/
+            apps/master/test-results/
+            apps/touch/test-results/
+          retention-days: 14
+
+      - name: Upload Playwright traces
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: ecosystem-traces
+          path: test-results/**/*.zip
+          retention-days: 7
+        continue-on-error: true
+
+      - name: Tear down docker-compose
+        if: always()
+        run: docker-compose -f docker-compose.dev.yml down

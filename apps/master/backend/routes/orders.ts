@@ -17,6 +17,8 @@ import { LedgerService } from "../services/LedgerService";
 import { OrderValidationService } from "../services/OrderValidationService";
 import AuditLogger from "../shared/auditLogger";
 
+import { strictRateLimiter } from "../shared/rateLimiter";
+
 interface OrdersContext {
   dbManager: DatabaseManager;
   logger: Logger;
@@ -432,6 +434,96 @@ export default function orderRoutes(context: OrdersContext): Router {
           error.message,
           ERROR_CODES.INTERNAL_ERROR,
         );
+    }
+  });
+
+  /**
+   * @route POST /kiosk/orders
+   * @description Idempotent order creation from Touch Kiosks.
+   * Deduplicates by client_mutation_id to prevent duplicate orders on retries.
+   */
+  router.post("/kiosk/orders", strictRateLimiter, async (req: Request, res: Response) => {
+    try {
+      const {
+        clientMutationId,
+        clientDeviceId,
+        items,
+        clientName,
+        email,
+        total,
+        status,
+        date,
+        destinationId,
+        photographerId,
+        roomNumber,
+        appliedDiscount,
+      } = req.body;
+
+      if (!clientMutationId) {
+        return sendInvalidInputError(res, "clientMutationId is required");
+      }
+
+      // Deduplication check
+      const existing = dbManager.get<{ id: string }>(
+        `SELECT id FROM orders WHERE client_mutation_id = ?`,
+        [clientMutationId]
+      );
+
+      if (existing) {
+        logger.info(`[Orders] Kiosk order deduplicated by clientMutationId`, {
+          clientMutationId,
+          existingId: existing.id,
+        });
+        return res.status(208).json({
+          success: true,
+          id: existing.id,
+          deduplicated: true,
+        });
+      }
+
+      const now = new Date().toISOString();
+      const id = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+
+      dbManager.run(
+        `INSERT INTO orders (
+          id, clientName, email, total, status, items, date,
+          destinationId, photographerId, roomNumber, appliedDiscount,
+          client_mutation_id, client_device_id, mutation_timestamp, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          clientName || "",
+          email || "",
+          total || 0,
+          status || "Pending",
+          JSON.stringify(items || []),
+          date || now.split("T")[0],
+          destinationId || "",
+          photographerId || 0,
+          roomNumber || "",
+          appliedDiscount || 0,
+          clientMutationId,
+          clientDeviceId || "",
+          Date.now(),
+          now,
+          now,
+        ]
+      );
+
+      // Broadcast to connected kiosks
+      if (syncManager) {
+        syncManager.broadcastOrderStatus(id, status || "Pending", {
+          clientName,
+          email,
+          total,
+        });
+      }
+
+      logger.info(`[Orders] Kiosk order created`, { id, clientMutationId });
+      res.status(201).json({ success: true, id });
+    } catch (error: any) {
+      logger.error("[Orders] Kiosk order creation failed", { error: error.message });
+      sendError(res, 500, "Kiosk Order Error", error.message, ERROR_CODES.INTERNAL_ERROR);
     }
   });
 

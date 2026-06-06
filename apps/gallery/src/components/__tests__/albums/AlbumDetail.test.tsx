@@ -12,21 +12,17 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '../../__tests__/test-utils';
 import '@testing-library/jest-dom';
 import AlbumDetail from '../../albums/AlbumDetail';
 import { Album, Photo } from '../../../types';
 
 // Mock dependencies
-const mockGetAlbum = jest.fn();
-const mockUpdateAlbum = jest.fn();
-const mockUpdatePhoto = jest.fn();
-
 jest.mock('../../../services/apiService', () => ({
     apiService: {
-        getAlbum: mockGetAlbum,
-        updateAlbum: mockUpdateAlbum,
-        updatePhoto: mockUpdatePhoto
+        getAlbum: jest.fn(),
+        updateAlbum: jest.fn(),
+        updatePhoto: jest.fn()
     }
 }));
 
@@ -47,6 +43,12 @@ jest.mock('../../../services/geminiService', () => ({
 jest.mock('../../../utils/imageUtils', () => ({
     urlToInlineData: jest.fn()
 }));
+
+import { apiService } from '../../../services/apiService';
+
+const mockGetAlbum = apiService.getAlbum as jest.Mock;
+const mockUpdateAlbum = apiService.updateAlbum as jest.Mock;
+const mockUpdatePhoto = apiService.updatePhoto as jest.Mock;
 
 const mockAlbum: Album = {
     id: 'album-1',

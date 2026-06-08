@@ -1,0 +1,50 @@
+{
+  "app": "master",
+  "total_issues": 8,
+  "critical": 2,
+  "errors": 3,
+  "warnings": 3,
+  "issues": [
+    {
+      "file": "src/main/index.ts",
+      "issue": "electron main entry missing",
+      "severity": "critical"
+    },
+    {
+      "file": "build/icon.png",
+      "issue": "missing build-critical file",
+      "severity": "error"
+    },
+    {
+      "file": "package.json",
+      "issue": "@types/pdfmake in prod deps",
+      "severity": "warning"
+    },
+    {
+      "file": "package.json",
+      "issue": "@types/react-window in prod deps",
+      "severity": "warning"
+    },
+    {
+      "file": "package.json",
+      "issue": "@types/stripe in prod deps",
+      "severity": "warning"
+    },
+    {
+      "file": "node_modules/sharp",
+      "issue": "missing native binary",
+      "severity": "error"
+    },
+    {
+      "file": "node_modules/@napi-rs/canvas",
+      "issue": "missing native binary",
+      "severity": "error"
+    },
+    {
+      "file": "package.json scripts",
+      "issue": "typo: bcrypjs -> bcryptjs",
+      "severity": "critical"
+    }
+  ],
+  "problematic_dependencies": []
+}

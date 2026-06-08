@@ -1,0 +1,74 @@
+[
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\.gitignore",
+    "action": "exists_skipped"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\gallery\\.gitignore",
+    "action": "exists_skipped"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\installer\\.gitignore",
+    "action": "created"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\management\\.gitignore",
+    "action": "exists_skipped"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\master\\.gitignore",
+    "action": "exists_skipped"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\master-cpp\\.gitignore",
+    "action": "created"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\moneytrash\\.gitignore",
+    "action": "exists_skipped"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\pb_data\\.gitignore",
+    "action": "created"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\touch\\.gitignore",
+    "action": "exists_skipped"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\.gitignore",
+    "action": "exists_skipped"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\packages\\types\\.gitignore",
+    "action": "created"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\packages\\ui\\.gitignore",
+    "action": "created"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\tests\\ecosystem\\.gitignore",
+    "action": "created"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\tests\\installer\\.gitignore",
+    "action": "created"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\tests\\performance\\.gitignore",
+    "action": "created"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\scripts\\archive\\.gitignore",
+    "action": "created"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\docs\\archive\\.gitignore",
+    "action": "created"
+  },
+  {
+    "path": "C:\\Users\\alamo\\Desktop\\ClickFlash\\docs\\audit\\.gitignore",
+    "action": "created"
+  }
+]

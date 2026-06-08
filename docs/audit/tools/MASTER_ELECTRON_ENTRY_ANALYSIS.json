@@ -1,0 +1,24 @@
+{
+  "app": "master",
+  "electron_main": {
+    "source": "electron-main.ts",
+    "compiled_output": "dist/electron/electron-main.js",
+    "package_json_main": "dist/electron/electron-main.js",
+    "status": "CORRECT"
+  },
+  "preload": {
+    "source": "preload.ts",
+    "status": "FOUND"
+  },
+  "tsconfig_electron": {
+    "includes_preload": true,
+    "outDir": "./dist/electron"
+  },
+  "fixes_applied": [],
+  "build_pipeline": {
+    "has_build_script": true,
+    "has_build_backend": true,
+    "has_build_electron": true,
+    "has_package": true
+  }
+}

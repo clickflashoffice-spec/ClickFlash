@@ -1,0 +1,41 @@
+{
+  "stripe_live": [],
+  "stripe_test": [
+    "sk_test_xxxxxxxxxxxxxxxxxxxxxxxx",
+    "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
+  ],
+  "stripe_restricted_test": [
+    "[REDACTED]"
+  ],
+  "resend": [
+    "[REDACTED]",
+    "[REDACTED]",
+    "[REDACTED]"
+  ],
+  "cloudflare": [
+    "[REDACTED]",
+    "[REDACTED]",
+    "[REDACTED]"
+  ],
+  "jwt": [
+    "clickflash_occidental_secure_secret_2025",
+    "de8c75171b04901373c09dfd5912bf30157af0af26b9ef2b739cf4a5880c84d6",
+    "e5c1407a6ee1f326c6ebfcbfc8784e0ad72dffffbdf06a5f3685d635db1f67c8ce1211abb60a83a18fd10f776976b580798a09a69a74b64e797715f66a869f06",
+    "e5c1407a6ee1f326c6ebfcbfc8784e0ad72dffffbdf06a5f3685d635db1f67c8ce1211abb60a83a18fd10f776976b580798a09a69a74b",
+    "REPLACE_WITH_64_BYTE_HEX_SECRET",
+    "8a624de6544ed58fe79d861377bdb50c15e197e58505a785b01b919050f90287",
+    "test_master_secret_2026_9999",
+    "test_gallery_secret_2026",
+    "CHANGE_THIS_TO_A_STRONG_RANDOM_SECRET",
+    "test_jwt_secret_for_phase_95_do_not_use_in_production_32chars",
+    "b7d2f8e1c3a5d9f0a2b4c6e8d0f2a4b6c8e0d2f4a6b8c0e2d4f6a8b0c2d4f6a8",
+    "0471b46f3e8b6ee3b675bee3858c761769670310dc22ede03eadbe4061501010e4fc3d5961b19c581fca5501f564dbbb6186b94d6b4ac",
+    "change-this-in-production",
+    "42898c0d9a60e0a55c2f061c0d0d4a7c8e9b0a1c2d3e4f5a6b7c8d9e0f1a2b3c",
+    "0471b46f3e8b6ee3b675bee3858c761769670310dc22ede03eadbe4061501010e4fc3d5961b19c581fca5501f564dbbb6186b94d6b4ac89e5f933f01aa58edd0",
+    "clickflash_concorde_secure_secret_2025",
+    "touch_kiosk_secret_change_this_in_production_min_32_chars",
+    "f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8",
+    "clickflash_club_secure_secret_2025"
+  ]
+}

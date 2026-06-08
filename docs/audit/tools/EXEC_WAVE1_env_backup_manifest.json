@@ -1,0 +1,130 @@
+[
+  {
+    "original": ".env",
+    "backup": "docs\\archive\\backups\\.env"
+  },
+  {
+    "original": ".env.example",
+    "backup": "docs\\archive\\backups\\.env.example"
+  },
+  {
+    "original": "apps\\gallery\\.env",
+    "backup": "docs\\archive\\backups\\apps_gallery_.env"
+  },
+  {
+    "original": "apps\\gallery\\.env.example",
+    "backup": "docs\\archive\\backups\\apps_gallery_.env.example"
+  },
+  {
+    "original": "apps\\gallery\\backend\\.env",
+    "backup": "docs\\archive\\backups\\apps_gallery_backend_.env"
+  },
+  {
+    "original": "apps\\gallery\\backend\\.env.example",
+    "backup": "docs\\archive\\backups\\apps_gallery_backend_.env.example"
+  },
+  {
+    "original": "apps\\management\\.env",
+    "backup": "docs\\archive\\backups\\apps_management_.env"
+  },
+  {
+    "original": "apps\\management\\.env.example",
+    "backup": "docs\\archive\\backups\\apps_management_.env.example"
+  },
+  {
+    "original": "apps\\management\\backend\\.env",
+    "backup": "docs\\archive\\backups\\apps_management_backend_.env"
+  },
+  {
+    "original": "apps\\management\\backend\\.env.example",
+    "backup": "docs\\archive\\backups\\apps_management_backend_.env.example"
+  },
+  {
+    "original": "apps\\master\\.env",
+    "backup": "docs\\archive\\backups\\apps_master_.env"
+  },
+  {
+    "original": "apps\\master\\.env.example",
+    "backup": "docs\\archive\\backups\\apps_master_.env.example"
+  },
+  {
+    "original": "apps\\master\\backend\\.env",
+    "backup": "docs\\archive\\backups\\apps_master_backend_.env"
+  },
+  {
+    "original": "apps\\master\\backend\\.env.example",
+    "backup": "docs\\archive\\backups\\apps_master_backend_.env.example"
+  },
+  {
+    "original": "apps\\master\\backend\\setup\\config-template.env",
+    "backup": "docs\\archive\\backups\\apps_master_backend_setup_config-template.env"
+  },
+  {
+    "original": "apps\\master\\backend\\setup\\profiles\\concorde.env",
+    "backup": "docs\\archive\\backups\\apps_master_backend_setup_profiles_concorde.env"
+  },
+  {
+    "original": "apps\\master\\backend\\setup\\profiles\\marhaba-club.env",
+    "backup": "docs\\archive\\backups\\apps_master_backend_setup_profiles_marhaba-club.env"
+  },
+  {
+    "original": "apps\\master\\backend\\setup\\profiles\\marhaba-occidental.env",
+    "backup": "docs\\archive\\backups\\apps_master_backend_setup_profiles_marhaba-occidental.env"
+  },
+  {
+    "original": "apps\\master\\ClickFlash-Master-test-hotel-2\\.env",
+    "backup": "docs\\archive\\backups\\apps_master_ClickFlash-Master-test-hotel-2_.env"
+  },
+  {
+    "original": "apps\\master\\configs\\club.env",
+    "backup": "docs\\archive\\backups\\apps_master_configs_club.env"
+  },
+  {
+    "original": "apps\\master\\configs\\concorde.env",
+    "backup": "docs\\archive\\backups\\apps_master_configs_concorde.env"
+  },
+  {
+    "original": "apps\\master\\configs\\occidental.env",
+    "backup": "docs\\archive\\backups\\apps_master_configs_occidental.env"
+  },
+  {
+    "original": "apps\\moneytrash\\.env",
+    "backup": "docs\\archive\\backups\\apps_moneytrash_.env"
+  },
+  {
+    "original": "apps\\moneytrash\\.env.example",
+    "backup": "docs\\archive\\backups\\apps_moneytrash_.env.example"
+  },
+  {
+    "original": "apps\\touch\\.env",
+    "backup": "docs\\archive\\backups\\apps_touch_.env"
+  },
+  {
+    "original": "apps\\touch\\.env.example",
+    "backup": "docs\\archive\\backups\\apps_touch_.env.example"
+  },
+  {
+    "original": "apps\\touch\\backend\\.env",
+    "backup": "docs\\archive\\backups\\apps_touch_backend_.env"
+  },
+  {
+    "original": "apps\\touch\\backend\\.env.example",
+    "backup": "docs\\archive\\backups\\apps_touch_backend_.env.example"
+  },
+  {
+    "original": "apps\\website\\.env",
+    "backup": "docs\\archive\\backups\\apps_website_.env"
+  },
+  {
+    "original": "apps\\website\\.env.example",
+    "backup": "docs\\archive\\backups\\apps_website_.env.example"
+  },
+  {
+    "original": "claude-code\\.env.example",
+    "backup": "docs\\archive\\backups\\claude-code_.env.example"
+  },
+  {
+    "original": "claude-code\\web\\.env.example",
+    "backup": "docs\\archive\\backups\\claude-code_web_.env.example"
+  }
+]

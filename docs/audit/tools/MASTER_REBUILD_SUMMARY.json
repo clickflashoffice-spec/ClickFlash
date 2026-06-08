@@ -1,0 +1,20 @@
+{
+  "app": "master",
+  "status": "BUILD_SUCCESSFUL",
+  "fixes_applied": [
+    "Fixed bcrypjs -> bcryptjs typo",
+    "Created build/icon.png",
+    "Removed invalid afterInstall/afterRemove from electron-builder.yml",
+    "Moved @types/ packages to devDependencies"
+  ],
+  "build_outputs": {
+    "executable": "release/win-unpacked/ClickFlash Master OS.exe (~201 MB)",
+    "asar": "release/win-unpacked/resources/app.asar (~219 MB)",
+    "unpacked_native": "release/win-unpacked/resources/app.asar.unpacked/"
+  },
+  "remaining_warnings": [
+    "helper_scripts directory missing",
+    "Electron 39 is old \u2014 consider upgrading",
+    "50 secret exposures need rotation"
+  ]
+}

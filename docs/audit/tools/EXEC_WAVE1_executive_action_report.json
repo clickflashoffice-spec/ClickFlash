@@ -1,0 +1,85 @@
+{
+  "wave": 1,
+  "phase": "secret_rotation_prep",
+  "status": "ready_for_manual_execution",
+  "summary": {
+    "total_findings": 278,
+    "stripe_exposures": 1,
+    "aws_exposures": 0,
+    "jwt_exposures": 20,
+    "api_key_exposures": 5,
+    "database_url_exposures": 1,
+    "private_key_exposures": 1,
+    "generic_secret_exposures": 6
+  },
+  "immediate_actions": [
+    {
+      "action": "Revoke Stripe secret key",
+      "url": "https://dashboard.stripe.com/apikeys",
+      "affected_files": [
+        "apps/management/backend/.env"
+      ],
+      "priority": "CRITICAL"
+    },
+    {
+      "action": "Revoke AWS access keys",
+      "url": "https://console.aws.amazon.com/iam/home#/security_credentials",
+      "affected_files": [],
+      "priority": "CRITICAL"
+    },
+    {
+      "action": "Rotate JWT secrets",
+      "command": "openssl rand -base64 32",
+      "affected_files": [
+        "apps/master/configs/occidental.env",
+        "apps/touch/.env",
+        "apps/master/configs/club.env",
+        "apps/management/backend/.env.example",
+        "apps/gallery/backend/.env",
+        "apps/gallery/backend/.env.example",
+        "apps/master/backend/.env",
+        ".env",
+        "apps/master/.env",
+        "apps/master/backend/.env.example",
+        "apps/touch/backend/.env",
+        "apps/master/.env.example",
+        "apps/master/ClickFlash-Master-test-hotel-2/.env",
+        "apps/master/configs/concorde.env",
+        ".env.example",
+        "apps/touch/backend/.env.example",
+        "apps/master/backend/setup/config-template.env",
+        "apps/touch/.env.example",
+        "apps/gallery/.env.example",
+        "apps/management/backend/.env"
+      ],
+      "priority": "HIGH"
+    },
+    {
+      "action": "Rotate Resend/Cloud API keys",
+      "url": "https://resend.com/api-keys",
+      "affected_files": [
+        "apps/website/.env",
+        "apps/master/ClickFlash-Master-test-hotel-2/.env",
+        "apps/moneytrash/.env"
+      ],
+      "priority": "HIGH"
+    },
+    {
+      "action": "Rotate database credentials",
+      "note": "Update DATABASE_URL in all .env files and hosting provider",
+      "affected_files": [
+        ".env.example"
+      ],
+      "priority": "HIGH"
+    }
+  ],
+  "artifacts_created": [
+    "EXEC_WAVE1_env_backup_manifest.json",
+    "EXEC_WAVE1_remove_env_from_git.sh",
+    "EXEC_WAVE1_secret_rotation_checklist.md",
+    "EXEC_WAVE1_vault_migration_template.env",
+    "EXEC_WAVE1_install_precommit.sh",
+    "EXEC_WAVE1_hardcoded_secrets_report.md",
+    "EXEC_WAVE1_summary.json"
+  ]
+}

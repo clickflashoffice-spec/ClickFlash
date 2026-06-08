@@ -1,0 +1,1975 @@
+{
+  "provided_key": {
+    "key": "[REDACTED]",
+    "type": "Resend Production API Key",
+    "prefix": "[REDACTED]",
+    "suffix": "[REDACTED]",
+    "occurrences_in_codebase": 0,
+    "findings": []
+  },
+  "all_resend_keys": {
+    "total_unique": 245,
+    "keys": [
+      {
+        "file": "apps/master/pb_data/master.db",
+        "line": 791,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "mentRegistering",
+        "full_key": "[REDACTED]",
+        "line_content": "-E\u001b\u0000\u0000\u0000\u0000\u0000\b3hub_registrationConnecting to Management Hubpending2026-04-15 14:21:39R\t\u000b3A\u001b\u0000\u0000\u0000\u0000\u0000\b3cloudfla[REDACTED]"
+      },
+      {
+        "file": "apps/master/pb_data/sessions.db",
+        "line": 1296,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "qMGAUtVseBJ3VPh",
+        "full_key": "[REDACTED]",
+        "line_content": "%\u0003M\u0002WzQ-uW4k1IZQNMFB7kLEC8TPkXQTl2nR\u0011%\u0003M\u0002WzAPU69SWdqzgSvYs5zPejQLeA7xXHfZ\u001d:%\u0003M\u0002WyvjCNcpPF49akeeedJedrvphVzHDj0x!%\u0003M\u0002WyjK"
+      },
+      {
+        "file": "apps/master/public/models/face_recognition_model-shard1",
+        "line": 7410,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "jtpsorkppjsrstr",
+        "full_key": "[REDACTED]",
+        "line_content": "?NSWQ\\OTG^\\WUY^QTVP]UGYY^[WXET]S^RTV<XOVRUXZTWS[\\WTNXTLOWVMUYcMERT^YJQF`VWO\\SUMd]VMO[TUSP\\ZU^_VSMMQYRNKZNTiL[H_USRS^VRRW"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/ctor-7ea87d4e419020c0.pdb",
+        "line": 4887,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "d9b4dd73f6c810E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn4item8printing76_$LT$impl$u20$quote..to_tokens..ToTokens$u20$for$u20$syn..item..UseGroup$GT$9to_tokens17hc18c3"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/darling_macro-926db7b11946b963.pdb",
+        "line": 7172,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "227ca7744f1363E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3ptr38drop_in_place$LT$syn..expr..ExprIf$GT$17haf73456f75a64918E\u0000\u0000B\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0000`\u0013\u0000\u0001\u0000_ZN5alloc3vec12Vec$LT$T$GT$3n"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/darling_macro-926db7b11946b963.pdb",
+        "line": 7209,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "be9cc212e3424fE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3ptr40drop_in_place$LT$syn..expr..ExprCast$GT$17hbd763f6dd656fb8dE\u0000\u0000\u0000\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000@\u0014\b\u0000\u0001\u0000_ZN95_$LT$alloc..vec..Vec$"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/darling_macro-926db7b11946b963.pdb",
+        "line": 7328,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "6140b64544aa65E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3ops8function6FnOnce9call_once17h599d00e7a518f348E\u0000\u0000\u0000\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000&\u0019\u0000\u0001\u0000_ZN3syn3gen2eq75_$LT$impl$u20$core..cmp..Pa"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/darling_macro-926db7b11946b963.pdb",
+        "line": 7349,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "9657808521bd7fE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN79_$LT$core..result..Result$LT$T$C$E$GT$$u20$as$u20$core..ops..try_trait..Try$GT$6branch17h4a9347ecac371886E\u0000\u0000\u0000F\u0000\u000e"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/darling_macro-926db7b11946b963.pdb",
+        "line": 7400,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "ce0bb4200660bcE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN79_$LT$core..result..Result$LT$T$C$E$GT$$u20$as$u20$core..ops..try_trait..Try$GT$6branch17h4904733033da447eE\u0000\u0000\u0000j\u0000\u000e"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/darling_macro-926db7b11946b963.pdb",
+        "line": 7475,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "73d082b8cc9f23E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3ops8function6FnOnce9call_once17h2367333dae721572E\u0000\u0000\u0000\u0000~\u0000\u000e\u0011\u0002\u0000\u0000\u0000P\u001a\u0000\u0001\u0000_ZN4core3cmp5impls69_$LT$impl$u20$core..cm"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/darling_macro-926db7b11946b963.pdb",
+        "line": 7597,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "29302e14c6c70dE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3ops8function6FnOnce9call_once17h8aa6f99339b43ff8E\u0000\u0000\u0000\u0000z\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u001b\u0000\u0001\u0000_ZN77_$LT$alloc..raw_vec..RawVec$LT$T$C$A$G"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/darling_macro-926db7b11946b963.pdb",
+        "line": 7674,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "04c782b65e32fcE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3ops8function6FnOnce9call_once17h14cc7f4cee3d2518E\u0000\u0000\u0000\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0010X\u000f\u0000\u0001\u0000_ZN115_$LT$syn..punctuated..PrivateIter$LT"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/darling_macro-926db7b11946b963.pdb",
+        "line": 7698,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "ef450e1d9e417aE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core6result19Result$LT$T$C$E$GT$3map17h9945a63b66250189E\u0000\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000@\f\u0000\u0001\u0000_ZN153_$LT$core..result..Result$LT$T$C$F$GT"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/darling_macro-926db7b11946b963.pdb",
+        "line": 7725,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "14ea5bb4cf6991E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn5token7parsing12peek_keyword17h93926ffa84f81e95E\u0000\u0000\u0000b\u0000\u000e\u0011\u0002\u0000\u0000\u0000+\u0015\u0000\u0001\u0000_ZN53_$LT$syn..token..And$u20$as$u20$syn..toke"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/darling_macro-926db7b11946b963.pdb",
+        "line": 7892,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "9058765a0e9ec2E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core6result19Result$LT$T$C$E$GT$3map17ha8cdece88be03700E\u0000\u0000r\u0000\u000e\u0011\u0002\u0000\u0000\u0000@\u0013\u0000\u0001\u0000_ZN70_$LT$alloc..vec..Vec$LT$T$C$A$GT$$u20"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/derive_more-fbd526334545a4cc.dll",
+        "line": 8674,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "tterResultconst",
+        "full_key": "[REDACTED]",
+        "line_content": "This indicates a bug in the program. This Undefined Behavior check is optional, and cannot be relied on for safety./rust"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/derive_more-fbd526334545a4cc.pdb",
+        "line": 7531,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "2035a746cccc0eE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn3gen4hash63_$LT$impl$u20$core..hash..Hash$u20$for$u20$syn..path..QSelf$GT$4hash17hefd08ba589abeba5E\u0000\u0000\u0000\u0000>\u0000\u000e\u0011\u0002\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/derive_more-fbd526334545a4cc.pdb",
+        "line": 7559,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "805bc84dcabd2aE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u000e\u0000\u0001\u0000_ZN4core3ops8function6FnOnce9call_once17hc0e62e4d91f6ecc7E\u0000\u0000\u0000\u0000~\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0000\u0004 \u0000\u0001\u0000_ZN81_$LT$alloc..vec..Vec$LT$T$C$A$GT$$u"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/displaydoc-7c883dd96085e939.pdb",
+        "line": 6350,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "335d48a41ccf42E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u000e\u0000\u0001\u0000_ZN3syn3gen5clone70_$LT$impl$u20$core..clone..Clone$u20$for$u20$syn..expr..ExprRepeat$GT$5clone17h6f43b856b113ee25E\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/displaydoc-7c883dd96085e939.pdb",
+        "line": 6597,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "98f67a0d4b2034E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn4attr9Attribute11parse_outer17h626d5f67f7a6b30bE\u0000\u0000\u0000N\u0000\u000e\u0011\u0002\u0000\u0000\u0000`\u0001\u0000\u0001\u0000_ZN4core9co[REDACTED]_mm_store_si12817"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/document_features-6f882bbd62228595.pdb",
+        "line": 5021,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "4357543c4e5b0cE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0005\u0000\u0001\u0000_ZN4core4cell30panic_already_mutably_borrowed8do_panic7runtime17h10c77743b135c184E\u0000\u0000\u0000\u0000j\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0000\u0000\u0001\u0000_ZN4core3ops8funct"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libaho_corasick-e4727d42bd0eb96e.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "d9ee693c4bb59dE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0007S\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\""
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libaho_corasick-e4727d42bd0eb96e.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "edb88e2db95aa1E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0007S\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\""
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libaho_corasick-e4727d42bd0eb96e.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e28195b2a244f8E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0007S\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\"[\u0000\""
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libaho_corasick-e4727d42bd0eb96e.rlib",
+        "line": 18790,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "16db24a1bc3b99E",
+        "full_key": "[REDACTED]",
+        "line_content": ")\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\f\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000[]\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0014\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000o\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000o\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000.file\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000g\u0002aho_c"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libaho_corasick-e4727d42bd0eb96e.rlib",
+        "line": 18790,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "0562e77d954622E",
+        "full_key": "[REDACTED]",
+        "line_content": ")\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\f\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000[]\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0014\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000o\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000o\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000.file\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000g\u0002aho_c"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libautocfg-713c8d363d9980d8.rlib",
+        "line": 73,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "1a60f087bd0600E",
+        "full_key": "[REDACTED]",
+        "line_content": "_ZN79_$LT$hashbrown..raw..RawTable$LT$T$C$A$GT$$u20$as$u20$core..ops..drop..Drop$GT$4drop17h721e1a9925c4a226E\u0000_ZN82_$LT$"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libbytes-5af82d92d0611287.rlib",
+        "line": 155,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "1af63b68357998E",
+        "full_key": "[REDACTED]",
+        "line_content": "x\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libbytes-5af82d92d0611287.rlib",
+        "line": 155,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "2757a268d0b203E",
+        "full_key": "[REDACTED]",
+        "line_content": "x\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libbytes-5af82d92d0611287.rlib",
+        "line": 155,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "b2e7353e7a12b0E",
+        "full_key": "[REDACTED]",
+        "line_content": "x\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011.\u0000\u0011"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libbytes-5af82d92d0611287.rlib",
+        "line": 8829,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "09422824dc8890E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000L\u0000\u0000\u0000h\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000H \u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000K\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0015\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000-\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000X\u0000\u0000\u001c\u0000\u0000\u0000l\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000,h\u0000\u0000p\u0001\u0000\u0000k\u0000 \u0000\u0003\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcargo_metadata-482a0b20e45e3e0c.rlib",
+        "line": 184,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "f167a8ed3f7c81E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcargo_metadata-482a0b20e45e3e0c.rlib",
+        "line": 184,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "01e81bef5b4423E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcargo_metadata-482a0b20e45e3e0c.rlib",
+        "line": 184,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "ed64e83510d71bE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcargo_metadata-482a0b20e45e3e0c.rlib",
+        "line": 184,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "4cf7cd9e2e2114E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z\u0000%z"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcargo_metadata-482a0b20e45e3e0c.rlib",
+        "line": 20034,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "a39b5f65eed409E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0001\u0000\u0000\u0000\u0000\u0012\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u00009\\\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0007\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000L8\u0001\u0000\\\u0000\u0000\u0000\u0013\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000O\u0001\u0000\u0007\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0007\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0010\b\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcargo_toml-11fb9da744336dbd.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "3cf0dd59efc3eeE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0013 \u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcargo_toml-11fb9da744336dbd.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "87e59453dbee8bE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0013 \u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcargo_toml-11fb9da744336dbd.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "4b91126049d626E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0013 \u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcargo_toml-11fb9da744336dbd.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "d723e539793ab9E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0013 \u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+k\u0000+"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcc-9d32f8e1df8d53d0.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "efab45c25d39b3E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0007R\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcc-9d32f8e1df8d53d0.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "69b62dda3e8ffbE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0007R\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcc-9d32f8e1df8d53d0.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "34e356305c1f09E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0007R\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f\u0019\u0000\f"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcc-9d32f8e1df8d53d0.rlib",
+        "line": 7079,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "958e089f5d8e2eE",
+        "full_key": "[REDACTED]",
+        "line_content": "\\\u0000\u0000\u0004\u0000\u0000<\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000l[\u0000\u0000 \u0005\u0000\u0000<\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000?\u0000\u0000T\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000?\u0000\u0000l\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000AM\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000{P\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000h,\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcfb-1a6403eef082ec76.rlib",
+        "line": 18,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "f8083478106f4aE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcfb-1a6403eef082ec76.rlib",
+        "line": 18,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "1458df51ac43caE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b\u0000\u000e\u000b"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcrc32fast-5f9d5a36f3df04d0.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "x869pclmulqdq20",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000&\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a\u0000\u0000\u001a_Z"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libcrc32fast-5f9d5a36f3df04d0.rlib",
+        "line": 606,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e8af43630ed062E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0004\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000.file\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000g\u0002crc32fast.445c00e4a10ddb8f-cgu.0\u0000\u0000\u0000\u0000(\u0000\u0000_ZN47_$LT$u32$u20$a"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libdirs-93de25d93a244bfe.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "41bf17488a4d9cE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0013\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|\u0000\u0000Y|_ZN4dirs10config_dir17h3ce2d529c2e10956E"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libdirs-93de25d93a244bfe.rlib",
+        "line": 205,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "04a452440eaa20E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0005\u0000\u0000\u0000.pdata\u0000\u0000\u0000\u0000\u0000\u0000V\u0000\u0000\u0000\u0003\u0001\f\u0000\u0000\u0000\u0003\u0000\u0000\u0000}-!\u000e\u0000\u0005\u0000\u0000\u0000.pdata\u0000\u0000\u0000\u0000\u0000\u0000W\u0000\u0000\u0000\u0003\u0001\f\u0000\u0000\u0000\u0003\u0000\u0000\u0000}-!\u000f\u0000\u0005\u0000\u0000\u0000.pdata\u0000\u0000\u0000\u0000\u0000\u0000X\u0000\u0000\u0000\u0003\u0001\f\u0000\u0000\u0000\u0003\u0000\u0000\u0000}-!\u0010\u0000\u0005\u0000\u0000\u0000.pdata\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libfdeflate-5845253ae0a424fb.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "562c2c410d422fE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006\u0000\u0002\u0006"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libfind_msvc_tools-6a3a5aa0f2a6d98c.rlib",
+        "line": 193,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "bccb611c28a1edE",
+        "full_key": "[REDACTED]",
+        "line_content": "F\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u000f\u0000\u0010},\u0000\u0010},\u0000\u0010},\u0000\u0010},\u0000\u0010},\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libfind_msvc_tools-6a3a5aa0f2a6d98c.rlib",
+        "line": 4237,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "0fdcac60528459E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0006\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u00003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0004\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000'\u001f\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000!\u0000\u0000\u001c\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u00007"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libhttp-0d9935ca06477809.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "bec4f2715546d8E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0003&\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0017\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e\u0000\u0018s\u000e"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libico-1a430bb1600f0d71.rlib",
+        "line": 63,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "cb49c530b1c510E",
+        "full_key": "[REDACTED]",
+        "line_content": "et\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000\u000e\u0002\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libicu_locale_core-a300fabefcc16c85.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "688b7dc1ce7ac3E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0004w\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libicu_locale_core-a300fabefcc16c85.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "86b85569e17c89E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0004w\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019\u0011\u0000\u0019"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libinfer-00ffdf31529fc493.rlib",
+        "line": 43,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "136b117ff7dfe7E",
+        "full_key": "[REDACTED]",
+        "line_content": "x_ZN5infer8matchers5video6is_avi17hd85a81d0f08b0ad0E\u0000_ZN5infer8matchers5video6is_flv17h52ed00e561fcca24E\u0000_ZN5infer8match"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libkuchikiki-b2014de10d027494.rlib",
+        "line": 174,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "4c10a4cfc59034E",
+        "full_key": "[REDACTED]",
+        "line_content": "T\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libkuchikiki-b2014de10d027494.rlib",
+        "line": 174,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "ef3d9754000caaE",
+        "full_key": "[REDACTED]",
+        "line_content": "T\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz4\u0000\fz"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libkuchikiki-b2014de10d027494.rlib",
+        "line": 3578,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "8a12f026b68445E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000B\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000.6\u0000\u00004\u0000\u0000\u0000t\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000,\u000b\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0017\u0000\u0000\u0001\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0010\u0002\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000d\u0000\u0000@\u0002\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libkuchikiki-b2014de10d027494.rlib",
+        "line": 3922,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "0cb08badc31bb9E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000)\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u05b0\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000s\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000-\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0007\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000B\u0000\u0000\u001c\u0000\u0000\u0000\u000e\u0002\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/liblog-5cd29223c60993f7.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "b1f9240012a43cE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000(\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v\u0000\u0003\u0005v"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/liblog-5cd29223c60993f7.rlib",
+        "line": 1256,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "12ddbaac336a2eE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0005\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0007\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000.file\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000g\u0002log.db6a13385ec7db03-cgu.0\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u007f\u0018\u0000\u0000_"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libmemchr-42d42e2385a89e4c.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e16cda4ccd0971E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000\u0014\u001a\u0014\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libparking_lot-70f66ae77ade0744.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e04e1eb4f44c06E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0001\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libparking_lot-70f66ae77ade0744.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "adfc34b277574bE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0001\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libparking_lot-70f66ae77ade0744.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e4dc12df34a755E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0001\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016\u0000\u0004\u0016"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libparking_lot-70f66ae77ade0744.rlib",
+        "line": 2491,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "9dd0156c4e0c3aE",
+        "full_key": "[REDACTED]",
+        "line_content": "R\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000*\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\\\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000T\u0000\u0000\u001c\u0000\u0000\u0000\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000i\u0000\u0000p\u0000\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000S\u0000\u0000D\u0000\u0000\u0000\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000wT\u0000\u0000L\u0000\u0000\u0000\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000e'\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libparking_lot-70f66ae77ade0744.rlib",
+        "line": 2491,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "20b9182ecefd50E",
+        "full_key": "[REDACTED]",
+        "line_content": "R\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000*\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\\\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000T\u0000\u0000\u001c\u0000\u0000\u0000\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000i\u0000\u0000p\u0000\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000S\u0000\u0000D\u0000\u0000\u0000\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000wT\u0000\u0000L\u0000\u0000\u0000\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000e'\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libparking_lot-70f66ae77ade0744.rlib",
+        "line": 2801,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "102ea55c23a996E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000<~\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000;\u0018\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0004\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000ot\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000k\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0017\u0013\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000."
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libparking_lot_core-ef3e4d7e978a40f5.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "dc2da971a926feE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libparking_lot_core-ef3e4d7e978a40f5.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "8363133aaae961E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libparking_lot_core-ef3e4d7e978a40f5.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "333dff997be8ffE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libparking_lot_core-ef3e4d7e978a40f5.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "2919b2f93358acE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x\u0000\u0003x"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libparking_lot_core-ef3e4d7e978a40f5.rlib",
+        "line": 1905,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "cb0257f62ded0cE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001b\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001d\u0010\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0011>\u0000\u0000\u001c\u0000\u0000\u0000\u0012\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000hF\u0000\u0000\u0001\u0000\u0000g\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000]=\u0000\u0000D\u0000\u0000\u0000\u0012\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000=\u0000\u0000L\u0000\u0000\u0000\u0012\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libparking_lot_core-ef3e4d7e978a40f5.rlib",
+        "line": 1905,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "5dded821a9da69E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001b\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001d\u0010\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0011>\u0000\u0000\u001c\u0000\u0000\u0000\u0012\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000hF\u0000\u0000\u0001\u0000\u0000g\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000]=\u0000\u0000D\u0000\u0000\u0000\u0012\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000=\u0000\u0000L\u0000\u0000\u0000\u0012\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libparking_lot_core-ef3e4d7e978a40f5.rlib",
+        "line": 1905,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "205008c662a5f4E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001b\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001d\u0010\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0011>\u0000\u0000\u001c\u0000\u0000\u0000\u0012\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000hF\u0000\u0000\u0001\u0000\u0000g\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000]=\u0000\u0000D\u0000\u0000\u0000\u0012\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000=\u0000\u0000L\u0000\u0000\u0000\u0012\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libpng-d26da5bf1e208dbf.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "20e11342995d5fE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0003$\u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libpng-d26da5bf1e208dbf.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "9877c955fcddf2E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0003$\u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libpng-d26da5bf1e208dbf.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "fa477e38d2507aE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0003$\u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libpng-d26da5bf1e208dbf.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "48f2c01fb4d3d2E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0003$\u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libpng-d26da5bf1e208dbf.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "097d1f2f76a3a5E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0003$\u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libpng-d26da5bf1e208dbf.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "f37709e1f7b1ddE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0003$\u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libpng-d26da5bf1e208dbf.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "fe018592ce6f81E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0003$\u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libpng-d26da5bf1e208dbf.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "ff24f66115b8a0E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0003$\u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0010\u0010 \u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011\u0000\u0011"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/librand_chacha-02133f6b086e11f4.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "853ad6d1672177E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/librand_chacha-02133f6b086e11f4.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "1ea0e33ca49983E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/librand_chacha-02133f6b086e11f4.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "10d9e608004bc8E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/librand_chacha-4b35cca380d3a3f4.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "c1a6676bafdca3E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0002\u0014h\u0000\u0002\u0014h\u0000\u0002\u0014h\u0000\u0002\u0014h\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/librand_chacha-4b35cca380d3a3f4.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "30587338c35c17E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0002\u0014h\u0000\u0002\u0014h\u0000\u0002\u0014h\u0000\u0002\u0014h\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/librand_chacha-4b35cca380d3a3f4.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "a89f79c0832defE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0002\u0014h\u0000\u0002\u0014h\u0000\u0002\u0014h\u0000\u0002\u0014h\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000\u0005c\u001c\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex-13a8e4e63f9bac45.rlib",
+        "line": 157,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "eb318ba27a1984E",
+        "full_key": "[REDACTED]",
+        "line_content": "X_ZN110_$LT$alloc..sync..Arc$LT$$u5b$T$u5d$$GT$..from_iter_exact..Guard$LT$T$GT$$u20$as$u20$core..ops..drop..Drop$GT$4dr"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex-13a8e4e63f9bac45.rlib",
+        "line": 157,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e18b206dab3b50E",
+        "full_key": "[REDACTED]",
+        "line_content": "X_ZN110_$LT$alloc..sync..Arc$LT$$u5b$T$u5d$$GT$..from_iter_exact..Guard$LT$T$GT$$u20$as$u20$core..ops..drop..Drop$GT$4dr"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex-13a8e4e63f9bac45.rlib",
+        "line": 157,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "33fb4f6b56b1e5E",
+        "full_key": "[REDACTED]",
+        "line_content": "X_ZN110_$LT$alloc..sync..Arc$LT$$u5b$T$u5d$$GT$..from_iter_exact..Guard$LT$T$GT$$u20$as$u20$core..ops..drop..Drop$GT$4dr"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex-13a8e4e63f9bac45.rlib",
+        "line": 157,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "1d68633fbf1fcdE",
+        "full_key": "[REDACTED]",
+        "line_content": "X_ZN110_$LT$alloc..sync..Arc$LT$$u5b$T$u5d$$GT$..from_iter_exact..Guard$LT$T$GT$$u20$as$u20$core..ops..drop..Drop$GT$4dr"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex-13a8e4e63f9bac45.rlib",
+        "line": 6133,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "28c12d43956b1bE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000|\u0000\u0000\u0000\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000!6\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000B\u000b\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u00001X\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001f3\u0000\u00004\u0000\u0000\u0000\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000G\u0000\u00000\u0002\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000`\u0002\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000S\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex-13a8e4e63f9bac45.rlib",
+        "line": 6133,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "aea8074367c6e2E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000|\u0000\u0000\u0000\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000!6\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000B\u000b\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u00001X\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001f3\u0000\u00004\u0000\u0000\u0000\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000G\u0000\u00000\u0002\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000`\u0002\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000S\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_automata-cf6e668e46c0e120.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e20fe848be95aeE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u000f\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_automata-cf6e668e46c0e120.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "66a94c6536fcafE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u000f\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_automata-cf6e668e46c0e120.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "d39cefc392b3e8E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u000f\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_automata-cf6e668e46c0e120.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "7e0cb0c80431b3E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u000f\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_automata-cf6e668e46c0e120.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "82c6e481861588E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u000f\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000>#\u0014\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_automata-cf6e668e46c0e120.rlib",
+        "line": 36032,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e1066f59f04b46E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000L\u0000\u0000\u0000\u0007\u0003\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000x\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000 \u0012\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000#\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000)U\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000-\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000U\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_automata-cf6e668e46c0e120.rlib",
+        "line": 37280,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "66d1f2000f464cE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0019t\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u00005\u0000\u0000D\u0000\u0000\u0000\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000L\u0000\u0000\u0000\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000>\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u04a2\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_automata-cf6e668e46c0e120.rlib",
+        "line": 37280,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e94c2f26354be3E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0019t\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u00005\u0000\u0000D\u0000\u0000\u0000\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000L\u0000\u0000\u0000\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000>\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u04a2\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_automata-cf6e668e46c0e120.rlib",
+        "line": 42031,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "10fd912b099febE",
+        "full_key": "[REDACTED]",
+        "line_content": "S\u0000\u0000\u001c\u0000\u0000\u0000\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000`\u0002\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000R\u0000\u0000D\u0000\u0000\u0000\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000R\u0000\u0000L\u0000\u0000\u0000\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000-\u0000\u0000\u001c\u0000\u0000\u0000\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000 "
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_automata-cf6e668e46c0e120.rlib",
+        "line": 42031,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "0077176b687e76E",
+        "full_key": "[REDACTED]",
+        "line_content": "S\u0000\u0000\u001c\u0000\u0000\u0000\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000`\u0002\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000R\u0000\u0000D\u0000\u0000\u0000\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000R\u0000\u0000L\u0000\u0000\u0000\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000-\u0000\u0000\u001c\u0000\u0000\u0000\u0002\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000 "
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_syntax-7b11237ac35444f7.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e0044174597239E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\t\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000N\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_syntax-7b11237ac35444f7.rlib",
+        "line": 78105,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "c6b60006e67c8fE",
+        "full_key": "[REDACTED]",
+        "line_content": ",\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000%\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000e'\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000&\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001d\u0014\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000.file\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000g\u0002regex_syntax.81d7b645"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_syntax-7b11237ac35444f7.rlib",
+        "line": 78105,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "94d7879666015fE",
+        "full_key": "[REDACTED]",
+        "line_content": ",\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000%\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000e'\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000&\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001d\u0014\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000.file\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000g\u0002regex_syntax.81d7b645"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_syntax-7b11237ac35444f7.rlib",
+        "line": 78105,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "63b4e06d72d8dbE",
+        "full_key": "[REDACTED]",
+        "line_content": ",\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000%\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000e'\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000&\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001d\u0014\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000.file\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000g\u0002regex_syntax.81d7b645"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_syntax-7b11237ac35444f7.rlib",
+        "line": 78105,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "18a6db0cf92aa6E",
+        "full_key": "[REDACTED]",
+        "line_content": ",\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000%\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000e'\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000&\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001d\u0014\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000.file\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000g\u0002regex_syntax.81d7b645"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libregex_syntax-7b11237ac35444f7.rlib",
+        "line": 78105,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "2eaff9f8d99dd1E",
+        "full_key": "[REDACTED]",
+        "line_content": ",\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000%\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000e'\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000&\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001d\u0014\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000.file\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000g\u0002regex_syntax.81d7b645"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/librustc_version-bac36c7ad8c7a05c.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "bed0daeac12056E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u00013\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libschemars-c844262fa334c109.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "9f459220ae39f9E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0006\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libschemars-c844262fa334c109.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "578740443e4cc1E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0006\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libschemars-c844262fa334c109.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "f995ac3e5ddf05E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0006\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f\u0000\u001a\u001f"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libselectors-e36361cb5080d24e.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "03edf6c2203898E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL\u0000\u000eL"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libserde_derive_internals-444f7aabc449910b.rlib",
+        "line": 2920,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "1a12a0c05591a2E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0001\u0000\u0004\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0000\\\u0000\u0000\u0000\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000c\u0000\u0000|\u0000\u0000\u0000\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0789\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000K1\u0000\u00004\u0000\u0000\u0000\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000p\u0003\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000=\u0000\u0000\u0003\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000z\u0000\u0000\u0003\u0000\u0000\u0000 \u0000\u0003"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libserde_json-d4e4c6816946f4a7.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "7701a19b2e5f73E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0004\t\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libserde_json-d4e4c6816946f4a7.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "07e4cb407430c8E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0004\t\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019M\u0000\u0019"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsimd_adler32-d6ea1b95a6d1c2e3.rlib",
+        "line": 3287,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "46f1ed81442eb5E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0011\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000C\u0001\u0000\u0000L\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\\\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000E\u0002\u0000\u0000p\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0013\u000f\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0015\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000-\u0019\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsimd_adler32-d6ea1b95a6d1c2e3.rlib",
+        "line": 3287,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "4ddbb4822a02d4E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0011\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000C\u0001\u0000\u0000L\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\\\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000E\u0002\u0000\u0000p\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0013\u000f\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0015\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000-\u0019\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libstring_cache-b8e7b8a5885457e4.rlib",
+        "line": 911,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "bf49b3b0eefc5fE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000L\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0011\u0000\u0000\u001c\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000QM\u0000\u00000\u0000\u0000\u0000*\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0010\u0000\u0000D\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0017\u0011\u0000\u0000L\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0015\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000memcmp\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000h/\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libstring_cache-b8e7b8a5885457e4.rlib",
+        "line": 911,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "de151b64cfb5e2E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000L\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0011\u0000\u0000\u001c\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000QM\u0000\u00000\u0000\u0000\u0000*\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0010\u0000\u0000D\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0017\u0011\u0000\u0000L\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0015\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000memcmp\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000h/\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libstrsim-1a21d28c2085598e.rlib",
+        "line": 116,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "7a51cefedd776eE",
+        "full_key": "[REDACTED]",
+        "line_content": "_ZN185_$LT$core..ops..control_flow..ControlFlow$LT$B$C$C$GT$$u20$as$u20$core..ops..try_trait..FromResidual$LT$core..ops."
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsyn-a44959e4051c9e26.rlib",
+        "line": 226,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "d47f15803ef1e9E",
+        "full_key": "[REDACTED]",
+        "line_content": "z_ZN3syn3gen2eq66_$LT$impl$u20$core..cmp..PartialEq$u20$for$u20$syn..item..Item$GT$2eq17h6b57960f0e79c42eE\u0000_ZN3syn3gen2e"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsyn-a44959e4051c9e26.rlib",
+        "line": 226,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "5f41d52111e0fbE",
+        "full_key": "[REDACTED]",
+        "line_content": "z_ZN3syn3gen2eq66_$LT$impl$u20$core..cmp..PartialEq$u20$for$u20$syn..item..Item$GT$2eq17h6b57960f0e79c42eE\u0000_ZN3syn3gen2e"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsyn-a44959e4051c9e26.rlib",
+        "line": 46476,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "cebb62910f84e3E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000k\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0011\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0011\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000U\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001c_\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000r\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0002"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsyn-a44959e4051c9e26.rlib",
+        "line": 48523,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "287dec88cf9989E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\"a\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000'\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0012\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u00004\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000]"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsyn-a44959e4051c9e26.rlib",
+        "line": 48523,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "fbdb61e03d5b05E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\"a\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000'\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0012\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u00004\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000]"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsyn-a44959e4051c9e26.rlib",
+        "line": 50039,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "2006ae2433b91eE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\\\u0000\u0000\u0000\u0004\u0003\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000C\u0000\u0000$\u0000\u0000\u0000\u0005\u0003\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000N\u0001\u0000\u0000\u0000\u0000\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000L\u0000\u0000\u0000\u0005\u0003\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\\\u0000\u0000\u0000\u0005\u0003\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0014r\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsyn-ecb5f379237f9c62.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e8aeca22f27d5fE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u001b\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsyn-ecb5f379237f9c62.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "85afe2d1aa093bE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u001b\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsyn-ecb5f379237f9c62.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "8d7bfcfaaec02fE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u001b\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004\u0000e\u0004"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsyn-ecb5f379237f9c62.rlib",
+        "line": 67507,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "de91d12f28f679E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0003\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000W\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001c?\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u00007\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000r\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0005\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000#\u001c\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000v\u0000\u0000\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsyn-ecb5f379237f9c62.rlib",
+        "line": 72161,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "d023e90f07ea0dE",
+        "full_key": "[REDACTED]",
+        "line_content": "K\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000%\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000%y\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0004\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000c\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0019\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsyn-ecb5f379237f9c62.rlib",
+        "line": 72161,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "32628dea08ea61E",
+        "full_key": "[REDACTED]",
+        "line_content": "K\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000%\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000%y\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0004\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000c\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0019\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsyn-ecb5f379237f9c62.rlib",
+        "line": 73269,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "7431f0fe9e6db4E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0001\u0000\u001c\u0000\u0000\u0000\u0003\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0001\u0001\u0000\u0002\u0000\u0000,\u0001 \u0000\u0003\u0000\u0000\u0000\u0000\u0000Z\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000a\u0006\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000>\f\u0001\u0000D\u0000\u0000\u0000\u0003\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\f\u0001\u0000L\u0000\u0000\u0000\u0003\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000;!\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsynstructure-c0fb3a100033c09d.rlib",
+        "line": 385,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "fa7a00adfe2066E",
+        "full_key": "[REDACTED]",
+        "line_content": "DJ\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsynstructure-c0fb3a100033c09d.rlib",
+        "line": 385,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "ec5d19abeec3fcE",
+        "full_key": "[REDACTED]",
+        "line_content": "DJ\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsynstructure-c0fb3a100033c09d.rlib",
+        "line": 385,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "8ebbd04004ed6fE",
+        "full_key": "[REDACTED]",
+        "line_content": "DJ\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsynstructure-c0fb3a100033c09d.rlib",
+        "line": 385,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "239da74f26bdceE",
+        "full_key": "[REDACTED]",
+        "line_content": "DJ\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsynstructure-c0fb3a100033c09d.rlib",
+        "line": 385,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "fc1057d5e3c5beE",
+        "full_key": "[REDACTED]",
+        "line_content": "DJ\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsynstructure-c0fb3a100033c09d.rlib",
+        "line": 385,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "548f88e436be08E",
+        "full_key": "[REDACTED]",
+        "line_content": "DJ\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsynstructure-c0fb3a100033c09d.rlib",
+        "line": 385,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "0b9d5a352b977fE",
+        "full_key": "[REDACTED]",
+        "line_content": "DJ\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsynstructure-c0fb3a100033c09d.rlib",
+        "line": 385,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "3d45ea9df54996E",
+        "full_key": "[REDACTED]",
+        "line_content": "DJ\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsynstructure-c0fb3a100033c09d.rlib",
+        "line": 385,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "765bf16589a027E",
+        "full_key": "[REDACTED]",
+        "line_content": "DJ\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsynstructure-c0fb3a100033c09d.rlib",
+        "line": 385,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e4ebc4ea434d4aE",
+        "full_key": "[REDACTED]",
+        "line_content": "DJ\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libsynstructure-c0fb3a100033c09d.rlib",
+        "line": 385,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "33218b9ba4a0b2E",
+        "full_key": "[REDACTED]",
+        "line_content": "DJ\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000\u000fa\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libtauri_build-e60f5e163e91a7a5.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "31a2d6fccac591E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0007\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006\u0000\t\u0006"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libtauri_codegen-00bf4dd5e5bd5bcf.rlib",
+        "line": 195,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "39f4e036ef19cfE",
+        "full_key": "[REDACTED]",
+        "line_content": "i\\\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libtauri_codegen-00bf4dd5e5bd5bcf.rlib",
+        "line": 195,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "353eeb5dfda595E",
+        "full_key": "[REDACTED]",
+        "line_content": "i\\\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libtauri_codegen-00bf4dd5e5bd5bcf.rlib",
+        "line": 195,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "5e64abcf60f01bE",
+        "full_key": "[REDACTED]",
+        "line_content": "i\\\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libtauri_codegen-00bf4dd5e5bd5bcf.rlib",
+        "line": 195,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "b330418d6abe02E",
+        "full_key": "[REDACTED]",
+        "line_content": "i\\\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0010?\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000\u0013;\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libtauri_codegen-00bf4dd5e5bd5bcf.rlib",
+        "line": 9123,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "305770b446c50fE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000k\u0006\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u00006\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000zI\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u000e\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000#\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\""
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libtauri_utils-c3c1ef828f4faf4c.rlib",
+        "line": 1313,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "bb265af2d2e082E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k\u0002k"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libtauri_utils-c3c1ef828f4faf4c.rlib",
+        "line": 127160,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "ddbca9e8f95ea7E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000c\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0014W\u0004\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0014\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000yf\u0004\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000D7\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libtoml-310fe0022168db33.rlib",
+        "line": 12233,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "09b8b39417096cE",
+        "full_key": "[REDACTED]",
+        "line_content": "I\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0013+\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000z\u0000\u0000L\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0221\u0000\u0000\u0005\u0000\u0000E\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u045f\u0000\u0000\u0005\u0000\u0000E\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000 \u0000\u0000\u0000\u0006\u0000\u0000E\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000t\u0000\u0000@\u0006\u0000\u0000E\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000$\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libtoml-310fe0022168db33.rlib",
+        "line": 12233,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "686b2008b7f679E",
+        "full_key": "[REDACTED]",
+        "line_content": "I\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0013+\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000z\u0000\u0000L\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0221\u0000\u0000\u0005\u0000\u0000E\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u045f\u0000\u0000\u0005\u0000\u0000E\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000 \u0000\u0000\u0000\u0006\u0000\u0000E\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000t\u0000\u0000@\u0006\u0000\u0000E\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000$\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libtoml-310fe0022168db33.rlib",
+        "line": 12233,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "0fb3655b2afcc4E",
+        "full_key": "[REDACTED]",
+        "line_content": "I\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0013+\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000z\u0000\u0000L\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0221\u0000\u0000\u0005\u0000\u0000E\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u045f\u0000\u0000\u0005\u0000\u0000E\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000 \u0000\u0000\u0000\u0006\u0000\u0000E\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000t\u0000\u0000@\u0006\u0000\u0000E\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000$\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libtoml-310fe0022168db33.rlib",
+        "line": 12762,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "77fc30d9168beeE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0002\u0000\u0000z\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000x\u0000\u0000\u0002\u0000\u0000z\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000 \u0003\u0000\u0000z\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000q\u0000\u0000\\\u0000\u0000\u0000@\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0007\u0000\u0000|\u0000\u0000\u0000@\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u001b4\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000jh\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000qH\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libtoml-310fe0022168db33.rlib",
+        "line": 12762,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "0df7a12232f565E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0002\u0000\u0000z\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000x\u0000\u0000\u0002\u0000\u0000z\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000 \u0003\u0000\u0000z\u0000 \u0000\u0003\u0000\u0000\u0000\u0000\u0000q\u0000\u0000\\\u0000\u0000\u0000@\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u0007\u0000\u0000|\u0000\u0000\u0000@\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000\u001b4\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000jh\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000qH\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libtoml_parser-21601aaed3e7ed91.rlib",
+        "line": 5086,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e32ed0d10a7343E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000\u0000\u0000c\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000V\u000b\u0000\u0000p\u0000\u0000\u0000c\u0001\u0000\u0000\u0003\u0000\u0000\u0000\u0000\u0000>I\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000&\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000i\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u00001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/liburlpattern-0ee4e6670d07c94b.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "ff53a2b1aeb0edE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0002\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/liburlpattern-0ee4e6670d07c94b.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "7590bf95969545E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0002\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000\fsX\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/liburlpattern-0ee4e6670d07c94b.rlib",
+        "line": 8274,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e0c3e126cf1eebE",
+        "full_key": "[REDACTED]",
+        "line_content": "#\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u007f#\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000~(\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\f\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000,\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u00000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u001b\"\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/libversion_check-9c8d141b1d2990d7.rlib",
+        "line": 3,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "b8639f642d98eeE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0001\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0002_\u0004\u0000\u0003\t\u0000\u0003"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/match_token-a618d3a8b4a170ce.pdb",
+        "line": 5874,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "fb721517c4a5ebE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN5alloc5boxed16Box$LT$T$C$A$GT$17try_new_uninit_in17h7504d0f23bd0fb9fE\u0000\u0000\"\u0000\u000e\u0011\u0000\u0000\u0000\u0000\u0018\u0000\u0000\u0000\u0002\u0000__imp_GetProcessHeap\u0000\u0000B\u0000\u000e\u0011\u0002\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/phf_macros-b290fc75fcc7355f.pdb",
+        "line": 6268,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "86c434e52cd2e3E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn10punctuated4Pair3End17h95f8b4b56b0d98bfE\u0000\u0000N\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u001c\u0001\u0000\u0001\u0000_ZN4core9co[REDACTED]_mm_sto[REDACTED]"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/phf_macros-fedcbfeef3d7f59a.pdb",
+        "line": 6053,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "b8bb56b56878b1E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn5token8printing5delim17hcd75402db0158b68E\u0000\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0000Y\u0000\u0000\u0001\u0000_ZN102_$LT$syn..punctuated..Punctuated$LT$T$C$P$GT$$u2"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/schemars_derive-ac240fac6463ec7b.pdb",
+        "line": 7248,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "527a41763f1778E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN70_$LT$alloc..vec..Vec$LT$T$C$A$GT$$u20$as$u20$core..ops..drop..Drop$GT$4drop17h45e8e8e0607c3e05E\u0000\u0000V\u0000\u000e\u0011\u0002\u0000\u0000\u0000@\u0015\u0000\u0001\u0000_Z"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/serde_derive-6aa147b907782d95.pdb",
+        "line": 7357,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "8a837f3c3671eeE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3ptr40drop_in_place$LT$syn..expr..ExprCall$GT$17h500010446be9d467E\u0000\u0000\u0000\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000`\u001c\u0000\u0001\u0000_ZN4core3ptr82drop_in_place"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/serde_derive-6aa147b907782d95.pdb",
+        "line": 7431,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "79b746f4300b0cE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN157_$LT$$LT$alloc..vec..into_iter..IntoIter$LT$T$C$A$GT$$u20$as$u20$core..ops..drop..Drop$GT$..drop..DropGuard$LT$"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/tauri_macros-cdecb25262bf2cf0.dll",
+        "line": 37831,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "lABforstdResult",
+        "full_key": "[REDACTED]",
+        "line_content": "This indicates a bug in the program. This Undefined Behavior check is optional, and cannot be relied on for safety./rust"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/thiserror_impl-1aae3c326a36940d.dll",
+        "line": 6227,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "FormatterResult",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000internal error: entered unreachable code\u0019\u0001\u0000\u0000\u0000[\u0000\u0000\u0000\u0000\u0000\u0000\u00001\u0006\u0000\u0000\u0016\u0000\u0000\u0000x\u0019\u0001\u0000\u0000\u0000O\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0006\u0002\u0000\u0000 \u0000\u0000\u0000/rustc/254b59607d4417e9dffbc307138"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/thiserror_impl-1aae3c326a36940d.pdb",
+        "line": 6186,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "c20f344f6c173eE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN110_$LT$core..iter..adapters..enumerate..Enumerate$LT$I$GT$$u20$as$u20$core..iter..traits..iterator..Iterator$GT$4"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/thiserror_impl-1aae3c326a36940d.pdb",
+        "line": 6433,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "fe45b08e0e232cE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3ptr68drop_in_place$LT$alloc..raw_vec..RawVec$LT$syn..expr..ExprIf$GT$$GT$17h8dbaba039ce0ba8bE\u0000\u0000\u0000\u0000V\u0000\u000e\u0011\u0002\u0000\u0000\u0000\t\u0000\u0001"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/thiserror_impl-da7e34ce5321f0d4.dll",
+        "line": 6186,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "FormatterResult",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0000internal error: entered unreachable code\u0652\u0019\u0001\u0000\u0000\u0000[\u0000\u0000\u0000\u0000\u0000\u0000\u00001\u0006\u0000\u0000\u0016\u0000\u0000\u0000x\u0019\u0001\u0000\u0000\u0000O\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0006\u0002\u0000\u0000 \u0000\u0000\u0000/rustc/254b59607d4417e9dffbc30713"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/thiserror_impl-da7e34ce5321f0d4.pdb",
+        "line": 6235,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "ef7784e9e4261aE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0004\u0000\u0001\u0000_ZN5alloc11collections5btree3mem7replace17hbf19b1e70b645365E\u0000\u0000V\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0414\u0012\u0000\u0001\u0000_ZN4core6option15Option$LT$T$GT$18get_or_"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/thiserror_impl-da7e34ce5321f0d4.pdb",
+        "line": 6364,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "c4356a8e8c7b16E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn4expr7parsing68_$LT$impl$u20$syn..parse..Parse$u20$for$u20$syn..expr..ExprBlock$GT$5parse17hc242255ad0bafafaE\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/tracing_attributes-2d8caa1f187a8362.pdb",
+        "line": 7366,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "56a4175b4f0513E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN5alloc5slice29_$LT$impl$u20$$u5b$T$u5d$$GT$8into_vec17h7b560db5352fb772E\u0000\u0000\u0000N\u0000\u000e\u0011\u0002\u0000\u0000\u0000p\u0001\u0000\u0001\u0000_ZN3syn3gen9visit_mut19vis"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/tracing_attributes-2d8caa1f187a8362.pdb",
+        "line": 7418,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "cfc3db881ce9afE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core6option15Option$LT$T$GT$7is_some17hdc1b27b5f10a2fc8E\u0000\u0000F\u0000\u000e\u0011\u0002\u0000\u0000\u0000p\u0010\u0000\u0001\u0000_ZN5alloc3vec16Vec$LT$T$C$A$GT$4push17h510"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/tracing_attributes-2d8caa1f187a8362.pdb",
+        "line": 7441,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "5193d25ace59c6E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0002\u0000\u0002\u0000_ZN3std4hash6random11RandomState3new4KEYS29_$u7b$$u7b$constant$u7d$$u7d$28_$u7b$$u7b$closure$u7d$$u7d$23__RUST_STD_I"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/tracing_attributes-2d8caa1f187a8362.pdb",
+        "line": 7458,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "8ab27bed59985eE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3mem7replace17hd53267ff6d40b548E\u0000\u0000>\u0000\u000e\u0011\u0002\u0000\u0000\u0000 5\b\u0000\u0001\u0000_ZN4core5clone5Clone5clone17hf624a8844f74045dE\u0000\u0000\u0000\u0000Z\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0007\u0000\u0001"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/tracing_attributes-2d8caa1f187a8362.pdb",
+        "line": 7543,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "58d115bcab6836E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core6option15Option$LT$T$GT$7is_some17hcb32749442c74f21E\u0000\u0000:\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0000\u0014\u0000\u0001\u0000_ZN3syn4expr4Expr5Async17hdec8b9bb394fff90"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/tracing_attributes-2d8caa1f187a8362.pdb",
+        "line": 7565,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "536c58f7ea40c3E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN83_$LT$syn..print..TokensOrDefault$LT$T$GT$$u20$as$u20$quote..to_tokens..ToTokens$GT$9to_tokens17hb6c65fb3bc425135"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/tracing_attributes-2d8caa1f187a8362.pdb",
+        "line": 7668,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "b910c901e354d9E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0011\u0000\u0001\u0000_ZN3syn5parse11ParseBuffer4peek17h8ebdbf349a7f0cf3E\u0000\u0000\u0000b\u0000\u000e\u0011\u0002\u0000\u0000\u0000`\u000f\u0000\u0001\u0000_ZN53_$LT$syn..token..Shl$u20$as$u20$syn..token.."
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/tracing_attributes-2d8caa1f187a8362.pdb",
+        "line": 7694,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "384ce2bcd08b8aE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core6option15Option$LT$T$GT$3map17hf94b2bdd9f21b535E\u0000\u0000F\u0000\u000e\u0011\u0002\u0000\u0000\u0000*\u0018\u0000\u0001\u0000_ZN4core3fmt2rt8Argument11new_display17hb411b5"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/tracing_attributes-2d8caa1f187a8362.pdb",
+        "line": 7794,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "7e843a9273cb30E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN91_$LT$core..slice..iter..Iter$LT$T$GT$$u20$as$u20$core..iter..traits..iterator..Iterator$GT$4find17ha0b3b1292d03e"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/tracing_attributes-2d8caa1f187a8362.pdb",
+        "line": 7849,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "9cc4b32a59e6f8E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0002\u0000\u0001\u0000_ZN3syn3gen9visit_mut21visit_expr_repeat_mut17hb4e2ce91a730ac87E\u0000\u0000V\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0005\u0000\u0001\u0000_ZN39_$LT$T$u20$as$u20$syn..token..Tok"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/tracing_attributes-2d8caa1f187a8362.pdb",
+        "line": 7862,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "a8809a0593c1e3E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0012\u0000\u0001\u0000_ZN4core6result19Result$LT$T$C$E$GT$3map17h322fa67390cb848aE\u0000\u0000~\u0000\u000e\u0011\u0002\u0000\u0000\u0000`5\u000f\u0000\u0001\u0000_ZN4core3cmp5impls69_$LT$impl$u20$core.."
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/tracing_attributes-2d8caa1f187a8362.pdb",
+        "line": 7884,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e7f0adce435968E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core6option15Option$LT$T$GT$6as_ref17h9ed041d59f453bbbE\u0000\u0000\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u000b\u0000\u0001\u0000_ZN3syn3pat8printing74_$LT$impl$u20$quote..t"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/tracing_attributes-2d8caa1f187a8362.pdb",
+        "line": 7921,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "9c53f113ce47afE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3mem7replace17hfb97f09b09b0dd0bE\u0000\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0010\u0000\u0001\u0000_ZN3syn3lit8printing74_$LT$impl$u20$quote..to_tokens..ToTokens$u"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 7402,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "f5c27fff126e58E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN67_$LT$core..option..Option$LT$T$GT$$u20$as$u20$syn..parse..Parse$GT$5parse17hd246725209c8f1a9E\u0000\u0000\u0000\u0000z\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0010\u0006\u0000\u0001\u0000_Z"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 7508,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "aaf811518e9445E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN90_$LT$core..option..IntoIter$LT$A$GT$$u20$as$u20$core..iter..traits..iterator..Iterator$GT$4next17hb3f87230a1da2f"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 7618,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "664836befeaa8dE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0012\u0000\u0001\u0000_ZN153_$LT$core..result..Result$LT$T$C$F$GT$$u20$as$u20$core..ops..try_trait..FromResidual$LT$core..result..Result$L"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 7634,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "08a9d327c5e300E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN5alloc3vec16Vec$LT$T$C$A$GT$8push_mut17hd8503cd9a8a0d2deE\u0000\u0000B\u0000\u000e\u0011\u0002\u0000\u0000\u0000/\t\u0000\u0001\u0000_ZN3syn5parse11ParseBuffer5parse17h4a0dc0d"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 7670,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "d2ce5f13fd4126E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN68_$LT$core..option..Option$LT$T$GT$$u20$as$u20$core..clone..Clone$GT$5clone17h1de2370cac5fd6b8E\u0000\u0000\u0000F\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0002\u0000\u0001\u0000_ZN"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 7806,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "c9aee457251a90E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN90_$LT$core..option..IntoIter$LT$A$GT$$u20$as$u20$core..iter..traits..iterator..Iterator$GT$4next17hcfd73e09521b7c"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 7809,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "2a567e404cc0e3E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3cmp10PartialOrd2le17hafcef2a5abfa28e1E\u0000\u0000\u0000J\u0000\u000e\u0011\u0002\u0000\u0000\u0000}\u000b\u0000\u0001\u0000_ZN4core5slice4iter16IterMut$LT$T$GT$3new17he3bb193c86"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 7838,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "2afa844ca4d5c2E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn10punctuated17Pair$LT$T$C$P$GT$5punct17hb8ecb169297b6c3bE\u0000\u0000^\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0000\u0000\u0001\u0000_ZN5alloc11collections9vec_deque21VecDe"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 7878,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "f08442d3bafb40E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN5alloc3vec16Vec$LT$T$C$A$GT$8push_mut17h9070a61d7c058804E\u0000\u0000f\u0000\u000e\u0011\u0002\u0000\u0000\u0000p0\u0010\u0000\u0001\u0000_ZN52_$LT$$RF$T$u20$as$u20$quote..to_toke"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 7900,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "0dc47e2b2342cbE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn5parse11ParseBuffer4peek17h8ef7239eb3eb3949E\u0000\u0000\u0000F\u0000\u000e\u0011\u0002\u0000\u0000\u0000p\f\u0005\u0000\u0001\u0000_ZN4core6option15Option$LT$T$GT$3map17hc00c7e2286"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 8029,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e998cb95db6946E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN70_$LT$alloc..vec..Vec$LT$T$C$A$GT$$u20$as$u20$core..ops..drop..Drop$GT$4drop17hd30781f6206c7caaE\u0000\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000p\f\u0000\u0001\u0000_ZN"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 8047,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "1aa7544628d251E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u000e\u0000\u0001\u0000_ZN3syn4expr8printing77_$LT$impl$u20$quote..to_tokens..ToTokens$u20$for$u20$syn..expr..ExprWhile$GT$9to_tokens28_$u7"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 8070,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "83690dc19f50d5E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn10punctuated23Punctuated$LT$T$C$P$GT$8is_empty17h2de4723e31edd320E\u0000>\u0000\u000e\u0011\u0002\u0000\u0000\u0000 \f\u0000\u0001\u0000_ZN4core6option6Option4Some17h"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 8075,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "af904bd81acf61E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN57_$LT$I$u20$as$u20$syn..punctuated..IterTrait$LT$T$GT$$GT$9clone_box17h0dc3a86d699d0694E\u0000\u0000N\u0000\u000e\u0011\u0002\u0000\u0000\u00005\u0006\u0000\u0001\u0000_ZN4core4i"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 8104,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "0769375528d90dE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN100_$LT$syn..punctuated..PrivateIter$LT$T$C$P$GT$$u20$as$u20$core..iter..traits..iterator..Iterator$GT$4next28_$u7"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 8110,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "b686771edb56b8E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core4iter6traits8iterator8Iterator10advance_by17hf55710a12769ea1dE\u0000\u0000\u0000\u0000J\u0000\u000e\u0011\u0002\u0000\u0000\u0000\f\u0000\u0001\u0000_ZN4core6option15Option$LT$T$GT"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/yoke_derive-3f9bf757a02efac5.pdb",
+        "line": 8127,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "8003bc2ffe65bdE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn10punctuated23Punctuated$LT$T$C$P$GT$5pairs17hfda3cc291d4e7e9eE\u0000\u0000\u0000\u0000F\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0018\u0000\u0001\u0000_ZN4core3fmt2rt8Argument11new_d"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7290,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "82cc57e1def511E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn10punctuated23Punctuated$LT$T$C$P$GT$5pairs17h980936c55e0a14f7E\u0000\u0000\u0000\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000P\u0007\u0000\u0001\u0000_ZN4core3ptr123drop_in_place$LT"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7299,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "356b3292d731acE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN70_$LT$alloc..vec..Vec$LT$T$C$A$GT$$u20$as$u20$core..ops..drop..Drop$GT$4drop17h99188fb1b42e2c9dE\u0000\u00002\u0000\u000e\u0011\u0000\u0000\u0000\u0000\u0001\u0000\u0000\u0002\u0000__"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7311,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "059522d8f5a514E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0000\u0001\u0000_ZN159_$LT$$LT$alloc..collections..vec_deque..VecDeque$LT$T$C$A$GT$$u20$as$u20$core..ops..drop..Drop$GT$..drop..Drop"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7314,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "e88f9e88673b25E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn10punctuated23Punctuated$LT$T$C$P$GT$10into_pairs28_$u7b$$u7b$closure$u7d$$u7d$17h4d79f6da0f0537e8E\u0000\u0000\u0000\u0000B\u0000\u000e\u0011\u0002\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7314,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "87364f3ba2046cE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn10punctuated23Punctuated$LT$T$C$P$GT$10into_pairs28_$u7b$$u7b$closure$u7d$$u7d$17h4d79f6da0f0537e8E\u0000\u0000\u0000\u0000B\u0000\u000e\u0011\u0002\u0000\u0000"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7332,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "cbaa9aacea31b1E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn3gen5visit22visit_trait_item_macro17hd3aed209141bc439E\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000`\u000f\u0000\u0001\u0000_ZN153_$LT$core..result..Result$LT$T$C$F$GT"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7334,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "59faf876316c8dE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn3gen5visit20visit_lifetime_param17hfcbe4884430c67fdE\u0000\u0000\u00002\u0000\u000e\u0011\u0002\u0000\u0000\u0000`\u001e\u0000\u0001\u0000__scrt_stub_for_acrt_thread_detach\u0000\u0000\u0000\u0000B\u0000\u000e\u0011"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7392,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "ddbb5f9e158eb2E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn10punctuated17Pair$LT$T$C$P$GT$5value17h5fc58516fa4e0111E\u0000\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000`P\u0005\u0000\u0001\u0000_ZN95_$LT$alloc..vec..Vec$LT$T$GT$$u20"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7395,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "dee41d4bb6a0abE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3ops8function6FnOnce9call_once17h49c59feb1d320949E\u0000\u0000\u0000\u0000:\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0016\u0000\u0001\u0000_ZN3syn5error5Error3new17hf9bc2d2909cd3b1aE"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7395,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "b7dc057e1b7161E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3ops8function6FnOnce9call_once17h49c59feb1d320949E\u0000\u0000\u0000\u0000:\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0016\u0000\u0001\u0000_ZN3syn5error5Error3new17hf9bc2d2909cd3b1aE"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7411,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "81eca512901364E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn3lit5value15parse_lit_c_str17h6ae9dcc96ce9a2b3E\u0000\u0000\u0000\u0000J\u0000\u000e\u0011\u0002\u0000\u0000\u0000P\u001c\u0000\u0001\u0000_ZN10proc_macro19ConcatStreamsHelper4push17h20"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7455,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "eff9f4d421b5f9E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN90_$LT$alloc..vec..Vec$LT$T$C$A$GT$$u20$as$u20$core..iter..traits..collect..IntoIterator$GT$9into_iter17he6e1cdf9b"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7512,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "ab91f515e27aa4E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core4iter6traits8iterator8Iterator8try_fold17h0fae3e6821c8a808E\u0000\u0000\u0000N\u0000\u000e\u0011\u0002\u0000\u0000\u0000P\u0005\u0007\u0000\u0001\u0000_ZN9hashbrown3raw21RawTable$LT$T$"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7533,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "74198b2f7c0e8fE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn10punctuated23Punctuated$LT$T$C$P$GT$14trailing_punct17h1b1a23eefe8fc6b6E\u0000\u0000b\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0000\u0000\u0001\u0000_ZN5alloc11collections9"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7618,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "9791001f6a0e53E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3ops8function6FnOnce9call_once17hac0448ec58cef4f0E\u0000\u0000\u0000\u0000b\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0016\u0000\u0001\u0000_ZN54_$LT$syn..error..Error$u20$as$u20$core"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7786,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "cddd2059964c64E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN5alloc3vec16Vec$LT$T$C$A$GT$8push_mut17h7090a86688cec9b7E\u0000\u0000F\u0000\u000e\u0011\u0002\u0000\u0000\u0000`0\u0003\u0000\u0001\u0000_ZN3syn3gen4fold17fold_type_bare_fn17ha2c"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7811,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "1053be4c69da19E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn5parse11ParseBuffer4peek17hbc70ca0a47fd37d2E\u0000\u0000\u0000J\u0000\u000e\u0011\u0002\u0000\u0000\u0000`{\u000e\u0000\u0001\u0000_ZN4core5slice4iter13Iter$LT$T$GT$3new17h6ee80c81"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7819,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "068e0d2972a86fE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN5alloc3vec16Vec$LT$T$C$A$GT$8push_mut17h1ab76906ecd95f47E\u0000\u0000J\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0005\u0000\u0001\u0000_ZN3syn3gen5visit22visit_trait_item_macro17"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7884,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "f2dcf9dcfe980fE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN70_$LT$alloc..vec..Vec$LT$T$C$A$GT$$u20$as$u20$core..ops..drop..Drop$GT$4drop17ha188c23a1908c211E\u0000\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0011\u0000\u0001\u0000_ZN9"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7904,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "10b473f8dee7daE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core4iter6traits8iterator8Iterator9size_hint17hf8992ab544c02f16E\u0000\u0000N\u0000\u000e\u0011\u0002\u0000\u0000\u0000|\u001a\u0000\u0001\u0000_ZN11proc_macro23imp19DeferredToke"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7905,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "8d341b203e9412E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN94_$LT$$RF$alloc..vec..Vec$LT$T$C$A$GT$$u20$as$u20$core..iter..traits..collect..IntoIterator$GT$9into_iter17hffd41"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7940,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "9d4d97aabc9aefE",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN3syn4path7parsing14const_argument17h7e151e36bcc446e9E\u0000\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000\u0006\u0000\u0001\u0000_ZN103_$LT$alloc..vec..into_iter..IntoIter$LT$T$"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 7996,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "d6ed4fb0df4d94E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN4core3ops8function6FnOnce9call_once17hc0e62e4d91f6ecc7E\u0000\u0000\u0000\u0000\u0000\u000e\u0011\u0002\u0000\u0000\u0000\b\u0000\u0001\u0000_ZN10proc_macro6bridge104_$LT$impl$u20$proc_"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 8046,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "07f826215c9d47E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN5alloc3vec16Vec$LT$T$C$A$GT$8push_mut17hb0b365377c835263E\u0000\u0000F\u0000\u000e\u0011\u0002\u0000\u0000\u0000R\u0011\u0000\u0001\u0000_ZN4core6option15Option$LT$T$GT$3map17h4d3"
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerofrom_derive-de5c730ffd457436.pdb",
+        "line": 8099,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "54b03e998655f1E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN5alloc3vec16Vec$LT$T$C$A$GT$8push_mut17h3285e114d76718ffE\u0000\u0000b\u0000\u000e\u0011\u0002\u0000\u0000\u0000t\u0012\u0000\u0001\u0000_ZN54_$LT$syn..token..Semi$u20$as$u20$syn."
+      },
+      {
+        "file": "apps/moneytrash/src-tauri/target/debug/deps/zerovec_derive-991f3c3ec70692c0.pdb",
+        "line": 6208,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "4033b2c0b64c36E",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\u0001\u0000_ZN153_$LT$core..result..Result$LT$T$C$F$GT$$u20$as$u20$core..ops..try_trait..FromResidual$LT$core..result..Result$LT"
+      },
+      {
+        "file": "apps/touch/node-v24.11.1-x64.msi",
+        "line": 244957,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "egistrySOFTWARE",
+        "full_key": "[REDACTED]",
+        "line_content": "'\u001a'\u001b'\u001c'\u001d' '\u001f'&\u001b'!'\"'&''')'*'(')'*'(')'*'('+','('+','('-'.'&&&&\u0000\u0000\u0000\u0000/':'9'8'6'5'4'3'2'0'\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/touch/node-v24.11.1-x64.msi",
+        "line": 244957,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "yLevelDirectory",
+        "full_key": "[REDACTED]",
+        "line_content": "'\u001a'\u001b'\u001c'\u001d' '\u001f'&\u001b'!'\"'&''')'*'(')'*'(')'*'('+','('+','('-'.'&&&&\u0000\u0000\u0000\u0000/':'9'8'6'5'4'3'2'0'\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+      },
+      {
+        "file": "apps/touch/node-v24.11.1-x64.msi",
+        "line": 245084,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "gs3jKpgQcmpn519",
+        "full_key": "[REDACTED]",
+        "line_content": "\u0000\b\u0000&\u0000\u0001\u0000\u001e\u0000\u0002\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000\u001e\u0000\u0002\u0000&\u0000\u0001\u0000\u001e\u0000\u0002\u0000&\u0000\u0001\u0000\u001e\u0000\u0002\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&\u0000\u0001\u0000&"
+      },
+      {
+        "file": "apps/website/.env",
+        "line": 31,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "xxxxxxxxxxxxxxx",
+        "full_key": "[REDACTED]",
+        "line_content": "RESEND_API_KEY=[REDACTED]"
+      },
+      {
+        "file": "claude-code/src/main.tsx",
+        "line": 2612,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "teForceLoginOrg",
+        "full_key": "[REDACTED]",
+        "line_content": "profileCheckpoint('befo[REDACTED]');"
+      },
+      {
+        "file": "claude-code/src/cli/print.ts",
+        "line": 863,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "adlessStreaming",
+        "full_key": "[REDACTED]",
+        "line_content": "headlessProfilerCheckpoint('befo[REDACTED]')"
+      },
+      {
+        "file": "docs/audit/tools/REMEDIATION_01_SECRET_ROTATION_PLAN.md",
+        "line": 102,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "xxxxxxxxxxxxxxx",
+        "full_key": "[REDACTED]",
+        "line_content": "RESEND_API_KEY=[REDACTED]"
+      }
+    ]
+  }
+}

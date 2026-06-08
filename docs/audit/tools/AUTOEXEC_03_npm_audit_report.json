@@ -1,0 +1,178 @@
+{
+  "scan_type": "npm audit (pnpm workspace via npm)",
+  "total_dependencies": 2161,
+  "vulnerabilities": {
+    "critical": 3,
+    "high": 69,
+    "moderate": 48,
+    "low": 9,
+    "info": 0
+  },
+  "critical_findings": [
+    {
+      "module": "vitest",
+      "severity": "critical",
+      "cve": "CVE-2026-47429",
+      "advisory": "GHSA-5xrq-8626-4rwp",
+      "affected_paths": [
+        "apps__moneytrash>vitest"
+      ],
+      "vulnerable_versions": "<4.1.0",
+      "patched_versions": ">=4.1.0",
+      "title": "When Vitest UI server is listening, arbitrary file can be read and executed",
+      "recommendation": "Upgrade vitest to >=4.1.0 immediately"
+    }
+  ],
+  "high_findings_summary": [
+    {
+      "module": "react-router",
+      "count": 8,
+      "max_cvss": 8.1,
+      "note": "Multiple CVEs: CVE-2026-42211, CVE-2026-33245, CVE-2026-42342, CVE-2026-34077, etc."
+    },
+    {
+      "module": "tar",
+      "count": 6,
+      "note": "Path traversal and arbitrary file overwrite"
+    },
+    {
+      "module": "systeminformation",
+      "count": 3,
+      "note": "Command injection vulnerabilities"
+    },
+    {
+      "module": "protobufjs",
+      "count": 9,
+      "note": "Prototype pollution and DoS"
+    },
+    {
+      "module": "handlebars",
+      "count": 8,
+      "note": "Prototype pollution and RCE"
+    },
+    {
+      "module": "@xmldom/xmldom",
+      "count": 5,
+      "note": "XXE and DoS"
+    },
+    {
+      "module": "fast-xml-parser",
+      "count": 4,
+      "note": "ReDoS and prototype pollution"
+    },
+    {
+      "module": "lodash",
+      "count": 2,
+      "note": "Command injection via template"
+    },
+    {
+      "module": "path-to-regexp",
+      "count": 2,
+      "note": "ReDoS"
+    },
+    {
+      "module": "minimatch",
+      "count": 6,
+      "note": "ReDoS"
+    },
+    {
+      "module": "undici",
+      "count": 5,
+      "note": "Multiple request smuggling and CRLF injection"
+    },
+    {
+      "module": "esbuild",
+      "count": 2,
+      "note": "Arbitrary file write during build"
+    },
+    {
+      "module": "cookie",
+      "count": 1,
+      "note": "Cookie prefix bypass"
+    }
+  ],
+  "moderate_findings_summary": [
+    {
+      "module": "next",
+      "count": 4,
+      "note": "Open redirect and middleware bypass"
+    },
+    {
+      "module": "ajv",
+      "count": 1,
+      "note": "Prototype pollution"
+    },
+    {
+      "module": "qs",
+      "count": 1,
+      "note": "Prototype pollution"
+    },
+    {
+      "module": "flatted",
+      "count": 2,
+      "note": "Prototype pollution"
+    },
+    {
+      "module": "yaml",
+      "count": 1,
+      "note": "Arbitrary code execution"
+    },
+    {
+      "module": "picomatch",
+      "count": 2,
+      "note": "ReDoS"
+    },
+    {
+      "module": "brace-expansion",
+      "count": 1,
+      "note": "ReDoS"
+    },
+    {
+      "module": "serialize-javascript",
+      "count": 2,
+      "note": "XSS via serialized data"
+    },
+    {
+      "module": "ip-address",
+      "count": 1,
+      "note": "DoS via crafted input"
+    },
+    {
+      "module": "fast-uri",
+      "count": 2,
+      "note": "Open redirect"
+    },
+    {
+      "module": "defu",
+      "count": 1,
+      "note": "Prototype pollution"
+    },
+    {
+      "module": "tmp",
+      "count": 1,
+      "note": "Path traversal via prefix/postfix (CVE-2026-44705)"
+    },
+    {
+      "module": "@tootallnate/once",
+      "count": 1,
+      "note": "Resource exhaustion"
+    },
+    {
+      "module": "@protobufjs/utf8",
+      "count": 1,
+      "note": "Prototype pollution"
+    }
+  ],
+  "recommendations": [
+    "1. CRITICAL: Upgrade vitest in apps/moneytrash to >=4.1.0",
+    "2. HIGH: Upgrade react-router across master/management to latest patched versions (>=7.15.0 or >=6.30.4)",
+    "3. HIGH: Upgrade tar in master and management backend",
+    "4. HIGH: Upgrade systeminformation in master",
+    "5. HIGH: Upgrade protobufjs in gallery",
+    "6. HIGH: Upgrade handlebars in gallery",
+    "7. MODERATE: Upgrade next in website and master",
+    "8. Run 'pnpm audit --fix' where safe; manual review for breaking changes",
+    "9. Add automated audit step to CI/CD pipeline (see CI/CD templates)",
+    "10. Pin critical patches via pnpm overrides in root package.json"
+  ]
+}

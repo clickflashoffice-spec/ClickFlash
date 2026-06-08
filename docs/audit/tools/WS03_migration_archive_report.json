@@ -1,0 +1,1062 @@
+[
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/001_initial_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/002_enhanced_photos_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/003_add_destinations.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/004_add_session_types.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/005_add_packs_and_bookings.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/006_add_portfolio.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/007_add_fleet_monitoring.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/008_add_scalability_indexes.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/009_add_booking_details.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/010_add_inventory_and_equipment.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/011_add_analytics_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/012_add_conflict_logging.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/013_add_hardware_locking.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/014_add_desk_id_to_users.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/015_add_marketing_tracking.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/016_add_photographer_audits.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/017_align_sync_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/018_bi_sync_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/019_add_desk_id_indexes.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/020_analytics_query_optimization.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/021_add_refresh_tokens_table.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/022_add_login_attempts.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/023_update_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/024_add_pricing_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/025_multimaster_compatibility.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/026_cloud_sync_tables.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/027_add_fleet_heartbeats_table.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/028_sync_columns.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/029_crm_hr.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "management",
+    "file": "apps/management/backend/migrations/030_dynamic_pricing.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/003_add_pricing_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/004_optimization_indexes.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/034_add_kiosk_last_seen.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/035_add_kiosk_folder_paths.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/036_high_volume_indices.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/037_marketing_campaigns.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/038_gallery_tokens.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/039_gallery_orders.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/040_test_data_gallery.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/041_gallery_settings.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/042_queue_hardening.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/043_ensure_queue_fields.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/044_photographer_ledger.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/045_add_watermark_fields.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/047_restore_missing_permissions.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/048_operation_logs_foundation.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/049_sync_sequences_and_vector_clocks.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/050_decoupled_fulfillment_queues.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/051_add_kiosk_signing_secret.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/052_fix_queue_priority.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/053_add_missing_priorities.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/054_add_cloud_sync_tracking.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/055_data_management_settings.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/056_kiosk_telemetry.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/056_photo_adjustments_stack.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/057_photo_quality_flags.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/057_retention_defaults.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/058_health_contract.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/058_inventory_sync.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/059_kiosk_transfer_queue.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/060_add_session_timing.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/061_add_photo_favorite.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/062_photo_presets.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/063_add_refresh_tokens_table.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/064_sync_resilience_standardization.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/065_provisioning_resilience.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/066_diagnostic_telemetry.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/067_proactive_maintenance.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/068_admin_pin_security.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/069_persistent_write_queue.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/070_touch_order_idempotency.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/099_add_audit_tables.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/100_user_sessions.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/101_gdpr_compliance.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/migrations/fix_login_history_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/001_add_queues.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/001_initial_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/002_enhanced_photos_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/002_fix_orders_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/002_role_permissions.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/002_update_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/003_add_destinations.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/004_add_session_types.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/005_add_destinations_updated_at.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/005_add_kiosk_sessions_table.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/006_update_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/007_add_destinations_updated_at.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/008_add_packs_and_bookings.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/009_add_order_source.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/010_performance_indexes.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/011_add_assistance_requests.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/012_add_photos_room_number.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/013_add_albums_kiosk_ready.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/014_add_kiosks_settings.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/015_add_kiosk_sessions_last_seen.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/016_add_kiosk_folder_paths.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/017_add_ai_culling.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/018_add_face_recognition.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/019_add_login_history.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/020_ensure_login_history.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/021_fix_login_history_columns.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/022_backfill_login_history.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/023_backfill_user_id.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/024_add_daily_objectives.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/025_add_kiosk_metadata_only.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/025_missing_tables.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/026_add_order_number.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/027_add_album_email.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/028_add_photo_sync_columns.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/029_add_photo_tiers.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/030_add_face_indexing_queue.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/031_fix_face_queue.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/032_fix_double_urls.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/033_repair_tiny_urls.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/034_fix_kiosks_columns.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/035_add_order_rfid.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/036_high_volume_hardening.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/044_add_orders_archive.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/045_album_analytics_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/046_add_high_res_support.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/046_inventory.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/047_add_box_to_photo_faces.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/051_fix_queue_priority.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/052_add_sync_columns.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/053_add_order_sync_status.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/053_kiosk_transfer_queue.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/054_add_quality_flags.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/055_add_pairing_tokens.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/057_resort_bi_metrics.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/058_add_session_timing.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/059_performance_indexes_v2.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/060_performance_indexes_v3.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master",
+    "file": "apps/master/backend/shared/migrations/061_add_csrf_tokens_table.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/001_add_queues.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/001_initial_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/002_enhanced_photos_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/002_fix_orders_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/002_role_permissions.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/002_update_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/003_add_destinations.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/004_add_session_types.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/005_add_destinations_updated_at.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/005_add_kiosk_sessions_table.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/006_update_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/007_add_destinations_updated_at.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/008_add_packs_and_bookings.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/009_add_order_source.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/010_performance_indexes.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/011_add_assistance_requests.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/012_add_photos_room_number.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/013_add_albums_kiosk_ready.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/014_add_kiosks_settings.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/015_add_kiosk_sessions_last_seen.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/016_add_kiosk_folder_paths.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/017_add_ai_culling.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/018_add_face_recognition.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/019_add_login_history.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/020_ensure_login_history.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/021_fix_login_history_columns.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/022_backfill_login_history.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/023_backfill_user_id.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/024_add_daily_objectives.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/025_add_kiosk_metadata_only.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/025_missing_tables.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/026_add_order_number.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/027_add_album_email.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/028_add_photo_sync_columns.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/029_add_photo_tiers.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/030_add_face_indexing_queue.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/031_fix_face_queue.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/032_fix_double_urls.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/033_repair_tiny_urls.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/034_fix_kiosks_columns.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/035_add_order_rfid.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/036_high_volume_hardening.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/044_add_orders_archive.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/045_album_analytics_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/046_add_high_res_support.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/046_inventory.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/047_add_box_to_photo_faces.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/051_fix_queue_priority.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/052_add_sync_columns.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/053_add_order_sync_status.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/053_kiosk_transfer_queue.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/054_add_quality_flags.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/055_add_pairing_tokens.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/057_resort_bi_metrics.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/058_add_session_timing.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/059_performance_indexes_v2.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "master-cpp",
+    "file": "apps/master-cpp/migrations/060_performance_indexes_v3.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/001_initial_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/002_enhanced_photos_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/002_update_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/003_add_destinations.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/004_add_session_types.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/005_add_packs_and_bookings.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/006_add_order_source.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/007_add_touch_integration_settings.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/008_add_password_change_flag.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/009_add_kiosk_ready.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/010_add_kiosk_sessions.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/011_add_face_recognition.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/012_add_kiosk_sessions_lastSeen.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/013_add_performance_indexes.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/migrations/014_harmonize_photos_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/shared/migrations/001_initial_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/shared/migrations/002_enhanced_photos_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/shared/migrations/002_update_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/shared/migrations/003_add_destinations.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/shared/migrations/004_add_session_types.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/shared/migrations/005_fix_orders_schema.sql",
+    "action": "copied_to_archive"
+  },
+  {
+    "app": "touch",
+    "file": "apps/touch/backend/shared/migrations/006_add_photos_room_number.sql",
+    "action": "copied_to_archive"
+  }
+]

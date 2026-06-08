@@ -1,0 +1,6 @@
+ALTER TABLE kiosks
+ADD COLUMN last_seen TEXT;
+ALTER TABLE kiosks
+ADD COLUMN ip_address TEXT;
+ALTER TABLE kiosks
+ADD COLUMN version TEXT;

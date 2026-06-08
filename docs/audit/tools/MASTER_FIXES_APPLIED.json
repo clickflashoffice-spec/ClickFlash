@@ -1,0 +1,16 @@
+{
+  "app": "master",
+  "fixes_applied": [
+    "FIXED: bcrypjs -> bcryptjs in package.json build:backend script",
+    "CRITICAL: No electron main entry found in src/main/ or electron-new/src/main/",
+    "FIXED: Moved 3 @types/ packages from prod to devDeps: @types/pdfmake, @types/react-window, @types/stripe",
+    "FIXED: Created build/icon.png from public/favicon.png"
+  ],
+  "fix_count": 4,
+  "remaining_actions": [
+    "Rebuild native modules: sharp, @napi-rs/canvas (run pnpm rebuild)",
+    "Verify electron main entry compiles correctly",
+    "Run full build: npm run package",
+    "Consider upgrading Electron from 39 to 34+ LTS"
+  ]
+}

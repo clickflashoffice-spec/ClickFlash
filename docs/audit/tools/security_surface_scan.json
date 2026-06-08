@@ -1,0 +1,3778 @@
+{
+  "files_scanned": 5341,
+  "env_files": [
+    ".env",
+    ".env.example",
+    "apps\\gallery\\.env",
+    "apps\\gallery\\.env.example",
+    "apps\\gallery\\backend\\.env",
+    "apps\\gallery\\backend\\.env.example",
+    "apps\\management\\.env",
+    "apps\\management\\.env.example",
+    "apps\\management\\backend\\.env",
+    "apps\\management\\backend\\.env.example",
+    "apps\\master\\.env",
+    "apps\\master\\.env.example",
+    "apps\\master\\backend\\.env",
+    "apps\\master\\backend\\.env.example",
+    "apps\\master\\backend\\setup\\config-template.env",
+    "apps\\master\\backend\\setup\\profiles\\concorde.env",
+    "apps\\master\\backend\\setup\\profiles\\marhaba-club.env",
+    "apps\\master\\backend\\setup\\profiles\\marhaba-occidental.env",
+    "apps\\master\\ClickFlash-Master-test-hotel-2\\.env",
+    "apps\\master\\configs\\club.env",
+    "apps\\master\\configs\\concorde.env",
+    "apps\\master\\configs\\occidental.env",
+    "apps\\moneytrash\\.env",
+    "apps\\moneytrash\\.env.example",
+    "apps\\touch\\.env",
+    "apps\\touch\\.env.example",
+    "apps\\touch\\backend\\.env",
+    "apps\\touch\\backend\\.env.example",
+    "apps\\website\\.env",
+    "apps\\website\\.env.example",
+    "claude-code\\.env.example",
+    "claude-code\\web\\.env.example"
+  ],
+  "findings": {
+    "hardcoded_url": [
+      {
+        "file": ".env",
+        "line": 20,
+        "snippet": "MASTER_URL=http://localhost:8090"
+      },
+      {
+        "file": ".env",
+        "line": 26,
+        "snippet": "TOUCH_URL=http://localhost:8091"
+      },
+      {
+        "file": ".env",
+        "line": 30,
+        "snippet": "MONEYTRASH_URL=http://localhost:3000"
+      },
+      {
+        "file": ".env",
+        "line": 34,
+        "snippet": "MANAGEMENT_URL=http://localhost:5173"
+      },
+      {
+        "file": ".env",
+        "line": 38,
+        "snippet": "GALLERY_URL=http://localhost:5174"
+      },
+      {
+        "file": ".env",
+        "line": 42,
+        "snippet": "WEBSITE_URL=http://localhost:3001"
+      },
+      {
+        "file": ".env",
+        "line": 47,
+        "snippet": "API_URL=http://localhost:8090/api"
+      },
+      {
+        "file": ".env",
+        "line": 48,
+        "snippet": "MASTER_API_URL=http://localhost:8090/api"
+      },
+      {
+        "file": ".env",
+        "line": 49,
+        "snippet": "TOUCH_API_URL=http://localhost:8091/api"
+      },
+      {
+        "file": ".env.example",
+        "line": 23,
+        "snippet": "API_URL=http://localhost:8090/api"
+      },
+      {
+        "file": ".env.example",
+        "line": 123,
+        "snippet": "MONEYTRASH_URL=http://localhost:3000"
+      },
+      {
+        "file": ".env.example",
+        "line": 137,
+        "snippet": "CORS_ORIGIN=http://localhost:8090,http://localhost:5173,http://localhost:5174"
+      },
+      {
+        "file": "API.md",
+        "line": 10,
+        "snippet": "Development: http://localhost:8090/api"
+      },
+      {
+        "file": "DEPLOYMENT.md",
+        "line": 356,
+        "snippet": "curl http://localhost:8090/api/system/health"
+      },
+      {
+        "file": "DEPLOYMENT.md",
+        "line": 359,
+        "snippet": "curl http://localhost:8091/api/system/health"
+      },
+      {
+        "file": "docker-compose.dev.yml",
+        "line": 34,
+        "snippet": "test: [\"CMD\", \"node\", \"-e\", \"require('http').get('http://localhost:8090/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\"]"
+      },
+      {
+        "file": "docker-compose.dev.yml",
+        "line": 67,
+        "snippet": "test: [\"CMD\", \"node\", \"-e\", \"require('http').get('http://localhost:8091/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\"]"
+      },
+      {
+        "file": "docker-compose.dev.yml",
+        "line": 89,
+        "snippet": "- VITE_API_URL=http://localhost:8090"
+      },
+      {
+        "file": "docker-compose.dev.yml",
+        "line": 94,
+        "snippet": "test: [\"CMD\", \"node\", \"-e\", \"require('http').get('http://localhost:5173', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\"]"
+      },
+      {
+        "file": "docker-compose.dev.yml",
+        "line": 116,
+        "snippet": "- VITE_API_URL=http://localhost:8090"
+      },
+      {
+        "file": "docker-compose.dev.yml",
+        "line": 121,
+        "snippet": "test: [\"CMD\", \"node\", \"-e\", \"require('http').get('http://localhost:5174', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\"]"
+      },
+      {
+        "file": "docker-compose.dev.yml",
+        "line": 148,
+        "snippet": "test: [\"CMD\", \"node\", \"-e\", \"require('http').get('http://localhost:3000', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\"]"
+      },
+      {
+        "file": "docker-compose.dev.yml",
+        "line": 174,
+        "snippet": "test: [\"CMD\", \"node\", \"-e\", \"require('http').get('http://localhost:1420', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\"]"
+      },
+      {
+        "file": "docker-compose.dev.yml",
+        "line": 216,
+        "snippet": "test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:9000/minio/health/live\"]"
+      },
+      {
+        "file": "docker-compose.yml",
+        "line": 32,
+        "snippet": "test: [\"CMD\", \"node\", \"-e\", \"require('http').get('http://localhost:8090/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\"]"
+      },
+      {
+        "file": "docker-compose.yml",
+        "line": 63,
+        "snippet": "test: [\"CMD\", \"node\", \"-e\", \"require('http').get('http://localhost:8091/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\"]"
+      },
+      {
+        "file": "docker-compose.yml",
+        "line": 89,
+        "snippet": "test: [\"CMD\", \"node\", \"-e\", \"require('http').get('http://localhost:8092/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\"]"
+      },
+      {
+        "file": "docker-compose.yml",
+        "line": 115,
+        "snippet": "test: [\"CMD\", \"node\", \"-e\", \"require('http').get('http://localhost:8093/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\"]"
+      },
+      {
+        "file": "docker-compose.yml",
+        "line": 138,
+        "snippet": "test: [\"CMD\", \"node\", \"-e\", \"require('http').get('http://localhost:3000', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\"]"
+      },
+      {
+        "file": "docker-compose.yml",
+        "line": 161,
+        "snippet": "test: [\"CMD\", \"node\", \"-e\", \"require('http').get('http://localhost:3000', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\"]"
+      },
+      {
+        "file": "docker-compose.yml",
+        "line": 228,
+        "snippet": "test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:9000/minio/health/live\"]"
+      },
+      {
+        "file": "install-clickflash.bat",
+        "line": 199,
+        "snippet": "echo   Local:    http://localhost:8090"
+      },
+      {
+        "file": "INTEGRATION.md",
+        "line": 171,
+        "snippet": "MASTER_URL=http://localhost:8090"
+      },
+      {
+        "file": "INTEGRATION.md",
+        "line": 177,
+        "snippet": "GALLERY_API_URL=http://localhost:8093"
+      },
+      {
+        "file": "INTEGRATION.md",
+        "line": 178,
+        "snippet": "MANAGEMENT_API_URL=http://localhost:8092"
+      },
+      {
+        "file": "INTEGRATION.md",
+        "line": 201,
+        "snippet": "NEXT_PUBLIC_API_URL=http://localhost:8092"
+      },
+      {
+        "file": "INTEGRATION.md",
+        "line": 313,
+        "snippet": "curl http://localhost:8090/api/health"
+      },
+      {
+        "file": "INTEGRATION.md",
+        "line": 316,
+        "snippet": "curl http://localhost:8091/api/health"
+      },
+      {
+        "file": "INTEGRATION.md",
+        "line": 319,
+        "snippet": "curl http://localhost:3000/api/health"
+      },
+      {
+        "file": "INTEGRATION.md",
+        "line": 322,
+        "snippet": "curl http://localhost:8092/api/health"
+      },
+      {
+        "file": "INTEGRATION.md",
+        "line": 325,
+        "snippet": "curl http://localhost:8093/api/health"
+      },
+      {
+        "file": "INTEGRATION.md",
+        "line": 358,
+        "snippet": "- Base: `http://localhost:8090`"
+      },
+      {
+        "file": "INTEGRATION.md",
+        "line": 363,
+        "snippet": "- Base: `http://localhost:8091`"
+      },
+      {
+        "file": "INTEGRATION.md",
+        "line": 368,
+        "snippet": "- Base: `http://localhost:3000`"
+      },
+      {
+        "file": "INTEGRATION.md",
+        "line": 372,
+        "snippet": "- Base: `http://localhost:8092`"
+      },
+      {
+        "file": "INTEGRATION.md",
+        "line": 377,
+        "snippet": "- Base: `http://localhost:8093`"
+      },
+      {
+        "file": "MASTER_SETUP_GUIDE.md",
+        "line": 313,
+        "snippet": "curl http://localhost:8090/api/cloud/status"
+      },
+      {
+        "file": "MASTER_SETUP_GUIDE.md",
+        "line": 330,
+        "snippet": "curl http://localhost:8090/api/cloud/stats"
+      },
+      {
+        "file": "MASTER_SETUP_GUIDE.md",
+        "line": 418,
+        "snippet": "curl http://localhost:8090/api/cloud/stats"
+      },
+      {
+        "file": "MASTER_SETUP_GUIDE.md",
+        "line": 436,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/sync"
+      },
+      {
+        "file": "ONE-CLICK-INSTALL.md",
+        "line": 230,
+        "snippet": "- The Master Portal opens in your default web browser at `http://localhost:8090`."
+      },
+      {
+        "file": "playwright.config.ts",
+        "line": 21,
+        "snippet": "// baseURL: 'http://127.0.0.1:3000',"
+      },
+      {
+        "file": "playwright.config.ts",
+        "line": 32,
+        "snippet": "url: 'http://localhost:8090',"
+      },
+      {
+        "file": "playwright.config.ts",
+        "line": 40,
+        "snippet": "url: 'http://localhost:8091',"
+      },
+      {
+        "file": "playwright.ecosystem.config.ts",
+        "line": 29,
+        "snippet": "baseURL: 'http://localhost:5173',"
+      },
+      {
+        "file": "playwright.ecosystem.config.ts",
+        "line": 53,
+        "snippet": "url: \"http://localhost:8090\","
+      },
+      {
+        "file": "playwright.ecosystem.config.ts",
+        "line": 62,
+        "snippet": "url: \"http://localhost:8091\","
+      },
+      {
+        "file": "playwright.ecosystem.config.ts",
+        "line": 71,
+        "snippet": "url: \"http://localhost:5175\","
+      },
+      {
+        "file": "PORTS.md",
+        "line": 69,
+        "snippet": "- Vite Frontend: `http://localhost:5173`"
+      },
+      {
+        "file": "PORTS.md",
+        "line": 70,
+        "snippet": "- Backend API: `http://localhost:8090/api`"
+      },
+      {
+        "file": "PORTS.md",
+        "line": 74,
+        "snippet": "- Vite Frontend: `http://localhost:5175`"
+      },
+      {
+        "file": "PORTS.md",
+        "line": 75,
+        "snippet": "- Backend API: `http://localhost:8091/api`"
+      },
+      {
+        "file": "PORTS.md",
+        "line": 79,
+        "snippet": "- MoneyTrash: `http://localhost:3000`"
+      },
+      {
+        "file": "PORTS.md",
+        "line": 80,
+        "snippet": "- Management: `http://localhost:5173`"
+      },
+      {
+        "file": "PORTS.md",
+        "line": 81,
+        "snippet": "- Gallery: `http://localhost:5174`"
+      },
+      {
+        "file": "PORTS.md",
+        "line": 82,
+        "snippet": "- Website: `http://localhost:3001`"
+      },
+      {
+        "file": "README.md",
+        "line": 316,
+        "snippet": "k6 run --env MASTER_URL=http://localhost:8090 k6-load.js"
+      },
+      {
+        "file": "start-all.bat",
+        "line": 67,
+        "snippet": "echo   Master Station:   http://localhost:8090 (API) / http://localhost:5173 (UI)"
+      },
+      {
+        "file": "start-all.bat",
+        "line": 68,
+        "snippet": "echo   Touch Kiosk:      http://localhost:8091 (API) / http://localhost:5174 (UI)"
+      },
+      {
+        "file": "start-all.bat",
+        "line": 69,
+        "snippet": "echo   Money Trash:      http://localhost:3000"
+      },
+      {
+        "file": "start-all.ps1",
+        "line": 24,
+        "snippet": "Write-Host \"   - Management App: http://localhost:8092\""
+      },
+      {
+        "file": "start-all.ps1",
+        "line": 25,
+        "snippet": "Write-Host \"   - Unified Gallery: http://localhost:8093\""
+      },
+      {
+        "file": "TESTING_GUIDE.md",
+        "line": 206,
+        "snippet": "await page.goto('http://localhost:8090');"
+      },
+      {
+        "file": "TESTING_GUIDE.md",
+        "line": 378,
+        "snippet": "const res = http.get('http://localhost:8090/api/albums');"
+      },
+      {
+        "file": ".claude\\settings.local.json",
+        "line": 30,
+        "snippet": "\"Bash(curl -sf http://localhost:8090/api/health)\","
+      },
+      {
+        "file": ".claude\\settings.local.json",
+        "line": 32,
+        "snippet": "\"Bash(timeout 30 bash -c 'until curl -sf http://localhost:5173 > /dev/null 2>&1; do sleep 2; done')\","
+      },
+      {
+        "file": ".claude\\settings.local.json",
+        "line": 39,
+        "snippet": "\"Bash(timeout 30 bash -c 'until curl -sf http://localhost:8090/api/health; do sleep 2; done')\","
+      },
+      {
+        "file": ".claude\\settings.local.json",
+        "line": 40,
+        "snippet": "\"Bash(timeout 30 bash -c 'until curl -sf http://localhost:5173; do sleep 2; done')\","
+      },
+      {
+        "file": ".claude\\settings.local.json",
+        "line": 41,
+        "snippet": "\"Bash(curl -s -X POST http://localhost:8090/api/system/security/verify-pin -H \\\"Content-Type: application/json\\\" -d '{\\\"pin\\\":\\\"1234\\\"}')\","
+      },
+      {
+        "file": ".claude\\settings.local.json",
+        "line": 42,
+        "snippet": "\"Bash(curl -s http://localhost:8090/api/health)\","
+      },
+      {
+        "file": ".claude\\settings.local.json",
+        "line": 43,
+        "snippet": "\"Bash(curl -s -X POST http://localhost:8090/api/system/security/verify-pin -H 'Content-Type: application/json' -H 'X-CSRF-Token: test' -H 'Cookie: session=test' -d '{\\\"pin\\\":\\\"1234\\\"}')\","
+      },
+      {
+        "file": ".claude\\settings.local.json",
+        "line": 44,
+        "snippet": "\"Bash(curl -sv -X POST http://localhost:5173/api/system/security/verify-pin -H 'Content-Type: application/json' -d '{\\\"pin\\\":\\\"1234\\\"}')\","
+      },
+      {
+        "file": ".claude\\settings.local.json",
+        "line": 46,
+        "snippet": "\"Bash(curl -sf http://localhost:5173)\","
+      },
+      {
+        "file": ".claude\\settings.local.json",
+        "line": 47,
+        "snippet": "\"Bash(timeout 60 bash -c 'until curl -sf http://localhost:8090/api/health; do sleep 2; done')\","
+      },
+      {
+        "file": ".claude\\skills\\debug.md",
+        "line": 44,
+        "snippet": "| Electron blank screen | Backend health: `curl -sf http://localhost:8090/api/health` |"
+      },
+      {
+        "file": ".github\\workflows\\ci.yml",
+        "line": 397,
+        "snippet": "timeout 60 bash -c 'until curl -sf http://localhost:8090/api/health; do sleep 2; done'"
+      },
+      {
+        "file": ".github\\workflows\\ci.yml",
+        "line": 403,
+        "snippet": "timeout 60 bash -c 'until curl -sf http://localhost:5173; do sleep 2; done'"
+      },
+      {
+        "file": ".github\\workflows\\ci.yml",
+        "line": 413,
+        "snippet": "E2E_BASE_URL: http://localhost:5173"
+      },
+      {
+        "file": ".github\\workflows\\ci.yml",
+        "line": 549,
+        "snippet": "timeout 60 bash -c 'until curl -sf http://localhost:5173; do sleep 2; done'"
+      },
+      {
+        "file": ".github\\workflows\\ci.yml",
+        "line": 671,
+        "snippet": "(Invoke-WebRequest -Uri \"http://localhost:5173\" -UseBasicParsing -ErrorAction SilentlyContinue).StatusCode -eq 200 -or $elapsed -ge $timeout"
+      },
+      {
+        "file": ".github\\workflows\\ci.yml",
+        "line": 678,
+        "snippet": "timeout 60 bash -c 'until curl -sf http://localhost:5173; do sleep 2; done'"
+      },
+      {
+        "file": ".github\\workflows\\e2e.yml",
+        "line": 51,
+        "snippet": "E2E_BASE_URL: http://localhost:5173"
+      },
+      {
+        "file": ".github\\workflows\\ecosystem-test.yml",
+        "line": 42,
+        "snippet": "timeout 180 bash -c 'until curl -sf http://localhost:8090/api/health; do sleep 2; done'"
+      },
+      {
+        "file": ".github\\workflows\\ecosystem-test.yml",
+        "line": 43,
+        "snippet": "timeout 60 bash -c 'until curl -sf http://localhost:8091/api/health; do sleep 2; done'"
+      },
+      {
+        "file": ".github\\workflows\\ecosystem-test.yml",
+        "line": 44,
+        "snippet": "timeout 60 bash -c 'until curl -sf http://localhost:5173; do sleep 2; done'"
+      },
+      {
+        "file": ".github\\workflows\\ecosystem-test.yml",
+        "line": 45,
+        "snippet": "timeout 60 bash -c 'until curl -sf http://localhost:5174; do sleep 2; done'"
+      },
+      {
+        "file": ".github\\workflows\\ecosystem-test.yml",
+        "line": 46,
+        "snippet": "timeout 60 bash -c 'until curl -sf http://localhost:3000; do sleep 2; done'"
+      },
+      {
+        "file": ".github\\workflows\\ecosystem-test.yml",
+        "line": 47,
+        "snippet": "timeout 60 bash -c 'until curl -sf http://localhost:1420; do sleep 2; done'"
+      },
+      {
+        "file": "apps\\gallery\\.env",
+        "line": 14,
+        "snippet": "VITE_APP_URL=http://localhost:5174"
+      },
+      {
+        "file": "apps\\gallery\\.env",
+        "line": 15,
+        "snippet": "VITE_API_URL=http://localhost:8090"
+      },
+      {
+        "file": "apps\\gallery\\.env",
+        "line": 16,
+        "snippet": "VITE_STORAGE_URL=http://localhost:8090/uploads"
+      },
+      {
+        "file": "apps\\gallery\\.env",
+        "line": 21,
+        "snippet": "MASTER_API_URL=http://localhost:8090/api"
+      },
+      {
+        "file": "apps\\gallery\\.env.example",
+        "line": 14,
+        "snippet": "VITE_APP_URL=http://localhost:5174"
+      },
+      {
+        "file": "apps\\gallery\\.env.example",
+        "line": 15,
+        "snippet": "VITE_API_URL=http://localhost:8090/api"
+      },
+      {
+        "file": "apps\\gallery\\.env.example",
+        "line": 16,
+        "snippet": "VITE_STORAGE_URL=http://localhost:8090/uploads"
+      },
+      {
+        "file": "apps\\gallery\\.env.example",
+        "line": 17,
+        "snippet": "VITE_TOUCH_API_URL=http://localhost:8091"
+      },
+      {
+        "file": "apps\\gallery\\.env.example",
+        "line": 22,
+        "snippet": "MASTER_API_URL=http://localhost:8090/api"
+      },
+      {
+        "file": "apps\\gallery\\3_START_DEV.bat",
+        "line": 66,
+        "snippet": "echo Backend:  http://localhost:8093"
+      },
+      {
+        "file": "apps\\gallery\\3_START_DEV.bat",
+        "line": 67,
+        "snippet": "echo Frontend: http://localhost:5175"
+      },
+      {
+        "file": "apps\\gallery\\jest.config.js",
+        "line": 121,
+        "snippet": "VITE_API_URL: 'http://localhost:8092',"
+      },
+      {
+        "file": "apps\\gallery\\playwright.config.ts",
+        "line": 24,
+        "snippet": "baseURL: process.env.TEST_BASE_URL || \"http://localhost:5176\","
+      },
+      {
+        "file": "apps\\gallery\\playwright.config.ts",
+        "line": 50,
+        "snippet": "url: \"http://localhost:5176\","
+      },
+      {
+        "file": "apps\\gallery\\README.md",
+        "line": 142,
+        "snippet": "CORS_ORIGINS=http://localhost:5173,http://localhost:5174"
+      },
+      {
+        "file": "apps\\gallery\\README.md",
+        "line": 145,
+        "snippet": "GALLERY_URL=http://localhost:5173"
+      },
+      {
+        "file": "apps\\gallery\\README.md",
+        "line": 186,
+        "snippet": "http://localhost:5173/gallery/{access-code}"
+      },
+      {
+        "file": "apps\\gallery\\README.md",
+        "line": 191,
+        "snippet": "http://localhost:5173/gallery/{access-code}?autoLogin=true"
+      },
+      {
+        "file": "apps\\gallery\\vite.config.ts",
+        "line": 14,
+        "snippet": "target: \"http://localhost:8090\","
+      },
+      {
+        "file": "apps\\gallery\\vite.config.ts",
+        "line": 18,
+        "snippet": "target: \"http://localhost:8090\","
+      },
+      {
+        "file": "apps\\gallery\\backend\\.env",
+        "line": 5,
+        "snippet": "CORS_ORIGINS=http://localhost:5173,http://localhost:5174"
+      },
+      {
+        "file": "apps\\gallery\\backend\\.env.example",
+        "line": 9,
+        "snippet": "# Default: http://localhost:5173,http://localhost:8000,http://127.0.0.1:5173,http://127.0.0.1:8000"
+      },
+      {
+        "file": "apps\\gallery\\backend\\SECURITY_VERIFICATION.md",
+        "line": 4,
+        "snippet": "**Server**: http://localhost:8090"
+      },
+      {
+        "file": "apps\\gallery\\backend\\SECURITY_VERIFICATION.md",
+        "line": 61,
+        "snippet": "- `http://localhost:5173` (Vite dev server)"
+      },
+      {
+        "file": "apps\\gallery\\backend\\SECURITY_VERIFICATION.md",
+        "line": 62,
+        "snippet": "- `http://localhost:8000` (Production build)"
+      },
+      {
+        "file": "apps\\gallery\\backend\\SECURITY_VERIFICATION.md",
+        "line": 63,
+        "snippet": "- `http://127.0.0.1:5173`"
+      },
+      {
+        "file": "apps\\gallery\\backend\\SECURITY_VERIFICATION.md",
+        "line": 64,
+        "snippet": "- `http://127.0.0.1:8000`"
+      },
+      {
+        "file": "apps\\gallery\\backend\\SECURITY_VERIFICATION.md",
+        "line": 69,
+        "snippet": "Request from http://localhost:5173:"
+      },
+      {
+        "file": "apps\\gallery\\backend\\SECURITY_VERIFICATION.md",
+        "line": 70,
+        "snippet": "Access-Control-Allow-Origin: http://localhost:5173"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\test-security.js",
+        "line": 12,
+        "snippet": "const BASE_URL = 'http://localhost:8090';"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\test-security.js",
+        "line": 129,
+        "snippet": "'Origin': 'http://localhost:5173'"
+      },
+      {
+        "file": "apps\\gallery\\backend\\src\\config.ts",
+        "line": 15,
+        "snippet": "'http://localhost:5173',"
+      },
+      {
+        "file": "apps\\gallery\\backend\\src\\config.ts",
+        "line": 16,
+        "snippet": "'http://localhost:5177',"
+      },
+      {
+        "file": "apps\\gallery\\backend\\src\\config.ts",
+        "line": 17,
+        "snippet": "'http://localhost:5179',"
+      },
+      {
+        "file": "apps\\gallery\\backend\\src\\config.ts",
+        "line": 18,
+        "snippet": "'http://localhost:8000',"
+      },
+      {
+        "file": "apps\\gallery\\src\\App.tsx",
+        "line": 65,
+        "snippet": "\"http://localhost:8091\";"
+      },
+      {
+        "file": "apps\\gallery\\src\\components\\settings\\GeneralSettings.tsx",
+        "line": 65,
+        "snippet": "const baseUrl = pb.baseUrlValue || 'http://127.0.0.1:8090';"
+      },
+      {
+        "file": "apps\\gallery\\src\\components\\settings\\GeneralSettings.tsx",
+        "line": 267,
+        "snippet": "const baseUrl = pb.baseUrlValue || 'http://127.0.0.1:8090';"
+      },
+      {
+        "file": "apps\\gallery\\src\\components\\settings\\KioskPairing.tsx",
+        "line": 21,
+        "snippet": "const baseUrl = pb.baseUrlValue || 'http://127.0.0.1:8090';"
+      },
+      {
+        "file": "apps\\gallery\\src\\components\\touch\\KioskSettingsModal.tsx",
+        "line": 274,
+        "snippet": "onClick={() => setSettings(prev => ({ ...prev, serverUrl: 'http://127.0.0.1:8090' }))}"
+      },
+      {
+        "file": "apps\\gallery\\src\\services\\apiService.ts",
+        "line": 782,
+        "snippet": "const baseUrl = pb.baseUrlValue || \"http://127.0.0.1:8090\";"
+      },
+      {
+        "file": "apps\\gallery\\src\\services\\cloudApiService.ts",
+        "line": 27,
+        "snippet": "const baseUrl = pb.baseUrlValue || \"http://127.0.0.1:8090\";"
+      },
+      {
+        "file": "apps\\gallery\\src\\services\\cloudApiService.ts",
+        "line": 91,
+        "snippet": "const baseUrl = pb.baseUrlValue || \"http://127.0.0.1:8090\";"
+      },
+      {
+        "file": "apps\\gallery\\src\\services\\cloudApiService.ts",
+        "line": 136,
+        "snippet": "const baseUrl = pb.baseUrlValue || \"http://127.0.0.1:8090\";"
+      },
+      {
+        "file": "apps\\gallery\\src\\services\\faceRecognitionService.ts",
+        "line": 35,
+        "snippet": "return 'http://127.0.0.1:8090';"
+      },
+      {
+        "file": "apps\\gallery\\src\\services\\pb.ts",
+        "line": 46,
+        "snippet": "// This prevents the common double-slash error (e.g., http://localhost:8090/api/api/...)"
+      },
+      {
+        "file": "apps\\gallery\\src\\services\\pb.ts",
+        "line": 586,
+        "snippet": "targetUrl = \"http://127.0.0.1:8090\";"
+      },
+      {
+        "file": "apps\\gallery\\src\\services\\stripeEdgeService.ts",
+        "line": 135,
+        "snippet": "const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8092';"
+      },
+      {
+        "file": "apps\\gallery\\src\\services\\stripeEdgeService.ts",
+        "line": 171,
+        "snippet": "const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8092';"
+      },
+      {
+        "file": "apps\\gallery\\src\\services\\stripeEdgeService.ts",
+        "line": 382,
+        "snippet": "const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8092';"
+      },
+      {
+        "file": "apps\\gallery\\src\\services\\stripeService.ts",
+        "line": 24,
+        "snippet": "const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8092';"
+      },
+      {
+        "file": "apps\\gallery\\src\\__tests__\\orderAccess.test.ts",
+        "line": 11,
+        "snippet": "const API_URL = 'http://localhost:8787';"
+      },
+      {
+        "file": "apps\\installer\\package.json",
+        "line": 9,
+        "snippet": "\"dev:electron\": \"concurrently \\\"pnpm run dev\\\" \\\"wait-on http://localhost:5175 && electron .\\\" --names \\\"renderer,electron\\\" --prefix-colors \\\"green,cyan\\\" --kill-others-on-fail\","
+      },
+      {
+        "file": "apps\\installer\\src\\components\\CompleteStep.tsx",
+        "line": 101,
+        "snippet": "window.open(\"http://localhost:8090\", \"_blank\");"
+      },
+      {
+        "file": "apps\\installer\\src\\services\\oauthHandler.ts",
+        "line": 137,
+        "snippet": "params.append(\"redirect_uri\", \"http://localhost:0/callback\"); // Port resolved at runtime"
+      },
+      {
+        "file": "apps\\management\\.env",
+        "line": 14,
+        "snippet": "VITE_APP_URL=http://localhost:5173"
+      },
+      {
+        "file": "apps\\management\\.env",
+        "line": 15,
+        "snippet": "VITE_API_URL=http://localhost:8092"
+      },
+      {
+        "file": "apps\\management\\.env",
+        "line": 17,
+        "snippet": "VITE_PB_URL=http://localhost:8092"
+      },
+      {
+        "file": "apps\\management\\.env",
+        "line": 22,
+        "snippet": "MASTER_API_URL=http://localhost:8092/api"
+      },
+      {
+        "file": "apps\\management\\.env.example",
+        "line": 7,
+        "snippet": "VITE_APP_URL=http://localhost:5173"
+      },
+      {
+        "file": "apps\\management\\.env.example",
+        "line": 8,
+        "snippet": "VITE_API_URL=http://localhost:8090/api"
+      },
+      {
+        "file": "apps\\management\\3_START_DEV.bat",
+        "line": 66,
+        "snippet": "echo Backend:  http://localhost:8092"
+      },
+      {
+        "file": "apps\\management\\3_START_DEV.bat",
+        "line": 67,
+        "snippet": "echo Frontend: http://localhost:5176"
+      },
+      {
+        "file": "apps\\management\\ARCHITECTURE.md",
+        "line": 257,
+        "snippet": "VITE_API_URL=http://localhost:8090"
+      },
+      {
+        "file": "apps\\management\\ARCHITECTURE.md",
+        "line": 262,
+        "snippet": "VITE_API_URL=http://localhost:8090"
+      },
+      {
+        "file": "apps\\management\\inspect-destinations.js",
+        "line": 14,
+        "snippet": "uRL: 'http://127.0.0.1:8090', // Assuming 'uRL' or 'ip' field exists, guessing based on context"
+      },
+      {
+        "file": "apps\\management\\jest.config.js",
+        "line": 45,
+        "snippet": "VITE_API_BASE_URL: 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\management\\playwright.config.ts",
+        "line": 24,
+        "snippet": "baseURL: process.env.TEST_BASE_URL || \"http://localhost:5175\","
+      },
+      {
+        "file": "apps\\management\\playwright.config.ts",
+        "line": 52,
+        "snippet": "url: \"http://localhost:5175\","
+      },
+      {
+        "file": "apps\\management\\README.md",
+        "line": 119,
+        "snippet": "CORS_ORIGINS=http://localhost:5173,http://localhost:5174"
+      },
+      {
+        "file": "apps\\management\\vite.config.ts",
+        "line": 14,
+        "snippet": "target: \"http://localhost:8787\","
+      },
+      {
+        "file": "apps\\management\\backend\\.env",
+        "line": 5,
+        "snippet": "ALLOWED_ORIGINS=http://localhost:5173,http://localhost:8000,http://localhost:8090,http://127.0.0.1:8090"
+      },
+      {
+        "file": "apps\\management\\backend\\.env.example",
+        "line": 8,
+        "snippet": "ALLOWED_ORIGINS=http://localhost:5173,http://localhost:8000,http://localhost:8090"
+      },
+      {
+        "file": "apps\\management\\backend\\SECURITY_VERIFICATION.md",
+        "line": 4,
+        "snippet": "**Server**: http://localhost:8090"
+      },
+      {
+        "file": "apps\\management\\backend\\SECURITY_VERIFICATION.md",
+        "line": 61,
+        "snippet": "- `http://localhost:5173` (Vite dev server)"
+      },
+      {
+        "file": "apps\\management\\backend\\SECURITY_VERIFICATION.md",
+        "line": 62,
+        "snippet": "- `http://localhost:8000` (Production build)"
+      },
+      {
+        "file": "apps\\management\\backend\\SECURITY_VERIFICATION.md",
+        "line": 63,
+        "snippet": "- `http://127.0.0.1:5173`"
+      },
+      {
+        "file": "apps\\management\\backend\\SECURITY_VERIFICATION.md",
+        "line": 64,
+        "snippet": "- `http://127.0.0.1:8000`"
+      },
+      {
+        "file": "apps\\management\\backend\\SECURITY_VERIFICATION.md",
+        "line": 69,
+        "snippet": "Request from http://localhost:5173:"
+      },
+      {
+        "file": "apps\\management\\backend\\SECURITY_VERIFICATION.md",
+        "line": 70,
+        "snippet": "Access-Control-Allow-Origin: http://localhost:5173"
+      },
+      {
+        "file": "apps\\management\\backend\\master\\server.js",
+        "line": 133,
+        "snippet": "'http://localhost:5173',"
+      },
+      {
+        "file": "apps\\management\\backend\\master\\server.js",
+        "line": 134,
+        "snippet": "'http://localhost:8000',"
+      },
+      {
+        "file": "apps\\management\\backend\\master\\server.js",
+        "line": 135,
+        "snippet": "'http://localhost:8091', // Allow Touch backend"
+      },
+      {
+        "file": "apps\\management\\backend\\master\\server.js",
+        "line": 136,
+        "snippet": "'http://127.0.0.1:5173',"
+      },
+      {
+        "file": "apps\\management\\backend\\master\\server.js",
+        "line": 137,
+        "snippet": "'http://127.0.0.1:8000',"
+      },
+      {
+        "file": "apps\\management\\backend\\master\\server.js",
+        "line": 138,
+        "snippet": "'http://127.0.0.1:8091', // Allow Touch backend"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\config.ts",
+        "line": 13,
+        "snippet": "\"http://localhost:5173\","
+      },
+      {
+        "file": "apps\\management\\backend\\src\\config.ts",
+        "line": 14,
+        "snippet": "\"http://localhost:8000\","
+      },
+      {
+        "file": "apps\\management\\backend\\src\\config.ts",
+        "line": 15,
+        "snippet": "\"http://127.0.0.1:5173\","
+      },
+      {
+        "file": "apps\\management\\backend\\src\\__tests__\\server.test.ts",
+        "line": 44,
+        "snippet": "const request = new Request('http://localhost:8787/api/health');"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\__tests__\\server.test.ts",
+        "line": 62,
+        "snippet": "const request = new Request('http://localhost:8787/api/auth/register-desk', {"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\__tests__\\server.test.ts",
+        "line": 94,
+        "snippet": "const request = new Request('http://localhost:8787/api/auth/login', {"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\__tests__\\server.test.ts",
+        "line": 117,
+        "snippet": "const request = new Request('http://localhost:8787/api/auth/login', {"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\__tests__\\server.test.ts",
+        "line": 149,
+        "snippet": "'http://localhost:8787/api/orders/by-credentials?pin=123456&email=test@example.com'"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\__tests__\\server.test.ts",
+        "line": 172,
+        "snippet": "'http://localhost:8787/api/orders/by-token?token=magic-token-abc'"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\__tests__\\server.test.ts",
+        "line": 201,
+        "snippet": "const request = new Request('http://localhost:8787/api/cloud/sync/operations', {"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\__tests__\\server.test.ts",
+        "line": 234,
+        "snippet": "const request = new Request('http://localhost:8787/api/cloud/heartbeat', {"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\__tests__\\server.test.ts",
+        "line": 253,
+        "snippet": "const request = new Request('http://localhost:8787/api/health', {"
+      },
+      {
+        "file": "apps\\management\\src\\setupTests.ts",
+        "line": 39,
+        "snippet": "VITE_API_BASE_URL: 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\management\\src\\components\\management\\settings\\ConnectionSettings.tsx",
+        "line": 17,
+        "snippet": ": \"http://localhost:8093\","
+      },
+      {
+        "file": "apps\\management\\src\\components\\management\\settings\\ConnectionSettings.tsx",
+        "line": 138,
+        "snippet": "placeholder=\"e.g. http://localhost:8093\""
+      },
+      {
+        "file": "apps\\management\\src\\services\\pb.ts",
+        "line": 19,
+        "snippet": "const DEFAULT_LOCAL_URL = \"http://127.0.0.1:8092\";"
+      },
+      {
+        "file": "apps\\management\\src\\utils\\env.ts",
+        "line": 10,
+        "snippet": "VITE_API_BASE_URL: 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\management\\src\\utils\\env.ts",
+        "line": 21,
+        "snippet": "VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\management\\src\\__mocks__\\envMock.js",
+        "line": 10,
+        "snippet": "VITE_API_BASE_URL: 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\master\\e2e-test-main.js",
+        "line": 85,
+        "snippet": "const req = http.get(\"http://localhost:8090/api/health\", (res) => {"
+      },
+      {
+        "file": "apps\\master\\e2e-test-main.js",
+        "line": 105,
+        "snippet": "mainWindow.loadURL(\"http://localhost:8090\");"
+      },
+      {
+        "file": "apps\\master\\electron-main.js",
+        "line": 7,
+        "snippet": "*                Renderer always loads via loadURL(\"http://localhost:8090\")."
+      },
+      {
+        "file": "apps\\master\\electron-main.js",
+        "line": 15,
+        "snippet": "*  4. Load renderer via http://localhost:8090"
+      },
+      {
+        "file": "apps\\master\\electron-main.ts",
+        "line": 8,
+        "snippet": "*                Renderer always loads via loadURL(\"http://localhost:8090\")."
+      },
+      {
+        "file": "apps\\master\\electron-main.ts",
+        "line": 15,
+        "snippet": "*  4. Load renderer via http://localhost:8090"
+      },
+      {
+        "file": "apps\\master\\package.json",
+        "line": 12,
+        "snippet": "\"dev:electron\": \"concurrently \\\"npm run dev:backend\\\" \\\"npm run dev:watch\\\" \\\"wait-on http://localhost:8090/api/health file:dist/master/index.html && electron .\\\" --names \\\"backend,frontend,electron\\\""
+      },
+      {
+        "file": "apps\\master\\playwright.config.ts",
+        "line": 17,
+        "snippet": "baseURL: process.env.E2E_BASE_URL || \"http://localhost:5173\","
+      },
+      {
+        "file": "apps\\master\\playwright.config.ts",
+        "line": 65,
+        "snippet": "url: \"http://localhost:5173\","
+      },
+      {
+        "file": "apps\\master\\README_INSTALL.md",
+        "line": 20,
+        "snippet": "- The dashboard will be available at: `http://localhost:8090`"
+      },
+      {
+        "file": "apps\\master\\setup_kiosk.ps1",
+        "line": 66,
+        "snippet": "start \"\" \"$ChromePath\" --kiosk --app=http://localhost:8090 --no-first-run --disable-session-crashed-bubble --disable-infobars --overscroll-history-navigation=0 --disable-pinch --disable-features=Trans"
+      },
+      {
+        "file": "apps\\master\\vite.config.ts",
+        "line": 14,
+        "snippet": "target: \"http://127.0.0.1:8090\","
+      },
+      {
+        "file": "apps\\master\\vite.config.ts",
+        "line": 28,
+        "snippet": "target: \"http://127.0.0.1:8090\","
+      },
+      {
+        "file": "apps\\master\\backend\\.env",
+        "line": 34,
+        "snippet": "GALLERY_URL=http://localhost:5174/test"
+      },
+      {
+        "file": "apps\\master\\backend\\.env.example",
+        "line": 11,
+        "snippet": "ALLOWED_ORIGINS=http://localhost:5173,http://localhost:8091"
+      },
+      {
+        "file": "apps\\master\\backend\\test_sync_operational.js",
+        "line": 3,
+        "snippet": "const HUB_URL = 'http://localhost:8092';"
+      },
+      {
+        "file": "apps\\master\\backend\\config\\constants.ts",
+        "line": 13,
+        "snippet": "export const MANAGEMENT_API_URL = process.env.MANAGEMENT_API_URL || 'http://localhost:8092';"
+      },
+      {
+        "file": "apps\\master\\backend\\config\\constants.ts",
+        "line": 86,
+        "snippet": "'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\master\\backend\\config\\constants.ts",
+        "line": 87,
+        "snippet": "'http://localhost:8091',"
+      },
+      {
+        "file": "apps\\master\\backend\\config\\constants.ts",
+        "line": 88,
+        "snippet": "'http://localhost:8092',"
+      },
+      {
+        "file": "apps\\master\\backend\\config\\constants.ts",
+        "line": 89,
+        "snippet": "'http://localhost:5177',"
+      },
+      {
+        "file": "apps\\master\\backend\\config\\constants.ts",
+        "line": 90,
+        "snippet": "'http://127.0.0.1:5177',"
+      },
+      {
+        "file": "apps\\master\\backend\\config\\constants.ts",
+        "line": 91,
+        "snippet": "'http://127.0.0.1:8092',"
+      },
+      {
+        "file": "apps\\master\\backend\\config\\constants.ts",
+        "line": 92,
+        "snippet": "'http://127.0.0.1:5173',"
+      },
+      {
+        "file": "apps\\master\\backend\\config\\constants.ts",
+        "line": 93,
+        "snippet": "'http://127.0.0.1:4173',"
+      },
+      {
+        "file": "apps\\master\\backend\\config\\constants.ts",
+        "line": 94,
+        "snippet": "'http://127.0.0.1:8090',"
+      },
+      {
+        "file": "apps\\master\\backend\\config\\constants.ts",
+        "line": 95,
+        "snippet": "'http://127.0.0.1:8091',"
+      },
+      {
+        "file": "apps\\master\\backend\\routes\\galleryAuth.ts",
+        "line": 123,
+        "snippet": "const galleryUrl = `${process.env.GALLERY_URL || \"http://localhost:5177\"}/gallery/${token}`;"
+      },
+      {
+        "file": "apps\\master\\backend\\routes\\galleryCheckout.ts",
+        "line": 19,
+        "snippet": "const FRONTEND_URL = process.env.GALLERY_URL || \"http://localhost:5177\";"
+      },
+      {
+        "file": "apps\\master\\backend\\scripts\\debug_album_create.ts",
+        "line": 7,
+        "snippet": "const API_URL = 'http://localhost:8090';"
+      },
+      {
+        "file": "apps\\master\\backend\\scripts\\repro_import.ts",
+        "line": 8,
+        "snippet": "const API_URL = 'http://127.0.0.1:8090';"
+      },
+      {
+        "file": "apps\\master\\backend\\scripts\\stress_test_import.ts",
+        "line": 7,
+        "snippet": "const API_URL = 'http://localhost:8090';"
+      },
+      {
+        "file": "apps\\master\\backend\\services\\emailService.ts",
+        "line": 113,
+        "snippet": "const backendUrl  = process.env.BACKEND_URL || 'http://localhost:8090';"
+      },
+      {
+        "file": "apps\\master\\backend\\services\\FleetService.ts",
+        "line": 91,
+        "snippet": "if (!this.hubUrl || this.hubUrl === 'http://localhost:8080') {"
+      },
+      {
+        "file": "apps\\master\\backend\\services\\manual-sync-test.ts",
+        "line": 26,
+        "snippet": "process.env.CLOUD_API_URL = \"http://localhost:8787\";"
+      },
+      {
+        "file": "apps\\master\\backend\\services\\manual-sync-test.ts",
+        "line": 27,
+        "snippet": "process.env.CLOUD_GALLERY_URL = \"http://localhost:5174\";"
+      },
+      {
+        "file": "apps\\master\\backend\\services\\cloudflare\\CloudflareAppsProvisioningService.ts",
+        "line": 344,
+        "snippet": "service: 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\master\\backend\\services\\cloudflare\\CloudflareAppsProvisioningService.ts",
+        "line": 351,
+        "snippet": "service: 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\master\\backend\\services\\provisioning\\CloudflareProvisioningService.ts",
+        "line": 129,
+        "snippet": "service: 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\master\\backend\\setup\\setup-master.bat",
+        "line": 213,
+        "snippet": "echo   4. Access: http://localhost:8090"
+      },
+      {
+        "file": "apps\\master\\backend\\setup\\setup-master.sh",
+        "line": 265,
+        "snippet": "echo \"  4. Access application: http://localhost:8090\""
+      },
+      {
+        "file": "apps\\master\\backend\\shared\\migrations\\032_fix_double_urls.sql",
+        "line": 2,
+        "snippet": "-- Removes 'http://localhost:8090/api/files/photos/{id}/' prefix from url, thumbnail, and preview fields"
+      },
+      {
+        "file": "apps\\master\\backend\\shared\\migrations\\032_fix_double_urls.sql",
+        "line": 7,
+        "snippet": "'http://localhost:8090/api/files/photos/' || id || '/',"
+      },
+      {
+        "file": "apps\\master\\backend\\shared\\migrations\\032_fix_double_urls.sql",
+        "line": 10,
+        "snippet": "WHERE url LIKE 'http://localhost:8090/api/files/photos/%';"
+      },
+      {
+        "file": "apps\\master\\backend\\shared\\migrations\\032_fix_double_urls.sql",
+        "line": 14,
+        "snippet": "'http://localhost:8090/api/files/photos/' || id || '/',"
+      },
+      {
+        "file": "apps\\master\\backend\\shared\\migrations\\032_fix_double_urls.sql",
+        "line": 17,
+        "snippet": "WHERE thumbnailUrl LIKE 'http://localhost:8090/api/files/photos/%';"
+      },
+      {
+        "file": "apps\\master\\backend\\shared\\migrations\\032_fix_double_urls.sql",
+        "line": 21,
+        "snippet": "'http://localhost:8090/api/files/photos/' || id || '/',"
+      },
+      {
+        "file": "apps\\master\\backend\\shared\\migrations\\032_fix_double_urls.sql",
+        "line": 24,
+        "snippet": "WHERE tinyUrl LIKE 'http://localhost:8090/api/files/photos/%';"
+      },
+      {
+        "file": "apps\\master\\backend\\shared\\migrations\\032_fix_double_urls.sql",
+        "line": 28,
+        "snippet": "'http://localhost:8090/api/files/photos/' || id || '/',"
+      },
+      {
+        "file": "apps\\master\\backend\\shared\\migrations\\032_fix_double_urls.sql",
+        "line": 31,
+        "snippet": "WHERE previewUrl LIKE 'http://localhost:8090/api/files/photos/%';"
+      },
+      {
+        "file": "apps\\master\\ClickFlash-Master-test-hotel-2\\cloudflared.yml",
+        "line": 7,
+        "snippet": "service: http://localhost:8090"
+      },
+      {
+        "file": "apps\\master\\configs\\club.env",
+        "line": 15,
+        "snippet": "CORS_ORIGINS=http://localhost:8090,http://localhost:8091,http://127.0.0.1:8090,http://127.0.0.1:8091"
+      },
+      {
+        "file": "apps\\master\\configs\\concorde.env",
+        "line": 15,
+        "snippet": "CORS_ORIGINS=http://localhost:8090,http://localhost:8091,http://127.0.0.1:8090,http://127.0.0.1:8091"
+      },
+      {
+        "file": "apps\\master\\configs\\occidental.env",
+        "line": 15,
+        "snippet": "CORS_ORIGINS=http://localhost:8090,http://localhost:8091,http://127.0.0.1:8090,http://127.0.0.1:8091"
+      },
+      {
+        "file": "apps\\master\\debug_archive\\check_master_api.js",
+        "line": 5,
+        "snippet": "const response = await fetch('http://127.0.0.1:8090/api/collections/orders/records?sort=-created&perPage=1');"
+      },
+      {
+        "file": "apps\\master\\debug_archive\\debug_403.js",
+        "line": 21,
+        "snippet": "console.log(\"Fetching http://127.0.0.1:8090/api/health...\");"
+      },
+      {
+        "file": "apps\\master\\debug_archive\\debug_403.js",
+        "line": 23,
+        "snippet": "const r = await fetch(\"http://127.0.0.1:8090/api/health\");"
+      },
+      {
+        "file": "apps\\master\\debug_archive\\debug_403.js",
+        "line": 31,
+        "snippet": "console.log(\"Navigating to http://127.0.0.1:5174/login...\");"
+      },
+      {
+        "file": "apps\\master\\debug_archive\\debug_403.js",
+        "line": 32,
+        "snippet": "await page.goto(\"http://127.0.0.1:5174/login\");"
+      },
+      {
+        "file": "apps\\master\\electron-new\\playwright.config.ts",
+        "line": 15,
+        "snippet": "baseURL: 'http://localhost:5173',"
+      },
+      {
+        "file": "apps\\master\\electron-new\\playwright.config.ts",
+        "line": 42,
+        "snippet": "url: 'http://localhost:5173',"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\accessibility.spec.ts",
+        "line": 5,
+        "snippet": "await electronPage.goto('http://localhost:5173/login');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\auth.spec.ts",
+        "line": 5,
+        "snippet": "await electronPage.goto('http://localhost:5173/login');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\auth.spec.ts",
+        "line": 12,
+        "snippet": "await electronPage.goto('http://localhost:5173/login');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\auth.spec.ts",
+        "line": 22,
+        "snippet": "await electronPage.goto('http://localhost:5173/login');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\auth.spec.ts",
+        "line": 35,
+        "snippet": "await electronPage.goto('http://localhost:5173/login');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\electron.spec.ts",
+        "line": 5,
+        "snippet": "await electronPage.goto('http://localhost:5173');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\electron.spec.ts",
+        "line": 124,
+        "snippet": "await electronPage.goto('http://localhost:5173');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\features.spec.ts",
+        "line": 5,
+        "snippet": "await electronPage.goto('http://localhost:5173/login');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\features.spec.ts",
+        "line": 11,
+        "snippet": "await electronPage.goto('http://localhost:5173/albums');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\features.spec.ts",
+        "line": 37,
+        "snippet": "await electronPage.goto('http://localhost:5173/photos');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\features.spec.ts",
+        "line": 54,
+        "snippet": "await electronPage.goto('http://localhost:5173/login');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\features.spec.ts",
+        "line": 60,
+        "snippet": "await electronPage.goto('http://localhost:5173/orders');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\visual.spec.ts",
+        "line": 11,
+        "snippet": "await electronPage.goto('http://localhost:5173/login');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\visual.spec.ts",
+        "line": 23,
+        "snippet": "await electronPage.goto('http://localhost:5173/login');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\visual.spec.ts",
+        "line": 40,
+        "snippet": "await electronPage.goto('http://localhost:5173/login');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\visual.spec.ts",
+        "line": 46,
+        "snippet": "await electronPage.goto('http://localhost:5173/albums');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\visual.spec.ts",
+        "line": 60,
+        "snippet": "await electronPage.goto('http://localhost:5173/login');"
+      },
+      {
+        "file": "apps\\master\\electron-new\\tests\\e2e\\visual.spec.ts",
+        "line": 80,
+        "snippet": "await electronPage.goto('http://localhost:5173/login');"
+      },
+      {
+        "file": "apps\\master\\scripts\\benchmark_load.ts",
+        "line": 3,
+        "snippet": "const MASTER_URL = 'http://localhost:8090';"
+      },
+      {
+        "file": "apps\\master\\scripts\\clean_db_paths.js",
+        "line": 28,
+        "snippet": "// Remove the prefix: http://localhost:8090/api/files/photos/{id}/"
+      },
+      {
+        "file": "apps\\master\\scripts\\install-cli.ts",
+        "line": 498,
+        "snippet": "service: http://localhost:8090"
+      },
+      {
+        "file": "apps\\master\\scripts\\simple-verification.js",
+        "line": 13,
+        "snippet": "const BASE_URL = 'http://localhost:8090';"
+      },
+      {
+        "file": "apps\\master\\scripts\\test_kiosk_update.ts",
+        "line": 4,
+        "snippet": "const BASE_URL = 'http://localhost:8090';"
+      },
+      {
+        "file": "apps\\master\\scripts\\verify-system-integration.ts",
+        "line": 6,
+        "snippet": "const BASE_URL = 'http://localhost:8090'; // Assuming default port"
+      },
+      {
+        "file": "apps\\master\\src\\components\\settings\\CloudSettings.tsx",
+        "line": 344,
+        "snippet": "Production: {DEFAULT_HUB_URL} | Dev: http://localhost:8787"
+      },
+      {
+        "file": "apps\\master\\src\\services\\api\\__tests__\\faceService.test.ts",
+        "line": 14,
+        "snippet": "baseUrlValue: 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\master\\src\\services\\api\\__tests__\\syncVerification.test.ts",
+        "line": 14,
+        "snippet": "baseUrlValue: 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\master\\src\\services\\api\\__tests__\\syncVerification.test.ts",
+        "line": 22,
+        "snippet": "const HUB_URL = 'http://localhost:8787';"
+      },
+      {
+        "file": "apps\\master\\src\\services\\__mocks__\\pb.ts",
+        "line": 13,
+        "snippet": "baseUrlValue: 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\master\\src\\utils\\env.ts",
+        "line": 10,
+        "snippet": "VITE_API_BASE_URL: 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\master\\src\\utils\\env.ts",
+        "line": 20,
+        "snippet": "VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\debug.spec.ts",
+        "line": 5,
+        "snippet": "const response = await page.goto(\"http://127.0.0.1:5174/login\", {"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\electron.spec.ts",
+        "line": 16,
+        "snippet": "await page.goto('http://localhost:5173');"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\electron.spec.ts",
+        "line": 39,
+        "snippet": "await page.goto('http://localhost:5173');"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\electron.spec.ts",
+        "line": 62,
+        "snippet": "await page.goto('http://localhost:5173');"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\electron.spec.ts",
+        "line": 83,
+        "snippet": "await page.goto('http://localhost:5173');"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\electron.spec.ts",
+        "line": 108,
+        "snippet": "await page.goto('http://localhost:5173');"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\electron.spec.ts",
+        "line": 129,
+        "snippet": "await page.goto('http://localhost:5173');"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\electron.spec.ts",
+        "line": 150,
+        "snippet": "await page.goto('http://localhost:5173');"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\electron.spec.ts",
+        "line": 173,
+        "snippet": "await page.goto('http://localhost:5173');"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\electron.spec.ts",
+        "line": 199,
+        "snippet": "await page.goto('http://localhost:5173');"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\electron.spec.ts",
+        "line": 219,
+        "snippet": "await page.goto('http://localhost:5173');"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\global-setup.ts",
+        "line": 12,
+        "snippet": "const BASE_URL = process.env.BASE_URL ?? \"http://localhost:8090\";"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\global-teardown.ts",
+        "line": 7,
+        "snippet": "const BASE_URL = process.env.BASE_URL ?? \"http://localhost:8090\";"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\kiosk-security.spec.ts",
+        "line": 43,
+        "snippet": "await page.goto('http://localhost:8090');"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\kiosk-security.spec.ts",
+        "line": 122,
+        "snippet": "await page.goto('http://localhost:8090/settings/kiosk');"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\kiosk-security.spec.ts",
+        "line": 331,
+        "snippet": "await newPage.goto('http://localhost:8090/kiosk');"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\preview-verification.spec.ts",
+        "line": 5,
+        "snippet": "const PREVIEW_URL = \"http://localhost:5174\";"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\security.spec.ts",
+        "line": 30,
+        "snippet": "headers: { Origin: \"http://localhost:5173\" },"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\security.spec.ts",
+        "line": 43,
+        "snippet": "Origin: \"http://localhost:5173\","
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\sync-reliability.spec.ts",
+        "line": 4,
+        "snippet": "const MASTER_API = process.env.MASTER_API_URL ?? \"http://localhost:8090\";"
+      },
+      {
+        "file": "apps\\master\\tests\\performance\\k6-stress.js",
+        "line": 9,
+        "snippet": "const BASE_URL = __ENV.BASE_URL || 'http://localhost:8090';"
+      },
+      {
+        "file": "apps\\master\\tests\\performance\\load.js",
+        "line": 5,
+        "snippet": "const BASE_URL = __ENV.BASE_URL || 'http://localhost:8090';"
+      },
+      {
+        "file": "apps\\master\\tests\\performance\\stress.js",
+        "line": 5,
+        "snippet": "const BASE_URL = __ENV.BASE_URL || 'http://localhost:8090';"
+      },
+      {
+        "file": "apps\\master\\tests\\unit\\services\\photoService.test.ts",
+        "line": 13,
+        "snippet": "baseUrlValue: 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\master\\tests\\unit\\services\\photoService.test.ts",
+        "line": 101,
+        "snippet": "const url = getPhotoUrl({ url: 'blob:http://localhost:8090/abc123', id: 'p1' } as any);"
+      },
+      {
+        "file": "apps\\master\\tests\\unit\\services\\photoService.test.ts",
+        "line": 103,
+        "snippet": "expect(url).toBe('blob:http://localhost:8090/abc123');"
+      },
+      {
+        "file": "apps\\master-cpp\\migrations\\032_fix_double_urls.sql",
+        "line": 2,
+        "snippet": "-- Removes 'http://localhost:8090/api/files/photos/{id}/' prefix from url, thumbnail, and preview fields"
+      },
+      {
+        "file": "apps\\master-cpp\\migrations\\032_fix_double_urls.sql",
+        "line": 7,
+        "snippet": "'http://localhost:8090/api/files/photos/' || id || '/',"
+      },
+      {
+        "file": "apps\\master-cpp\\migrations\\032_fix_double_urls.sql",
+        "line": 10,
+        "snippet": "WHERE url LIKE 'http://localhost:8090/api/files/photos/%';"
+      },
+      {
+        "file": "apps\\master-cpp\\migrations\\032_fix_double_urls.sql",
+        "line": 14,
+        "snippet": "'http://localhost:8090/api/files/photos/' || id || '/',"
+      },
+      {
+        "file": "apps\\master-cpp\\migrations\\032_fix_double_urls.sql",
+        "line": 17,
+        "snippet": "WHERE thumbnailUrl LIKE 'http://localhost:8090/api/files/photos/%';"
+      },
+      {
+        "file": "apps\\master-cpp\\migrations\\032_fix_double_urls.sql",
+        "line": 21,
+        "snippet": "'http://localhost:8090/api/files/photos/' || id || '/',"
+      },
+      {
+        "file": "apps\\master-cpp\\migrations\\032_fix_double_urls.sql",
+        "line": 24,
+        "snippet": "WHERE tinyUrl LIKE 'http://localhost:8090/api/files/photos/%';"
+      },
+      {
+        "file": "apps\\master-cpp\\migrations\\032_fix_double_urls.sql",
+        "line": 28,
+        "snippet": "'http://localhost:8090/api/files/photos/' || id || '/',"
+      },
+      {
+        "file": "apps\\master-cpp\\migrations\\032_fix_double_urls.sql",
+        "line": 31,
+        "snippet": "WHERE previewUrl LIKE 'http://localhost:8090/api/files/photos/%';"
+      },
+      {
+        "file": "apps\\moneytrash\\.env",
+        "line": 61,
+        "snippet": "MASTER_API_URL=http://localhost:8090/api"
+      },
+      {
+        "file": "apps\\moneytrash\\.env.example",
+        "line": 7,
+        "snippet": "NEXT_PUBLIC_APP_URL=http://localhost:3000"
+      },
+      {
+        "file": "apps\\moneytrash\\.env.example",
+        "line": 20,
+        "snippet": "API_URL=http://localhost:3000/api"
+      },
+      {
+        "file": "apps\\moneytrash\\docker-compose.yml",
+        "line": 22,
+        "snippet": "test: [\"CMD\", \"node\", \"-e\", \"require('http').get('http://localhost:3000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\"]"
+      },
+      {
+        "file": "apps\\moneytrash\\playwright.config.ts",
+        "line": 24,
+        "snippet": "baseURL: process.env.TEST_BASE_URL || 'http://localhost:1420',"
+      },
+      {
+        "file": "apps\\moneytrash\\playwright.config.ts",
+        "line": 56,
+        "snippet": "url: 'http://localhost:1420',"
+      },
+      {
+        "file": "apps\\moneytrash\\README.md",
+        "line": 127,
+        "snippet": "- **API Endpoint** - Backend API URL (default: `http://localhost:8090`)"
+      },
+      {
+        "file": "apps\\moneytrash\\README.md",
+        "line": 144,
+        "snippet": "VITE_API_URL=http://localhost:8090"
+      },
+      {
+        "file": "apps\\moneytrash\\cloudflare\\PROVISION_SCRIPT.md",
+        "line": 215,
+        "snippet": "Status: http://localhost:8787 (waiting for build)"
+      },
+      {
+        "file": "apps\\moneytrash\\src\\App.tsx",
+        "line": 76,
+        "snippet": "apiUrl: 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\moneytrash\\src\\services\\resumableUploadService.ts",
+        "line": 265,
+        "snippet": "const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8090'}/api/upload/chunk/init`, {"
+      },
+      {
+        "file": "apps\\moneytrash\\src\\services\\resumableUploadService.ts",
+        "line": 333,
+        "snippet": "const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8090'}/api/upload/chunk/finalize`, {"
+      },
+      {
+        "file": "apps\\moneytrash\\src\\services\\resumableUploadService.ts",
+        "line": 432,
+        "snippet": "fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8090'}/api/upload/chunk/cancel`, {"
+      },
+      {
+        "file": "apps\\moneytrash\\src-tauri\\tauri.conf.json",
+        "line": 10,
+        "snippet": "\"devUrl\": \"http://localhost:1420\""
+      },
+      {
+        "file": "apps\\touch\\.env",
+        "line": 65,
+        "snippet": "CORS_ORIGINS=http://localhost:8090,http://localhost:8091,http://127.0.0.1:8090,http://127.0.0.1:8091"
+      },
+      {
+        "file": "apps\\touch\\.env",
+        "line": 74,
+        "snippet": "MASTER_URL=http://localhost:8090"
+      },
+      {
+        "file": "apps\\touch\\.env.example",
+        "line": 46,
+        "snippet": "CORS_ORIGINS=http://localhost:5173,http://localhost:8001,http://localhost:8090"
+      },
+      {
+        "file": "apps\\touch\\.env.example",
+        "line": 52,
+        "snippet": "VITE_API_URL=http://localhost:8091"
+      },
+      {
+        "file": "apps\\touch\\electron-package.json",
+        "line": 9,
+        "snippet": "\"electron:dev\": \"concurrently \\\"npm run dev\\\" \\\"wait-on http://localhost:5174 && electron .\\\"\","
+      },
+      {
+        "file": "apps\\touch\\main.js",
+        "line": 203,
+        "snippet": "\"http://127.0.0.1:5173\","
+      },
+      {
+        "file": "apps\\touch\\main.ts",
+        "line": 223,
+        "snippet": "\"http://127.0.0.1:5173\","
+      },
+      {
+        "file": "apps\\touch\\package.json",
+        "line": 18,
+        "snippet": "\"dev:electron\": \"concurrently \\\"npm run dev:backend\\\" \\\"npm run dev:watch\\\" \\\"wait-on http://localhost:8091/api/health && electron .\\\" --names \\\"backend,frontend,electron\\\" --prefix-colors \\\"blue,gree"
+      },
+      {
+        "file": "apps\\touch\\playwright.config.ts",
+        "line": 37,
+        "snippet": "baseURL: process.env.TEST_BASE_URL || \"http://localhost:5174\","
+      },
+      {
+        "file": "apps\\touch\\playwright.config.ts",
+        "line": 82,
+        "snippet": "url: \"http://localhost:5174\","
+      },
+      {
+        "file": "apps\\touch\\README.md",
+        "line": 61,
+        "snippet": "VITE_API_URL=http://localhost:8090"
+      },
+      {
+        "file": "apps\\touch\\README_INSTALL.md",
+        "line": 21,
+        "snippet": "- The interface will be available at: `http://localhost:8091`"
+      },
+      {
+        "file": "apps\\touch\\setup_kiosk.ps1",
+        "line": 64,
+        "snippet": "start \"\" \"$ChromePath\" --kiosk --app=http://localhost:8091 --no-first-run --disable-session-crashed-bubble --disable-infobars --overscroll-history-navigation=0 --disable-pinch --disable-features=Trans"
+      },
+      {
+        "file": "apps\\touch\\start-only.bat",
+        "line": 10,
+        "snippet": "echo App URL: http://localhost:8091"
+      },
+      {
+        "file": "apps\\touch\\start.bat",
+        "line": 30,
+        "snippet": "echo App URL: http://localhost:8091"
+      },
+      {
+        "file": "apps\\touch\\vite.config.ts",
+        "line": 65,
+        "snippet": "target: 'http://127.0.0.1:8091',"
+      },
+      {
+        "file": "apps\\touch\\backend\\.env.example",
+        "line": 9,
+        "snippet": "# Default: http://localhost:5173,http://localhost:8000,http://127.0.0.1:5173,http://127.0.0.1:8000"
+      },
+      {
+        "file": "apps\\touch\\backend\\README.md",
+        "line": 108,
+        "snippet": "CORS_ORIGINS=http://localhost:5174,http://localhost:8000"
+      },
+      {
+        "file": "apps\\touch\\backend\\SECURITY_VERIFICATION.md",
+        "line": 4,
+        "snippet": "**Server**: http://localhost:8090"
+      },
+      {
+        "file": "apps\\touch\\backend\\SECURITY_VERIFICATION.md",
+        "line": 61,
+        "snippet": "- `http://localhost:5173` (Vite dev server)"
+      },
+      {
+        "file": "apps\\touch\\backend\\SECURITY_VERIFICATION.md",
+        "line": 62,
+        "snippet": "- `http://localhost:8000` (Production build)"
+      },
+      {
+        "file": "apps\\touch\\backend\\SECURITY_VERIFICATION.md",
+        "line": 63,
+        "snippet": "- `http://127.0.0.1:5173`"
+      },
+      {
+        "file": "apps\\touch\\backend\\SECURITY_VERIFICATION.md",
+        "line": 64,
+        "snippet": "- `http://127.0.0.1:8000`"
+      },
+      {
+        "file": "apps\\touch\\backend\\SECURITY_VERIFICATION.md",
+        "line": 69,
+        "snippet": "Request from http://localhost:5173:"
+      },
+      {
+        "file": "apps\\touch\\backend\\SECURITY_VERIFICATION.md",
+        "line": 70,
+        "snippet": "Access-Control-Allow-Origin: http://localhost:5173"
+      },
+      {
+        "file": "apps\\touch\\backend\\server.ts",
+        "line": 277,
+        "snippet": "\"http://localhost:8090\", // Master backend"
+      },
+      {
+        "file": "apps\\touch\\backend\\server.ts",
+        "line": 278,
+        "snippet": "\"http://localhost:8091\", // Touch backend"
+      },
+      {
+        "file": "apps\\touch\\backend\\server.ts",
+        "line": 279,
+        "snippet": "\"http://127.0.0.1:8090\","
+      },
+      {
+        "file": "apps\\touch\\backend\\server.ts",
+        "line": 280,
+        "snippet": "\"http://127.0.0.1:8091\","
+      },
+      {
+        "file": "apps\\touch\\backend\\TOUCH_INTEGRATION.md",
+        "line": 250,
+        "snippet": "curl -X POST http://localhost:8091/api/orders/test123/export-to-master \\"
+      },
+      {
+        "file": "apps\\touch\\backend\\TOUCH_INTEGRATION.md",
+        "line": 302,
+        "snippet": "curl -X POST http://localhost:8091/api/orders/ORDER_ID/export-to-master \\"
+      },
+      {
+        "file": "apps\\touch\\docs\\INSTALL.md",
+        "line": 53,
+        "snippet": "VITE_API_URL=http://localhost:8091"
+      },
+      {
+        "file": "apps\\touch\\docs\\ISSUE_RESOLUTION.md",
+        "line": 84,
+        "snippet": "- [ ] Photos display correctly in customer view (<http://localhost:5174/?mode=touch>)"
+      },
+      {
+        "file": "apps\\touch\\docs\\PRODUCTION-READY.md",
+        "line": 117,
+        "snippet": "# Access at http://localhost:4173"
+      },
+      {
+        "file": "apps\\touch\\docs\\QUICK_START.md",
+        "line": 226,
+        "snippet": "POST http://localhost:8091/api/orders/{orderId}/export-to-master"
+      },
+      {
+        "file": "apps\\touch\\docs\\SETUP_GUIDE.md",
+        "line": 408,
+        "snippet": "CORS_ORIGINS=http://localhost:5174,http://localhost:8090,http://MASTER_IP:8090"
+      },
+      {
+        "file": "apps\\touch\\docs\\SETUP_GUIDE.md",
+        "line": 441,
+        "snippet": "VITE_API_URL=http://localhost:8091"
+      },
+      {
+        "file": "apps\\touch\\docs\\SETUP_GUIDE.md",
+        "line": 472,
+        "snippet": "VITE_API_URL=http://localhost:8091"
+      },
+      {
+        "file": "apps\\touch\\docs\\SETUP_GUIDE.md",
+        "line": 518,
+        "snippet": "- Frontend: <http://localhost:5174>"
+      },
+      {
+        "file": "apps\\touch\\docs\\SETUP_GUIDE.md",
+        "line": 519,
+        "snippet": "- Backend API: <http://localhost:8091>"
+      },
+      {
+        "file": "apps\\touch\\docs\\SETUP_GUIDE.md",
+        "line": 658,
+        "snippet": "CORS_ORIGINS=http://localhost:5174,http://192.168.1.50:8090"
+      },
+      {
+        "file": "apps\\touch\\docs\\SETUP_GUIDE.md",
+        "line": 666,
+        "snippet": "VITE_API_URL=http://localhost:8091"
+      },
+      {
+        "file": "apps\\touch\\docs\\SETUP_GUIDE.md",
+        "line": 676,
+        "snippet": "CORS_ORIGINS=http://localhost:5173,http://192.168.1.100:8091"
+      },
+      {
+        "file": "apps\\touch\\docs\\SETUP_GUIDE.md",
+        "line": 746,
+        "snippet": "curl http://localhost:8091/api/health"
+      },
+      {
+        "file": "apps\\touch\\docs\\SETUP_GUIDE.md",
+        "line": 749,
+        "snippet": "curl -X POST http://localhost:8091/api/login \\"
+      },
+      {
+        "file": "apps\\touch\\docs\\SETUP_GUIDE.md",
+        "line": 756,
+        "snippet": "1. Open browser to <http://localhost:5174>"
+      },
+      {
+        "file": "apps\\touch\\scripts\\test-touch-e2e.ps1",
+        "line": 38,
+        "snippet": "$TOUCH_URL = $env:TOUCH_URL -or \"http://localhost:8091\""
+      },
+      {
+        "file": "apps\\touch\\scripts\\test-touch-e2e.ps1",
+        "line": 39,
+        "snippet": "$MASTER_URL = $env:MASTER_URL -or \"http://localhost:8090\""
+      },
+      {
+        "file": "apps\\touch\\src\\components\\touch\\TouchConnectionSetup.tsx",
+        "line": 191,
+        "snippet": "await fetch(`http://localhost:8091/api/collections/settings/records`, {"
+      },
+      {
+        "file": "apps\\touch\\src\\components\\touch\\TouchConnectionSetup.tsx",
+        "line": 196,
+        "snippet": "await fetch(`http://localhost:8091/api/collections/settings/records`, {"
+      },
+      {
+        "file": "apps\\touch\\src\\context\\KioskContext.tsx",
+        "line": 281,
+        "snippet": "const localBackendUrl = `http://localhost:8091`; // Default Touch Backend Port (Matches server.ts)"
+      },
+      {
+        "file": "apps\\touch\\src\\context\\KioskContext.tsx",
+        "line": 638,
+        "snippet": "if (pb.baseUrl !== 'http://localhost:8091') {"
+      },
+      {
+        "file": "apps\\touch\\src\\context\\KioskContext.tsx",
+        "line": 639,
+        "snippet": "// logger.warn(\"[KioskContext] Correcting pb.baseUrl logic mismatch\", { current: pb.baseUrl, expected: 'http://localhost:8091' });"
+      },
+      {
+        "file": "apps\\touch\\src\\context\\KioskContext.tsx",
+        "line": 641,
+        "snippet": "pb.baseUrlValue = 'http://localhost:8091';"
+      },
+      {
+        "file": "apps\\touch\\src\\services\\pb.ts",
+        "line": 498,
+        "snippet": "base = 'http://localhost:8091';"
+      },
+      {
+        "file": "apps\\touch\\src\\services\\pb.ts",
+        "line": 585,
+        "snippet": "targetUrl = 'http://127.0.0.1:8091';"
+      },
+      {
+        "file": "apps\\touch\\src\\services\\syncService.ts",
+        "line": 754,
+        "snippet": "const baseUrl = pb.baseUrlValue || 'http://127.0.0.1:8092';"
+      },
+      {
+        "file": "apps\\touch\\src\\services\\__tests__\\syncService.test.ts",
+        "line": 43,
+        "snippet": "baseUrlValue: 'http://localhost:8091',"
+      },
+      {
+        "file": "apps\\touch\\src\\utils\\testUtils.tsx",
+        "line": 155,
+        "snippet": "serverUrl: 'http://localhost:8090',"
+      },
+      {
+        "file": "apps\\touch\\src\\__tests__\\kioskSync.test.ts",
+        "line": 11,
+        "snippet": "const MASTER_URL = 'http://localhost:8090';"
+      },
+      {
+        "file": "apps\\touch\\tests\\e2e\\touch-kiosk-e2e.spec.ts",
+        "line": 15,
+        "snippet": "const MASTER_URL = process.env.MASTER_URL || \"http://localhost:8090\";"
+      },
+      {
+        "file": "apps\\touch\\tests\\e2e\\touch-kiosk-e2e.spec.ts",
+        "line": 16,
+        "snippet": "const TOUCH_URL = process.env.TOUCH_URL || \"http://localhost:5174\";"
+      },
+      {
+        "file": "apps\\website\\.env",
+        "line": 14,
+        "snippet": "NEXT_PUBLIC_APP_URL=http://localhost:3001"
+      },
+      {
+        "file": "apps\\website\\.env",
+        "line": 15,
+        "snippet": "NEXT_PUBLIC_API_URL=http://localhost:3001/api"
+      },
+      {
+        "file": "apps\\website\\.env",
+        "line": 20,
+        "snippet": "MASTER_API_URL=http://localhost:8090/api"
+      },
+      {
+        "file": "apps\\website\\.env",
+        "line": 25,
+        "snippet": "NEXT_PUBLIC_GALLERY_URL=http://localhost:3001"
+      },
+      {
+        "file": "apps\\website\\e2e\\a11y.spec.ts",
+        "line": 11,
+        "snippet": "const BASE_URL = process.env.BASE_URL || \"http://localhost:3000\";"
+      },
+      {
+        "file": "apps\\website\\e2e\\home.spec.ts",
+        "line": 16,
+        "snippet": "const BASE_URL = process.env.BASE_URL || \"http://localhost:3000\";"
+      },
+      {
+        "file": "apps\\website\\e2e\\playwright.config.ts",
+        "line": 14,
+        "snippet": "const BASE_URL = process.env.BASE_URL || \"http://localhost:3000\";"
+      },
+      {
+        "file": "apps\\website\\public\\gallery\\assets\\index-BKjQkWmz.js",
+        "line": 103,
+        "snippet": "Learn more: https://react.dev/warnings/version-mismatch`))})(),typeof Map==\"function\"&&Map.prototype!=null&&typeof Map.prototype.forEach==\"function\"&&typeof Set==\"function\"&&Set.prototype!=null&&typeo"
+      },
+      {
+        "file": "apps\\website\\public\\gallery\\assets\\index-BKjQkWmz.js",
+        "line": 109,
+        "snippet": "`,onClick:v&&E?E:g,style:h,children:[i.jsxDEV(\"div\",{className:\"absolute inset-0 pointer-events-none z-[1] [transform:var(--photo-transform)]\",style:{\"--photo-transform\":T.transform}},void 0,!1,{fileN"
+      },
+      {
+        "file": "apps\\website\\public\\gallery\\assets\\index-C9hhMWVa.js",
+        "line": 220,
+        "snippet": "root.render(<App />);`),t.unstable_strictMode===!0&&(l=!0),t.identifierPrefix!==void 0&&(n=t.identifierPrefix),t.onUncaughtError!==void 0&&(a=t.onUncaughtError),t.onCaughtError!==void 0&&(o=t.onCaught"
+      },
+      {
+        "file": "apps\\website\\public\\gallery\\assets\\index-C9hhMWVa.js",
+        "line": 226,
+        "snippet": "`,onClick:y&&S?S:b,style:g,children:[i.jsxDEV(\"div\",{className:\"absolute inset-0 pointer-events-none z-[1] [transform:var(--photo-transform)]\",style:{\"--photo-transform\":T.transform}},void 0,!1,{fileN"
+      },
+      {
+        "file": "apps\\website\\public\\gallery\\assets\\PaymentForm-BzV6xnMr.js",
+        "line": 3,
+        "snippet": "In order to be iterable, non-array objects must have a [Symbol.iterator]() method.`)}var Y=function(e,r,a){var u=!!a,o=R.useRef(a);R.useEffect(function(){o.current=a},[a]),R.useEffect(function(){if(!u"
+      },
+      {
+        "file": "apps\\website\\public\\manage\\assets\\index-jN4d3Fsi.js",
+        "line": 103,
+        "snippet": "Learn more: https://react.dev/warnings/version-mismatch`))})(),typeof Map==\"function\"&&Map.prototype!=null&&typeof Map.prototype.forEach==\"function\"&&typeof Set==\"function\"&&Set.prototype!=null&&typeo"
+      },
+      {
+        "file": "apps\\website\\public\\manage\\assets\\index-jN4d3Fsi.js",
+        "line": 115,
+        "snippet": "`,children:[p.jsxDEV(G,{className:\"w-5 h-5\"},void 0,!1,{fileName:\"C:/Users/alamo/Desktop/ClickFlash/apps/management/src/components/management/SimplifiedSidebar.tsx\",lineNumber:301,columnNumber:17},voi"
+      },
+      {
+        "file": "apps\\website\\public\\manage\\assets\\ManagementSettingsPage-Doq8wCTP.js",
+        "line": 1,
+        "snippet": "import{c as f,j as e,b as G,S as D,a as b,R as S,X as W,F,d as _,i as I}from\"./index-jN4d3Fsi.js\";import{r as u}from\"./vendor-router-B3-AMwH9.js\";import{A as q,P as $,u as O}from\"./usePermissions-DC6S"
+      },
+      {
+        "file": "claude-code\\.lighthouserc.json",
+        "line": 5,
+        "snippet": "\"url\": [\"http://localhost:3000\"],"
+      },
+      {
+        "file": "claude-code\\.github\\workflows\\test.yml",
+        "line": 66,
+        "snippet": "NEXT_PUBLIC_API_URL: http://localhost:3001"
+      },
+      {
+        "file": "claude-code\\.github\\workflows\\test.yml",
+        "line": 71,
+        "snippet": "PLAYWRIGHT_BASE_URL: http://localhost:3000"
+      },
+      {
+        "file": "claude-code\\.github\\workflows\\test.yml",
+        "line": 113,
+        "snippet": "NEXT_PUBLIC_API_URL: http://localhost:3001"
+      },
+      {
+        "file": "claude-code\\docker\\docker-compose.prod.yml",
+        "line": 59,
+        "snippet": "test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:3000/health/ready\"]"
+      },
+      {
+        "file": "claude-code\\docker\\docker-compose.yml",
+        "line": 9,
+        "snippet": "# Then open http://localhost:3000"
+      },
+      {
+        "file": "claude-code\\docker\\docker-compose.yml",
+        "line": 45,
+        "snippet": "test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:3000/health/live\"]"
+      },
+      {
+        "file": "claude-code\\mcp-server\\README.md",
+        "line": 69,
+        "snippet": "# Streamable HTTP at http://localhost:3000/mcp"
+      },
+      {
+        "file": "claude-code\\mcp-server\\README.md",
+        "line": 70,
+        "snippet": "# Legacy SSE at http://localhost:3000/sse"
+      },
+      {
+        "file": "claude-code\\mcp-server\\README.md",
+        "line": 71,
+        "snippet": "# Health check at http://localhost:3000/health"
+      },
+      {
+        "file": "claude-code\\scripts\\post-deploy.sh",
+        "line": 9,
+        "snippet": "BASE_URL=\"${BASE_URL:-http://localhost:3000}\""
+      },
+      {
+        "file": "claude-code\\src\\commands\\init-verifiers.ts",
+        "line": 130,
+        "snippet": "- Dev server URL (e.g., \"http://localhost:3000\")"
+      },
+      {
+        "file": "claude-code\\src\\commands\\init-verifiers.ts",
+        "line": 155,
+        "snippet": "- Ask for the login URL (e.g., \"/login\", \"http://localhost:3000/auth\")"
+      },
+      {
+        "file": "claude-code\\src\\constants\\oauth.ts",
+        "line": 151,
+        "snippet": "'http://localhost:8000'"
+      },
+      {
+        "file": "claude-code\\src\\constants\\oauth.ts",
+        "line": 154,
+        "snippet": "'http://localhost:4000'"
+      },
+      {
+        "file": "claude-code\\src\\constants\\oauth.ts",
+        "line": 157,
+        "snippet": "'http://localhost:3000'"
+      },
+      {
+        "file": "claude-code\\src\\constants\\oauth.ts",
+        "line": 171,
+        "snippet": "MCP_PROXY_URL: 'http://localhost:8205',"
+      },
+      {
+        "file": "claude-code\\src\\constants\\product.ts",
+        "line": 6,
+        "snippet": "export const CLAUDE_AI_LOCAL_BASE_URL = 'http://localhost:4000'"
+      },
+      {
+        "file": "claude-code\\src\\server\\auth\\strategies\\saml.ts",
+        "line": 18,
+        "snippet": "*   SAML_CALLBACK_URL  \u2014 SP ACS URL (default: http://localhost:3000/auth/saml/callback)"
+      },
+      {
+        "file": "claude-code\\src\\server\\auth\\strategies\\saml.ts",
+        "line": 170,
+        "snippet": "process.env.SAML_CALLBACK_URL ?? \"http://localhost:3000/auth/saml/callback\","
+      },
+      {
+        "file": "claude-code\\src\\server\\web\\auth\\oauth-auth.ts",
+        "line": 75,
+        "snippet": "*   OAUTH_CALLBACK_URL   \u2014 full redirect URI (default: http://localhost:3000/auth/callback)"
+      },
+      {
+        "file": "claude-code\\src\\server\\web\\auth\\oauth-auth.ts",
+        "line": 98,
+        "snippet": "process.env.OAUTH_CALLBACK_URL ?? \"http://localhost:3000/auth/callback\";"
+      },
+      {
+        "file": "claude-code\\web\\.env.example",
+        "line": 1,
+        "snippet": "NEXT_PUBLIC_API_URL=http://localhost:3001"
+      },
+      {
+        "file": "claude-code\\web\\dev-server.ts",
+        "line": 15,
+        "snippet": "*   VITE_API_URL      \u2014 backend URL (default: http://localhost:3001)"
+      },
+      {
+        "file": "claude-code\\web\\dev-server.ts",
+        "line": 32,
+        "snippet": "const BACKEND_URL = process.env.VITE_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'"
+      },
+      {
+        "file": "claude-code\\web\\playwright.config.ts",
+        "line": 3,
+        "snippet": "const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? \"http://localhost:3000\";"
+      },
+      {
+        "file": "claude-code\\web\\vite.config.ts",
+        "line": 22,
+        "snippet": "const backendUrl = env.VITE_API_URL ?? env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'"
+      },
+      {
+        "file": "claude-code\\web\\WebApp.tsx",
+        "line": 39,
+        "snippet": "return 'http://localhost:3001'"
+      },
+      {
+        "file": "claude-code\\web\\WebApp.tsx",
+        "line": 52,
+        "snippet": "* \"http://localhost:3001\"."
+      },
+      {
+        "file": "claude-code\\web\\app\\layout.tsx",
+        "line": 63,
+        "snippet": "<BackendProvider url={process.env.NEXT_PUBLIC_API_URL ?? \"http://localhost:3001\"}>"
+      },
+      {
+        "file": "claude-code\\web\\app\\api\\analytics\\events\\route.ts",
+        "line": 4,
+        "snippet": "const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? \"http://localhost:3001\";"
+      },
+      {
+        "file": "claude-code\\web\\app\\api\\analytics\\summary\\route.ts",
+        "line": 3,
+        "snippet": "const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? \"http://localhost:3001\";"
+      },
+      {
+        "file": "claude-code\\web\\app\\api\\chat\\route.ts",
+        "line": 25,
+        "snippet": "const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? \"http://localhost:3001\";"
+      },
+      {
+        "file": "claude-code\\web\\components\\adapted\\Settings.tsx",
+        "line": 314,
+        "snippet": "placeholder=\"http://localhost:3001\""
+      },
+      {
+        "file": "claude-code\\web\\components\\settings\\ApiSettings.tsx",
+        "line": 94,
+        "snippet": "placeholder=\"http://localhost:3001\""
+      },
+      {
+        "file": "claude-code\\web\\lib\\api.ts",
+        "line": 4,
+        "snippet": "process.env.NEXT_PUBLIC_API_URL ?? \"http://localhost:3001\";"
+      },
+      {
+        "file": "claude-code\\web\\lib\\BackendContext.tsx",
+        "line": 81,
+        "snippet": "/** Base URL of the backend API (e.g. \"http://localhost:3001\") */"
+      },
+      {
+        "file": "claude-code\\web\\lib\\store.ts",
+        "line": 31,
+        "snippet": "apiUrl: process.env.NEXT_PUBLIC_API_URL ?? \"http://localhost:3001\","
+      },
+      {
+        "file": "claude-code\\web\\lib\\api\\client.ts",
+        "line": 14,
+        "snippet": "\"http://localhost:3001\""
+      },
+      {
+        "file": "claude-code\\web\\lib\\api\\files.ts",
+        "line": 22,
+        "snippet": "\"http://localhost:3001\""
+      },
+      {
+        "file": "claude-code\\web\\lib\\collaboration\\permissions.ts",
+        "line": 84,
+        "snippet": ": \"http://localhost:3000\";"
+      },
+      {
+        "file": "claude-code\\web\\lib\\platform\\web\\exec.ts",
+        "line": 16,
+        "snippet": ": (process.env.NEXT_PUBLIC_API_BASE_URL ?? \"http://localhost:3000\");"
+      },
+      {
+        "file": "claude-code\\web\\lib\\platform\\web\\fs.ts",
+        "line": 18,
+        "snippet": ": (process.env.NEXT_PUBLIC_API_BASE_URL ?? \"http://localhost:3000\");"
+      },
+      {
+        "file": "claude-code\\web\\lib\\platform\\web\\os.ts",
+        "line": 67,
+        "snippet": ": (process.env.NEXT_PUBLIC_API_BASE_URL ?? \"http://localhost:3000\");"
+      },
+      {
+        "file": "claude-code\\web\\lib\\platform\\web\\process.ts",
+        "line": 25,
+        "snippet": ": (process.env.NEXT_PUBLIC_API_BASE_URL ?? \"http://localhost:3000\");"
+      },
+      {
+        "file": "claude-code\\web\\__tests__\\mocks\\handlers.ts",
+        "line": 3,
+        "snippet": "const BASE = \"http://localhost:3001\";"
+      },
+      {
+        "file": "docs\\DEPLOYMENT_RUNBOOK.md",
+        "line": 47,
+        "snippet": "4. Log in at `http://localhost:5173` (dev) or the Electron window (prod)"
+      },
+      {
+        "file": "docs\\DEPLOYMENT_RUNBOOK.md",
+        "line": 104,
+        "snippet": "curl -X POST http://localhost:8080/api/system/erase-customer-data \\"
+      },
+      {
+        "file": "docs\\DEPLOYMENT_RUNBOOK.md",
+        "line": 134,
+        "snippet": "curl -X POST http://localhost:8085/api/system/erase-customer-data \\"
+      },
+      {
+        "file": "docs\\DEPLOYMENT_RUNBOOK.md",
+        "line": 221,
+        "snippet": "| master | `GET http://localhost:8090/api/health` |"
+      },
+      {
+        "file": "docs\\DEPLOYMENT_RUNBOOK.md",
+        "line": 222,
+        "snippet": "| touch | `GET http://localhost:8091/api/health` |"
+      },
+      {
+        "file": "docs\\DEPLOYMENT_RUNBOOK.md",
+        "line": 223,
+        "snippet": "| gallery | `GET http://localhost:8080/api/health` |"
+      },
+      {
+        "file": "docs\\DEPLOYMENT_RUNBOOK.md",
+        "line": 224,
+        "snippet": "| management | `GET http://localhost:8085/api/health` |"
+      },
+      {
+        "file": "docs\\DISASTER_RECOVERY.md",
+        "line": 79,
+        "snippet": "4. Check sync queue depth: `GET http://localhost:8090/api/cloud/stats`"
+      },
+      {
+        "file": "docs\\KIOSK_DEPLOYMENT_GUIDE.md",
+        "line": 247,
+        "snippet": "GET http://localhost:8091/api/health"
+      },
+      {
+        "file": "docs\\MONEYTRASH_USER_MANUAL.md",
+        "line": 146,
+        "snippet": "URL: http://localhost:8090"
+      },
+      {
+        "file": "docs\\MONITORING.md",
+        "line": 42,
+        "snippet": "curl -sf http://localhost:8090/api/health || echo \"MASTER DOWN\" | send-alert"
+      },
+      {
+        "file": "docs\\MONITORING.md",
+        "line": 43,
+        "snippet": "curl -sf http://localhost:8091/api/health || echo \"TOUCH DOWN\"  | send-alert"
+      },
+      {
+        "file": "docs\\archive\\BUILD_FIX_PLAN.md",
+        "line": 628,
+        "snippet": "Invoke-RestMethod -Uri \"http://localhost:8090/api/system/health\" -Method Get"
+      },
+      {
+        "file": "docs\\archive\\BUILD_STATUS.md",
+        "line": 48,
+        "snippet": "npm run dev:master    # http://localhost:8090"
+      },
+      {
+        "file": "docs\\archive\\BUILD_STATUS.md",
+        "line": 49,
+        "snippet": "npm run dev:touch     # http://localhost:8091"
+      },
+      {
+        "file": "docs\\archive\\BUILD_STATUS.md",
+        "line": 50,
+        "snippet": "npm run dev:moneytrash # http://localhost:3000"
+      },
+      {
+        "file": "docs\\archive\\BUILD_STATUS.md",
+        "line": 51,
+        "snippet": "npm run dev:management # http://localhost:5173"
+      },
+      {
+        "file": "docs\\archive\\BUILD_STATUS.md",
+        "line": 52,
+        "snippet": "npm run dev:gallery    # http://localhost:5174"
+      },
+      {
+        "file": "docs\\archive\\BUILD_STATUS.md",
+        "line": 53,
+        "snippet": "npm run dev:website    # http://localhost:3001"
+      },
+      {
+        "file": "docs\\archive\\CLOUD_BRIDGE_FIX_GUIDE.md",
+        "line": 170,
+        "snippet": "curl -X POST http://localhost:8090/api/collections/orders/records \\"
+      },
+      {
+        "file": "docs\\archive\\DEPLOYMENT_CHECKLIST.md",
+        "line": 158,
+        "snippet": "curl http://localhost:8090/api/cloud/stats"
+      },
+      {
+        "file": "docs\\archive\\DEPLOYMENT_CHECKLIST.md",
+        "line": 269,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/sync"
+      },
+      {
+        "file": "docs\\archive\\DEPLOYMENT_CHECKLIST.md",
+        "line": 273,
+        "snippet": "curl http://localhost:8090/api/cloud/stats"
+      },
+      {
+        "file": "docs\\archive\\DEPLOYMENT_CHECKLIST.md",
+        "line": 358,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/queue/pause"
+      },
+      {
+        "file": "docs\\archive\\DEPLOYMENT_CHECKLIST.md",
+        "line": 361,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/queue/purge"
+      },
+      {
+        "file": "docs\\archive\\DEPLOYMENT_CHECKLIST.md",
+        "line": 364,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/queue/resume"
+      },
+      {
+        "file": "docs\\archive\\DEPLOYMENT_CHECKLIST.md",
+        "line": 413,
+        "snippet": "curl http://localhost:8090/api/cloud/stats"
+      },
+      {
+        "file": "docs\\archive\\DEPLOYMENT_CHECKLIST.md",
+        "line": 416,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/sync"
+      },
+      {
+        "file": "docs\\archive\\E2E_SETUP_COMPLETE.md",
+        "line": 132,
+        "snippet": "- **Base URL:** http://localhost:5174"
+      },
+      {
+        "file": "docs\\archive\\E2E_SETUP_COMPLETE.md",
+        "line": 138,
+        "snippet": "- **Base URL:** http://localhost:5173"
+      },
+      {
+        "file": "docs\\archive\\E2E_SETUP_COMPLETE.md",
+        "line": 144,
+        "snippet": "- **Base URL:** http://localhost:5174"
+      },
+      {
+        "file": "docs\\archive\\E2E_SETUP_COMPLETE.md",
+        "line": 150,
+        "snippet": "- **Base URL:** http://localhost:1420"
+      },
+      {
+        "file": "docs\\archive\\E2E_TESTS_EXECUTION_REPORT.md",
+        "line": 60,
+        "snippet": "navigating to \"http://localhost:5173/login\", waiting until \"load\""
+      },
+      {
+        "file": "docs\\archive\\E2E_TEST_RESULTS.md",
+        "line": 104,
+        "snippet": "baseURL: 'http://localhost:5173', // Adjust per app"
+      },
+      {
+        "file": "docs\\archive\\E2E_TEST_RESULTS.md",
+        "line": 116,
+        "snippet": "url: 'http://localhost:5173',"
+      },
+      {
+        "file": "docs\\archive\\E2E_TEST_RESULTS.md",
+        "line": 137,
+        "snippet": "baseURL: 'http://localhost:1420',"
+      },
+      {
+        "file": "docs\\archive\\FINAL_DEPLOYMENT_SUMMARY.md",
+        "line": 105,
+        "snippet": "curl http://localhost:8090/api/cloud/stats"
+      },
+      {
+        "file": "docs\\archive\\FINAL_DEPLOYMENT_SUMMARY.md",
+        "line": 236,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/sync"
+      },
+      {
+        "file": "docs\\archive\\IMPLEMENTATION_COMPLETE_SUMMARY.md",
+        "line": 193,
+        "snippet": "curl http://localhost:8090/api/cloud/stats"
+      },
+      {
+        "file": "docs\\archive\\IMPLEMENTATION_SUMMARY.md",
+        "line": 94,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/sync/payroll"
+      },
+      {
+        "file": "docs\\archive\\IMPLEMENTATION_SUMMARY.md",
+        "line": 97,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/sync/expenses"
+      },
+      {
+        "file": "docs\\archive\\IMPLEMENTATION_SUMMARY.md",
+        "line": 100,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/sync/inventory"
+      },
+      {
+        "file": "docs\\archive\\IMPLEMENTATION_SUMMARY.md",
+        "line": 103,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/heartbeat"
+      },
+      {
+        "file": "docs\\archive\\IMPLEMENTATION_SUMMARY.md",
+        "line": 106,
+        "snippet": "curl http://localhost:8090/api/cloud/stats/payroll"
+      },
+      {
+        "file": "docs\\archive\\IMPLEMENTATION_SUMMARY.md",
+        "line": 107,
+        "snippet": "curl http://localhost:8090/api/cloud/stats/expenses"
+      },
+      {
+        "file": "docs\\archive\\IMPLEMENTATION_SUMMARY.md",
+        "line": 108,
+        "snippet": "curl http://localhost:8090/api/cloud/stats/inventory"
+      },
+      {
+        "file": "docs\\archive\\MASTER_CLOUD_CONFIGURATION_SYSTEM.md",
+        "line": 408,
+        "snippet": "curl -s http://localhost:8090/api/health > /dev/null"
+      },
+      {
+        "file": "docs\\archive\\MASTER_CLOUD_CONFIGURATION_SYSTEM.md",
+        "line": 424,
+        "snippet": "curl -s http://localhost:8090/api/cloud/stats | grep -q \"online\""
+      },
+      {
+        "file": "docs\\archive\\MASTER_DEV_TEST_STATUS.md",
+        "line": 14,
+        "snippet": "| **URL** | http://localhost:5173/ |"
+      },
+      {
+        "file": "docs\\archive\\MASTER_DEV_TEST_STATUS.md",
+        "line": 69,
+        "snippet": "| Album Editor | http://localhost:5173/albums/{albumId}/edit |"
+      },
+      {
+        "file": "docs\\archive\\MASTER_DEV_TEST_STATUS.md",
+        "line": 70,
+        "snippet": "| Dashboard | http://localhost:5173/dashboard |"
+      },
+      {
+        "file": "docs\\archive\\MASTER_DEV_TEST_STATUS.md",
+        "line": 71,
+        "snippet": "| Settings | http://localhost:5173/settings |"
+      },
+      {
+        "file": "docs\\archive\\MASTER_DEV_TEST_STATUS.md",
+        "line": 72,
+        "snippet": "| API Health | http://localhost:8090/api/system/health |"
+      },
+      {
+        "file": "docs\\archive\\MASTER_DEV_TEST_STATUS.md",
+        "line": 98,
+        "snippet": "Navigate to: http://localhost:5173/"
+      },
+      {
+        "file": "docs\\archive\\MONEYTRASH_E2E_COMPLETE.md",
+        "line": 239,
+        "snippet": "# Server runs on http://localhost:1420"
+      },
+      {
+        "file": "docs\\archive\\MONEYTRASH_FINALIZATION_PLAN_COMPLETE.md",
+        "line": 503,
+        "snippet": "\"devUrl\": \"http://localhost:5173\","
+      },
+      {
+        "file": "docs\\archive\\MONEYTRASH_FINALIZATION_PLAN_COMPLETE.md",
+        "line": 723,
+        "snippet": "\"devUrl\": \"http://localhost:5173\","
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_COMPLETE.md",
+        "line": 138,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/sync"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_COMPLETE.md",
+        "line": 149,
+        "snippet": "open http://localhost:5173/fleet    # Management Hub"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_COMPLETE.md",
+        "line": 150,
+        "snippet": "open http://localhost:5174          # Customer Gallery"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 25,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/sync"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 28,
+        "snippet": "curl \"http://localhost:8787/api/orders/by-credentials?pin=123456&email=test-customer@clickflash.ai\""
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 41,
+        "snippet": "curl http://localhost:8090/api/collections/albums/records"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 44,
+        "snippet": "curl http://localhost:8090/api/collections/photos/records"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 47,
+        "snippet": "curl http://localhost:8090/api/collections/orders/records"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 61,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/sync"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 69,
+        "snippet": "curl http://localhost:8090/api/cloud/stats"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 87,
+        "snippet": "**URL:** http://localhost:5173/fleet"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 116,
+        "snippet": "**URL:** http://localhost:5173/orders"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 130,
+        "snippet": "curl -X POST http://localhost:8787/api/auth/login \\"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 139,
+        "snippet": "curl http://localhost:8787/api/collections/orders/records \\"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 149,
+        "snippet": "**URL:** http://localhost:5174"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 159,
+        "snippet": "curl http://localhost:8090/api/galleryAuth/magic-link \\"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 231,
+        "snippet": "curl http://localhost:8090/api/cloud/status"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 236,
+        "snippet": "curl http://localhost:8787/api/health"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 241,
+        "snippet": "curl -X POST http://localhost:8787/api/auth/login \\"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 266,
+        "snippet": "curl \"http://localhost:8787/api/orders/by-credentials?pin=123456&email=test-customer@clickflash.ai\""
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 288,
+        "snippet": "curl http://localhost:8787/api/collections/photos/records \\"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 294,
+        "snippet": "curl \"http://localhost:8787/api/orders/by-credentials?pin=123456&email=test-customer@clickflash.ai\" | jq '.items'"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_E2E_VERIFICATION_GUIDE.md",
+        "line": 314,
+        "snippet": "curl -X DELETE http://localhost:8787/api/collections/orders/records/order-phase95-001 \\"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_IMPLEMENTATION_PLAN.md",
+        "line": 57,
+        "snippet": "CLOUD_API_URL=http://localhost:8787"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_IMPLEMENTATION_PLAN.md",
+        "line": 60,
+        "snippet": "CLOUD_GALLERY_URL=http://localhost:5174"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_IMPLEMENTATION_PLAN.md",
+        "line": 91,
+        "snippet": "EMAIL_RELAY_URL=http://localhost:8787/api/email/relay"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_IMPLEMENTATION_PLAN.md",
+        "line": 216,
+        "snippet": "curl -X POST http://localhost:8090/api/cloud/sync \\"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_IMPLEMENTATION_PLAN.md",
+        "line": 261,
+        "snippet": "curl \"http://localhost:8787/api/orders/by-credentials?pin=123456&email=test-customer@clickflash.ai\""
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_IMPLEMENTATION_PLAN.md",
+        "line": 274,
+        "snippet": "- Navigate to: http://localhost:5173/fleet"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_IMPLEMENTATION_PLAN.md",
+        "line": 280,
+        "snippet": "- Navigate to: http://localhost:5173/orders"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_IMPLEMENTATION_PLAN.md",
+        "line": 286,
+        "snippet": "- Navigate to: http://localhost:5173/analytics/audits"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_IMPLEMENTATION_PLAN.md",
+        "line": 294,
+        "snippet": "- Navigate to: http://localhost:5174"
+      },
+      {
+        "file": "docs\\archive\\PHASE_95_IMPLEMENTATION_PLAN.md",
+        "line": 306,
+        "snippet": "- Access via: http://localhost:5174/gallery?token=<token>"
+      },
+      {
+        "file": "docs\\archive\\PROJECT_STATUS.md",
+        "line": 177,
+        "snippet": "GALLERY_API_URL=http://localhost:8093"
+      },
+      {
+        "file": "docs\\archive\\PROJECT_STATUS.md",
+        "line": 180,
+        "snippet": "NEXT_PUBLIC_API_URL=http://localhost:8092"
+      },
+      {
+        "file": "docs\\archive\\TOUCH_APP_DEEP_DIVE_2026.md",
+        "line": 88,
+        "snippet": "\u2502 http://localhost:8091"
+      },
+      {
+        "file": "docs\\archive\\TOUCH_APP_DEEP_DIVE_COMPLETE.md",
+        "line": 85,
+        "snippet": "\u2502 http://localhost:8091"
+      },
+      {
+        "file": "docs\\audit\\06_remediation\\tls_implementation.md",
+        "line": 174,
+        "snippet": "'https://localhost:8090',"
+      },
+      {
+        "file": "docs\\audit\\06_remediation\\tls_implementation.md",
+        "line": 175,
+        "snippet": "'https://localhost:8091',"
+      },
+      {
+        "file": "docs\\audit\\06_remediation\\tls_implementation.md",
+        "line": 206,
+        "snippet": "curl -k https://localhost:8090/api/health"
+      },
+      {
+        "file": "scripts\\build-hotel-packages.ts",
+        "line": 147,
+        "snippet": "CORS_ORIGINS=http://localhost:8001,http://localhost:8090,http://127.0.0.1:8001"
+      },
+      {
+        "file": "scripts\\build-hotel-packages.ts",
+        "line": 148,
+        "snippet": "VITE_API_URL=http://localhost:8091"
+      },
+      {
+        "file": "scripts\\simulate-kiosk-usage.ts",
+        "line": 9,
+        "snippet": "*   npx ts-node scripts/simulate-kiosk-usage.ts [--master-url http://localhost:8090] [--orders 50]"
+      },
+      {
+        "file": "scripts\\simulate-kiosk-usage.ts",
+        "line": 31,
+        "snippet": "masterUrl: process.env.MASTER_URL || \"http://localhost:8090\","
+      },
+      {
+        "file": "tests\\ecosystem\\cross-app-workflow.spec.ts",
+        "line": 14,
+        "snippet": "master: 'http://localhost:8090',"
+      },
+      {
+        "file": "tests\\ecosystem\\cross-app-workflow.spec.ts",
+        "line": 15,
+        "snippet": "touch: 'http://localhost:8091',"
+      },
+      {
+        "file": "tests\\ecosystem\\cross-app-workflow.spec.ts",
+        "line": 16,
+        "snippet": "gallery: 'http://localhost:5174',"
+      },
+      {
+        "file": "tests\\ecosystem\\cross-app-workflow.spec.ts",
+        "line": 17,
+        "snippet": "management: 'http://localhost:5173',"
+      },
+      {
+        "file": "tests\\ecosystem\\cross-app-workflow.spec.ts",
+        "line": 18,
+        "snippet": "moneytrash: 'http://localhost:3000',"
+      },
+      {
+        "file": "tests\\ecosystem\\ecosystem.spec.ts",
+        "line": 18,
+        "snippet": "await page.goto(\"http://localhost:8090\");"
+      },
+      {
+        "file": "tests\\ecosystem\\ecosystem.spec.ts",
+        "line": 22,
+        "snippet": "await page.waitForURL(\"http://localhost:8090/\", { timeout: 30000 });"
+      },
+      {
+        "file": "tests\\ecosystem\\ecosystem.spec.ts",
+        "line": 27,
+        "snippet": "await touchPage.goto(\"http://localhost:8091\");"
+      },
+      {
+        "file": "tests\\ecosystem\\health-check.spec.ts",
+        "line": 8,
+        "snippet": "const MASTER = \"http://localhost:8090\";"
+      },
+      {
+        "file": "tests\\ecosystem\\health-check.spec.ts",
+        "line": 9,
+        "snippet": "const TOUCH = \"http://localhost:8091\";"
+      },
+      {
+        "file": "tests\\ecosystem\\multi-master-sync.spec.ts",
+        "line": 9,
+        "snippet": "const MASTER_A = \"http://localhost:8090\";"
+      },
+      {
+        "file": "tests\\ecosystem\\multi-master-sync.spec.ts",
+        "line": 10,
+        "snippet": "const MASTER_B = \"http://localhost:8092\"; // Second master for testing"
+      },
+      {
+        "file": "tests\\ecosystem\\offline-online.spec.ts",
+        "line": 9,
+        "snippet": "const TOUCH = \"http://localhost:8091\";"
+      },
+      {
+        "file": "tests\\ecosystem\\offline-online.spec.ts",
+        "line": 10,
+        "snippet": "const MASTER = \"http://localhost:8090\";"
+      },
+      {
+        "file": "tests\\ecosystem\\utils\\SharedSeed.ts",
+        "line": 105,
+        "snippet": "INSERT INTO config (key, value) VALUES ('master_api_url', 'http://localhost:8090');"
+      },
+      {
+        "file": "tests\\installer\\installer.spec.ts",
+        "line": 10,
+        "snippet": "await page.goto(\"http://localhost:5175\");"
+      },
+      {
+        "file": "tests\\performance\\k6-load.js",
+        "line": 10,
+        "snippet": "* Run: k6 run --env MASTER_URL=http://localhost:8090 --env GALLERY_URL=https://gallery.clickflash.app tests/performance/k6-load.js"
+      },
+      {
+        "file": "tests\\performance\\k6-load.js",
+        "line": 59,
+        "snippet": "const MASTER_URL = __ENV.MASTER_URL || \"http://localhost:8090\";"
+      },
+      {
+        "file": "tests\\performance\\k6-load.js",
+        "line": 60,
+        "snippet": "const TOUCH_URL = __ENV.TOUCH_URL || \"http://localhost:8091\";"
+      }
+    ],
+    "jwt": [
+      {
+        "file": "API.md",
+        "line": 40,
+        "snippet": "\"token\": \"eyJhbGciOiJIUzI1NiIs...\","
+      },
+      {
+        "file": "apps\\master\\backend\\test_sync_operational.js",
+        "line": 4,
+        "snippet": "const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXNrX2lkIjoiTUFTVEVSX1RFU1RfMDEiLCJpYXQiOjE3NDE5NjMzODJ9.D9v2sF7yYpLp_uP--axWIi3--FNqAQZz5G7KzAbMhE8';"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\security.spec.ts",
+        "line": 143,
+        "snippet": "\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiZXhwIjoxfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\";"
+      },
+      {
+        "file": "apps\\moneytrash\\cloudflare\\README.md",
+        "line": 119,
+        "snippet": "\"token\": \"eyJhbGciOiJIUzI1NiIs...\","
+      },
+      {
+        "file": "docs\\archive\\MONEYTRASH_CLOUDFLARE_DEPLOYMENT_CHECKLIST.md",
+        "line": 139,
+        "snippet": "\"token\": \"eyJhbG...\""
+      },
+      {
+        "file": "docs\\archive\\MONEYTRASH_CLOUDFLARE_DEPLOYMENT_CHECKLIST.md",
+        "line": 146,
+        "snippet": "- [ ] `token`: eyJhbG..."
+      },
+      {
+        "file": "docs\\archive\\MONEYTRASH_CLOUDFLARE_DEPLOYMENT_CHECKLIST.md",
+        "line": 163,
+        "snippet": "token: 'eyJhbG...'  // Optional, will be fetched"
+      },
+      {
+        "file": "docs\\archive\\MONEYTRASH_E2E_COMPLETE.md",
+        "line": 26,
+        "snippet": "Token:      JWT received (eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...)"
+      }
+    ],
+    "secret": [
+      {
+        "file": "install-clickflash.bat",
+        "line": 93,
+        "snippet": "for /f \"tokens=*\" %%i in ('powershell -Command \"Add-Type -AssemblyName System.Windows.Forms; $form = New-Object System.Windows.Forms.Form; $form.Text = 'ClickFlash Installation - Set Password'; $form."
+      },
+      {
+        "file": ".claude\\AUDIT_FINDINGS.md",
+        "line": 10,
+        "snippet": "- `apps/gallery/backend/wrangler.toml` line 23 \u2014 `JWT_SECRET = \"<REDACTED:GALLERY_JWT_SECRET>\"`"
+      },
+      {
+        "file": ".claude\\AUDIT_FINDINGS.md",
+        "line": 11,
+        "snippet": "- `apps/management/backend/wrangler.toml` line 16 \u2014 `JWT_SECRET = \"<REDACTED:MANAGEMENT_JWT_SECRET>\"`"
+      },
+      {
+        "file": ".claude\\AUDIT_FINDINGS.md",
+        "line": 12,
+        "snippet": "- `apps/gallery/backend/src/config.ts` line 5 \u2014 `export const JWT_SECRET = 'your-256-bit-secret'`"
+      },
+      {
+        "file": ".claude\\skills\\test.md",
+        "line": 74,
+        "snippet": "JWT_SECRET: 'test-secret-32-chars-minimum!!!!'"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\init-default-user.js",
+        "line": 17,
+        "snippet": "password: 'clickflash2025',"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\seed_d1.sql",
+        "line": 4,
+        "snippet": "UPDATE users SET email = 'admin@clickflash.com', name = 'Admin User', role = 'admin', password = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4aYp1pD3qIa6qCq6' WHERE id = 1;"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\shared\\init-default-user.js",
+        "line": 17,
+        "snippet": "password: 'clickflash2025',"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\src\\initDefaultUser.ts",
+        "line": 11,
+        "snippet": "password: 'clickflash2025',"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\auth.test.js",
+        "line": 7,
+        "snippet": "const password = 'testpassword123';"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\auth.test.js",
+        "line": 17,
+        "snippet": "const password = 'testpassword123';"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\auth.test.js",
+        "line": 27,
+        "snippet": "const password = 'testpassword123';"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\auth.test.js",
+        "line": 35,
+        "snippet": "const password = 'testpassword123';"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\auth.test.js",
+        "line": 36,
+        "snippet": "const wrongPassword = 'wrongpassword';"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\master-api.test.js",
+        "line": 146,
+        "snippet": "password: 'clickflash2025'"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\master-api.test.js",
+        "line": 256,
+        "snippet": "password: 'clickflash2025'"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\master-api.test.js",
+        "line": 269,
+        "snippet": "password: 'clickflash2025'"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\master-api.test.js",
+        "line": 278,
+        "snippet": "password: 'wrongpassword'"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\master-api.test.js",
+        "line": 286,
+        "snippet": "password: 'clickflash2025'"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\master-api.test.js",
+        "line": 305,
+        "snippet": "password: 'clickflash2025'"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\master-api.test.js",
+        "line": 340,
+        "snippet": "password: 'testpassword123',"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\master-api.test.js",
+        "line": 401,
+        "snippet": "password: 'password123',"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\master-api.test.js",
+        "line": 493,
+        "snippet": "password: 'password123',"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\master-api.test.js",
+        "line": 517,
+        "snippet": "password: 'password123',"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\master-api.test.js",
+        "line": 637,
+        "snippet": "password: 'password123',"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\master-api.test.js",
+        "line": 645,
+        "snippet": "password: 'password123',"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\validation.test.js",
+        "line": 9,
+        "snippet": "password: 'password123'"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\validation.test.js",
+        "line": 20,
+        "snippet": "password: 'password123'"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\validation.test.js",
+        "line": 41,
+        "snippet": "password: 'password123'"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\validation.test.js",
+        "line": 51,
+        "snippet": "password: 'password123'"
+      },
+      {
+        "file": "apps\\gallery\\backend\\legacy\\__tests__\\validation.test.js",
+        "line": 74,
+        "snippet": "password: 'password123',"
+      },
+      {
+        "file": "apps\\gallery\\src\\components\\touch\\PasswordModal.tsx",
+        "line": 17,
+        "snippet": "let adminPassword = 'clickflash2025'; // Default password"
+      },
+      {
+        "file": "apps\\gallery\\src\\components\\__tests__\\customer\\PaymentForm.test.tsx",
+        "line": 67,
+        "snippet": "clientSecret: 'pi_test_secret_123',"
+      },
+      {
+        "file": "apps\\gallery\\src\\components\\__tests__\\customer\\PaymentForm.test.tsx",
+        "line": 105,
+        "snippet": "clientSecret: 'pi_test_secret_123',"
+      },
+      {
+        "file": "apps\\gallery\\src\\components\\__tests__\\customer\\PaymentForm.test.tsx",
+        "line": 202,
+        "snippet": "clientSecret: 'pi_test_secret_123',"
+      },
+      {
+        "file": "apps\\gallery\\src\\components\\__tests__\\customer\\PaymentForm.test.tsx",
+        "line": 223,
+        "snippet": "clientSecret: 'pi_test_secret_123',"
+      },
+      {
+        "file": "apps\\gallery\\src\\components\\__tests__\\customer\\PaymentForm.test.tsx",
+        "line": 252,
+        "snippet": "clientSecret: 'pi_test_secret_123',"
+      },
+      {
+        "file": "apps\\gallery\\src\\services\\pbManagement.ts",
+        "line": 315,
+        "snippet": "password: 'password123',"
+      },
+      {
+        "file": "apps\\management\\backend\\init-default-user.ts",
+        "line": 17,
+        "snippet": "password: 'clickflash2025',"
+      },
+      {
+        "file": "apps\\management\\backend\\master\\server.js",
+        "line": 1149,
+        "snippet": "password: 'clickflash2025',"
+      },
+      {
+        "file": "apps\\management\\backend\\master\\server.js",
+        "line": 1280,
+        "snippet": "password: 'clickflash2025',"
+      },
+      {
+        "file": "apps\\management\\backend\\scripts\\verify_inventory_api.js",
+        "line": 64,
+        "snippet": "const loginRes = await request('POST', '/login', { email: 'admin@clickflash.com', password: 'password' });"
+      },
+      {
+        "file": "apps\\management\\backend\\scripts\\verify_inventory_api.js",
+        "line": 71,
+        "snippet": "const loginRes2 = await request('POST', '/login', { email: 'admin', password: 'password' });"
+      },
+      {
+        "file": "apps\\management\\backend\\shared\\init-default-user.js",
+        "line": 17,
+        "snippet": "password: 'clickflash2025',"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\benchmark-jwt.js",
+        "line": 4,
+        "snippet": "const JWT_SECRET = 'benchmark_secret_2026';"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\initDefaultUser.ts",
+        "line": 10,
+        "snippet": "password: 'clickflash2025',"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\pentest-isolation.js",
+        "line": 7,
+        "snippet": "const JWT_SECRET = 'mock_secret_2026'; // Match implementation or prod secret in tests"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\__tests__\\server.test.ts",
+        "line": 30,
+        "snippet": "JWT_SECRET: 'test-secret-key-for-jwt-signing',"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\__tests__\\server.test.ts",
+        "line": 69,
+        "snippet": "password: 'password123'"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\__tests__\\server.test.ts",
+        "line": 88,
+        "snippet": "password: '$2a$10$hashedpassword',"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\__tests__\\server.test.ts",
+        "line": 99,
+        "snippet": "password: 'password123',"
+      },
+      {
+        "file": "apps\\management\\backend\\src\\__tests__\\server.test.ts",
+        "line": 122,
+        "snippet": "password: 'wrongpassword'"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\auth.test.js",
+        "line": 7,
+        "snippet": "const password = 'testpassword123';"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\auth.test.js",
+        "line": 17,
+        "snippet": "const password = 'testpassword123';"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\auth.test.js",
+        "line": 27,
+        "snippet": "const password = 'testpassword123';"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\auth.test.js",
+        "line": 35,
+        "snippet": "const password = 'testpassword123';"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\auth.test.js",
+        "line": 36,
+        "snippet": "const wrongPassword = 'wrongpassword';"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\master-api.test.js",
+        "line": 146,
+        "snippet": "password: 'clickflash2025'"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\master-api.test.js",
+        "line": 256,
+        "snippet": "password: 'clickflash2025'"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\master-api.test.js",
+        "line": 269,
+        "snippet": "password: 'clickflash2025'"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\master-api.test.js",
+        "line": 278,
+        "snippet": "password: 'wrongpassword'"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\master-api.test.js",
+        "line": 286,
+        "snippet": "password: 'clickflash2025'"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\master-api.test.js",
+        "line": 305,
+        "snippet": "password: 'clickflash2025'"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\master-api.test.js",
+        "line": 340,
+        "snippet": "password: 'testpassword123',"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\master-api.test.js",
+        "line": 401,
+        "snippet": "password: 'password123',"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\master-api.test.js",
+        "line": 493,
+        "snippet": "password: 'password123',"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\master-api.test.js",
+        "line": 517,
+        "snippet": "password: 'password123',"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\master-api.test.js",
+        "line": 637,
+        "snippet": "password: 'password123',"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\master-api.test.js",
+        "line": 645,
+        "snippet": "password: 'password123',"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\validation.test.js",
+        "line": 9,
+        "snippet": "password: 'password123'"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\validation.test.js",
+        "line": 20,
+        "snippet": "password: 'password123'"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\validation.test.js",
+        "line": 41,
+        "snippet": "password: 'password123'"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\validation.test.js",
+        "line": 51,
+        "snippet": "password: 'password123'"
+      },
+      {
+        "file": "apps\\management\\backend\\__tests__\\validation.test.js",
+        "line": 74,
+        "snippet": "password: 'password123',"
+      },
+      {
+        "file": "apps\\management\\src\\services\\pbManagement.ts",
+        "line": 413,
+        "snippet": "password: \"password123\","
+      },
+      {
+        "file": "apps\\master\\backend\\scripts\\test-cloud-auth.js",
+        "line": 31,
+        "snippet": "console.error('  $env:CLOUD_PASSWORD=\"your-password\"');"
+      },
+      {
+        "file": "apps\\master\\backend\\setup\\cloudflare-provision.js",
+        "line": 236,
+        "snippet": "export CLOUD_PASSWORD=\"${deskConfig.password}\""
+      },
+      {
+        "file": "apps\\master\\backend\\setup\\cloudflare-provision.js",
+        "line": 293,
+        "snippet": "password: 'AUTO_GENERATED'"
+      },
+      {
+        "file": "apps\\master\\backend\\setup\\setup-master.sh",
+        "line": 129,
+        "snippet": "read -s -p \"Admin Password: \" ADMIN_PASS"
+      },
+      {
+        "file": "apps\\master\\backend\\__tests__\\galleryCheckout.test.ts",
+        "line": 91,
+        "snippet": "JWT_SECRET: 'test-secret',"
+      },
+      {
+        "file": "apps\\master\\src\\components\\setup\\SetupWizard.tsx",
+        "line": 87,
+        "snippet": "errors.adminPassword = 'Password must be at least 8 characters';"
+      },
+      {
+        "file": "apps\\master\\src\\services\\api\\__tests__\\syncVerification.test.ts",
+        "line": 91,
+        "snippet": "password: 'test_password_123',"
+      },
+      {
+        "file": "apps\\master\\src\\services\\api\\__tests__\\userService.test.ts",
+        "line": 112,
+        "snippet": "password: 'securepassword123'"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\api-integration.spec.ts",
+        "line": 82,
+        "snippet": "data: { email: \"fake@fake.com\", password: \"wrongpass\" },"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\global-setup.ts",
+        "line": 94,
+        "snippet": "password: \"ClickFlash2025!\","
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\global-teardown.ts",
+        "line": 21,
+        "snippet": "password: \"ClickFlash2025!\","
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\helpers\\fixtures.ts",
+        "line": 77,
+        "snippet": "password: \"TestPassword123!\","
+      },
+      {
+        "file": "apps\\master\\tests\\integration\\api.integration.spec.ts",
+        "line": 52,
+        "snippet": "password: 'admin123',"
+      },
+      {
+        "file": "apps\\master\\tests\\integration\\api.integration.spec.ts",
+        "line": 66,
+        "snippet": "password: 'wrongpassword',"
+      },
+      {
+        "file": "apps\\master\\tests\\integration\\api.integration.spec.ts",
+        "line": 78,
+        "snippet": "password: 'password',"
+      },
+      {
+        "file": "apps\\master\\tests\\integration\\api.integration.spec.ts",
+        "line": 90,
+        "snippet": "password: 'admin123',"
+      },
+      {
+        "file": "apps\\master\\tests\\integration\\api.integration.spec.ts",
+        "line": 112,
+        "snippet": "password: 'admin123',"
+      },
+      {
+        "file": "apps\\master\\tests\\integration\\api.integration.spec.ts",
+        "line": 216,
+        "snippet": "password: 'admin123',"
+      },
+      {
+        "file": "apps\\master\\tests\\integration\\api.integration.spec.ts",
+        "line": 311,
+        "snippet": "password: 'admin123',"
+      },
+      {
+        "file": "apps\\master\\tests\\integration\\api.integration.spec.ts",
+        "line": 372,
+        "snippet": "password: 'admin123',"
+      },
+      {
+        "file": "apps\\master\\tests\\integration\\api.integration.spec.ts",
+        "line": 418,
+        "snippet": "password: 'admin123',"
+      },
+      {
+        "file": "apps\\master\\tests\\integration\\api.integration.spec.ts",
+        "line": 500,
+        "snippet": "password: 'admin123',"
+      },
+      {
+        "file": "apps\\master\\tests\\mocks\\database.ts",
+        "line": 82,
+        "snippet": "password: 'admin123',"
+      },
+      {
+        "file": "apps\\master\\tests\\performance\\k6-stress.js",
+        "line": 35,
+        "snippet": "password: 'admin123',"
+      },
+      {
+        "file": "apps\\master-cpp\\src\\ui\\settings\\tabs\\UsersTab.cpp",
+        "line": 33,
+        "snippet": "form->addRow(\"Password:\", m_password);"
+      },
+      {
+        "file": "apps\\touch\\backend\\shared\\defaultUserConfig.ts",
+        "line": 37,
+        "snippet": "password: 'clickflash2025',"
+      },
+      {
+        "file": "apps\\touch\\backend\\shared\\init-default-user.ts",
+        "line": 10,
+        "snippet": "password: 'clickflash2025',"
+      },
+      {
+        "file": "apps\\touch\\docs\\PRODUCTION_CLEANUP_REPORT.md",
+        "line": 20,
+        "snippet": "password: 'clickflash2025'"
+      },
+      {
+        "file": "apps\\touch\\docs\\PRODUCTION_CLEANUP_SUMMARY.md",
+        "line": 52,
+        "snippet": "password: 'clickflash2025'"
+      },
+      {
+        "file": "apps\\touch\\src\\components\\touch\\PasswordModal.tsx",
+        "line": 18,
+        "snippet": "let adminPassword = 'clickflash2025'; // Default password"
+      },
+      {
+        "file": "docs\\archive\\CLOUD_BRIDGE_FIX_GUIDE.md",
+        "line": 70,
+        "snippet": "$env:CLOUD_PASSWORD=\"your-password\""
+      },
+      {
+        "file": "docs\\archive\\FINAL_DEPLOYMENT_SUMMARY.md",
+        "line": 175,
+        "snippet": "JWT_SECRET = \"your-secret-key\""
+      },
+      {
+        "file": "docs\\archive\\GLOBAL_MULTI_MASTER_GUIDE.md",
+        "line": 90,
+        "snippet": "CLOUD_PASSWORD=\"secure-password-here\""
+      },
+      {
+        "file": "docs\\audit\\06_remediation\\secrets_vault_implementation.md",
+        "line": 89,
+        "snippet": "jwt_secret=\"your-jwt-secret\" \\"
+      },
+      {
+        "file": "scripts\\build-hotel-packages.ts",
+        "line": 49,
+        "snippet": "adminPassword: \"mo_secure_2026\","
+      },
+      {
+        "file": "scripts\\build-hotel-packages.ts",
+        "line": 51,
+        "snippet": "kioskPassword: \"mo_exit_2026\","
+      },
+      {
+        "file": "scripts\\build-hotel-packages.ts",
+        "line": 64,
+        "snippet": "adminPassword: \"mc_secure_2026\","
+      },
+      {
+        "file": "scripts\\build-hotel-packages.ts",
+        "line": 66,
+        "snippet": "kioskPassword: \"mc_exit_2026\","
+      },
+      {
+        "file": "scripts\\build-hotel-packages.ts",
+        "line": 79,
+        "snippet": "adminPassword: \"cgp_secure_2026\","
+      },
+      {
+        "file": "scripts\\build-hotel-packages.ts",
+        "line": 81,
+        "snippet": "kioskPassword: \"cgp_exit_2026\","
+      },
+      {
+        "file": "scripts\\build-hotel-packages.ts",
+        "line": 91,
+        "snippet": "const CLOUD_PASSWORD = \"clickflash2025\";"
+      },
+      {
+        "file": "scripts\\build-hotel-packages.ts",
+        "line": 92,
+        "snippet": "const PROVISIONING_SECRET = \"IndustrialProvisioningSecret2026\";"
+      }
+    ],
+    "stripe_key": [
+      {
+        "file": "apps\\management\\backend\\.env",
+        "line": 6,
+        "snippet": "STRIPE_SECRET_KEY=sk_test_4eC39HqLyjWDarjtT1zdp7dc"
+      }
+    ],
+    "api_key": [
+      {
+        "file": "apps\\management\\backend\\.env",
+        "line": 11,
+        "snippet": "RESEND_API_KEY=re_QFSmBqtb_7k64pfapYhibgNMZdAcN1eUd"
+      },
+      {
+        "file": "apps\\master\\.env",
+        "line": 62,
+        "snippet": "RESEND_API_KEY=re_QFSmBqtb_7k64pfapYhibgNMZdAcN1eUd"
+      },
+      {
+        "file": "apps\\master\\ClickFlash-Master-test-hotel-2\\.env",
+        "line": 30,
+        "snippet": "GALLERY_API_KEY=3a67678a197fb84adc4cb9f2adf2cfe9f07be9628fa8880364aa141369178e15"
+      },
+      {
+        "file": "apps\\master\\ClickFlash-Master-test-hotel-2\\.env",
+        "line": 43,
+        "snippet": "MONEYTRASH_API_KEY=bcd9fc8ada43e7b46ba19abc57d603f4d7197b215591fab4c3d2396ac0e40aa4"
+      },
+      {
+        "file": "apps\\master\\ClickFlash-Master-test-hotel-2\\.env",
+        "line": 47,
+        "snippet": "HUB_API_KEY=defaf6a2e48c51d244e7ea60069ad2a0122402718dd58b59770b956d859e67df"
+      },
+      {
+        "file": "apps\\moneytrash\\.env",
+        "line": 24,
+        "snippet": "CLOUD_API_KEY=79t16ZCsUW8QklRMdSxjVicPJLmGBn3a"
+      },
+      {
+        "file": "apps\\moneytrash\\CLOUDFLARE_DEPLOYMENT_GUIDE.md",
+        "line": 100,
+        "snippet": "apiKey: 'your-office-api-key'"
+      },
+      {
+        "file": "apps\\website\\.env",
+        "line": 31,
+        "snippet": "RESEND_API_KEY=[REDACTED]"
+      },
+      {
+        "file": "apps\\website\\src\\lib\\settings.ts",
+        "line": 127,
+        "snippet": "website_google_places_api_key: \"googlePlacesApiKey\","
+      },
+      {
+        "file": "claude-code\\mcp-server\\README.md",
+        "line": 77,
+        "snippet": "MCP_API_KEY=your-secret-token npm run start:http"
+      },
+      {
+        "file": "claude-code\\src\\services\\api\\bootstrap.ts",
+        "line": 55,
+        "snippet": "const apiKey = getAnthropicApiKey()"
+      },
+      {
+        "file": "claude-code\\src\\services\\api\\client.ts",
+        "line": 302,
+        "snippet": "apiKey: isClaudeAISubscriber() ? null : apiKey || getAnthropicApiKey(),"
+      },
+      {
+        "file": "claude-code\\src\\services\\oauth\\getOauthProfile.ts",
+        "line": 13,
+        "snippet": "const apiKey = getAnthropicApiKey()"
+      },
+      {
+        "file": "claude-code\\src\\utils\\billing.ts",
+        "line": 24,
+        "snippet": "const hasApiKey = getAnthropicApiKey() !== null"
+      },
+      {
+        "file": "claude-code\\src\\utils\\fastMode.ts",
+        "line": 427,
+        "snippet": "const apiKey = getAnthropicApiKey()"
+      },
+      {
+        "file": "claude-code\\src\\utils\\http.ts",
+        "line": 87,
+        "snippet": "const apiKey = getAnthropicApiKey()"
+      }
+    ],
+    "todo_security": [
+      {
+        "file": "apps\\master\\backend\\setup\\cloudflare-provision.js",
+        "line": 11,
+        "snippet": "* Usage: node cloudflare-provision.js --desk-id=MASTER_XXX --api-token=xxx"
+      },
+      {
+        "file": "apps\\master\\backend\\setup\\cloudflare-provision.js",
+        "line": 267,
+        "snippet": "console.error('Usage: node cloudflare-provision.js --desk-id=MASTER_XXX --api-token=xxx --account-id=xxx');"
+      },
+      {
+        "file": "apps\\touch\\docs\\PRODUCTION-READY.md",
+        "line": 171,
+        "snippet": "- \u26a0\ufe0f **TODO:** Set up API authentication"
+      },
+      {
+        "file": "apps\\website\\public\\gallery\\assets\\index-BKjQkWmz.js",
+        "line": 103,
+        "snippet": "Learn more: https://react.dev/warnings/version-mismatch`))})(),typeof Map==\"function\"&&Map.prototype!=null&&typeof Map.prototype.forEach==\"function\"&&typeof Set==\"function\"&&Set.prototype!=null&&typeo"
+      },
+      {
+        "file": "apps\\website\\public\\gallery\\assets\\index-BKjQkWmz.js",
+        "line": 109,
+        "snippet": "`,onClick:v&&E?E:g,style:h,children:[i.jsxDEV(\"div\",{className:\"absolute inset-0 pointer-events-none z-[1] [transform:var(--photo-transform)]\",style:{\"--photo-transform\":T.transform}},void 0,!1,{fileN"
+      },
+      {
+        "file": "apps\\website\\public\\gallery\\assets\\index-C9hhMWVa.js",
+        "line": 220,
+        "snippet": "root.render(<App />);`),t.unstable_strictMode===!0&&(l=!0),t.identifierPrefix!==void 0&&(n=t.identifierPrefix),t.onUncaughtError!==void 0&&(a=t.onUncaughtError),t.onCaughtError!==void 0&&(o=t.onCaught"
+      },
+      {
+        "file": "apps\\website\\public\\gallery\\assets\\index-C9hhMWVa.js",
+        "line": 226,
+        "snippet": "`,onClick:y&&S?S:b,style:g,children:[i.jsxDEV(\"div\",{className:\"absolute inset-0 pointer-events-none z-[1] [transform:var(--photo-transform)]\",style:{\"--photo-transform\":T.transform}},void 0,!1,{fileN"
+      },
+      {
+        "file": "claude-code\\src\\commands\\ultraplan.tsx",
+        "line": 20,
+        "snippet": "// TODO(prod-hardening): OAuth token may go stale over the 30min poll;"
+      },
+      {
+        "file": "claude-code\\src\\services\\api\\client.ts",
+        "line": 232,
+        "snippet": "// TODO: Cache either GoogleAuth instance or AuthClient to improve performance"
+      },
+      {
+        "file": "claude-code\\src\\services\\mcp\\client.ts",
+        "line": 681,
+        "snippet": "// TODO: Use the auth token provided in the lockfile"
+      },
+      {
+        "file": "claude-code\\src\\services\\mcp\\xaa.ts",
+        "line": 229,
+        "snippet": "* TODO(xaa-ga): consult `token_endpoint_auth_methods_supported` from IdP"
+      },
+      {
+        "file": "claude-code\\src\\utils\\secureStorage\\index.ts",
+        "line": 14,
+        "snippet": "// TODO: add libsecret support for Linux"
+      },
+      {
+        "file": "docs\\archive\\MASTER_CLOUD_CONFIGURATION_SYSTEM.md",
+        "line": 31,
+        "snippet": "node setup/cloudflare-provision.js --desk-id=MASTER_XXX --api-token=xxx --account-id=xxx"
+      }
+    ],
+    "bearer_token": [
+      {
+        "file": "apps\\master\\tests\\e2e\\auth.spec.ts",
+        "line": 136,
+        "snippet": "headers: { Authorization: \"Bearer invalid-jwt-token-here\" },"
+      },
+      {
+        "file": "apps\\master\\tests\\e2e\\security.spec.ts",
+        "line": 135,
+        "snippet": "headers: { Authorization: \"Bearer invalid-jwt-token-here\" },"
+      },
+      {
+        "file": "apps\\master\\tests\\mocks\\handlers\\authHandlers.ts",
+        "line": 33,
+        "snippet": "if (authHeader?.includes('Bearer mock-jwt-token-12345')) {"
+      }
+    ]
+  }
+}

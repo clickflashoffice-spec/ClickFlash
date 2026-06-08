@@ -1,0 +1,78 @@
+{
+  "pnpm_install_success": true,
+  "pnpm_audit_exit_code": 1,
+  "vulnerabilities": {
+    "critical": 1,
+    "high": 48,
+    "moderate": 37,
+    "low": 5
+  },
+  "key_issues": [
+    {
+      "package": "protobufjs",
+      "severity": "critical",
+      "path": "apps__gallery>@google/genai>protobufjs",
+      "patched": ">=7.5.5"
+    },
+    {
+      "package": "react-router",
+      "severity": "high",
+      "path": "apps__master>react-router-dom>react-router",
+      "patched": ">=7.15.0"
+    },
+    {
+      "package": "next",
+      "severity": "high",
+      "path": "apps__website>next",
+      "patched": ">=15.5.18"
+    },
+    {
+      "package": "tar",
+      "severity": "high",
+      "path": "apps__touch>bcrypt>@mapbox/node-pre-gyp>tar",
+      "patched": ">=7.5.11"
+    },
+    {
+      "package": "systeminformation",
+      "severity": "high",
+      "path": "apps__master>systeminformation",
+      "patched": ">=5.31.6"
+    },
+    {
+      "package": "minimatch",
+      "severity": "high",
+      "path": "apps__master>archiver>readdir-glob>minimatch",
+      "patched": ">=9.0.7"
+    },
+    {
+      "package": "rollup",
+      "severity": "high",
+      "path": "apps__website>@sentry/nextjs>rollup",
+      "patched": ">=4.59.0"
+    },
+    {
+      "package": "lodash",
+      "severity": "high",
+      "path": "apps__master>archiver>archiver-utils>lodash",
+      "patched": ">=4.18.0"
+    },
+    {
+      "package": "fast-xml-parser",
+      "severity": "high",
+      "path": "apps__moneytrash>@aws-sdk/client-s3>@aws-sdk/core>@aws-sdk/xml-builder>fast-xml-parser",
+      "patched": ">=5.5.6"
+    },
+    {
+      "package": "serialize-javascript",
+      "severity": "high",
+      "path": "apps__website>@sentry/nextjs>@sentry/webpack-plugin>webpack>terser-webpack-plugin>serialize-javascript",
+      "patched": ">=7.0.3"
+    }
+  ],
+  "peer_dependency_warnings": [
+    "apps/gallery: @stripe/react-stripe-js unmet peer react@^16.8.0 || ^17.0.0 || ^18.0.0 (found 19.2.4)",
+    "apps/master: dmg-builder / electron-builder-squirrel-windows version mismatch",
+    "apps/touch: dmg-builder / electron-builder-squirrel-windows version mismatch",
+    "apps/website: @cloudflare/next-on-pages missing peer vercel@>=30.0.0 && <=47.0.4"
+  ]
+}

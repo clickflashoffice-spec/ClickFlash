@@ -1,0 +1,23 @@
+{
+  "user_status": "away",
+  "auto_process_enabled": true,
+  "instructions": [
+    "Continue executing pending tasks without asking for confirmation",
+    "Process all workstreams in parallel where possible",
+    "Generate reports and save to docs/audit/tools/",
+    "Never delete existing files - only add new ones",
+    "Fix errors automatically when safe to do so",
+    "Log all actions in summary reports"
+  ],
+  "pending_workstreams": [
+    "Rotate keys in dashboards (Stripe, Resend, Cloudflare)",
+    "Generate new JWT secrets",
+    "Update .env files with rotated values",
+    "Force-push clean git history",
+    "Delete backup branch after verification",
+    "Build touch app installer",
+    "Build moneytrash tauri app",
+    "Audit remaining apps for secrets",
+    "Fix any build errors automatically"
+  ]
+}

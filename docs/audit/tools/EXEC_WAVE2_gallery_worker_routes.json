@@ -1,0 +1,21 @@
+{
+  "app": "gallery",
+  "source": "apps/gallery/backend/src/server.ts",
+  "routes": [
+    "/api/",
+    "/api/auth/login",
+    "/api/cart/recovered",
+    "/api/cart/snapshot",
+    "/api/checkout",
+    "/api/cloud/upload-photo",
+    "/api/files/",
+    "/api/health",
+    "/api/pricing",
+    "/api/webhook",
+    "/api/website/access-code",
+    "/api/website/bookings",
+    "/api/website/contact",
+    "/api/website/portfolio"
+  ],
+  "count": 14
+}

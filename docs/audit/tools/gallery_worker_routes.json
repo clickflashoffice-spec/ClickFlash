@@ -1,0 +1,184 @@
+[
+  {
+    "method": "GET",
+    "route": "Origin",
+    "file": "server.ts",
+    "line": 56,
+    "snippet": "const requestOrigin = request.headers.get('Origin');"
+  },
+  {
+    "method": "GET",
+    "route": "CF-Connecting-IP",
+    "file": "server.ts",
+    "line": 117,
+    "snippet": "const checkoutIp = request.headers.get(\"CF-Connecting-IP\") ?? \"unknown\";"
+  },
+  {
+    "method": "GET",
+    "route": "stripe-signature",
+    "file": "server.ts",
+    "line": 303,
+    "snippet": "const sigHeader = request.headers.get('stripe-signature');"
+  },
+  {
+    "method": "GET",
+    "route": "category",
+    "file": "server.ts",
+    "line": 383,
+    "snippet": "const category = url.searchParams.get(\"category\");"
+  },
+  {
+    "method": "GET",
+    "route": "featured",
+    "file": "server.ts",
+    "line": 384,
+    "snippet": "const featured = url.searchParams.get(\"featured\") === \"true\";"
+  },
+  {
+    "method": "GET",
+    "route": "CF-Connecting-IP",
+    "file": "server.ts",
+    "line": 460,
+    "snippet": "const cartIp = request.headers.get(\"CF-Connecting-IP\") ?? \"unknown\";"
+  },
+  {
+    "method": "GET",
+    "route": "hotelId",
+    "file": "server.ts",
+    "line": 545,
+    "snippet": "const hotelId = url.searchParams.get(\"hotelId\") || null;"
+  },
+  {
+    "method": "GET",
+    "route": "date",
+    "file": "server.ts",
+    "line": 546,
+    "snippet": "const dateStr = url.searchParams.get(\"date\") || new Date().toISOString().split(\"T\")[0];"
+  },
+  {
+    "method": "GET",
+    "route": "CF-Connecting-IP",
+    "file": "server.ts",
+    "line": 621,
+    "snippet": "const clientIp = request.headers.get('CF-Connecting-IP') ??"
+  },
+  {
+    "method": "GET",
+    "route": "X-Forwarded-For",
+    "file": "server.ts",
+    "line": 622,
+    "snippet": "request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ??"
+  },
+  {
+    "method": "GET",
+    "route": "Authorization",
+    "file": "server.ts",
+    "line": 679,
+    "snippet": "const authHeader = request.headers.get(\"Authorization\");"
+  },
+  {
+    "method": "GET",
+    "route": "filter",
+    "file": "server.ts",
+    "line": 743,
+    "snippet": "const filterParam = url.searchParams.get(\"filter\");"
+  },
+  {
+    "method": "GET",
+    "route": "limit",
+    "file": "server.ts",
+    "line": 744,
+    "snippet": "const limit = parseInt(url.searchParams.get(\"limit\") || \"100\", 10);"
+  },
+  {
+    "method": "GET",
+    "route": "offset",
+    "file": "server.ts",
+    "line": 745,
+    "snippet": "const offset = parseInt(url.searchParams.get(\"offset\") || \"0\", 10);"
+  },
+  {
+    "method": "GET",
+    "route": "content-type",
+    "file": "server.ts",
+    "line": 979,
+    "snippet": "const contentType = request.headers.get(\"content-type\") || \"\";"
+  },
+  {
+    "method": "GET",
+    "route": "file",
+    "file": "server.ts",
+    "line": 994,
+    "snippet": "const file = formData.get(\"file\") as unknown as File;"
+  },
+  {
+    "method": "GET",
+    "route": "photoId",
+    "file": "server.ts",
+    "line": 995,
+    "snippet": "const photoId = formData.get(\"photoId\") as string;"
+  },
+  {
+    "method": "GET",
+    "route": "albumId",
+    "file": "server.ts",
+    "line": 996,
+    "snippet": "const albumId = formData.get(\"albumId\") as string;"
+  },
+  {
+    "method": "GET",
+    "route": "desk_id",
+    "file": "server.ts",
+    "line": 997,
+    "snippet": "const deskId = formData.get(\"desk_id\") as string;"
+  },
+  {
+    "method": "GET",
+    "route": "CF-Connecting-IP",
+    "file": "server.ts",
+    "line": 1055,
+    "snippet": "const contactIp = request.headers.get(\"CF-Connecting-IP\") ?? \"unknown\";"
+  },
+  {
+    "method": "GET",
+    "route": "CF-Connecting-IP",
+    "file": "server.ts",
+    "line": 1095,
+    "snippet": "const bookingIp = request.headers.get(\"CF-Connecting-IP\") ?? \"unknown\";"
+  },
+  {
+    "method": "GET",
+    "route": "Authorization",
+    "file": "tenantIsolation.ts",
+    "line": 32,
+    "snippet": "const authHeader = request.headers.get('Authorization');"
+  },
+  {
+    "method": "GET",
+    "route": "e",
+    "file": "services\\r2SignedUrlService.ts",
+    "line": 68,
+    "snippet": "const expiresStr = parsedUrl.searchParams.get('e');"
+  },
+  {
+    "method": "GET",
+    "route": "s",
+    "file": "services\\r2SignedUrlService.ts",
+    "line": 69,
+    "snippet": "const signature = parsedUrl.searchParams.get('s');"
+  },
+  {
+    "method": "GET",
+    "route": "e",
+    "file": "services\\r2SignedUrlService.ts",
+    "line": 145,
+    "snippet": "const expiresStr = parsedUrl.searchParams.get('e');"
+  },
+  {
+    "method": "GET",
+    "route": "s",
+    "file": "services\\r2SignedUrlService.ts",
+    "line": 146,
+    "snippet": "const signature = parsedUrl.searchParams.get('s');"
+  }
+]

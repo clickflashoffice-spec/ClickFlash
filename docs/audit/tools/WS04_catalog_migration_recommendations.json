@@ -1,0 +1,817 @@
+[
+  {
+    "app": "gallery",
+    "package_json": "apps/gallery/package.json",
+    "recommendations": {
+      "dependencies": [
+        {
+          "name": "@sentry/react",
+          "current_version": "^10.39.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@tanstack/react-query",
+          "current_version": "^5.90.10",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "bcryptjs",
+          "current_version": "^2.4.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "clsx",
+          "current_version": "^2.1.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "cors",
+          "current_version": "^2.8.6",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "date-fns",
+          "current_version": "^4.1.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "dexie",
+          "current_version": "^4.3.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "express",
+          "current_version": "^5.2.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "formidable",
+          "current_version": "2.1.5",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "helmet",
+          "current_version": "^8.1.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "jsonwebtoken",
+          "current_version": "^9.0.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "lucide-react",
+          "current_version": "^0.577.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "react",
+          "current_version": "^19.2.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "react-dom",
+          "current_version": "^19.2.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "tailwind-merge",
+          "current_version": "^3.4.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "zod",
+          "current_version": "^4.1.13",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "zustand",
+          "current_version": "^5.0.0",
+          "recommended": "catalog:"
+        }
+      ],
+      "devDependencies": [
+        {
+          "name": "@playwright/test",
+          "current_version": "^1.58.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@testing-library/jest-dom",
+          "current_version": "^6.9.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@testing-library/react",
+          "current_version": "^16.3.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@types/react",
+          "current_version": "^19.2.7",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@types/react-dom",
+          "current_version": "^19.2.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@vitejs/plugin-react",
+          "current_version": "^5.1.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "eslint",
+          "current_version": "^9.39.4",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "jest",
+          "current_version": "^29.7.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "tailwindcss",
+          "current_version": "^3.4.18",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "ts-jest",
+          "current_version": "^29.4.6",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "typescript",
+          "current_version": "^5.9.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "vite",
+          "current_version": "^7.3.2",
+          "recommended": "catalog:"
+        }
+      ]
+    }
+  },
+  {
+    "app": "installer",
+    "package_json": "apps/installer/package.json",
+    "recommendations": {
+      "dependencies": [
+        {
+          "name": "clsx",
+          "current_version": "^2.1.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "lucide-react",
+          "current_version": "^0.562.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "react",
+          "current_version": "^19.2.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "react-dom",
+          "current_version": "^19.2.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "tailwind-merge",
+          "current_version": "^3.4.0",
+          "recommended": "catalog:"
+        }
+      ],
+      "devDependencies": [
+        {
+          "name": "@types/react",
+          "current_version": "^19.2.7",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@types/react-dom",
+          "current_version": "^19.2.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@vitejs/plugin-react",
+          "current_version": "^5.1.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "tailwindcss",
+          "current_version": "^3.4.18",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "typescript",
+          "current_version": "^5.9.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "vite",
+          "current_version": "^7.3.2",
+          "recommended": "catalog:"
+        }
+      ]
+    }
+  },
+  {
+    "app": "management",
+    "package_json": "apps/management/package.json",
+    "recommendations": {
+      "dependencies": [
+        {
+          "name": "@sentry/react",
+          "current_version": "^10.39.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@tanstack/react-query",
+          "current_version": "^5.90.10",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "clsx",
+          "current_version": "^2.1.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "date-fns",
+          "current_version": "^4.1.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "dexie",
+          "current_version": "^4.3.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "formidable",
+          "current_version": "2.1.5",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "jsonwebtoken",
+          "current_version": "^9.0.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "lucide-react",
+          "current_version": "^0.577.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "react",
+          "current_version": "^19.2.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "react-dom",
+          "current_version": "^19.2.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "tailwind-merge",
+          "current_version": "^3.4.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "zod",
+          "current_version": "^4.1.13",
+          "recommended": "catalog:"
+        }
+      ],
+      "devDependencies": [
+        {
+          "name": "@playwright/test",
+          "current_version": "^1.58.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@testing-library/jest-dom",
+          "current_version": "^6.9.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@testing-library/react",
+          "current_version": "^16.3.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@types/react",
+          "current_version": "^19.2.7",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@types/react-dom",
+          "current_version": "^19.2.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@vitejs/plugin-react",
+          "current_version": "^5.1.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "eslint",
+          "current_version": "^9.39.4",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "jest",
+          "current_version": "^29.7.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "tailwindcss",
+          "current_version": "^3.4.18",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "ts-jest",
+          "current_version": "^29.4.6",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "typescript",
+          "current_version": "^5.9.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "vite",
+          "current_version": "^7.3.2",
+          "recommended": "catalog:"
+        }
+      ]
+    }
+  },
+  {
+    "app": "master",
+    "package_json": "apps/master/package.json",
+    "recommendations": {
+      "dependencies": [
+        {
+          "name": "@sentry/node",
+          "current_version": "^10.46.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@sentry/react",
+          "current_version": "^10.39.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@tanstack/react-query",
+          "current_version": "^5.90.10",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "bcryptjs",
+          "current_version": "^2.4.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "clsx",
+          "current_version": "^2.1.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "dexie",
+          "current_version": "^4.2.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "express",
+          "current_version": "^5.1.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "formidable",
+          "current_version": "^2.1.5",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "helmet",
+          "current_version": "^8.1.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "jsonwebtoken",
+          "current_version": "^9.0.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "lucide-react",
+          "current_version": "^0.562.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "react",
+          "current_version": "^19.2.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "react-dom",
+          "current_version": "^19.2.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "sharp",
+          "current_version": "^0.33.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "tailwind-merge",
+          "current_version": "^3.4.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "uuid",
+          "current_version": "^10.0.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "zod",
+          "current_version": "^4.1.13",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "zustand",
+          "current_version": "^5.0.12",
+          "recommended": "catalog:"
+        }
+      ],
+      "devDependencies": [
+        {
+          "name": "@playwright/test",
+          "current_version": "^1.58.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@testing-library/jest-dom",
+          "current_version": "^6.9.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@testing-library/react",
+          "current_version": "^16.3.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@types/react",
+          "current_version": "^19.2.7",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@types/react-dom",
+          "current_version": "^19.2.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@vitejs/plugin-react",
+          "current_version": "^5.1.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "eslint",
+          "current_version": "^9.39.4",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "jest",
+          "current_version": "^29.7.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "tailwindcss",
+          "current_version": "^3.4.18",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "ts-jest",
+          "current_version": "^29.4.6",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "typescript",
+          "current_version": "^5.9.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "vite",
+          "current_version": "^7.3.2",
+          "recommended": "catalog:"
+        }
+      ]
+    }
+  },
+  {
+    "app": "moneytrash",
+    "package_json": "apps/moneytrash/package.json",
+    "recommendations": {
+      "dependencies": [
+        {
+          "name": "clsx",
+          "current_version": "^2.1.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "lucide-react",
+          "current_version": "^0.577.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "react",
+          "current_version": "^19.2.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "react-dom",
+          "current_version": "^19.2.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "tailwind-merge",
+          "current_version": "^3.4.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "uuid",
+          "current_version": "^11.0.3",
+          "recommended": "catalog:"
+        }
+      ],
+      "devDependencies": [
+        {
+          "name": "@playwright/test",
+          "current_version": "^1.50.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@types/react",
+          "current_version": "^19.2.7",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@types/react-dom",
+          "current_version": "^19.2.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@vitejs/plugin-react",
+          "current_version": "^5.1.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "eslint",
+          "current_version": "^9",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "tailwindcss",
+          "current_version": "^3.4.18",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "typescript",
+          "current_version": "^5.9.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "vite",
+          "current_version": "^7.3.2",
+          "recommended": "catalog:"
+        }
+      ]
+    }
+  },
+  {
+    "app": "touch",
+    "package_json": "apps/touch/package.json",
+    "recommendations": {
+      "dependencies": [
+        {
+          "name": "@sentry/node",
+          "current_version": "^10.48.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@sentry/react",
+          "current_version": "^10.48.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@tanstack/react-query",
+          "current_version": "^5.90.10",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "clsx",
+          "current_version": "^2.1.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "cors",
+          "current_version": "^2.8.5",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "dexie",
+          "current_version": "^4.2.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "express",
+          "current_version": "^5.2.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "formidable",
+          "current_version": "2.1.5",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "helmet",
+          "current_version": "^8.1.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "jsonwebtoken",
+          "current_version": "^9.0.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "react",
+          "current_version": "^19.2.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "react-dom",
+          "current_version": "^19.2.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "sharp",
+          "current_version": "^0.34.5",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "tailwind-merge",
+          "current_version": "^3.4.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "uuid",
+          "current_version": "^10.0.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "zod",
+          "current_version": "^4.1.13",
+          "recommended": "catalog:"
+        }
+      ],
+      "devDependencies": [
+        {
+          "name": "@playwright/test",
+          "current_version": "^1.58.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@testing-library/jest-dom",
+          "current_version": "^6.9.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@testing-library/react",
+          "current_version": "^16.3.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@types/react",
+          "current_version": "^19.2.7",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@types/react-dom",
+          "current_version": "^19.2.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@vitejs/plugin-react",
+          "current_version": "^5.1.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "eslint",
+          "current_version": "^9.39.4",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "jest",
+          "current_version": "^29.7.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "tailwindcss",
+          "current_version": "^3.4.18",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "ts-jest",
+          "current_version": "^29.4.6",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "typescript",
+          "current_version": "^5.9.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "vite",
+          "current_version": "^7.3.2",
+          "recommended": "catalog:"
+        }
+      ]
+    }
+  },
+  {
+    "app": "website",
+    "package_json": "apps/website/package.json",
+    "recommendations": {
+      "dependencies": [
+        {
+          "name": "clsx",
+          "current_version": "^2.1.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "lucide-react",
+          "current_version": "^0.577.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "react",
+          "current_version": "^19.2.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "react-dom",
+          "current_version": "^19.2.0",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "tailwind-merge",
+          "current_version": "^3.4.0",
+          "recommended": "catalog:"
+        }
+      ],
+      "devDependencies": [
+        {
+          "name": "@playwright/test",
+          "current_version": "^1.58.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@testing-library/react",
+          "current_version": "^16.3.2",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@types/react",
+          "current_version": "^19.2.7",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@types/react-dom",
+          "current_version": "^19.2.3",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "@vitejs/plugin-react",
+          "current_version": "^5.1.1",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "eslint",
+          "current_version": "^9.39.4",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "tailwindcss",
+          "current_version": "^3.4.18",
+          "recommended": "catalog:"
+        },
+        {
+          "name": "typescript",
+          "current_version": "^5.9.3",
+          "recommended": "catalog:"
+        }
+      ]
+    }
+  }
+]

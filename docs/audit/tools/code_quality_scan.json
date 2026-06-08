@@ -1,0 +1,70 @@
+{
+  "tsc": {
+    "gallery": {
+      "error": "no package.json"
+    },
+    "installer": {
+      "error": "no package.json"
+    },
+    "management": {
+      "error": "no package.json"
+    },
+    "master": {
+      "error": "no package.json"
+    },
+    "moneytrash": {
+      "error": "no package.json"
+    },
+    "touch": {
+      "error": "no package.json"
+    },
+    "website": {
+      "error": "no package.json"
+    },
+    "packages/types": {
+      "has_tsconfig": true,
+      "command": "pnpm typecheck",
+      "status": "pass",
+      "exit_code": 0,
+      "output": "\n> @clickflash/types@4.2.0 typecheck C:\\Users\\alamo\\Desktop\\ClickFlash\\packages\\types\n> tsc --noEmit\n\n\n"
+    },
+    "packages/ui": {
+      "has_tsconfig": true,
+      "command": "pnpm typecheck",
+      "status": "pass",
+      "exit_code": 0,
+      "output": "\n> @clickflash/ui@4.2.0 typecheck C:\\Users\\alamo\\Desktop\\ClickFlash\\packages\\ui\n> tsc --noEmit\n\n\n"
+    }
+  },
+  "lint": {
+    "gallery": {
+      "error": "no package.json"
+    },
+    "installer": {
+      "error": "no package.json"
+    },
+    "management": {
+      "error": "no package.json"
+    },
+    "master": {
+      "error": "no package.json"
+    },
+    "moneytrash": {
+      "error": "no package.json"
+    },
+    "touch": {
+      "error": "no package.json"
+    },
+    "website": {
+      "error": "no package.json"
+    },
+    "packages/types": {
+      "command": null,
+      "status": "not_run"
+    },
+    "packages/ui": {
+      "command": null,
+      "status": "not_run"
+    }
+  }
+}

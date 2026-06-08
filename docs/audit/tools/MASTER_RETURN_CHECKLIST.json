@@ -1,0 +1,71 @@
+{
+  "timestamp": "2025-06-08",
+  "user_status": "away",
+  "auto_processing": "complete",
+  "next_phase": "human_actions_required",
+  "master_checklist": [
+    {
+      "step": 1,
+      "action": "Rotate Stripe API key",
+      "url": "https://dashboard.stripe.com/test/apikeys",
+      "details": "Roll the test key starting with rk_test_51Tfm2N",
+      "time_estimate": "2 minutes"
+    },
+    {
+      "step": 2,
+      "action": "Rotate Resend API key",
+      "url": "https://resend.com/api-keys",
+      "details": "Revoke key starting with re_cYq1p8w3, create new",
+      "time_estimate": "2 minutes"
+    },
+    {
+      "step": 3,
+      "action": "Rotate Cloudflare API token",
+      "url": "https://dash.cloudflare.com/profile/api-tokens",
+      "details": "Roll token starting with cfut_VMGMGxL1",
+      "time_estimate": "2 minutes"
+    },
+    {
+      "step": 4,
+      "action": "Update .env files with new secrets",
+      "files": [
+        "apps/master/.env",
+        "apps/touch/.env",
+        "apps/gallery/.env",
+        "apps/management/.env",
+        "apps/moneytrash/.env"
+      ],
+      "details": "Use JWT secrets from GENERATED_JWT_SECRETS.json",
+      "time_estimate": "5 minutes"
+    },
+    {
+      "step": 5,
+      "action": "Force-push clean git history",
+      "command": "git push origin --force --all",
+      "details": "All collaborators must re-clone after this",
+      "time_estimate": "1 minute"
+    },
+    {
+      "step": 6,
+      "action": "Delete backup branch",
+      "command": "git branch -D backup-original-history-before-rotation",
+      "details": "Only after verifying everything works",
+      "time_estimate": "30 seconds"
+    },
+    {
+      "step": 7,
+      "action": "Install new Master app",
+      "installer": "apps/master/release/ClickFlash Master OS Setup 4.2.0.exe",
+      "details": "Run uninstall-old.bat first as Administrator",
+      "time_estimate": "3 minutes"
+    },
+    {
+      "step": 8,
+      "action": "Test backend starts correctly",
+      "details": "Verify no 'Backend bundle not found' error",
+      "time_estimate": "2 minutes"
+    }
+  ],
+  "remaining_issues_count": 0,
+  "remaining_issues_sample": []
+}

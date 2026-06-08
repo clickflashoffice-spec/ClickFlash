@@ -1,0 +1,217 @@
+{
+  "total_frontend_api_files": 61,
+  "files_with_conditional_patterns": 23,
+  "analysis": [
+    {
+      "file": "apps/gallery/src/services/stripeEdgeService.ts",
+      "findings": {
+        "localhost_ref": 3,
+        "conditional_api": 3
+      },
+      "match_types": [
+        "localhost_ref",
+        "conditional_api"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/stripeService.ts",
+      "findings": {
+        "localhost_ref": 1,
+        "conditional_api": 1
+      },
+      "match_types": [
+        "localhost_ref",
+        "conditional_api"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/App.tsx",
+      "findings": {
+        "localhost_ref": 1
+      },
+      "match_types": [
+        "localhost_ref"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/setupTests.tsx",
+      "findings": {
+        "dual_backend": 3
+      },
+      "match_types": [
+        "dual_backend"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/settings/GeneralSettings.tsx",
+      "findings": {
+        "localhost_ref": 2
+      },
+      "match_types": [
+        "localhost_ref"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/settings/KioskPairing.tsx",
+      "findings": {
+        "localhost_ref": 1
+      },
+      "match_types": [
+        "localhost_ref"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/touch/KioskSettingsModal.tsx",
+      "findings": {
+        "localhost_ref": 1
+      },
+      "match_types": [
+        "localhost_ref"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/advancedCheckout.ts",
+      "findings": {
+        "dual_backend": 2
+      },
+      "match_types": [
+        "dual_backend"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/apiService.ts",
+      "findings": {
+        "localhost_ref": 1
+      },
+      "match_types": [
+        "localhost_ref"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/cloudApiService.ts",
+      "findings": {
+        "localhost_ref": 3
+      },
+      "match_types": [
+        "localhost_ref"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/faceRecognitionService.ts",
+      "findings": {
+        "localhost_ref": 1
+      },
+      "match_types": [
+        "localhost_ref"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/moneyTrashService.ts",
+      "findings": {
+        "conditional_api": 1
+      },
+      "match_types": [
+        "conditional_api"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/pb.ts",
+      "findings": {
+        "localhost_ref": 2
+      },
+      "match_types": [
+        "localhost_ref"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/utils/testUtils.tsx",
+      "findings": {
+        "dual_backend": 2
+      },
+      "match_types": [
+        "dual_backend"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/__tests__/orderAccess.test.ts",
+      "findings": {
+        "localhost_ref": 1
+      },
+      "match_types": [
+        "localhost_ref"
+      ]
+    },
+    {
+      "file": "apps/management/src/setupTests.ts",
+      "findings": {
+        "localhost_ref": 1
+      },
+      "match_types": [
+        "localhost_ref"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/management/AIChatBot.tsx",
+      "findings": {
+        "conditional_api": 1
+      },
+      "match_types": [
+        "conditional_api"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/management/settings/ConnectionSettings.tsx",
+      "findings": {
+        "localhost_ref": 2
+      },
+      "match_types": [
+        "localhost_ref"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/modals/ExtensionCreateModal.tsx",
+      "findings": {
+        "dual_backend": 2
+      },
+      "match_types": [
+        "dual_backend"
+      ]
+    },
+    {
+      "file": "apps/management/src/services/geminiService.ts",
+      "findings": {
+        "conditional_api": 1
+      },
+      "match_types": [
+        "conditional_api"
+      ]
+    },
+    {
+      "file": "apps/management/src/services/pb.ts",
+      "findings": {
+        "localhost_ref": 1
+      },
+      "match_types": [
+        "localhost_ref"
+      ]
+    },
+    {
+      "file": "apps/management/src/utils/env.ts",
+      "findings": {
+        "localhost_ref": 2
+      },
+      "match_types": [
+        "localhost_ref"
+      ]
+    },
+    {
+      "file": "apps/management/src/__mocks__/envMock.js",
+      "findings": {
+        "localhost_ref": 1
+      },
+      "match_types": [
+        "localhost_ref"
+      ]
+    }
+  ]
+}

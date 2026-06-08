@@ -1,0 +1,1442 @@
+[
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\001_initial_schema.sql",
+    "new_name": "20260101000000_gallery_001_initial_schema.sql",
+    "timestamp": "20260101000000"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\002_enhanced_photos_schema.sql",
+    "new_name": "20260101000100_gallery_002_enhanced_photos_schema.sql",
+    "timestamp": "20260101000100"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\002_update_schema.sql",
+    "new_name": "20260101000200_gallery_002_update_schema.sql",
+    "timestamp": "20260101000200"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\003_add_destinations.sql",
+    "new_name": "20260101000300_gallery_003_add_destinations.sql",
+    "timestamp": "20260101000300"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\004_add_session_types.sql",
+    "new_name": "20260101000400_gallery_004_add_session_types.sql",
+    "timestamp": "20260101000400"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\005_add_packs_and_bookings.sql",
+    "new_name": "20260101000500_gallery_005_add_packs_and_bookings.sql",
+    "timestamp": "20260101000500"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\006_add_manual_edits.sql",
+    "new_name": "20260101000600_gallery_006_add_manual_edits.sql",
+    "timestamp": "20260101000600"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\007_add_album_pricing.sql",
+    "new_name": "20260101000700_gallery_007_add_album_pricing.sql",
+    "timestamp": "20260101000700"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\008_add_payments_and_webhooks.sql",
+    "new_name": "20260101000800_gallery_008_add_payments_and_webhooks.sql",
+    "timestamp": "20260101000800"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\009_add_scalability_indexes.sql",
+    "new_name": "20260101000900_gallery_009_add_scalability_indexes.sql",
+    "timestamp": "20260101000900"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\010_gallery_query_optimization.sql",
+    "new_name": "20260101001000_gallery_010_gallery_query_optimization.sql",
+    "timestamp": "20260101001000"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\011_add_refresh_tokens_table.sql",
+    "new_name": "20260101001100_gallery_011_add_refresh_tokens_table.sql",
+    "timestamp": "20260101001100"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\012_add_login_attempts.sql",
+    "new_name": "20260101001200_gallery_012_add_login_attempts.sql",
+    "timestamp": "20260101001200"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\013_abandoned_carts.sql",
+    "new_name": "20260101001300_gallery_013_abandoned_carts.sql",
+    "timestamp": "20260101001300"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\014_dynamic_pricing.sql",
+    "new_name": "20260101001400_gallery_014_dynamic_pricing.sql",
+    "timestamp": "20260101001400"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\migrations\\050_moneytrash_support.sql",
+    "new_name": "20260101001500_gallery_050_moneytrash_support.sql",
+    "timestamp": "20260101001500"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\shared\\migrations\\001_initial_schema.sql",
+    "new_name": "20260101001600_gallery_001_initial_schema.sql",
+    "timestamp": "20260101001600"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\shared\\migrations\\002_enhanced_photos_schema.sql",
+    "new_name": "20260101001700_gallery_002_enhanced_photos_schema.sql",
+    "timestamp": "20260101001700"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\shared\\migrations\\002_update_schema.sql",
+    "new_name": "20260101001800_gallery_002_update_schema.sql",
+    "timestamp": "20260101001800"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\shared\\migrations\\003_add_destinations.sql",
+    "new_name": "20260101001900_gallery_003_add_destinations.sql",
+    "timestamp": "20260101001900"
+  },
+  {
+    "app": "gallery",
+    "original": "apps\\gallery\\backend\\legacy\\shared\\migrations\\004_add_session_types.sql",
+    "new_name": "20260101002000_gallery_004_add_session_types.sql",
+    "timestamp": "20260101002000"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\001_initial_schema.sql",
+    "new_name": "20260101002100_management_001_initial_schema.sql",
+    "timestamp": "20260101002100"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\002_enhanced_photos_schema.sql",
+    "new_name": "20260101002200_management_002_enhanced_photos_schema.sql",
+    "timestamp": "20260101002200"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\003_add_destinations.sql",
+    "new_name": "20260101002300_management_003_add_destinations.sql",
+    "timestamp": "20260101002300"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\004_add_session_types.sql",
+    "new_name": "20260101002400_management_004_add_session_types.sql",
+    "timestamp": "20260101002400"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\005_add_packs_and_bookings.sql",
+    "new_name": "20260101002500_management_005_add_packs_and_bookings.sql",
+    "timestamp": "20260101002500"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\006_add_portfolio.sql",
+    "new_name": "20260101002600_management_006_add_portfolio.sql",
+    "timestamp": "20260101002600"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\007_add_fleet_monitoring.sql",
+    "new_name": "20260101002700_management_007_add_fleet_monitoring.sql",
+    "timestamp": "20260101002700"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\008_add_scalability_indexes.sql",
+    "new_name": "20260101002800_management_008_add_scalability_indexes.sql",
+    "timestamp": "20260101002800"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\009_add_booking_details.sql",
+    "new_name": "20260101002900_management_009_add_booking_details.sql",
+    "timestamp": "20260101002900"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\010_add_inventory_and_equipment.sql",
+    "new_name": "20260101003000_management_010_add_inventory_and_equipment.sql",
+    "timestamp": "20260101003000"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\011_add_analytics_schema.sql",
+    "new_name": "20260101003100_management_011_add_analytics_schema.sql",
+    "timestamp": "20260101003100"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\012_add_conflict_logging.sql",
+    "new_name": "20260101003200_management_012_add_conflict_logging.sql",
+    "timestamp": "20260101003200"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\013_add_hardware_locking.sql",
+    "new_name": "20260101003300_management_013_add_hardware_locking.sql",
+    "timestamp": "20260101003300"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\014_add_desk_id_to_users.sql",
+    "new_name": "20260101003400_management_014_add_desk_id_to_users.sql",
+    "timestamp": "20260101003400"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\015_add_marketing_tracking.sql",
+    "new_name": "20260101003500_management_015_add_marketing_tracking.sql",
+    "timestamp": "20260101003500"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\016_add_photographer_audits.sql",
+    "new_name": "20260101003600_management_016_add_photographer_audits.sql",
+    "timestamp": "20260101003600"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\017_align_sync_schema.sql",
+    "new_name": "20260101003700_management_017_align_sync_schema.sql",
+    "timestamp": "20260101003700"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\018_bi_sync_schema.sql",
+    "new_name": "20260101003800_management_018_bi_sync_schema.sql",
+    "timestamp": "20260101003800"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\019_add_desk_id_indexes.sql",
+    "new_name": "20260101003900_management_019_add_desk_id_indexes.sql",
+    "timestamp": "20260101003900"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\020_analytics_query_optimization.sql",
+    "new_name": "20260101004000_management_020_analytics_query_optimization.sql",
+    "timestamp": "20260101004000"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\021_add_refresh_tokens_table.sql",
+    "new_name": "20260101004100_management_021_add_refresh_tokens_table.sql",
+    "timestamp": "20260101004100"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\022_add_login_attempts.sql",
+    "new_name": "20260101004200_management_022_add_login_attempts.sql",
+    "timestamp": "20260101004200"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\023_update_schema.sql",
+    "new_name": "20260101004300_management_023_update_schema.sql",
+    "timestamp": "20260101004300"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\024_add_pricing_schema.sql",
+    "new_name": "20260101004400_management_024_add_pricing_schema.sql",
+    "timestamp": "20260101004400"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\025_multimaster_compatibility.sql",
+    "new_name": "20260101004500_management_025_multimaster_compatibility.sql",
+    "timestamp": "20260101004500"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\026_cloud_sync_tables.sql",
+    "new_name": "20260101004600_management_026_cloud_sync_tables.sql",
+    "timestamp": "20260101004600"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\027_add_fleet_heartbeats_table.sql",
+    "new_name": "20260101004700_management_027_add_fleet_heartbeats_table.sql",
+    "timestamp": "20260101004700"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\028_sync_columns.sql",
+    "new_name": "20260101004800_management_028_sync_columns.sql",
+    "timestamp": "20260101004800"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\029_crm_hr.sql",
+    "new_name": "20260101004900_management_029_crm_hr.sql",
+    "timestamp": "20260101004900"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\migrations\\030_dynamic_pricing.sql",
+    "new_name": "20260101005000_management_030_dynamic_pricing.sql",
+    "timestamp": "20260101005000"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\shared\\migrations\\001_initial_schema.sql",
+    "new_name": "20260101005100_management_001_initial_schema.sql",
+    "timestamp": "20260101005100"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\shared\\migrations\\002_enhanced_photos_schema.sql",
+    "new_name": "20260101005200_management_002_enhanced_photos_schema.sql",
+    "timestamp": "20260101005200"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\shared\\migrations\\002_update_schema.sql",
+    "new_name": "20260101005300_management_002_update_schema.sql",
+    "timestamp": "20260101005300"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\shared\\migrations\\003_add_destinations.sql",
+    "new_name": "20260101005400_management_003_add_destinations.sql",
+    "timestamp": "20260101005400"
+  },
+  {
+    "app": "management",
+    "original": "apps\\management\\backend\\shared\\migrations\\004_add_session_types.sql",
+    "new_name": "20260101005500_management_004_add_session_types.sql",
+    "timestamp": "20260101005500"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\003_add_pricing_schema.sql",
+    "new_name": "20260101005600_master_003_add_pricing_schema.sql",
+    "timestamp": "20260101005600"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\004_optimization_indexes.sql",
+    "new_name": "20260101005700_master_004_optimization_indexes.sql",
+    "timestamp": "20260101005700"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\034_add_kiosk_last_seen.sql",
+    "new_name": "20260101005800_master_034_add_kiosk_last_seen.sql",
+    "timestamp": "20260101005800"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\035_add_kiosk_folder_paths.sql",
+    "new_name": "20260101005900_master_035_add_kiosk_folder_paths.sql",
+    "timestamp": "20260101005900"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\036_high_volume_indices.sql",
+    "new_name": "20260101010000_master_036_high_volume_indices.sql",
+    "timestamp": "20260101010000"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\037_marketing_campaigns.sql",
+    "new_name": "20260101010100_master_037_marketing_campaigns.sql",
+    "timestamp": "20260101010100"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\038_gallery_tokens.sql",
+    "new_name": "20260101010200_master_038_gallery_tokens.sql",
+    "timestamp": "20260101010200"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\039_gallery_orders.sql",
+    "new_name": "20260101010300_master_039_gallery_orders.sql",
+    "timestamp": "20260101010300"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\040_test_data_gallery.sql",
+    "new_name": "20260101010400_master_040_test_data_gallery.sql",
+    "timestamp": "20260101010400"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\041_gallery_settings.sql",
+    "new_name": "20260101010500_master_041_gallery_settings.sql",
+    "timestamp": "20260101010500"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\042_queue_hardening.sql",
+    "new_name": "20260101010600_master_042_queue_hardening.sql",
+    "timestamp": "20260101010600"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\043_ensure_queue_fields.sql",
+    "new_name": "20260101010700_master_043_ensure_queue_fields.sql",
+    "timestamp": "20260101010700"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\044_photographer_ledger.sql",
+    "new_name": "20260101010800_master_044_photographer_ledger.sql",
+    "timestamp": "20260101010800"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\045_add_watermark_fields.sql",
+    "new_name": "20260101010900_master_045_add_watermark_fields.sql",
+    "timestamp": "20260101010900"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\047_restore_missing_permissions.sql",
+    "new_name": "20260101011000_master_047_restore_missing_permissions.sql",
+    "timestamp": "20260101011000"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\048_operation_logs_foundation.sql",
+    "new_name": "20260101011100_master_048_operation_logs_foundation.sql",
+    "timestamp": "20260101011100"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\049_sync_sequences_and_vector_clocks.sql",
+    "new_name": "20260101011200_master_049_sync_sequences_and_vector_clocks.sql",
+    "timestamp": "20260101011200"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\050_decoupled_fulfillment_queues.sql",
+    "new_name": "20260101011300_master_050_decoupled_fulfillment_queues.sql",
+    "timestamp": "20260101011300"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\051_add_kiosk_signing_secret.sql",
+    "new_name": "20260101011400_master_051_add_kiosk_signing_secret.sql",
+    "timestamp": "20260101011400"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\052_fix_queue_priority.sql",
+    "new_name": "20260101011500_master_052_fix_queue_priority.sql",
+    "timestamp": "20260101011500"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\053_add_missing_priorities.sql",
+    "new_name": "20260101011600_master_053_add_missing_priorities.sql",
+    "timestamp": "20260101011600"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\054_add_cloud_sync_tracking.sql",
+    "new_name": "20260101011700_master_054_add_cloud_sync_tracking.sql",
+    "timestamp": "20260101011700"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\055_data_management_settings.sql",
+    "new_name": "20260101011800_master_055_data_management_settings.sql",
+    "timestamp": "20260101011800"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\056_kiosk_telemetry.sql",
+    "new_name": "20260101011900_master_056_kiosk_telemetry.sql",
+    "timestamp": "20260101011900"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\056_photo_adjustments_stack.sql",
+    "new_name": "20260101012000_master_056_photo_adjustments_stack.sql",
+    "timestamp": "20260101012000"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\057_photo_quality_flags.sql",
+    "new_name": "20260101012100_master_057_photo_quality_flags.sql",
+    "timestamp": "20260101012100"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\057_retention_defaults.sql",
+    "new_name": "20260101012200_master_057_retention_defaults.sql",
+    "timestamp": "20260101012200"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\058_health_contract.sql",
+    "new_name": "20260101012300_master_058_health_contract.sql",
+    "timestamp": "20260101012300"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\058_inventory_sync.sql",
+    "new_name": "20260101012400_master_058_inventory_sync.sql",
+    "timestamp": "20260101012400"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\059_kiosk_transfer_queue.sql",
+    "new_name": "20260101012500_master_059_kiosk_transfer_queue.sql",
+    "timestamp": "20260101012500"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\060_add_session_timing.sql",
+    "new_name": "20260101012600_master_060_add_session_timing.sql",
+    "timestamp": "20260101012600"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\061_add_photo_favorite.sql",
+    "new_name": "20260101012700_master_061_add_photo_favorite.sql",
+    "timestamp": "20260101012700"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\062_photo_presets.sql",
+    "new_name": "20260101012800_master_062_photo_presets.sql",
+    "timestamp": "20260101012800"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\063_add_refresh_tokens_table.sql",
+    "new_name": "20260101012900_master_063_add_refresh_tokens_table.sql",
+    "timestamp": "20260101012900"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\064_sync_resilience_standardization.sql",
+    "new_name": "20260101013000_master_064_sync_resilience_standardization.sql",
+    "timestamp": "20260101013000"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\065_provisioning_resilience.sql",
+    "new_name": "20260101013100_master_065_provisioning_resilience.sql",
+    "timestamp": "20260101013100"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\066_diagnostic_telemetry.sql",
+    "new_name": "20260101013200_master_066_diagnostic_telemetry.sql",
+    "timestamp": "20260101013200"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\067_proactive_maintenance.sql",
+    "new_name": "20260101013300_master_067_proactive_maintenance.sql",
+    "timestamp": "20260101013300"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\068_admin_pin_security.sql",
+    "new_name": "20260101013400_master_068_admin_pin_security.sql",
+    "timestamp": "20260101013400"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\069_persistent_write_queue.sql",
+    "new_name": "20260101013500_master_069_persistent_write_queue.sql",
+    "timestamp": "20260101013500"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\070_touch_order_idempotency.sql",
+    "new_name": "20260101013600_master_070_touch_order_idempotency.sql",
+    "timestamp": "20260101013600"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\099_add_audit_tables.sql",
+    "new_name": "20260101013700_master_099_add_audit_tables.sql",
+    "timestamp": "20260101013700"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\100_user_sessions.sql",
+    "new_name": "20260101013800_master_100_user_sessions.sql",
+    "timestamp": "20260101013800"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\101_gdpr_compliance.sql",
+    "new_name": "20260101013900_master_101_gdpr_compliance.sql",
+    "timestamp": "20260101013900"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\migrations\\fix_login_history_schema.sql",
+    "new_name": "20260101014000_master_fix_login_history_schema.sql",
+    "timestamp": "20260101014000"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\001_add_queues.sql",
+    "new_name": "20260101014100_master_001_add_queues.sql",
+    "timestamp": "20260101014100"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\001_initial_schema.sql",
+    "new_name": "20260101014200_master_001_initial_schema.sql",
+    "timestamp": "20260101014200"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\002_enhanced_photos_schema.sql",
+    "new_name": "20260101014300_master_002_enhanced_photos_schema.sql",
+    "timestamp": "20260101014300"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\002_fix_orders_schema.sql",
+    "new_name": "20260101014400_master_002_fix_orders_schema.sql",
+    "timestamp": "20260101014400"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\002_role_permissions.sql",
+    "new_name": "20260101014500_master_002_role_permissions.sql",
+    "timestamp": "20260101014500"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\002_update_schema.sql",
+    "new_name": "20260101014600_master_002_update_schema.sql",
+    "timestamp": "20260101014600"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\003_add_destinations.sql",
+    "new_name": "20260101014700_master_003_add_destinations.sql",
+    "timestamp": "20260101014700"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\004_add_session_types.sql",
+    "new_name": "20260101014800_master_004_add_session_types.sql",
+    "timestamp": "20260101014800"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\005_add_destinations_updated_at.sql",
+    "new_name": "20260101014900_master_005_add_destinations_updated_at.sql",
+    "timestamp": "20260101014900"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\005_add_kiosk_sessions_table.sql",
+    "new_name": "20260101015000_master_005_add_kiosk_sessions_table.sql",
+    "timestamp": "20260101015000"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\006_update_schema.sql",
+    "new_name": "20260101015100_master_006_update_schema.sql",
+    "timestamp": "20260101015100"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\007_add_destinations_updated_at.sql",
+    "new_name": "20260101015200_master_007_add_destinations_updated_at.sql",
+    "timestamp": "20260101015200"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\008_add_packs_and_bookings.sql",
+    "new_name": "20260101015300_master_008_add_packs_and_bookings.sql",
+    "timestamp": "20260101015300"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\009_add_order_source.sql",
+    "new_name": "20260101015400_master_009_add_order_source.sql",
+    "timestamp": "20260101015400"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\010_performance_indexes.sql",
+    "new_name": "20260101015500_master_010_performance_indexes.sql",
+    "timestamp": "20260101015500"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\011_add_assistance_requests.sql",
+    "new_name": "20260101015600_master_011_add_assistance_requests.sql",
+    "timestamp": "20260101015600"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\012_add_photos_room_number.sql",
+    "new_name": "20260101015700_master_012_add_photos_room_number.sql",
+    "timestamp": "20260101015700"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\013_add_albums_kiosk_ready.sql",
+    "new_name": "20260101015800_master_013_add_albums_kiosk_ready.sql",
+    "timestamp": "20260101015800"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\014_add_kiosks_settings.sql",
+    "new_name": "20260101015900_master_014_add_kiosks_settings.sql",
+    "timestamp": "20260101015900"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\015_add_kiosk_sessions_last_seen.sql",
+    "new_name": "20260101020000_master_015_add_kiosk_sessions_last_seen.sql",
+    "timestamp": "20260101020000"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\016_add_kiosk_folder_paths.sql",
+    "new_name": "20260101020100_master_016_add_kiosk_folder_paths.sql",
+    "timestamp": "20260101020100"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\017_add_ai_culling.sql",
+    "new_name": "20260101020200_master_017_add_ai_culling.sql",
+    "timestamp": "20260101020200"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\018_add_face_recognition.sql",
+    "new_name": "20260101020300_master_018_add_face_recognition.sql",
+    "timestamp": "20260101020300"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\019_add_login_history.sql",
+    "new_name": "20260101020400_master_019_add_login_history.sql",
+    "timestamp": "20260101020400"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\020_ensure_login_history.sql",
+    "new_name": "20260101020500_master_020_ensure_login_history.sql",
+    "timestamp": "20260101020500"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\021_fix_login_history_columns.sql",
+    "new_name": "20260101020600_master_021_fix_login_history_columns.sql",
+    "timestamp": "20260101020600"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\022_backfill_login_history.sql",
+    "new_name": "20260101020700_master_022_backfill_login_history.sql",
+    "timestamp": "20260101020700"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\023_backfill_user_id.sql",
+    "new_name": "20260101020800_master_023_backfill_user_id.sql",
+    "timestamp": "20260101020800"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\024_add_daily_objectives.sql",
+    "new_name": "20260101020900_master_024_add_daily_objectives.sql",
+    "timestamp": "20260101020900"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\025_add_kiosk_metadata_only.sql",
+    "new_name": "20260101021000_master_025_add_kiosk_metadata_only.sql",
+    "timestamp": "20260101021000"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\025_missing_tables.sql",
+    "new_name": "20260101021100_master_025_missing_tables.sql",
+    "timestamp": "20260101021100"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\026_add_order_number.sql",
+    "new_name": "20260101021200_master_026_add_order_number.sql",
+    "timestamp": "20260101021200"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\027_add_album_email.sql",
+    "new_name": "20260101021300_master_027_add_album_email.sql",
+    "timestamp": "20260101021300"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\028_add_photo_sync_columns.sql",
+    "new_name": "20260101021400_master_028_add_photo_sync_columns.sql",
+    "timestamp": "20260101021400"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\029_add_photo_tiers.sql",
+    "new_name": "20260101021500_master_029_add_photo_tiers.sql",
+    "timestamp": "20260101021500"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\030_add_face_indexing_queue.sql",
+    "new_name": "20260101021600_master_030_add_face_indexing_queue.sql",
+    "timestamp": "20260101021600"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\031_fix_face_queue.sql",
+    "new_name": "20260101021700_master_031_fix_face_queue.sql",
+    "timestamp": "20260101021700"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\032_fix_double_urls.sql",
+    "new_name": "20260101021800_master_032_fix_double_urls.sql",
+    "timestamp": "20260101021800"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\033_repair_tiny_urls.sql",
+    "new_name": "20260101021900_master_033_repair_tiny_urls.sql",
+    "timestamp": "20260101021900"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\034_fix_kiosks_columns.sql",
+    "new_name": "20260101022000_master_034_fix_kiosks_columns.sql",
+    "timestamp": "20260101022000"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\035_add_order_rfid.sql",
+    "new_name": "20260101022100_master_035_add_order_rfid.sql",
+    "timestamp": "20260101022100"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\036_high_volume_hardening.sql",
+    "new_name": "20260101022200_master_036_high_volume_hardening.sql",
+    "timestamp": "20260101022200"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\044_add_orders_archive.sql",
+    "new_name": "20260101022300_master_044_add_orders_archive.sql",
+    "timestamp": "20260101022300"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\045_album_analytics_schema.sql",
+    "new_name": "20260101022400_master_045_album_analytics_schema.sql",
+    "timestamp": "20260101022400"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\046_add_high_res_support.sql",
+    "new_name": "20260101022500_master_046_add_high_res_support.sql",
+    "timestamp": "20260101022500"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\046_inventory.sql",
+    "new_name": "20260101022600_master_046_inventory.sql",
+    "timestamp": "20260101022600"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\047_add_box_to_photo_faces.sql",
+    "new_name": "20260101022700_master_047_add_box_to_photo_faces.sql",
+    "timestamp": "20260101022700"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\051_fix_queue_priority.sql",
+    "new_name": "20260101022800_master_051_fix_queue_priority.sql",
+    "timestamp": "20260101022800"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\052_add_sync_columns.sql",
+    "new_name": "20260101022900_master_052_add_sync_columns.sql",
+    "timestamp": "20260101022900"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\053_add_order_sync_status.sql",
+    "new_name": "20260101023000_master_053_add_order_sync_status.sql",
+    "timestamp": "20260101023000"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\053_kiosk_transfer_queue.sql",
+    "new_name": "20260101023100_master_053_kiosk_transfer_queue.sql",
+    "timestamp": "20260101023100"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\054_add_quality_flags.sql",
+    "new_name": "20260101023200_master_054_add_quality_flags.sql",
+    "timestamp": "20260101023200"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\055_add_pairing_tokens.sql",
+    "new_name": "20260101023300_master_055_add_pairing_tokens.sql",
+    "timestamp": "20260101023300"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\057_resort_bi_metrics.sql",
+    "new_name": "20260101023400_master_057_resort_bi_metrics.sql",
+    "timestamp": "20260101023400"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\058_add_session_timing.sql",
+    "new_name": "20260101023500_master_058_add_session_timing.sql",
+    "timestamp": "20260101023500"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\059_performance_indexes_v2.sql",
+    "new_name": "20260101023600_master_059_performance_indexes_v2.sql",
+    "timestamp": "20260101023600"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\060_performance_indexes_v3.sql",
+    "new_name": "20260101023700_master_060_performance_indexes_v3.sql",
+    "timestamp": "20260101023700"
+  },
+  {
+    "app": "master",
+    "original": "apps\\master\\backend\\shared\\migrations\\061_add_csrf_tokens_table.sql",
+    "new_name": "20260101023800_master_061_add_csrf_tokens_table.sql",
+    "timestamp": "20260101023800"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\001_add_queues.sql",
+    "new_name": "20260101023900_master-cpp_001_add_queues.sql",
+    "timestamp": "20260101023900"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\001_initial_schema.sql",
+    "new_name": "20260101024000_master-cpp_001_initial_schema.sql",
+    "timestamp": "20260101024000"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\002_enhanced_photos_schema.sql",
+    "new_name": "20260101024100_master-cpp_002_enhanced_photos_schema.sql",
+    "timestamp": "20260101024100"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\002_fix_orders_schema.sql",
+    "new_name": "20260101024200_master-cpp_002_fix_orders_schema.sql",
+    "timestamp": "20260101024200"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\002_role_permissions.sql",
+    "new_name": "20260101024300_master-cpp_002_role_permissions.sql",
+    "timestamp": "20260101024300"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\002_update_schema.sql",
+    "new_name": "20260101024400_master-cpp_002_update_schema.sql",
+    "timestamp": "20260101024400"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\003_add_destinations.sql",
+    "new_name": "20260101024500_master-cpp_003_add_destinations.sql",
+    "timestamp": "20260101024500"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\004_add_session_types.sql",
+    "new_name": "20260101024600_master-cpp_004_add_session_types.sql",
+    "timestamp": "20260101024600"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\005_add_destinations_updated_at.sql",
+    "new_name": "20260101024700_master-cpp_005_add_destinations_updated_at.sql",
+    "timestamp": "20260101024700"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\005_add_kiosk_sessions_table.sql",
+    "new_name": "20260101024800_master-cpp_005_add_kiosk_sessions_table.sql",
+    "timestamp": "20260101024800"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\006_update_schema.sql",
+    "new_name": "20260101024900_master-cpp_006_update_schema.sql",
+    "timestamp": "20260101024900"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\007_add_destinations_updated_at.sql",
+    "new_name": "20260101025000_master-cpp_007_add_destinations_updated_at.sql",
+    "timestamp": "20260101025000"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\008_add_packs_and_bookings.sql",
+    "new_name": "20260101025100_master-cpp_008_add_packs_and_bookings.sql",
+    "timestamp": "20260101025100"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\009_add_order_source.sql",
+    "new_name": "20260101025200_master-cpp_009_add_order_source.sql",
+    "timestamp": "20260101025200"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\010_performance_indexes.sql",
+    "new_name": "20260101025300_master-cpp_010_performance_indexes.sql",
+    "timestamp": "20260101025300"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\011_add_assistance_requests.sql",
+    "new_name": "20260101025400_master-cpp_011_add_assistance_requests.sql",
+    "timestamp": "20260101025400"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\012_add_photos_room_number.sql",
+    "new_name": "20260101025500_master-cpp_012_add_photos_room_number.sql",
+    "timestamp": "20260101025500"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\013_add_albums_kiosk_ready.sql",
+    "new_name": "20260101025600_master-cpp_013_add_albums_kiosk_ready.sql",
+    "timestamp": "20260101025600"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\014_add_kiosks_settings.sql",
+    "new_name": "20260101025700_master-cpp_014_add_kiosks_settings.sql",
+    "timestamp": "20260101025700"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\015_add_kiosk_sessions_last_seen.sql",
+    "new_name": "20260101025800_master-cpp_015_add_kiosk_sessions_last_seen.sql",
+    "timestamp": "20260101025800"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\016_add_kiosk_folder_paths.sql",
+    "new_name": "20260101025900_master-cpp_016_add_kiosk_folder_paths.sql",
+    "timestamp": "20260101025900"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\017_add_ai_culling.sql",
+    "new_name": "20260101030000_master-cpp_017_add_ai_culling.sql",
+    "timestamp": "20260101030000"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\018_add_face_recognition.sql",
+    "new_name": "20260101030100_master-cpp_018_add_face_recognition.sql",
+    "timestamp": "20260101030100"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\019_add_login_history.sql",
+    "new_name": "20260101030200_master-cpp_019_add_login_history.sql",
+    "timestamp": "20260101030200"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\020_ensure_login_history.sql",
+    "new_name": "20260101030300_master-cpp_020_ensure_login_history.sql",
+    "timestamp": "20260101030300"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\021_fix_login_history_columns.sql",
+    "new_name": "20260101030400_master-cpp_021_fix_login_history_columns.sql",
+    "timestamp": "20260101030400"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\022_backfill_login_history.sql",
+    "new_name": "20260101030500_master-cpp_022_backfill_login_history.sql",
+    "timestamp": "20260101030500"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\023_backfill_user_id.sql",
+    "new_name": "20260101030600_master-cpp_023_backfill_user_id.sql",
+    "timestamp": "20260101030600"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\024_add_daily_objectives.sql",
+    "new_name": "20260101030700_master-cpp_024_add_daily_objectives.sql",
+    "timestamp": "20260101030700"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\025_add_kiosk_metadata_only.sql",
+    "new_name": "20260101030800_master-cpp_025_add_kiosk_metadata_only.sql",
+    "timestamp": "20260101030800"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\025_missing_tables.sql",
+    "new_name": "20260101030900_master-cpp_025_missing_tables.sql",
+    "timestamp": "20260101030900"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\026_add_order_number.sql",
+    "new_name": "20260101031000_master-cpp_026_add_order_number.sql",
+    "timestamp": "20260101031000"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\027_add_album_email.sql",
+    "new_name": "20260101031100_master-cpp_027_add_album_email.sql",
+    "timestamp": "20260101031100"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\028_add_photo_sync_columns.sql",
+    "new_name": "20260101031200_master-cpp_028_add_photo_sync_columns.sql",
+    "timestamp": "20260101031200"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\029_add_photo_tiers.sql",
+    "new_name": "20260101031300_master-cpp_029_add_photo_tiers.sql",
+    "timestamp": "20260101031300"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\030_add_face_indexing_queue.sql",
+    "new_name": "20260101031400_master-cpp_030_add_face_indexing_queue.sql",
+    "timestamp": "20260101031400"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\031_fix_face_queue.sql",
+    "new_name": "20260101031500_master-cpp_031_fix_face_queue.sql",
+    "timestamp": "20260101031500"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\032_fix_double_urls.sql",
+    "new_name": "20260101031600_master-cpp_032_fix_double_urls.sql",
+    "timestamp": "20260101031600"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\033_repair_tiny_urls.sql",
+    "new_name": "20260101031700_master-cpp_033_repair_tiny_urls.sql",
+    "timestamp": "20260101031700"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\034_fix_kiosks_columns.sql",
+    "new_name": "20260101031800_master-cpp_034_fix_kiosks_columns.sql",
+    "timestamp": "20260101031800"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\035_add_order_rfid.sql",
+    "new_name": "20260101031900_master-cpp_035_add_order_rfid.sql",
+    "timestamp": "20260101031900"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\036_high_volume_hardening.sql",
+    "new_name": "20260101032000_master-cpp_036_high_volume_hardening.sql",
+    "timestamp": "20260101032000"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\044_add_orders_archive.sql",
+    "new_name": "20260101032100_master-cpp_044_add_orders_archive.sql",
+    "timestamp": "20260101032100"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\045_album_analytics_schema.sql",
+    "new_name": "20260101032200_master-cpp_045_album_analytics_schema.sql",
+    "timestamp": "20260101032200"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\046_add_high_res_support.sql",
+    "new_name": "20260101032300_master-cpp_046_add_high_res_support.sql",
+    "timestamp": "20260101032300"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\046_inventory.sql",
+    "new_name": "20260101032400_master-cpp_046_inventory.sql",
+    "timestamp": "20260101032400"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\047_add_box_to_photo_faces.sql",
+    "new_name": "20260101032500_master-cpp_047_add_box_to_photo_faces.sql",
+    "timestamp": "20260101032500"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\051_fix_queue_priority.sql",
+    "new_name": "20260101032600_master-cpp_051_fix_queue_priority.sql",
+    "timestamp": "20260101032600"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\052_add_sync_columns.sql",
+    "new_name": "20260101032700_master-cpp_052_add_sync_columns.sql",
+    "timestamp": "20260101032700"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\053_add_order_sync_status.sql",
+    "new_name": "20260101032800_master-cpp_053_add_order_sync_status.sql",
+    "timestamp": "20260101032800"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\053_kiosk_transfer_queue.sql",
+    "new_name": "20260101032900_master-cpp_053_kiosk_transfer_queue.sql",
+    "timestamp": "20260101032900"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\054_add_quality_flags.sql",
+    "new_name": "20260101033000_master-cpp_054_add_quality_flags.sql",
+    "timestamp": "20260101033000"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\055_add_pairing_tokens.sql",
+    "new_name": "20260101033100_master-cpp_055_add_pairing_tokens.sql",
+    "timestamp": "20260101033100"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\057_resort_bi_metrics.sql",
+    "new_name": "20260101033200_master-cpp_057_resort_bi_metrics.sql",
+    "timestamp": "20260101033200"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\058_add_session_timing.sql",
+    "new_name": "20260101033300_master-cpp_058_add_session_timing.sql",
+    "timestamp": "20260101033300"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\059_performance_indexes_v2.sql",
+    "new_name": "20260101033400_master-cpp_059_performance_indexes_v2.sql",
+    "timestamp": "20260101033400"
+  },
+  {
+    "app": "master-cpp",
+    "original": "apps\\master-cpp\\migrations\\060_performance_indexes_v3.sql",
+    "new_name": "20260101033500_master-cpp_060_performance_indexes_v3.sql",
+    "timestamp": "20260101033500"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\001_initial_schema.sql",
+    "new_name": "20260101033600_touch_001_initial_schema.sql",
+    "timestamp": "20260101033600"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\002_enhanced_photos_schema.sql",
+    "new_name": "20260101033700_touch_002_enhanced_photos_schema.sql",
+    "timestamp": "20260101033700"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\002_update_schema.sql",
+    "new_name": "20260101033800_touch_002_update_schema.sql",
+    "timestamp": "20260101033800"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\003_add_destinations.sql",
+    "new_name": "20260101033900_touch_003_add_destinations.sql",
+    "timestamp": "20260101033900"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\004_add_session_types.sql",
+    "new_name": "20260101034000_touch_004_add_session_types.sql",
+    "timestamp": "20260101034000"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\005_add_packs_and_bookings.sql",
+    "new_name": "20260101034100_touch_005_add_packs_and_bookings.sql",
+    "timestamp": "20260101034100"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\006_add_order_source.sql",
+    "new_name": "20260101034200_touch_006_add_order_source.sql",
+    "timestamp": "20260101034200"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\007_add_touch_integration_settings.sql",
+    "new_name": "20260101034300_touch_007_add_touch_integration_settings.sql",
+    "timestamp": "20260101034300"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\008_add_password_change_flag.sql",
+    "new_name": "20260101034400_touch_008_add_password_change_flag.sql",
+    "timestamp": "20260101034400"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\009_add_kiosk_ready.sql",
+    "new_name": "20260101034500_touch_009_add_kiosk_ready.sql",
+    "timestamp": "20260101034500"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\010_add_kiosk_sessions.sql",
+    "new_name": "20260101034600_touch_010_add_kiosk_sessions.sql",
+    "timestamp": "20260101034600"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\011_add_face_recognition.sql",
+    "new_name": "20260101034700_touch_011_add_face_recognition.sql",
+    "timestamp": "20260101034700"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\012_add_kiosk_sessions_lastSeen.sql",
+    "new_name": "20260101034800_touch_012_add_kiosk_sessions_lastSeen.sql",
+    "timestamp": "20260101034800"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\013_add_performance_indexes.sql",
+    "new_name": "20260101034900_touch_013_add_performance_indexes.sql",
+    "timestamp": "20260101034900"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\migrations\\014_harmonize_photos_schema.sql",
+    "new_name": "20260101035000_touch_014_harmonize_photos_schema.sql",
+    "timestamp": "20260101035000"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\shared\\migrations\\001_initial_schema.sql",
+    "new_name": "20260101035100_touch_001_initial_schema.sql",
+    "timestamp": "20260101035100"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\shared\\migrations\\002_enhanced_photos_schema.sql",
+    "new_name": "20260101035200_touch_002_enhanced_photos_schema.sql",
+    "timestamp": "20260101035200"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\shared\\migrations\\002_update_schema.sql",
+    "new_name": "20260101035300_touch_002_update_schema.sql",
+    "timestamp": "20260101035300"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\shared\\migrations\\003_add_destinations.sql",
+    "new_name": "20260101035400_touch_003_add_destinations.sql",
+    "timestamp": "20260101035400"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\shared\\migrations\\004_add_session_types.sql",
+    "new_name": "20260101035500_touch_004_add_session_types.sql",
+    "timestamp": "20260101035500"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\shared\\migrations\\005_fix_orders_schema.sql",
+    "new_name": "20260101035600_touch_005_fix_orders_schema.sql",
+    "timestamp": "20260101035600"
+  },
+  {
+    "app": "touch",
+    "original": "apps\\touch\\backend\\shared\\migrations\\006_add_photos_room_number.sql",
+    "new_name": "20260101035700_touch_006_add_photos_room_number.sql",
+    "timestamp": "20260101035700"
+  },
+  {
+    "app": "claude-code",
+    "original": "claude-code\\src\\server\\db\\migrations\\0001_initial.sql",
+    "new_name": "20260101035800_claude-code_0001_initial.sql",
+    "timestamp": "20260101035800"
+  },
+  {
+    "app": "claude-code",
+    "original": "claude-code\\src\\server\\db\\migrations\\0001_initial_sqlite.sql",
+    "new_name": "20260101035900_claude-code_0001_initial_sqlite.sql",
+    "timestamp": "20260101035900"
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "stripe": {
+    "url": "https://dashboard.stripe.com/test/apikeys",
+    "action": "Roll key starting with rk_test_51Tfm2N",
+    "new_key_env": "STRIPE_TEST_KEY"
+  },
+  "resend": {
+    "url": "https://resend.com/api-keys",
+    "action": "Revoke key starting with re_cYq1p8w3, create new",
+    "new_key_env": "RESEND_API_KEY"
+  },
+  "cloudflare": {
+    "url": "https://dash.cloudflare.com/profile/api-tokens",
+    "action": "Roll token starting with cfut_VMGMGxL1",
+    "new_key_env": "CLOUDFLARE_API_TOKEN"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-06-08",
+  "files_scanned": 2,
+  "active_keys_found": 2,
+  "findings": [
+    {
+      "file": "apps/management/backend/.env",
+      "line": 6,
+      "type": "stripe",
+      "key_preview": "sk_test_4eC39Hq...jWDarjtT1zdp7dc",
+      "line_content": "STRIPE_SECRET_KEY=sk_test_4eC39HqLyjWDarjtT1zdp7dc",
+      "action": "ROTATE IMMEDIATELY"
+    },
+    {
+      "file": "apps/master/ClickFlash-Master-test-hotel-2/.env",
+      "line": 11,
+      "type": "cloudflare",
+      "key_preview": "cfut_WNDywpLDOQ...9BKV4Tab937ffb1",
+      "line_content": "CLOUDFLARE_API_TOKEN=[REDACTED]",
+      "action": "ROTATE IMMEDIATELY"
+    }
+  ]
+}

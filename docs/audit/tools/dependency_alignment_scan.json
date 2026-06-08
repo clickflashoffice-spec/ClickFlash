@@ -1,0 +1,1072 @@
+{
+  "summary": {
+    "unique_prod_deps": 90,
+    "unique_dev_deps": 77,
+    "prod_mismatches": 13,
+    "dev_mismatches": 10,
+    "prod_dev_overlap": 5
+  },
+  "prod_mismatches": {
+    "@sentry/react": {
+      "apps/gallery": "^10.39.0",
+      "apps/management": "^10.39.0",
+      "apps/master": "^10.39.0",
+      "apps/touch": "^10.48.0"
+    },
+    "cors": {
+      "apps/gallery": "^2.8.6",
+      "apps/touch": "^2.8.5"
+    },
+    "dexie": {
+      "apps/gallery": "^4.3.0",
+      "apps/management": "^4.3.0",
+      "apps/master": "^4.2.1",
+      "apps/touch": "^4.2.1"
+    },
+    "express": {
+      "apps/gallery": "^5.2.1",
+      "apps/master": "^5.1.0",
+      "apps/touch": "^5.2.1"
+    },
+    "formidable": {
+      "apps/gallery": "2.1.5",
+      "apps/management": "2.1.5",
+      "apps/master": "^2.1.5",
+      "apps/touch": "2.1.5"
+    },
+    "lucide-react": {
+      "apps/gallery": "^0.577.0",
+      "apps/installer": "^0.562.0",
+      "apps/management": "^0.577.0",
+      "apps/master": "^0.562.0",
+      "apps/moneytrash": "^0.577.0",
+      "apps/website": "^0.577.0"
+    },
+    "react-window": {
+      "apps/gallery": "^2.2.3",
+      "apps/management": "^1.8.11",
+      "apps/master": "^1.8.11",
+      "apps/touch": "^1.8.11"
+    },
+    "recharts": {
+      "apps/gallery": "^3.7.0",
+      "apps/management": "^3.8.0"
+    },
+    "zustand": {
+      "apps/gallery": "^5.0.0",
+      "apps/master": "^5.0.12"
+    },
+    "react-router-dom": {
+      "apps/management": "^6.22.3",
+      "apps/master": "^7.9.6"
+    },
+    "@sentry/node": {
+      "apps/master": "^10.46.0",
+      "apps/touch": "^10.48.0"
+    },
+    "sharp": {
+      "apps/master": "^0.33.2",
+      "apps/touch": "^0.34.5"
+    },
+    "uuid": {
+      "apps/master": "^10.0.0",
+      "apps/moneytrash": "^11.0.3",
+      "apps/touch": "^10.0.0"
+    }
+  },
+  "dev_mismatches": {
+    "@playwright/test": {
+      "apps/gallery": "^1.58.2",
+      "apps/management": "^1.58.2",
+      "apps/master": "^1.58.2",
+      "apps/moneytrash": "^1.50.0",
+      "apps/touch": "^1.58.2",
+      "apps/website": "^1.58.2"
+    },
+    "@types/qrcode": {
+      "apps/gallery": "^1.5.6",
+      "apps/installer": "^1.5.5",
+      "apps/master": "^1.5.6"
+    },
+    "@types/react": {
+      "apps/gallery": "^19.2.7",
+      "apps/installer": "^19.2.7",
+      "apps/management": "^19.2.7",
+      "apps/master": "^19.2.7",
+      "apps/moneytrash": "^19.2.7",
+      "apps/touch": "^19.2.7",
+      "apps/website": "^19.2.7",
+      "packages/ui": "^18.3.0 || ^19.0.0"
+    },
+    "@types/react-dom": {
+      "apps/gallery": "^19.2.3",
+      "apps/installer": "^19.2.3",
+      "apps/management": "^19.2.3",
+      "apps/master": "^19.2.3",
+      "apps/moneytrash": "^19.2.3",
+      "apps/touch": "^19.2.3",
+      "apps/website": "^19.2.3",
+      "packages/ui": "^18.3.0 || ^19.0.0"
+    },
+    "eslint": {
+      "apps/gallery": "^9.39.4",
+      "apps/management": "^9.39.4",
+      "apps/master": "^9.39.4",
+      "apps/moneytrash": "^9",
+      "apps/touch": "^9.39.4",
+      "apps/website": "^9.39.4"
+    },
+    "eslint-plugin-react-hooks": {
+      "apps/gallery": "^7.1.1",
+      "apps/management": "^7.1.1",
+      "apps/master": "^5.0.0",
+      "apps/moneytrash": "^7.1.1",
+      "apps/touch": "^5.2.0"
+    },
+    "typescript": {
+      "apps/gallery": "^5.9.3",
+      "apps/installer": "^5.9.3",
+      "apps/management": "^5.9.3",
+      "apps/master": "^5.9.3",
+      "apps/moneytrash": "^5.9.3",
+      "apps/touch": "^5.9.3",
+      "apps/website": "^5.9.3",
+      "packages/types": "^5.9.0",
+      "packages/ui": "^5.9.0"
+    },
+    "electron-builder": {
+      "apps/installer": "^26.8.1",
+      "apps/master": "^26.8.1",
+      "apps/touch": "24.13.3"
+    },
+    "eslint-plugin-react": {
+      "apps/management": "^7.37.5",
+      "apps/master": "^7.34.0",
+      "apps/touch": "^7.37.5"
+    },
+    "@axe-core/playwright": {
+      "apps/master": "^4.11.1",
+      "apps/website": "^4.10.0"
+    }
+  },
+  "security_sensitive_usage": {
+    "zod": {
+      "prod": {
+        "apps/gallery": "^4.1.13",
+        "apps/management": "^4.1.13",
+        "apps/master": "^4.1.13",
+        "apps/touch": "^4.1.13"
+      },
+      "dev": {}
+    },
+    "stripe": {
+      "prod": {
+        "apps/master": "^20.2.0"
+      },
+      "dev": {}
+    },
+    "@stripe/react-stripe-js": {
+      "prod": {
+        "apps/gallery": "^2.7.1"
+      },
+      "dev": {}
+    },
+    "adm-zip": {
+      "prod": {
+        "apps/master": "^0.5.16"
+      },
+      "dev": {}
+    },
+    "@sentry/react": {
+      "prod": {
+        "apps/gallery": "^10.39.0",
+        "apps/management": "^10.39.0",
+        "apps/master": "^10.39.0",
+        "apps/touch": "^10.48.0"
+      },
+      "dev": {}
+    },
+    "jose": {
+      "prod": {
+        "apps/gallery": "^6.2.2"
+      },
+      "dev": {}
+    },
+    "jsonwebtoken": {
+      "prod": {
+        "apps/gallery": "^9.0.2",
+        "apps/management": "^9.0.2",
+        "apps/master": "^9.0.2",
+        "apps/touch": "^9.0.2"
+      },
+      "dev": {}
+    },
+    "formidable": {
+      "prod": {
+        "apps/gallery": "2.1.5",
+        "apps/management": "2.1.5",
+        "apps/master": "^2.1.5",
+        "apps/touch": "2.1.5"
+      },
+      "dev": {}
+    },
+    "bcryptjs": {
+      "prod": {
+        "apps/gallery": "^2.4.3",
+        "apps/master": "^2.4.3"
+      },
+      "dev": {}
+    },
+    "better-sqlite3-multiple-ciphers": {
+      "prod": {
+        "apps/master": "^12.8.0",
+        "apps/touch": "^12.8.0"
+      },
+      "dev": {}
+    },
+    "bcrypt": {
+      "prod": {
+        "apps/touch": "^5.1.0"
+      },
+      "dev": {}
+    },
+    "helmet": {
+      "prod": {
+        "apps/gallery": "^8.1.0",
+        "apps/master": "^8.1.0",
+        "apps/touch": "^8.1.0"
+      },
+      "dev": {}
+    },
+    "express": {
+      "prod": {
+        "apps/gallery": "^5.2.1",
+        "apps/master": "^5.1.0",
+        "apps/touch": "^5.2.1"
+      },
+      "dev": {}
+    },
+    "electron-updater": {
+      "prod": {
+        "apps/touch": "^6.3.9"
+      },
+      "dev": {
+        "apps/master": "^6.3.9"
+      }
+    },
+    "cors": {
+      "prod": {
+        "apps/gallery": "^2.8.6",
+        "apps/touch": "^2.8.5"
+      },
+      "dev": {}
+    },
+    "@sentry/node": {
+      "prod": {
+        "apps/master": "^10.46.0",
+        "apps/touch": "^10.48.0"
+      },
+      "dev": {}
+    },
+    "sharp": {
+      "prod": {
+        "apps/master": "^0.33.2",
+        "apps/touch": "^0.34.5"
+      },
+      "dev": {}
+    },
+    "archiver": {
+      "prod": {
+        "apps/master": "^7.0.1"
+      },
+      "dev": {}
+    },
+    "pdf-to-printer": {
+      "prod": {
+        "apps/master": "^5.6.1"
+      },
+      "dev": {}
+    },
+    "cookie-parser": {
+      "prod": {
+        "apps/gallery": "^1.4.7",
+        "apps/master": "^1.4.7"
+      },
+      "dev": {}
+    },
+    "@stripe/stripe-js": {
+      "prod": {
+        "apps/gallery": "^4.0.0"
+      },
+      "dev": {}
+    }
+  },
+  "prod_dev_overlap": {
+    "@clickflash/types": {
+      "prod_apps": [
+        "apps/gallery"
+      ],
+      "dev_apps": [
+        "packages/ui"
+      ]
+    },
+    "@types/react-window": {
+      "prod_apps": [
+        "apps/gallery",
+        "apps/master",
+        "apps/touch"
+      ],
+      "dev_apps": [
+        "apps/management"
+      ]
+    },
+    "rimraf": {
+      "prod_apps": [
+        "apps/master"
+      ],
+      "dev_apps": [
+        "apps/installer"
+      ]
+    },
+    "electron-updater": {
+      "prod_apps": [
+        "apps/touch"
+      ],
+      "dev_apps": [
+        "apps/master"
+      ]
+    },
+    "caniuse-lite": {
+      "prod_apps": [
+        "apps/website"
+      ],
+      "dev_apps": [
+        "apps/master"
+      ]
+    }
+  },
+  "all_deps": {
+    "@clickflash/types": {
+      "apps/gallery": "file:../../packages/types"
+    },
+    "@clickflash/ui": {
+      "apps/gallery": "file:../../packages/ui"
+    },
+    "@google/genai": {
+      "apps/gallery": "^1.51.0"
+    },
+    "@sentry/react": {
+      "apps/gallery": "^10.39.0",
+      "apps/management": "^10.39.0",
+      "apps/master": "^10.39.0",
+      "apps/touch": "^10.48.0"
+    },
+    "@stripe/react-stripe-js": {
+      "apps/gallery": "^2.7.1"
+    },
+    "@stripe/stripe-js": {
+      "apps/gallery": "^4.0.0"
+    },
+    "@supabase/supabase-js": {
+      "apps/gallery": "^2.97.0",
+      "apps/management": "^2.97.0"
+    },
+    "@tanstack/react-query": {
+      "apps/gallery": "^5.90.10",
+      "apps/management": "^5.90.10",
+      "apps/master": "^5.90.10",
+      "apps/touch": "^5.90.10"
+    },
+    "@tanstack/react-virtual": {
+      "apps/gallery": "^3.13.5"
+    },
+    "@types/react-window": {
+      "apps/gallery": "^1.8.8",
+      "apps/master": "^1.8.8",
+      "apps/touch": "^1.8.8"
+    },
+    "bcryptjs": {
+      "apps/gallery": "^2.4.3",
+      "apps/master": "^2.4.3"
+    },
+    "chart.js": {
+      "apps/gallery": "^4.5.1",
+      "apps/master": "^4.5.1"
+    },
+    "clsx": {
+      "apps/gallery": "^2.1.1",
+      "apps/installer": "^2.1.1",
+      "apps/management": "^2.1.1",
+      "apps/master": "^2.1.1",
+      "apps/moneytrash": "^2.1.1",
+      "apps/touch": "^2.1.1",
+      "apps/website": "^2.1.1",
+      "packages/ui": "^2.1.1"
+    },
+    "cookie-parser": {
+      "apps/gallery": "^1.4.7",
+      "apps/master": "^1.4.7"
+    },
+    "cors": {
+      "apps/gallery": "^2.8.6",
+      "apps/touch": "^2.8.5"
+    },
+    "date-fns": {
+      "apps/gallery": "^4.1.0",
+      "apps/management": "^4.1.0"
+    },
+    "dexie": {
+      "apps/gallery": "^4.3.0",
+      "apps/management": "^4.3.0",
+      "apps/master": "^4.2.1",
+      "apps/touch": "^4.2.1"
+    },
+    "dotenv": {
+      "apps/gallery": "^17.2.3",
+      "apps/management": "^17.2.3",
+      "apps/master": "^17.2.3",
+      "apps/touch": "^17.2.3"
+    },
+    "express": {
+      "apps/gallery": "^5.2.1",
+      "apps/master": "^5.1.0",
+      "apps/touch": "^5.2.1"
+    },
+    "formidable": {
+      "apps/gallery": "2.1.5",
+      "apps/management": "2.1.5",
+      "apps/master": "^2.1.5",
+      "apps/touch": "2.1.5"
+    },
+    "fs-extra": {
+      "apps/gallery": "^11.3.2",
+      "apps/management": "^11.3.2",
+      "apps/master": "^11.3.2",
+      "apps/touch": "^11.3.2"
+    },
+    "helmet": {
+      "apps/gallery": "^8.1.0",
+      "apps/master": "^8.1.0",
+      "apps/touch": "^8.1.0"
+    },
+    "jose": {
+      "apps/gallery": "^6.2.2"
+    },
+    "jsonwebtoken": {
+      "apps/gallery": "^9.0.2",
+      "apps/management": "^9.0.2",
+      "apps/master": "^9.0.2",
+      "apps/touch": "^9.0.2"
+    },
+    "lucide-react": {
+      "apps/gallery": "^0.577.0",
+      "apps/installer": "^0.562.0",
+      "apps/management": "^0.577.0",
+      "apps/master": "^0.562.0",
+      "apps/moneytrash": "^0.577.0",
+      "apps/website": "^0.577.0"
+    },
+    "qrcode": {
+      "apps/gallery": "^1.5.4",
+      "apps/installer": "^1.5.4",
+      "apps/management": "^1.5.4",
+      "apps/master": "^1.5.4",
+      "apps/touch": "^1.5.4"
+    },
+    "react": {
+      "apps/gallery": "^19.2.0",
+      "apps/installer": "^19.2.0",
+      "apps/management": "^19.2.0",
+      "apps/master": "^19.2.0",
+      "apps/moneytrash": "^19.2.0",
+      "apps/touch": "^19.2.0",
+      "apps/website": "^19.2.0"
+    },
+    "react-chartjs-2": {
+      "apps/gallery": "^5.3.1",
+      "apps/master": "^5.3.1"
+    },
+    "react-dom": {
+      "apps/gallery": "^19.2.0",
+      "apps/installer": "^19.2.0",
+      "apps/management": "^19.2.0",
+      "apps/master": "^19.2.0",
+      "apps/moneytrash": "^19.2.0",
+      "apps/touch": "^19.2.0",
+      "apps/website": "^19.2.0"
+    },
+    "react-window": {
+      "apps/gallery": "^2.2.3",
+      "apps/management": "^1.8.11",
+      "apps/master": "^1.8.11",
+      "apps/touch": "^1.8.11"
+    },
+    "recharts": {
+      "apps/gallery": "^3.7.0",
+      "apps/management": "^3.8.0"
+    },
+    "tailwind-merge": {
+      "apps/gallery": "^3.4.0",
+      "apps/installer": "^3.4.0",
+      "apps/management": "^3.4.0",
+      "apps/master": "^3.4.0",
+      "apps/moneytrash": "^3.4.0",
+      "apps/touch": "^3.4.0",
+      "apps/website": "^3.4.0",
+      "packages/ui": "^3.4.0"
+    },
+    "zod": {
+      "apps/gallery": "^4.1.13",
+      "apps/management": "^4.1.13",
+      "apps/master": "^4.1.13",
+      "apps/touch": "^4.1.13"
+    },
+    "zustand": {
+      "apps/gallery": "^5.0.0",
+      "apps/master": "^5.0.12"
+    },
+    "react-is": {
+      "apps/management": "^19.2.4"
+    },
+    "react-router-dom": {
+      "apps/management": "^6.22.3",
+      "apps/master": "^7.9.6"
+    },
+    "resend": {
+      "apps/management": "^6.9.3",
+      "apps/master": "^6.9.3"
+    },
+    "@emotion/react": {
+      "apps/master": "^11.14.0"
+    },
+    "@emotion/styled": {
+      "apps/master": "^11.14.1"
+    },
+    "@napi-rs/canvas": {
+      "apps/master": "^0.1.86"
+    },
+    "@sentry/node": {
+      "apps/master": "^10.46.0",
+      "apps/touch": "^10.48.0"
+    },
+    "@tensorflow-models/blazeface": {
+      "apps/master": "^0.1.0"
+    },
+    "@tensorflow/tfjs": {
+      "apps/master": "^4.22.0"
+    },
+    "@tensorflow/tfjs-backend-cpu": {
+      "apps/master": "^4.22.0"
+    },
+    "@tensorflow/tfjs-core": {
+      "apps/master": "^4.22.0"
+    },
+    "@types/pdfmake": {
+      "apps/master": "^0.3.2"
+    },
+    "@types/stripe": {
+      "apps/master": "^8.0.416"
+    },
+    "@vladmandic/face-api": {
+      "apps/master": "^1.7.15",
+      "apps/touch": "^1.7.15"
+    },
+    "adm-zip": {
+      "apps/master": "^0.5.16"
+    },
+    "apexcharts": {
+      "apps/master": "^3.45.0"
+    },
+    "archiver": {
+      "apps/master": "^7.0.1"
+    },
+    "better-sqlite3-multiple-ciphers": {
+      "apps/master": "^12.8.0",
+      "apps/touch": "^12.8.0"
+    },
+    "better-sqlite3-session-store": {
+      "apps/master": "^0.1.0"
+    },
+    "bonjour-service": {
+      "apps/master": "^1.3.0",
+      "apps/touch": "^1.3.0"
+    },
+    "express-session": {
+      "apps/master": "^1.18.2"
+    },
+    "flatpickr": {
+      "apps/master": "^4.6.13"
+    },
+    "form-data": {
+      "apps/master": "^4.0.5"
+    },
+    "framer-motion": {
+      "apps/master": "^12.26.2",
+      "apps/website": "^12.26.2"
+    },
+    "nodemailer": {
+      "apps/master": "^8.0.5"
+    },
+    "pdf-to-printer": {
+      "apps/master": "^5.6.1"
+    },
+    "pdfmake": {
+      "apps/master": "~0.2.23"
+    },
+    "react-apexcharts": {
+      "apps/master": "^1.4.1"
+    },
+    "react-virtualized-auto-sizer": {
+      "apps/master": "^2.0.2"
+    },
+    "react-virtuoso": {
+      "apps/master": "^4.18.1"
+    },
+    "rimraf": {
+      "apps/master": "^6.1.3"
+    },
+    "sharp": {
+      "apps/master": "^0.33.2",
+      "apps/touch": "^0.34.5"
+    },
+    "stripe": {
+      "apps/master": "^20.2.0"
+    },
+    "systeminformation": {
+      "apps/master": "^5.30.5"
+    },
+    "uuid": {
+      "apps/master": "^10.0.0",
+      "apps/moneytrash": "^11.0.3",
+      "apps/touch": "^10.0.0"
+    },
+    "ws": {
+      "apps/master": "^8.18.3"
+    },
+    "@aws-sdk/client-s3": {
+      "apps/moneytrash": "^3.1000.0"
+    },
+    "@aws-sdk/s3-request-presigner": {
+      "apps/moneytrash": "^3.1000.0"
+    },
+    "@tauri-apps/api": {
+      "apps/moneytrash": "^2.2.0"
+    },
+    "@tauri-apps/plugin-dialog": {
+      "apps/moneytrash": "^2.2.0"
+    },
+    "@tauri-apps/plugin-fs": {
+      "apps/moneytrash": "^2.2.0"
+    },
+    "@tauri-apps/plugin-http": {
+      "apps/moneytrash": "^2.3.0"
+    },
+    "@tauri-apps/plugin-notification": {
+      "apps/moneytrash": "^2.2.1"
+    },
+    "@tauri-apps/plugin-shell": {
+      "apps/moneytrash": "^2.2.0"
+    },
+    "react-dropzone": {
+      "apps/moneytrash": "^14.3.8"
+    },
+    "bcrypt": {
+      "apps/touch": "^5.1.0"
+    },
+    "body-parser": {
+      "apps/touch": "^2.2.1"
+    },
+    "chokidar": {
+      "apps/touch": "^5.0.0"
+    },
+    "electron-updater": {
+      "apps/touch": "^6.3.9"
+    },
+    "@builder.io/partytown": {
+      "apps/website": "^0.10.3"
+    },
+    "@sentry/nextjs": {
+      "apps/website": "^10.39.0"
+    },
+    "@swc/helpers": {
+      "apps/website": "^0.5.19"
+    },
+    "caniuse-lite": {
+      "apps/website": "^1.0.30001776"
+    },
+    "critters": {
+      "apps/website": "^0.0.23"
+    },
+    "gsap": {
+      "apps/website": "^3.12.5"
+    },
+    "next": {
+      "apps/website": "^15.1.7"
+    }
+  },
+  "all_dev_deps": {
+    "@eslint/js": {
+      "apps/gallery": "^9.39.4",
+      "apps/management": "^9.39.4",
+      "apps/master": "^9.39.4",
+      "apps/touch": "^9.39.4"
+    },
+    "@playwright/test": {
+      "apps/gallery": "^1.58.2",
+      "apps/management": "^1.58.2",
+      "apps/master": "^1.58.2",
+      "apps/moneytrash": "^1.50.0",
+      "apps/touch": "^1.58.2",
+      "apps/website": "^1.58.2"
+    },
+    "@testing-library/dom": {
+      "apps/gallery": "^10.4.1",
+      "apps/master": "^10.4.1",
+      "apps/touch": "^10.4.1"
+    },
+    "@testing-library/jest-dom": {
+      "apps/gallery": "^6.9.1",
+      "apps/management": "^6.9.1",
+      "apps/master": "^6.9.1",
+      "apps/touch": "^6.9.1"
+    },
+    "@testing-library/react": {
+      "apps/gallery": "^16.3.2",
+      "apps/management": "^16.3.2",
+      "apps/master": "^16.3.2",
+      "apps/touch": "^16.3.2",
+      "apps/website": "^16.3.2"
+    },
+    "@testing-library/user-event": {
+      "apps/gallery": "^14.6.1",
+      "apps/management": "^14.6.1",
+      "apps/touch": "^14.6.1"
+    },
+    "@types/bcryptjs": {
+      "apps/gallery": "^2.4.6"
+    },
+    "@types/jest": {
+      "apps/gallery": "^29.5.14",
+      "apps/management": "^29.5.14",
+      "apps/master": "^29.5.14",
+      "apps/touch": "^29.5.14"
+    },
+    "@types/node": {
+      "apps/gallery": "^24.10.2",
+      "apps/installer": "^24.10.2",
+      "apps/management": "^24.10.2",
+      "apps/master": "^24.10.2",
+      "apps/moneytrash": "^24.10.2",
+      "apps/touch": "^24.10.2",
+      "apps/website": "^24.10.2"
+    },
+    "@types/qrcode": {
+      "apps/gallery": "^1.5.6",
+      "apps/installer": "^1.5.5",
+      "apps/master": "^1.5.6"
+    },
+    "@types/react": {
+      "apps/gallery": "^19.2.7",
+      "apps/installer": "^19.2.7",
+      "apps/management": "^19.2.7",
+      "apps/master": "^19.2.7",
+      "apps/moneytrash": "^19.2.7",
+      "apps/touch": "^19.2.7",
+      "apps/website": "^19.2.7",
+      "packages/ui": "^18.3.0 || ^19.0.0"
+    },
+    "@types/react-dom": {
+      "apps/gallery": "^19.2.3",
+      "apps/installer": "^19.2.3",
+      "apps/management": "^19.2.3",
+      "apps/master": "^19.2.3",
+      "apps/moneytrash": "^19.2.3",
+      "apps/touch": "^19.2.3",
+      "apps/website": "^19.2.3",
+      "packages/ui": "^18.3.0 || ^19.0.0"
+    },
+    "@typescript-eslint/eslint-plugin": {
+      "apps/gallery": "^8.59.3",
+      "apps/management": "^8.59.3",
+      "apps/master": "^8.59.3",
+      "apps/touch": "^8.59.3"
+    },
+    "@typescript-eslint/parser": {
+      "apps/gallery": "^8.59.3",
+      "apps/management": "^8.59.3",
+      "apps/master": "^8.59.3",
+      "apps/touch": "^8.59.3"
+    },
+    "@vitejs/plugin-react": {
+      "apps/gallery": "^5.1.1",
+      "apps/installer": "^5.1.1",
+      "apps/management": "^5.1.1",
+      "apps/master": "^5.1.1",
+      "apps/moneytrash": "^5.1.1",
+      "apps/touch": "^5.1.1",
+      "apps/website": "^5.1.1"
+    },
+    "autoprefixer": {
+      "apps/gallery": "^10.4.23",
+      "apps/installer": "^10.4.23",
+      "apps/management": "^10.4.23",
+      "apps/master": "^10.4.23",
+      "apps/moneytrash": "^10.4.23",
+      "apps/touch": "^10.4.23",
+      "apps/website": "^10.4.23"
+    },
+    "eslint": {
+      "apps/gallery": "^9.39.4",
+      "apps/management": "^9.39.4",
+      "apps/master": "^9.39.4",
+      "apps/moneytrash": "^9",
+      "apps/touch": "^9.39.4",
+      "apps/website": "^9.39.4"
+    },
+    "eslint-plugin-react-hooks": {
+      "apps/gallery": "^7.1.1",
+      "apps/management": "^7.1.1",
+      "apps/master": "^5.0.0",
+      "apps/moneytrash": "^7.1.1",
+      "apps/touch": "^5.2.0"
+    },
+    "identity-obj-proxy": {
+      "apps/gallery": "^3.0.0",
+      "apps/management": "^3.0.0",
+      "apps/master": "^3.0.0",
+      "apps/touch": "^3.0.0"
+    },
+    "jest": {
+      "apps/gallery": "^29.7.0",
+      "apps/management": "^29.7.0",
+      "apps/master": "^29.7.0",
+      "apps/touch": "^29.7.0"
+    },
+    "jest-environment-jsdom": {
+      "apps/gallery": "^29.7.0",
+      "apps/management": "^29.7.0",
+      "apps/master": "^29.7.0",
+      "apps/touch": "^29.7.0"
+    },
+    "nodemon": {
+      "apps/gallery": "^3.1.11",
+      "apps/management": "^3.1.11"
+    },
+    "postcss": {
+      "apps/gallery": "^8.5.6",
+      "apps/installer": "^8.5.6",
+      "apps/management": "^8.5.6",
+      "apps/master": "^8.5.6",
+      "apps/moneytrash": "^8.5.6",
+      "apps/touch": "^8.5.6",
+      "apps/website": "^8.5.6"
+    },
+    "tailwindcss": {
+      "apps/gallery": "^3.4.18",
+      "apps/installer": "^3.4.18",
+      "apps/management": "^3.4.18",
+      "apps/master": "^3.4.18",
+      "apps/moneytrash": "^3.4.18",
+      "apps/touch": "^3.4.18",
+      "apps/website": "^3.4.18"
+    },
+    "ts-jest": {
+      "apps/gallery": "^29.4.6",
+      "apps/management": "^29.4.6",
+      "apps/master": "^29.4.6",
+      "apps/touch": "^29.4.6"
+    },
+    "typescript": {
+      "apps/gallery": "^5.9.3",
+      "apps/installer": "^5.9.3",
+      "apps/management": "^5.9.3",
+      "apps/master": "^5.9.3",
+      "apps/moneytrash": "^5.9.3",
+      "apps/touch": "^5.9.3",
+      "apps/website": "^5.9.3",
+      "packages/types": "^5.9.0",
+      "packages/ui": "^5.9.0"
+    },
+    "vite": {
+      "apps/gallery": "^7.3.2",
+      "apps/installer": "^7.3.2",
+      "apps/management": "^7.3.2",
+      "apps/master": "^7.3.2",
+      "apps/moneytrash": "^7.3.2",
+      "apps/touch": "^7.3.2"
+    },
+    "wrangler": {
+      "apps/gallery": "^3.28.1"
+    },
+    "concurrently": {
+      "apps/installer": "^9.2.1",
+      "apps/master": "^9.2.1",
+      "apps/touch": "^9.2.1"
+    },
+    "electron": {
+      "apps/installer": "^39.8.7",
+      "apps/master": "^39.8.7",
+      "apps/touch": "^39.8.7"
+    },
+    "electron-builder": {
+      "apps/installer": "^26.8.1",
+      "apps/master": "^26.8.1",
+      "apps/touch": "24.13.3"
+    },
+    "rimraf": {
+      "apps/installer": "^6.1.3"
+    },
+    "wait-on": {
+      "apps/installer": "^8.0.3"
+    },
+    "@types/react-window": {
+      "apps/management": "^1.8.8"
+    },
+    "eslint-plugin-react": {
+      "apps/management": "^7.37.5",
+      "apps/master": "^7.34.0",
+      "apps/touch": "^7.37.5"
+    },
+    "@axe-core/playwright": {
+      "apps/master": "^4.11.1",
+      "apps/website": "^4.10.0"
+    },
+    "@electron/rebuild": {
+      "apps/master": "^4.0.3"
+    },
+    "@types/adm-zip": {
+      "apps/master": "^0.5.7"
+    },
+    "@types/archiver": {
+      "apps/master": "^7.0.0"
+    },
+    "@types/bcrypt": {
+      "apps/master": "^6.0.0",
+      "apps/touch": "^6.0.0"
+    },
+    "@types/better-sqlite3": {
+      "apps/master": "^7.6.13",
+      "apps/touch": "^7.6.13"
+    },
+    "@types/cookie-parser": {
+      "apps/master": "^1.4.10"
+    },
+    "@types/cors": {
+      "apps/master": "^2.8.19",
+      "apps/touch": "^2.8.19"
+    },
+    "@types/express": {
+      "apps/master": "^5.0.6",
+      "apps/touch": "^5.0.6"
+    },
+    "@types/express-session": {
+      "apps/master": "^1.18.2"
+    },
+    "@types/form-data": {
+      "apps/master": "^2.2.1"
+    },
+    "@types/formidable": {
+      "apps/master": "^3.4.6",
+      "apps/touch": "^3.4.6"
+    },
+    "@types/fs-extra": {
+      "apps/master": "^11.0.4",
+      "apps/touch": "^11.0.4"
+    },
+    "@types/helmet": {
+      "apps/master": "^0.0.48"
+    },
+    "@types/ip": {
+      "apps/master": "^1.1.3"
+    },
+    "@types/jsonwebtoken": {
+      "apps/master": "^9.0.10",
+      "apps/touch": "^9.0.10"
+    },
+    "@types/nodemailer": {
+      "apps/master": "^6.4.14"
+    },
+    "@types/supertest": {
+      "apps/master": "^6.0.3"
+    },
+    "@types/uuid": {
+      "apps/master": "^10.0.0",
+      "apps/moneytrash": "^10.0.0",
+      "apps/touch": "^10.0.0"
+    },
+    "@types/ws": {
+      "apps/master": "^8.18.1",
+      "apps/touch": "^8.18.1"
+    },
+    "browserslist": {
+      "apps/master": "^4.28.1"
+    },
+    "caniuse-lite": {
+      "apps/master": "^1.0.30001761"
+    },
+    "copyfiles": {
+      "apps/master": "^2.4.1",
+      "apps/touch": "^2.4.1"
+    },
+    "electron-updater": {
+      "apps/master": "^6.3.9"
+    },
+    "esbuild": {
+      "apps/master": "^0.27.4",
+      "apps/touch": "^0.27.4"
+    },
+    "msw": {
+      "apps/master": "^2.13.2"
+    },
+    "supertest": {
+      "apps/master": "^7.2.2"
+    },
+    "tsx": {
+      "apps/master": "^4.21.0",
+      "apps/touch": "^4.21.0"
+    },
+    "@tauri-apps/cli": {
+      "apps/moneytrash": "^2.2.7"
+    },
+    "eslint-plugin-react-refresh": {
+      "apps/moneytrash": "^0.5.0"
+    },
+    "typescript-eslint": {
+      "apps/moneytrash": "^8.55.0"
+    },
+    "vitest": {
+      "apps/moneytrash": "^3.0.5",
+      "apps/website": "^3.0.5"
+    },
+    "@vitest/coverage-v8": {
+      "apps/moneytrash": "^3.0.5"
+    },
+    "@types/w3c-web-serial": {
+      "apps/touch": "^1.0.8"
+    },
+    "@cloudflare/next-on-pages": {
+      "apps/website": "^1.13.0"
+    },
+    "@cloudflare/workers-types": {
+      "apps/website": "^4.20240208.0"
+    },
+    "cross-env": {
+      "apps/website": "^7.0.3"
+    },
+    "eslint-config-next": {
+      "apps/website": "^15.1.7"
+    },
+    "jsdom": {
+      "apps/website": "^26.0.0"
+    },
+    "prettier": {
+      "apps/website": "^3.5.0"
+    },
+    "prettier-plugin-tailwindcss": {
+      "apps/website": "^0.6.11"
+    },
+    "@clickflash/types": {
+      "packages/ui": "workspace:*"
+    }
+  }
+}

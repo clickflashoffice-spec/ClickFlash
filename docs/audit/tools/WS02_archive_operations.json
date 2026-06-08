@@ -1,0 +1,20 @@
+[
+  {
+    "name": "gallery_express",
+    "src": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\gallery\\backend\\legacy",
+    "dest": "C:\\Users\\alamo\\Desktop\\ClickFlash\\docs\\archive\\backends\\gallery-express",
+    "action": "archived"
+  },
+  {
+    "name": "management_express_master",
+    "src": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\management\\backend\\master",
+    "dest": "C:\\Users\\alamo\\Desktop\\ClickFlash\\docs\\archive\\backends\\management-express-master",
+    "action": "archived"
+  },
+  {
+    "name": "management_express_shared",
+    "src": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\management\\backend\\shared",
+    "dest": "C:\\Users\\alamo\\Desktop\\ClickFlash\\docs\\archive\\backends\\management-express-shared",
+    "action": "archived"
+  }
+]

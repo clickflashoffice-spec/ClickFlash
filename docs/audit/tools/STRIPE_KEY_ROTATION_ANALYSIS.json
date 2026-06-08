@@ -1,0 +1,17 @@
+{
+  "key_type": "Stripe Restricted Test Key",
+  "key_prefix": "rk_test_51Tfm2NDVvB2",
+  "key_suffix": "YhfF1iGk4R003s0oziu1",
+  "full_key": "[REDACTED]",
+  "occurrences": 0,
+  "findings": [],
+  "rotation_steps": [
+    "1. Go to https://dashboard.stripe.com/test/apikeys",
+    "2. Find the key starting with 'rk_test_51Tfm2N'",
+    "3. Click 'Roll key' or delete and create new",
+    "4. Copy new restricted test key",
+    "5. Update all .env files with new key",
+    "6. Run: git filter-repo --replace-text <(echo '[REDACTED]=***REMOVED***')",
+    "7. Force push: git push origin --force --all"
+  ]
+}

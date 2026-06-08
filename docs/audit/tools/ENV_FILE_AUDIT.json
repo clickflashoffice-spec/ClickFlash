@@ -1,0 +1,182 @@
+{
+  "timestamp": "2025-06-08",
+  "env_files_scanned": 23,
+  "total_findings": 25,
+  "findings": [
+    {
+      "file": "apps/management/backend/.env",
+      "line": 11,
+      "type": "api_key",
+      "key_preview": "re_QFSmBqtb_7k64pfapYhibgNMZdAcN1eUd",
+      "line_content": "RESEND_API_KEY=re_QFSmBqtb_7k64pfapYhibgNMZdAcN1eUd"
+    },
+    {
+      "file": "apps/master/.env",
+      "line": 9,
+      "type": "password",
+      "key_preview": "admin123",
+      "line_content": "DEFAULT_ADMIN_PASSWORD=admin123"
+    },
+    {
+      "file": "apps/master/.env",
+      "line": 62,
+      "type": "api_key",
+      "key_preview": "re_QFSmBqtb_7k64pfapYhibgNMZdAcN1eUd",
+      "line_content": "RESEND_API_KEY=re_QFSmBqtb_7k64pfapYhibgNMZdAcN1eUd"
+    },
+    {
+      "file": "apps/master/backend/.env",
+      "line": 9,
+      "type": "jwt",
+      "key_preview": "8a624de6544ed58fe79d...a785b01b919050f90287",
+      "line_content": "JWT_SECRET=8a624de6544ed58fe79d861377bdb50c15e197e58505a785b01b919050f90287"
+    },
+    {
+      "file": "apps/master/backend/.env",
+      "line": 17,
+      "type": "password",
+      "key_preview": "CHANGEME_set_strong_password",
+      "line_content": "DEFAULT_ADMIN_PASSWORD=CHANGEME_set_strong_password"
+    },
+    {
+      "file": "apps/master/backend/.env",
+      "line": 23,
+      "type": "password",
+      "key_preview": "CHANGEME_update_credentials",
+      "line_content": "CLOUD_PASSWORD=CHANGEME_update_credentials"
+    },
+    {
+      "file": "apps/master/backend/.env",
+      "line": 30,
+      "type": "api_key",
+      "key_preview": "CHANGEME_update_r2_secret",
+      "line_content": "R2_SECRET_KEY=CHANGEME_update_r2_secret"
+    },
+    {
+      "file": "apps/master/backend/setup/config-template.env",
+      "line": 97,
+      "type": "jwt",
+      "key_preview": "change-this-in-production",
+      "line_content": "JWT_SECRET=change-this-in-production"
+    },
+    {
+      "file": "apps/master/backend/setup/config-template.env",
+      "line": 38,
+      "type": "api_key",
+      "key_preview": "your-cloudflare-api-token",
+      "line_content": "CLOUDFLARE_API_TOKEN=your-cloudflare-api-token"
+    },
+    {
+      "file": "apps/master/backend/setup/profiles/concorde.env",
+      "line": 18,
+      "type": "password",
+      "key_preview": "clickflash2025",
+      "line_content": "CLOUD_PASSWORD=clickflash2025"
+    },
+    {
+      "file": "apps/master/backend/setup/profiles/marhaba-club.env",
+      "line": 18,
+      "type": "password",
+      "key_preview": "clickflash2025",
+      "line_content": "CLOUD_PASSWORD=clickflash2025"
+    },
+    {
+      "file": "apps/master/backend/setup/profiles/marhaba-occidental.env",
+      "line": 18,
+      "type": "password",
+      "key_preview": "clickflash2025",
+      "line_content": "CLOUD_PASSWORD=clickflash2025"
+    },
+    {
+      "file": "apps/master/ClickFlash-Master-test-hotel-2/.env",
+      "line": 11,
+      "type": "cloudflare",
+      "key_preview": "cfut_WNDywpLDOQqLb9z...eVIjN9BKV4Tab937ffb1",
+      "line_content": "CLOUDFLARE_API_TOKEN=[REDACTED]"
+    },
+    {
+      "file": "apps/master/ClickFlash-Master-test-hotel-2/.env",
+      "line": 56,
+      "type": "jwt",
+      "key_preview": "0471b46f3e8b6ee3b675...c89e5f933f01aa58edd0",
+      "line_content": "JWT_SECRET=0471b46f3e8b6ee3b675bee3858c761769670310dc22ede03eadbe4061501010e4fc3d5961b19c581fca5501f"
+    },
+    {
+      "file": "apps/master/ClickFlash-Master-test-hotel-2/.env",
+      "line": 38,
+      "type": "password",
+      "key_preview": "TestPass123!",
+      "line_content": "CLOUD_PASSWORD=TestPass123!"
+    },
+    {
+      "file": "apps/master/ClickFlash-Master-test-hotel-2/.env",
+      "line": 74,
+      "type": "password",
+      "key_preview": "TestPass123!",
+      "line_content": "ADMIN_PASSWORD=TestPass123!"
+    },
+    {
+      "file": "apps/master/ClickFlash-Master-test-hotel-2/.env",
+      "line": 30,
+      "type": "api_key",
+      "key_preview": "3a67678a197fb84adc4c...880364aa141369178e15",
+      "line_content": "GALLERY_API_KEY=3a67678a197fb84adc4cb9f2adf2cfe9f07be9628fa8880364aa141369178e15"
+    },
+    {
+      "file": "apps/master/ClickFlash-Master-test-hotel-2/.env",
+      "line": 43,
+      "type": "api_key",
+      "key_preview": "bcd9fc8ada43e7b46ba1...fab4c3d2396ac0e40aa4",
+      "line_content": "MONEYTRASH_API_KEY=bcd9fc8ada43e7b46ba19abc57d603f4d7197b215591fab4c3d2396ac0e40aa4"
+    },
+    {
+      "file": "apps/master/ClickFlash-Master-test-hotel-2/.env",
+      "line": 47,
+      "type": "api_key",
+      "key_preview": "defaf6a2e48c51d244e7...8b59770b956d859e67df",
+      "line_content": "HUB_API_KEY=defaf6a2e48c51d244e7ea60069ad2a0122402718dd58b59770b956d859e67df"
+    },
+    {
+      "file": "apps/master/configs/club.env",
+      "line": 11,
+      "type": "jwt",
+      "key_preview": "clickflash_club_secure_secret_2025",
+      "line_content": "JWT_SECRET=clickflash_club_secure_secret_2025"
+    },
+    {
+      "file": "apps/master/configs/concorde.env",
+      "line": 11,
+      "type": "jwt",
+      "key_preview": "clickflash_concorde_secure_secret_2025",
+      "line_content": "JWT_SECRET=clickflash_concorde_secure_secret_2025"
+    },
+    {
+      "file": "apps/master/configs/occidental.env",
+      "line": 11,
+      "type": "jwt",
+      "key_preview": "clickflash_occidental_secure_secret_2025",
+      "line_content": "JWT_SECRET=clickflash_occidental_secure_secret_2025"
+    },
+    {
+      "file": "apps/moneytrash/.env",
+      "line": 24,
+      "type": "api_key",
+      "key_preview": "79t16ZCsUW8QklRMdSxjVicPJLmGBn3a",
+      "line_content": "CLOUD_API_KEY=79t16ZCsUW8QklRMdSxjVicPJLmGBn3a"
+    },
+    {
+      "file": "apps/touch/.env",
+      "line": 56,
+      "type": "jwt",
+      "key_preview": "de8c75171b04901373c0...ef2b739cf4a5880c84d6",
+      "line_content": "JWT_SECRET=de8c75171b04901373c09dfd5912bf30157af0af26b9ef2b739cf4a5880c84d6"
+    },
+    {
+      "file": "apps/touch/.env.production",
+      "line": 16,
+      "type": "password",
+      "key_preview": "ChangeThisSecurePassword123!",
+      "line_content": "DEFAULT_ADMIN_PASSWORD=ChangeThisSecurePassword123!"
+    }
+  ]
+}

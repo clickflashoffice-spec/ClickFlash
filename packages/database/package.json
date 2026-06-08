@@ -1,0 +1,18 @@
+{
+  "name": "@clickflash/database",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/migrate.ts",
+  "types": "./src/migrate.ts",
+  "scripts": {
+    "migrate": "ts-node ./src/migrate.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "better-sqlite3-multiple-ciphers": "^12.8.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

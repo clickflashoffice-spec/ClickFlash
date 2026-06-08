@@ -1,0 +1,32 @@
+
+╔══════════════════════════════════════════════════════════════╗
+║     MASTER RETURN CHECKLIST - Complete These Steps          ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║ 1. [ ] Rotate Stripe key                                     ║
+║    → https://dashboard.stripe.com/test/apikeys              ║
+║                                                              ║
+║ 2. [ ] Rotate Resend key                                     ║
+║    → https://resend.com/api-keys                            ║
+║                                                              ║
+║ 3. [ ] Rotate Cloudflare token                               ║
+║    → https://dash.cloudflare.com/profile/api-tokens         ║
+║                                                              ║
+║ 4. [ ] Update .env files with new secrets                    ║
+║    → See: docs/audit/tools/GENERATED_JWT_SECRETS.json       ║
+║                                                              ║
+║ 5. [ ] Force-push clean history                              ║
+║    → git push origin --force --all                          ║
+║                                                              ║
+║ 6. [ ] Delete backup branch                                  ║
+║    → git branch -D backup-original-history-before-rotation  ║
+║                                                              ║
+║ 7. [ ] Install new Master app                                ║
+║    → Run uninstall-old.bat as Admin first                   ║
+║    → Then run: ClickFlash Master OS Setup 4.2.0.exe        ║
+║                                                              ║
+║ 8. [ ] Test backend starts (no error dialog)                 ║
+║                                                              ║
+╠══════════════════════════════════════════════════════════════╣
+║ Total time estimate: ~18 minutes                             ║
+╚══════════════════════════════════════════════════════════════╝

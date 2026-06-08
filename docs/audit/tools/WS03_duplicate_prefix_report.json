@@ -1,0 +1,225 @@
+{
+  "duplicates": [
+    {
+      "app": "gallery",
+      "prefix": "001",
+      "count": 2
+    },
+    {
+      "app": "gallery",
+      "prefix": "002",
+      "count": 4
+    },
+    {
+      "app": "gallery",
+      "prefix": "003",
+      "count": 2
+    },
+    {
+      "app": "gallery",
+      "prefix": "004",
+      "count": 2
+    },
+    {
+      "app": "management",
+      "prefix": "001",
+      "count": 2
+    },
+    {
+      "app": "management",
+      "prefix": "002",
+      "count": 3
+    },
+    {
+      "app": "management",
+      "prefix": "003",
+      "count": 2
+    },
+    {
+      "app": "management",
+      "prefix": "004",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "003",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "004",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "034",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "035",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "036",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "044",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "045",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "047",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "051",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "052",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "053",
+      "count": 3
+    },
+    {
+      "app": "master",
+      "prefix": "054",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "055",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "056",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "057",
+      "count": 3
+    },
+    {
+      "app": "master",
+      "prefix": "058",
+      "count": 3
+    },
+    {
+      "app": "master",
+      "prefix": "059",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "060",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "061",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "001",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "002",
+      "count": 4
+    },
+    {
+      "app": "master",
+      "prefix": "005",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "025",
+      "count": 2
+    },
+    {
+      "app": "master",
+      "prefix": "046",
+      "count": 2
+    },
+    {
+      "app": "master-cpp",
+      "prefix": "001",
+      "count": 2
+    },
+    {
+      "app": "master-cpp",
+      "prefix": "002",
+      "count": 4
+    },
+    {
+      "app": "master-cpp",
+      "prefix": "005",
+      "count": 2
+    },
+    {
+      "app": "master-cpp",
+      "prefix": "025",
+      "count": 2
+    },
+    {
+      "app": "master-cpp",
+      "prefix": "046",
+      "count": 2
+    },
+    {
+      "app": "master-cpp",
+      "prefix": "053",
+      "count": 2
+    },
+    {
+      "app": "touch",
+      "prefix": "001",
+      "count": 2
+    },
+    {
+      "app": "touch",
+      "prefix": "002",
+      "count": 4
+    },
+    {
+      "app": "touch",
+      "prefix": "003",
+      "count": 2
+    },
+    {
+      "app": "touch",
+      "prefix": "004",
+      "count": 2
+    },
+    {
+      "app": "touch",
+      "prefix": "005",
+      "count": 2
+    },
+    {
+      "app": "touch",
+      "prefix": "006",
+      "count": 2
+    }
+  ],
+  "total": 44
+}

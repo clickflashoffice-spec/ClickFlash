@@ -1,0 +1,397 @@
+{
+  "archived_directories": [
+    "docs/archive/backends/gallery-express",
+    "docs/archive/backends/management-express-master",
+    "docs/archive/backends/management-express-shared"
+  ],
+  "remaining_express_files_in_active_paths": [],
+  "frontend_api_references": [
+    {
+      "file": "apps/gallery/src/App.tsx",
+      "matches": [
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/setupTests.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/Login.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/albums/AlbumDetail.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/common/NetworkStatusProvider.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/customer/CheckoutModal.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/customer/DownloadPage.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/customer/MoneyTrashBadge.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/management/DocumentationPage.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/settings/GeneralSettings.tsx",
+      "matches": [
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/settings/KioskPairing.tsx",
+      "matches": [
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/settings/SetupGuide.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/touch/KioskSettingsModal.tsx",
+      "matches": [
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/touch/PhotoSelectionScreen.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/components/touch/TouchConnectionSetup.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/hooks/useCartSync.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/advancedCheckout.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/aiSearchService.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/apiService.ts",
+      "matches": [
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/cloudApiService.ts",
+      "matches": [
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/faceRecognitionService.ts",
+      "matches": [
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/moneyTrashService.ts",
+      "matches": [
+        "VITE_API_URL|REACT_APP_API_URL",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/pb.ts",
+      "matches": [
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/pbManagement.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/stripeEdgeService.ts",
+      "matches": [
+        "VITE_API_URL|REACT_APP_API_URL",
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/stripeService.ts",
+      "matches": [
+        "VITE_API_URL|REACT_APP_API_URL",
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/syncService.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/services/unifiedMoneyTrash.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/types/globals.d.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/utils/testUtils.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/gallery/src/__tests__/orderAccess.test.ts",
+      "matches": [
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/constants.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/setupTests.ts",
+      "matches": [
+        "VITE_API_URL|REACT_APP_API_URL",
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/dashboard/ResortDashboard.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/dashboard/ResortIntelligence.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/management/AIChatBot.tsx",
+      "matches": [
+        "VITE_API_URL|REACT_APP_API_URL",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/management/DailyIntelligencePage.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/management/HRRecruitment.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/management/OperationalCommandCenter.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/management/PerformancePage.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/management/ProspectingCRM.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/management/YieldIntelligence.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/management/analytics/ClickFlashAnalytics.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/management/analytics/EcosystemAiChat.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/management/analytics/InsightsPage.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/management/settings/ConnectionSettings.tsx",
+      "matches": [
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/components/modals/ExtensionCreateModal.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/context/StationContext.tsx",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/services/apiService.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/services/cloudApiService.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/services/fleetService.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/services/geminiService.ts",
+      "matches": [
+        "VITE_API_URL|REACT_APP_API_URL",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/services/moneyTrashSync.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/services/orchestrationService.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/services/pb.ts",
+      "matches": [
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+",
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/services/pbManagement.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/services/remoteConfigService.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/services/syncService.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/services/unifiedDashboardService.ts",
+      "matches": [
+        "/api/|express|legacy"
+      ]
+    },
+    {
+      "file": "apps/management/src/utils/env.ts",
+      "matches": [
+        "VITE_API_URL|REACT_APP_API_URL",
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+"
+      ]
+    },
+    {
+      "file": "apps/management/src/__mocks__/envMock.js",
+      "matches": [
+        "VITE_API_URL|REACT_APP_API_URL",
+        "localhost:\\d+|127\\.0\\.0\\.1:\\d+"
+      ]
+    }
+  ]
+}

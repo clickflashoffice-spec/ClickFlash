@@ -1,0 +1,478 @@
+[
+  {
+    "method": "GET",
+    "route": "SELECT * FROM users WHERE email = ?",
+    "file": "initDefaultUser.ts",
+    "line": 38,
+    "snippet": "const defaultUser = dbManager.get('SELECT * FROM users WHERE email = ?', [DEFAULT_USER.email]) as any;"
+  },
+  {
+    "method": "GET",
+    "route": "Origin",
+    "file": "server.ts",
+    "line": 62,
+    "snippet": "const requestOrigin = request.headers.get('Origin');"
+  },
+  {
+    "method": "GET",
+    "route": "CF-Connecting-IP",
+    "file": "server.ts",
+    "line": 304,
+    "snippet": "const clientIp = request.headers.get('CF-Connecting-IP') ??"
+  },
+  {
+    "method": "GET",
+    "route": "X-Forwarded-For",
+    "file": "server.ts",
+    "line": 305,
+    "snippet": "request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ??"
+  },
+  {
+    "method": "GET",
+    "route": "Authorization",
+    "file": "server.ts",
+    "line": 382,
+    "snippet": "const authHeader = request.headers.get(\"Authorization\");"
+  },
+  {
+    "method": "GET",
+    "route": "pin",
+    "file": "server.ts",
+    "line": 399,
+    "snippet": "const pin = url.searchParams.get(\"pin\");"
+  },
+  {
+    "method": "GET",
+    "route": "email",
+    "file": "server.ts",
+    "line": 400,
+    "snippet": "const email = url.searchParams.get(\"email\");"
+  },
+  {
+    "method": "GET",
+    "route": "token",
+    "file": "server.ts",
+    "line": 425,
+    "snippet": "const token = url.searchParams.get(\"token\");"
+  },
+  {
+    "method": "GET",
+    "route": "roomNumber",
+    "file": "server.ts",
+    "line": 450,
+    "snippet": "const roomNumber = url.searchParams.get(\"roomNumber\");"
+  },
+  {
+    "method": "GET",
+    "route": "startDate",
+    "file": "server.ts",
+    "line": 531,
+    "snippet": "const startDate = url.searchParams.get(\"startDate\") || \"\";"
+  },
+  {
+    "method": "GET",
+    "route": "endDate",
+    "file": "server.ts",
+    "line": 532,
+    "snippet": "const endDate = url.searchParams.get(\"endDate\") || \"\";"
+  },
+  {
+    "method": "GET",
+    "route": "startDate",
+    "file": "server.ts",
+    "line": 687,
+    "snippet": "const startDate = url.searchParams.get(\"startDate\") || \"\";"
+  },
+  {
+    "method": "GET",
+    "route": "endDate",
+    "file": "server.ts",
+    "line": 688,
+    "snippet": "const endDate = url.searchParams.get(\"endDate\") || \"\";"
+  },
+  {
+    "method": "GET",
+    "route": "deskId",
+    "file": "server.ts",
+    "line": 689,
+    "snippet": "const targetDeskId = url.searchParams.get(\"deskId\");"
+  },
+  {
+    "method": "GET",
+    "route": "date",
+    "file": "server.ts",
+    "line": 716,
+    "snippet": "url.searchParams.get(\"date\") ||"
+  },
+  {
+    "method": "GET",
+    "route": "startDate",
+    "file": "server.ts",
+    "line": 795,
+    "snippet": "const startDate = url.searchParams.get(\"startDate\") || \"\";"
+  },
+  {
+    "method": "GET",
+    "route": "endDate",
+    "file": "server.ts",
+    "line": 796,
+    "snippet": "const endDate = url.searchParams.get(\"endDate\") || \"\";"
+  },
+  {
+    "method": "GET",
+    "route": "limit",
+    "file": "server.ts",
+    "line": 797,
+    "snippet": "const limit = parseInt(url.searchParams.get(\"limit\") || \"5\", 10);"
+  },
+  {
+    "method": "GET",
+    "route": "since_hub_index",
+    "file": "server.ts",
+    "line": 840,
+    "snippet": "url.searchParams.get(\"since_hub_index\") || \"0\","
+  },
+  {
+    "method": "GET",
+    "route": "expires",
+    "file": "server.ts",
+    "line": 1057,
+    "snippet": "const expires = parseInt(url.searchParams.get(\"expires\") || \"0\", 10);"
+  },
+  {
+    "method": "GET",
+    "route": "sig",
+    "file": "server.ts",
+    "line": 1058,
+    "snippet": "const sig = url.searchParams.get(\"sig\");"
+  },
+  {
+    "method": "GET",
+    "route": "since_hub_index",
+    "file": "server.ts",
+    "line": 1188,
+    "snippet": "url.searchParams.get(\"since_hub_index\") || \"0\","
+  },
+  {
+    "method": "GET",
+    "route": "hash",
+    "file": "server.ts",
+    "line": 1383,
+    "snippet": "const clientHash = url.searchParams.get(\"hash\") || \"\";"
+  },
+  {
+    "method": "GET",
+    "route": "deskId",
+    "file": "server.ts",
+    "line": 1507,
+    "snippet": "(form.get(\"deskId\") as string) ||"
+  },
+  {
+    "method": "GET",
+    "route": "albumId",
+    "file": "server.ts",
+    "line": 1510,
+    "snippet": "const albumId = (form.get(\"albumId\") as string) || \"unscoped\";"
+  },
+  {
+    "method": "GET",
+    "route": "photoId",
+    "file": "server.ts",
+    "line": 1511,
+    "snippet": "const photoId = form.get(\"photoId\") as string;"
+  },
+  {
+    "method": "GET",
+    "route": "orderId",
+    "file": "server.ts",
+    "line": 1512,
+    "snippet": "const orderId = form.get(\"orderId\") as string;"
+  },
+  {
+    "method": "GET",
+    "route": "originalName",
+    "file": "server.ts",
+    "line": 1513,
+    "snippet": "const originalName = (form.get(\"originalName\") as string) || photoId;"
+  },
+  {
+    "method": "GET",
+    "route": "chunkIndex",
+    "file": "server.ts",
+    "line": 1514,
+    "snippet": "const chunkIndex = parseInt(form.get(\"chunkIndex\") as string, 10);"
+  },
+  {
+    "method": "GET",
+    "route": "totalChunks",
+    "file": "server.ts",
+    "line": 1515,
+    "snippet": "const totalChunks = parseInt(form.get(\"totalChunks\") as string, 10);"
+  },
+  {
+    "method": "GET",
+    "route": "file",
+    "file": "server.ts",
+    "line": 1516,
+    "snippet": "const file = form.get(\"file\") as File | null;"
+  },
+  {
+    "method": "GET",
+    "route": "hash",
+    "file": "server.ts",
+    "line": 1571,
+    "snippet": "const clientHash = url.searchParams.get(\"hash\") || \"\";"
+  },
+  {
+    "method": "GET",
+    "route": "desk_id",
+    "file": "server.ts",
+    "line": 1751,
+    "snippet": "url.searchParams.get(\"desk_id\") || (payload as any).desk_id || \"\";"
+  },
+  {
+    "method": "GET",
+    "route": "startDate",
+    "file": "server.ts",
+    "line": 1943,
+    "snippet": "const startDate = url.searchParams.get(\"startDate\") || defaultStart;"
+  },
+  {
+    "method": "GET",
+    "route": "endDate",
+    "file": "server.ts",
+    "line": 1944,
+    "snippet": "const endDate = url.searchParams.get(\"endDate\") || today;"
+  },
+  {
+    "method": "GET",
+    "route": "deskId",
+    "file": "server.ts",
+    "line": 1946,
+    "snippet": "const deskId = url.searchParams.get(\"deskId\") || null;"
+  },
+  {
+    "method": "GET",
+    "route": "startDate",
+    "file": "routes\\analytics.ts",
+    "line": 18,
+    "snippet": "const startDate = url.searchParams.get(\"startDate\") || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();"
+  },
+  {
+    "method": "GET",
+    "route": "endDate",
+    "file": "routes\\analytics.ts",
+    "line": 19,
+    "snippet": "const endDate = url.searchParams.get(\"endDate\") || new Date().toISOString();"
+  },
+  {
+    "method": "GET",
+    "route": "startDate",
+    "file": "routes\\analytics.ts",
+    "line": 26,
+    "snippet": "const startDate = url.searchParams.get(\"startDate\") || new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString();"
+  },
+  {
+    "method": "GET",
+    "route": "endDate",
+    "file": "routes\\analytics.ts",
+    "line": 27,
+    "snippet": "const endDate = url.searchParams.get(\"endDate\") || new Date().toISOString();"
+  },
+  {
+    "method": "GET",
+    "route": "startDate",
+    "file": "routes\\analytics.ts",
+    "line": 34,
+    "snippet": "const startDate = url.searchParams.get(\"startDate\") || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();"
+  },
+  {
+    "method": "GET",
+    "route": "endDate",
+    "file": "routes\\analytics.ts",
+    "line": 35,
+    "snippet": "const endDate = url.searchParams.get(\"endDate\") || new Date().toISOString();"
+  },
+  {
+    "method": "GET",
+    "route": "limit",
+    "file": "routes\\analytics.ts",
+    "line": 36,
+    "snippet": "const limit = parseInt(url.searchParams.get(\"limit\") || \"5\", 10);"
+  },
+  {
+    "method": "GET",
+    "route": "SELECT id FROM users WHERE desk_id = ? LIMIT 1",
+    "file": "routes\\auth.ts",
+    "line": 17,
+    "snippet": "const existing = await dbManager.get(\"SELECT id FROM users WHERE desk_id = ? LIMIT 1\", [deskId]);"
+  },
+  {
+    "method": "GET",
+    "route": "SELECT id FROM users WHERE desk_id = ? LIMIT 1",
+    "file": "routes\\auth.ts",
+    "line": 37,
+    "snippet": "const existingDesk = await dbManager.get(\"SELECT id FROM users WHERE desk_id = ? LIMIT 1\", [deskId]);"
+  },
+  {
+    "method": "GET",
+    "route": "SELECT id FROM users WHERE email = ? LIMIT 1",
+    "file": "routes\\auth.ts",
+    "line": 42,
+    "snippet": "const existingEmail = await dbManager.get(\"SELECT id FROM users WHERE email = ? LIMIT 1\", [email]);"
+  },
+  {
+    "method": "GET",
+    "route": "Cookie",
+    "file": "routes\\auth.ts",
+    "line": 138,
+    "snippet": "const cookieHeader = request.headers.get(\"Cookie\") || \"\";"
+  },
+  {
+    "method": "GET",
+    "route": "SELECT * FROM refresh_tokens WHERE token = ?",
+    "file": "routes\\auth.ts",
+    "line": 145,
+    "snippet": "const tokenData = await dbManager.get('SELECT * FROM refresh_tokens WHERE token = ?', [refreshToken]);"
+  },
+  {
+    "method": "GET",
+    "route": "SELECT * FROM users WHERE id = ?",
+    "file": "routes\\auth.ts",
+    "line": 165,
+    "snippet": "const user = await dbManager.get('SELECT * FROM users WHERE id = ?', [tokenData.user_id]);"
+  },
+  {
+    "method": "GET",
+    "route": "Cookie",
+    "file": "routes\\auth.ts",
+    "line": 201,
+    "snippet": "const cookieHeader = request.headers.get(\"Cookie\") || \"\";"
+  },
+  {
+    "method": "GET",
+    "route": "Authorization",
+    "file": "routes\\auth.ts",
+    "line": 217,
+    "snippet": "const authHeader = request.headers.get(\"Authorization\");"
+  },
+  {
+    "method": "GET",
+    "route": "pin",
+    "file": "routes\\gallery.ts",
+    "line": 7,
+    "snippet": "const pin = url.searchParams.get(\"pin\");"
+  },
+  {
+    "method": "GET",
+    "route": "email",
+    "file": "routes\\gallery.ts",
+    "line": 8,
+    "snippet": "const email = url.searchParams.get(\"email\");"
+  },
+  {
+    "method": "GET",
+    "route": "token",
+    "file": "routes\\gallery.ts",
+    "line": 25,
+    "snippet": "const token = url.searchParams.get(\"token\");"
+  },
+  {
+    "method": "GET",
+    "route": "roomNumber",
+    "file": "routes\\gallery.ts",
+    "line": 42,
+    "snippet": "const roomNumber = url.searchParams.get(\"roomNumber\");"
+  },
+  {
+    "method": "GET",
+    "route": "desk_id",
+    "file": "routes\\masters.ts",
+    "line": 29,
+    "snippet": "const deskId = url.searchParams.get(\"desk_id\")?.trim();"
+  },
+  {
+    "method": "GET",
+    "route": "Authorization",
+    "file": "routes\\masters.ts",
+    "line": 159,
+    "snippet": "const authHeader = request.headers.get(\"Authorization\");"
+  },
+  {
+    "method": "GET",
+    "route": "Authorization",
+    "file": "routes\\masters.ts",
+    "line": 221,
+    "snippet": "const authHeader = request.headers.get(\"Authorization\");"
+  },
+  {
+    "method": "GET",
+    "route": "Authorization",
+    "file": "routes\\masters.ts",
+    "line": 262,
+    "snippet": "const authHeader = request.headers.get(\"Authorization\");"
+  },
+  {
+    "method": "GET",
+    "route": "X-Hub-Signature",
+    "file": "routes\\sync.ts",
+    "line": 19,
+    "snippet": "const signature = request.headers.get(\"X-Hub-Signature\");"
+  },
+  {
+    "method": "GET",
+    "route": "X-Hub-Timestamp",
+    "file": "routes\\sync.ts",
+    "line": 20,
+    "snippet": "const timestamp = request.headers.get(\"X-Hub-Timestamp\");"
+  },
+  {
+    "method": "GET",
+    "route": "since_hub_index",
+    "file": "routes\\sync.ts",
+    "line": 62,
+    "snippet": "const sinceIndex = parseInt(url.searchParams.get(\"since_hub_index\") || \"0\", 10);"
+  },
+  {
+    "method": "GET",
+    "route": "hash",
+    "file": "routes\\sync.ts",
+    "line": 157,
+    "snippet": "const clientHash = url.searchParams.get(\"hash\") || \"\";"
+  },
+  {
+    "method": "GET",
+    "route": "filter",
+    "file": "services\\recordService.ts",
+    "line": 25,
+    "snippet": "const filterParam = query.get(\"filter\");"
+  },
+  {
+    "method": "GET",
+    "route": "sort",
+    "file": "services\\recordService.ts",
+    "line": 26,
+    "snippet": "const sortParam = query.get(\"sort\");"
+  },
+  {
+    "method": "GET",
+    "route": "page",
+    "file": "services\\recordService.ts",
+    "line": 27,
+    "snippet": "const pageParam = query.get(\"page\");"
+  },
+  {
+    "method": "GET",
+    "route": "perPage",
+    "file": "services\\recordService.ts",
+    "line": 28,
+    "snippet": "const perPageParam = query.get(\"perPage\");"
+  },
+  {
+    "method": "GET",
+    "route": "Access-Control-Allow-Origin",
+    "file": "__tests__\\server.test.ts",
+    "line": 262,
+    "snippet": "expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');"
+  }
+]

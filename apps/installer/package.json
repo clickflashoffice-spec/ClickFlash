@@ -1,0 +1,43 @@
+{
+  "name": "clickflash-installer",
+  "version": "5.0.0",
+  "description": "ClickFlash Unified 1-Click Installer — Master Portal + Touch Kiosk",
+  "private": true,
+  "main": "dist/electron/electron-main.js",
+  "scripts": {
+    "dev": "vite",
+    "dev:electron": "concurrently \"pnpm run dev\" \"wait-on http://localhost:5175 && electron .\" --names \"renderer,electron\" --prefix-colors \"green,cyan\" --kill-others-on-fail",
+    "build": "vite build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "package": "pnpm run build && pnpm run build:electron && electron-builder build --win --dir",
+    "package:installer": "pnpm run build && pnpm run build:electron && electron-builder build --win",
+    "lint": "eslint src --ext .ts,.tsx --max-warnings 50",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.electron.json",
+    "clean": "rimraf dist release"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.562.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwind-merge": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.2",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.23",
+    "concurrently": "^9.2.1",
+    "electron": "^39.8.7",
+    "electron-builder": "^26.8.1",
+    "postcss": "^8.5.6",
+    "rimraf": "^6.1.3",
+    "tailwindcss": "^3.4.18",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.2",
+    "wait-on": "^8.0.3"
+  }
+}

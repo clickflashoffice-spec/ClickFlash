@@ -1,0 +1,1632 @@
+{
+  "gallery": {
+    "files": 431,
+    "file_by_ext": {
+      "": 6,
+      ".example": 2,
+      ".production": 1,
+      ".template": 1,
+      ".bat": 12,
+      ".md": 7,
+      ".log": 9,
+      ".txt": 1,
+      ".js": 53,
+      ".ico": 2,
+      ".html": 1,
+      ".json": 8,
+      ".ts": 69,
+      ".tsbuildinfo": 2,
+      ".test_gallery": 1,
+      ".toml": 1,
+      ".sql": 25,
+      ".png": 6,
+      ".svg": 2,
+      ".tsx": 221,
+      ".css": 1
+    },
+    "lines_by_ext": {
+      ".bat": 486,
+      ".md": 1463,
+      ".txt": 19,
+      ".js": 6317,
+      ".html": 37,
+      ".json": 270,
+      ".ts": 14387,
+      ".sql": 1206,
+      ".tsx": 33751,
+      ".css": 110
+    },
+    "largest": [
+      {
+        "size": 5045017,
+        "path": "public\\favicon.png",
+        "ext": ".png"
+      },
+      {
+        "size": 234561,
+        "path": "build.log",
+        "ext": ".log"
+      },
+      {
+        "size": 222070,
+        "path": "icon.ico",
+        "ext": ".ico"
+      },
+      {
+        "size": 127068,
+        "path": "tsconfig.tsbuildinfo",
+        "ext": ".tsbuildinfo"
+      },
+      {
+        "size": 110382,
+        "path": "public\\logo.png",
+        "ext": ".png"
+      },
+      {
+        "size": 110382,
+        "path": "public\\logo-trans.png",
+        "ext": ".png"
+      },
+      {
+        "size": 110382,
+        "path": "public\\logo-cf-v4.png",
+        "ext": ".png"
+      },
+      {
+        "size": 110382,
+        "path": "public\\logo-cf-v3.png",
+        "ext": ".png"
+      },
+      {
+        "size": 75988,
+        "path": "src\\components\\albums\\AlbumDetail.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 70354,
+        "path": "public\\logo-white.png",
+        "ext": ".png"
+      },
+      {
+        "size": 62530,
+        "path": "backend\\tsconfig.tsbuildinfo",
+        "ext": ".tsbuildinfo"
+      },
+      {
+        "size": 58836,
+        "path": "src\\services\\apiService.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 54356,
+        "path": "backend\\src\\server.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 50066,
+        "path": "src\\components\\management\\DocumentationPage.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 46298,
+        "path": "src\\components\\albums\\Albums.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 35786,
+        "path": "src\\components\\settings\\GeneralSettings.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 34391,
+        "path": "src\\components\\PhotoEditModal.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 33180,
+        "path": "src\\components\\albums\\editor\\EditorSidebar.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 31012,
+        "path": "src\\components\\Orders.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 29547,
+        "path": "src\\components\\ProductsPage.tsx",
+        "ext": ".tsx"
+      }
+    ],
+    "root_files": [
+      ".dockerignore",
+      ".env",
+      ".env.example",
+      ".env.production",
+      ".env.production.template",
+      ".gitignore",
+      ".npmrc",
+      "1_INSTALL.bat",
+      "2_BUILD.bat",
+      "3_START_DEV.bat",
+      "4_START_BACKEND.bat",
+      "5_START_FRONTEND.bat",
+      "6_TEST.bat",
+      "7_CLEAN.bat",
+      "ARCHITECTURE.md",
+      "AUDIT_REPORT.md",
+      "build.log",
+      "build_err.log",
+      "build_error.log",
+      "build_final_try.log",
+      "build_job.bat",
+      "build_job_v2.bat",
+      "build_log.txt",
+      "build_try.log",
+      "build_v2.log",
+      "Dockerfile",
+      "eslint.config.js",
+      "FINALIZATION_SUMMARY.md",
+      "GALLERY_APP_IMPROVEMENTS.md",
+      "gallery_build.log",
+      "gallery_dev.log",
+      "icon.ico",
+      "index.html",
+      "jest.config.js",
+      "jest.tsconfig.json",
+      "package.json",
+      "playwright.config.ts",
+      "postcss.config.js",
+      "README.md",
+      "service-worker.js",
+      "start-customer.bat",
+      "tailwind.config.js",
+      "tsconfig.json",
+      "tsconfig.tsbuildinfo",
+      "vercel.json",
+      "vite.config.ts"
+    ]
+  },
+  "installer": {
+    "files": 34,
+    "file_by_ext": {
+      ".yml": 1,
+      ".ts": 15,
+      ".html": 1,
+      ".json": 3,
+      ".js": 2,
+      ".nsh": 1,
+      ".tsx": 10,
+      ".css": 1
+    },
+    "lines_by_ext": {
+      ".yml": 45,
+      ".ts": 2507,
+      ".html": 15,
+      ".json": 82,
+      ".js": 60,
+      ".tsx": 1178,
+      ".css": 56
+    },
+    "largest": [
+      {
+        "size": 15588,
+        "path": "electron-main.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 11647,
+        "path": "src\\hooks\\useInstallerState.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 8081,
+        "path": "src\\services\\oauthHandler.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 7353,
+        "path": "src\\services\\tokenEncryption.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 6992,
+        "path": "src\\components\\CloudflareStep.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 6137,
+        "path": "src\\services\\cloudflareProvision.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 5404,
+        "path": "src\\components\\PrerequisitesStep.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 5178,
+        "path": "src\\components\\HealthCheckStep.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 4833,
+        "path": "src\\components\\CompleteStep.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 4770,
+        "path": "src\\App.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 4735,
+        "path": "src\\components\\TouchPairingStep.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 4405,
+        "path": "src\\services\\systemCheck.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 4312,
+        "path": "src\\types\\installer.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 4283,
+        "path": "src\\components\\StudioProfileStep.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 3823,
+        "path": "src\\services\\touchPairing.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 3625,
+        "path": "src\\hooks\\useCloudflareApi.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 3594,
+        "path": "src\\services\\healthCheck.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 3462,
+        "path": "scripts\\nsis-installer.nsh",
+        "ext": ".nsh"
+      },
+      {
+        "size": 3137,
+        "path": "src\\components\\WelcomeStep.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 3047,
+        "path": "src\\services\\fleetRegistration.ts",
+        "ext": ".ts"
+      }
+    ],
+    "root_files": [
+      "electron-builder.yml",
+      "electron-main.ts",
+      "index.html",
+      "package.json",
+      "postcss.config.js",
+      "preload.ts",
+      "tailwind.config.js",
+      "tsconfig.electron.json",
+      "tsconfig.json",
+      "vite.config.ts"
+    ]
+  },
+  "management": {
+    "files": 474,
+    "file_by_ext": {
+      "": 5,
+      ".example": 2,
+      ".production": 1,
+      ".template": 1,
+      ".bat": 14,
+      ".md": 7,
+      ".log": 23,
+      ".txt": 32,
+      ".js": 29,
+      ".ico": 2,
+      ".html": 1,
+      ".json": 11,
+      ".ts": 106,
+      ".tsbuildinfo": 2,
+      ".sql": 45,
+      ".toml": 1,
+      ".db": 1,
+      ".cjs": 4,
+      ".png": 6,
+      ".svg": 2,
+      ".tsx": 175,
+      ".css": 4
+    },
+    "lines_by_ext": {
+      ".bat": 487,
+      ".md": 1231,
+      ".txt": 2306,
+      ".js": 6131,
+      ".html": 36,
+      ".json": 744,
+      ".ts": 31963,
+      ".sql": 2325,
+      ".tsx": 35426,
+      ".css": 612
+    },
+    "largest": [
+      {
+        "size": 5045017,
+        "path": "public\\favicon.png",
+        "ext": ".png"
+      },
+      {
+        "size": 422409,
+        "path": "backend\\worker-configuration.d.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 232675,
+        "path": "tsconfig.tsbuildinfo",
+        "ext": ".tsbuildinfo"
+      },
+      {
+        "size": 222070,
+        "path": "icon.ico",
+        "ext": ".ico"
+      },
+      {
+        "size": 217025,
+        "path": "build.log",
+        "ext": ".log"
+      },
+      {
+        "size": 144304,
+        "path": "backend\\master\\server.js",
+        "ext": ".js"
+      },
+      {
+        "size": 110382,
+        "path": "public\\logo.png",
+        "ext": ".png"
+      },
+      {
+        "size": 110382,
+        "path": "public\\logo-trans.png",
+        "ext": ".png"
+      },
+      {
+        "size": 110382,
+        "path": "public\\logo-cf-v4.png",
+        "ext": ".png"
+      },
+      {
+        "size": 110382,
+        "path": "public\\logo-cf-v3.png",
+        "ext": ".png"
+      },
+      {
+        "size": 99874,
+        "path": "backend\\tsconfig.tsbuildinfo",
+        "ext": ".tsbuildinfo"
+      },
+      {
+        "size": 95856,
+        "path": "backend\\src\\server.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 70354,
+        "path": "public\\logo-white.png",
+        "ext": ".png"
+      },
+      {
+        "size": 63616,
+        "path": "src\\services\\apiService.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 52502,
+        "path": "build_log_2.txt",
+        "ext": ".txt"
+      },
+      {
+        "size": 33468,
+        "path": "src\\components\\Photographers.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 32432,
+        "path": "src\\components\\management\\UnifiedMasterDashboard.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 32089,
+        "path": "src\\components\\ProductsPage.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 30991,
+        "path": "src\\components\\management\\DestinationsPage.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 30882,
+        "path": "src\\components\\Orders.tsx",
+        "ext": ".tsx"
+      }
+    ],
+    "root_files": [
+      ".dockerignore",
+      ".env",
+      ".env.example",
+      ".env.production",
+      ".env.production.template",
+      ".gitignore",
+      "1_INSTALL.bat",
+      "2_BUILD.bat",
+      "3_START_DEV.bat",
+      "4_START_BACKEND.bat",
+      "5_START_FRONTEND.bat",
+      "6_TEST.bat",
+      "7_CLEAN.bat",
+      "ARCHITECTURE.md",
+      "AUDIT_FULL_360.md",
+      "AUDIT_REPORT.md",
+      "build.log",
+      "build_debug.log",
+      "build_debug_2.log",
+      "build_error.log",
+      "build_error_2.log",
+      "build_job.bat",
+      "build_job_v2.bat",
+      "build_log.txt",
+      "build_log_2.txt",
+      "build_log_3.txt",
+      "build_log_4.txt",
+      "build_v2.log",
+      "Dockerfile",
+      "eslint.config.js",
+      "icon.ico",
+      "index.html",
+      "inspect-destinations.js",
+      "jest.config.js",
+      "manifest.json",
+      "mgmt_build.log",
+      "package.json",
+      "playwright.config.ts",
+      "postcss.config.js",
+      "QUALITY_IMPROVEMENTS.md",
+      "README.md",
+      "service-worker.js",
+      "start-management.bat",
+      "tailwind.config.js",
+      "tsconfig.json",
+      "tsconfig.tsbuildinfo",
+      "tsc_errors.log",
+      "tsc_errors.txt",
+      "tsc_errors_v2.txt",
+      "tsc_errors_v3.txt",
+      "tsc_output.txt",
+      "tsc_output_2.txt",
+      "tsc_output_3.txt",
+      "tsc_output_4.txt",
+      "tsc_output_9.txt",
+      "ts_errors.txt",
+      "ts_errors_2.txt",
+      "ts_errors_3.txt",
+      "ts_errors_4.txt",
+      "ts_errors_5.txt",
+      "ts_errors_final.txt",
+      "typecheck_output.txt",
+      "typecheck_output_2.txt",
+      "typecheck_output_3.txt",
+      "typescript_errors.log",
+      "vite.config.ts"
+    ]
+  },
+  "master": {
+    "files": 2475,
+    "file_by_ext": {
+      "": 11,
+      ".example": 2,
+      ".template": 1,
+      ".bat": 17,
+      ".json": 40,
+      ".md": 26,
+      ".log": 18,
+      ".csv": 1,
+      ".js": 76,
+      ".dev": 1,
+      ".yml": 5,
+      ".ts": 472,
+      ".html": 3,
+      ".bak": 1,
+      ".ps1": 5,
+      ".tsbuildinfo": 2,
+      ".cloud": 1,
+      ".test_master": 1,
+      ".tn001-mo": 1,
+      ".tn002-mc": 1,
+      ".tn003-cgp": 1,
+      ".txt": 10,
+      ".sqlite": 1,
+      ".cjs": 11,
+      ".sql": 103,
+      ".db": 11,
+      ".db-shm": 2,
+      ".db-wal": 2,
+      ".jpg": 1315,
+      ".env": 7,
+      ".sh": 1,
+      ".zip": 1,
+      ".jsonl": 1,
+      ".webp": 58,
+      ".ico": 1,
+      ".png": 25,
+      ".bin": 1,
+      ".nsh": 2,
+      ".tsx": 230,
+      ".css": 6,
+      ".exe": 1
+    },
+    "lines_by_ext": {
+      ".bat": 1072,
+      ".json": 1355,
+      ".md": 5058,
+      ".js": 6470,
+      ".yml": 660,
+      ".ts": 80386,
+      ".html": 275,
+      ".ps1": 578,
+      ".txt": 317,
+      ".sql": 2047,
+      ".sh": 274,
+      ".tsx": 48457,
+      ".css": 835
+    },
+    "largest": [
+      {
+        "size": 13892428,
+        "path": "pb_data\\logs\\info-2026-05-23.log",
+        "ext": ".log"
+      },
+      {
+        "size": 9173401,
+        "path": "pb_data\\uploads\\b5981be1-2fcd-42f6-858e-a71b5533ffc8\\MAR_0396.JPG",
+        "ext": ".jpg"
+      },
+      {
+        "size": 9173401,
+        "path": "pb_data\\uploads\\b5981be1-2fcd-42f6-858e-a71b5533ffc8\\MAR_0396 (1).JPG",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6823517,
+        "path": "public\\logo.png",
+        "ext": ".png"
+      },
+      {
+        "size": 6439055,
+        "path": "public\\logo-white.png",
+        "ext": ".png"
+      },
+      {
+        "size": 6315874,
+        "path": "public\\icon.png",
+        "ext": ".png"
+      },
+      {
+        "size": 6028898,
+        "path": "public\\logo-trans.png",
+        "ext": ".png"
+      },
+      {
+        "size": 5483225,
+        "path": "pb_data\\audit_logs\\audit-2026-05-22.log",
+        "ext": ".log"
+      },
+      {
+        "size": 5045017,
+        "path": "public\\favicon.png",
+        "ext": ".png"
+      },
+      {
+        "size": 4517888,
+        "path": "pb_data\\sessions.db",
+        "ext": ".db"
+      },
+      {
+        "size": 4288425,
+        "path": "pb_data\\audit_logs\\audit-2026-05-23.log",
+        "ext": ".log"
+      },
+      {
+        "size": 4194304,
+        "path": "public\\models\\face_recognition_model-shard1",
+        "ext": ""
+      },
+      {
+        "size": 4173592,
+        "path": "pb_data\\master.db-wal",
+        "ext": ".db-wal"
+      },
+      {
+        "size": 3164765,
+        "path": "pb_data\\audit_logs\\audit-2026-05-15.log",
+        "ext": ".log"
+      },
+      {
+        "size": 3141632,
+        "path": "pb_data\\master.db",
+        "ext": ".db"
+      },
+      {
+        "size": 3003490,
+        "path": "tsconfig.tsbuildinfo",
+        "ext": ".tsbuildinfo"
+      },
+      {
+        "size": 2789376,
+        "path": "pb_data\\backup\\backup-2026-05-23.db",
+        "ext": ".db"
+      },
+      {
+        "size": 2249728,
+        "path": "public\\models\\face_recognition_model-shard2",
+        "ext": ""
+      },
+      {
+        "size": 1921066,
+        "path": "pb_data\\uploads\\b5981be1-2fcd-42f6-858e-a71b5533ffc8\\MAR_0304 (1).JPG",
+        "ext": ".jpg"
+      },
+      {
+        "size": 1515130,
+        "path": "pb_data\\uploads\\e444ba0a-ded6-4084-9586-c272d490c6e5\\highres\\30e31cac-408a-425e-b7e2-01e257567484.jpg",
+        "ext": ".jpg"
+      }
+    ],
+    "root_files": [
+      ".dockerignore",
+      ".env",
+      ".env.example",
+      ".env.production.template",
+      ".gitignore",
+      "1_INSTALL.bat",
+      "2_BUILD.bat",
+      "3_SETUP_PC.bat",
+      "3_START_DEV.bat",
+      "4_START.bat",
+      "4_START_PROD.bat",
+      "5_HARD_RESET.bat",
+      "5_PACKAGE.bat",
+      "6_TEST.bat",
+      "7_CLEAN.bat",
+      "8_E2E_TEST.bat",
+      "albums_schema.json",
+      "ARCHITECTURE.md",
+      "backend_server.log",
+      "bootstrap.example.json",
+      "build-production-packages.bat",
+      "destinations.csv",
+      "diagnose_db.js",
+      "Dockerfile",
+      "Dockerfile.dev",
+      "e2e-test-main.js",
+      "electron-builder-v3.yml",
+      "electron-builder.yml",
+      "electron-main.js",
+      "electron-main.ts",
+      "eslint.config.js",
+      "HOTEL_INSTALLERS.md",
+      "index.html",
+      "jest.config.ts",
+      "jest.integration.config.ts",
+      "master_manifest.json",
+      "OFFLINE_DEPLOYMENT.md",
+      "order_data.json",
+      "order_details.json",
+      "package.json",
+      "package.json.bak",
+      "photos_schema.json",
+      "playwright.config.ts",
+      "postcss.config.js",
+      "preload.js",
+      "preload.ts",
+      "production-config.json",
+      "README_INSTALL.md",
+      "run_cleanup.bat",
+      "schema_dump.json",
+      "service-worker.js",
+      "setup_firewall.ps1",
+      "setup_kiosk.ps1",
+      "success.json",
+      "system_manifest.json",
+      "tailwind.config.js",
+      "test-app.js",
+      "test-app.ps1",
+      "test-electron.js",
+      "test-module.js",
+      "test.js",
+      "test_photo.json",
+      "tsconfig.electron.json",
+      "tsconfig.json",
+      "tsconfig.node.json",
+      "tsconfig.server.json",
+      "tsconfig.tsbuildinfo",
+      "vite-bundle-analyzer.config.ts",
+      "vite.config.ts",
+      "WINDOWS_FIREWALL_SETUP.md"
+    ]
+  },
+  "master-cpp": {
+    "files": 229,
+    "file_by_ext": {
+      ".md": 5,
+      ".txt": 1,
+      ".h": 86,
+      ".sql": 57,
+      ".cpp": 80
+    },
+    "lines_by_ext": {
+      ".md": 939,
+      ".txt": 236,
+      ".h": 5613,
+      ".sql": 986,
+      ".cpp": 11499
+    },
+    "largest": [
+      {
+        "size": 17573,
+        "path": "src\\database\\MigrationRunner.cpp",
+        "ext": ".cpp"
+      },
+      {
+        "size": 12702,
+        "path": "include\\database\\DatabaseManager.h",
+        "ext": ".h"
+      },
+      {
+        "size": 10802,
+        "path": "src\\http\\FilesController.cpp",
+        "ext": ".cpp"
+      },
+      {
+        "size": 10063,
+        "path": "DEVELOPMENT_PLAN.md",
+        "ext": ".md"
+      },
+      {
+        "size": 9383,
+        "path": "src\\utils\\ImageProcessor.cpp",
+        "ext": ".cpp"
+      },
+      {
+        "size": 9177,
+        "path": "src\\http\\PairingController.cpp",
+        "ext": ".cpp"
+      },
+      {
+        "size": 9080,
+        "path": "src\\services\\AuthService.cpp",
+        "ext": ".cpp"
+      },
+      {
+        "size": 8999,
+        "path": "src\\services\\QueueProcessor.cpp",
+        "ext": ".cpp"
+      },
+      {
+        "size": 8273,
+        "path": "include\\http\\MarketingController.h",
+        "ext": ".h"
+      },
+      {
+        "size": 8039,
+        "path": "src\\services\\SyncService.cpp",
+        "ext": ".cpp"
+      },
+      {
+        "size": 7942,
+        "path": "src\\http\\Middleware.cpp",
+        "ext": ".cpp"
+      },
+      {
+        "size": 7940,
+        "path": "src\\ui\\albums\\AlbumEditor.cpp",
+        "ext": ".cpp"
+      },
+      {
+        "size": 7918,
+        "path": "src\\services\\VectorIndexService.cpp",
+        "ext": ".cpp"
+      },
+      {
+        "size": 7886,
+        "path": "src\\services\\CollectionService.cpp",
+        "ext": ".cpp"
+      },
+      {
+        "size": 7759,
+        "path": "FEATURE_MAPPING.md",
+        "ext": ".md"
+      },
+      {
+        "size": 7635,
+        "path": "include\\http\\CollectionsController.h",
+        "ext": ".h"
+      },
+      {
+        "size": 7586,
+        "path": "src\\ui\\orders\\OrderDetail.cpp",
+        "ext": ".cpp"
+      },
+      {
+        "size": 7449,
+        "path": "src\\ui\\clients\\ClientsView.cpp",
+        "ext": ".cpp"
+      },
+      {
+        "size": 7057,
+        "path": "src\\http\\CullingController.cpp",
+        "ext": ".cpp"
+      },
+      {
+        "size": 7029,
+        "path": "src\\ui\\MainWindow.cpp",
+        "ext": ".cpp"
+      }
+    ],
+    "root_files": [
+      "BUILD.md",
+      "CMakeLists.txt",
+      "DEVELOPMENT_PLAN.md",
+      "FEATURE_MAPPING.md"
+    ]
+  },
+  "moneytrash": {
+    "files": 124,
+    "file_by_ext": {
+      "": 4,
+      ".example": 2,
+      ".external-uploader": 1,
+      ".bat": 9,
+      ".md": 6,
+      ".yml": 1,
+      ".mjs": 2,
+      ".html": 1,
+      ".ts": 45,
+      ".json": 10,
+      ".js": 4,
+      ".tsbuildinfo": 1,
+      ".txt": 1,
+      ".sh": 2,
+      ".toml": 2,
+      ".sql": 1,
+      ".svg": 5,
+      ".ps1": 2,
+      ".tsx": 7,
+      ".css": 2,
+      ".ico": 2,
+      ".rs": 12,
+      ".lock": 1,
+      ".png": 1
+    },
+    "lines_by_ext": {
+      ".bat": 320,
+      ".md": 1898,
+      ".yml": 36,
+      ".html": 16,
+      ".ts": 8682,
+      ".json": 13357,
+      ".js": 591,
+      ".txt": 5,
+      ".sh": 199,
+      ".sql": 184,
+      ".ps1": 467,
+      ".tsx": 2308,
+      ".css": 156,
+      ".rs": 2712
+    },
+    "largest": [
+      {
+        "size": 467210,
+        "path": "src-tauri\\icons\\icon.png",
+        "ext": ".png"
+      },
+      {
+        "size": 431954,
+        "path": "src-tauri\\gen\\schemas\\windows-schema.json",
+        "ext": ".json"
+      },
+      {
+        "size": 431954,
+        "path": "src-tauri\\gen\\schemas\\desktop-schema.json",
+        "ext": ".json"
+      },
+      {
+        "size": 222070,
+        "path": "src-tauri\\icons\\icon.ico",
+        "ext": ".ico"
+      },
+      {
+        "size": 162557,
+        "path": "src-tauri\\Cargo.lock",
+        "ext": ".lock"
+      },
+      {
+        "size": 149906,
+        "path": "src-tauri\\gen\\schemas\\acl-manifests.json",
+        "ext": ".json"
+      },
+      {
+        "size": 138464,
+        "path": "tsconfig.tsbuildinfo",
+        "ext": ".tsbuildinfo"
+      },
+      {
+        "size": 49720,
+        "path": "src\\App.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 25931,
+        "path": "src\\app\\favicon.ico",
+        "ext": ".ico"
+      },
+      {
+        "size": 24972,
+        "path": "src\\app\\page.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 18427,
+        "path": "src\\services\\uploadQueue.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 18026,
+        "path": "src-tauri\\src\\commands\\upload.rs",
+        "ext": ".rs"
+      },
+      {
+        "size": 16231,
+        "path": "ARCHITECTURE.md",
+        "ext": ".md"
+      },
+      {
+        "size": 15766,
+        "path": "__tests__\\logic.test.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 14344,
+        "path": "src-tauri\\src\\commands\\file.rs",
+        "ext": ".rs"
+      },
+      {
+        "size": 14179,
+        "path": "src\\services\\resumableUploadService.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 14160,
+        "path": "scripts\\test-r2-upload.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 14138,
+        "path": "src-tauri\\src\\commands\\config.rs",
+        "ext": ".rs"
+      },
+      {
+        "size": 13177,
+        "path": "src\\services\\__tests__\\s3StorageService.test.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 11880,
+        "path": "src\\services\\bandwidthScheduler.ts",
+        "ext": ".ts"
+      }
+    ],
+    "root_files": [
+      ".dockerignore",
+      ".env",
+      ".env.example",
+      ".env.external-uploader",
+      ".gitignore",
+      "1_INSTALL.bat",
+      "2_BUILD.bat",
+      "3_START_DEV.bat",
+      "4_START_PROD.bat",
+      "5_LINT.bat",
+      "6_CLEAN.bat",
+      "ARCHITECTURE.md",
+      "BUILD.bat",
+      "CLOUDFLARE_DEPLOYMENT_GUIDE.md",
+      "DEV.bat",
+      "docker-compose.yml",
+      "Dockerfile",
+      "eslint.config.mjs",
+      "external-uploader-credentials.json.example",
+      "EXTERNAL_UPLOADER_SETUP.md",
+      "index.html",
+      "next-env.d.ts",
+      "next.config.ts",
+      "package.json",
+      "playwright.config.ts",
+      "postcss.config.js",
+      "postcss.config.mjs",
+      "README.md",
+      "SETUP.bat",
+      "tailwind.config.js",
+      "tsconfig.json",
+      "tsconfig.node.json",
+      "tsconfig.tsbuildinfo",
+      "typecheck_results.txt",
+      "vite.config.ts",
+      "vitest.config.ts"
+    ]
+  },
+  "pb_data": {
+    "files": 1,
+    "file_by_ext": {
+      ".db": 1
+    },
+    "lines_by_ext": {},
+    "largest": [
+      {
+        "size": 0,
+        "path": "master.db",
+        "ext": ".db"
+      }
+    ],
+    "root_files": [
+      "master.db"
+    ]
+  },
+  "touch": {
+    "files": 295,
+    "file_by_ext": {
+      "": 10,
+      ".development": 1,
+      ".example": 2,
+      ".production": 1,
+      ".template": 1,
+      ".test": 1,
+      ".bat": 9,
+      ".ts": 99,
+      ".js": 16,
+      ".log": 23,
+      ".txt": 4,
+      ".dev": 1,
+      ".json": 14,
+      ".ico": 2,
+      ".html": 1,
+      ".msi": 1,
+      ".md": 25,
+      ".ps1": 6,
+      ".tsbuildinfo": 1,
+      ".sql": 22,
+      ".sh": 2,
+      ".db": 1,
+      ".db-shm": 1,
+      ".db-wal": 1,
+      ".png": 5,
+      ".nsh": 3,
+      ".tsx": 40,
+      ".css": 2
+    },
+    "lines_by_ext": {
+      ".bat": 361,
+      ".ts": 19247,
+      ".js": 2186,
+      ".txt": 227,
+      ".json": 435,
+      ".html": 46,
+      ".md": 5976,
+      ".ps1": 887,
+      ".sql": 507,
+      ".sh": 158,
+      ".tsx": 6497,
+      ".css": 187
+    },
+    "largest": [
+      {
+        "size": 32223232,
+        "path": "node-v24.11.1-x64.msi",
+        "ext": ".msi"
+      },
+      {
+        "size": 6823517,
+        "path": "public\\logo.png",
+        "ext": ".png"
+      },
+      {
+        "size": 6439055,
+        "path": "public\\logo-white.png",
+        "ext": ".png"
+      },
+      {
+        "size": 6315874,
+        "path": "public\\icon.png",
+        "ext": ".png"
+      },
+      {
+        "size": 6028898,
+        "path": "public\\logo-trans.png",
+        "ext": ".png"
+      },
+      {
+        "size": 5045017,
+        "path": "public\\favicon.png",
+        "ext": ".png"
+      },
+      {
+        "size": 4194304,
+        "path": "public\\models\\face_recognition_model-shard1",
+        "ext": ""
+      },
+      {
+        "size": 2249728,
+        "path": "public\\models\\face_recognition_model-shard2",
+        "ext": ""
+      },
+      {
+        "size": 356840,
+        "path": "public\\models\\face_landmark_68_model-shard1",
+        "ext": ""
+      },
+      {
+        "size": 274853,
+        "path": "tsconfig.tsbuildinfo",
+        "ext": ".tsbuildinfo"
+      },
+      {
+        "size": 222070,
+        "path": "icon.ico",
+        "ext": ".ico"
+      },
+      {
+        "size": 188416,
+        "path": "pb_data\\touch.db",
+        "ext": ".db"
+      },
+      {
+        "size": 115976,
+        "path": "pb_data\\logs\\info-2026-06-06.log",
+        "ext": ".log"
+      },
+      {
+        "size": 74277,
+        "path": "e2e_output.log",
+        "ext": ".log"
+      },
+      {
+        "size": 71980,
+        "path": "pb_data\\logs\\warn-2026-06-06.log",
+        "ext": ".log"
+      },
+      {
+        "size": 36211,
+        "path": "e2e_output3.log",
+        "ext": ".log"
+      },
+      {
+        "size": 35880,
+        "path": "backend\\routes\\collections.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 35679,
+        "path": "src\\context\\KioskContext.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 32768,
+        "path": "pb_data\\touch.db-shm",
+        "ext": ".db-shm"
+      },
+      {
+        "size": 31404,
+        "path": "src\\services\\syncService.ts",
+        "ext": ".ts"
+      }
+    ],
+    "root_files": [
+      ".dockerignore",
+      ".env",
+      ".env.development",
+      ".env.example",
+      ".env.production",
+      ".env.production.template",
+      ".env.test",
+      ".gitignore",
+      "1_INSTALL.bat",
+      "2_BUILD.bat",
+      "3_SETUP_PC.bat",
+      "4_START.bat",
+      "autoUpdater.d.ts",
+      "autoUpdater.js",
+      "backend_startup.log",
+      "build.bat",
+      "build_error.log",
+      "build_p10.txt",
+      "build_p9.txt",
+      "build_touch_exe.log",
+      "build_touch_exe_err.log",
+      "build_touch_log.txt",
+      "check_kiosk_id_simple.js",
+      "dev_backend.log",
+      "Dockerfile",
+      "Dockerfile.dev",
+      "e2e_output.log",
+      "e2e_output10.log",
+      "e2e_output11.log",
+      "e2e_output12.log",
+      "e2e_output13.log",
+      "e2e_output14.log",
+      "e2e_output3.log",
+      "e2e_output4.log",
+      "e2e_output5.log",
+      "e2e_output6.log",
+      "e2e_output7.log",
+      "e2e_output8.log",
+      "e2e_output9.log",
+      "electron-builder.json",
+      "electron-package.json",
+      "eslint.config.js",
+      "fix-orders-path.js",
+      "fix_kiosk_id.js",
+      "icon.ico",
+      "index.html",
+      "jest.config.js",
+      "main.js",
+      "main.ts",
+      "Minify)",
+      "node-v24.11.1-x64.msi",
+      "OFFLINE_DEPLOYMENT.md",
+      "package.json",
+      "playwright.config.ts",
+      "postcss.config.js",
+      "preload.js",
+      "preload.ts",
+      "README.md",
+      "README_INSTALL.md",
+      "seed_db.js",
+      "setup_firewall.ps1",
+      "setup_kiosk.ps1",
+      "start-only.bat",
+      "start-watchdog.bat",
+      "start.bat",
+      "system_manifest.json",
+      "tailwind.config.js",
+      "touch_crash.log",
+      "touch_dev.log",
+      "touch_manifest.json",
+      "tsconfig.electron.json",
+      "tsconfig.json",
+      "tsconfig.server.json",
+      "tsconfig.tsbuildinfo",
+      "update_paths.js",
+      "vite.config.ts",
+      "watchdog.js",
+      "WINDOWS_FIREWALL_SETUP.md"
+    ]
+  },
+  "website": {
+    "files": 295,
+    "file_by_ext": {
+      "": 5,
+      ".example": 1,
+      ".local": 1,
+      ".bat": 9,
+      ".log": 5,
+      ".txt": 2,
+      ".dev": 1,
+      ".mjs": 2,
+      ".js": 56,
+      ".ts": 24,
+      ".json": 6,
+      ".md": 4,
+      ".tsbuildinfo": 1,
+      ".toml": 1,
+      ".ico": 4,
+      ".svg": 10,
+      ".png": 28,
+      ".xml": 1,
+      ".jpg": 71,
+      ".html": 2,
+      ".css": 5,
+      ".webp": 4,
+      ".map": 1,
+      ".tsx": 51
+    },
+    "lines_by_ext": {
+      ".bat": 245,
+      ".txt": 13,
+      ".js": 2413,
+      ".ts": 4176,
+      ".json": 183,
+      ".md": 938,
+      ".html": 82,
+      ".css": 76,
+      ".tsx": 6606
+    },
+    "largest": [
+      {
+        "size": 9173401,
+        "path": "public\\portfolio\\MAR_0396.JPG",
+        "ext": ".jpg"
+      },
+      {
+        "size": 9173401,
+        "path": "public\\portfolio\\MAR_0396 (1).JPG",
+        "ext": ".jpg"
+      },
+      {
+        "size": 9173401,
+        "path": "public\\images\\portfolio\\MAR_0396.JPG",
+        "ext": ".jpg"
+      },
+      {
+        "size": 9173401,
+        "path": "public\\images\\portfolio\\MAR_0396 (1).JPG",
+        "ext": ".jpg"
+      },
+      {
+        "size": 7147641,
+        "path": "public\\images\\portfolio\\aym_1465.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6971594,
+        "path": "public\\images\\portfolio\\wedding-aym-1457.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6971594,
+        "path": "public\\images\\portfolio\\aym_1457.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6969185,
+        "path": "public\\images\\portfolio\\wedding-aym-1456.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6969185,
+        "path": "public\\images\\portfolio\\aym_1456.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6881971,
+        "path": "public\\images\\portfolio\\wedding-aym-1459.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6881971,
+        "path": "public\\images\\portfolio\\aym_1459.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6712840,
+        "path": "public\\images\\portfolio\\aym_1469.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6592914,
+        "path": "public\\images\\portfolio\\aym_1461.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6495452,
+        "path": "public\\images\\portfolio\\wedding-aym-1460.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6495452,
+        "path": "public\\images\\portfolio\\aym_1460.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6458585,
+        "path": "public\\images\\portfolio\\aym_1467.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6446019,
+        "path": "public\\images\\portfolio\\wedding-aym-1458.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6446019,
+        "path": "public\\images\\portfolio\\aym_1458.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 6337927,
+        "path": "public\\images\\portfolio\\wedding-couple-aym.jpg",
+        "ext": ".jpg"
+      },
+      {
+        "size": 5716187,
+        "path": "public\\manage\\assets\\index-CulmLkEM.js.map",
+        "ext": ".map"
+      }
+    ],
+    "root_files": [
+      ".dockerignore",
+      ".env",
+      ".env.example",
+      ".env.local",
+      ".gitignore",
+      ".prettierignore",
+      "1_INSTALL.bat",
+      "2_BUILD.bat",
+      "3_START_DEV.bat",
+      "4_START_PROD.bat",
+      "5_LINT.bat",
+      "6_CLEAN.bat",
+      "build_error.log",
+      "build_error_2.log",
+      "build_error_3.log",
+      "build_job.bat",
+      "build_job_v2.bat",
+      "build_log.txt",
+      "build_v2.log",
+      "Dockerfile.dev",
+      "eslint.config.mjs",
+      "next-bundle-analyzer.config.js",
+      "next-env.d.ts",
+      "next.config.ts",
+      "package.json",
+      "PIXELHOLIDAY_BLOG_ROADMAP.md",
+      "postcss.config.mjs",
+      "prettier.config.js",
+      "push_website.bat",
+      "README.md",
+      "sentry.client.config.ts",
+      "sentry.edge.config.ts",
+      "sentry.server.config.ts",
+      "SEO_AUDIT_REPORT.md",
+      "tailwind.config.ts",
+      "tsconfig.json",
+      "tsconfig.tsbuildinfo",
+      "vitest.config.ts",
+      "WEBSITE_AUDIT_SUMMARY.md",
+      "website_build.log",
+      "wrangler.toml"
+    ]
+  },
+  "packages/types": {
+    "files": 5,
+    "file_by_ext": {
+      ".js": 1,
+      ".json": 2,
+      ".ts": 2
+    },
+    "lines_by_ext": {
+      ".js": 11,
+      ".json": 50,
+      ".ts": 786
+    },
+    "largest": [
+      {
+        "size": 14426,
+        "path": "src\\index.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 5728,
+        "path": "src\\__tests__\\types.test.ts",
+        "ext": ".ts"
+      },
+      {
+        "size": 609,
+        "path": "package.json",
+        "ext": ".json"
+      },
+      {
+        "size": 466,
+        "path": "tsconfig.json",
+        "ext": ".json"
+      },
+      {
+        "size": 289,
+        "path": "jest.config.js",
+        "ext": ".js"
+      }
+    ],
+    "root_files": [
+      "jest.config.js",
+      "package.json",
+      "tsconfig.json"
+    ]
+  },
+  "packages/ui": {
+    "files": 11,
+    "file_by_ext": {
+      ".json": 2,
+      ".ts": 1,
+      ".tsx": 7,
+      ".css": 1
+    },
+    "lines_by_ext": {
+      ".json": 61,
+      ".ts": 7,
+      ".tsx": 738,
+      ".css": 90
+    },
+    "largest": [
+      {
+        "size": 6208,
+        "path": "src\\components\\PhotoCard.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 4424,
+        "path": "src\\components\\Button.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 3828,
+        "path": "src\\components\\Modal.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 3578,
+        "path": "src\\components\\Input.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 2149,
+        "path": "src\\styles\\tokens.css",
+        "ext": ".css"
+      },
+      {
+        "size": 1497,
+        "path": "src\\components\\Toast.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 1155,
+        "path": "src\\components\\Spinner.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 1060,
+        "path": "src\\components\\Card.tsx",
+        "ext": ".tsx"
+      },
+      {
+        "size": 938,
+        "path": "package.json",
+        "ext": ".json"
+      },
+      {
+        "size": 534,
+        "path": "tsconfig.json",
+        "ext": ".json"
+      },
+      {
+        "size": 396,
+        "path": "src\\index.ts",
+        "ext": ".ts"
+      }
+    ],
+    "root_files": [
+      "package.json",
+      "tsconfig.json"
+    ]
+  }
+}

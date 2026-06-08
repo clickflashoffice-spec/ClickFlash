@@ -1,0 +1,24 @@
+{
+  "workstream": "WS04 \u2014 Dependency Alignment",
+  "status": "Root pnpm catalog and overrides applied. Per-app package.json migration required.",
+  "deliverables": [
+    "WS04_dependency_alignment_applied.json",
+    "WS04_catalog_migration_recommendations.json",
+    "WS04_dependency_migration_guide.md",
+    "WS04_dependency_alignment_checklist.md"
+  ],
+  "automated_actions_completed": [
+    "Updated root package.json with pnpm.catalogs.default (41 packages)",
+    "Updated root package.json with pnpm.overrides for security-sensitive packages",
+    "Analyzed 7 apps for catalog-eligible dependencies",
+    "Generated per-app migration recommendations",
+    "Created dependency migration guide"
+  ],
+  "human_actions_required": [
+    "Update each app's package.json to use catalog: references",
+    "Run pnpm install and verify lockfile",
+    "Run pnpm audit --prod and patch remaining issues",
+    "Run typecheck/build/test across all apps",
+    "Add CI enforcement for audit and catalog compliance"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-06-08",
+  "action": "CONTEXT_PURGE",
+  "status": "SCHEDULED",
+  "note": "Real API keys will be purged from this conversation context after this message",
+  "keys_purged": [
+    "Stripe rk_test key (full value removed from active context)",
+    "Resend re_ key (full value removed from active context)",
+    "Cloudflare cfut token (full value removed from active context)"
+  ],
+  "reminder": "Keys are still in the backup git branch. Rotate them in dashboards ASAP."
+}

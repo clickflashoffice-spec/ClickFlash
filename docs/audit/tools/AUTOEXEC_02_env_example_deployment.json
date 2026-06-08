@@ -1,0 +1,130 @@
+[
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\gallery\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\gallery\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\gallery\\backend\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\gallery\\backend\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\management\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\management\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\management\\backend\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\management\\backend\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\master\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\master\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\master\\backend\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\master\\backend\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\master\\backend\\setup\\.env.example",
+    "action": "created"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\master\\backend\\setup\\profiles\\.env.example",
+    "action": "created"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\master\\backend\\setup\\profiles\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\master\\backend\\setup\\profiles\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\master\\ClickFlash-Master-test-hotel-2\\.env.example",
+    "action": "created"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\master\\configs\\.env.example",
+    "action": "created"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\master\\configs\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\master\\configs\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\moneytrash\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\moneytrash\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\touch\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\touch\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\touch\\backend\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\touch\\backend\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\claude-code\\.env.example",
+    "action": "exists_skipped"
+  },
+  {
+    "target": "C:\\Users\\alamo\\Desktop\\ClickFlash\\claude-code\\web\\.env.example",
+    "action": "exists_skipped"
+  }
+]

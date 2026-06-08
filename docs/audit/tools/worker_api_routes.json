@@ -1,0 +1,177 @@
+{
+  "gallery": [],
+  "management": [
+    {
+      "method": "ANY",
+      "route": "/api/health"
+    },
+    {
+      "method": "POST",
+      "route": "/api/auth/register-desk"
+    },
+    {
+      "method": "POST",
+      "route": "/api/auth/login"
+    },
+    {
+      "method": "GET",
+      "route": "/api/orders/by-credentials"
+    },
+    {
+      "method": "GET",
+      "route": "/api/orders/by-token"
+    },
+    {
+      "method": "GET",
+      "route": "/api/orders/by-room"
+    },
+    {
+      "method": "GET",
+      "route": "/api/analytics/dashboard"
+    },
+    {
+      "method": "POST",
+      "route": "/api/analytics/daily-audit"
+    },
+    {
+      "method": "POST",
+      "route": "/api/analytics/resort-ingest"
+    },
+    {
+      "method": "GET",
+      "route": "/api/analytics/resort-bi"
+    },
+    {
+      "method": "GET",
+      "route": "/api/analytics/location-audits"
+    },
+    {
+      "method": "GET",
+      "route": "/api/analytics/top-albums"
+    },
+    {
+      "method": "GET",
+      "route": "/api/analytics/forecast"
+    },
+    {
+      "method": "ANY",
+      "route": "/api/cloud/sync/operations"
+    },
+    {
+      "method": "POST",
+      "route": "/api/cloud/heartbeat"
+    },
+    {
+      "method": "GET",
+      "route": "/api/cloud/fleet"
+    },
+    {
+      "method": "GET",
+      "route": "/api/cloud/fleet/stations"
+    },
+    {
+      "method": "GET",
+      "route": "/api/cloud/fleet/status"
+    },
+    {
+      "method": "POST",
+      "route": "/api/cloud/fleet/sync-all"
+    },
+    {
+      "method": "POST",
+      "route": "/api/settings/upsert"
+    },
+    {
+      "method": "POST",
+      "route": "/api/email/relay"
+    },
+    {
+      "method": "POST",
+      "route": "/api/cloud/sync/operations"
+    },
+    {
+      "method": "GET",
+      "route": "/api/cloud/sync/operations"
+    },
+    {
+      "method": "POST",
+      "route": "/api/cloud/sync/order"
+    },
+    {
+      "method": "POST",
+      "route": "/api/cloud/sync/batch"
+    },
+    {
+      "method": "GET",
+      "route": "/api/cloud/sync/settings"
+    },
+    {
+      "method": "POST",
+      "route": "/api/cloud/heartbeat"
+    },
+    {
+      "method": "GET",
+      "route": "/api/cloud/poll-orders"
+    },
+    {
+      "method": "POST",
+      "route": "/api/cloud/upload-photo/chunk"
+    },
+    {
+      "method": "GET",
+      "route": "/api/cloud/sync/settings"
+    },
+    {
+      "method": "GET",
+      "route": "/api/cloud/global-config"
+    },
+    {
+      "method": "PUT",
+      "route": "/api/cloud/global-config"
+    },
+    {
+      "method": "POST",
+      "route": "/api/cloud/maintenance/command"
+    },
+    {
+      "method": "GET",
+      "route": "/api/cloud/maintenance/next"
+    },
+    {
+      "method": "POST",
+      "route": "/api/cloud/maintenance/ack"
+    },
+    {
+      "method": "GET",
+      "route": "/api/cloud/analytics/forecast"
+    },
+    {
+      "method": "POST",
+      "route": "/api/analytics/resort-ingest"
+    },
+    {
+      "method": "GET",
+      "route": "/api/analytics/resort-dashboard"
+    },
+    {
+      "method": "GET",
+      "route": "/api/analytics/dashboard"
+    },
+    {
+      "method": "POST",
+      "route": "/api/email/relay"
+    },
+    {
+      "method": "POST",
+      "route": "/api/ai/shoot-ideas"
+    },
+    {
+      "method": "POST",
+      "route": "/api/ai/album-suggestions"
+    },
+    {
+      "method": "POST",
+      "route": "/api/ai/sales-forecast"
+    }
+  ]
+}

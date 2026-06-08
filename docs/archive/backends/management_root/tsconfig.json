@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["@cloudflare/workers-types", "@types/node", "jest"],
+    "lib": ["ESNext"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "src/healthCheck.ts",
+    "src/initDefaultUser.ts",
+    "src/migrate-multimaster.ts",
+    "src/rateLimiter.ts",
+    "src/startupGuard.ts",
+    "src/utils.ts",
+    "src/__tests__"
+  ]
+}

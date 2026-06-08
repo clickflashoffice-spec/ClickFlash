@@ -1,0 +1,51 @@
+# ClickFlash — pnpm Catalog Configuration
+# Add this to the root package.json under a "pnpm" key
+# Then update each app's package.json to use "catalog:" instead of version numbers
+
+{
+  "pnpm": {
+    "catalogs": {
+      "default": {
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
+        "@types/react": "^19.2.7",
+        "@types/react-dom": "^19.2.3",
+        "typescript": "^5.9.3",
+        "vite": "^6.0.0",
+        "@vitejs/plugin-react": "^4.4.0",
+        "tailwindcss": "^4.0.0",
+        "lucide-react": "^0.577.0",
+        "clsx": "^2.1.1",
+        "tailwind-merge": "^3.0.0",
+        "zod": "^3.25.0",
+        "zustand": "^5.0.12",
+        "@tanstack/react-query": "^5.0.0",
+        "date-fns": "^4.0.0",
+        "dexie": "^4.3.0",
+        "express": "^5.2.1",
+        "helmet": "^8.2.0",
+        "cors": "^2.8.6",
+        "jsonwebtoken": "^9.0.3",
+        "bcryptjs": "^3.0.0",
+        "uuid": "^11.0.3",
+        "sharp": "^0.34.5",
+        "formidable": "^2.1.5",
+        "@sentry/react": "^10.48.0",
+        "@sentry/node": "^10.48.0",
+        "@playwright/test": "^1.58.2",
+        "eslint": "^9.39.4",
+        "jest": "^29.7.0",
+        "ts-jest": "^29.2.0",
+        "@testing-library/react": "^16.0.0",
+        "@testing-library/jest-dom": "^6.6.0"
+      }
+    },
+    "overrides": {
+      "jsonwebtoken": "^9.0.3",
+      "bcryptjs": "^3.0.0",
+      "helmet": "^8.2.0",
+      "express": "^5.2.1",
+      "jose": "^6.0.0"
+    }
+  }
+}

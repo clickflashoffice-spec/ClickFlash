@@ -1,0 +1,45 @@
+appId: com.clickflash.installer
+productName: ClickFlash Studio Setup
+copyright: Copyright © 2026 ClickFlash Photography
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/renderer/**/*
+  - dist/electron/**/*
+  - package.json
+
+asar: true
+
+win:
+  target: nsis
+  icon: build/icon.ico
+  requestedExecutionLevel: requireAdministrator
+  forceCodeSigning: false
+  signAndEditExecutable: false
+
+nsis:
+  oneClick: true
+  perMachine: true
+  deleteAppDataOnUninstall: true
+  allowToChangeInstallationDirectory: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  runAfterFinish: true
+  shortcutName: ClickFlash Studio Setup
+  artifactName: ClickFlash-Studio-Setup-${version}-${arch}.${ext}
+  include: scripts/nsis-installer.nsh
+
+compression: normal
+
+electronVersion: "39.8.7"
+npmRebuild: false
+
+publish:
+  provider: github
+  owner: clickflash
+  repo: clickflash-installer
+  releaseType: release
+  vPrefixedTagName: true

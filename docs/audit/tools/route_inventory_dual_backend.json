@@ -1,0 +1,107 @@
+{
+  "legacy_routes": {
+    "gallery_legacy": [
+      {
+        "method": "GET",
+        "route": "dbManager",
+        "file": "controllers\\collectionController.js"
+      },
+      {
+        "method": "GET",
+        "route": "logger",
+        "file": "controllers\\collectionController.js"
+      },
+      {
+        "method": "GET",
+        "route": "auditLogger",
+        "file": "controllers\\collectionController.js"
+      },
+      {
+        "method": "GET",
+        "route": "auditLogger",
+        "file": "middleware\\auth.js"
+      }
+    ],
+    "management_legacy": [
+      {
+        "method": "GET",
+        "route": "query parser fn",
+        "file": "node_modules\\express\\lib\\request.js"
+      },
+      {
+        "method": "GET",
+        "route": "trust proxy fn",
+        "file": "node_modules\\express\\lib\\request.js"
+      },
+      {
+        "method": "GET",
+        "route": "trust proxy fn",
+        "file": "node_modules\\express\\lib\\request.js"
+      },
+      {
+        "method": "GET",
+        "route": "trust proxy fn",
+        "file": "node_modules\\express\\lib\\request.js"
+      },
+      {
+        "method": "GET",
+        "route": "subdomain offset",
+        "file": "node_modules\\express\\lib\\request.js"
+      },
+      {
+        "method": "GET",
+        "route": "trust proxy fn",
+        "file": "node_modules\\express\\lib\\request.js"
+      },
+      {
+        "method": "GET",
+        "route": "etag fn",
+        "file": "node_modules\\express\\lib\\response.js"
+      },
+      {
+        "method": "GET",
+        "route": "json escape",
+        "file": "node_modules\\express\\lib\\response.js"
+      },
+      {
+        "method": "GET",
+        "route": "json replacer",
+        "file": "node_modules\\express\\lib\\response.js"
+      },
+      {
+        "method": "GET",
+        "route": "json spaces",
+        "file": "node_modules\\express\\lib\\response.js"
+      },
+      {
+        "method": "GET",
+        "route": "json escape",
+        "file": "node_modules\\express\\lib\\response.js"
+      },
+      {
+        "method": "GET",
+        "route": "json replacer",
+        "file": "node_modules\\express\\lib\\response.js"
+      },
+      {
+        "method": "GET",
+        "route": "json spaces",
+        "file": "node_modules\\express\\lib\\response.js"
+      },
+      {
+        "method": "GET",
+        "route": "jsonp callback name",
+        "file": "node_modules\\express\\lib\\response.js"
+      },
+      {
+        "method": "GET",
+        "route": "/user/:uid/photos/:file",
+        "file": "node_modules\\express\\lib\\response.js"
+      }
+    ]
+  },
+  "worker_routes": {
+    "gallery_worker": [],
+    "management_worker": []
+  }
+}

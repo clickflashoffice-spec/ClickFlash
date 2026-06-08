@@ -90,9 +90,13 @@ let tray: Tray | null = null;
 
 function getUnpackedPath(relativePath: string): string {
   if (app.isPackaged) {
-    return path.join(__dirname.replace("app.asar", "app.asar.unpacked"), relativePath);
+    // In packaged app, __dirname is inside app.asar
+    // We need to go to app.asar.unpacked for native modules
+    const unpackedDir = __dirname.replace("app.asar", "app.asar.unpacked");
+    return path.join(unpackedDir, relativePath);
   }
-  return path.join(__dirname, relativePath);
+  // In dev, backend is built to dist/backend relative to project root
+  return path.join(process.cwd(), "dist", relativePath);
 }
 
 function getDataDir(): string {
@@ -110,7 +114,10 @@ function startBackend(): Promise<null> {
       return;
     }
 
-    const serverPath = getUnpackedPath("dist/backend/server.js");
+    const serverPath = getUnpackedPath("backend/server.js");
+    console.log("[Main] Resolved backend path:", serverPath);
+    console.log("[Main] __dirname:", __dirname);
+    console.log("[Main] process.resourcesPath:", process.resourcesPath);
     if (!fs.existsSync(serverPath)) {
       console.error("[Main] Backend bundle not found:", serverPath);
       reject(new Error("Backend bundle not found: " + serverPath));

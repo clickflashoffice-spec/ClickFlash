@@ -1,0 +1,386 @@
+{
+  "app": "master",
+  "total_files": 3710,
+  "file_types": {
+    ".jpg": 1315,
+    ".html": 1189,
+    ".ts": 472,
+    ".tsx": 230,
+    ".sql": 103,
+    ".js": 85,
+    ".webp": 58,
+    ".json": 42,
+    ".png": 39,
+    ".md": 29,
+    ".log": 18,
+    ".bat": 17,
+    ".css": 12,
+    "": 11,
+    ".cjs": 11,
+    ".db": 11,
+    ".txt": 10,
+    ".env": 7,
+    ".webm": 7,
+    ".example": 6
+  },
+  "package_json": {
+    "name": "clickflash-master",
+    "version": "4.2.0",
+    "scripts": [
+      "dev",
+      "dev:watch",
+      "dev:full",
+      "dev:electron",
+      "dev:backend",
+      "preview:full",
+      "clean",
+      "build",
+      "build:backend",
+      "package",
+      "package:installer",
+      "preview",
+      "start",
+      "test",
+      "test:watch",
+      "test:coverage",
+      "test:ci",
+      "test:integration",
+      "test:e2e",
+      "test:e2e:headed",
+      "test:e2e:ui",
+      "test:e2e:debug",
+      "test:e2e:smoke",
+      "test:e2e:regression",
+      "test:e2e:update-snapshots",
+      "test:e2e:visual",
+      "test:a11y",
+      "lint",
+      "lint:fix",
+      "build:electron",
+      "typecheck:ci",
+      "provision",
+      "bootstrap"
+    ],
+    "prod_deps_count": 58,
+    "dev_deps_count": 56,
+    "electron_deps": [],
+    "native_deps": [
+      "better-sqlite3-multiple-ciphers",
+      "sharp"
+    ]
+  },
+  "config_files": {
+    "tsconfig.json": true,
+    "vite.config.ts": true,
+    "electron.vite.config.ts": false,
+    "electron-builder.yml": true,
+    "electron-builder.json": false,
+    "forge.config.js": false,
+    ".env": true,
+    ".env.example": true,
+    ".gitignore": true
+  },
+  "secret_exposures": [
+    {
+      "file": "backend/server.ts",
+      "pattern": "SECRET",
+      "line": 201,
+      "preview": "storedSecret"
+    },
+    {
+      "file": "backend/server.ts",
+      "pattern": "SECRET",
+      "line": 205,
+      "preview": "randomUUID"
+    },
+    {
+      "file": "backend/config/constants.ts",
+      "pattern": "JWT_SECRET",
+      "line": 72,
+      "preview": "getOrCreateSecret("
+    },
+    {
+      "file": "backend/config/constants.ts",
+      "pattern": "SECRET",
+      "line": 72,
+      "preview": "getOrCreateSecret"
+    },
+    {
+      "file": "backend/config/constants.ts",
+      "pattern": "SECRET",
+      "line": 73,
+      "preview": "getOrCreateSecret"
+    },
+    {
+      "file": "backend/scripts/test-cloud-auth.js",
+      "pattern": "PASSWORD",
+      "line": 31,
+      "preview": "your-password"
+    },
+    {
+      "file": "backend/services/__tests__/CloudSyncService.test.ts",
+      "pattern": "PASSWORD",
+      "line": 32,
+      "preview": "secret"
+    },
+    {
+      "file": "backend/setup/cloud-setup-wizard.js",
+      "pattern": "PASSWORD",
+      "line": 264,
+      "preview": ",\n    );\n\n    console.log("
+    },
+    {
+      "file": "backend/setup/cloudflare-provision.js",
+      "pattern": "PASSWORD",
+      "line": 236,
+      "preview": "${deskConfig.password}"
+    },
+    {
+      "file": "backend/setup/cloudflare-provision.js",
+      "pattern": "PASSWORD",
+      "line": 293,
+      "preview": "AUTO_GENERATED"
+    },
+    {
+      "file": "backend/setup/config-template.env",
+      "pattern": "JWT_SECRET",
+      "line": 97,
+      "preview": "change-this-in-production"
+    },
+    {
+      "file": "backend/setup/config-template.env",
+      "pattern": "SECRET",
+      "line": 97,
+      "preview": "change-this-in-production"
+    },
+    {
+      "file": "backend/setup/config-template.env",
+      "pattern": "SECRET",
+      "line": 101,
+      "preview": "change-this-in-production"
+    },
+    {
+      "file": "backend/setup/config-template.env",
+      "pattern": "SECRET",
+      "line": 145,
+      "preview": "whsec_xxx"
+    },
+    {
+      "file": "backend/shared/init-default-user.ts",
+      "pattern": "PASSWORD",
+      "line": 56,
+      "preview": "));\n        if (emailLine && p..."
+    },
+    {
+      "file": "backend/shared/init-default-user.ts",
+      "pattern": "PASSWORD",
+      "line": 59,
+      "preview": ", "
+    },
+    {
+      "file": "configs/club.env",
+      "pattern": "JWT_SECRET",
+      "line": 11,
+      "preview": "clickflash_club_secure_secret_..."
+    },
+    {
+      "file": "configs/club.env",
+      "pattern": "SECRET",
+      "line": 11,
+      "preview": "clickflash_club_secure_secret_..."
+    },
+    {
+      "file": "configs/club.env",
+      "pattern": "SECRET",
+      "line": 12,
+      "preview": "clickflash_club_session_secret..."
+    },
+    {
+      "file": "configs/concorde.env",
+      "pattern": "JWT_SECRET",
+      "line": 11,
+      "preview": "clickflash_concorde_secure_sec..."
+    },
+    {
+      "file": "configs/concorde.env",
+      "pattern": "SECRET",
+      "line": 11,
+      "preview": "clickflash_concorde_secure_sec..."
+    },
+    {
+      "file": "configs/concorde.env",
+      "pattern": "SECRET",
+      "line": 12,
+      "preview": "clickflash_concorde_session_se..."
+    },
+    {
+      "file": "configs/occidental.env",
+      "pattern": "JWT_SECRET",
+      "line": 11,
+      "preview": "clickflash_occidental_secure_s..."
+    },
+    {
+      "file": "configs/occidental.env",
+      "pattern": "SECRET",
+      "line": 11,
+      "preview": "clickflash_occidental_secure_s..."
+    },
+    {
+      "file": "configs/occidental.env",
+      "pattern": "SECRET",
+      "line": 12,
+      "preview": "clickflash_occidental_session_..."
+    },
+    {
+      "file": "scripts/build-hotel-installers.js",
+      "pattern": "PASSWORD",
+      "line": 226,
+      "preview": "CHANGE_ME_ON_FIRST_LOGIN"
+    },
+    {
+      "file": "scripts/install-cli.ts",
+      "pattern": "JWT_SECRET",
+      "line": 581,
+      "preview": "${crypto.randomBytes(64).toStr..."
+    },
+    {
+      "file": "scripts/install-cli.ts",
+      "pattern": "PASSWORD",
+      "line": 817,
+      "preview": "\n$label2.Location = "
+    },
+    {
+      "file": "src/components/setup/SetupWizard.tsx",
+      "pattern": "PASSWORD",
+      "line": 85,
+      "preview": "Admin password is required"
+    },
+    {
+      "file": "src/components/setup/SetupWizard.tsx",
+      "pattern": "PASSWORD",
+      "line": 87,
+      "preview": "Password must be at least 8 ch..."
+    },
+    {
+      "file": "src/services/api/__tests__/syncVerification.test.ts",
+      "pattern": "PASSWORD",
+      "line": 91,
+      "preview": "test_password_123"
+    },
+    {
+      "file": "src/services/api/__tests__/userService.test.ts",
+      "pattern": "PASSWORD",
+      "line": 112,
+      "preview": "securepassword123"
+    },
+    {
+      "file": "tests/e2e/api-integration.spec.ts",
+      "pattern": "PASSWORD",
+      "line": 82,
+      "preview": "wrongpass"
+    },
+    {
+      "file": "tests/e2e/auth.spec.ts",
+      "pattern": "PASSWORD",
+      "line": 119,
+      "preview": "wrong"
+    },
+    {
+      "file": "tests/e2e/global-setup.ts",
+      "pattern": "PASSWORD",
+      "line": 94,
+      "preview": "ClickFlash2025!"
+    },
+    {
+      "file": "tests/e2e/global-teardown.ts",
+      "pattern": "PASSWORD",
+      "line": 21,
+      "preview": "ClickFlash2025!"
+    },
+    {
+      "file": "tests/e2e/security.spec.ts",
+      "pattern": "PASSWORD",
+      "line": 102,
+      "preview": "wrong"
+    },
+    {
+      "file": "tests/e2e/helpers/fixtures.ts",
+      "pattern": "PASSWORD",
+      "line": 77,
+      "preview": "TestPassword123!"
+    },
+    {
+      "file": "tests/integration/api.integration.spec.ts",
+      "pattern": "PASSWORD",
+      "line": 52,
+      "preview": "admin123"
+    },
+    {
+      "file": "tests/integration/api.integration.spec.ts",
+      "pattern": "PASSWORD",
+      "line": 66,
+      "preview": "wrongpassword"
+    },
+    {
+      "file": "tests/integration/api.integration.spec.ts",
+      "pattern": "PASSWORD",
+      "line": 78,
+      "preview": "password"
+    },
+    {
+      "file": "tests/integration/api.integration.spec.ts",
+      "pattern": "PASSWORD",
+      "line": 90,
+      "preview": "admin123"
+    },
+    {
+      "file": "tests/integration/api.integration.spec.ts",
+      "pattern": "PASSWORD",
+      "line": 112,
+      "preview": "admin123"
+    },
+    {
+      "file": "tests/integration/api.integration.spec.ts",
+      "pattern": "PASSWORD",
+      "line": 216,
+      "preview": "admin123"
+    },
+    {
+      "file": "tests/integration/api.integration.spec.ts",
+      "pattern": "PASSWORD",
+      "line": 311,
+      "preview": "admin123"
+    },
+    {
+      "file": "tests/integration/api.integration.spec.ts",
+      "pattern": "PASSWORD",
+      "line": 372,
+      "preview": "admin123"
+    },
+    {
+      "file": "tests/integration/api.integration.spec.ts",
+      "pattern": "PASSWORD",
+      "line": 418,
+      "preview": "admin123"
+    },
+    {
+      "file": "tests/integration/api.integration.spec.ts",
+      "pattern": "PASSWORD",
+      "line": 500,
+      "preview": "admin123"
+    },
+    {
+      "file": "tests/mocks/database.ts",
+      "pattern": "PASSWORD",
+      "line": 82,
+      "preview": "admin123"
+    },
+    {
+      "file": "tests/performance/k6-stress.js",
+      "pattern": "PASSWORD",
+      "line": 35,
+      "preview": "admin123"
+    }
+  ],
+  "builder_config_found": false
+}

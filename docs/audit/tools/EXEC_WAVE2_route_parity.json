@@ -1,0 +1,35 @@
+{
+  "express_routes": {
+    "controllers": [
+      {
+        "file": "docs\\archive\\backends\\gallery\\controllers\\collectionController.js",
+        "method": "GET",
+        "route": "dbManager"
+      },
+      {
+        "file": "docs\\archive\\backends\\gallery\\controllers\\collectionController.js",
+        "method": "GET",
+        "route": "logger"
+      },
+      {
+        "file": "docs\\archive\\backends\\gallery\\controllers\\collectionController.js",
+        "method": "GET",
+        "route": "auditLogger"
+      }
+    ],
+    "middleware": [
+      {
+        "file": "docs\\archive\\backends\\gallery\\middleware\\auth.js",
+        "method": "GET",
+        "route": "auditLogger"
+      }
+    ]
+  },
+  "worker_routes": {},
+  "only_express": [
+    "GET auditLogger",
+    "GET dbManager",
+    "GET logger"
+  ],
+  "only_worker": []
+}

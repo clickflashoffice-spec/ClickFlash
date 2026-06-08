@@ -1,0 +1,234 @@
+{
+  "findings": [
+    {
+      "id": "F-004",
+      "domain": "Security",
+      "severity": "P0",
+      "title": "117 potential secret/password matches in source",
+      "evidence": "Includes default passwords, JWT_SECRET values, test tokens",
+      "impact": "Credential leakage, unauthorized access",
+      "recommendation": "Audit every match; rotate exposed secrets; replace defaults with env-driven values"
+    },
+    {
+      "id": "F-005",
+      "domain": "Security",
+      "severity": "P0",
+      "title": "16 potential API keys in source/env",
+      "evidence": "RESEND_API_KEY, GALLERY_API_KEY, MONEYTRASH_API_KEY, HUB_API_KEY, CLOUD_API_KEY",
+      "impact": "Service abuse, email/API quota theft",
+      "recommendation": "Move all keys to vault/GitHub Secrets; rotate immediately; never commit real values"
+    },
+    {
+      "id": "F-006",
+      "domain": "Security",
+      "severity": "P0",
+      "title": "Stripe secret key pattern found in committed file",
+      "evidence": "apps/management/backend/.env contains STRIPE_SECRET_KEY",
+      "impact": "Payment data breach, PCI scope expansion",
+      "recommendation": "Rotate Stripe key immediately; remove from git history"
+    },
+    {
+      "id": "F-012",
+      "domain": "Architecture",
+      "severity": "P0",
+      "title": "Gallery and Management have dual backend codebases (Express + Cloudflare Worker)",
+      "evidence": "apps/gallery/backend/legacy/ and apps/management/backend/legacy/ coexist with Worker src/",
+      "impact": "Confusion, duplicate security surface, build ambiguity, maintenance burden",
+      "recommendation": "Archive legacy Express backends; route all traffic through CF Worker; update docs"
+    },
+    {
+      "id": "F-003",
+      "domain": "Security",
+      "severity": "P1",
+      "title": "18 `.env` files present in repository (not examples)",
+      "evidence": ".env; apps\\gallery\\.env; apps\\gallery\\backend\\.env; apps\\management\\.env; apps\\management\\backend\\.env...",
+      "impact": "Risk of committed secrets; CI/CD exposure",
+      "recommendation": "Add all .env files to .gitignore, rotate any exposed secrets, move to vault"
+    },
+    {
+      "id": "F-008",
+      "domain": "Data / Schema",
+      "severity": "P1",
+      "title": "240 SQL migration files with duplicate prefixes across apps",
+      "evidence": "master has 103 migrations with 24 duplicate prefixes; master-cpp has 57 with 6 duplicates",
+      "impact": "Migration ordering conflicts, schema drift, failed deployments",
+      "recommendation": "Consolidate to single migration source; use timestamp-based IDs; add reversibility tests"
+    },
+    {
+      "id": "F-001",
+      "domain": "Dependencies",
+      "severity": "P2",
+      "title": "13 production dependencies have version mismatches across apps",
+      "evidence": "Examples: lucide-react, @sentry/react, express, react-window, uuid, sharp",
+      "impact": "Inconsistent behavior, duplicate bundles, harder security patching",
+      "recommendation": "Align versions via pnpm catalog or workspace overrides; pin security-sensitive packages"
+    },
+    {
+      "id": "F-007",
+      "domain": "Security",
+      "severity": "P2",
+      "title": "13 TODO/FIXME comments related to security/auth",
+      "evidence": "Includes \"TODO: Set up API authentication\" and OAuth token staleness notes",
+      "impact": "Known incomplete security controls",
+      "recommendation": "Convert TODOs to tracked tickets; resolve P0/P1 security TODOs before release"
+    },
+    {
+      "id": "F-009",
+      "domain": "Code Quality",
+      "severity": "P2",
+      "title": "7 apps missing tsconfig.json",
+      "evidence": "gallery, installer, management, master, moneytrash, touch, website",
+      "impact": "No TypeScript checking; runtime errors more likely",
+      "recommendation": "Add tsconfig.json to every app; run tsc --noEmit in CI"
+    },
+    {
+      "id": "F-010",
+      "domain": "Testing",
+      "severity": "P2",
+      "title": "163 test files across entire monorepo",
+      "evidence": "master:86, management:15, gallery:13, touch:8, moneytrash:6",
+      "impact": "Coverage likely below 70% target for several apps",
+      "recommendation": "Add unit tests for services/utils; expand E2E to cover critical cross-app flows"
+    },
+    {
+      "id": "F-002",
+      "domain": "Dependencies",
+      "severity": "P3",
+      "title": "10 dev dependencies have version mismatches",
+      "evidence": "typescript, @types/react, eslint, playwright versions differ",
+      "impact": "Inconsistent lint/typecheck behavior across CI jobs",
+      "recommendation": "Centralize dev toolchain versions in root package.json"
+    },
+    {
+      "id": "F-011",
+      "domain": "Infrastructure",
+      "severity": "P3",
+      "title": "Repository bloat from runtime artifacts and duplicate images",
+      "evidence": "32MB MSI, 14MB log, duplicate 9MB portfolio images across website/master",
+      "impact": "Slow clones, larger backups, CI cache pollution",
+      "recommendation": "Add pb_data/, *.msi, *.log to .gitignore; deduplicate assets via shared package"
+    }
+  ],
+  "backlog": [
+    {
+      "finding_id": "F-004",
+      "title": "117 potential secret/password matches in source",
+      "severity": "P0",
+      "domain": "Security",
+      "recommendation": "Audit every match; rotate exposed secrets; replace defaults with env-driven values",
+      "effort": "2 days",
+      "owner": "TBD",
+      "status": "Open"
+    },
+    {
+      "finding_id": "F-005",
+      "title": "16 potential API keys in source/env",
+      "severity": "P0",
+      "domain": "Security",
+      "recommendation": "Move all keys to vault/GitHub Secrets; rotate immediately; never commit real values",
+      "effort": "1 day",
+      "owner": "TBD",
+      "status": "Open"
+    },
+    {
+      "finding_id": "F-006",
+      "title": "Stripe secret key pattern found in committed file",
+      "severity": "P0",
+      "domain": "Security",
+      "recommendation": "Rotate Stripe key immediately; remove from git history",
+      "effort": "0.5 day",
+      "owner": "TBD",
+      "status": "Open"
+    },
+    {
+      "finding_id": "F-012",
+      "title": "Gallery and Management have dual backend codebases (Express + Cloudflare Worker)",
+      "severity": "P0",
+      "domain": "Architecture",
+      "recommendation": "Archive legacy Express backends; route all traffic through CF Worker; update docs",
+      "effort": "5 days",
+      "owner": "TBD",
+      "status": "Open"
+    },
+    {
+      "finding_id": "F-003",
+      "title": "18 `.env` files present in repository (not examples)",
+      "severity": "P1",
+      "domain": "Security",
+      "recommendation": "Add all .env files to .gitignore, rotate any exposed secrets, move to vault",
+      "effort": "1 day",
+      "owner": "TBD",
+      "status": "Open"
+    },
+    {
+      "finding_id": "F-008",
+      "title": "240 SQL migration files with duplicate prefixes across apps",
+      "severity": "P1",
+      "domain": "Data / Schema",
+      "recommendation": "Consolidate to single migration source; use timestamp-based IDs; add reversibility tests",
+      "effort": "5 days",
+      "owner": "TBD",
+      "status": "Open"
+    },
+    {
+      "finding_id": "F-001",
+      "title": "13 production dependencies have version mismatches across apps",
+      "severity": "P2",
+      "domain": "Dependencies",
+      "recommendation": "Align versions via pnpm catalog or workspace overrides; pin security-sensitive packages",
+      "effort": "3 days",
+      "owner": "TBD",
+      "status": "Open"
+    },
+    {
+      "finding_id": "F-007",
+      "title": "13 TODO/FIXME comments related to security/auth",
+      "severity": "P2",
+      "domain": "Security",
+      "recommendation": "Convert TODOs to tracked tickets; resolve P0/P1 security TODOs before release",
+      "effort": "2 days",
+      "owner": "TBD",
+      "status": "Open"
+    },
+    {
+      "finding_id": "F-009",
+      "title": "7 apps missing tsconfig.json",
+      "severity": "P2",
+      "domain": "Code Quality",
+      "recommendation": "Add tsconfig.json to every app; run tsc --noEmit in CI",
+      "effort": "2 days",
+      "owner": "TBD",
+      "status": "Open"
+    },
+    {
+      "finding_id": "F-010",
+      "title": "163 test files across entire monorepo",
+      "severity": "P2",
+      "domain": "Testing",
+      "recommendation": "Add unit tests for services/utils; expand E2E to cover critical cross-app flows",
+      "effort": "10 days",
+      "owner": "TBD",
+      "status": "Open"
+    },
+    {
+      "finding_id": "F-002",
+      "title": "10 dev dependencies have version mismatches",
+      "severity": "P3",
+      "domain": "Dependencies",
+      "recommendation": "Centralize dev toolchain versions in root package.json",
+      "effort": "1 day",
+      "owner": "TBD",
+      "status": "Open"
+    },
+    {
+      "finding_id": "F-011",
+      "title": "Repository bloat from runtime artifacts and duplicate images",
+      "severity": "P3",
+      "domain": "Infrastructure",
+      "recommendation": "Add pb_data/, *.msi, *.log to .gitignore; deduplicate assets via shared package",
+      "effort": "2 days",
+      "owner": "TBD",
+      "status": "Open"
+    }
+  ]
+}

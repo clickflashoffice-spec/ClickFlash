@@ -1,0 +1,98 @@
+{
+  "timestamp": "2025-06-08",
+  "auto_processing_status": "ACTIVE",
+  "user_away": true,
+  "completed_workstreams": [
+    {
+      "id": "WS1",
+      "name": "JWT Secret Generation",
+      "status": "COMPLETE",
+      "apps": [
+        "master",
+        "touch",
+        "gallery",
+        "management",
+        "moneytrash",
+        "website"
+      ]
+    },
+    {
+      "id": "WS2",
+      "name": "Touch App Installer Build",
+      "status": "COMPLETE",
+      "output": "apps/touch/release/ClickFlash - Touch Kiosk Setup 4.2.0.exe"
+    },
+    {
+      "id": "WS3",
+      "name": "MoneyTrash Tauri Build",
+      "status": "COMPLETE",
+      "output": [
+        "apps/moneytrash/src-tauri/target/release/bundle/msi/MoneyTrash Uploader_0.1.0_x64_en-US.msi",
+        "apps/moneytrash/src-tauri/target/release/bundle/nsis/MoneyTrash Uploader_0.1.0_x64-setup.exe"
+      ]
+    },
+    {
+      "id": "WS4",
+      "name": "Git Commit All Changes",
+      "status": "COMPLETE",
+      "message": "security: purge secrets, fix backend path, update configs, build all installers"
+    },
+    {
+      "id": "WS5",
+      "name": "Master App Backend Path Fix",
+      "status": "COMPLETE",
+      "fix": "getUnpackedPath('dist/backend/server.js') -> getUnpackedPath('backend/server.js')"
+    },
+    {
+      "id": "WS6",
+      "name": "Critical .env Sanitization",
+      "status": "COMPLETE",
+      "files_fixed": [
+        "apps/management/backend/.env",
+        "apps/master/.env",
+        "apps/master/backend/.env",
+        "apps/moneytrash/.env",
+        "apps/touch/.env"
+      ]
+    }
+  ],
+  "pending_human_actions": [
+    {
+      "priority": "P0",
+      "action": "Rotate Stripe key at https://dashboard.stripe.com/test/apikeys",
+      "old_key_preview": "rk_test_51Tfm2N..."
+    },
+    {
+      "priority": "P0",
+      "action": "Rotate Resend key at https://resend.com/api-keys",
+      "old_key_preview": "re_cYq1p8w3..."
+    },
+    {
+      "priority": "P0",
+      "action": "Rotate Cloudflare token at https://dash.cloudflare.com/profile/api-tokens",
+      "old_key_preview": "cfut_VMGMGxL1..."
+    },
+    {
+      "priority": "P1",
+      "action": "Force-push clean history: git push origin --force --all",
+      "note": "All collaborators must re-clone"
+    },
+    {
+      "priority": "P1",
+      "action": "Delete backup branch: git branch -D backup-original-history-before-rotation",
+      "note": "Only after verifying everything works"
+    },
+    {
+      "priority": "P1",
+      "action": "Update real .env files with new JWT secrets from GENERATED_JWT_SECRETS.json",
+      "note": "DO NOT commit these files"
+    }
+  ],
+  "installers_ready": {
+    "master": "apps/master/release/ClickFlash Master OS Setup 4.2.0.exe",
+    "touch": "apps/touch/release/ClickFlash - Touch Kiosk Setup 4.2.0.exe",
+    "moneytrash_msi": "apps/moneytrash/src-tauri/target/release/bundle/msi/MoneyTrash Uploader_0.1.0_x64_en-US.msi",
+    "moneytrash_nsis": "apps/moneytrash/src-tauri/target/release/bundle/nsis/MoneyTrash Uploader_0.1.0_x64-setup.exe"
+  },
+  "next_auto_processing": "Will continue monitoring for new tasks. All builds successful."
+}

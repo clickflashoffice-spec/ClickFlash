@@ -1,0 +1,39 @@
+{
+  "provided_token": {
+    "token": "[REDACTED]",
+    "type": "Cloudflare API Token (cfut_)",
+    "prefix": "[REDACTED]",
+    "suffix": "[REDACTED]",
+    "occurrences_in_codebase": 0,
+    "findings": []
+  },
+  "all_cloudflare_tokens": {
+    "total_unique": 3,
+    "tokens": [
+      {
+        "file": "apps/master/production-config.json",
+        "line": 5,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "[REDACTED]",
+        "full_key": "[REDACTED]",
+        "line_content": "\"cloudflareApiToken\": \"[REDACTED]\","
+      },
+      {
+        "file": "docs/audit/tools/API_KEY_AND_SECRET_INVENTORY.json",
+        "line": 184,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "[REDACTED]",
+        "full_key": "[REDACTED]",
+        "line_content": "\"value_preview\": \"[REDACTED]...\","
+      },
+      {
+        "file": "docs/audit/tools/API_KEY_AND_SECRET_INVENTORY.json",
+        "line": 185,
+        "key_prefix": "[REDACTED]",
+        "key_suffix": "[REDACTED]",
+        "full_key": "[REDACTED]",
+        "line_content": "\"full_value\": \"[REDACTED]\""
+      }
+    ]
+  }
+}

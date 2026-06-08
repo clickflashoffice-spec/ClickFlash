@@ -1,0 +1,32 @@
+{
+  "total_unique_keys": 3,
+  "keys": [
+    {
+      "file": "apps/management/backend/.env",
+      "line": 6,
+      "key_type": "test",
+      "key_prefix": "REDACTED",
+      "key_suffix": "REDACTED",
+      "full_key": "REDACTED",
+      "line_content": "STRIPE_SECRET_KEY=REDACTED"
+    },
+    {
+      "file": "docs/audit/tools/REMEDIATION_01_SECRET_ROTATION_PLAN.md",
+      "line": 101,
+      "key_type": "test",
+      "key_prefix": "REDACTED",
+      "key_suffix": "REDACTED",
+      "full_key": "REDACTED",
+      "line_content": "STRIPE_SECRET_KEY=REDACTED"
+    },
+    {
+      "file": "docs/audit/tools/STRIPE_KEY_ROTATION_ANALYSIS.json",
+      "line": 5,
+      "key_type": "test",
+      "key_prefix": "REDACTED",
+      "key_suffix": "REDACTED",
+      "full_key": "REDACTED",
+      "line_content": "REDACTED"
+    }
+  ]
+}

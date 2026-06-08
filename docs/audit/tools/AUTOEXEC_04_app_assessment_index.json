@@ -1,0 +1,42 @@
+{
+  "master": {
+    "file": "AUTOEXEC_04_app_assessment_master.md",
+    "files": 2475,
+    "lines": 0
+  },
+  "touch": {
+    "file": "AUTOEXEC_04_app_assessment_touch.md",
+    "files": 295,
+    "lines": 0
+  },
+  "gallery": {
+    "file": "AUTOEXEC_04_app_assessment_gallery.md",
+    "files": 431,
+    "lines": 0
+  },
+  "management": {
+    "file": "AUTOEXEC_04_app_assessment_management.md",
+    "files": 474,
+    "lines": 0
+  },
+  "moneytrash": {
+    "file": "AUTOEXEC_04_app_assessment_moneytrash.md",
+    "files": 124,
+    "lines": 0
+  },
+  "website": {
+    "file": "AUTOEXEC_04_app_assessment_website.md",
+    "files": 295,
+    "lines": 0
+  },
+  "installer": {
+    "file": "AUTOEXEC_04_app_assessment_installer.md",
+    "files": 34,
+    "lines": 0
+  },
+  "master-cpp": {
+    "file": "AUTOEXEC_04_app_assessment_master-cpp.md",
+    "files": 229,
+    "lines": 0
+  }
+}

@@ -5,8 +5,8 @@ import { test, expect } from "@playwright/test";
  */
 
 test.describe("Health Checks & Recovery", () => {
-  const MASTER = "http://localhost:8090";
-  const TOUCH = "http://localhost:8091";
+  const MASTER = "http://127.0.0.1:8090";
+  const TOUCH = "http://127.0.0.1:8091";
 
   test("Master health endpoint returns comprehensive status", async ({ request }) => {
     const res = await request.get(`${MASTER}/api/system/health`);

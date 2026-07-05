@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import { CollectionOptions, PocketRecord, AuthResponse } from "./pbTypes";
 import {
   isPublicDomain,
@@ -10,12 +11,6 @@ import {
 // 2. Auth State Persistence
 // 3. Type Safety
 
-// Global config for connection
-interface ConnectionConfig {
-  baseUrl: string;
-  mode: "local" | "cloud" | "hybrid";
-}
-
 const DEFAULT_LOCAL_URL = "http://127.0.0.1:8092";
 
 export const getBaseUrl = (): string => {
@@ -23,7 +18,7 @@ export const getBaseUrl = (): string => {
   // If we are on a deployed public domain, we MUST use the Cloud Backend.
   // We strictly ignore any local storage settings that might point to localhost.
   if (isPublicDomain()) {
-    console.log("[PB] Public Domain Detected. Enforcing Cloud Mode.");
+    logger.info("[PB] Public Domain Detected. Enforcing Cloud Mode.");
     return getCloudBaseUrl();
   }
 
@@ -153,7 +148,7 @@ class CustomPocketBaseAdapter {
     return this.baseUrl;
   }
 
-  autoCancellation(enable: boolean) {
+  autoCancellation(_enable: boolean) {
     return this;
   }
 
@@ -184,9 +179,12 @@ class CustomPocketBaseAdapter {
           );
           if (!res.ok) {
             if (res.status === 401) {
-              const error = new Error("Authentication required");
-              (error as any).status = 401;
-              (error as any).code = "AUTHENTICATION_ERROR";
+              const error = new Error("Authentication required") as Error & {
+                status: number;
+                code: string;
+              };
+              error.status = 401;
+              error.code = "AUTHENTICATION_ERROR";
               throw error;
             }
             throw new Error(res.statusText);
@@ -197,7 +195,7 @@ class CustomPocketBaseAdapter {
           }
           return Array.isArray(data.items) ? data.items : [];
         } catch (e) {
-          if (e instanceof Error && (e as any).status === 401) {
+          if (e instanceof Error && (e as { status?: number }).status === 401) {
             throw e;
           }
           return [];
@@ -216,9 +214,12 @@ class CustomPocketBaseAdapter {
         );
         if (!res.ok) {
           if (res.status === 401) {
-            const error = new Error("Authentication required");
-            (error as any).status = 401;
-            (error as any).code = "AUTHENTICATION_ERROR";
+            const error = new Error("Authentication required") as Error & {
+              status: number;
+              code: string;
+            };
+            error.status = 401;
+            error.code = "AUTHENTICATION_ERROR";
             throw error;
           }
           throw new Error(res.statusText);
@@ -235,7 +236,7 @@ class CustomPocketBaseAdapter {
         };
       },
       getOne: async (id: string, options?: CollectionOptions) => {
-        let filter = `id="${id}"`;
+        const filter = `id="${id}"`;
         let query = `?filter=${encodeURIComponent(filter)}`;
         if (options && options.expand) {
           query += `&expand=${encodeURIComponent(options.expand)}`;
@@ -250,21 +251,24 @@ class CustomPocketBaseAdapter {
           );
           if (!res.ok) {
             if (res.status === 401) {
-              const error = new Error("Authentication required");
-              (error as any).status = 401;
-              (error as any).code = "AUTHENTICATION_ERROR";
+              const error = new Error("Authentication required") as Error & {
+                status: number;
+                code: string;
+              };
+              error.status = 401;
+              error.code = "AUTHENTICATION_ERROR";
               throw error;
             }
             return null;
           }
 
-          let data: any = null;
+          let data: unknown = null;
           try {
             const responseText = await res.text();
             if (responseText) {
               data = JSON.parse(responseText);
             }
-          } catch (parseError) {
+          } catch {
             return null;
           }
 
@@ -272,17 +276,18 @@ class CustomPocketBaseAdapter {
             return null;
           }
 
+          const dataObj = data as Record<string, unknown> | null;
           if (
-            data.items &&
-            Array.isArray(data.items) &&
-            data.items.length > 0
+            dataObj &&
+            Array.isArray(dataObj.items) &&
+            dataObj.items.length > 0
           ) {
-            return data.items[0];
+            return dataObj.items[0];
           }
 
           return null;
         } catch (error) {
-          if (error instanceof Error && (error as any).status === 401) {
+          if (error instanceof Error && (error as { status?: number }).status === 401) {
             throw error;
           }
           return null;
@@ -301,15 +306,16 @@ class CustomPocketBaseAdapter {
               hasFile = Object.values(data).some(
                 (val) => val instanceof File || val instanceof Blob,
               );
-            } catch (error) {
+            } catch {
               hasFile = false;
             }
           }
 
           if (hasFile) {
             body = new FormData();
-            for (const key in data) {
-              body.append(key, (data as any)[key]);
+            const recordData = data as Record<string, unknown>;
+            for (const key in recordData) {
+              body.append(key, recordData[key] as string | Blob);
             }
           } else {
             body = JSON.stringify(data);
@@ -329,17 +335,22 @@ class CustomPocketBaseAdapter {
         );
         if (!res.ok) {
           let errorMessage = `Create failed (HTTP ${res.status})`;
-          let errorData: any = { message: errorMessage };
+          let errorData: Record<string, unknown> = { message: errorMessage };
           try {
             const responseText = await res.text();
-            errorData = JSON.parse(responseText);
+            errorData = JSON.parse(responseText) as Record<string, unknown>;
             errorMessage =
-              errorData.message || errorData.error || responseText;
+              (errorData.message as string | undefined) ||
+              (errorData.error as string | undefined) ||
+              responseText;
           } catch {
             // Response body not valid JSON — use default error message
           }
 
-          const error: any = new Error(errorMessage);
+          const error = new Error(errorMessage) as Error & {
+            status: number;
+            response: { status: number; data: Record<string, unknown> };
+          };
           error.status = res.status;
           error.response = { status: res.status, data: errorData };
           throw error;
@@ -359,15 +370,18 @@ class CustomPocketBaseAdapter {
         if (!res.ok) {
           // Try to extract error message from response
           let errorMessage = "Update failed";
-          let errorData: any = { message: errorMessage };
+          let errorData: Record<string, unknown> = { message: errorMessage };
           try {
-            errorData = await res.json();
-            if (errorData.message) errorMessage = errorData.message;
-            else if (errorData.error) errorMessage = errorData.error;
-          } catch (_e) {
+            errorData = (await res.json()) as Record<string, unknown>;
+            if (errorData.message) errorMessage = errorData.message as string;
+            else if (errorData.error) errorMessage = errorData.error as string;
+          } catch {
             errorMessage = res.statusText || "Update failed";
           }
-          const error: any = new Error(errorMessage);
+          const error = new Error(errorMessage) as Error & {
+            status: number;
+            response: { status: number; data: Record<string, unknown> };
+          };
           error.status = res.status;
           error.response = { status: res.status, data: errorData };
           throw error;
@@ -411,7 +425,7 @@ class CustomPocketBaseAdapter {
         };
         return Promise.resolve(() => evtSource.close());
       },
-      unsubscribe: (topic?: string) => {},
+      unsubscribe: (_topic?: string) => {},
     };
   }
 
@@ -433,7 +447,7 @@ class CustomPocketBaseAdapter {
           const res = await fetch(`${this.baseUrl}/api/health`);
           if (!res.ok) return { code: 500 };
           return await res.json();
-        } catch (e) {
+        } catch {
           return { code: 0 };
         }
       },
@@ -485,8 +499,8 @@ class CustomPocketBaseAdapter {
 
   get collections() {
     return {
-      getOne: async (name: string) => ({ name: "mock", type: "base" }),
-      create: async (data: Record<string, unknown>) => ({ name: "mock" }),
+      getOne: async (_name: string) => ({ _name: "mock", type: "base" }),
+      create: async (_data: Record<string, unknown>) => ({ name: "mock" }),
     };
   }
 }
@@ -500,7 +514,7 @@ export const configureConnection = () => {
     const cloudUrl = getCloudBaseUrl();
     if (pb.baseUrl !== cloudUrl) {
       pb.baseUrlValue = cloudUrl;
-      console.log(`[PB] Public Domain Enforced Connection: ${cloudUrl}`);
+      logger.info(`[PB] Public Domain Enforced Connection: ${cloudUrl}`);
     }
     // Early exit to prevent reading any local settings
     return;
@@ -527,7 +541,7 @@ export const configureConnection = () => {
 
   if (pb.baseUrl !== targetUrl) {
     pb.baseUrlValue = targetUrl;
-    console.log(`[PB] Reconfigured connection to: ${targetUrl}`);
+    logger.info(`[PB] Reconfigured connection to: ${targetUrl}`);
   }
 };
 
@@ -535,17 +549,17 @@ export const checkBackendHealth = async (): Promise<boolean> => {
   try {
     const health = await pb.health.check();
     return health.code === 200;
-  } catch (error) {
+  } catch {
     return false;
   }
 };
 
-export const getBackendStats = async (): Promise<any> => {
+export const getBackendStats = async (): Promise<Record<string, unknown> | null> => {
   try {
     const res = await fetch(`${pb.baseUrl}/api/health`);
     if (!res.ok) return null;
     return await res.json();
-  } catch (e) {
+  } catch {
     return null;
   }
 };

@@ -1,9 +1,10 @@
 // backend/routes/system/network.ts
 import express, { Request, Response, Router } from "express";
-import { Logger } from "../../shared/logger";
-import DatabaseManager from "../../shared/db";
-import { sendInternalError } from "../../shared/errorHandler";
-
+import { Logger } from '../../utils/logger';
+import DatabaseManager from '../../database/db';
+import { sendInternalError } from '../../utils/errorHandler';
+import { strictRateLimiter } from '../../middleware/rateLimiter';
+import { customRoutesSchemas } from '../../utils/validation';
 interface NetworkContext {
   dbManager: DatabaseManager;
   logger: Logger;
@@ -62,8 +63,9 @@ export default function networkRoutes(context: NetworkContext): Router {
   /**
    * @route POST /ping
    */
-  router.post("/ping", (req: Request, res: Response) => {
-    const clientTs = req.body?.clientTimestamp || 0;
+  router.post("/ping", strictRateLimiter, (req: Request, res: Response) => {
+    const parsed = customRoutesSchemas.networkPing.safeParse(req.body);
+    const clientTs = (parsed.success && parsed.data.clientTimestamp) ? parsed.data.clientTimestamp : 0;
     const serverTs = Date.now();
     res.json({
       success: true,
@@ -104,9 +106,10 @@ export default function networkRoutes(context: NetworkContext): Router {
   /**
    * @route POST /settings
    */
-  router.post("/settings", async (req: Request, res: Response) => {
+  router.post("/settings", strictRateLimiter, async (req: Request, res: Response) => {
     try {
-      const settings = req.body || {};
+      const parsed = customRoutesSchemas.networkSettings.safeParse(req.body);
+      const settings = parsed.success ? parsed.data : {};
 
       // Individual keys to save
       const keysToSave: Record<string, any> = {

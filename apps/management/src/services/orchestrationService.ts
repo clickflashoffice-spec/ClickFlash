@@ -4,6 +4,7 @@
  */
 
 import { EventEmitter } from "../utils/EventEmitter";
+import { logger } from '@/utils/logger';
 
 interface MasterInstance {
   id: string;
@@ -46,8 +47,8 @@ interface OrchestrationStats {
 class GlobalOrchestrationService extends EventEmitter {
   private masters: Map<string, MasterInstance> = new Map();
   private config: DiscoveryConfig;
-  private heartbeatTimers: Map<string, any> = new Map();
-  private pulseTimer: any | null = null;
+  private heartbeatTimers: Map<string, ReturnType<typeof setInterval>> = new Map();
+  private pulseTimer: ReturnType<typeof setInterval> | null = null;
   private roundRobinIndex: number = 0;
 
   constructor(config: Partial<DiscoveryConfig> = {}) {
@@ -79,7 +80,7 @@ class GlobalOrchestrationService extends EventEmitter {
     this.startHeartbeatMonitoring(master.id);
 
     this.emit("master:registered", instance);
-    console.log(
+    logger.info(
       `[Orchestration] Master registered: ${master.name} (${master.id})`,
     );
 
@@ -109,7 +110,7 @@ class GlobalOrchestrationService extends EventEmitter {
     if (master.status === "offline") {
       master.status = "online";
       this.emit("master:online", master);
-      console.log(`[Orchestration] Master back online: ${master.name}`);
+      logger.info(`[Orchestration] Master back online: ${master.name}`);
     }
 
     this.emit("master:heartbeat", master);
@@ -165,7 +166,7 @@ class GlobalOrchestrationService extends EventEmitter {
     this.masters.delete(masterId);
 
     this.emit("master:unregistered", master);
-    console.log(`[Orchestration] Master unregistered: ${master.name}`);
+    logger.info(`[Orchestration] Master unregistered: ${master.name}`);
 
     return true;
   }
@@ -306,7 +307,7 @@ class GlobalOrchestrationService extends EventEmitter {
     this.pulseTimer = setInterval(() => {
       this.triggerPulse();
     }, this.config.pulseInterval);
-    console.log("[Orchestration] Global pulse started");
+    logger.info("[Orchestration] Global pulse started");
   }
 
   /**
@@ -339,7 +340,7 @@ class GlobalOrchestrationService extends EventEmitter {
    * Broadcast message to all online masters
    */
   async broadcast(
-    message: any,
+    message: Record<string, unknown>,
     destinationId?: string,
   ): Promise<{ success: number; failed: number }> {
     const masters = destinationId
@@ -383,7 +384,7 @@ class GlobalOrchestrationService extends EventEmitter {
   async sendCommand(
     masterId: string,
     command: string,
-    payload?: any,
+    payload?: Record<string, unknown>,
   ): Promise<boolean> {
     const master = this.masters.get(masterId);
     if (!master || master.status !== "online") return false;

@@ -33,7 +33,7 @@ async function safeFetch<T>(fetchFn: () => Promise<T[] | { data: T[] }>, default
         }
         return defaultValue;
     } catch (err) {
-        console.warn('Failed to fetch data for export:', err);
+        logger.warn('Failed to fetch data for export:', err);
         return defaultValue;
     }
 }

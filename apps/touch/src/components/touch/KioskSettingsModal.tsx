@@ -155,7 +155,7 @@ const KioskSettingsModal: React.FC<KioskSettingsModalProps> = ({
   };
 
   const handleSaveAndReload = () => {
-    let settingsToSave = { ...settings, currencyCode: currency.code };
+    const settingsToSave = { ...settings, currencyCode: currency.code };
 
     if (newPassword) {
       if (newPassword !== confirmPassword) {
@@ -287,6 +287,7 @@ const KioskSettingsModal: React.FC<KioskSettingsModalProps> = ({
             value={authPassword}
             onChange={(e) => setAuthPassword(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAuthorize()}
+            data-testid="settings-password-input"
             className="w-full p-3 border rounded-lg dark:bg-slate-800 dark:border-slate-700 text-center text-xl tracking-widest"
             autoFocus
             placeholder="••••"
@@ -300,6 +301,7 @@ const KioskSettingsModal: React.FC<KioskSettingsModalProps> = ({
             </button>
             <button
               onClick={handleAuthorize}
+              data-testid="settings-authorize-button"
               className="flex-1 bg-blue-600 py-3 rounded-lg font-bold text-white"
             >
               Authorize
@@ -451,6 +453,7 @@ const KioskSettingsModal: React.FC<KioskSettingsModalProps> = ({
           <button
             type="button"
             onClick={handleSaveAndReload}
+            data-testid="settings-save-button"
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
           >
             Save & Reload

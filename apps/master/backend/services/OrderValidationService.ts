@@ -1,5 +1,5 @@
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
 import { EmailService } from "./emailService";
 import { HardwareService } from "./HardwareService";
 import { FulfillmentSlipService } from "./FulfillmentSlipService";

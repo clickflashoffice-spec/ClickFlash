@@ -1,17 +1,13 @@
 import React from "react";
-import { 
-  Users, 
+import {Users, 
   Award, 
   Target, 
   TrendingUp, 
   TrendingDown,
   AlertCircle,
   MessageCircle,
-  ArrowRight,
   ShieldCheck,
-  Zap
-} from "lucide-react";
-import { PixelFounderCard } from "../common/PixelFounderCard.tsx";
+  Zap} from "lucide-react";
 
 const DailyScorecards: React.FC = () => {
   const staff = [

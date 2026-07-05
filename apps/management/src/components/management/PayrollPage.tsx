@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from "react";
-import Card from "../common/Card.tsx";
 import { Photographer, Order, Adjustment } from "../../types.ts";
 import { useCurrency } from "../CurrencyContext.tsx";
 import { apiService } from "../../services/apiService.ts";

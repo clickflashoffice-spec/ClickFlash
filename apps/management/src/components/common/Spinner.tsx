@@ -35,6 +35,7 @@ const Spinner: React.FC<SpinnerProps> = React.memo(
         aria-label="Loading"
       >
         <div
+          data-testid="spinner"
           className={`animate-spin rounded-full ${sizeClass} border-b-2 ${colorClass}`}
         ></div>
       </div>

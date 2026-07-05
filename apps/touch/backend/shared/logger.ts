@@ -58,17 +58,25 @@ export class Logger {
         return path.join(this.logDir, `${level.toLowerCase()}-${today}.log`);
     }
 
-    private formatLogEntry(level: LogLevel, message: string, meta: Record<string, any> = {}): string {
+    private formatLogEntry(level: LogLevel, message: string, meta?: any): string {
         const timestamp = new Date().toISOString();
+        let metaObj: Record<string, any> = {};
+        if (meta instanceof Error) {
+            metaObj = { error: meta.message, stack: meta.stack };
+        } else if (meta !== null && typeof meta === 'object') {
+            metaObj = meta;
+        } else if (meta !== undefined) {
+            metaObj = { data: meta };
+        }
         return JSON.stringify({
             timestamp,
             level,
             message,
-            ...meta
+            ...metaObj
         }) + '\n';
     }
 
-    private writeLog(level: LogLevel, message: string, meta: Record<string, any> = {}): void {
+    private writeLog(level: LogLevel, message: string, meta?: any): void {
         if (LOG_LEVELS[level] > this.logLevel) {
             return;
         }
@@ -99,23 +107,28 @@ export class Logger {
             level === 'INFO' ? console.log : null;
             
         if (consoleMethod) {
-            consoleMethod(`[${level}] ${message}`, meta && Object.keys(meta).length > 0 ? meta : '');
+            consoleMethod(`[${level}] ${message}`, meta !== undefined ? meta : '');
         }
     }
 
-    public error(message: string, meta: Record<string, any> = {}): void {
+    public error(message: string, meta?: any): void {
         this.writeLog('ERROR', message, meta);
     }
 
-    public warn(message: string, meta: Record<string, any> = {}): void {
+    public warn(message: string, meta?: any): void {
         this.writeLog('WARN', message, meta);
     }
 
-    public info(message: string, meta: Record<string, any> = {}): void {
+    public info(message: string, meta?: any): void {
         this.writeLog('INFO', message, meta);
     }
 
-    public debug(message: string, meta: Record<string, any> = {}): void {
-        this.writeLog('DEBUG', message, meta);
-    }
+  public debug(message: string, meta?: any): void {
+    this.writeLog('DEBUG', message, meta);
+  }
 }
+
+export const logger = new Logger(
+  process.env.DATA_DIR || path.join(process.cwd(), "pb_data"),
+  process.env.LOG_LEVEL || "INFO"
+);

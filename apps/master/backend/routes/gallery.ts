@@ -3,8 +3,10 @@ import express, { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { Worker } from 'worker_threads';
-import DatabaseManager from '../shared/db';
-import { Logger } from '../shared/logger';
+import DatabaseManager from '../database/db';
+import { Logger } from '../utils/logger';
+import { signFilePath } from '../utils/signedUrls';
+import { walletService } from '../services/WalletService';
 
 interface GalleryContext {
     dbManager: DatabaseManager;
@@ -161,6 +163,131 @@ export default function galleryRoutes(context: GalleryContext) {
             worker.postMessage(job);
         });
     }
+
+    // P0-2: Bulk-signed URLs for a gallery album's photos.
+    //   Customer-facing endpoint — server signs all photo URLs the customer's
+    //   browser will need (high-res, preview, thumb, tiny). The customer then
+    //   fetches those URLs with the embedded signature, which the
+    //   signedUrlMiddleware validates.
+    //
+    //   Body: { albumId: string, photoIds?: string[], tiers?: string[] }
+    //   - photoIds: optional whitelist (default: all photos in album)
+    //   - tiers: optional subset of [highres,preview,thumb,tiny] (default: all)
+    //   - ttlSeconds: optional, default 3600, max 86400
+    router.post('/sign-urls', async (req: Request, res: Response) => {
+        try {
+            const { albumId, photoIds, tiers, ttlSeconds } = req.body || {};
+            if (!albumId || typeof albumId !== 'string') {
+                return res.status(400).json({ error: 'albumId required' });
+            }
+            const tierList = Array.isArray(tiers) && tiers.length > 0
+                ? tiers.filter((t: string) => ['highres', 'preview', 'thumb', 'tiny', 'watermarked'].includes(t))
+                : ['highres', 'preview', 'thumb', 'tiny'];
+            const ttl = Math.min(Math.max(parseInt(String(ttlSeconds ?? 3600), 10) || 3600, 1), 86400);
+
+            // Whitelist check — only allow signing paths to files inside the
+            // album's known storage paths.
+            const photoQuery = photoIds && Array.isArray(photoIds) && photoIds.length > 0
+                ? dbManager.query<{
+                      id: string;
+                      storage_path_highres: string;
+                      storage_path_preview: string;
+                      storage_path_thumb: string;
+                      storage_path_tiny: string;
+                      storage_path_watermarked: string;
+                  }>(
+                      `SELECT id, 
+                              url as storage_path_highres, 
+                              previewUrl as storage_path_preview, 
+                              thumbnailUrl as storage_path_thumb,
+                              tinyUrl as storage_path_tiny, 
+                              watermarked_url as storage_path_watermarked
+                         FROM photos WHERE albumId = ? AND id IN (${photoIds.map(() => '?').join(',')})`,
+                      [albumId, ...photoIds],
+                  )
+                : dbManager.query<{
+                      id: string;
+                      storage_path_highres: string;
+                      storage_path_preview: string;
+                      storage_path_thumb: string;
+                      storage_path_tiny: string;
+                      storage_path_watermarked: string;
+                  }>(
+                      `SELECT id, 
+                              url as storage_path_highres, 
+                              previewUrl as storage_path_preview, 
+                              thumbnailUrl as storage_path_thumb,
+                              tinyUrl as storage_path_tiny, 
+                              watermarked_url as storage_path_watermarked
+                         FROM photos WHERE albumId = ?`,
+                      [albumId],
+                  );
+
+            const results = photoQuery.map((row) => {
+                const urls: Record<string, string> = {};
+                const tierToCol: Record<string, string> = {
+                    highres: row.storage_path_highres,
+                    preview: row.storage_path_preview,
+                    thumb: row.storage_path_thumb,
+                    tiny: row.storage_path_tiny,
+                    watermarked: row.storage_path_watermarked,
+                };
+                for (const tier of tierList) {
+                    const relPath = tierToCol[tier];
+                    if (!relPath) continue;
+                    // Build the public path that the files route serves.
+                    // The files route expects /files/uploads/<albumId>/<subdir>/<filename>
+                    // so we always prefix with /api/files/uploads/ and the rest is the stored relPath.
+                    // relPath might be e.g. "/uploads/somealbum/highres/foo.jpg"
+                    const cleanRelPath = relPath.replace(/^[\/\\]?uploads[\/\\]/, '');
+                    const filePath = `/api/files/uploads/${cleanRelPath}`;
+                    urls[tier] = signFilePath(filePath, { ttlSeconds: ttl });
+                }
+                return { photoId: row.id, urls };
+            });
+
+            return res.json({
+                albumId,
+                signedAt: Math.floor(Date.now() / 1000),
+                ttlSeconds: ttl,
+                count: results.length,
+                urls: results,
+            });
+        } catch (err: any) {
+            logger.error('[Gallery] sign-urls failed', { error: err.message });
+            return res.status(500).json({ error: 'sign-urls failed' });
+        }
+    });
+
+    // GET/POST /api/gallery/wallet-pass
+    // Generate a .pkpass Apple Wallet digital pass for an order
+    router.all('/wallet-pass', async (req: Request, res: Response) => {
+        try {
+            const orderId = req.method === 'GET' ? req.query.orderId : req.body.orderId;
+            const albumId = req.method === 'GET' ? req.query.albumId : req.body.albumId;
+            const clientName = req.method === 'GET' ? req.query.clientName : req.body.clientName;
+            const total = req.method === 'GET' ? req.query.total : req.body.total;
+            
+            if (!orderId) {
+                return res.status(400).json({ error: 'orderId is required' });
+            }
+
+            const passBuffer = await walletService.generateGalleryPass({
+                albumId: albumId ? String(albumId) : 'GALLERY',
+                clientName: clientName ? String(clientName) : 'Guest',
+                token: String(orderId), // Using orderId as the token placeholder
+                galleryUrl: `https://gallery.clickflash.app/?order=${orderId}`,
+                date: new Date().toISOString().split('T')[0],
+            });
+
+            res.setHeader('Content-Type', 'application/vnd.apple.pkpass');
+            res.setHeader('Content-Disposition', `attachment; filename="Pass-${orderId}.pkpass"`);
+            res.send(passBuffer);
+        } catch (error: any) {
+            logger.error('[Gallery] Failed to generate wallet pass:', error);
+            res.status(500).json({ error: 'Failed to generate wallet pass' });
+        }
+    });
 
     return router;
 }

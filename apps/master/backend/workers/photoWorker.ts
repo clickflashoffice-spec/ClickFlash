@@ -9,7 +9,8 @@ import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
 
-import { validateImageMagicNumber } from "../shared/validateImage";
+import { validateImageMagicNumber } from '../services/validateImage';
+import { logger } from '../utils/logger';
 
 if (!parentPort) {
   throw new Error("This file must be run as a worker thread");
@@ -31,6 +32,10 @@ interface WorkerJob {
   destPath?: string;
   edits?: any;
   hash?: string;
+  overlayPath?: string;
+  opacity?: number;
+  scale?: number;
+  position?: string;
 }
 
 parentPort.on("message", async (job: WorkerJob) => {
@@ -49,7 +54,7 @@ parentPort.on("message", async (job: WorkerJob) => {
     }
   } catch (error) {
     const err = error as Error;
-    console.error(`[PhotoWorker] Error in thread ${threadId}:`, err);
+    logger.error(`[PhotoWorker] Error in thread ${threadId}:`, err);
     parentPort!.postMessage({
       success: false,
       photoId: job.photoId,
@@ -64,7 +69,7 @@ async function handleProcessJob(job: WorkerJob) {
 
   // Phase 32: Skip processing for placeholder URLs
   if (filepath.startsWith("http://") || filepath.startsWith("https://") || filepath.includes(":/")) {
-    console.warn(`[PhotoWorker] Skipping processing for remote/placeholder URL: ${filepath}`);
+    logger.warn(`[PhotoWorker] Skipping processing for remote/placeholder URL: ${filepath}`);
     parentPort!.postMessage({
       success: true,
       photoId,
@@ -134,7 +139,7 @@ async function handleProcessJob(job: WorkerJob) {
         if (contrast < 20) quality_flags.push("Flat");
       }
     } catch {
-      console.warn(`[PhotoWorker] Failed to compute stats for ${photoId}`);
+      logger.warn(`[PhotoWorker] Failed to compute stats for ${photoId}`);
     }
 
     await Promise.all([
@@ -183,7 +188,7 @@ async function handleProcessJob(job: WorkerJob) {
     // Hardening: Handle Corrupt JPEGs gracefully
     if (err.message && (err.message.includes("Corrupt JPEG") || err.message.includes("premature end of JPEG"))) {
       try {
-        console.warn(`[PhotoWorker] Corrupt/Partial JPEG detected for ${photoId}. Attempting aggressive repair...`);
+        logger.warn(`[PhotoWorker] Corrupt/Partial JPEG detected for ${photoId}. Attempting aggressive repair...`);
         let buffer: Buffer | null = fs.readFileSync(filepath);
 
         await Promise.all([
@@ -213,7 +218,7 @@ async function handleProcessJob(job: WorkerJob) {
         buffer = null; // Memory management: Clear large buffer
         return;
       } catch (fallbackError) {
-        console.error(`[PhotoWorker] Aggressive repair failed for ${photoId}`);
+        logger.error(`[PhotoWorker] Aggressive repair failed for ${photoId}`);
       }
     }
     throw err;
@@ -388,7 +393,7 @@ async function applyRetouchActions(
 }
 
 async function handleWatermarkJob(job: WorkerJob) {
-  const { filepath, outputDir, photoId } = job;
+  const { filepath, outputDir, photoId, overlayPath, opacity, scale, position } = job;
 
   if (filepath.startsWith("http://") || filepath.startsWith("https://") || filepath.includes(":/")) {
     parentPort?.postMessage({ success: true, photoId, skipped: true, wmFilename: filepath });
@@ -404,21 +409,67 @@ async function handleWatermarkJob(job: WorkerJob) {
   const width = metadata.width || 1200;
   const height = metadata.height || 1200;
 
-  const scale = Math.min(2048 / width, 2048 / height, 1);
-  const outWidth = Math.round(width * scale);
-  const outHeight = Math.round(height * scale);
-  const fontSize = Math.floor(Math.min(outWidth, outHeight) * 0.1);
+  const baseScale = Math.min(2048 / width, 2048 / height, 1);
+  const outWidth = Math.round(width * baseScale);
+  const outHeight = Math.round(height * baseScale);
+  
+  let compositeInput: string | Buffer;
+  let gravity = position || "center";
 
-  const svg = Buffer.from(`
-    <svg width="${outWidth}" height="${outHeight}">
-      <style>.title { fill: rgba(255, 255, 255, 0.3); font-size: ${fontSize}px; font-weight: bold; transform: rotate(-45deg); transform-origin: center; }</style>
-      <text x="50%" y="50%" text-anchor="middle" class="title">PROOF</text>
-    </svg>
-  `);
+  // Map our DB position strings to sharp gravity
+  const gravityMap: Record<string, string> = {
+    'center': 'center',
+    'top-left': 'northwest',
+    'top-right': 'northeast',
+    'bottom-left': 'southwest',
+    'bottom-right': 'southeast'
+  };
+  gravity = gravityMap[gravity] || "center";
+
+  if (overlayPath && fs.existsSync(overlayPath)) {
+    // Dynamic Watermark
+    const overlayScale = scale || 1.0;
+    const overlayOpacity = opacity !== undefined ? opacity : 1.0;
+    
+    // We resize the overlay relative to the base image size.
+    // E.g., scale=1.0 means the overlay takes up 30% of the image's min dimension.
+    const targetOverlayWidth = Math.max(1, Math.round((Math.min(outWidth, outHeight) * 0.3) * overlayScale));
+    
+    let overlayBuffer = await sharp(overlayPath)
+      .resize({ width: targetOverlayWidth, withoutEnlargement: true })
+      .toBuffer();
+      
+    if (overlayOpacity < 1.0) {
+      // Apply opacity using SVG trick since sharp composite doesn't have an opacity flag
+      const overlayMeta = await sharp(overlayBuffer).metadata();
+      const ow = overlayMeta.width || targetOverlayWidth;
+      const oh = overlayMeta.height || targetOverlayWidth;
+      const overlayBase64 = overlayBuffer.toString('base64');
+      const format = overlayMeta.format || 'png';
+      
+      const svg = Buffer.from(`
+        <svg width="${ow}" height="${oh}">
+          <image href="data:image/${format};base64,${overlayBase64}" width="${ow}" height="${oh}" opacity="${overlayOpacity}" />
+        </svg>
+      `);
+      overlayBuffer = svg;
+    }
+    compositeInput = overlayBuffer;
+  } else {
+    // Fallback static PROOF watermark
+    const fontSize = Math.floor(Math.min(outWidth, outHeight) * 0.1);
+    compositeInput = Buffer.from(`
+      <svg width="${outWidth}" height="${outHeight}">
+        <style>.title { fill: rgba(255, 255, 255, 0.3); font-size: ${fontSize}px; font-weight: bold; transform: rotate(-45deg); transform-origin: center; }</style>
+        <text x="50%" y="50%" text-anchor="middle" class="title">PROOF</text>
+      </svg>
+    `);
+    gravity = "center";
+  }
 
   await sharp(filepath, { failOnError: false })
     .resize(2048, 2048, { fit: "inside", withoutEnlargement: true })
-    .composite([{ input: svg, gravity: "center" }])
+    .composite([{ input: compositeInput, gravity: gravity }])
     .toFormat("webp", { quality: 80 })
     .toFile(wmPath);
 

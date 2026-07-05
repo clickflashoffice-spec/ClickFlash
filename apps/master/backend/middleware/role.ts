@@ -2,7 +2,7 @@
 // Role-based access control middleware
 
 import { Request, Response, NextFunction } from "express";
-import { sendAuthorizationError } from "../shared/errorHandler";
+import { sendAuthorizationError } from '../utils/errorHandler';
 
 /**
  * Middleware to check if user has one of the allowed roles

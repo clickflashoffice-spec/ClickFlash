@@ -1,6 +1,6 @@
 /**
  * ClickFlash Installer — Main Wizard Shell
- * Orchestrates all installation steps with progress tracking
+ * 9-step installer: welcome → license → cloudflare → destination → studio → pairing → first-sync → health → complete
  */
 
 import React from "react";
@@ -8,10 +8,12 @@ import { useInstallerState } from "./hooks/useInstallerState";
 import { STEP_ORDER, STEP_LABELS } from "./types/installer";
 import WizardProgress from "./components/WizardProgress";
 import WelcomeStep from "./components/WelcomeStep";
-import PrerequisitesStep from "./components/PrerequisitesStep";
-import CloudflareStep from "./components/CloudflareStep";
+import LicenseStep from "./components/LicenseStep";
+import CloudflareStepOAuth from "./components/CloudflareStepOAuth";
+import DestinationStep from "./components/DestinationStep";
 import StudioProfileStep from "./components/StudioProfileStep";
 import TouchPairingStep from "./components/TouchPairingStep";
+import FirstSyncStep from "./components/FirstSyncStep";
 import HealthCheckStep from "./components/HealthCheckStep";
 import CompleteStep from "./components/CompleteStep";
 import { Camera, Terminal, AlertCircle } from "lucide-react";
@@ -22,34 +24,48 @@ const App: React.FC = () => {
     goToStep,
     nextStep,
     prevStep,
-    runPrerequisites,
-    testToken,
-    registerFleet,
+    validateLicense,
+    requestDeviceCode,
+    pollForToken,
+    checkDeskId,
+    setDestination,
     updateStudioProfile,
     runPairing,
+    registerAndFirstSync,
     runHealthChecks,
     saveAndLaunch,
+    openExternal,
   } = useInstallerState();
 
   const renderStep = () => {
     switch (state.step) {
       case "welcome":
         return <WelcomeStep onNext={nextStep} />;
-      case "prerequisites":
+      case "license":
         return (
-          <PrerequisitesStep
+          <LicenseStep
             state={state}
-            onCheck={runPrerequisites}
+            onValidate={validateLicense}
             onNext={nextStep}
             onPrev={prevStep}
           />
         );
       case "cloudflare":
         return (
-          <CloudflareStep
+          <CloudflareStepOAuth
             state={state}
-            onTestToken={testToken}
-            onRegister={registerFleet}
+            onRequestDeviceCode={requestDeviceCode}
+            onPollForToken={pollForToken}
+            onNext={nextStep}
+            onPrev={prevStep}
+          />
+        );
+      case "destination":
+        return (
+          <DestinationStep
+            state={state}
+            onCheckDeskId={checkDeskId}
+            onSetDestination={setDestination}
             onNext={nextStep}
             onPrev={prevStep}
           />
@@ -70,6 +86,15 @@ const App: React.FC = () => {
             onPair={runPairing}
             onNext={nextStep}
             onPrev={prevStep}
+          />
+        );
+      case "first-sync":
+        return (
+          <FirstSyncStep
+            onRegisterAndSync={registerAndFirstSync}
+            onNext={nextStep}
+            onPrev={prevStep}
+            onOpenExternal={openExternal}
           />
         );
       case "health":
@@ -95,7 +120,6 @@ const App: React.FC = () => {
 
   return (
     <div className="wizard-container">
-      {/* Header */}
       <header className="wizard-header">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-cyan-500/10 rounded-lg">
@@ -116,20 +140,17 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* Progress */}
       <WizardProgress
         steps={STEP_ORDER}
         labels={STEP_LABELS}
         currentIndex={state.stepIndex}
         onStepClick={(index) => {
-          // Only allow clicking completed steps or current step
           if (index <= state.stepIndex) {
             goToStep(STEP_ORDER[index]);
           }
         }}
       />
 
-      {/* Content */}
       <main className="wizard-content">
         {state.error && (
           <div className="mb-4 flex items-start gap-3 p-4 bg-rose-500/10 border border-rose-500/20 rounded-lg">
@@ -143,7 +164,6 @@ const App: React.FC = () => {
         {renderStep()}
       </main>
 
-      {/* Footer */}
       <footer className="wizard-footer">
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <Terminal className="w-3.5 h-3.5" />

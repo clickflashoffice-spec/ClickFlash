@@ -65,6 +65,10 @@ class CustomPocketBaseAdapter {
   };
   private _authToken: string = "";
   private _csrfToken: string | null = null;
+  private _sharedEventSource: EventSource | null = null;
+  private _sseListeners: Set<(payload: any) => void> = new Set();
+  private _sseRetryCount: number = 0;
+  private _sseIsClosed: boolean = false;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
@@ -178,6 +182,12 @@ class CustomPocketBaseAdapter {
       });
 
       clearTimeout(timeoutId);
+
+      // Handle 401 Unauthorized globally
+      if (response.status === 401) {
+        this.logout().catch(e => logger.warn('Logout failed on 401', e));
+        // Continue to return the response so the caller can throw its own ApiError
+      }
 
       // Handle server-side errors that might be transient in cloud mode
       if (!response.ok && isCloudMode && retryCount < 2) {
@@ -574,96 +584,38 @@ class CustomPocketBaseAdapter {
           collection?: string;
         }) => void,
       ) => {
-        const store = useConnectionStore.getState();
-        let retryCount = 0;
-        let evtSource: EventSource | null = null;
-        let isClosed = false;
-
-        const connect = () => {
-          if (isClosed) return;
-          
-          if (retryCount > 0) {
-            store.setStatus('reconnecting');
+        // Register the listener locally
+        const listener = (payload: any) => {
+          if (payload.collection === name || topic === "*") {
+            callback({
+              action: payload.action,
+              record: payload.record,
+              collection: payload.collection,
+            });
           }
-          
-          evtSource = new EventSource(`${this.baseUrl}/api/realtime`);
-          
-          evtSource.onopen = () => {
-            store.setStatus('connected');
-            store.resetErrors();
-            retryCount = 0;
-          };
-
-          evtSource.onmessage = (e) => {
-            // Heartbeats and standard data
-            if (e.data && e.data !== ": connected") {
-              try {
-                const payload = JSON.parse(e.data);
-                
-                // Handle Heartbeat
-                if (payload.type === 'HEARTBEAT') {
-                   store.recordHeartbeat();
-                   return;
-                }
-
-                if (payload.collection === name || topic === "*") {
-                  callback({
-                    action: payload.action,
-                    record: payload.record,
-                    collection: payload.collection,
-                  });
-                }
-              } catch (err) {
-                // Not JSON or heartbeats
-                if (e.data.includes('HEARTBEAT')) {
-                   store.recordHeartbeat();
-                } else {
-                   logger.error("SSE Parse Error", err instanceof Error ? err : new Error(String(err)));
-                }
-              }
-            } else if (e.data === ": connected") {
-               store.setStatus('connected');
-            }
-          };
-
-          evtSource.onerror = () => {
-            if (isClosed) return;
-            
-            store.incrementError();
-            evtSource?.close();
-            
-            // Exponential backoff (1s, 2s, 4s... max 30s)
-            const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
-            retryCount++;
-            
-            if (retryCount < 5) {
-              logger.info(`[SSE] Connection lost, retrying in ${delay / 1000}s... (Attempt ${retryCount})`);
-            }
-            
-            setTimeout(connect, delay);
-          };
         };
+        this._sseListeners.add(listener);
 
-        connect();
+        // Connect shared EventSource if not connected
+        if (!this._sharedEventSource && !this._sseIsClosed) {
+          this._connectSSE();
+        }
 
         return Promise.resolve(() => {
-          isClosed = true;
-          if (evtSource) {
-            evtSource.close();
-            evtSource = null;
-          }
-          // Do not set global disconnected here as other subscriptions might exist,
-          // but for this simple adapter it's fine.
+          this._sseListeners.delete(listener);
+          // We could optionally close the EventSource if listeners are empty,
+          // but keeping it alive is fine and prevents thrashing.
         });
       },
       unsubscribe: (_topic?: string) => {
-        // Since we don't track individual subscriptions by topic in this simple mock,
+        // Handled via the returned unsubscribe function above
+
         // and the real-time implementation uses a single EventSource for all,
         // we can't easily unsubscribe just one topic without more complex logic.
         // However, the subscribe method returns a cleanup function which is the preferred way to unsubscribe.
         // We'll leave this as a no-op or log a warning if strict behavior is needed.
         // For now, to "finalize" it, we can add a log.
-        // console.debug('[PB Adapter] unsubscribe called', topic);
+        // logger.debug('[PB Adapter] unsubscribe called', topic);
       },
     };
   }
@@ -763,6 +715,65 @@ class CustomPocketBaseAdapter {
     return {
       getOne: async (_name: string) => ({ name: "mock", type: "base" }),
       create: async (_data: Record<string, unknown>) => ({ name: "mock" }),
+    };
+  }
+
+  private _connectSSE() {
+    if (this._sseIsClosed) return;
+    
+    const store = useConnectionStore.getState();
+    
+    if (this._sseRetryCount > 0) {
+      store.setStatus('reconnecting');
+    }
+    
+    this._sharedEventSource = new EventSource(`${this.baseUrl}/api/realtime`);
+    
+    this._sharedEventSource.onopen = () => {
+      store.setStatus('connected');
+      store.resetErrors();
+      this._sseRetryCount = 0;
+    };
+
+    this._sharedEventSource.onmessage = (e) => {
+      if (e.data && e.data !== ": connected") {
+        try {
+          const payload = JSON.parse(e.data);
+          if (payload.type === 'HEARTBEAT') {
+            store.recordHeartbeat();
+            return;
+          }
+          // Notify all listeners
+          for (const listener of Array.from(this._sseListeners)) {
+            listener(payload);
+          }
+        } catch (err) {
+          if (e.data.includes('HEARTBEAT')) {
+            store.recordHeartbeat();
+          } else {
+            logger.error("SSE Parse Error", err instanceof Error ? err : new Error(String(err)));
+          }
+        }
+      } else if (e.data === ": connected") {
+        store.setStatus('connected');
+      }
+    };
+
+    this._sharedEventSource.onerror = () => {
+      if (this._sseIsClosed) return;
+      
+      store.incrementError();
+      this._sharedEventSource?.close();
+      this._sharedEventSource = null;
+      
+      const delay = Math.min(1000 * Math.pow(2, this._sseRetryCount), 30000);
+      this._sseRetryCount++;
+      
+      if (this._sseRetryCount < 5) {
+        logger.info(`[SSE] Connection lost, retrying in ${delay / 1000}s... (Attempt ${this._sseRetryCount})`);
+      }
+      
+      setTimeout(() => this._connectSSE(), delay);
     };
   }
 }

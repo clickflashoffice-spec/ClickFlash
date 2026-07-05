@@ -22,12 +22,19 @@ const PhotoCard: React.FC<{
     isInCart: boolean;
     onClick: () => void;
     style?: React.CSSProperties;
-}> = React.memo(({ photo, isInCart, onClick, style }) => (
-    <div className="group cursor-pointer aspect-square relative" onClick={onClick} style={style}>
+}> = React.memo(({ photo, isInCart, onClick, style }) => {
+    const [isLoaded, setIsLoaded] = useState(false);
+    return (
+    <div className="group cursor-pointer aspect-square relative" onClick={onClick} style={style} data-testid="photo-card">
+        {!isLoaded && (
+            <div className="absolute inset-0 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-lg" />
+        )}
         <img
             src={photo.url}
             alt={photo.title}
-            className="w-full h-full object-cover rounded-lg shadow-md transition-transform group-hover:scale-105"
+            onLoad={() => setIsLoaded(true)}
+            data-testid="photo-card-image"
+            className={`w-full h-full object-cover rounded-lg shadow-md transition-all duration-300 group-hover:scale-105 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
             loading="lazy"
         />
         {isInCart && (
@@ -38,7 +45,7 @@ const PhotoCard: React.FC<{
             </div>
         )}
     </div>
-), (prevProps, nextProps) => {
+)}, (prevProps, nextProps) => {
     // Custom comparison for better performance
     return prevProps.photo.id === nextProps.photo.id &&
         prevProps.photo.url === nextProps.photo.url &&
@@ -267,7 +274,7 @@ const PhotoSelectionScreen: React.FC<PhotoSelectionScreenProps> = ({
     return (
         <div className="h-screen w-screen flex flex-col bg-white dark:bg-slate-900 text-slate-800 dark:text-white">
             <header className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                <button onClick={onBack} className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+                <button onClick={onBack} data-testid="back-to-home-button" className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                     <span className="text-xl">Back to Home</span>
                 </button>

@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import { Product } from "../types";
+import { logger } from '@/utils/logger';
 
 export const syncPricingToSupabase = async (
   products: Product[],
@@ -15,7 +16,7 @@ export const syncPricingToSupabase = async (
 
     const syncKey =
       hotelId === "global" ? "global_pricing" : `pricing_${hotelId}`;
-    console.log(`Syncing pricing to Supabase [Scope: ${syncKey}]...`, products);
+    logger.info(`Syncing pricing to Supabase [Scope: ${syncKey}]...`, products);
 
     // Transform products if necessary (ensure types match Gallery expectations)
     const pricingConfig = products.map((p) => ({
@@ -40,7 +41,7 @@ export const syncPricingToSupabase = async (
       throw error;
     }
 
-    console.log(`Pricing [${syncKey}] synced successfully.`);
+    logger.info(`Pricing [${syncKey}] synced successfully.`);
   } catch (err) {
     console.error("Failed to sync pricing:", err);
   }

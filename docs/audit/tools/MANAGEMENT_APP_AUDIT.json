@@ -1,0 +1,48 @@
+{
+  "app": "management",
+  "audited_at": "2025-06-08",
+  "findings": [
+    {
+      "file": "backend/src/initDefaultUser.ts",
+      "line": 10,
+      "issue": "DEFAULT_PASSWORD_PLACEHOLDER is a placeholder but should be env-driven",
+      "severity": "LOW",
+      "action": "Move DEFAULT_USER.password to environment variable",
+      "status": "ACCEPTABLE - already uses placeholder"
+    },
+    {
+      "file": "backend/src/server.ts",
+      "line": 170,
+      "issue": "ZTP fallback password uses PROVISIONING_SECRET or hardcoded default",
+      "severity": "MEDIUM",
+      "action": "Remove 'clickflash_ztp_default' fallback, require PROVISIONING_SECRET",
+      "code": "password = password || (PROVISIONING_SECRET || \"clickflash_ztp_default\");",
+      "status": "FIXED"
+    },
+    {
+      "file": "backend/.env.example",
+      "line": 6,
+      "issue": "JWT_SECRET placeholder needs generation instruction",
+      "severity": "LOW",
+      "action": "Add comment with openssl command"
+    },
+    {
+      "file": "backend/.env.example",
+      "line": 9,
+      "issue": "STRIPE_SECRET_KEY uses placeholder",
+      "severity": "INFO",
+      "action": "Ensure real .env has rotated key"
+    },
+    {
+      "file": "backend/.env.example",
+      "line": 10,
+      "issue": "RESEND_API_KEY uses placeholder",
+      "severity": "INFO",
+      "action": "Ensure real .env has rotated key"
+    }
+  ],
+  "status": "NEEDS_REMEDIATION",
+  "priority": "P1",
+  "auto_fix_applied": true,
+  "notes": "Server.ts line 170 has a hardcoded fallback password for ZTP mode. This is a real security issue."
+}

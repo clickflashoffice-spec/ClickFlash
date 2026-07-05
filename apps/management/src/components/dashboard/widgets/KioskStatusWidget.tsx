@@ -117,5 +117,6 @@ const KioskStatusWidget: React.FC<KioskStatusWidgetProps> = ({ detailed = false 
     );
 };
 
+KioskStatusWidget.displayName = 'KioskStatusWidget';
 export default React.memo(KioskStatusWidget);
 

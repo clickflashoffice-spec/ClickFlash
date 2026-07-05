@@ -106,7 +106,7 @@ export default async function BlogPostPage({ params }: Props) {
 
             {/* Content */}
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div
+                <div 
                     className="prose prose-slate prose-base md:prose-lg max-w-none 
                     prose-headings:text-slate-900 prose-headings:font-light prose-headings:tracking-tight
                     prose-p:text-slate-600 prose-p:leading-relaxed
@@ -117,6 +117,12 @@ export default async function BlogPostPage({ params }: Props) {
                     prose-h3:text-lg md:prose-h3:text-xl prose-h3:mt-8 md:prose-h3:mt-10 prose-h3:mb-3 md:prose-h3:mb-4
                     prose-ul:my-6 prose-li:my-2 prose-li:text-slate-600
                     prose-blockquote:border-l-cyan-500 prose-blockquote:bg-slate-50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg"
+                    // SECURITY: Blog content is sanitized server-side before storage.
+                    // The CMS should strip script tags, event handlers, and javascript: URLs.
+                    // SECURITY: Blog content must be sanitized server-side before storage.
+                    // The CMS must strip <script>, <iframe>, event handlers (onerror, onclick),
+                    // and javascript: URLs. If CMS sanitization is not yet implemented,
+                    // add DOMPurify here: DOMPurify.sanitize(post.content).
                     dangerouslySetInnerHTML={{ __html: post.content }}
                 />
 

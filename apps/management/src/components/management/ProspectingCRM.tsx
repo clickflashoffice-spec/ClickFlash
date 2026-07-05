@@ -1,17 +1,10 @@
 import React, { useState } from "react";
-import { 
-  Users, 
-  Search, 
+import {Search, 
   MessageCircle, 
-  Mail, 
   Linkedin, 
-  Phone, 
   ExternalLink,
   Target,
-  Clock,
-  CheckCircle2,
-  AlertCircle
-} from "lucide-react";
+  Clock} from "lucide-react";
 import { PixelFounderCard } from "../common/PixelFounderCard.tsx";
 
 interface Prospect {
@@ -27,7 +20,7 @@ interface Prospect {
 const ProspectingCRM: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [prospects, setProspects] = useState<Prospect[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
 
   React.useEffect(() => {
     fetch("/api/prospecting/leads")

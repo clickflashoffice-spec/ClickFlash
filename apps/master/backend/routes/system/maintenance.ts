@@ -2,10 +2,12 @@
 import express, { Request, Response, Router } from "express";
 import fs from "fs";
 import path from "path";
-import { Logger } from "../../shared/logger";
-import DatabaseManager from "../../shared/db";
+import { Logger } from '../../utils/logger';
+import DatabaseManager from '../../database/db';
 import { IMPORT_DIR, DATA_DIR as _DATA_DIR, BACKUP_DIR, LOGS_DIR } from "../../config/constants";
-import { sendInternalError } from "../../shared/errorHandler";
+import { sendInternalError } from '../../utils/errorHandler';
+import { strictRateLimiter } from '../../middleware/rateLimiter';
+import { customRoutesSchemas } from '../../utils/validation';
 
 interface MaintenanceContext {
   dbManager: DatabaseManager;
@@ -19,10 +21,11 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
   /**
    * @route POST /cleanup
    */
-  router.post("/cleanup", (req: Request, res: Response) => {
+  router.post("/cleanup", strictRateLimiter, (req: Request, res: Response) => {
     let retentionDays = 30;
-    if (req.body?.masterImportRetentionDays) {
-      retentionDays = Number(req.body.masterImportRetentionDays);
+    const parsed = customRoutesSchemas.maintenanceCleanup.safeParse(req.body);
+    if (parsed.success && parsed.data.masterImportRetentionDays) {
+      retentionDays = Number(parsed.data.masterImportRetentionDays);
     } else {
       const row = dbManager.get<{ value: string }>("SELECT value FROM settings WHERE key = 'data_management_settings'");
       if (row) {
@@ -66,7 +69,7 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
   /**
    * @route POST /vacuum
    */
-  router.post("/vacuum", (_req: Request, res: Response) => {
+  router.post("/vacuum", strictRateLimiter, (_req: Request, res: Response) => {
     try {
       dbManager.maintenance();
       res.json({ success: true, message: "Database optimized." });
@@ -107,7 +110,7 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
   /**
    * @route POST /rebuild
    */
-  router.post("/rebuild", async (_req: Request, res: Response) => {
+  router.post("/rebuild", strictRateLimiter, async (_req: Request, res: Response) => {
     try {
       dbManager.transaction(() => {
         dbManager.exec("REINDEX");
@@ -122,7 +125,7 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
   /**
    * @route POST /backup
    */
-  router.post("/backup", async (_req: Request, res: Response) => {
+  router.post("/backup", strictRateLimiter, async (_req: Request, res: Response) => {
     try {
       const backupDir = BACKUP_DIR;
       if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
@@ -141,7 +144,7 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
   /**
    * @route POST /reset
    */
-  router.post("/reset", (req: Request, res: Response) => {
+  router.post("/reset", strictRateLimiter, (req: Request, res: Response) => {
     try {
       const user = (req as any).user;
       if (!user || user.role !== "Admin") {

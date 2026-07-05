@@ -115,5 +115,6 @@ const PhotographerPerformanceWidget: React.FC<PhotographerPerformanceWidgetProps
     );
 };
 
+PhotographerPerformanceWidget.displayName = 'PhotographerPerformanceWidget';
 export default React.memo(PhotographerPerformanceWidget);
 

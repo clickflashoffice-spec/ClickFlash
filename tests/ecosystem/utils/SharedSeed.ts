@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+import Database from "better-sqlite3-multiple-ciphers";
 import path from "path";
 import fs from "fs";
 
@@ -39,71 +39,84 @@ export class SharedSeed {
       }
     });
 
-    // Seed Master with Admin & Test Site
+    const runMigrationsForDb = (db: any, dirs: string[]) => {
+      db.exec('CREATE TABLE IF NOT EXISTS migrations (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, applied_at DATETIME DEFAULT CURRENT_TIMESTAMP);');
+      const getApplied = db.prepare('SELECT name FROM migrations');
+      const insertMigration = db.prepare('INSERT INTO migrations (name) VALUES (?)');
+      
+      for (const dir of dirs) {
+        if (!fs.existsSync(dir)) continue;
+        const applied = new Set(getApplied.all().map((m: any) => m.name));
+        const files = fs.readdirSync(dir).sort();
+        
+        for (const file of files) {
+          if (!file.endsWith(".sql") || applied.has(file)) continue;
+          
+          const content = fs.readFileSync(path.join(dir, file), "utf8").split(/--\s*Down/i)[0];
+          const statements = content.split(';').map(s => s.trim()).filter(s => s.length > 0);
+          
+          try {
+            db.transaction(() => {
+              for (const stmt of statements) {
+                try {
+                  db.exec(stmt);
+                } catch (err: any) {
+                  const msg = err.message || '';
+                  if (msg.includes('duplicate column') || msg.includes('already exists')) {
+                    continue; // Ignore duplicate column errors like production DB manager
+                  }
+                  throw err;
+                }
+              }
+              insertMigration.run(file);
+            })();
+          } catch (e: any) {
+            console.error(`[Seed] Migration Error in ${file}:`, e.message);
+          }
+        }
+      }
+    };
+
+    // Initialize Master DB and run migrations
     const masterDb = new Database(masterDbPath);
+    const masterMigrationsDir1 = path.resolve(__dirname, "../../../apps/master/backend/database/migrations");
+    const masterMigrationsDir2 = path.resolve(__dirname, "../../../apps/master/backend/migrations");
+    runMigrationsForDb(masterDb, [masterMigrationsDir1, masterMigrationsDir2]);
+
+    // Seed Master with Admin & Test Site
     masterDb.exec(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE,
-        password TEXT,
-        name TEXT,
-        role TEXT,
-        created_at DATETIME,
-        updated_at DATETIME
-      );
-      INSERT INTO users (email, password, name, role, created_at, updated_at) 
+      INSERT OR IGNORE INTO users (email, password, name, role, created_at, updated_at) 
       VALUES ('${TEST_EMAIL}', '${TEST_PASS}', 'Admin', 'Admin', datetime('now'), datetime('now'));
       
-      CREATE TABLE IF NOT EXISTS settings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        key TEXT UNIQUE,
-        value TEXT
-      );
-      INSERT INTO settings (key, value) VALUES ('site_id', 'TN-E2E-TEST');
-      INSERT INTO settings (key, value) VALUES ('desk_id', 'DESK-001');
+      INSERT OR REPLACE INTO settings (id, key, value) VALUES ('1', 'site_id', 'TN-E2E-TEST');
+      INSERT OR REPLACE INTO settings (id, key, value) VALUES ('2', 'desk_id', 'DESK-001');
 
-      -- Seed Role Permissions (Simplified for E2E)
-      CREATE TABLE IF NOT EXISTS role_permissions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        role TEXT,
-        permission TEXT
-      );
       INSERT INTO role_permissions (role, permission) VALUES ('Admin', 'manageAllAlbums');
       INSERT INTO role_permissions (role, permission) VALUES ('Admin', 'viewAlbums');
       INSERT INTO role_permissions (role, permission) VALUES ('Admin', 'viewDashboard');
 
-      CREATE TABLE IF NOT EXISTS albums (
-        id TEXT PRIMARY KEY,
-        name TEXT,
-        created_at DATETIME,
-        updated_at DATETIME
-      );
-      INSERT INTO albums (id, name, created_at, updated_at)
-      VALUES ('test-album-001', 'Test Album', datetime('now'), datetime('now'));
+      INSERT OR IGNORE INTO kiosks (id, name, status, signingSecret, created_at, updated_at) 
+      VALUES ('test-kiosk-1', 'Test Kiosk 1', 'active', 'test-secret', datetime('now'), datetime('now'));
 
-      CREATE TABLE IF NOT EXISTS photos (
-        id TEXT PRIMARY KEY,
-        album_id TEXT,
-        filename TEXT,
-        url TEXT,
-        thumbnailUrl TEXT,
-        created_at DATETIME
-      );
-      INSERT INTO photos (id, album_id, filename, url, thumbnailUrl, created_at)
-      VALUES ('test-photo-001', 'test-album-001', 'photo1.jpg', '/test/photo1.jpg', '/test/thumb1.jpg', datetime('now'));
+      INSERT OR IGNORE INTO albums (id, title, date, created_at, updated_at)
+      VALUES ('test-album-001', 'Test Album', date('now'), datetime('now'), datetime('now'));
+
+      INSERT OR IGNORE INTO photos (id, albumId, url, thumbnailUrl, created_at)
+      VALUES ('test-photo-001', 'test-album-001', '/test/photo1.jpg', '/test/thumb1.jpg', datetime('now'));
     `);
     masterDb.close();
 
-    // Seed Touch with config
+    // Initialize Touch DB and run migrations
     const touchDb = new Database(touchDbPath);
+    const touchMigrationsDir = path.resolve(__dirname, "../../../apps/touch/backend/migrations");
+    runMigrationsForDb(touchDb, [touchMigrationsDir]);
+
+    // Seed Touch with config
     touchDb.exec(`
-      CREATE TABLE IF NOT EXISTS config (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        key TEXT UNIQUE,
-        value TEXT
-      );
-      INSERT INTO config (key, value) VALUES ('master_api_url', 'http://localhost:8090');
-      INSERT INTO config (key, value) VALUES ('site_id', 'TN-E2E-TEST');
+      INSERT OR REPLACE INTO settings (id, key, value) VALUES ('s1', 'masterApiUrl', 'http://127.0.0.1:8090');
+      INSERT OR REPLACE INTO settings (id, key, value) VALUES ('s2', 'siteId', 'TN-E2E-TEST');
+      INSERT OR REPLACE INTO settings (id, key, value) VALUES ('s3', 'kioskId', 'test-kiosk-1');
+      INSERT OR REPLACE INTO settings (id, key, value) VALUES ('s4', 'signingSecret', 'test-secret');
     `);
     touchDb.close();
 

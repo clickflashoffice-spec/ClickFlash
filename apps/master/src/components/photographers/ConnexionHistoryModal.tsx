@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal.tsx';
 import { Photographer } from '../../types.ts';
 import Spinner from '../common/Spinner.tsx';
+import { logger } from '@/utils/logger';
 
 interface ConnexionHistoryModalProps {
     isOpen: boolean;
@@ -33,7 +34,7 @@ const ConnexionHistoryModal: React.FC<ConnexionHistoryModalProps> = ({ isOpen, o
                         setHistory(data);
                     }
                 } catch (error) {
-                    console.error('Failed to fetch user login history', error);
+                    logger.error('Failed to fetch user login history', error);
                 } finally {
                     setLoading(false);
                 }

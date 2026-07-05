@@ -5,6 +5,8 @@ import { Photographer } from '../../types.ts';
 import { useCurrency } from '../CurrencyContext.tsx';
 import { apiService } from '../../services/apiService.ts';
 import FaceEnrollmentSection from '../settings/FaceEnrollmentSection.tsx';
+import { logger } from '@/utils/logger';
+import { userEditSchema } from './schemas.ts';
 
 interface UserEditModalProps {
     isOpen: boolean;
@@ -56,7 +58,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, onDataCh
                         const userData = await apiService.getUser(userToEdit.id);
                         setHasFaceRegistered(!!userData.faceDescriptor);
                     } catch (err) {
-                        console.error('Failed to check face status:', err);
+                        logger.error('Failed to check face status:', err);
                         setHasFaceRegistered(false);
                     }
                 };
@@ -107,9 +109,12 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, onDataCh
         e.preventDefault();
         setIsSaving(true);
         try {
+            // Validate via Zod
+            const validatedData = userEditSchema.parse(user);
+
             if (isNewUser) {
                 // Create user WITH password
-                const newUserData: any = { ...user };
+                const newUserData: any = { ...validatedData, avatarUrl: user.avatarUrl };
                 // Remove null values for numeric fields
                 if (newUserData.monthlySalary === null) delete newUserData.monthlySalary;
                 if (newUserData.commissionRate === null) delete newUserData.commissionRate;
@@ -154,7 +159,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, onDataCh
             onDataChange();
             onClose();
         } catch (err) {
-            console.error("Failed to save user", err);
+            logger.error("Failed to save user", err);
             let errorMessage = 'Unknown error';
 
             if (err instanceof Error) {
@@ -173,7 +178,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, onDataCh
             }
 
             // Log full error for debugging
-            console.error("Full error object:", err);
+            logger.error("Full error object:", err);
             alert(`Failed to save user details: ${errorMessage}`);
         } finally {
             setIsSaving(false);

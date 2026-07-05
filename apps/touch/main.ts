@@ -369,6 +369,14 @@ class TouchApp {
             serverScript = path.join(__dirname, "dist", "backend", "server.js");
         }
 
+        // Fallback: check if backend is in app.asar.unpacked (for native modules)
+        if (!fs.existsSync(serverScript) && isPackaged) {
+            const unpackedPath = path.join(process.resourcesPath, "app.asar.unpacked", "dist", "backend", "server.js");
+            if (fs.existsSync(unpackedPath)) {
+                serverScript = unpackedPath;
+            }
+        }
+
         if (fs.existsSync(serverScript)) {
             const isDev = !isPackaged && process.env["NODE_ENV"] !== "production";
             const env = {
@@ -383,11 +391,25 @@ class TouchApp {
                 return;
             }
 
+            console.log(`[Touch] Starting backend from: ${serverScript}`);
+            console.log(`[Touch] Data directory: ${dataDir}`);
+
             this.backendProcess = fork(serverScript, [], {
                 stdio: "inherit",
                 env,
                 execArgv: ["--max-old-space-size=4096"],
             });
+
+            this.backendProcess.on("error", (err) => {
+                console.error("[Touch] Backend process error:", err);
+            });
+
+            this.backendProcess.on("exit", (code, signal) => {
+                console.log(`[Touch] Backend exited with code ${code} (signal: ${signal})`);
+            });
+        } else {
+            console.error(`[Touch] Backend script not found at: ${serverScript}`);
+            console.error("[Touch] Backend will not start — kiosk may not function properly");
         }
     }
 

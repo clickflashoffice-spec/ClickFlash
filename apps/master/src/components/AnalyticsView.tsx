@@ -7,6 +7,7 @@ import { useCurrency } from './CurrencyContext';
 import { Download, RefreshCw, TrendingUp, Users, Package } from 'lucide-react';
 import Spinner from './common/Spinner';
 import PageHeader from './common/PageHeader';
+import { logger } from '@/utils/logger';
 
 interface AnalyticsViewProps {
     embedded?: boolean;
@@ -33,7 +34,7 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({ embedded = false }) => {
             setHourly(h);
             setPhotographers(p);
         } catch (error) {
-            console.error('Failed to load analytics', error);
+            logger.error('Failed to load analytics', error);
         } finally {
             setLoading(false);
             setRefreshing(false);

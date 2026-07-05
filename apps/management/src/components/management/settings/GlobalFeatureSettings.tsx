@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { apiService } from "../../../services/apiService";
-import { useCurrency } from "../../CurrencyContext";
 import { Destination } from "../../../types";
-import Card from "../../common/Card";
 import Spinner from "../../common/Spinner";
 
 const GlobalFeatureSettings: React.FC = () => {
@@ -21,7 +19,7 @@ const GlobalFeatureSettings: React.FC = () => {
         setDestinations(dests);
 
         // Initialize flags from API data
-        const flags: any = {};
+        const flags: Record<string, { ai: boolean; face: boolean; watermark: boolean }> = {};
         dests.forEach((d) => {
           flags[d.id] = d.features || { ai: true, face: true, watermark: true };
         });

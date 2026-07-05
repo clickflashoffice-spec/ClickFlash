@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from 'react';
 import { useSystemSetting } from "../../../hooks/useSystemSetting";
 import { Droplets, RefreshCw, Shield, Image as ImageIcon } from "lucide-react";
 
@@ -345,26 +345,24 @@ export const WatermarkSettings: React.FC = () => {
                   src={settings.imageUrl}
                   alt="Watermark"
                   className={`absolute pointer-events-none ${settings.dynamicProtection ? "animate-pulse" : ""}`}
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   style={
                     {
                       ...getPositionStyle(settings.position),
                       opacity: settings.opacity / 100,
                       width: `${settings.scale}%`,
                       height: "auto",
-                    } as any
+                    } as React.CSSProperties
                   }
                 />
               )}
               {settings.enabled && !settings.imageUrl && (
                 <div
                   className="absolute pointer-events-none bg-white/80 text-slate-900 px-4 py-2 rounded-lg shadow-lg font-black text-base uppercase tracking-tighter"
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   style={
                     {
                       ...getPositionStyle(settings.position),
                       opacity: settings.opacity / 100,
-                    } as any
+                    } as React.CSSProperties
                   }
                 >
                   CLICKFLASH

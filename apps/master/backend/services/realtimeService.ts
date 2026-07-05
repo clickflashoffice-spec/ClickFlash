@@ -3,7 +3,7 @@
 
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
-import { Logger } from "../shared/logger";
+import { Logger } from '../utils/logger';
 import { NetworkMonitor } from "./NetworkMonitor";
 
 interface SSEClient {

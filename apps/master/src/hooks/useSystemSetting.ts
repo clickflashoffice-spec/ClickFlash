@@ -4,6 +4,10 @@ import { DEFAULT_MASTER_PORT } from '../constants';
 
 // Helper to get Base URL (reused logic)
 const getBaseUrl = () => {
+    // Check for C++ backend mode via global flag or env var
+    if ((window as any).__CF_BACKEND_MODE === 'cpp') {
+        return `http://127.0.0.1:8092`; // C++ backend port
+    }
     if ((window as { pb?: { baseUrl: string } }).pb?.baseUrl) return (window as { pb?: { baseUrl: string } }).pb!.baseUrl;
     return `http://127.0.0.1:${DEFAULT_MASTER_PORT}`;
 };

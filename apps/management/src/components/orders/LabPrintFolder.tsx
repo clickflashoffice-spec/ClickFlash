@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Order, OrderItem } from '../../types.ts';
 import { apiService } from '../../services/apiService.ts';
 
@@ -146,7 +146,7 @@ const LabPrintFolder: React.FC<LabPrintFolderProps> = ({ order, onBack, onUpdate
 
             {/* Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
-                {order.items.map((item, index) => {
+                {order.items.map((item, _index) => {
                     const isPrinted = printedItems.has(item.id);
                     return (
                         <div 

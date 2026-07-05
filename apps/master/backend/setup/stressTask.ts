@@ -1,10 +1,12 @@
 import { StressTestService } from "../services/StressTestService";
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
 import path from "path";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+
+import { logger } from "../utils/logger";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,16 +18,16 @@ dotenv.config({ path: path.join(__dirname, "../../.env") });
 const DB_FILE = path.join(__dirname, "../../pb_data/master.db");
 
 async function runStress() {
-  console.log("========================================");
-  console.log("   CLICKFLASH STRESS TEST INJECTOR      ");
-  console.log("========================================");
+  logger.info("========================================");
+  logger.info("   CLICKFLASH STRESS TEST INJECTOR      ");
+  logger.info("========================================");
 
   const count = parseInt(process.argv[2]) || 100;
   const siteCode = process.env.DESK_ID || "STRESS_SITE_01";
 
-  console.log(`[INIT] Target: ${siteCode}`);
-  console.log(`[INIT] Mode: Ingest ${count} simulated items`);
-  console.log(`[INIT] DB: ${DB_FILE}`);
+  logger.info(`[INIT] Target: ${siteCode}`);
+  logger.info(`[INIT] Mode: Ingest ${count} simulated items`);
+  logger.info(`[INIT] DB: ${DB_FILE}`);
 
   try {
     // Verify DB file exists
@@ -42,14 +44,14 @@ async function runStress() {
     const stressService = new StressTestService(dbManager, logger);
     const result = await stressService.injectSimulatedPhotos(count, siteCode);
 
-    console.log(
+    logger.info(
       `\n[SUCCESS] Ingested ${result.count} items into album ${result.albumId}`,
     );
 
     dbManager.close();
     process.exit(0);
   } catch (err) {
-    console.error(`\n[FATAL] Stress test failed:`, err);
+    logger.error(`\n[FATAL] Stress test failed:`, err);
     process.exit(1);
   }
 }

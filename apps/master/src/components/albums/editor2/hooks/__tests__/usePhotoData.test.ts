@@ -15,6 +15,7 @@ jest.mock("@/utils/logger", () => ({
   logger: {
     error: jest.fn(),
     info: jest.fn(),
+    warn: jest.fn(),
     debug: jest.fn(),
   },
 }));
@@ -107,7 +108,7 @@ describe("usePhotoData", () => {
 
   describe("Error Handling", () => {
     it("should handle fetch errors", async () => {
-      const errorMessage = "Network error";
+      const errorMessage = "404 Network error";
       apiService.getAlbum.mockRejectedValueOnce(new Error(errorMessage));
       apiService.getPhotosPaginated.mockRejectedValueOnce(
         new Error(errorMessage),
@@ -124,8 +125,8 @@ describe("usePhotoData", () => {
     });
 
     it("should handle non-Error exceptions", async () => {
-      apiService.getAlbum.mockRejectedValueOnce("String error");
-      apiService.getPhotosPaginated.mockRejectedValueOnce("String error");
+      apiService.getAlbum.mockRejectedValueOnce("404 String error");
+      apiService.getPhotosPaginated.mockRejectedValueOnce("404 String error");
 
       const { result } = renderHook(() => usePhotoData("album-1"));
 
@@ -134,14 +135,14 @@ describe("usePhotoData", () => {
       });
 
       expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toBe("Unknown error loading data");
+      expect(result.current.error?.message).toBe("404 String error");
     });
 
     it("should clear error on successful refresh", async () => {
       // First call fails
-      apiService.getAlbum.mockRejectedValueOnce(new Error("First error"));
+      apiService.getAlbum.mockRejectedValueOnce(new Error("404 First error"));
       apiService.getPhotosPaginated.mockRejectedValueOnce(
-        new Error("First error"),
+        new Error("404 First error"),
       );
 
       const { result } = renderHook(() => usePhotoData("album-1"));

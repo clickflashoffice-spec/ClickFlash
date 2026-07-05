@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 // backend/workers/watermarkWorker.ts
 export {};
 const { parentPort, threadId } = require('worker_threads');
@@ -15,7 +16,7 @@ parentPort.on('message', async (job: any) => {
     try {
         await generateWatermark(job);
     } catch (error: any) {
-        console.error(`[WatermarkWorker] Error in thread ${threadId}:`, error);
+        logger.error(`[WatermarkWorker] Error in thread ${threadId}:`, error);
         parentPort.postMessage({
             success: false,
             error: `Watermark generation failed: ${error.message}`,
@@ -80,7 +81,7 @@ async function generateWatermark(job: any) {
             outputPath
         });
     } catch (err: any) {
-        console.error(`[WatermarkWorker][Thread ${threadId}] Error processing ${photoId}:`, err.message);
+        logger.error(`[WatermarkWorker][Thread ${threadId}] Error processing ${photoId}:`, err.message);
         throw err;
     }
 }

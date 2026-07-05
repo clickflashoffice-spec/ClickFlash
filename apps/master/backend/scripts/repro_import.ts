@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import FormData from 'form-data';
+import { logger } from '../utils/logger';
 
 // Use standard fetch if available (Node 18+), otherwise need a polyfill or axios.
 // The user environment ran 'npx tsx' which should have fetch.
@@ -9,11 +10,11 @@ const API_URL = 'http://127.0.0.1:8090';
 
 const main = async () => {
     try {
-        console.log('0. Checking Health...');
+        logger.info('0. Checking Health...');
         const healthRes = await fetch(`${API_URL}/api/system/health`);
-        console.log('Health Check:', healthRes.status, await healthRes.text());
+        logger.info('Health Check:', { status: healthRes.status, text: await healthRes.text() });
 
-        console.log('1. Creating Album (Simulating Frontend Payload)...');
+        logger.info('1. Creating Album (Simulating Frontend Payload)...');
 
         // Exact payload structure from albumService.ts / ImportAlbumModal.tsx
         const albumPayload = {
@@ -39,9 +40,9 @@ const main = async () => {
         }
 
         const album = await albumRes.json();
-        console.log('Album created:', album.id);
+        logger.info('Album created:', album.id);
 
-        console.log('2. Uploading Photo...');
+        logger.info('2. Uploading Photo...');
         const formData = new FormData();
         formData.append('title', 'test_photo.jpg');
         formData.append('albumId', album.id);
@@ -57,10 +58,10 @@ const main = async () => {
         formData.append('url', fileStream, { filename: 'test_photo.jpg' });
         if (albumRes.status === 200) {
             const album = await albumRes.json();
-            console.log('2. Album Created:', album.id);
+            logger.info('2. Album Created:', album.id);
 
             // Simulating Race Condition: Upload immediately
-            console.log('3. Uploading Photo IMMEDIATELY...');
+            logger.info('3. Uploading Photo IMMEDIATELY...');
 
             // Create a dummy file
             const uploadFormData = new FormData();
@@ -74,13 +75,13 @@ const main = async () => {
                 body: uploadFormData as any
             });
 
-            console.log('Upload Result:', uploadRes.status, await uploadRes.text());
+            logger.info('Upload Result:', { status: uploadRes.status, text: await uploadRes.text() });
         } else {
-            console.error('Album creation failed:', await albumRes.text());
+            logger.error("Simulation failed:", { status: albumRes.status });
         }
 
-    } catch (err) {
-        console.error('Repro Script Failed:', err);
+    } catch (err: any) {
+        logger.error(`Simulation completed with errors:`, { err, stack: err.stack });
     }
 };
 

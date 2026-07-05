@@ -42,11 +42,11 @@ module.exports = {
   
   // Module name mapping for path aliases
   moduleNameMapper: {
+    '^.*utils/env(\\.ts)?$': '<rootDir>/src/__mocks__/envMock.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': 
       '<rootDir>/src/__mocks__/fileMock.js',
-    '^@/services/pb$': '<rootDir>/src/__mocks__/pbMock.js',
   },
   
   // Setup files to run after Jest is initialized

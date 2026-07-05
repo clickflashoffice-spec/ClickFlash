@@ -187,7 +187,7 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
         <div className="fixed inset-0 bg-black/95 z-40 flex items-center justify-center p-0 lg:p-4 backdrop-blur-xl">
             <div className="bg-white dark:bg-slate-900 w-full h-full lg:rounded-2xl flex flex-col text-slate-800 dark:text-white overflow-hidden shadow-2xl border-none lg:border border-slate-800">
                 <header className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center flex-shrink-0 bg-white dark:bg-slate-900 z-30">
-                    <button onClick={onBack} className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-lg">
+                    <button onClick={onBack} data-testid="back-to-gallery-button" className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                         <span>Back to Gallery</span>
                     </button>
@@ -324,7 +324,7 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
                         </div>
 
                         <div className="mt-auto pt-6 space-y-4 border-t border-slate-200 dark:border-slate-700">
-                            <button onClick={() => handleAddToCart('Normal')} className="w-full relative bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl text-lg shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all">
+                            <button onClick={() => handleAddToCart('Normal')} data-testid="add-to-cart-button" className="w-full relative bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl text-lg shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all">
                                 Add Original to Cart
                                 {normalInCart > 0 && <span className="absolute -top-2 -right-2 w-8 h-8 bg-white text-blue-600 text-sm font-extrabold rounded-full flex items-center justify-center border-2 border-blue-600 shadow-sm">{normalInCart}</span>}
                             </button>

@@ -90,7 +90,7 @@ export const PhotographerList: React.FC<PhotographerListProps> = ({
     );
   }
 
-  const RowRenderer = ({ index, style }: { index: number; style: React.CSSProperties }) => {
+  const _RowRenderer = ({ index, style }: { index: number; style: React.CSSProperties }) => {
     const p = photographers[index];
     if (!p) return null;
     return <PhotographerRow style={style} photographer={p} onOpenModal={onOpenModal} />;
@@ -107,7 +107,7 @@ export const PhotographerList: React.FC<PhotographerListProps> = ({
         <div className="w-[15%] text-right">Actions</div>
       </div>
       <div style={{ height: containerHeight }}>
-        {photographers.map((p, index) => (
+        {photographers.map((p, _index) => (
           <PhotographerRow
             key={p.id}
             style={{ height: 64 }}

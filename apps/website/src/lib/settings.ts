@@ -1,5 +1,6 @@
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://gallery-backend.clickflash-office.workers.dev";
+import { getApiBaseUrl } from "./env";
+
+const API_BASE_URL = getApiBaseUrl();
 
 export interface WebsiteSettings {
   // General

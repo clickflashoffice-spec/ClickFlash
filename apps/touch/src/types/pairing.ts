@@ -15,6 +15,12 @@ export interface PairingData {
     expiresAt: string;
     mode: 'touch';
     pair: boolean;
+    /** Auto-generated upload folder path on Master for this kiosk */
+    uploadFolderPath?: string;
+    /** Auto-generated orders folder path on Master for this kiosk */
+    ordersFolderPath?: string;
+    /** Master's data directory root (for relative path resolution) */
+    masterDataRoot?: string;
 }
 
 export interface PairingValidationRequest {

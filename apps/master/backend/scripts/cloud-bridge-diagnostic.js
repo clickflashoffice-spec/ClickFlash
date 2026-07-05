@@ -1,3 +1,4 @@
+import { logger } from "@/utils/logger";
 /**
  * Cloud Bridge Diagnostic Tool
  * 
@@ -32,9 +33,9 @@ const EMAIL = process.env.CLOUD_EMAIL;
 const PASSWORD = process.env.CLOUD_PASSWORD;
 const DESK_ID = process.env.DESK_ID || 'MASTER_01';
 
-console.log('╔════════════════════════════════════════════════════════════════╗');
-console.log('║           CLOUD BRIDGE DIAGNOSTIC TOOL                         ║');
-console.log('╚════════════════════════════════════════════════════════════════╝\n');
+logger.info('╔════════════════════════════════════════════════════════════════╗');
+logger.info('║           CLOUD BRIDGE DIAGNOSTIC TOOL                         ║');
+logger.info('╚════════════════════════════════════════════════════════════════╝\n');
 
 // Generate consistent machine ID
 function getMachineId() {
@@ -59,13 +60,13 @@ function getMachineId() {
 
 const machineId = getMachineId();
 
-console.log('📋 Configuration:');
-console.log(`   Hub URL:    ${HUB_URL}`);
-console.log(`   Desk ID:    ${DESK_ID}`);
-console.log(`   Email:      ${EMAIL || '(NOT SET)'}`);
-console.log(`   Password:   ${PASSWORD ? '*****' : '(NOT SET)'}`);
-console.log(`   Machine ID: ${machineId.substring(0, 16)}...`);
-console.log('');
+logger.info('📋 Configuration:');
+logger.info(`   Hub URL:    ${HUB_URL}`);
+logger.info(`   Desk ID:    ${DESK_ID}`);
+logger.info(`   Email:      ${EMAIL || '(NOT SET)'}`);
+logger.info(`   Password:   ${PASSWORD ? '*****' : '(NOT SET)'}`);
+logger.info(`   Machine ID: ${machineId.substring(0, 16)}...`);
+logger.info('');
 
 // Diagnostic Results
 const results = {
@@ -78,28 +79,28 @@ const results = {
 
 async function runDiagnostics() {
     // Step 1: Check credentials
-    console.log('────────────────────────────────────────────────────────────────');
-    console.log('STEP 1: Checking Credentials');
-    console.log('────────────────────────────────────────────────────────────────');
+    logger.info('────────────────────────────────────────────────────────────────');
+    logger.info('STEP 1: Checking Credentials');
+    logger.info('────────────────────────────────────────────────────────────────');
     
     if (!EMAIL || !PASSWORD) {
-        console.log('❌ CREDENTIALS MISSING\n');
-        console.log('   The following environment variables are required:\n');
-        console.log('   CLOUD_EMAIL     - Your Management Hub login email');
-        console.log('   CLOUD_PASSWORD  - Your Management Hub password\n');
-        console.log('   Set them in your .env file:\n');
-        console.log('   CLOUD_EMAIL=your-email@clickflash.ai');
-        console.log('   CLOUD_PASSWORD=your-password\n');
+        logger.info('❌ CREDENTIALS MISSING\n');
+        logger.info('   The following environment variables are required:\n');
+        logger.info('   CLOUD_EMAIL     - Your Management Hub login email');
+        logger.info('   CLOUD_PASSWORD  - Your Management Hub password\n');
+        logger.info('   Set them in your .env file:\n');
+        logger.info('   CLOUD_EMAIL=your-email@clickflash.ai');
+        logger.info('   CLOUD_PASSWORD=your-password\n');
         return;
     }
     
-    console.log('✅ Credentials configured\n');
+    logger.info('✅ Credentials configured\n');
     results.credentials = true;
     
     // Step 2: Test connectivity
-    console.log('────────────────────────────────────────────────────────────────');
-    console.log('STEP 2: Testing Hub Connectivity');
-    console.log('────────────────────────────────────────────────────────────────');
+    logger.info('────────────────────────────────────────────────────────────────');
+    logger.info('STEP 2: Testing Hub Connectivity');
+    logger.info('────────────────────────────────────────────────────────────────');
     
     try {
         const url = new URL(HUB_URL);
@@ -112,23 +113,23 @@ async function runDiagnostics() {
                 method: 'GET',
                 timeout: 10000
             }, (res) => {
-                console.log(`   Status: ${res.statusCode} ${res.statusMessage}`);
+                logger.info(`   Status: ${res.statusCode} ${res.statusMessage}`);
                 if (res.statusCode === 200) {
-                    console.log('✅ Hub is reachable\n');
+                    logger.info('✅ Hub is reachable\n');
                     results.connectivity = true;
                 } else {
-                    console.log('⚠️  Hub returned unexpected status\n');
+                    logger.info('⚠️  Hub returned unexpected status\n');
                 }
                 resolve();
             });
             
             req.on('error', (e) => {
-                console.log(`❌ Connection failed: ${e.message}\n`);
+                logger.info(`❌ Connection failed: ${e.message}\n`);
                 reject(e);
             });
             
             req.on('timeout', () => {
-                console.log('❌ Connection timeout\n');
+                logger.info('❌ Connection timeout\n');
                 req.destroy();
                 reject(new Error('Timeout'));
             });
@@ -136,102 +137,102 @@ async function runDiagnostics() {
             req.end();
         });
     } catch (e) {
-        console.log('❌ Cannot reach Management Hub\n');
-        console.log('   Possible causes:');
-        console.log('   - Internet connection issue');
-        console.log('   - Hub URL is incorrect');
-        console.log('   - Management Hub is down\n');
+        logger.info('❌ Cannot reach Management Hub\n');
+        logger.info('   Possible causes:');
+        logger.info('   - Internet connection issue');
+        logger.info('   - Hub URL is incorrect');
+        logger.info('   - Management Hub is down\n');
         return;
     }
     
     // Step 3: Test authentication
-    console.log('────────────────────────────────────────────────────────────────');
-    console.log('STEP 3: Testing Authentication');
-    console.log('────────────────────────────────────────────────────────────────');
+    logger.info('────────────────────────────────────────────────────────────────');
+    logger.info('STEP 3: Testing Authentication');
+    logger.info('────────────────────────────────────────────────────────────────');
     
     let token = null;
     try {
         token = await authenticate();
         if (token) {
-            console.log('✅ Authentication successful\n');
+            logger.info('✅ Authentication successful\n');
             results.authentication = true;
         }
     } catch (e) {
         if (e.status === 423) {
-            console.log('❌ HARDWARE LOCK ERROR\n');
-            console.log('   This desk is registered to a different machine.\n');
-            console.log('   SOLUTIONS:\n');
-            console.log('   1. Use the original machine for this desk ID');
-            console.log('   2. Contact support to reset hardware lock');
-            console.log('   3. Use a different DESK_ID (e.g., DESK_002)\n');
+            logger.info('❌ HARDWARE LOCK ERROR\n');
+            logger.info('   This desk is registered to a different machine.\n');
+            logger.info('   SOLUTIONS:\n');
+            logger.info('   1. Use the original machine for this desk ID');
+            logger.info('   2. Contact support to reset hardware lock');
+            logger.info('   3. Use a different DESK_ID (e.g., DESK_002)\n');
             results.hardwareLock = true;
         } else if (e.status === 401) {
-            console.log('❌ INVALID CREDENTIALS\n');
-            console.log('   The email or password is incorrect.\n');
-            console.log('   SOLUTIONS:\n');
-            console.log('   1. Verify your Management Hub login credentials');
-            console.log('   2. Reset password at Management Hub');
-            console.log('   3. Check for typos in CLOUD_EMAIL or CLOUD_PASSWORD\n');
+            logger.info('❌ INVALID CREDENTIALS\n');
+            logger.info('   The email or password is incorrect.\n');
+            logger.info('   SOLUTIONS:\n');
+            logger.info('   1. Verify your Management Hub login credentials');
+            logger.info('   2. Reset password at Management Hub');
+            logger.info('   3. Check for typos in CLOUD_EMAIL or CLOUD_PASSWORD\n');
         } else {
-            console.log(`❌ Authentication error: ${e.message}\n`);
+            logger.info(`❌ Authentication error: ${e.message}\n`);
         }
         return;
     }
     
     // Step 4: Test heartbeat
     if (token) {
-        console.log('────────────────────────────────────────────────────────────────');
-        console.log('STEP 4: Testing Heartbeat');
-        console.log('────────────────────────────────────────────────────────────────');
+        logger.info('────────────────────────────────────────────────────────────────');
+        logger.info('STEP 4: Testing Heartbeat');
+        logger.info('────────────────────────────────────────────────────────────────');
         
         try {
             await sendHeartbeat(token);
-            console.log('✅ Heartbeat successful\n');
+            logger.info('✅ Heartbeat successful\n');
             results.heartbeat = true;
         } catch (e) {
-            console.log(`❌ Heartbeat failed: ${e.message}\n`);
+            logger.info(`❌ Heartbeat failed: ${e.message}\n`);
         }
     }
     
     // Summary
-    console.log('════════════════════════════════════════════════════════════════');
-    console.log('                      DIAGNOSTIC SUMMARY                        ');
-    console.log('════════════════════════════════════════════════════════════════\n');
+    logger.info('════════════════════════════════════════════════════════════════');
+    logger.info('                      DIAGNOSTIC SUMMARY                        ');
+    logger.info('════════════════════════════════════════════════════════════════\n');
     
     const total = Object.keys(results).length;
     const passed = Object.values(results).filter(v => v).length;
     
-    console.log(`   Checks Passed: ${passed}/${total}\n`);
+    logger.info(`   Checks Passed: ${passed}/${total}\n`);
     
     if (passed === total) {
-        console.log('   ✅ ALL CHECKS PASSED!');
-        console.log('   Cloud Bridge is fully operational.\n');
+        logger.info('   ✅ ALL CHECKS PASSED!');
+        logger.info('   Cloud Bridge is fully operational.\n');
     } else {
-        console.log('   ⚠️  SOME CHECKS FAILED');
-        console.log('   See above for details and solutions.\n');
+        logger.info('   ⚠️  SOME CHECKS FAILED');
+        logger.info('   See above for details and solutions.\n');
     }
     
     // Recommendations
-    console.log('────────────────────────────────────────────────────────────────');
-    console.log('                     RECOMMENDATIONS                            ');
-    console.log('────────────────────────────────────────────────────────────────\n');
+    logger.info('────────────────────────────────────────────────────────────────');
+    logger.info('                     RECOMMENDATIONS                            ');
+    logger.info('────────────────────────────────────────────────────────────────\n');
     
     if (!results.credentials) {
-        console.log('1. Add CLOUD_EMAIL and CLOUD_PASSWORD to:');
-        console.log(`   ${envPath}\n`);
+        logger.info('1. Add CLOUD_EMAIL and CLOUD_PASSWORD to:');
+        logger.info(`   ${envPath}\n`);
     }
     
     if (results.hardwareLock) {
-        console.log('2. To fix Hardware Lock:');
-        console.log('   - Contact: support@clickflash.ai');
-        console.log('   - Subject: Hardware Lock Reset Request');
-        console.log(`   - Desk ID: ${DESK_ID}`);
-        console.log(`   - Machine: ${machineId.substring(0, 16)}...\n`);
+        logger.info('2. To fix Hardware Lock:');
+        logger.info('   - Contact: support@clickflash.ai');
+        logger.info('   - Subject: Hardware Lock Reset Request');
+        logger.info(`   - Desk ID: ${DESK_ID}`);
+        logger.info(`   - Machine: ${machineId.substring(0, 16)}...\n`);
     }
     
     if (!results.connectivity) {
-        console.log('3. Check your internet connection and firewall settings.');
-        console.log(`   Hub URL: ${HUB_URL}\n`);
+        logger.info('3. Check your internet connection and firewall settings.');
+        logger.info(`   Hub URL: ${HUB_URL}\n`);
     }
 }
 
@@ -329,6 +330,6 @@ function sendHeartbeat(token) {
 
 // Run diagnostics
 runDiagnostics().catch(err => {
-    console.error('Fatal error:', err);
+    logger.error('Fatal error:', err);
     process.exit(1);
 });

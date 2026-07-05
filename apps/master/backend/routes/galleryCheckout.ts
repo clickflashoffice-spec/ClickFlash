@@ -1,13 +1,14 @@
 import express, { Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
 import { randomUUID } from "crypto";
-import { Logger } from "../shared/logger";
-import DatabaseManager from "../shared/db";
+import { Logger } from '../utils/logger';
+import DatabaseManager from '../database/db';
 import stripeService from "../services/stripeService";
 import { EmailService } from "../services/emailService";
 import { ReceiptPDFService } from "../services/ReceiptPDFService";
 import { DATA_DIR } from "../config/constants";
-
+import { strictRateLimiter } from '../middleware/rateLimiter';
+import { customRoutesSchemas } from '../utils/validation';
 interface GalleryCheckoutContext {
   dbManager: DatabaseManager;
   logger: Logger;
@@ -28,14 +29,15 @@ export default function galleryCheckoutRoutes(
   /**
    * Create checkout session
    */
-  router.post("/:token/create", async (req: Request, res: Response) => {
+  router.post("/:token/create", strictRateLimiter, async (req: Request, res: Response) => {
     try {
       const { token } = req.params;
-      const { items } = req.body;
+      const parsed = customRoutesSchemas.galleryCheckout.safeParse(req.body);
 
-      if (!items || !Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({ error: "Cart is empty" });
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Cart is empty or items format is invalid" });
       }
+      const { items } = parsed.data;
 
       let payload: any;
       try {
@@ -62,7 +64,7 @@ export default function galleryCheckoutRoutes(
       const total = items.reduce(
         (sum: number, item: any) => sum + item.price * item.quantity,
         0,
-      );
+      ) + (payload.tipAmount || 0);
 
       // Law 12: Organized Storage & Law 02: Order Mirroring (Generate stable ID)
       const galleryOrderId = `GLY_${randomUUID().replace(/-/g, "").substring(0, 12)}`;
@@ -81,10 +83,11 @@ export default function galleryCheckoutRoutes(
 
       const session = await stripeService.createCheckoutSession({
         orderId: galleryOrderId,
-        items,
+        items: items.map((i: any) => ({ photoId: i.id, product: i.title, quantity: i.quantity, price: i.price })),
         customerEmail: payload.customerEmail,
         successUrl: `${FRONTEND_URL}/gallery/${token}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${FRONTEND_URL}/gallery/${token}`,
+        tipAmount: payload.tipAmount || 0,
       });
 
       dbManager.run(
@@ -134,8 +137,22 @@ export default function galleryCheckoutRoutes(
         logger.info("[GalleryCheckout] Webhook received", { type: event.type });
 
         if (event.type === "checkout.session.completed") {
+          const stripeEventId = event.id;
+          
+          // Idempotency check
+          const isProcessed = dbManager.get(
+            "SELECT id FROM processed_stripe_events WHERE id = ?",
+            [stripeEventId]
+          );
+
+          if (isProcessed) {
+            logger.info("[GalleryCheckout] Webhook: Stripe event already processed", { stripeEventId });
+            return res.json({ received: true, status: "already_processed" });
+          }
+
           const session = event.data.object as any;
           const galleryOrderId = session.metadata.orderId;
+          const tipAmount = parseFloat(session.metadata.tipAmount || '0');
           const paymentIntentId = session.payment_intent;
 
           // 1. Fetch current gallery order status and items
@@ -157,9 +174,9 @@ export default function galleryCheckoutRoutes(
             return res.json({ received: true, status: "already_processed" });
           }
 
-          // 2. Fetch album context from token
+          // 2. Fetch album context from token to get photographerId
           const tokenRecord = dbManager.get(
-            "SELECT albumId FROM gallery_tokens WHERE id = ?",
+            "SELECT albumId, albums.photographerId FROM gallery_tokens JOIN albums ON gallery_tokens.albumId = albums.id WHERE gallery_tokens.id = ?",
             [galleryOrder.tokenId],
           );
 
@@ -178,15 +195,21 @@ export default function galleryCheckoutRoutes(
               [paymentIntentId, galleryOrderId],
             );
 
+            // Record Stripe event to prevent duplicate processing
+            dbManager.run(
+              `INSERT INTO processed_stripe_events (id, type) VALUES (?, ?)`,
+              [stripeEventId, event.type]
+            );
+
             // B. Mirror to main orders table (Fulfillment Lab Visibility)
             const mainOrderId = `EXT_${galleryOrderId}`;
             const today = new Date().toISOString().split("T")[0];
 
             dbManager.run(
               `INSERT INTO orders (
-                            id, date, clientName, email, status, total, 
+                            id, date, clientName, email, status, total, tip_amount,
                             source, albumId, customerEmail, items, paymentIntentId, created_at
-                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
               [
                 mainOrderId,
                 today,
@@ -194,6 +217,7 @@ export default function galleryCheckoutRoutes(
                 galleryOrder.customerEmail,
                 "Processing", // Show in Lab Bench
                 galleryOrder.total,
+                tipAmount,
                 "gallery",
                 tokenRecord.albumId,
                 galleryOrder.customerEmail,
@@ -202,6 +226,26 @@ export default function galleryCheckoutRoutes(
                 new Date().toISOString(),
               ],
             );
+
+            // Add Gratuity to Ledger if applicable
+            if (tipAmount > 0 && tokenRecord.photographerId) {
+              const ledgerId = `LDG_${randomUUID().replace(/-/g, "").substring(0, 12)}`;
+              dbManager.run(
+                `INSERT INTO photographer_ledger (
+                   id, photographer_id, order_id, type, amount, description, date
+                 ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [
+                  ledgerId,
+                  tokenRecord.photographerId,
+                  mainOrderId,
+                  'Bonus',
+                  tipAmount,
+                  'Gratuity from Gallery Order',
+                  today
+                ]
+              );
+              logger.info(`[GalleryCheckout] Gratuity of ${tipAmount} added to photographer ${tokenRecord.photographerId}`);
+            }
 
             logger.info(
               "[GalleryCheckout] Order synced to master fulfillment",

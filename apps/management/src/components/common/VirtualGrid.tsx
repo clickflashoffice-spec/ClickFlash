@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect, useRef, useCallback } from "react"
 import { FixedSizeGrid as Grid } from "react-window";
 import { logger } from "../../utils/logger";
 
-interface VirtualGridProps<T> {
+export interface VirtualGridProps<T> {
   items: T[];
   itemWidth: number;
   itemHeight: number;
@@ -40,7 +40,7 @@ interface VirtualGridProps<T> {
  * />
  * ```
  */
-export function VirtualGrid<T>({
+function VirtualGridInner<T>({
   items: itemsProp,
   itemWidth,
   itemHeight,
@@ -53,7 +53,7 @@ export function VirtualGrid<T>({
   maxColumns,
 }: VirtualGridProps<T>) {
   // Ensure items is always a valid array
-  const items = Array.isArray(itemsProp) ? itemsProp : [];
+  const items = useMemo(() => (Array.isArray(itemsProp) ? itemsProp : []), [itemsProp]);
 
   // Validate numeric props - react-window requires valid positive numbers
   const containerHeight =
@@ -258,5 +258,9 @@ export function VirtualGrid<T>({
     return null;
   }
 }
+
+export const VirtualGrid = React.memo(VirtualGridInner) as <T>(
+  props: VirtualGridProps<T>
+) => React.ReactElement | null;
 
 export default VirtualGrid;

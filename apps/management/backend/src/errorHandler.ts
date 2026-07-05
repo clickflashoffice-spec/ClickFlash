@@ -14,7 +14,15 @@ export function createErrorResponse(
   message: string,
   code?: string,
   details?: any,
+  headers?: Record<string, string>,
 ) {
+  const responseHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (headers) {
+    Object.assign(responseHeaders, headers);
+  }
+
   return new Response(
     JSON.stringify({
       error: {
@@ -27,9 +35,7 @@ export function createErrorResponse(
     }),
     {
       status,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: responseHeaders,
     },
   );
 }

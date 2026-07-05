@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Modal from "../common/Modal.tsx";
-import { Photographer, DailyObjective } from "../../types.ts";
+import {Photographer} from "../../types.ts";
 import { MOCK_OBJECTIVES } from "../../constants.ts";
 
 interface ObjectivesModalProps {

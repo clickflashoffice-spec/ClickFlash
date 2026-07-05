@@ -6,6 +6,9 @@ import { Order, OrderItem, Product, Photo } from '../../types.ts';
 import { useCurrency } from '../CurrencyContext.tsx';
 import { apiService } from '../../services/apiService.ts';
 import PhotoEditModal from '../PhotoEditModal.tsx';
+import { logger } from '@/utils/logger';
+import { z } from 'zod';
+import { orderEditSchema } from './schemas.ts';
 
 /**
  * OrderEditModal Component Props
@@ -147,18 +150,15 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
    * @returns {void}
    */
   const handleSave = () => {
-    // Validate order before saving
-    if (!editedOrder.items || editedOrder.items.length === 0) {
-      showToast('Order must have at least one item.');
-      return;
-    }
-
-    // Validate item quantities and prices
-    const invalidItems = editedOrder.items.filter(item =>
-      item.quantity <= 0 || item.price < 0 || !item.name
-    );
-    if (invalidItems.length > 0) {
-      showToast('Please ensure all items have valid quantities, prices, and names.');
+    try {
+      // Validate order before saving via Zod
+      orderEditSchema.parse(editedOrder);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        showToast(`Validation error: ${error.issues[0].message}`);
+        return;
+      }
+      showToast('Validation failed.');
       return;
     }
 
@@ -225,8 +225,15 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
    * - Saves all order data including payment method, items, and totals
    */
   const handleCompleteOrder = async () => {
-    if (!editedOrder.items || editedOrder.items.length === 0) {
-      showToast('Cannot complete order without items.');
+    try {
+      // Validate order via Zod
+      orderEditSchema.parse(editedOrder);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        showToast(`Validation error: ${error.issues[0].message}`);
+        return;
+      }
+      showToast('Validation failed.');
       return;
     }
 
@@ -271,13 +278,13 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
 
     // 2. Stock Reduction
     if (printItems.length > 0) {
-      console.log('Automated Stock Reduction triggered for print items:', printItems);
+      logger.info('Automated Stock Reduction triggered for print items:', printItems);
       for (const item of printItems) {
         if (item.productId) {
           try {
             await apiService.reduceStock(item.productId, item.quantity);
-          } catch (err) {
-            console.error(`Failed to reduce stock for product ${item.productId}:`, err);
+          } catch (err: any) {
+            logger.error(`Failed to reduce stock for product ${item.productId}:`, err instanceof Error ? err.message : String(err));
           }
         }
       }
@@ -361,7 +368,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
         showToast('Photo edits saved to gallery.');
       }
     } catch (error) {
-      console.error('Failed to save photo edits globally:', error);
+      logger.error('Failed to save photo edits globally:', error);
       showToast('Warning: Edits saved to order only (Global sync failed).');
     }
   };
@@ -372,8 +379,8 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
       const finalizedOrder = await apiService.finalizeOrderForCustomerDelivery(order.id);
       onSave(finalizedOrder);
       showToast('Digital delivery finalized! An email with login details has been sent to the customer.');
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      logger.error("Error finalizing delivery", { error: err });
       showToast('Error finalizing delivery. Please try again.');
     } finally {
       setIsFinalizing(false);

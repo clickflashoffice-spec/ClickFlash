@@ -1,3 +1,4 @@
+import { logger } from "@/utils/logger";
 const Database = require('better-sqlite3');
 const path = require('path');
 const readline = require('readline');
@@ -12,18 +13,18 @@ const rl = readline.createInterface({
 
 const configure = async () => {
     if (!require('fs').existsSync(DB_PATH)) {
-        console.error(`Database not found at ${DB_PATH}`);
+        logger.error(`Database not found at ${DB_PATH}`);
         process.exit(1);
     }
 
     const db = new Database(DB_PATH);
     const kiosks = db.prepare("SELECT id, name, ordersFolderPath FROM kiosks").all();
 
-    console.log('\n--- Current Sync Configuration ---');
+    logger.info('\n--- Current Sync Configuration ---');
     kiosks.forEach((k, i) => {
-        console.log(`${i + 1}. [${k.name}] Sync Path: ${k.ordersFolderPath || '(Not Set)'}`);
+        logger.info(`${i + 1}. [${k.name}] Sync Path: ${k.ordersFolderPath || '(Not Set)'}`);
     });
-    console.log('----------------------------------\n');
+    logger.info('----------------------------------\n');
 
     rl.question('Enter number of kiosk to update (or 0 to exit): ', (answer) => {
         const index = parseInt(answer) - 1;
@@ -33,15 +34,15 @@ const configure = async () => {
                 if (newPath) {
                     try {
                         db.prepare("UPDATE kiosks SET ordersFolderPath = ? WHERE id = ?").run(newPath, kiosk.id);
-                        console.log(`✅ Updated ${kiosk.name} path to: ${newPath}`);
+                        logger.info(`✅ Updated ${kiosk.name} path to: ${newPath}`);
                     } catch (e) {
-                        console.error('Error updating DB:', e.message);
+                        logger.error('Error updating DB:', e.message);
                     }
                 }
                 rl.close();
             });
         } else {
-            console.log('Exiting.');
+            logger.info('Exiting.');
             rl.close();
         }
     });

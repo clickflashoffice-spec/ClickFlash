@@ -1,9 +1,9 @@
 import path from "path";
 import fs from "fs";
-import { Logger } from "../shared/logger";
-import DatabaseManager from "../shared/db";
+import { Logger } from '../utils/logger';
+import DatabaseManager from '../database/db';
 import { UPLOAD_DIR, IMPORT_DIR } from "../config/constants";
-import { limitConcurrency } from "../shared/limitConcurrency";
+import { limitConcurrency } from '../middleware/limitConcurrency';
 import { v4 as uuidv4 } from "uuid";
 
 interface TransferContext {

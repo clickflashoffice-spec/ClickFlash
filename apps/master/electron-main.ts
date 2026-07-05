@@ -90,9 +90,10 @@ let tray: Tray | null = null;
 
 function getUnpackedPath(relativePath: string): string {
   if (app.isPackaged) {
-    // In packaged app, __dirname is inside app.asar
+    // In packaged app, __dirname is inside app.asar/dist/electron
     // We need to go to app.asar.unpacked for native modules
-    const unpackedDir = __dirname.replace("app.asar", "app.asar.unpacked");
+    // The backend is unpacked to app.asar.unpacked/dist/backend
+    const unpackedDir = path.join(process.resourcesPath, "app.asar.unpacked", "dist");
     return path.join(unpackedDir, relativePath);
   }
   // In dev, backend is built to dist/backend relative to project root
@@ -106,11 +107,11 @@ function getDataDir(): string {
   return path.join(__dirname, "pb_data");
 }
 
-function startBackend(): Promise<null> {
+function startBackend(): Promise<boolean> {
   return new Promise((resolve, reject) => {
     if (!app.isPackaged) {
-      console.log("[Main] Dev mode — backend expected on port", BACKEND_PORT);
-      resolve(null);
+      console.log("[Main] Dev mode — waiting for dev backend on port", BACKEND_PORT);
+      waitForDevBackend().then(resolve);
       return;
     }
 
@@ -164,21 +165,39 @@ function startBackend(): Promise<null> {
       }
     });
 
-    resolve(null);
+    backendProcess.on("message", (msg: any) => {
+      if (msg && msg.type === "server-ready") {
+        console.log("[Main] Received server-ready IPC from backend");
+        resolve(true);
+      } else if (msg && msg.type === "server-error") {
+        console.error("[Main] Backend reported error:", msg.error);
+        if (msg.error === "EADDRINUSE") {
+          reject(new Error("EADDRINUSE"));
+        }
+      }
+    });
+
+    // In case the backend crashes before sending ready
+    backendProcess.on("error", (err: Error) => {
+      console.error("[Main] Backend fork error:", err.message);
+      reject(err);
+    });
+
+    // We don't resolve immediately here anymore in production
   });
 }
 
-function waitForBackend(deadline = Date.now() + HEALTH_TIMEOUT): Promise<boolean> {
+function waitForDevBackend(deadline = Date.now() + 15000): Promise<boolean> {
   return new Promise((resolve) => {
     const attempt = () => {
       if (Date.now() >= deadline) {
-        console.warn("[Main] Backend health-check timed out — loading UI anyway");
+        console.warn("[Main] Dev backend health-check timed out — loading UI anyway");
         return resolve(false);
       }
       const req = http.get(HEALTH_URL, (res) => {
         res.resume();
         if ((res.statusCode ?? 500) < 500) {
-          console.log("[Main] Backend ready");
+          console.log("[Main] Dev backend ready");
           return resolve(true);
         }
         setTimeout(attempt, POLL_INTERVAL);
@@ -257,16 +276,30 @@ async function createWindow(): Promise<void> {
   mainWindow.show();
   mainWindow.focus();
 
-  const backendReady = await waitForBackend();
-  if (!backendReady && mainWindow && !mainWindow.isDestroyed()) {
+  // If in packaged mode, startBackend() already waited for the server-ready IPC.
+  // In dev mode, it already polled the endpoint.
+  if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents
-      .executeJavaScript(`document.getElementById('m').textContent='Backend starting…'`)
+      .executeJavaScript(`document.getElementById('m').textContent='Loading app...'`)
       .catch(() => {});
   }
 
   if (!mainWindow || mainWindow.isDestroyed()) return;
 
   try {
+    if ((global as any).backendError === "EADDRINUSE") {
+      await mainWindow.loadURL(`data:text/html;charset=utf-8,
+        <html>
+          <body style="background:#111;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;text-align:center;">
+            <h1>Port Conflict Detected</h1>
+            <p style="font-size:1.2rem;">Another application or instance is already using port 8090.</p>
+            <p>Please close any other running ClickFlash instances and restart.</p>
+          </body>
+        </html>
+      `);
+      return;
+    }
+
     console.log("[Main] Loading app via Express:", APP_URL);
     await mainWindow.loadURL(APP_URL);
   } catch (err: unknown) {
@@ -710,19 +743,22 @@ app.whenReady().then(async () => {
   setupIpc();
 
   try {
-    await startBackend();
-    console.log("[Main] Backend process started");
-
-    if (app.isPackaged) {
-      const backendReady = await waitForBackend();
-      if (!backendReady) {
-        console.warn("[Main] Backend health check timed out, proceeding anyway...");
-      }
+    console.log("[Main] Starting backend process...");
+    const backendReady = await startBackend();
+    
+    if (app.isPackaged && !backendReady) {
+      console.warn("[Main] Backend did not report ready, proceeding anyway...");
+    } else {
+      console.log("[Main] Backend is fully ready");
     }
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
     console.error("[Main] Failed to start backend:", error.message);
-    dialog.showErrorBox("Backend Error", "Failed to start backend: " + error.message);
+    if (error.message === "EADDRINUSE") {
+      (global as any).backendError = "EADDRINUSE";
+    } else {
+      dialog.showErrorBox("Backend Error", "Failed to start backend: " + error.message);
+    }
   }
 
   createWindow();

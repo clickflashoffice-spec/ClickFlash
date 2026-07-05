@@ -1,11 +1,15 @@
 import { Router, Request, Response } from 'express';
 import os from 'os';
+import { Logger } from '../shared/logger';
+const logger = new Logger('logs');
 import {
     sendError,
     sendInternalError,
     sendNotFoundError,
-    ERROR_CODES
+    ERROR_CODES,
+    sendValidationError
 } from '../shared/errorHandler';
+import { customRoutesSchemas } from '../shared/validation';
 
 const TABLE_MAP: Record<string, string> = {
     'users': 'users',
@@ -132,10 +136,10 @@ export default function createSystemRouter(context: SystemContext): Router {
                 g.bonjourBrowser = bonjour;
                 g.discoveredMasters = [];
 
-                console.log('[Discovery] Starting mDNS browser...');
+                logger.info('[Discovery] Starting mDNS browser...');
                 bonjour.find({ type: 'http' }, (service: BonjourService) => {
                     if (service.name === 'StarMaster' || (service.txt && service.txt.mode === 'master')) {
-                        console.log('[Discovery] Found Master:', service.name, service.referer.address);
+                        logger.info('[Discovery] Found Master:', service.name, service.referer.address);
                         const exists = g.discoveredMasters.find((s: any) => s.ip === service.referer.address);
                         if (!exists) {
                             g.discoveredMasters.push({
@@ -251,11 +255,11 @@ export default function createSystemRouter(context: SystemContext): Router {
      */
     router.post('/settings', authMiddleware, async (req: Request, res: Response) => {
         try {
-            const { settings } = req.body;
-            if (!settings || typeof settings !== 'object') {
-                throw new Error('Invalid settings format');
+            const validation = customRoutesSchemas.systemSettings.safeParse(req.body);
+            if (!validation.success) {
+                return sendValidationError(res, "Invalid settings request", validation.error);
             }
-
+            const { settings } = validation.data;
             logger.info('Saving system settings', { settings });
 
             dbManager.transaction(() => {

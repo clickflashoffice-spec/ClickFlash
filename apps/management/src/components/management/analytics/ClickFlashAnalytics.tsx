@@ -12,8 +12,7 @@ import {
   Cell,
   ResponsiveContainer,
 } from "recharts";
-import {
-  TrendingUp,
+import {TrendingUp,
   Users,
   ShoppingBag,
   Target,
@@ -21,16 +20,12 @@ import {
   Clock,
   ChevronUp,
   ChevronDown,
-  Info,
-  Calendar,
   Globe,
   Hotel,
-  Shield,
   Trophy,
   PieChart,
   BarChart3,
-  LayoutDashboard,
-} from "lucide-react";
+  LayoutDashboard} from "lucide-react";
 import Gauge from "../../common/Gauge.tsx";
 import { apiService } from "../../../services/apiService";
 import { cloudApiService } from "../../../services/cloudApiService";
@@ -38,6 +33,7 @@ import { ManagementContext } from "../../../constants.ts";
 import { GlobalReportView } from "../reports/GlobalReportView.tsx";
 import DashboardProfitability from "../../dashboard/widgets/DashboardProfitability.tsx";
 import DashboardIncomeAnalytics from "../../dashboard/widgets/DashboardIncomeAnalytics.tsx";
+import type { Order, Booking, Expense, Destination } from "../../../types";
 
 interface ClickFlashAnalyticsProps {
   context?: ManagementContext;
@@ -49,7 +45,15 @@ const ClickFlashAnalytics: React.FC<ClickFlashAnalyticsProps> = ({
   context = "global",
 }) => {
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
+  interface AnalyticsData {
+    orders: Order[];
+    bookings: Booking[];
+    expenses: Expense[];
+    analytics: Record<string, unknown>;
+    destinations: Destination[];
+  }
+
+  const [data, setData] = useState<AnalyticsData | null>(null);
   const [timeframe, setTimeframe] = useState("today");
   const [activeTab, setActiveTab] = useState<AnalyticsTab>("overview");
 
@@ -72,17 +76,17 @@ const ClickFlashAnalytics: React.FC<ClickFlashAnalyticsProps> = ({
         const filteredOrders =
           context === "global"
             ? orders
-            : orders.filter((o: any) => o.destinationId === context);
+            : orders.filter((o: Order) => o.destinationId === context);
 
         const filteredBookings =
           context === "global"
             ? bookings
-            : bookings.filter((b: any) => b.destinationId === context);
+            : bookings.filter((b: Booking) => (b as Booking & { destinationId?: string }).destinationId === context);
 
         const filteredExpenses =
           context === "global"
             ? expenses
-            : expenses.filter((e: any) => e.destinationId === context);
+            : expenses.filter((e: Expense) => e.destinationId === context);
 
         setData({
           orders: filteredOrders,
@@ -104,7 +108,7 @@ const ClickFlashAnalytics: React.FC<ClickFlashAnalyticsProps> = ({
     if (!data) return null;
 
     const income = data.orders.reduce(
-      (acc: number, o: any) => acc + o.total,
+      (acc: number, o: Order) => acc + o.total,
       0,
     );
     const target = 18800.0; // Mock target for demonstration
@@ -116,7 +120,7 @@ const ClickFlashAnalytics: React.FC<ClickFlashAnalyticsProps> = ({
     const meetingsTarget = 5.25; // Target meetings per day
 
     const totalViewingSessions =
-      data.analytics?.totalViewingSessions || ordersCount * 1.8; // Realistic fallback
+      (data.analytics?.totalViewingSessions as number | undefined) || ordersCount * 1.8; // Realistic fallback
     const conversionRate =
       totalViewingSessions > 0 ? (ordersCount / totalViewingSessions) * 100 : 0;
 
@@ -147,13 +151,15 @@ const ClickFlashAnalytics: React.FC<ClickFlashAnalyticsProps> = ({
     return (
       <div className="p-8 flex items-center justify-center h-[60vh]">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-white/10 border-t-blue-500 rounded-full animate-spin"></div>
+          <div data-testid="spinner" className="w-12 h-12 border-4 border-white/10 border-t-blue-500 rounded-full animate-spin"></div>
           <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">
             Syncing ClickFlash Analytics...
           </p>
         </div>
       </div>
     );
+
+  if (!data) return null;
 
   const tabs = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },

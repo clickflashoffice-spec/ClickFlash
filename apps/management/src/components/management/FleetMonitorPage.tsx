@@ -1,18 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Server,
+import {Server,
   Activity,
   Clock,
   Database,
   AlertTriangle,
-  CheckCircle2,
-  XCircle,
   RefreshCw,
   MapPin,
   HardDrive,
   Search,
-  Terminal,
-} from "lucide-react";
+  Terminal} from "lucide-react";
 import {
   fleetService,
   MasterStation,
@@ -176,7 +172,7 @@ const StationDetails: React.FC<{
   onNavigateToStation?: (id: string) => void;
   onCommand?: (id: string, cmd: "START_TUNNEL" | "STOP_TUNNEL" | "RESTART") => Promise<void>;
   commandLoading?: boolean;
-}> = ({ station, onNavigateToStation, onCommand, commandLoading }) => {
+}> = ({ station, onNavigateToStation: onNavigateToStation, onCommand, commandLoading }) => {
   const panel = "bg-white/4 rounded-2xl border border-white/8 p-5";
   const metricRow = "flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5";
 
@@ -296,7 +292,7 @@ export const FleetMonitorPage: React.FC<{
   const [loading, setLoading] = useState(false);
   const [commandLoading, setCommandLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [syncingStation, setSyncingStation] = useState<string | null>(null);
+  const [_syncingStation, setSyncingStation] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
@@ -307,7 +303,7 @@ export const FleetMonitorPage: React.FC<{
       setStations(data);
       if (!selectedStation && data.length > 0) setSelectedStation(data[0]);
       setError(null);
-    } catch (err) {
+    } catch {
       setError("Failed to fetch fleet status");
     } finally {
       setLoading(false);
@@ -347,7 +343,7 @@ export const FleetMonitorPage: React.FC<{
       setCommandLoading(deskId);
       await fleetService.sendCommand(deskId, cmd);
       setError(null);
-    } catch (err) {
+    } catch {
       setError(`Failed to queue command ${cmd}`);
     } finally {
       setCommandLoading(null);

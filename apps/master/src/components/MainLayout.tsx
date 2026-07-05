@@ -612,6 +612,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                   );
 
                 case "LocalResortDashboard":
+                  if (!can("viewDashboard")) {
+                    logger.warn("Access denied to Local Resort Dashboard", {
+                      userId: currentUser.id,
+                      role: currentUser.role,
+                    });
+                    return (
+                      <AccessDenied
+                        permission="viewDashboard"
+                        role={currentUser.role}
+                        page="Local Resort Dashboard"
+                      />
+                    );
+                  }
                   return (
                     <DashboardErrorBoundary>
                       <LocalResortDashboard />

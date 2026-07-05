@@ -3,11 +3,13 @@ import fs from 'fs';
 import path from 'path';
 import { IMPORT_DIR } from '../config/constants';
 
+import { logger } from "../utils/logger";
+
 const cleanupProcessing = async () => {
-    console.log(`[Cleanup] Scanning ${IMPORT_DIR} for stuck files...`);
+    logger.info(`[Cleanup] Scanning ${IMPORT_DIR} for stuck files...`);
 
     if (!fs.existsSync(IMPORT_DIR)) {
-        console.log('[Cleanup] Processing dir not found.');
+        logger.info('[Cleanup] Processing dir not found.');
         return;
     }
 
@@ -24,16 +26,16 @@ const cleanupProcessing = async () => {
             const age = now - stats.mtimeMs;
 
             if (stats.isFile() && age > MAX_AGE_MS) {
-                console.log(`[Cleanup] Removing stale file: ${file} (${Math.round(age / 1000 / 60)}m old)`);
+                logger.info(`[Cleanup] Removing stale file: ${file} (${Math.round(age / 1000 / 60)}m old)`);
                 await fs.promises.unlink(filePath);
                 removedCount++;
             }
         } catch (e) {
-            console.error(`[Cleanup] Error checking ${file}:`, e);
+            logger.error(`[Cleanup] Error checking ${file}:`, e);
         }
     }
 
-    console.log(`[Cleanup] Removed ${removedCount} stale files.`);
+    logger.info(`[Cleanup] Removed ${removedCount} stale files.`);
 };
 
 // Run if called directly

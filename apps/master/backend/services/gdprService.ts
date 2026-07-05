@@ -8,8 +8,8 @@
  * All operations are irreversibly logged to audit_logs.
  */
 
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
 import crypto from "crypto";
 
 export interface ConsentRecord {

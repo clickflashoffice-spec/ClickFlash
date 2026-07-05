@@ -1,21 +1,36 @@
 import React, { useState, useEffect } from "react";
 import { 
-  Wifi, 
   WifiOff, 
   Cpu, 
   HardDrive, 
   Clock, 
-  AlertTriangle,
-  ChevronRight,
-  Printer,
   Zap,
-  CheckCircle2,
-  XCircle
 } from "lucide-react";
 import { cloudApiService } from "../../services/cloudApiService";
 
+interface FleetStation {
+  id: string;
+  name: string;
+  location: string;
+  status: "online" | "offline";
+  metrics: {
+    cpuUsage: number;
+    memoryUsage: number;
+    diskUsage: number;
+  };
+  syncStatus: {
+    syncLag: number;
+  };
+  orders: {
+    today: number;
+  };
+  photos: {
+    today: number;
+  };
+}
+
 const ResortIntelligence: React.FC = () => {
-  const [fleet, setFleet] = useState<any[]>([]);
+  const [fleet, setFleet] = useState<FleetStation[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -1,8 +1,8 @@
 const {
   OrderValidationService,
 } = require("./backend/services/OrderValidationService");
-const { DatabaseManager } = require("./backend/shared/db");
-const { Logger } = require("./backend/shared/logger");
+const { DatabaseManager } = require("./backend/database/db");
+const { Logger } = require("./backend/utils/logger");
 const path = require("path");
 
 // Mock services that we don't need to actually run for this verification

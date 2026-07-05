@@ -28,6 +28,7 @@ const RoomNumberModal: React.FC<RoomNumberModalProps> = ({ isOpen, onClose, onCo
             <div className="flex flex-col items-center space-y-6">
                 <input
                     id="room-number-input"
+                    data-testid="room-number-input"
                     type="text"
                     readOnly
                     value={roomNumber}
@@ -45,6 +46,7 @@ const RoomNumberModal: React.FC<RoomNumberModalProps> = ({ isOpen, onClose, onCo
                     <button
                         onClick={handleConfirm}
                         disabled={!roomNumber}
+                        data-testid="room-number-confirm-button"
                         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg text-2xl transition-colors disabled:bg-slate-500 disabled:cursor-not-allowed"
                     >
                         Find My Photos

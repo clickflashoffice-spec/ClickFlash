@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, MapPin, Target, Zap, ChevronRight, Star } from "lucide-react";
+import {MapPin, Zap, Star} from "lucide-react";
 import { PixelFounderCard } from "../common/PixelFounderCard.tsx";
 
 const StrategicRoadmap: React.FC = () => {

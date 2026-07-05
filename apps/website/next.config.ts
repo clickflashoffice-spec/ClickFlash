@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "export",
+  // NOTE: output:"export" removed to support API Route Handlers (/api/cms/*).
+  // Cloudflare Pages deployment uses @cloudflare/next-on-pages (via `npx @cloudflare/next-on-pages`),
+  // which handles edge-compatible output without needing the static export flag.
 
   // Image optimization settings
   images: {
@@ -108,10 +110,6 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
 
-  // ESLint configuration — lint failures block the build
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
 };
 
 export default nextConfig;

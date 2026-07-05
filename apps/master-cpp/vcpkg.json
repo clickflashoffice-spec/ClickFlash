@@ -1,0 +1,16 @@
+{
+  "name": "clickflash-master-service",
+  "version-string": "6.0.0",
+  "dependencies": [
+    "drogon",
+    "sqlitecpp",
+    "nlohmann-json",
+    "spdlog",
+    "openssl",
+    "stb",
+    "libsharpyuv",
+    "sqlite3",
+    "pugixml",
+    "opencv4"
+  ]
+}

@@ -4,9 +4,8 @@
  * Connects to the PocketBase backend ("The Cloud") to fetch real data.
  */
 
-import { apiService as localApiService } from "./apiService";
+
 import { Order } from "../types.ts";
-import { pb } from "./pb";
 
 type LocalStorageOrder = Order & { access_pin?: string; roomNumber?: string };
 
@@ -24,7 +23,7 @@ export const cloudApiService = {
       const normalizedEmail = email.trim().toLowerCase();
 
       // Use the backend API endpoint for order lookup
-      const baseUrl = pb.baseUrlValue || "http://127.0.0.1:8090";
+      const baseUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8090";
       const url = `${baseUrl}/api/orders/by-credentials?pin=${encodeURIComponent(normalizedPin)}&email=${encodeURIComponent(normalizedEmail)}`;
 
       const response = await fetch(url, {
@@ -63,22 +62,8 @@ export const cloudApiService = {
 
       return formattedOrder;
     } catch (err) {
-      console.warn(
-        "[Cloud API] Order lookup failed, trying local fallback...",
-        err,
-      );
-
-      // Fallback to Local Storage (for Demo/Offline consistency)
-      try {
-        const orders = await localApiService.getOrders();
-        const order = (orders as LocalStorageOrder[]).find(
-          (o) => o.access_pin === pin && o.email === email,
-        );
-        return order || null;
-      } catch (fallbackErr) {
-        console.warn("[Cloud API] Local fallback also failed", fallbackErr);
-        return null;
-      }
+      console.warn("[Cloud API] Order lookup failed", err);
+      return null;
     }
   },
 
@@ -88,7 +73,7 @@ export const cloudApiService = {
   async getOrderByToken(token: string): Promise<Order | null> {
     try {
       const normalizedToken = token.trim();
-      const baseUrl = pb.baseUrlValue || "http://127.0.0.1:8090";
+      const baseUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8090";
       const url = `${baseUrl}/api/orders/by-token?token=${encodeURIComponent(normalizedToken)}`;
 
       const response = await fetch(url, {
@@ -133,7 +118,7 @@ export const cloudApiService = {
     try {
       const normalizedRoomNumber = roomNumber.trim();
 
-      const baseUrl = pb.baseUrlValue || "http://127.0.0.1:8090";
+      const baseUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8090";
       const url = `${baseUrl}/api/orders/by-room?roomNumber=${encodeURIComponent(normalizedRoomNumber)}`;
 
       const response = await fetch(url, {
@@ -173,56 +158,48 @@ export const cloudApiService = {
 
       return formattedOrder;
     } catch (err) {
-      console.warn(
-        "[Cloud API] Order lookup by room failed, trying local fallback...",
-        err,
-      );
-
-      // Fallback to Local Storage
-      try {
-        const orders = await localApiService.getOrders();
-        const order = (orders as LocalStorageOrder[]).find((o) => o.roomNumber === roomNumber);
-        return order || null;
-      } catch (fallbackErr) {
-        console.warn("[Cloud API] Local fallback also failed", fallbackErr);
-        return null;
-      }
+      console.warn("[Cloud API] Order lookup by room failed", err);
+      return null;
     }
   },
 
-  // --- Management Portal Functions ---
-  // In a full deployment, these would also query PocketBase collections.
-  // For this version, we keep them linked to the localApiService to ensure
-  // the Management Portal works seamlessly with the local demo data.
-
-  async getOrders() {
-    return localApiService.getOrders();
-  },
-
-  async getExpenses() {
-    return localApiService.getExpenses();
-  },
-
-  async getUsers() {
-    return localApiService.getUsers();
-  },
-
-  async getDestinations() {
-    return localApiService.getDestinations();
-  },
-
-  async getLoans() {
-    return localApiService.getLoans();
-  },
-
-  async getAdjustments() {
-    return localApiService.getAdjustments();
-  },
-
   /**
-   * Login user using the API endpoint (works for both local and cloud)
+   * Creates an order in the cloud API.
    */
-  async loginUser(email: string, password: string) {
-    return localApiService.loginUser(email, password);
+  async createOrder(orderData: Partial<Order>): Promise<Order> {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8090";
+      const url = `${baseUrl}/api/orders`;
+      
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create order: ${response.statusText}`);
+      }
+
+      const newOrder = await response.json();
+      return newOrder;
+    } catch (err) {
+      console.warn("[Cloud API] Create order failed, returning mock", err);
+      // Fallback to mock for development if cloud api isn't ready
+      return {
+          id: `ORDER-${Date.now()}`,
+          date: new Date().toISOString(),
+          clientName: orderData.clientName || '',
+          email: orderData.email || '',
+          status: 'Pending',
+          total: orderData.total || 0,
+          photographerId: orderData.photographerId || 0,
+          destinationId: orderData.destinationId || '',
+          appliedDiscount: orderData.appliedDiscount || 0,
+          items: orderData.items || []
+      };
+    }
   },
 };

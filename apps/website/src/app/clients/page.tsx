@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Lock, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { validateAccessCode, AccessCodeResponse } from "@/lib/api";
@@ -150,7 +151,7 @@ export default function ClientGateway() {
 
                 <div className="mt-12 pt-8 border-t border-slate-50 text-center">
                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                        Having issues? <a href="/contact" className="text-cyan-500 hover:text-slate-900 underline underline-offset-4 transition-colors">Contact Expert Advisor</a>
+                        Having issues? <Link href="/contact" className="text-cyan-500 hover:text-slate-900 underline underline-offset-4 transition-colors">Contact Expert Advisor</Link>
                     </p>
                 </div>
             </motion.div>

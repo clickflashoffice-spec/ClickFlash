@@ -8,9 +8,10 @@ if (typeof TextEncoder === 'undefined') {
 import request from 'supertest';
 import express from 'express';
 import Database from 'better-sqlite3-multiple-ciphers';
-import { DatabaseManager } from '../shared/db';
+import { DatabaseManager } from '../database/db';
 import galleryCheckoutRoutes from '../routes/galleryCheckout';
 import stripeService from '../services/stripeService';
+import { logger } from '../utils/logger';
 
 // Mock Stripe Service
 jest.mock('../services/stripeService', () => ({
@@ -58,6 +59,12 @@ describe('Gallery Checkout Webhook & Sync', () => {
                 status TEXT DEFAULT 'pending',
                 createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updatedAt DATETIME
+            );
+            
+            CREATE TABLE IF NOT EXISTS processed_stripe_events (
+                id TEXT PRIMARY KEY,
+                type TEXT,
+                createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
             );
 
             CREATE TABLE IF NOT EXISTS orders (
@@ -136,6 +143,7 @@ describe('Gallery Checkout Webhook & Sync', () => {
             .set('stripe-signature', 'valid_signature')
             .send({}); // Body doesn't matter as we mock constructWebhookEvent
 
+        if (res.status !== 200) logger.error("Webhook error response:", res.body);
         expect(res.status).toBe(200);
         expect(res.body.received).toBe(true);
 

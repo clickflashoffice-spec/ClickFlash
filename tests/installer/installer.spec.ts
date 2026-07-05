@@ -7,7 +7,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("ClickFlash Installer Wizard", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("http://localhost:5175");
+    await page.goto("http://127.0.0.1:5175");
   });
 
   test("Step 1: Welcome screen renders correctly", async ({ page }) => {

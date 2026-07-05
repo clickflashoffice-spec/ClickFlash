@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { Photographer } from "../types.ts";
 import { Logo } from "./common/Logo";
 import { logger } from "../utils/logger.ts";
@@ -8,17 +7,17 @@ interface LoginProps {
   portalName: string;
   onLoginSuccess: (user: Photographer) => void;
   authService: {
-    getUsers: () => Promise<any[]>;
+    getUsers: () => Promise<Photographer[]>;
     loginUser: (
       email: string,
       password: string,
-    ) => Promise<{ token: string; user: any } | null>;
+    ) => Promise<{ token: string; user: Photographer } | null>;
   };
   onBack?: () => void;
 }
 
 const Login: React.FC<LoginProps> = ({
-  portalName,
+  portalName: portalName,
   onLoginSuccess,
   authService,
   onBack,
@@ -27,7 +26,7 @@ const Login: React.FC<LoginProps> = ({
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [_isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -62,7 +61,7 @@ const Login: React.FC<LoginProps> = ({
           email: "alaeddine@example.com",
           role: "CEO",
           status: "active",
-        } as any);
+        } as Photographer);
         return;
       }
 
@@ -76,7 +75,7 @@ const Login: React.FC<LoginProps> = ({
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-50 text-slate-900 relative overflow-hidden font-sans">
       {/* Premium Light-Mode Animated Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         <div className="absolute top-[-25%] left-[-25%] w-[150%] h-[150%] bg-[conic-gradient(from_0deg,transparent_0_350deg,rgba(6,182,212,0.1)_360deg)] animate-[spin_25s_linear_infinite]"></div>
         <div className="absolute top-[-25%] left-[-25%] w-[150%] h-[150%] bg-[conic-gradient(from_180deg,transparent_0_350deg,rgba(59,130,246,0.05)_360deg)] animate-[spin_35s_linear_infinite_reverse]"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-slate-100/40"></div>
@@ -94,6 +93,7 @@ const Login: React.FC<LoginProps> = ({
               className="h-4 w-4 text-cyan-600"
               viewBox="0 0 20 20"
               fill="currentColor"
+              aria-hidden="true"
             >
               <path
                 fillRule="evenodd"
@@ -125,10 +125,11 @@ const Login: React.FC<LoginProps> = ({
 
           <form onSubmit={handleLogin} className="space-y-8 relative z-10">
             <div className="space-y-3">
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] ml-1">
+              <label htmlFor="email" className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] ml-1">
                 Access Identifier
               </label>
               <input
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -139,10 +140,11 @@ const Login: React.FC<LoginProps> = ({
             </div>
 
             <div className="space-y-3">
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] ml-1">
+              <label htmlFor="password" className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] ml-1">
                 Security Passphrase
               </label>
               <input
+                id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -153,7 +155,7 @@ const Login: React.FC<LoginProps> = ({
             </div>
 
             {error && (
-              <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl">
+              <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl" role="alert" aria-live="polite">
                 <p className="text-rose-500 text-[10px] font-bold text-center uppercase tracking-widest">
                   {error}
                 </p>
@@ -176,6 +178,7 @@ const Login: React.FC<LoginProps> = ({
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -190,7 +193,7 @@ const Login: React.FC<LoginProps> = ({
           </form>
         </div>
 
-        <div className="text-center mt-12 space-y-4">
+        <div className="text-center mt-12 space-y-4" aria-hidden="true">
           <p className="text-slate-400 text-[9px] font-bold tracking-[0.8em] uppercase">
             Secure Terminal Link
           </p>

@@ -121,7 +121,7 @@ const Bookings: React.FC<BookingsProps> = ({ showToast }) => {
     try {
       await apiService.updateBooking(bookingId, updatedBooking);
       showToast(`Booking assigned successfully.`);
-    } catch (error) {
+    } catch {
       setBookings(originalBookings);
       showToast("Error assigning photographer.");
     }
@@ -166,7 +166,7 @@ const Bookings: React.FC<BookingsProps> = ({ showToast }) => {
         );
         showToast(`Booking ${savedBooking.id} updated.`);
       }
-    } catch (error) {
+    } catch {
       // Revert on error
       setBookings(originalBookings);
       setIsModalOpen(true);
@@ -454,7 +454,7 @@ const Bookings: React.FC<BookingsProps> = ({ showToast }) => {
                     const bookingDate = booking.bookingDate
                       ? new Date(booking.bookingDate)
                       : null;
-                    const isUpcoming = bookingDate && bookingDate >= new Date();
+                    const _isUpcoming = bookingDate && bookingDate >= new Date();
 
                     return (
                       <tr

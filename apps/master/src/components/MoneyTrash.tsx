@@ -242,7 +242,7 @@ const MoneyTrash: React.FC<MoneyTrashProps> = ({ currentUser }) => {
                 }
             };
 
-            const response = await fetch('/api/network-settings', {
+            const response = await fetch('/api/network/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

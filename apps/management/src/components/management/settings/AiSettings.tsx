@@ -37,7 +37,7 @@ const AiSettings: React.FC = () => {
 
   const [showApiKey, setShowApiKey] = useState(false);
 
-  const handleChange = (field: keyof AiSettingsType, value: any) => {
+  const handleChange = (field: keyof AiSettingsType, value: AiSettingsType[keyof AiSettingsType]) => {
     setSettings({ ...settings, [field]: value });
   };
 

@@ -6,6 +6,7 @@
 
 import { pb } from '../pb';
 import { AppRole, Permission } from '../../types';
+import { logger } from '@/utils/logger';
 
 export const permissionService = {
     /**
@@ -35,7 +36,7 @@ export const permissionService = {
             return await response.json();
         } catch (error) {
             // Don't let fetch errors pollute the console - return empty permissions
-            console.debug(`[PermissionService] Could not fetch permissions: ${(error as Error).message}`);
+            logger.debug(`[PermissionService] Could not fetch permissions: ${(error as Error).message}`);
             return {} as Record<AppRole, Permission[]>;
         }
     },

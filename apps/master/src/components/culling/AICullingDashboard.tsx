@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { cullingService, AICullingResult } from '../../services/api/cullingService';
 import { useParams } from 'react-router-dom';
 import { Photo } from '../../types';
+import { logger } from '@/utils/logger';
 
 export const AICullingDashboard: React.FC = () => {
     const { albumId } = useParams<{ albumId: string }>();
@@ -20,7 +21,7 @@ export const AICullingDashboard: React.FC = () => {
             const data = await cullingService.getResults(albumId);
             setResults(data);
         } catch (error) {
-            console.error('Failed to load culling results', error);
+            logger.error('Failed to load culling results', error);
         } finally {
             setLoading(false);
         }
@@ -33,7 +34,7 @@ export const AICullingDashboard: React.FC = () => {
             await cullingService.analyzeAlbum(albumId);
             await loadResults();
         } catch (error) {
-            console.error('Analysis failed', error);
+            logger.error('Analysis failed', error);
         } finally {
             setAnalyzing(false);
         }
@@ -49,7 +50,7 @@ export const AICullingDashboard: React.FC = () => {
             await loadResults();
             alert('Culling applied successfully!');
         } catch (error) {
-            console.error('Failed to confirm culling', error);
+            logger.error('Failed to confirm culling', error);
         } finally {
             setLoading(false);
         }

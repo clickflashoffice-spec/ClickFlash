@@ -17,9 +17,10 @@
 import fs from "fs";
 import path from "path";
 import os from "os";
+import crypto from "crypto";
 import archiver from "archiver";
 import AdmZip from "adm-zip";
-import { Logger } from "../shared/logger";
+import { Logger } from '../utils/logger';
 
 export interface BackupManifest {
   version: number;       // schema version for future migration support
@@ -27,29 +28,94 @@ export interface BackupManifest {
   createdAt: string;     // ISO timestamp
   platform: string;
   hostname: string;
+  type?: 'full' | 'incremental';
+  since?: string;
+  checksum?: string;
 }
 
 const BACKUP_SCHEMA_VERSION = 1;
 const APP_VERSION = process.env.npm_package_version || "4.2.0";
 
 export class BackupService {
+  private _lastSuccessTimestamp: number | null = null;
+
   constructor(
     private readonly dbPath: string,
     private readonly uploadsDir: string,
     private readonly logger: Logger,
+    private readonly backupDir: string = "./backups",
   ) {}
 
+  public recordSuccess(): void {
+    this._lastSuccessTimestamp = Date.now();
+  }
+
+  public getStats(): { lastSuccessTimestamp: number | null } {
+    let latestTime = this._lastSuccessTimestamp;
+    try {
+      if (this.backupDir && fs.existsSync(this.backupDir)) {
+        const files = fs.readdirSync(this.backupDir);
+        for (const file of files) {
+          if (file.endsWith(".db") || file.endsWith(".clickflash-backup") || file.endsWith(".zip")) {
+            const stat = fs.statSync(path.join(this.backupDir, file));
+            if (stat.mtimeMs && (!latestTime || stat.mtimeMs > latestTime)) {
+              latestTime = Math.round(stat.mtimeMs);
+            }
+          }
+        }
+      }
+    } catch (_) {
+      // ignore filesystem scan errors
+    }
+    return {
+      lastSuccessTimestamp: latestTime,
+    };
+  }
+
+  async calculateFileChecksum(filePath: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const hash = crypto.createHash("sha256");
+      const stream = fs.createReadStream(filePath);
+      stream.on("error", (err) => reject(err));
+      stream.on("data", (chunk) => hash.update(chunk));
+      stream.on("end", () => resolve(hash.digest("hex")));
+    });
+  }
+
+  async createIncrementalSnapshot(since?: string): Promise<{ manifest: BackupManifest; zipBuffer: Buffer }> {
+    const stream = new (require("stream").PassThrough)();
+    const chunks: Buffer[] = [];
+    stream.on("data", (chunk: Buffer) => chunks.push(chunk));
+    
+    const exportPromise = this.streamExport(stream, { incremental: true, since });
+    await exportPromise;
+    
+    const zipBuffer = Buffer.concat(chunks);
+    const zip = new AdmZip(zipBuffer);
+    const manifestEntry = zip.getEntry("manifest.json");
+    const manifest = JSON.parse(manifestEntry!.getData().toString("utf8"));
+    return { manifest, zipBuffer };
+  }
+
   /**
-   * Stream a complete backup archive to the given writable stream.
+   * Stream a complete or incremental backup archive to the given writable stream.
    * Caller is responsible for setting response headers before piping.
    */
-  async streamExport(destination: NodeJS.WritableStream): Promise<void> {
+  async streamExport(
+    destination: NodeJS.WritableStream,
+    options: { incremental?: boolean; since?: string } = {}
+  ): Promise<void> {
+    const dbChecksum = fs.existsSync(this.dbPath) ? await this.calculateFileChecksum(this.dbPath) : "";
+
     const manifest: BackupManifest = {
       version: BACKUP_SCHEMA_VERSION,
       appVersion: APP_VERSION,
       createdAt: new Date().toISOString(),
       platform: process.platform,
       hostname: os.hostname(),
+      type: options.incremental ? 'incremental' : 'full',
+      since: options.since || undefined,
+      checksum: dbChecksum || undefined,
     };
 
     const archive = archiver("zip", { zlib: { level: 6 } });
@@ -82,7 +148,29 @@ export class BackupService {
 
     // 3. Uploads directory
     if (fs.existsSync(this.uploadsDir)) {
-      archive.directory(this.uploadsDir, "uploads");
+      if (options.incremental && options.since) {
+        const sinceTime = new Date(options.since).getTime();
+        const addFilesRecursively = (dir: string, baseDir: string) => {
+          const entries = fs.readdirSync(dir, { withFileTypes: true });
+          for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+            if (entry.isDirectory()) {
+              addFilesRecursively(fullPath, baseDir);
+            } else if (entry.isFile()) {
+              try {
+                const stat = fs.statSync(fullPath);
+                if (stat.mtimeMs > sinceTime || isNaN(sinceTime)) {
+                  const relPath = path.relative(baseDir, fullPath).replace(/\\/g, "/");
+                  archive.file(fullPath, { name: `uploads/${relPath}` });
+                }
+              } catch (_) {}
+            }
+          }
+        };
+        addFilesRecursively(this.uploadsDir, this.uploadsDir);
+      } else {
+        archive.directory(this.uploadsDir, "uploads");
+      }
     }
 
     await archive.finalize();
@@ -90,7 +178,11 @@ export class BackupService {
     // Clean up temp DB snapshot
     try { fs.unlinkSync(tempDb); } catch (_) {}
 
-    this.logger.info("[BackupService] Export streamed successfully");
+    this.logger.info("[BackupService] Export streamed successfully", {
+      type: manifest.type,
+      checksum: manifest.checksum,
+    });
+    this.recordSuccess();
   }
 
   /**
@@ -141,6 +233,14 @@ export class BackupService {
     // --- 2. Restore SQLite database ---
     const dbEntry = zip.getEntry("master.db");
     if (dbEntry) {
+      if (manifest.checksum) {
+        const calculatedHash = crypto.createHash("sha256").update(dbEntry.getData()).digest("hex");
+        if (calculatedHash !== manifest.checksum) {
+          throw new Error(`Invalid backup file — database checksum verification failed (expected ${manifest.checksum}, got ${calculatedHash})`);
+        }
+        this.logger.info("[BackupService] Database checksum verified successfully", { checksum: manifest.checksum });
+      }
+
       const dbBackupPath = `${this.dbPath}.pre-restore-${Date.now()}`;
       try {
         // Keep a rolling .pre-restore copy just in case

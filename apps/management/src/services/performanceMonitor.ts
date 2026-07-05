@@ -15,6 +15,11 @@ interface PerformanceMetric {
     context?: Record<string, unknown>;
 }
 
+interface LayoutShift extends PerformanceEntry {
+    value: number;
+    hadRecentInput: boolean;
+}
+
 interface WebVitalsReport {
     cls: number;  // Cumulative Layout Shift
     fid: number;  // First Input Delay
@@ -44,15 +49,15 @@ class PerformanceMonitorService {
                 this.observer = new PerformanceObserver((list) => {
                     for (const entry of list.getEntries()) {
                         if (entry.entryType === 'layout-shift') {
-                            const lsEntry = entry as PerformanceEntry & { value: number };
+                            const lsEntry = entry as LayoutShift;
                             this.recordMetric('CLS', lsEntry.value, 'count', {
-                                hadRecentInput: (entry as any).hadRecentInput,
+                                hadRecentInput: lsEntry.hadRecentInput,
                             });
                         }
                     }
                 });
                 this.observer.observe({ entryTypes: ['layout-shift'] });
-            } catch (e) {
+            } catch {
                 logger.debug('[PerformanceMonitor] CLS tracking not supported');
             }
         }
@@ -84,8 +89,8 @@ class PerformanceMonitorService {
                     this.recordMetric(metricName, entry.startTime, 'ms');
                 }
             });
-            observer.observe({ entryTypes: [entryType as any] });
-        } catch (e) {
+            observer.observe({ entryTypes: [entryType as 'first-contentful-paint' | 'largest-contentful-paint'] });
+        } catch {
             logger.debug(`[PerformanceMonitor] ${metricName} tracking not supported`);
         }
     }
@@ -111,8 +116,9 @@ class PerformanceMonitorService {
     private measureFID(): void {
         if (typeof window === 'undefined') return;
 
-        window.addEventListener('first-input', (event) => {
-            const entry = (event as any).entries[0];
+        window.addEventListener('first-input', (event: Event) => {
+            const firstInputEvent = event as unknown as { entries: Array<{ processingStart: number; startTime: number; name: string }> };
+            const entry = firstInputEvent.entries[0];
             if (entry) {
                 const fid = entry.processingStart - entry.startTime;
                 this.recordMetric('FID', fid, 'ms', {
@@ -147,8 +153,9 @@ class PerformanceMonitorService {
         }
 
         // Send to analytics in production
-        if (this.isEnabled && (window as any).gtag) {
-            (window as any).gtag('event', 'performance_metric', {
+        const gtagWindow = window as unknown as { gtag?: (...args: (string | number | Record<string, unknown>)[]) => void };
+        if (this.isEnabled && gtagWindow.gtag) {
+            gtagWindow.gtag('event', 'performance_metric', {
                 event_category: 'Performance',
                 event_label: name,
                 value: Math.round(value),

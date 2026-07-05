@@ -6,8 +6,8 @@ import { test, expect } from "@playwright/test";
  */
 
 test.describe("Multi-Master Global Sync", () => {
-  const MASTER_A = "http://localhost:8090";
-  const MASTER_B = "http://localhost:8092"; // Second master for testing
+  const MASTER_A = "http://127.0.0.1:8090";
+  const MASTER_B = "http://127.0.0.1:8092"; // Second master for testing
   const HUB = "https://management.clickflash.app";
 
   test("Master A can register in fleet", async ({ request }) => {

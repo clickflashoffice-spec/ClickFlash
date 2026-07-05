@@ -55,3 +55,7 @@ export interface ShootIdea {
     iso?: number | string;
   };
 }
+
+export type AlbumTab = "queue" | "live" | "all";
+
+export type AlbumStatus = "all" | "draft" | "finalized" | "live" | "archived";

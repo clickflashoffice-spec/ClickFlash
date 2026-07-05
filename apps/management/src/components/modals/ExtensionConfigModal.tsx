@@ -14,7 +14,7 @@ const ExtensionConfigModal: React.FC<ExtensionConfigModalProps> = ({ isOpen, onC
 
     useEffect(() => {
         if (extension) {
-            setConfig(extension.config || {});
+            setConfig((extension.config as Record<string, string>) || {});
         }
     }, [extension]);
 

@@ -14,13 +14,18 @@ const FALLBACK_KEY_FILE = path.join(os.homedir(), ".clickflash", ".key");
 
 // --- OS-specific keychain wrappers (loaded dynamically) ---
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let windowsSecurity: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let keychainService: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let libsecret: any = null;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function loadWindowsSecurity(): any {
   if (windowsSecurity) return windowsSecurity;
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     windowsSecurity = require("node-windows-security");
   } catch {
     windowsSecurity = null;
@@ -28,9 +33,11 @@ function loadWindowsSecurity(): any {
   return windowsSecurity;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function loadKeychainService(): any {
   if (keychainService) return keychainService;
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     keychainService = require("keychain-service");
   } catch {
     keychainService = null;
@@ -38,9 +45,11 @@ function loadKeychainService(): any {
   return keychainService;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function loadLibsecret(): any {
   if (libsecret) return libsecret;
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     libsecret = require("libsecret");
   } catch {
     libsecret = null;

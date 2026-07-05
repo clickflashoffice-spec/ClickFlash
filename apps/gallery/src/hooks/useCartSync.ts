@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useCartStore } from '../stores/useCartStore';
-import { pb } from '../services/pb';
+import { config } from '../utils/env';
 
 const SYNC_DEBOUNCE_MS = 5000; // Sync after 5s of inactivity
 const SESSION_KEY = 'clickflash_cart_session';
@@ -30,7 +30,7 @@ export function useCartSync(email: string | undefined, albumId?: string, currenc
       try {
         const sessionId = getOrCreateSession();
         const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        const baseUrl = pb.baseUrlValue;
+        const baseUrl = config.apiUrl;
 
         await fetch(`${baseUrl}/api/cart/snapshot`, {
           method: 'POST',
@@ -71,7 +71,7 @@ export async function markCartRecovered(): Promise<void> {
   if (!sessionId) return;
 
   try {
-    const baseUrl = pb.baseUrlValue;
+    const baseUrl = config.apiUrl;
     await fetch(`${baseUrl}/api/cart/recovered`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

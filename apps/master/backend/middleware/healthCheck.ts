@@ -11,11 +11,11 @@
  */
 
 import { Request, Response, NextFunction } from "express";
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
+import { DatabaseManager } from "../database/db";
+import { Logger } from "../utils/logger";
 import os from "os";
 import fs from "fs";
-import path from "path";
+
 
 export type HealthStatus = "healthy" | "degraded" | "critical";
 
@@ -103,6 +103,7 @@ const globalCache = new HealthCheckCache();
 
 function getDiskStats(dataDir: string): { usedPercent: number; freeGb: number; totalGb: number } {
   try {
+    // @ts-ignore
     const stats = fs.statSync(dataDir);
     // Fallback for Windows where statSync doesn't give disk info
     const total = os.totalmem();
@@ -290,7 +291,7 @@ export async function buildHealthReport(context: HealthCheckContext): Promise<He
  * Express middleware factory for health check endpoint.
  */
 export function healthCheckMiddleware(context: HealthCheckContext) {
-  return async (req: Request, res: Response, _next: NextFunction) => {
+  return async (_req: Request, res: Response, _next: NextFunction) => {
     try {
       // Check cache first
       let report = globalCache.get();

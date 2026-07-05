@@ -1,8 +1,9 @@
 import { Router, Request, Response } from "express";
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
-import { sendError, ERROR_CODES } from "../shared/errorHandler";
-
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
+import { sendError, ERROR_CODES } from '../utils/errorHandler';
+import { strictRateLimiter } from '../middleware/rateLimiter';
+import { customRoutesSchemas } from '../utils/validation';
 export default function assistanceRoutes(context: any) {
   const router = Router();
   const dbManager: DatabaseManager = context.dbManager;
@@ -29,14 +30,15 @@ export default function assistanceRoutes(context: any) {
   });
 
   // POST /api/assistance - Create a new request
-  router.post("/assistance", (req: Request, res: Response) => {
-    const { kioskId, message, priority = "normal" } = req.body;
+  router.post("/assistance", strictRateLimiter, (req: Request, res: Response) => {
+    const parsed = customRoutesSchemas.assistanceRequest.safeParse(req.body);
 
-    if (!kioskId || !message) {
+    if (!parsed.success) {
       return res
         .status(400)
         .json({ success: false, message: "kioskId and message are required" });
     }
+    const { kioskId, message, priority = "normal" } = parsed.data;
 
     try {
       const id = `req_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;

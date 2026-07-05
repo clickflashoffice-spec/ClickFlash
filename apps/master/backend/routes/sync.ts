@@ -1,14 +1,14 @@
 // backend/routes/sync.ts
 import express, { Request, Response, Router } from "express";
 import { SyncManager } from "../services/SyncManager";
-import { Logger } from "../shared/logger";
-import { sendError, ERROR_CODES } from "../shared/errorHandler";
+import { Logger } from '../utils/logger';
+import { sendError, ERROR_CODES } from '../utils/errorHandler';
 import { validate } from "../middleware/validate";
 import { mutationSchema } from "../schemas/auth";
-import { strictRateLimiter } from "../shared/rateLimiter";
+import { strictRateLimiter } from '../middleware/rateLimiter';
 
-import { DatabaseManager } from "../shared/db";
-import { lanSigningMiddleware } from "../shared/lanSigningMiddleware";
+import { DatabaseManager } from '../database/db';
+import { lanSigningMiddleware } from '../middleware/lanSigningMiddleware';
 
 interface SyncContext {
   syncManager: SyncManager;

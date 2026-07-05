@@ -5,6 +5,7 @@ import Spinner from "../common/Spinner.tsx";
 import { useCurrency } from "../CurrencyContext.tsx";
 import SessionTypeEditModal from "../modals/SessionTypeEditModal.tsx";
 import Card from "../common/Card.tsx";
+import { logger } from '@/utils/logger';
 
 const SessionTypesSettings: React.FC = () => {
   const [sessionTypes, setSessionTypes] = useState<SessionType[]>([]);
@@ -19,7 +20,7 @@ const SessionTypesSettings: React.FC = () => {
       const data = await apiService.getSessionTypes();
       setSessionTypes(data);
     } catch (error) {
-      console.error("Failed to load session types", error);
+      logger.error("Failed to load session types", error);
     } finally {
       setLoading(false);
     }
@@ -54,7 +55,7 @@ const SessionTypesSettings: React.FC = () => {
       setSessionToEdit(null);
       fetchData();
     } catch (error) {
-      console.error("Failed to save session type", error);
+      logger.error("Failed to save session type", error);
       alert(
         `Failed to save session type: ${error instanceof Error ? error.message : "Unknown error"}`,
       );

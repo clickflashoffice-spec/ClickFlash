@@ -8,6 +8,7 @@ import { EditEngine } from '../../utils/canvas/EditEngine';
 import { useHiResLoader } from '../../utils/hiResLoader';
 import { apiService } from '../../services/apiService';
 import Spinner from '../common/Spinner';
+import { logger } from '@/utils/logger';
 
 interface ReprocessModalProps {
     isOpen: boolean;
@@ -130,7 +131,7 @@ const ReprocessModal: React.FC<ReprocessModalProps> = ({
 
             showToast('Reprocessed and enqueued for reprint!');
         } catch (error: any) {
-            console.error('Reprocess failed:', error);
+            logger.error('Reprocess failed:', error);
             showToast(`Reprocess failed: ${error.message}`);
         } finally {
             setIsProcessing(false);

@@ -1,9 +1,12 @@
 import express, { Request, Response, Router } from 'express';
 import { DeploymentStateMachine } from '../services/provisioning';
-import { Logger } from '../shared/logger';
-import DatabaseManager from '../shared/db';
+import { Logger } from '../utils/logger';
+import DatabaseManager from '../database/db';
 import { z } from 'zod';
-import { sendValidationError, sendError } from '../shared/errorHandler';
+import { sendValidationError, sendError } from '../utils/errorHandler';
+import { checkUrl } from '../middleware/ssrfGuard';
+import { strictRateLimiter } from '../middleware/rateLimiter';
+import { customRoutesSchemas } from '../utils/validation';
 
 const SetupDeploymentSchema = z.object({
   locationName: z.string().min(3).max(100).regex(/^[a-zA-Z0-9\s\-_]+$/, 'Location name can only contain letters, numbers, spaces, hyphens, and underscores'),
@@ -26,7 +29,7 @@ export default function setupRoutes(context: SetupContext): Router {
   const router = express.Router();
   const { dbManager, logger } = context;
 
-  router.post('/deploy', async (req: Request, res: Response) => {
+  router.post('/deploy', strictRateLimiter, async (req: Request, res: Response) => {
     try {
       const validation = SetupDeploymentSchema.safeParse(req.body);
       
@@ -128,13 +131,14 @@ export default function setupRoutes(context: SetupContext): Router {
     }
   });
 
-  router.post('/rollback', async (req: Request, res: Response) => {
+  router.post('/rollback', strictRateLimiter, async (req: Request, res: Response) => {
     try {
-      const { cloudflareApiToken, locationName } = req.body;
+      const parsed = customRoutesSchemas.setupRollback.safeParse(req.body);
       
-      if (!cloudflareApiToken) {
+      if (!parsed.success) {
         return sendValidationError(res, 'Cloudflare API token is required for rollback');
       }
+      const { locationName } = parsed.data;
 
       logger.warn('[Setup] Manual rollback requested', { locationName });
 
@@ -150,13 +154,14 @@ export default function setupRoutes(context: SetupContext): Router {
     }
   });
 
-  router.post('/validate-cloudflare', async (req: Request, res: Response) => {
+  router.post('/validate-cloudflare', strictRateLimiter, async (req: Request, res: Response) => {
     try {
-      const { apiToken, accountId } = req.body;
+      const parsed = customRoutesSchemas.setupValidateCloudflare.safeParse(req.body);
 
-      if (!apiToken || !accountId) {
+      if (!parsed.success) {
         return sendValidationError(res, 'API token and account ID are required');
       }
+      const { apiToken, accountId } = parsed.data;
 
       const { CloudflareAppsProvisioningService } = await import('../services/cloudflare');
       const cfService = new CloudflareAppsProvisioningService(dbManager, logger);
@@ -187,10 +192,36 @@ export default function setupRoutes(context: SetupContext): Router {
     }
   });
 
-  router.post('/test-connection', async (req: Request, res: Response) => {
+  router.post('/test-connection', strictRateLimiter, async (req: Request, res: Response) => {
     try {
-      const { hubUrl } = req.body;
+      const parsed = customRoutesSchemas.setupTestConnection.safeParse(req.body);
+      if (!parsed.success) {
+        return sendValidationError(res, 'Invalid URL');
+      }
+      const { hubUrl } = parsed.data;
       const testUrl = hubUrl || process.env.CLOUD_API_URL || 'https://hub.clickflash.photo';
+
+      // P0-5: SSRF guard — reject URLs that point to private/loopback/link-local
+      // addresses. This is a known SSRF vector: an attacker could POST
+      // {hubUrl: "http://127.0.0.1:8090/api/admin"} or
+      // {hubUrl: "http://169.254.169.254/latest/meta-data/"} to coerce the
+      // Master server into fetching internal endpoints.
+      //
+      // The default CLOUD_API_URL is allowlisted; user-supplied hubUrls go
+      // through the full check. To allow self-hosted hubs on private IPs,
+      // set CLICKFLASH_ALLOW_PRIVATE_HUB=true in the environment.
+      const isDefault = !hubUrl && !process.env.CLOUD_API_URL;
+      if (!isDefault) {
+          const allowPrivate = process.env.CLICKFLASH_ALLOW_PRIVATE_HUB === "true";
+          const ssrf = await checkUrl(testUrl, { allowPrivate });
+          if (!ssrf.safe) {
+              return res.status(400).json({
+                  success: false,
+                  error: "URL failed SSRF safety check",
+                  reason: ssrf.reason,
+              });
+          }
+      }
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);

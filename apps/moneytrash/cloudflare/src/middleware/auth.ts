@@ -38,12 +38,17 @@ export async function authMiddleware(
     requestHeaders.set('X-Office-Id', payload.officeId);
     requestHeaders.set('X-Desk-Id', payload.deskId);
     requestHeaders.set('X-Office-Type', payload.type);
-    
-    // Create new request with modified headers
-    (request as any).office = payload;
-    
-    return null; // Continue to route handler
-    
+
+    // Create a new Request with the modified headers so downstream
+    // handlers can read X-Office-Id / X-Desk-Id / X-Office-Type.
+    // (The original Request is immutable; the Router will thread this
+    // new request through to the matching route handler.)
+    const newRequest = new Request(request, { headers: requestHeaders });
+    // Also stash the full payload for handlers that need it
+    (newRequest as any).office = payload;
+
+    return newRequest;
+
   } catch (error) {
     console.error('JWT verification failed:', error);
     return Response.json(

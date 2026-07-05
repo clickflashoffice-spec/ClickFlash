@@ -431,7 +431,7 @@ class UnifiedDashboardService {
    * Aggregate top photographers from all stations
    */
   private aggregateTopPhotographers(
-    stations: MasterStation[],
+    _stations: MasterStation[],
   ): AggregatedDashboardStats["topPhotographers"] {
     // In production, this would aggregate real photographer data
     return [];
@@ -441,7 +441,7 @@ class UnifiedDashboardService {
    * Aggregate top albums from all stations
    */
   private aggregateTopAlbums(
-    stations: MasterStation[],
+    _stations: MasterStation[],
   ): AggregatedDashboardStats["topAlbums"] {
     // In production, this would aggregate real album data
     return [];

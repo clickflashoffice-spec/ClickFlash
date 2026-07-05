@@ -1,6 +1,8 @@
 // backend/shared/auditLogger.ts
 import fs from 'fs';
 import path from 'path';
+import { Logger } from '../shared/logger';
+const logger = new Logger('logs');
 
 const RETENTION_DAYS = 30;
 const MAX_LOG_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB per day file
@@ -75,10 +77,10 @@ class AuditLogger {
                     this.ensureLogDirectory();
                     fs.appendFileSync(logFile, logEntry, 'utf8');
                 } catch (retryError: any) {
-                    console.error('[AuditLogger] Failed to write log:', retryError.message);
+                    logger.error('[AuditLogger] Failed to write log:', retryError.message);
                 }
             } else {
-                console.error('[AuditLogger] Failed to write log:', error.message);
+                logger.error('[AuditLogger] Failed to write log:', error.message);
             }
         }
     }

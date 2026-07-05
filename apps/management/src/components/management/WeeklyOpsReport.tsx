@@ -1,18 +1,9 @@
 import React from "react";
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Smile, 
-  Frown, 
-  Target, 
-  Zap, 
-  Users, 
-  Calendar,
-  ChevronRight,
+import {Smile, 
+  Users,
   Download,
   Share2,
-  AlertCircle
-} from "lucide-react";
+  AlertCircle} from "lucide-react";
 import { PixelFounderCard } from "../common/PixelFounderCard.tsx";
 
 const WeeklyOpsReport: React.FC = () => {

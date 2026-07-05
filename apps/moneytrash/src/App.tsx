@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { desktopBatchUploadService } from './services/desktopBatchUploadService';
+import { UploadHistoryItem, AppSettings } from './types';
+import { env } from '@/utils/env';
 import { cloudApiService } from './services/cloudApiService';
 import { initTauriApi, isTauri, invoke } from './services/tauriService';
 import { useVRAMProtection } from './hooks/useVRAMProtection';
@@ -21,26 +23,7 @@ interface UploadFile {
   filePath?: string; // Native file path for desktop
 }
 
-interface UploadHistoryItem {
-  id: string;
-  eventName: string;
-  accessCode: string;
-  fileCount: number;
-  timestamp: string;
-  mode: 'moneytrash' | 'sold';
-}
 
-interface AppSettings {
-  apiUrl: string;
-  deskId: string;
-  autoStartUpload: boolean;
-  saveHistory: boolean;
-  s3AccessKey?: string;
-  s3SecretKey?: string;
-  s3Region?: string;
-  s3Bucket?: string;
-  s3Endpoint?: string;
-}
 
 function App() {
   const [mode, setMode] = useState<"moneytrash" | "sold">("moneytrash");
@@ -73,22 +56,11 @@ function App() {
 
   // Settings State
   const [settings, setSettings] = useState<AppSettings>({
-    apiUrl: 'http://localhost:8090',
+    apiUrl: env.API_BASE_URL,
     deskId: '',
     autoStartUpload: false,
     saveHistory: true,
   });
-
-  // Load saved history and settings on mount
-  useEffect(() => {
-    initTauriApi();
-    loadSavedData();
-  }, []);
-
-  // Clear file selection error when mode changes
-  useEffect(() => {
-    setFileSelectionError('');
-  }, [mode, eventName, accessCode, customerEmail]);
 
   const loadSavedData = async () => {
     if (!isTauri()) {
@@ -105,6 +77,7 @@ function App() {
 
       // 2. Load Config (PRE-CONFIGURATION SYNC)
       console.log('[MoneyTrash] Initializing cloud configuration...');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const config = await invoke<any>('load_upload_config');
       
       if (config) {
@@ -151,6 +124,19 @@ function App() {
       console.error('[MoneyTrash] Error during startup data load:', e);
     }
   };
+
+  // Load saved history and settings on mount
+  useEffect(() => {
+    initTauriApi();
+    // eslint-disable-next-line
+    loadSavedData();
+  }, []);
+
+  // Clear file selection error when mode changes
+  useEffect(() => {
+    // eslint-disable-next-line
+    setFileSelectionError('');
+  }, [mode, eventName, accessCode, customerEmail]);
 
   // VRAM protection for preview generation
   const { getPreview: getVRAMPreview } = useVRAMProtection({

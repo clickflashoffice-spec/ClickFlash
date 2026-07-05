@@ -1,5 +1,6 @@
 
 import { Photo } from '../types.ts';
+import { logger } from '@/utils/logger';
 
 export interface IdentifiedUser {
     id: string;
@@ -14,17 +15,17 @@ export const faceRecognitionService = {
         // Simulating model loading time (tensorflow/face-api)
         await new Promise(resolve => setTimeout(resolve, 1500));
         this.isLoaded = true;
-        console.log("Face Recognition Models Loaded (Simulated)");
+        logger.info("Face Recognition Models Loaded (Simulated)");
     },
 
-    async detectFace(imageBlob: Blob): Promise<boolean> {
+    async detectFace(_imageBlob: Blob): Promise<boolean> {
         // Simulate face detection processing
         await new Promise(resolve => setTimeout(resolve, 1200));
         // Assume face detected for demo
         return true;
     },
 
-    async identifyUser(imageBlob: Blob): Promise<IdentifiedUser | null> {
+    async identifyUser(_imageBlob: Blob): Promise<IdentifiedUser | null> {
         if (!this.isLoaded) await this.loadModels();
         
         // Simulate processing biometric data

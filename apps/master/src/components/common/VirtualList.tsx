@@ -1,5 +1,6 @@
 import React from "react";
 import * as ReactWindowModule from "react-window";
+import { logger } from '@/utils/logger';
 const ReactWindowAny = ReactWindowModule as any;
 const List =
   ReactWindowAny.FixedSizeList ||
@@ -72,7 +73,7 @@ export function VirtualList<T>({
           <div style={safeStyle}>{renderItem(item, index, safeStyle)}</div>
         );
       } catch (error) {
-        console.error("Error rendering item in VirtualList:", error);
+        logger.error("Error rendering item in VirtualList:", error);
         return <div style={safeStyle} />;
       }
     },
@@ -85,7 +86,7 @@ export function VirtualList<T>({
   }
 
   if (!List || typeof List !== "object") {
-    console.warn("VirtualList: FixedSizeList not found in react-window module");
+    logger.warn("VirtualList: FixedSizeList not found in react-window module");
     return null;
   }
 
@@ -162,7 +163,7 @@ export function VirtualList<T>({
       </ListComponent>
     );
   } catch (error) {
-    console.error("Error rendering react-window List:", error);
+    logger.error("Error rendering react-window List:", error);
     return null;
   }
 }

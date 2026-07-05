@@ -1,20 +1,38 @@
-name: Deploy
+name: Deploy ClickFlash Ecosystem
 
 on:
   push:
-    branches: [main]
+    branches: [main, production]
+    paths:
+      - 'apps/gallery/**'
+      - 'apps/moneytrash/**'
+      - 'apps/management/**'
+      - 'apps/website/**'
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'App to deploy'
+        required: true
+        type: choice
+        options:
+          - all
+          - gallery
+          - moneytrash
+          - management
+          - website
 
 jobs:
   deploy-gallery:
-    name: Deploy Gallery Worker
+    if: github.event.inputs.app == 'all' || github.event.inputs.app == 'gallery' || github.event_name == 'push'
     runs-on: ubuntu-latest
+    name: Deploy Gallery Worker
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v3
         with:
-          version: 10.28.2
+          version: '10.28.2'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -25,23 +43,57 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build Gallery
+        run: pnpm --filter star-master-customer run build
+
       - name: Deploy Gallery Worker
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/gallery/backend
           command: deploy
 
-  deploy-management:
-    name: Deploy Management Worker
+  deploy-moneytrash:
+    if: github.event.inputs.app == 'all' || github.event.inputs.app == 'moneytrash' || github.event_name == 'push'
     runs-on: ubuntu-latest
+    name: Deploy MoneyTrash Worker
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v3
         with:
-          version: 10.28.2
+          version: '10.28.2'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Deploy MoneyTrash Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/moneytrash/cloudflare
+          command: deploy
+
+  deploy-management:
+    if: github.event.inputs.app == 'all' || github.event.inputs.app == 'management' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    name: Deploy Management Worker
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: '10.28.2'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -56,46 +108,21 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/management/backend
           command: deploy
 
-  deploy-moneytrash:
-    name: Deploy MoneyTrash Worker
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.28.2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Deploy MoneyTrash Worker
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: apps/moneytrash/cloudflare
-          command: deploy
-
   deploy-website:
-    name: Deploy Website to Cloudflare Pages
+    if: github.event.inputs.app == 'all' || github.event.inputs.app == 'website' || github.event_name == 'push'
     runs-on: ubuntu-latest
+    name: Deploy Website Pages
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v3
         with:
-          version: 10.28.2
+          version: '10.28.2'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -107,12 +134,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Website
-        run: pnpm --filter ./apps/website run build
+        run: pnpm --filter main-website run build
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy Website Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/website
-          command: pages deploy
+          command: pages deploy out --project-name=clickflash-website --branch=main --commit-dirty=true

@@ -210,5 +210,6 @@ const GlobalAlertsWidget: React.FC<GlobalAlertsWidgetProps> = ({
     );
 };
 
+GlobalAlertsWidget.displayName = 'GlobalAlertsWidget';
 export default React.memo(GlobalAlertsWidget);
 

@@ -46,6 +46,16 @@ export const AnnotationCanvas: React.FC<AnnotationCanvasProps> = ({
         });
     }, [naturalSize, brushColor, brushSize]);
 
+    // Add cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (drawingEngineRef.current) {
+                drawingEngineRef.current.destroy();
+                drawingEngineRef.current = null;
+            }
+        };
+    }, []);
+
     const getScaledCoords = useCallback((e: React.MouseEvent | React.TouchEvent) => {
         if (!canvasRef.current || !naturalSize) return null;
         const rect = canvasRef.current.getBoundingClientRect();

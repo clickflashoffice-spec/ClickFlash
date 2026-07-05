@@ -5,7 +5,9 @@ import { Router, Request, Response } from "express";
 import crypto from "crypto";
 import { Logger } from "../shared/logger";
 import { DatabaseManager } from "../shared/db";
-import { MdnsDiscovery } from "../services/mdnsDiscovery";
+import { customRoutesSchemas } from "../shared/validation";
+import { sendValidationError } from "../shared/errorHandler";
+import { TouchMdnsDiscovery as MdnsDiscovery } from "../services/mdnsDiscovery";
 
 interface PairingContext {
   dbManager: DatabaseManager;
@@ -32,13 +34,13 @@ export default function createPairingRouter(context: PairingContext): Router {
   // ─────────────────────────────────────────────────────────────
   router.post("/pairing/discover", async (_req: Request, res: Response) => {
     try {
-      const masters = await mdnsDiscovery.getRankedMasters();
+      const masters = await mdnsDiscovery.getMasters();
       logger.info("[Pairing] Discover request", { count: masters.length });
 
       res.json({
         success: true,
         count: masters.length,
-        masters: masters.map((m) => ({
+        masters: masters.map((m: any) => ({
           name: m.name,
           host: m.host,
           port: m.port,
@@ -47,7 +49,6 @@ export default function createPairingRouter(context: PairingContext): Router {
           version: m.txt?.version,
           status: m.txt?.status,
           latencyMs: m.latencyMs,
-          rankScore: m.rankScore,
         })),
       });
     } catch (error: any) {
@@ -61,13 +62,12 @@ export default function createPairingRouter(context: PairingContext): Router {
   // ─────────────────────────────────────────────────────────────
   router.post("/pairing/scan-qr", (req: Request, res: Response) => {
     try {
-      const { qrData } = req.body;
-      if (!qrData) {
-        return res.status(400).json({
-          success: false,
-          message: "qrData is required",
-        });
+      const validation = customRoutesSchemas.pairingScanQr.safeParse(req.body);
+      if (!validation.success) {
+        return sendValidationError(res, "Invalid pairing request", validation.error);
       }
+      const { qrData } = validation.data;
+
 
       let payload: QRPayload;
       try {
@@ -117,13 +117,12 @@ export default function createPairingRouter(context: PairingContext): Router {
   // ─────────────────────────────────────────────────────────────
   router.post("/pairing/complete", async (req: Request, res: Response) => {
     try {
-      const { masterIp, port, pairingToken, kioskId, kioskName } = req.body;
-      if (!masterIp || !pairingToken) {
-        return res.status(400).json({
-          success: false,
-          message: "masterIp and pairingToken are required",
-        });
+      const validation = customRoutesSchemas.pairingComplete.safeParse(req.body);
+      if (!validation.success) {
+        return sendValidationError(res, "Invalid pairing complete request", validation.error);
       }
+      const { masterIp, port, pairingToken, kioskId, kioskName } = validation.data;
+
 
       const masterPort = port || 8090;
       const protocol = req.secure ? "https" : "http";

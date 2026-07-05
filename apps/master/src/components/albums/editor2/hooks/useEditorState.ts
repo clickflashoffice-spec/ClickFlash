@@ -59,7 +59,7 @@ type Action =
   | { type: "SET_PHOTOS"; payload: Photo[] }
   | { type: "SET_ACTIVE_PHOTO"; payload: string }
   | { type: "SET_ACTIVE_TOOL"; payload: "adjust" | "crop" | "retouch" }
-  | { type: "UPDATE_EDIT"; payload: Partial<ManualEdits> }
+  | { type: "UPDATE_EDIT"; payload: Partial<ManualEdits> | ((prev: ManualEdits) => Partial<ManualEdits>) }
   | { type: "SET_EDITS"; payload: { photoId: string; edits: ManualEdits } } // For replace/presets
   | { type: "UNDO" }
   | { type: "REDO" }
@@ -161,7 +161,8 @@ function editorReducer(state: EditorState, action: Action): EditorState {
       const currentEdits = state.edits[state.activePhotoId] || {
         ...INITIAL_EDITS,
       };
-      const newEdits = { ...currentEdits, ...action.payload };
+      const updates = typeof action.payload === "function" ? action.payload(currentEdits) : action.payload;
+      const newEdits = { ...currentEdits, ...updates };
       const currentHistory = state.histories[state.activePhotoId] || {
         past: [],
         future: [],
@@ -521,7 +522,7 @@ export function useEditorState(initialPhotos: Photo[] = []) {
     dispatch({ type: "SET_ACTIVE_TOOL", payload: tool });
   }, []);
 
-  const updateEdit = useCallback((updates: Partial<ManualEdits>) => {
+  const updateEdit = useCallback((updates: Partial<ManualEdits> | ((prev: ManualEdits) => Partial<ManualEdits>)) => {
     dispatch({ type: "UPDATE_EDIT", payload: updates });
   }, []);
 

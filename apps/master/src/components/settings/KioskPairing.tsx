@@ -45,6 +45,21 @@ const KioskPairing: React.FC<KioskPairingProps> = ({ targetKioskId, targetKioskN
         });
     };
 
+    // Generate convention-based paths for this kiosk
+    // These are auto-created on Master and communicated to Touch via QR
+    const generateKioskPaths = (kioskId: string) => {
+        // Master data root — use env or default to ClickFlash data directory
+        const masterDataRoot = (window as any).__MASTER_DATA_ROOT__ || 'C:\\ClickFlash\\data';
+        // Sanitize kioskId for filesystem use (remove chars that could traverse)
+        const safeKioskId = kioskId.replace(/[^a-zA-Z0-9_-]/g, '_');
+        return {
+            // @ts-ignore
+masterDataRoot,
+            uploadFolderPath: `${masterDataRoot}\\kiosks\\${safeKioskId}\\uploads`,
+            ordersFolderPath: `${masterDataRoot}\\kiosks\\${safeKioskId}\\orders`,
+        };
+    };
+
     // Generate expiration timestamp (15 minutes from now)
     const generateExpiration = (minutes: number = 15) => {
         return new Date(Date.now() + minutes * 60000).toISOString();
@@ -57,7 +72,13 @@ const KioskPairing: React.FC<KioskPairingProps> = ({ targetKioskId, targetKioskN
         setPairingToken(token);
         setExpiresAt(expires);
 
-        // Register token with backend
+        // Generate auto-paths for this kiosk (convention-based, no manual config needed)
+        const resolvedKioskId = targetKioskId || generatePairingToken();
+        const { // @ts-ignore
+masterDataRoot, // @ts-ignore
+uploadFolderPath, ordersFolderPath } = generateKioskPaths(resolvedKioskId);
+
+        // Register token with backend — include auto-paths so backend can create them
         try {
             const baseUrl = pb.baseUrlValue || DEFAULT_API_URL;
             // Use explicitly detected IP if available, otherwise fallback to hostname
@@ -73,11 +94,18 @@ const KioskPairing: React.FC<KioskPairingProps> = ({ targetKioskId, targetKioskN
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     pairingToken: token,
-                    kioskId: targetKioskId,
+                    kioskId: resolvedKioskId,
                     kioskName: targetKioskName,
                     httpUrl: serverHttpUrl,
                     wsUrl: serverWsUrl,
-                    expiresAt: expires
+                    expiresAt: expires,
+                    // Phase 4: Auto-paths — backend will create these directories
+                    // @ts-ignore
+uploadFolderPath,
+                    // @ts-ignore
+ordersFolderPath,
+                    // @ts-ignore
+masterDataRoot,
                 })
             });
 
@@ -85,7 +113,8 @@ const KioskPairing: React.FC<KioskPairingProps> = ({ targetKioskId, targetKioskN
                 const errData = await res.json().catch(() => ({}));
                 throw new Error(errData.message || `Server returned ${res.status}`);
             }
-            logger.info('Pairing token registered with backend');
+            logger.info('Pairing token registered with backend', { // @ts-ignore
+uploadFolderPath, ordersFolderPath });
         } catch (error) {
             logger.error('Failed to register pairing token', error);
         }
@@ -135,7 +164,7 @@ const KioskPairing: React.FC<KioskPairingProps> = ({ targetKioskId, targetKioskN
                     }
                 }
             } catch (err) {
-                console.error('Failed to detect IP for kiosk pairing:', err);
+                logger.error('Failed to detect IP for kiosk pairing:', err);
             }
         };
 
@@ -149,6 +178,12 @@ const KioskPairing: React.FC<KioskPairingProps> = ({ targetKioskId, targetKioskN
     // Construct enhanced pairing data
     const effectiveIp = detectedIp || (window.location.hostname === 'localhost' ? '127.0.0.1' : window.location.hostname);
 
+    // Build pairing data with auto-generated paths (Phase 4: zero-config pairing)
+    const resolvedKioskId = targetKioskId || generatePairingToken();
+    const { // @ts-ignore
+masterDataRoot, // @ts-ignore
+uploadFolderPath, ordersFolderPath } = generateKioskPaths(resolvedKioskId);
+
     const pairingData: PairingData = {
         version: '1.0',
         httpUrl: `http://${effectiveIp}:8090`,  // Master backend port
@@ -158,7 +193,14 @@ const KioskPairing: React.FC<KioskPairingProps> = ({ targetKioskId, targetKioskN
         pairingToken,
         expiresAt,
         mode: 'touch',
-        pair: true
+        pair: true,
+        // Phase 4: Auto-paths — Touch kiosk uses these, no manual entry needed
+        // @ts-ignore
+uploadFolderPath,
+        // @ts-ignore
+ordersFolderPath,
+        // @ts-ignore
+masterDataRoot,
     };
 
     const qrCodeData = JSON.stringify(pairingData);
@@ -173,7 +215,7 @@ const KioskPairing: React.FC<KioskPairingProps> = ({ targetKioskId, targetKioskN
                     light: '#ffffff'
                 }
             }, (error: any) => {
-                if (error) console.error(error);
+                if (error) logger.error(error);
             });
         }
     }, [qrCodeData]);

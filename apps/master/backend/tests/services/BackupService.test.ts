@@ -1,0 +1,89 @@
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
+import crypto from 'crypto';
+import { BackupService } from '../../services/BackupService';
+
+describe('BackupService Incremental & Checksum', () => {
+    let tmpDir: string;
+    let dbPath: string;
+    let uploadsDir: string;
+    let mockLogger: any;
+    let backupService: BackupService;
+
+    beforeEach(() => {
+        tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'backup-test-'));
+        dbPath = path.join(tmpDir, 'test.db');
+        uploadsDir = path.join(tmpDir, 'uploads');
+        fs.mkdirSync(uploadsDir, { recursive: true });
+
+        // Create mock DB file
+        fs.writeFileSync(dbPath, 'mock-sqlite-db-content');
+
+        // Create mock upload file
+        fs.writeFileSync(path.join(uploadsDir, 'photo1.jpg'), 'photo-content-1');
+
+        mockLogger = {
+            info: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn()
+        };
+
+        backupService = new BackupService(dbPath, uploadsDir, mockLogger);
+    });
+
+    afterEach(() => {
+        try {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
+        } catch (_) {}
+    });
+
+    it('should calculate file checksum correctly', async () => {
+        const expectedHash = crypto.createHash('sha256').update('mock-sqlite-db-content').digest('hex');
+        const calculated = await backupService.calculateFileChecksum(dbPath);
+        expect(calculated).toBe(expectedHash);
+    });
+
+    it('should create an incremental snapshot containing manifest with checksum and type', async () => {
+        const { manifest, zipBuffer } = await backupService.createIncrementalSnapshot('2020-01-01T00:00:00.000Z');
+        expect(manifest.type).toBe('incremental');
+        expect(manifest.since).toBe('2020-01-01T00:00:00.000Z');
+        expect(manifest.checksum).toBeDefined();
+        expect(zipBuffer.length).toBeGreaterThan(0);
+    });
+
+    it('should restore successfully when checksum matches', async () => {
+        const { zipBuffer } = await backupService.createIncrementalSnapshot();
+        const warnings = await backupService.restore(zipBuffer);
+        expect(warnings).toBeDefined();
+        expect(mockLogger.info).toHaveBeenCalledWith(
+            '[BackupService] Database checksum verified successfully',
+            expect.any(Object)
+        );
+    });
+
+    it('should throw error when restoring archive with invalid database checksum', async () => {
+        const AdmZip = require('adm-zip');
+        const zip = new AdmZip();
+        const invalidManifest = {
+            version: 1,
+            appVersion: '1.0.0',
+            createdAt: new Date().toISOString(),
+            platform: 'linux',
+            hostname: 'test',
+            checksum: '0000000000000000000000000000000000000000000000000000000000000000'
+        };
+        zip.addFile('manifest.json', Buffer.from(JSON.stringify(invalidManifest), 'utf8'));
+        zip.addFile('master.db', Buffer.from('some database content', 'utf8'));
+        const modifiedBuffer = zip.toBuffer();
+
+        await expect(backupService.restore(modifiedBuffer)).rejects.toThrow(/database checksum verification failed/);
+    });
+
+    it('should track lastSuccessTimestamp in getStats()', () => {
+        expect(backupService.getStats().lastSuccessTimestamp).toBeNull();
+        backupService.recordSuccess();
+        expect(backupService.getStats().lastSuccessTimestamp).toBeGreaterThan(0);
+    });
+});

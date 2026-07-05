@@ -26,7 +26,7 @@ jest.mock("../../services/cloudApiService", () => ({
   },
 }));
 
-describe.skip("ClickFlashAnalytics Component", () => {
+describe("ClickFlashAnalytics Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetOrders.mockResolvedValue([]);

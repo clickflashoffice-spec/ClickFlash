@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { Logger } from '../../shared/logger';
-import DatabaseManager from '../../shared/db';
+import { Logger } from '../../utils/logger';
+import DatabaseManager from '../../database/db';
 
 export const CloudflareAppsConfigSchema = z.object({
   apiToken: z.string().min(1, 'Cloudflare API token is required'),

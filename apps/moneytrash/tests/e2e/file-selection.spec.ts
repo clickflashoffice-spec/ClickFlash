@@ -34,7 +34,7 @@ test.describe('MoneyTrash File Selection & Error Handling', () => {
     expect(filesCount?.trim()).toBe('0');
     
     // Verify total size is 0 B in Summary
-    const summarySection = page.locator('.bg-zinc-900\/50').filter({ hasText: 'Summary' });
+    const summarySection = page.locator('.bg-zinc-900/50').filter({ hasText: 'Summary' });
     await expect(summarySection.locator('text=0 B')).toBeVisible();
   });
 
@@ -58,7 +58,7 @@ test.describe('MoneyTrash File Selection & Error Handling', () => {
     await page.waitForTimeout(500);
     
     // Verify file count updated in Summary
-    const summarySection = page.locator('.bg-zinc-900\/50').filter({ hasText: 'Summary' });
+    const summarySection = page.locator('.bg-zinc-900/50').filter({ hasText: 'Summary' });
     const filesCount = await summarySection.locator('span.text-white.font-medium').first().textContent();
     expect(filesCount?.trim()).toBe('1');
     
@@ -98,7 +98,7 @@ test.describe('MoneyTrash File Selection & Error Handling', () => {
     await page.waitForTimeout(500);
     
     // Verify files added - check in Summary section
-    const summarySection = page.locator('.bg-zinc-900\/50').filter({ hasText: 'Summary' });
+    const summarySection = page.locator('.bg-zinc-900/50').filter({ hasText: 'Summary' });
     const filesCount = await summarySection.locator('span.text-white.font-medium').first().textContent();
     expect(filesCount?.trim()).toBe('2');
     

@@ -75,7 +75,7 @@ const Login: React.FC<LoginProps> = ({
         }
       }
     } catch (error: any) {
-      console.error("Face login failed", error);
+      logger.error("Face login failed", error);
       setError(error.message || "Face login failed");
     } finally {
       setLoading(false);

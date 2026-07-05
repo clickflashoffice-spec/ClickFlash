@@ -26,7 +26,7 @@ const DestinationsPage: React.FC = () => {
   const [destinationToEdit, setDestinationToEdit] =
     useState<Destination | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, _setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 25;
   const [selectedDestinations, setSelectedDestinations] = useState<Set<string>>(
     new Set(),
@@ -135,7 +135,7 @@ const DestinationsPage: React.FC = () => {
   const totalProfit = totalRevenue - totalCosts;
 
   // Pagination
-  const totalPages = Math.ceil(filteredAndSorted.length / ITEMS_PER_PAGE);
+  const _totalPages = Math.ceil(filteredAndSorted.length / ITEMS_PER_PAGE);
   const paginatedDestinations = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredAndSorted.slice(startIndex, startIndex + ITEMS_PER_PAGE);

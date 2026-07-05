@@ -47,7 +47,7 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     // Inject the management app's package.json version at build time so the
-    // Sentry release string in main.tsx resolves correctly.
+    // Release string for error tracking (custom logger, not Sentry)
     "import.meta.env.VITE_APP_VERSION": JSON.stringify(
       process.env.npm_package_version || "unknown",
     ),

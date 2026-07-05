@@ -1,6 +1,7 @@
 
 import { TransferService } from '../services/TransferService';
 import fs from 'fs';
+import { logger } from '../utils/logger';
 
 // Mock everything locally
 const mockDbManager = {
@@ -15,12 +16,12 @@ const mockLogger = { info: console.log, warn: console.warn, error: console.error
 
 // We will just spy with console.log instead of jest.fn
 fs.existsSync = ((_path: any) => true) as any;
-fs.mkdirSync = ((path: any) => console.log(`mkdir ${path}`)) as any;
-fs.promises.copyFile = (async (src: any, dest: any) => console.log(`copy ${src} -> ${dest}`)) as any;
-fs.promises.writeFile = (async (path: any, _data: any) => console.log(`write metadata to ${path}`)) as any;
+fs.mkdirSync = ((path: any) => logger.info(`mkdir ${path}`)) as any;
+fs.promises.copyFile = (async (src: any, dest: any) => logger.info(`copy ${src} -> ${dest}`)) as any;
+fs.promises.writeFile = (async (path: any, _data: any) => logger.info(`write metadata to ${path}`)) as any;
 
 async function runTest() {
-    console.log('Starting TransferService Test...');
+    logger.info('Starting TransferService Test...');
     const service = new TransferService({
         dbManager: mockDbManager as any,
         logger: mockLogger,
@@ -29,9 +30,9 @@ async function runTest() {
 
     try {
         const result = await service.sendAlbumToKiosks('album-123', new Set(['/mock/kiosk']));
-        console.log('Test Result:', result);
+        logger.info('Test Result:', result);
     } catch (e) {
-        console.error('Test Failed:', e);
+        logger.error('Test Failed:', e);
     }
 }
 

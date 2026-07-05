@@ -14,8 +14,8 @@
 
 import express, { Request, Response, Router } from "express";
 import { BackupService } from "../services/BackupService";
-import { Logger } from "../shared/logger";
-import { DatabaseManager } from "../shared/db";
+import { Logger } from '../utils/logger';
+import { DatabaseManager } from '../database/db';
 import { DB_FILE, UPLOAD_DIR } from "../config/constants";
 
 export interface BackupRouteContext {

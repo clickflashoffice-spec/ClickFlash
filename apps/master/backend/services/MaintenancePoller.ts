@@ -10,8 +10,8 @@
 
 import fs from "fs";
 import path from "path";
-import { Logger } from "../shared/logger";
-import { DatabaseManager } from "../shared/db";
+import { Logger } from '../utils/logger';
+import { DatabaseManager } from '../database/db';
 
 const ALLOWED_COMMANDS = new Set([
   "restart_backend",
@@ -186,19 +186,21 @@ export class MaintenancePoller {
 
         case "suspend_kiosk":
           // Kill the C# Guardian process so remote VNC inputs aren't blocked
-          const { execSync } = require("child_process");
-          try {
-            execSync("taskkill /F /IM KioskGuardian.exe");
-            logger.info(
-              "[MaintenancePoller] Suspended KioskGuardian OS locks.",
-            );
-            return "ok: kiosk suspended";
-          } catch (execErr: any) {
-            if (execErr.message.includes("not found")) {
-              return "ok: kiosk was not locked";
-            }
-            throw execErr;
-          }
+          const { exec } = require("child_process");
+          return new Promise<string>((resolve, reject) => {
+            exec("taskkill /F /IM KioskGuardian.exe", (error: any, _stdout: string, stderr: string) => {
+              if (error) {
+                if (error.message.includes("not found") || stderr.includes("not found")) {
+                  resolve("ok: kiosk was not locked");
+                } else {
+                  reject(error);
+                }
+              } else {
+                logger.info("[MaintenancePoller] Suspended KioskGuardian OS locks.");
+                resolve("ok: kiosk suspended");
+              }
+            });
+          });
 
         default:
           return `rejected: unhandled command`;

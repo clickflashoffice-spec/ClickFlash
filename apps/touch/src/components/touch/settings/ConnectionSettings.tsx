@@ -127,7 +127,12 @@ export const ConnectionSettings: React.FC<ConnectionSettingsProps> = ({
                 <InfoRow label="Kiosk ID" value={settings.kioskId} mono={true} onCopy={handleCopyKioskId} />
                 <InfoRow label="Status" value={kioskConnectionStatus} color={kioskConnectionStatus === 'Connected' ? 'text-green-400' : 'text-red-400'} />
                 <div>
-                    <label htmlFor="shared-folder-path-input" className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">Monitored Photo Folder</label>
+                    <label htmlFor="shared-folder-path-input" className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">
+                        Monitored Photo Folder
+                        {settings.sharedFolderPath?.startsWith('C:\\ClickFlash') || settings.sharedFolderPath?.startsWith('/ClickFlash') ? (
+                            <span className="ml-2 text-[10px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 px-1.5 py-0.5 rounded-full font-bold">AUTO</span>
+                        ) : null}
+                    </label>
                     <input
                         id="shared-folder-path-input"
                         type="text"
@@ -139,10 +144,18 @@ export const ConnectionSettings: React.FC<ConnectionSettingsProps> = ({
                     />
                     <p className="text-xs text-slate-400 mt-1">
                         Local path where this Kiosk should look for new photos (e.g. mapped network drive).
+                        {settings.sharedFolderPath?.startsWith('C:\\ClickFlash') || settings.sharedFolderPath?.startsWith('/ClickFlash') ? (
+                            <span className="text-green-600 dark:text-green-400 font-medium"> Auto-configured via pairing.</span>
+                        ) : null}
                     </p>
                 </div>
                 <div>
-                    <label htmlFor="orders-folder-path-input" className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">Orders Hot Folder</label>
+                    <label htmlFor="orders-folder-path-input" className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">
+                        Orders Hot Folder
+                        {settings.touchOrdersFolder?.startsWith('C:\\ClickFlash') || settings.touchOrdersFolder?.startsWith('/ClickFlash') ? (
+                            <span className="ml-2 text-[10px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 px-1.5 py-0.5 rounded-full font-bold">AUTO</span>
+                        ) : null}
+                    </label>
                     <input
                         id="orders-folder-path-input"
                         type="text"
@@ -154,6 +167,9 @@ export const ConnectionSettings: React.FC<ConnectionSettingsProps> = ({
                     />
                     <p className="text-xs text-slate-400 mt-1">
                         Local path where JSON order files will be created for fulfillment.
+                        {settings.touchOrdersFolder?.startsWith('C:\\ClickFlash') || settings.touchOrdersFolder?.startsWith('/ClickFlash') ? (
+                            <span className="text-green-600 dark:text-green-400 font-medium"> Auto-configured via pairing.</span>
+                        ) : null}
                     </p>
                 </div>
             </div>

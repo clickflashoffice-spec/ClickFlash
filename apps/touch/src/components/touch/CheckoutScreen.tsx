@@ -35,6 +35,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
     const [orderId, setOrderId] = useState('');
     const [focusedInput, setFocusedInput] = useState<'name' | 'email' | 'roomNumber' | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [tipAmount, setTipAmount] = useState<number>(0);
 
     const handleInputChange = (field: 'name' | 'email' | 'roomNumber', value: string) => {
         setCustomerDetails(prev => ({ ...prev, [field]: value }));
@@ -66,7 +67,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
             id: tempId,
             clientName: customerDetails.name,
             email: customerDetails.email,
-            total: total,
+            total: total + tipAmount,
             appliedDiscount: appliedDiscount,
             destinationId: 'dest1',
             items: orderItems,
@@ -76,6 +77,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
             source: 'kiosk' as const,
             clientMutationId,
             roomNumber: customerDetails.roomNumber,
+            tipAmount: tipAmount,
         };
 
         try {
@@ -94,7 +96,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
                 const createdOrder = await pb.collection('orders').create({
                     clientName: customerDetails.name,
                     email: customerDetails.email,
-                    total: total,
+                    total: total + tipAmount,
                     status: 'Pending',
                     items: orderItems,
                     date: orderDate,
@@ -103,6 +105,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
                     roomNumber: customerDetails.roomNumber,
                     appliedDiscount: appliedDiscount,
                     clientMutationId,
+                    tipAmount: tipAmount,
                 });
                 createdOrderId = createdOrder.id;
                 logger.info("Order also saved to local DB successfully", { orderId: tempId, dbId: createdOrderId });
@@ -184,10 +187,36 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
                                     <span>-{formatCurrency(appliedDiscount)}</span>
                                 </div>
                             )}
+                            {tipAmount > 0 && (
+                                <div className="flex justify-between text-sm text-slate-500">
+                                    <span>Tip</span>
+                                    <span>{formatCurrency(tipAmount)}</span>
+                                </div>
+                            )}
                             <div className="border-t border-slate-200 dark:border-slate-700 pt-2 flex justify-between font-bold text-lg">
                                 <span>Total</span>
-                                <span>{formatCurrency(total)}</span>
+                                <span>{formatCurrency(total + tipAmount)}</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <h2 className="text-lg font-semibold mb-4">Add a Tip?</h2>
+                        <div className="grid grid-cols-4 gap-2">
+                            {[0, 0.1, 0.15, 0.2].map((pct) => (
+                                <button
+                                    key={pct}
+                                    type="button"
+                                    onClick={() => setTipAmount(total * pct)}
+                                    className={`p-3 rounded-lg font-bold text-center transition-colors ${
+                                        tipAmount === total * pct
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-600'
+                                    }`}
+                                >
+                                    {pct === 0 ? 'No Tip' : `${pct * 100}%`}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
@@ -233,7 +262,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
                             disabled={isProcessing}
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-lg transition-colors disabled:opacity-50"
                         >
-                            {isProcessing ? 'Processing...' : `Pay ${formatCurrency(total)}`}
+                            {isProcessing ? 'Processing...' : `Pay ${formatCurrency(total + tipAmount)}`}
                         </button>
                     </form>
                 </div>
@@ -241,17 +270,8 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
 
             {focusedInput && (
                 <OnScreenKeyboard
-                    onKeyPress={(key) => {
-                        if (focusedInput) {
-                            handleInputChange(focusedInput, customerDetails[focusedInput] + key);
-                        }
-                    }}
-                    onBackspace={() => {
-                        if (focusedInput) {
-                            handleInputChange(focusedInput, customerDetails[focusedInput].slice(0, -1));
-                        }
-                    }}
-                    onClose={() => setFocusedInput(null)}
+                    value={customerDetails[focusedInput]}
+                    onChange={(val) => handleInputChange(focusedInput, val)}
                 />
             )}
         </div>

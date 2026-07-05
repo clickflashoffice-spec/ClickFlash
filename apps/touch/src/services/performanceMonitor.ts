@@ -384,7 +384,7 @@ class PerformanceMonitorService {
         
         console.group('[PerformanceMonitor] Report');
         console.table(summary);
-        console.log('Web Vitals:', webVitals);
+        logger.info('Web Vitals:', webVitals);
         console.groupEnd();
     }
 }

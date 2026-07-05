@@ -7,23 +7,42 @@ import { fleetService, MasterStation } from "../../services/fleetService.ts";
 import Spinner from "../common/Spinner.tsx";
 import ContributionChart from "./performance/ContributionChart.tsx";
 import PhotographerDetailModal from "./modals/PhotographerDetailModal.tsx";
-import {
-  TrendingUp,
+import {TrendingUp,
   Award,
   Globe,
   Users,
   Camera,
   DollarSign,
   Activity,
-  ArrowUp,
-  ArrowDown,
   RefreshCw,
-  Wifi,
-  WifiOff,
 } from "lucide-react";
 
 type TimeFilter = "All Time" | "This Month" | "This Year";
 type ViewMode = "global" | "photographers";
+
+interface StationStats extends MasterStation {
+  total_orders?: number;
+  total_photos?: number;
+  last_seen?: string;
+  Status?: string;
+}
+
+interface PhotographerPerformance extends Photographer {
+  totalSales: number;
+  totalCosts: number;
+  netContribution: number;
+  orderCount: number;
+  aov: number;
+  efficiency: number;
+}
+
+interface ExpenseWithLegacy extends Expense {
+  photographerId?: string;
+}
+
+interface OrderWithPhotos extends Order {
+  photoCount?: number;
+}
 
 // ─── Stat Card ───────────────────────────────────────────────────────────────
 import StatCard from "../common/StatCard.tsx";
@@ -73,28 +92,28 @@ const MiniBar: React.FC<{ value: number; max: number; color?: string }> = ({
 
 // ─── Global Leaderboard ───────────────────────────────────────────────────────
 const GlobalLeaderboard: React.FC<{
-  stations: MasterStation[];
+  stations: StationStats[];
   formatCurrency: (n: number) => string;
-}> = ({ stations, formatCurrency }) => {
+}> = ({ stations, formatCurrency: formatCurrency }) => {
   const sorted = useMemo(
     () =>
       [...stations].sort(
-        (a, b) => (b as any).total_orders - (a as any).total_orders,
+        (a, b) => (b.total_orders ?? 0) - (a.total_orders ?? 0),
       ),
     [stations],
   );
-  const maxOrders = sorted[0] ? (sorted[0] as any).total_orders || 1 : 1;
+  const maxOrders = sorted[0] ? sorted[0].total_orders || 1 : 1;
   const maxPhotos = Math.max(
-    ...sorted.map((s) => (s as any).total_photos || 0),
+    ...sorted.map((s) => s.total_photos || 0),
     1,
   );
   const totalOnline = stations.filter((s) => s.status === "online").length;
   const totalOrders = stations.reduce(
-    (acc, s) => acc + ((s as any).total_orders || 0),
+    (acc, s) => acc + (s.total_orders || 0),
     0,
   );
   const totalPhotos = stations.reduce(
-    (acc, s) => acc + ((s as any).total_photos || 0),
+    (acc, s) => acc + (s.total_photos || 0),
     0,
   );
 
@@ -175,10 +194,9 @@ const GlobalLeaderboard: React.FC<{
                 </tr>
               ) : (
                 sorted.map((station, idx) => {
-                  const orders = (station as any).total_orders || 0;
-                  const photos = (station as any).total_photos || 0;
-                  const lastSeen =
-                    station.lastSeen || (station as any).last_seen;
+                  const orders = station.total_orders || 0;
+                  const photos = station.total_photos || 0;
+                  const lastSeen = station.lastSeen || station.last_seen;
                   const timeAgo = lastSeen
                     ? (() => {
                         const diff = Date.now() - new Date(lastSeen).getTime();
@@ -213,9 +231,7 @@ const GlobalLeaderboard: React.FC<{
                       <td className="px-6 py-3.5">
                         <StatusBadge
                           status={
-                            station.status ||
-                            (station as any).Status ||
-                            "offline"
+                            station.status || station.Status || "offline"
                           }
                         />
                       </td>
@@ -262,7 +278,7 @@ const PhotographerView: React.FC<{
   timeFilter: TimeFilter;
   setTimeFilter: (f: TimeFilter) => void;
   formatCurrency: (n: number) => string;
-  onSelect: (p: any) => void;
+  onSelect: (p: PhotographerPerformance) => void;
 }> = ({
   photographers,
   orders,
@@ -300,25 +316,25 @@ const PhotographerView: React.FC<{
           .reduce((sum, o) => sum + o.total, 0);
         const costs = timeFilteredExpenses
           .filter((e) => {
-            const legacyId = (e as any).photographerId;
+            const legacyId = (e as ExpenseWithLegacy).photographerId;
             const pIds = e.photographerIds || [];
             if (pIds.includes(p.id) && pIds.length > 0) return true;
             if (legacyId === p.id) return true;
             return false;
           })
           .reduce((sum, e) => {
-            const legacyId = (e as any).photographerId;
+            const legacyId = (e as ExpenseWithLegacy).photographerId;
             const pIds = e.photographerIds || [];
             if (pIds.includes(p.id) && pIds.length > 0) {
               return sum + e.cost / pIds.length;
             } else if (legacyId === p.id) {
-              return sum + (e.cost || (e as any).cost || 0);
+              return sum + (e.cost || 0);
             }
             return sum;
           }, 0);
         const totalPhotos = timeFilteredOrders
           .filter((o) => o.photographerId === p.id)
-          .reduce((sum, o) => sum + (o as any).photoCount || 0, 0); // Assuming photoCount exists on order or needs collection
+          .reduce((sum, o) => sum + ((o as OrderWithPhotos).photoCount || 0), 0); // Assuming photoCount exists on order or needs collection
 
         return {
           ...p,
@@ -438,10 +454,10 @@ const PhotographerView: React.FC<{
                           {p.orderCount}
                         </td>
                         <td className="p-4 text-right font-mono text-slate-600">
-                          {formatCurrency((p as any).aov || 0)}
+                          {formatCurrency(p.aov || 0)}
                         </td>
                         <td className="p-4 text-right font-mono text-blue-500">
-                          {((p as any).efficiency || 0).toFixed(1)}%
+                          {((p.efficiency || 0)).toFixed(1)}%
                         </td>
                         <td className="p-4 text-right font-mono text-emerald-500">
                           {formatCurrency(p.totalSales)}
@@ -490,7 +506,7 @@ const PerformancePage: React.FC = () => {
   const [stationsLoading, setStationsLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("All Time");
   const [viewMode, setViewMode] = useState<ViewMode>("global");
-  const [selectedPhotographer, setSelectedPhotographer] = useState<any | null>(
+  const [selectedPhotographer, setSelectedPhotographer] = useState<PhotographerPerformance | null>(
     null,
   );
   const { formatCurrency } = useCurrency();
@@ -517,7 +533,7 @@ const PerformancePage: React.FC = () => {
     setStationsLoading(true);
     try {
       const data = await fleetService.getStations();
-      setStations(data);
+      setStations(data as StationStats[]);
     } catch (err) {
       console.error("Failed to load fleet stations", err);
     } finally {

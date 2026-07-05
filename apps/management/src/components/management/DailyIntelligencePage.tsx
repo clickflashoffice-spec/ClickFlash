@@ -1,18 +1,49 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { 
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-    LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
-} from 'recharts';
-import { 
-    TrendingUp, Users, ShoppingCart, Globe, Calendar, Filter, 
-    ChevronDown, Download, RefreshCw, Award, Monitor, PieChart as PieIcon
-} from 'lucide-react';
+import {XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area} from 'recharts';
+import {TrendingUp, Users, ShoppingCart, Globe, Calendar, Filter, RefreshCw, Award, Monitor, PieChart as PieIcon} from 'lucide-react';
 import './DailyIntelligence.css';
 
 const API_BASE = '/api/analytics';
 
+import { getEnv } from '@/utils/env';
+const { VITE_API_BASE_URL } = getEnv();
+
 const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4'];
+
+interface TrendPoint {
+    date: string;
+    revenue?: number;
+    orders?: number;
+}
+
+interface StationRow {
+    desk_id: string;
+    total_sessions?: number;
+    total_revenue?: number;
+    total_prints?: number;
+    pending_sync?: number;
+}
+
+interface ProductBreakdown {
+    name: string;
+    count?: number;
+}
+
+interface PhotographerRow {
+    photographer_id: string;
+    name: string;
+    avatarUrl?: string;
+    total_sales?: number;
+    total_revenue?: number;
+}
+
+interface DailyIntelligenceData {
+    trends: TrendPoint[];
+    stations: StationRow[];
+    productBreakdown: ProductBreakdown[];
+    photographers: PhotographerRow[];
+}
 
 export const DailyIntelligencePage: React.FC = () => {
     const [dateRange, setDateRange] = useState({
@@ -21,7 +52,7 @@ export const DailyIntelligencePage: React.FC = () => {
     });
     const [selectedDeskId, setSelectedDeskId] = useState<string>('Global');
 
-    const { data, isLoading, refetch } = useQuery({
+    const { data, isLoading } = useQuery<DailyIntelligenceData>({
         queryKey: ['dailyIntelligence', dateRange, selectedDeskId],
         queryFn: async () => {
             const params = new URLSearchParams({
@@ -29,16 +60,16 @@ export const DailyIntelligencePage: React.FC = () => {
                 endDate: dateRange.endDate,
                 ...(selectedDeskId !== 'Global' && { deskId: selectedDeskId })
             });
-            const res = await fetch(`${API_BASE}/daily-intelligence?${params}`);
+            const res = await fetch(`${VITE_API_BASE_URL}${API_BASE}/daily-intelligence?${params}`);
             if (!res.ok) throw new Error('Failed to fetch intelligence data');
-            return res.json();
+            return res.json() as Promise<DailyIntelligenceData>;
         }
     });
 
     const { data: desks } = useQuery({
         queryKey: ['desks-list'],
         queryFn: async () => {
-            const res = await fetch('/api/collections?table=desks');
+            const res = await fetch(`${VITE_API_BASE_URL}/api/collections?table=desks`);
             if (!res.ok) return [];
             return res.json();
         }
@@ -47,9 +78,9 @@ export const DailyIntelligencePage: React.FC = () => {
     const stats = useMemo(() => {
         if (!data) return { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0, totalSessions: 0 };
         
-        const totalRevenue = data.trends.reduce((acc: number, curr: any) => acc + (curr.revenue || 0), 0);
-        const totalOrders = data.trends.reduce((acc: number, curr: any) => acc + (curr.orders || 0), 0);
-        const totalSessions = data.stations.reduce((acc: number, curr: any) => acc + (curr.total_sessions || 0), 0);
+        const totalRevenue = data.trends.reduce((acc: number, curr) => acc + (curr.revenue || 0), 0);
+        const totalOrders = data.trends.reduce((acc: number, curr) => acc + (curr.orders || 0), 0);
+        const totalSessions = data.stations.reduce((acc: number, curr) => acc + (curr.total_sessions || 0), 0);
         
         return {
             totalRevenue,
@@ -85,7 +116,7 @@ export const DailyIntelligencePage: React.FC = () => {
                             onChange={(e) => setSelectedDeskId(e.target.value)}
                         >
                             <option value="Global">All Master Stations (Global)</option>
-                            {desks?.map((desk: any) => (
+                            {desks?.map((desk: { id: string; name?: string }) => (
                                 <option key={desk.id} value={desk.id}>{desk.name || desk.id}</option>
                             ))}
                         </select>
@@ -197,7 +228,7 @@ export const DailyIntelligencePage: React.FC = () => {
                                     paddingAngle={5}
                                     dataKey="count"
                                 >
-                                    {data?.productBreakdown.map((entry: any, index: number) => (
+                                    {data?.productBreakdown.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
@@ -205,7 +236,7 @@ export const DailyIntelligencePage: React.FC = () => {
                             </PieChart>
                         </ResponsiveContainer>
                         <div className="pie-legend">
-                            {data?.productBreakdown.slice(0, 4).map((entry: any, index: number) => (
+                            {data?.productBreakdown.slice(0, 4).map((entry, index) => (
                                 <div key={entry.name} className="legend-item">
                                     <span className="dot" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
                                     <span className="name">{entry.name}</span>
@@ -232,15 +263,15 @@ export const DailyIntelligencePage: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {data?.stations.map((station: any) => (
+                                {data?.stations.map((station) => (
                                     <tr key={station.desk_id}>
                                         <td className="font-medium">{station.desk_id}</td>
                                         <td>{station.total_sessions}</td>
-                                        <td className="text-emerald-600 font-bold">${station.total_revenue.toLocaleString()}</td>
+                                        <td className="text-emerald-600 font-bold">${(station.total_revenue ?? 0).toLocaleString()}</td>
                                         <td>{station.total_prints}</td>
                                         <td>
-                                            <span className={`status-pill ${station.pending_sync > 0 ? 'warning' : 'success'}`}>
-                                                {station.pending_sync > 0 ? `${station.pending_sync} Pending` : 'Synced'}
+                                            <span className={`status-pill ${(station.pending_sync ?? 0) > 0 ? 'warning' : 'success'}`}>
+                                                {(station.pending_sync ?? 0) > 0 ? `${station.pending_sync ?? 0} Pending` : 'Synced'}
                                             </span>
                                         </td>
                                     </tr>
@@ -257,7 +288,7 @@ export const DailyIntelligencePage: React.FC = () => {
                     </div>
                     <div className="chart-body">
                         <div className="leaderboard-list">
-                            {data?.photographers.slice(0, 5).map((p: any, idx: number) => (
+                            {data?.photographers.slice(0, 5).map((p, idx) => (
                                 <div key={p.photographer_id} className="leaderboard-item">
                                     <div className="rank">{idx + 1}</div>
                                     <img src={p.avatarUrl || `https://ui-avatars.com/api/?name=${p.name}`} alt="" className="avatar" />
@@ -266,7 +297,7 @@ export const DailyIntelligencePage: React.FC = () => {
                                         <span>{p.total_sales} Sales</span>
                                     </div>
                                     <div className="revenue">
-                                        ${p.total_revenue.toLocaleString()}
+                                        ${(p.total_revenue ?? 0).toLocaleString()}
                                     </div>
                                 </div>
                             ))}

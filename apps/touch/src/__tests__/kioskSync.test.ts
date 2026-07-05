@@ -1,3 +1,4 @@
+import { type Mock } from 'vitest';
 /**
  * Touch Kiosk Sync Tests
  * 
@@ -5,19 +6,19 @@
  */
 
 // Mock fetch
-global.fetch = jest.fn();
+global.fetch = vi.fn();
 
 describe('Touch Kiosk Sync', () => {
     const MASTER_URL = 'http://localhost:8090';
     const KIOSK_ID = 'KIOSK_001';
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('LAN Communication', () => {
         it('should pair with Master using QR code', async () => {
-            (global.fetch as jest.Mock).mockResolvedValueOnce({
+            (global.fetch as Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({
                     success: true,
@@ -37,7 +38,7 @@ describe('Touch Kiosk Sync', () => {
         });
 
         it('should send HMAC-signed requests to Master', async () => {
-            (global.fetch as jest.Mock).mockResolvedValueOnce({
+            (global.fetch as Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({ success: true })
             });
@@ -53,7 +54,7 @@ describe('Touch Kiosk Sync', () => {
                 body: JSON.stringify({ entity: 'orders', action: 'create' })
             });
 
-            const requestInit = (global.fetch as jest.Mock).mock.calls[0][1];
+            const requestInit = (global.fetch as Mock).mock.calls[0][1];
             expect(requestInit.headers['X-Kiosk-ID']).toBe(KIOSK_ID);
             expect(requestInit.headers['X-Signature']).toBeDefined();
         });
@@ -69,7 +70,7 @@ describe('Touch Kiosk Sync', () => {
                 kioskId: KIOSK_ID
             };
 
-            (global.fetch as jest.Mock).mockResolvedValueOnce({
+            (global.fetch as Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({ success: true, order })
             });

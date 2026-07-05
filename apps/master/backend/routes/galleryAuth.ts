@@ -1,9 +1,10 @@
 import express, { Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
-import { Logger } from "../shared/logger";
-import DatabaseManager from "../shared/db";
+import { Logger } from '../utils/logger';
+import DatabaseManager from '../database/db';
 import { EmailService } from "../services/emailService";
-
+import { strictRateLimiter } from '../middleware/rateLimiter';
+import { customRoutesSchemas } from '../utils/validation';
 interface GalleryAuthContext {
   dbManager: DatabaseManager;
   logger: Logger;
@@ -27,13 +28,13 @@ export default function galleryAuthRoutes(context: GalleryAuthContext): Router {
   /**
    * AUTHENTICATION PATH 1: Order Download Portal
    */
-  router.post("/order-login", async (req: Request, res: Response) => {
+  router.post("/order-login", strictRateLimiter, async (req: Request, res: Response) => {
     try {
-      const { orderId, customerEmail } = req.body;
-
-      if (!orderId || !customerEmail) {
-        return res.status(400).json({ error: "Order ID and email required" });
+      const parsed = customRoutesSchemas.orderLogin.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid order ID or email format" });
       }
+      const { orderId, customerEmail } = parsed.data;
 
       const order = dbManager.get(
         `SELECT o.*, a.id as albumId, a.title as albumName
@@ -84,15 +85,13 @@ export default function galleryAuthRoutes(context: GalleryAuthContext): Router {
   /**
    * AUTHENTICATION PATH 2: Magic Link
    */
-  router.post("/generate-magic-link", async (req: Request, res: Response) => {
+  router.post("/generate-magic-link", strictRateLimiter, async (req: Request, res: Response) => {
     try {
-      const { albumId, customerEmail } = req.body;
-
-      if (!albumId || !customerEmail) {
-        return res
-          .status(400)
-          .json({ error: "albumId and customerEmail required" });
+      const parsed = customRoutesSchemas.magicLink.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid album ID or email format" });
       }
+      const { albumId, customerEmail } = parsed.data;
 
       const album = dbManager.get("SELECT id FROM albums WHERE id = ?", [
         albumId,

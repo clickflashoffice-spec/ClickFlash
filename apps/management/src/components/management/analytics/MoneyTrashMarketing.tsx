@@ -1,15 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  Recycle,
+import {Recycle,
   TrendingUp,
   Users,
-  ShoppingBag,
   ArrowUpRight,
   Clock,
   Target,
   Mail,
-  Zap,
-} from "lucide-react";
+  Zap} from "lucide-react";
 import Card from "../../common/Card.tsx";
 import Spinner from "../../common/Spinner.tsx";
 import { apiService } from "../../../services/apiService.ts";
@@ -22,7 +19,7 @@ interface MoneyTrashMarketingProps {
 }
 
 const MoneyTrashMarketing: React.FC<MoneyTrashMarketingProps> = ({
-  currentUser,
+  currentUser: currentUser,
   context,
 }) => {
   const { formatCurrency } = useCurrency();
@@ -243,7 +240,7 @@ const MetricItem = ({
   value,
   color,
 }: {
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
   color: string;

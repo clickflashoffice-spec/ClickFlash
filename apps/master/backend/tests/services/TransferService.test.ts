@@ -1,6 +1,6 @@
 
 import { TransferService } from '../../services/TransferService';
-import { limitConcurrency } from '../../shared/limitConcurrency';
+import { limitConcurrency } from '../../middleware/limitConcurrency';
 import fs from 'fs';
 // import path from 'path'; // Unused
 
@@ -48,14 +48,26 @@ describe('TransferService', () => {
         const destinations = new Set<string>(['/mock/kiosk1', '/mock/kiosk2']);
 
         // Mock DB responses
-        mockDbManager.query
-            .mockReturnValueOnce([ // Photos
-                { id: 1, url: 'photo1.jpg' },
-                { id: 2, url: 'photo2.jpg' }
-            ])
-            .mockReturnValueOnce([ // Faces
-                { photoId: 1, descriptor: '[0.1, 0.2]' }
-            ]);
+        mockDbManager.query.mockImplementation((sql: string) => {
+            if (sql.includes('SELECT settings, uploadFolderPath FROM kiosks')) {
+                return [
+                    { uploadFolderPath: '/mock/kiosk1', settings: '' },
+                    { uploadFolderPath: '/mock/kiosk2', settings: '' }
+                ];
+            }
+            if (sql.includes('FROM photos')) {
+                return [ // Photos
+                    { id: 1, url: 'photo1.jpg' },
+                    { id: 2, url: 'photo2.jpg' }
+                ];
+            }
+            if (sql.includes('FROM faces')) {
+                return [ // Faces
+                    { photoId: 1, descriptor: '[0.1, 0.2]' }
+                ];
+            }
+            return [];
+        });
 
         mockDbManager.get.mockReturnValue({ title: 'Test Album' });
 
@@ -68,7 +80,7 @@ describe('TransferService', () => {
         // Verify
         expect(result.success).toBe(true);
         expect(result.copiedCount).toBe(4); // 2 photos * 2 destinations
-        expect(mockDbManager.query).toHaveBeenCalledTimes(2); // 1 for photos, 1 for faces
+        expect(mockDbManager.query).toHaveBeenCalledTimes(4); // 2 for kiosks, 1 for photos, 1 for faces
         expect(fs.promises.copyFile).toHaveBeenCalledTimes(4);
     });
 

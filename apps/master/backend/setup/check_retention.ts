@@ -1,5 +1,7 @@
-import { DatabaseManager } from "../shared/db.js";
+import { DatabaseManager } from "../database/db.js";
 import path from "path";
+
+import { logger } from "../utils/logger";
 
 async function check() {
   const dbPath = path.join(process.cwd(), "apps/master/pb_data/master.db");
@@ -11,8 +13,8 @@ async function check() {
     "SELECT asset_id, album_id FROM retention_queue LIMIT 5",
   );
 
-  console.log("PHOTO SAMPLES:", photos);
-  console.log("RETENTION SAMPLES:", retention);
+  logger.info("PHOTO SAMPLES:", photos);
+  logger.info("RETENTION SAMPLES:", retention);
 
   const countJoin = db.get(`
         SELECT COUNT(*) as count 
@@ -20,7 +22,7 @@ async function check() {
         JOIN photos p ON rq.asset_id = p.id
         WHERE rq.status = 'pending'
     `);
-  console.log("JOINED COUNT:", countJoin.count);
+  logger.info("JOINED COUNT:", countJoin.count);
 
   db.close();
 }

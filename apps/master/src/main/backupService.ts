@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { logger } from '@/utils/logger';
 
 export class BackupService {
     private static MAX_BACKUPS = 7;
@@ -17,21 +18,21 @@ export class BackupService {
             const destPath = path.join(backupDir, `master_${dateStr}.sqlite.bak`);
 
             if (fs.existsSync(destPath)) {
-                console.log(`[Backup] Already backed up for ${dateStr}`);
+                logger.info(`[Backup] Already backed up for ${dateStr}`);
                 return;
             }
 
             if (!fs.existsSync(dbPath)) {
-                console.warn(`[Backup] DB not found at ${dbPath}`);
+                logger.warn(`[Backup] DB not found at ${dbPath}`);
                 return;
             }
 
             await fs.promises.copyFile(dbPath, destPath);
-            console.log(`[Backup] Created ${destPath}`);
+            logger.info(`[Backup] Created ${destPath}`);
 
             await BackupService.cleanupOldBackups(backupDir);
         } catch (error) {
-            console.error('[Backup] Backup failed:', error);
+            logger.error('[Backup] Backup failed:', error);
         }
     }
 
@@ -48,7 +49,7 @@ export class BackupService {
 
         for (const file of backups.slice(BackupService.MAX_BACKUPS)) {
             await fs.promises.unlink(file.filePath);
-            console.log(`[Backup] Pruned old backup: ${file.name}`);
+            logger.info(`[Backup] Pruned old backup: ${file.name}`);
         }
     }
 }

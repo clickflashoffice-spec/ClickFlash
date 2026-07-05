@@ -152,14 +152,14 @@ fi
 
 # Step 6: Run database migrations
 log_info "Running database migrations..."
-if [ -d "${BACKEND_DIR}/shared/migrations" ]; then
+if [ -d "${BACKEND_DIR}/database/migrations" ]; then
     # Check for SQLite
     if command -v sqlite3 &> /dev/null; then
         DB_FILE="${PROJECT_DIR}/pb_data/data.db"
         mkdir -p "$(dirname "$DB_FILE")"
         
         # Run all migration files
-        for migration in "${BACKEND_DIR}/shared/migrations"/*.sql; do
+        for migration in "${BACKEND_DIR}/database/migrations"/*.sql; do
             if [ -f "$migration" ]; then
                 log_info "Applying migration: $(basename "$migration")"
                 sqlite3 "$DB_FILE" < "$migration" || log_warn "Migration may have already been applied"

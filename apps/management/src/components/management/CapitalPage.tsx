@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import Card from "../common/Card.tsx";
-import { Loan, Destination, LoanPayment } from "../../types.ts";
+import { Loan, LoanPayment } from "../../types.ts";
 import AddLoanModal from "./modals/AddLoanModal.tsx";
 import AddLoanPaymentModal from "./modals/AddLoanPaymentModal.tsx";
 import { useCurrency } from "../CurrencyContext.tsx";
@@ -15,7 +14,6 @@ interface CapitalPageProps {
 
 const CapitalPage: React.FC<CapitalPageProps> = ({ context }) => {
   const [loans, setLoans] = useState<Loan[]>([]);
-  const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -28,7 +26,7 @@ const CapitalPage: React.FC<CapitalPageProps> = ({ context }) => {
 
   const fetchData = async () => {
     try {
-      const [loansData, destData] = await Promise.all([
+      const [loansData] = await Promise.all([
         apiService.getLoans(),
         apiService.getDestinations(),
       ]);
@@ -37,7 +35,6 @@ const CapitalPage: React.FC<CapitalPageProps> = ({ context }) => {
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
         ),
       );
-      setDestinations(destData);
     } catch (error) {
       console.error("Failed to load capital data", error);
     } finally {
@@ -81,7 +78,7 @@ const CapitalPage: React.FC<CapitalPageProps> = ({ context }) => {
     return loans.filter((loan) => {
       // Assuming loans are linked to destinations or photographers who have destinations
       // For now, if loan has destinationId, filter by it
-      return (loan as any).destinationId === context;
+      return (loan as Loan & { destinationId?: string }).destinationId === context;
     });
   }, [loans, context]);
 

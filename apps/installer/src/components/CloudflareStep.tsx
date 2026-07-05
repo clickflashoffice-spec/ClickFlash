@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ArrowRight, ArrowLeft, Key, Globe, Server, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
-import { InstallerState, CURRENCIES } from "../types/installer";
+import { InstallerState } from "../types/installer";
 
 interface CloudflareStepProps {
   state: InstallerState;

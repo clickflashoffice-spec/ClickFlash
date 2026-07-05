@@ -16,28 +16,64 @@ FaceDetectionResult FaceWorker::detect(const QString& photoPath) {
         return result;
     }
     
-    cv::CascadeClassifier faceCascade;
-    QString cascadePath = ":/resources/haarcascade_frontalface_default.xml";
-    
-    if (!faceCascade.load(cascadePath.toStdString())) {
-        faceCascade = cv::CascadeClassifier();
+    // Try Deep Learning Face Detection first (ResNet-10 SSD)
+    cv::dnn::Net net;
+    bool useDnn = false;
+    try {
+        net = cv::dnn::readNetFromCaffe("models/deploy.prototxt", "models/res10_300x300_ssd_iter_140000.caffemodel");
+        useDnn = !net.empty();
+    } catch (...) {
+        CF_WARN("DNN face models not found, falling back to Haar Cascade");
     }
-    
-    cv::Mat gray;
-    cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
-    
+
     std::vector<cv::Rect> faces;
-    faceCascade.detectMultiScale(gray, faces, 1.1, 3, 0, cv::Size(30, 30));
+    std::vector<float> confidences;
+
+    if (useDnn) {
+        cv::Mat blob = cv::dnn::blobFromImage(image, 1.0, cv::Size(300, 300), cv::Scalar(104.0, 177.0, 123.0));
+        net.setInput(blob);
+        cv::Mat dnnResult = net.forward();
+        
+        // Output matrix is 4D: [1, 1, N, 7]
+        cv::Mat detectionMat(dnnResult.size[2], dnnResult.size[3], CV_32F, dnnResult.ptr<float>());
+        
+        for (int i = 0; i < detectionMat.rows; i++) {
+            float confidence = detectionMat.at<float>(i, 2);
+            if (confidence > 0.5) { // Threshold
+                int x1 = static_cast<int>(detectionMat.at<float>(i, 3) * image.cols);
+                int y1 = static_cast<int>(detectionMat.at<float>(i, 4) * image.rows);
+                int x2 = static_cast<int>(detectionMat.at<float>(i, 5) * image.cols);
+                int y2 = static_cast<int>(detectionMat.at<float>(i, 6) * image.rows);
+                
+                faces.push_back(cv::Rect(cv::Point(x1, y1), cv::Point(x2, y2)));
+                confidences.push_back(confidence);
+            }
+        }
+    } else {
+        // Fallback: Haar Cascades
+        cv::CascadeClassifier faceCascade;
+        QString cascadePath = ":/resources/haarcascade_frontalface_default.xml";
+        if (faceCascade.load(cascadePath.toStdString())) {
+            cv::Mat gray;
+            cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+            faceCascade.detectMultiScale(gray, faces, 1.1, 3, 0, cv::Size(30, 30));
+            // Haar doesn't natively return confidence in this API call, mock it based on detection bounds
+            for (size_t i = 0; i < faces.size(); i++) {
+                confidences.push_back(0.85f); 
+            }
+        }
+    }
     
     result.faceCount = static_cast<int>(faces.size());
     
-    for (const cv::Rect& face : faces) {
+    for (size_t i = 0; i < faces.size(); i++) {
+        const cv::Rect& face = faces[i];
         QVariantMap faceData;
         faceData["x"] = face.x;
         faceData["y"] = face.y;
         faceData["width"] = face.width;
         faceData["height"] = face.height;
-        faceData["confidence"] = 0.95;
+        faceData["confidence"] = confidences[i];
         result.faces.append(faceData);
     }
     

@@ -5,18 +5,27 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 const MONOREPO_ROOT = path.resolve(ROOT_DIR, '..', '..');
 const SRC_DIR = path.join(ROOT_DIR, 'backend');
 const DIST_DIR = path.join(ROOT_DIR, 'dist', 'backend');
-const UI_SRC = path.join(MONOREPO_ROOT, 'packages', 'ui', 'src');
-const UI_DEST = path.join(ROOT_DIR, 'src', 'components', 'ui');
+
+// Dependencies of native modules that must be available in production node_modules
+const NATIVE_MODULE_DEPS = [
+  'color',
+  'color-convert',
+  'color-name',
+  'color-string',
+  'detect-libc',
+  'semver',
+  'simple-swizzle',
+  'is-arrayish',
+];
 
 async function copyAssets() {
     console.log('[Assets] Copying static assets for Master...');
     console.log('[Assets] ROOT_DIR:', ROOT_DIR);
     console.log('[Assets] MONOREPO_ROOT:', MONOREPO_ROOT);
-    console.log('[Assets] UI_SRC:', UI_SRC);
 
     // Migrations
-    const srcMigrations = path.join(SRC_DIR, 'shared', 'migrations');
-    const destMigrations = path.join(DIST_DIR, 'shared', 'migrations');
+    const srcMigrations = path.join(SRC_DIR, 'database', 'migrations');
+    const destMigrations = path.join(DIST_DIR, 'database', 'migrations');
 
     if (await fs.pathExists(srcMigrations)) {
         await fs.copy(srcMigrations, destMigrations);
@@ -34,20 +43,41 @@ async function copyAssets() {
         console.log(`[Assets] Copied backend migrations to ${destBackendMigrations}`);
     }
 
-    // CRITICAL: Copy UI package components into master src for self-contained bundle
-    // This ensures NO external symlinks are needed in production
-    if (await fs.pathExists(UI_SRC)) {
-        await fs.ensureDir(UI_DEST);
-        await fs.copy(UI_SRC, UI_DEST, { overwrite: true });
-        console.log(`[Assets] Copied @clickflash/ui components to ${UI_DEST}`);
+    // CRITICAL: Copy native module dependencies into local node_modules
+    // pnpm doesn't hoist transitive deps, but electron-builder needs them locally
+    const pnpmModulesDir = path.join(MONOREPO_ROOT, 'node_modules', '.pnpm', 'node_modules');
+    const localNodeModules = path.join(ROOT_DIR, 'node_modules');
+    
+    for (const dep of NATIVE_MODULE_DEPS) {
+        const srcDep = path.join(pnpmModulesDir, dep);
+        const destDep = path.join(localNodeModules, dep);
         
-        // Copy package.json for UI package
-        const uiPkgJson = path.join(UI_SRC, '..', 'package.json');
-        if (await fs.pathExists(uiPkgJson)) {
-            await fs.copy(uiPkgJson, path.join(UI_DEST, 'package.json'));
+        if (await fs.pathExists(srcDep)) {
+            await fs.ensureDir(localNodeModules);
+            await fs.copy(srcDep, destDep, { overwrite: true });
+            console.log(`[Assets] Copied ${dep} to local node_modules`);
+        } else {
+            console.warn(`[Assets] Warning: ${dep} not found in pnpm store`);
         }
-    } else {
-        console.warn('[Assets] Warning: packages/ui not found - using existing src/components/ui');
+    }
+
+    // CRITICAL: Copy .trie files for fontkit (used by PDF generation)
+    const trieFiles = [
+        'node_modules/@foliojs-fork/fontkit/data.trie',
+        'node_modules/@foliojs-fork/fontkit/indic.trie',
+        'node_modules/@foliojs-fork/fontkit/use.trie',
+        'node_modules/@foliojs-fork/linebreak/src/classes.trie',
+    ];
+    
+    for (const trieFile of trieFiles) {
+        const srcTrie = path.join(ROOT_DIR, trieFile);
+        const destTrie = path.join(DIST_DIR, path.basename(trieFile));
+        if (await fs.pathExists(srcTrie)) {
+            await fs.copy(srcTrie, destTrie);
+            console.log(`[Assets] Copied ${trieFile} to dist/backend/`);
+        } else {
+            console.warn(`[Assets] Warning: ${trieFile} not found`);
+        }
     }
 
     console.log('[Assets] Done.');

@@ -2,11 +2,13 @@
 import express, { Request, Response, Router } from "express";
 import fs from "fs";
 import path from "path";
-import { Logger } from "../../shared/logger";
-import DatabaseManager from "../../shared/db";
+import { Logger } from '../../utils/logger';
+import DatabaseManager from '../../database/db';
 import { UPLOAD_DIR, DATA_DIR as _DATA_DIR } from "../../config/constants";
-import { sendInternalError, sendInvalidInputError } from "../../shared/errorHandler";
+import { sendInternalError, sendInvalidInputError } from '../../utils/errorHandler';
 import { TransferService } from "../../services/TransferService";
+import { strictRateLimiter } from '../../middleware/rateLimiter';
+import { customRoutesSchemas } from '../../utils/validation';
 
 interface OperationsContext {
   dbManager: DatabaseManager;
@@ -26,9 +28,11 @@ export default function operationsRoutes(context: OperationsContext): Router {
   /**
    * @route POST /data/refresh
    */
-  router.post("/data/refresh", (req: Request, res: Response) => {
+  router.post("/data/refresh", strictRateLimiter, (req: Request, res: Response) => {
     try {
-      logger.info("Data refresh requested", { collections: req.body?.collections });
+      const parsed = customRoutesSchemas.operationsDataRefresh.safeParse(req.body);
+      const collections = parsed.success ? parsed.data.collections : undefined;
+      logger.info("Data refresh requested", { collections });
       if (context.realtimeService) {
         context.realtimeService.broadcast({
           collection: "SYSTEM_DATA_REFRESH",
@@ -46,10 +50,13 @@ export default function operationsRoutes(context: OperationsContext): Router {
   /**
    * @route POST /kiosk/send-album
    */
-  router.post("/kiosk/send-album", async (req: Request, res: Response) => {
+  router.post("/kiosk/send-album", strictRateLimiter, async (req: Request, res: Response) => {
     try {
-      const { albumId, kioskId, photoIds, metadataOnly } = req.body;
-      if (!albumId) throw new Error("Album ID is required");
+      const parsed = customRoutesSchemas.operationsKioskSendAlbum.safeParse(req.body);
+      if (!parsed.success) {
+        return sendInvalidInputError(res, "Album ID is required or invalid format");
+      }
+      const { albumId, kioskId, photoIds, metadataOnly } = parsed.data;
 
       const destinations = new Set<string>();
       if (kioskId) {
@@ -83,7 +90,7 @@ export default function operationsRoutes(context: OperationsContext): Router {
   /**
    * @route POST /orders/:orderId/open-folder
    */
-  router.post("/orders/:orderId/open-folder", (req: Request, res: Response) => {
+  router.post("/orders/:orderId/open-folder", strictRateLimiter, (req: Request, res: Response) => {
     try {
       const orderId = String(req.params.orderId);
 
@@ -124,9 +131,10 @@ export default function operationsRoutes(context: OperationsContext): Router {
   /**
    * @route POST /settings/:namespace
    */
-  router.post("/settings/:namespace", (req: Request, res: Response) => {
+  router.post("/settings/:namespace", strictRateLimiter, (req: Request, res: Response) => {
     const { namespace } = req.params;
-    const valueStr = JSON.stringify(req.body);
+    const parsed = customRoutesSchemas.operationsSettingsNamespace.safeParse(req.body);
+    const valueStr = JSON.stringify(parsed.success ? parsed.data : {});
     const existing = dbManager.get("SELECT 1 FROM settings WHERE key = ?", [namespace]);
     if (existing) dbManager.run("UPDATE settings SET value = ? WHERE key = ?", [valueStr, namespace]);
     else dbManager.run("INSERT INTO settings (key, value) VALUES (?, ?)", [namespace, valueStr]);
@@ -160,7 +168,7 @@ export default function operationsRoutes(context: OperationsContext): Router {
   /**
    * @route POST /migrate-storage
    */
-  router.post("/migrate-storage", async (_req: Request, res: Response) => {
+  router.post("/migrate-storage", strictRateLimiter, async (_req: Request, res: Response) => {
     try {
       if (!context.photoProcessor) throw new Error("Photo processor not available");
       const photos = dbManager.query<any>("SELECT * FROM photos");
@@ -187,10 +195,11 @@ export default function operationsRoutes(context: OperationsContext): Router {
   /**
    * @route POST /config/import
    */
-  router.post("/config/import", (req: Request, res: Response) => {
+  router.post("/config/import", strictRateLimiter, (req: Request, res: Response) => {
     try {
-      const config = req.body;
-      if (!config || !config.deskId) return res.status(400).json({ error: "Invalid config" });
+      const parsed = customRoutesSchemas.operationsConfigImport.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid config", details: parsed.error.issues });
+      const config = parsed.data;
 
       const settings = { deskId: config.deskId, cloudUrl: config.cloudUrl, cloudEmail: config.cloudEmail };
       dbManager.transaction(() => {
@@ -216,7 +225,7 @@ export default function operationsRoutes(context: OperationsContext): Router {
   /**
    * @route POST /scale-validate
    */
-  router.post("/scale-validate", async (_req: Request, res: Response) => {
+  router.post("/scale-validate", strictRateLimiter, async (_req: Request, res: Response) => {
     try {
       const { ScaleValidator } = await import("../../services/ScaleValidator");
       const validator = new ScaleValidator(dbManager, logger);
@@ -234,12 +243,13 @@ export default function operationsRoutes(context: OperationsContext): Router {
    *        Deletes all personal data for a customer email from the source-of-truth DB.
    *        Requires authentication (enforced by global auth middleware).
    */
-  router.post("/erase-customer-data", async (req: Request, res: Response) => {
+  router.post("/erase-customer-data", strictRateLimiter, async (req: Request, res: Response) => {
     try {
-      const { email } = req.body as { email?: string };
-      if (!email || typeof email !== "string" || !email.includes("@")) {
+      const parsed = customRoutesSchemas.operationsEraseCustomerData.safeParse(req.body);
+      if (!parsed.success) {
         return sendInvalidInputError(res, "Valid customer email is required");
       }
+      const { email } = parsed.data;
 
       const db = dbManager.getDb();
       const normalizedEmail = email.toLowerCase().trim();
@@ -250,15 +260,34 @@ export default function operationsRoutes(context: OperationsContext): Router {
       const usersResult    = db.prepare("DELETE FROM users WHERE LOWER(email) = ?").run(normalizedEmail);
 
       // Anonymise photos referencing this customer's orders (retain for accounting audit trail)
-      db.prepare(`
-        UPDATE photos SET metadata = json_patch(metadata, '{"customer_email": null, "customer_name": null}')
-        WHERE json_extract(metadata, '$.customer_email') = ?
-      `).run(normalizedEmail);
+      // json_patch is NOT standard SQLite — use application-level JSON manipulation
+      const photoRows = db.prepare(`
+        SELECT id, metadata FROM photos WHERE json_extract(metadata, '$.customer_email') = ?
+      `).all(normalizedEmail) as Array<{ id: string; metadata: string }>;
+
+      let photosAnonymized = 0;
+      const updatePhotoMeta = db.prepare(`UPDATE photos SET metadata = ? WHERE id = ?`);
+
+      for (const row of photoRows) {
+        try {
+          const meta = JSON.parse(row.metadata);
+          meta.customer_email = null;
+          meta.customer_name = null;
+          updatePhotoMeta.run(JSON.stringify(meta), row.id);
+          photosAnonymized++;
+        } catch (parseErr) {
+          logger.warn("[GDPR] Failed to parse photo metadata for anonymization", {
+            photoId: row.id,
+            error: parseErr instanceof Error ? parseErr.message : String(parseErr),
+          });
+        }
+      }
 
       const deleted = {
         orders:   ordersResult.changes,
         bookings: bookingsResult.changes,
         users:    usersResult.changes,
+        photos:   photosAnonymized,
       };
 
       logger.info("[GDPR] Customer data erased", { email: normalizedEmail, deleted });

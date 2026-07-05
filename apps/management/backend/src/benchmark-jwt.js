@@ -1,17 +1,23 @@
 // benchmark-jwt.js
-import { sign, verify } from '@tsndr/cloudflare-worker-jwt';
-
-const JWT_SECRET = 'benchmark_secret_2026';
-const payload = { desk_id: 'site_alpha', role: 'Admin', exp: Math.floor(Date.now() / 1000) + 3600 };
-
+// Updated to use jose instead of @tsndr/cloudflare-worker-jwt.
 async function runBenchmark() {
-    console.log('--- JWT RS256 Performance Benchmark ---');
+    const { SignJWT, jwtVerify } = await import('jose');
+
+    const encoder = new TextEncoder();
+    const secretKey = encoder.encode('benchmark_secret_2026');
+    const payload = { desk_id: 'site_alpha', role: 'Admin' };
+
+    console.log('--- JWT HS256 Performance Benchmark ---');
     const start = Date.now();
     const iterations = 1000;
 
     for (let i = 0; i < iterations; i++) {
-        const token = await sign(payload, JWT_SECRET);
-        await verify(token, JWT_SECRET);
+        const token = await new SignJWT(payload)
+            .setProtectedHeader({ alg: 'HS256' })
+            .setIssuedAt()
+            .setExpirationTime('1h')
+            .sign(secretKey);
+        await jwtVerify(token, secretKey);
     }
 
     const end = Date.now();
@@ -28,4 +34,4 @@ async function runBenchmark() {
     }
 }
 
-runBenchmark();
+runBenchmark().catch(console.error);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export type Language = 'en' | 'gr' | 'es' | 'ar' | 'fr' | 'de';
 
@@ -13,14 +13,12 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-    const [language, setLanguageState] = useState<Language>('en');
-
-    useEffect(() => {
+    const [language, setLanguageState] = useState<Language>(() => {
+        if (typeof window === 'undefined') return 'en';
         const savedLang = localStorage.getItem('clickflash_lang') as Language;
-        if (savedLang && ['en', 'gr', 'es', 'ar', 'fr', 'de'].includes(savedLang)) {
-            setLanguageState(savedLang);
-        }
-    }, []);
+        if (savedLang && ['en', 'gr', 'es', 'ar', 'fr', 'de'].includes(savedLang)) return savedLang;
+        return 'en';
+    });
 
     const setLanguage = (lang: Language) => {
         setLanguageState(lang);

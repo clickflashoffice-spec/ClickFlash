@@ -1,5 +1,6 @@
 import { pb } from '../pb';
 import { Photographer } from '../../types';
+import { logger } from '@/utils/logger';
 
 const API_BASE = '/api/faces';
 
@@ -17,8 +18,8 @@ export const faceService = {
         });
 
         if (!response.ok) {
-            const error = await response.json().catch(() => ({ error: response.statusText }));
-            console.error('[FaceService] Register Error Response:', error);
+            const error = (await response.json().catch(() => ({ error: response.statusText }))) || { error: response.statusText || 'Unknown error' };
+            logger.error('[FaceService] Register Error Response:', error);
             throw new Error(error.message || error.error || 'Failed to register face');
         }
     },
@@ -33,8 +34,8 @@ export const faceService = {
         });
 
         if (!response.ok) {
-            const error = await response.json().catch(() => ({ error: response.statusText }));
-            console.error('[FaceService] Login Error Response:', error);
+            const error = (await response.json().catch(() => ({ error: response.statusText }))) || { error: response.statusText || 'Unknown error' };
+            logger.error('[FaceService] Login Error Response:', error);
             throw new Error(error.message || error.error || 'Failed to login with face');
         }
 

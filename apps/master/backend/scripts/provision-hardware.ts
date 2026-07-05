@@ -3,6 +3,7 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
+import { logger } from '../utils/logger';
 
 const ENV_PATH = path.join(__dirname, "../.env");
 
@@ -35,16 +36,16 @@ async function getMachineId(): Promise<string> {
         const rawId = components.join("|");
         return crypto.createHash("sha256").update(rawId).digest("hex");
     } catch (e) {
-        console.error("Error generating machine ID:", e);
+        logger.error("Error generating machine ID:", e);
         return "fallback-" + crypto.randomBytes(4).toString("hex");
     }
 }
 
 async function runProvisioning() {
-    console.log("--- ClickFlash Hardware Provisioning ---");
+    logger.info("--- ClickFlash Hardware Provisioning ---");
     
     const machineId = await getMachineId();
-    console.log(`- Generated Machine ID: ${machineId}`);
+    logger.info(`- Generated Machine ID: ${machineId}`);
 
     let envContent = "";
     if (fs.existsSync(ENV_PATH)) {
@@ -54,8 +55,8 @@ async function runProvisioning() {
     const envConfig = dotenv.parse(envContent);
     
     if (envConfig.MACHINE_ID && envConfig.MACHINE_ID !== "station_test_local_01") {
-        console.log(`[Warning] MACHINE_ID already set to: ${envConfig.MACHINE_ID}`);
-        console.log("To re-provision, manually clear MACHINE_ID from .env");
+        logger.info(`[Warning] MACHINE_ID already set to: ${envConfig.MACHINE_ID}`);
+        logger.info("To re-provision, manually clear MACHINE_ID from .env");
     } else {
         const lines = envContent.split("\n");
         let machineIdFound = false;
@@ -73,7 +74,7 @@ async function runProvisioning() {
         }
 
         fs.writeFileSync(ENV_PATH, updatedLines.join("\n"));
-        console.log(`- MACHINE_ID locked in .env`);
+        logger.info(`- MACHINE_ID locked in .env`);
     }
 
     // Update settings table if DB exists
@@ -91,18 +92,18 @@ async function runProvisioning() {
             } else {
                 db.prepare("INSERT INTO settings (key, value, created_at, updated_at) VALUES ('MACHINE_ID', ?, ?, ?)").run(machineId, now, now);
             }
-            console.log("- MACHINE_ID synchronized with settings database.");
+            logger.info("- MACHINE_ID synchronized with settings database.");
             db.close();
         } catch (e) {
-            console.log(`[Note] Could not update database directly (likely service is running). 
+            logger.info(`[Note] Could not update database directly (likely service is running). 
       Server will sync on next startup.`);
         }
     }
 
-    console.log("--- Provisioning Complete ---");
+    logger.info("--- Provisioning Complete ---");
 }
 
 runProvisioning().catch(err => {
-    console.error("Provisioning Failed:", err);
+    logger.error("Provisioning Failed:", err);
     process.exit(1);
 });

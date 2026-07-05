@@ -1,0 +1,29 @@
+{
+  "name": "@clickflash/config",
+  "version": "0.0.0",
+  "description": "Shared configuration files for the ClickFlash monorepo",
+  "private": true,
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./eslint": "./eslint.config.js",
+    "./prettier": "./prettier.config.js",
+    "./tsconfig": "./tsconfig.json",
+    "./tailwind": "./tailwind.config.js",
+    "./security-headers": "./src/security-headers.ts",
+    "./error-logger": "./src/error-logger.ts"
+  },
+  "files": [
+    "*.js",
+    "*.json",
+    "*.ts"
+  ],
+  "scripts": {
+    "clean": "rm -rf node_modules/.cache"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  }
+}

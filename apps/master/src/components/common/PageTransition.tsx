@@ -45,4 +45,5 @@ const PageTransition: React.FC<PageTransitionProps> = ({ children, viewKey }) =>
     );
 };
 
+PageTransition.displayName = 'PageTransition';
 export default React.memo(PageTransition);

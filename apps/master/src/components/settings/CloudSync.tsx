@@ -3,6 +3,7 @@ import Card from "../common/Card.tsx";
 import { apiService } from "../../services/apiService.ts";
 import { cloudConfigService } from "../../services/api/cloudConfigService.ts";
 import PageHeader from "../common/PageHeader";
+import { logger } from '@/utils/logger';
 
 interface SyncDataSummary {
   albums: number;
@@ -42,7 +43,7 @@ const CloudSync: React.FC<CloudSyncProps> = ({ showToast }) => {
       const data = await apiService.exportDataForSync();
       setSyncSummary(data.summary);
     } catch (err) {
-      console.error("Failed to prepare sync data:", err);
+      logger.error("Failed to prepare sync data:", err);
       setError("Could not gather data from the local database.");
     } finally {
       setIsLoading(false);
@@ -88,7 +89,7 @@ const CloudSync: React.FC<CloudSyncProps> = ({ showToast }) => {
         setSyncSummary(null);
       }, 2000);
     } catch (err: any) {
-      console.error("Sync failed:", err);
+      logger.error("Sync failed:", err);
       setError(`Sync failed: ${err.message || "Unknown error"}`);
       setIsUploading(false);
     }

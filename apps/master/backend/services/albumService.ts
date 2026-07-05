@@ -1,8 +1,8 @@
 // backend/services/albumService.ts
 // Album Service
 
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
 import RealtimeService from "./realtimeService";
 import { Album } from "../types/shared";
 

@@ -6,8 +6,8 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import formidable from "formidable";
-import { validateRequest } from "../shared/validation";
-import { hashPassword } from "../shared/auth";
+import { validateRequest } from '../utils/validation';
+import { hashPassword } from '../utils/passwordUtils';
 import {
   sendError,
   sendValidationError,
@@ -17,7 +17,7 @@ import {
   sendNotFoundError,
   sendFileError,
   ERROR_CODES,
-} from "../shared/errorHandler";
+} from '../utils/errorHandler';
 import {
   TABLE_MAP,
   COLUMN_MAP,
@@ -25,10 +25,11 @@ import {
   JSON_COLUMNS,
   IMPORT_DIR,
 } from "../config/constants";
-import DatabaseManager from "../shared/db";
-import { Logger } from "../shared/logger";
-import AuditLogger from "../shared/auditLogger";
-import { PhotoProcessor } from "../shared/photoProcessor";
+import DatabaseManager from '../database/db';
+import { Logger } from '../utils/logger';
+import AuditLogger from '../utils/auditLogger';
+import { PhotoProcessor } from '../services/photoProcessor';
+import { AICullingService } from '../services/aiCullingService';
 import RealtimeService from "../services/realtimeService";
 import { OrderValidationService } from "../services/OrderValidationService";
 
@@ -96,11 +97,14 @@ export default function collectionRoutes(context: CollectionsContext): Router {
       }
       
       const bodyStr = req.body && Object.keys(req.body).length > 0 ? JSON.stringify(req.body) : "";
-      const payload = `${kioskId}:${timestamp}:${req.method}:${req.path}:${bodyStr}`;
+      const fullPath = req.originalUrl.split('?')[0];
+      const payload = `${kioskId}:${timestamp}:${req.method}:${fullPath}:${bodyStr}`;
       const expectedSignature = crypto.createHmac("sha256", kiosk.signingSecret).update(payload).digest("hex");
       
       if (signature !== expectedSignature) {
         logger.warn(`[Collections] Invalid signature from kiosk ${kioskId}`);
+        logger.warn(`[Collections] Expected payload string: ${payload}`);
+        logger.warn(`[Collections] Provided signature: ${signature}, Expected: ${expectedSignature}`);
         return res.status(401).json({ error: "Unauthorized", message: "Invalid signature." });
       }
       
@@ -481,6 +485,16 @@ export default function collectionRoutes(context: CollectionsContext): Router {
               }
             }
           }
+
+          // Trigger AI Culling asynchronously for the newly ingested photo
+          if (saved.storagePath || saved.originalFilename) {
+             const aiService = new AICullingService(dbManager, logger);
+             const storagePath = saved.storagePath || `uploads/${saved.originalFilename}`;
+             // Kick off analysis without blocking the response
+             aiService.analyzePhoto(saved.id, storagePath).catch((err) => {
+                 logger.error(`[AI Culling] Failed to analyze photo ${saved.id} in background:`, err);
+             });
+          }
         } catch (_e) {
           logger.warn("[AutoCover] Failed to update album cover:", {
             error: _e instanceof Error ? _e.message : String(_e),
@@ -723,7 +737,8 @@ export default function collectionRoutes(context: CollectionsContext): Router {
         // 2. Guest/Kiosk Restrictions (Rule 02/08 Compliance)
         if (!user) {
           // Kiosks and Guests are strictly READ-ONLY on business operational data
-          if (req.method !== "GET" && ["albums", "photos", "orders", "session_types"].includes(table)) {
+          const isKioskPost = req.method === "POST" && req.headers["x-kiosk-id"];
+          if (!isKioskPost && req.method !== "GET" && ["albums", "photos", "orders", "session_types"].includes(table)) {
             // NOTE: Orders are pushed from Touch-App via orderExport.ts, NOT generic CRUD.
             // Generic CRUD POST /orders/records is blocked for guests to prevent spoofing.
             return sendError(res, 403, "Forbidden", "Write access restricted to authenticated staff.", ERROR_CODES.AUTHORIZATION_ERROR);
@@ -974,7 +989,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
    */
   router.post("/:collection/records", verifyKioskHmac, (req: Request, res: Response) => {
     const { table, collection } = req as CollectionRequest;
-    console.log(
+    logger.info(
       `[Collections] Received POST request for ${collection} (table: ${table})`,
     );
     const pathName = req.originalUrl;

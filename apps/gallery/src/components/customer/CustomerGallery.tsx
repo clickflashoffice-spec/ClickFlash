@@ -4,6 +4,13 @@ import BulkActionsBar from './BulkActionsBar';
 import { Photo } from '../../types.ts';
 import { getPhotoStyle } from '../../utils/styleUtils';
 
+// Mock semanticSearchWithGemini since geminiClient is missing
+const semanticSearchWithGemini = async (term: string, photos: Photo[]): Promise<Set<string>> => {
+    const searchLower = term.toLowerCase();
+    const matches = photos.filter(photo => photo.title.toLowerCase().includes(searchLower));
+    return new Set(matches.map(p => p.id));
+};
+
 const VIRTUAL_SCROLL_THRESHOLD = 100;
 
 type SortOption = 'date-desc' | 'date-asc' | 'title-asc' | 'title-desc' | 'favorites-first';
@@ -171,6 +178,9 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
     const [sortOption, setSortOption] = useState<SortOption>('date-desc');
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set());
+    const [isAiSearchEnabled, setIsAiSearchEnabled] = useState(true);
+    const [aiSearchResults, setAiSearchResults] = useState<Set<string> | null>(null);
+    const [isSearching, setIsSearching] = useState(false);
 
     const useVirtualScrolling = photos.length >= VIRTUAL_SCROLL_THRESHOLD;
 
@@ -178,6 +188,39 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
         const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 300);
         return () => clearTimeout(timer);
     }, [searchTerm]);
+
+    useEffect(() => {
+        if (!debouncedSearchTerm) {
+            setAiSearchResults(null);
+            setIsSearching(false);
+            return;
+        }
+
+        if (isAiSearchEnabled) {
+            let isCurrent = true;
+            setIsSearching(true);
+            
+            semanticSearchWithGemini(debouncedSearchTerm, photos)
+                .then((results: Set<string>) => {
+                    if (isCurrent) {
+                        setAiSearchResults(results);
+                        setIsSearching(false);
+                    }
+                })
+                .catch((err: any) => {
+                    console.error('AI Search failed', err);
+                    if (isCurrent) {
+                        setAiSearchResults(null);
+                        setIsSearching(false);
+                    }
+                });
+
+            return () => { isCurrent = false; };
+        } else {
+            setAiSearchResults(null);
+            setIsSearching(false);
+        }
+    }, [debouncedSearchTerm, isAiSearchEnabled, photos]);
 
     useEffect(() => {
         const updateHeight = () => {
@@ -194,8 +237,12 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
     const filteredAndSortedPhotos = useMemo(() => {
         let filtered = photos;
         if (debouncedSearchTerm) {
-            const searchLower = debouncedSearchTerm.toLowerCase();
-            filtered = filtered.filter(photo => photo.title.toLowerCase().includes(searchLower));
+            if (isAiSearchEnabled && aiSearchResults) {
+                filtered = filtered.filter(photo => aiSearchResults.has(photo.id));
+            } else if (!isAiSearchEnabled) {
+                const searchLower = debouncedSearchTerm.toLowerCase();
+                filtered = filtered.filter(photo => photo.title.toLowerCase().includes(searchLower));
+            }
         }
         if (filter !== 'all') {
             filtered = filtered.filter(photo => {
@@ -285,17 +332,30 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
                     </div>
 
                     <div className="flex-1 max-w-md">
-                        <div className="relative group">
+                        <div className="relative flex items-center group">
                             <input
                                 type="text"
-                                placeholder="Search by filename..."
+                                placeholder={isAiSearchEnabled ? "Ask AI (e.g. 'sunset', 'jumping')..." : "Search by filename..."}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-2.5 pl-11 text-white placeholder-slate-600 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 outline-none transition-all font-bold text-xs"
+                                className={`w-full bg-black/40 border rounded-2xl px-5 py-2.5 pl-11 pr-14 text-white placeholder-slate-600 outline-none transition-all font-bold text-xs ${isAiSearchEnabled ? 'border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/50' : 'border-white/5 focus:ring-2 focus:ring-white/20'}`}
                             />
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 transition-colors group-focus-within:text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
+                            {isSearching ? (
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin"></div>
+                            ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${isAiSearchEnabled ? 'text-cyan-500' : 'text-slate-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            )}
+                            <button
+                                onClick={() => setIsAiSearchEnabled(!isAiSearchEnabled)}
+                                className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all ${isAiSearchEnabled ? 'bg-cyan-500/20 text-cyan-400' : 'bg-white/5 text-slate-500 hover:text-slate-300'}`}
+                                title={isAiSearchEnabled ? "AI Search Active" : "Enable AI Search"}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
 

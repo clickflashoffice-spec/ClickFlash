@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { Logger } from '../shared/logger';
+import { Logger } from '../utils/logger';
 import { EmailService } from '../services/emailService';
+import { strictRateLimiter } from '../middleware/rateLimiter';
+import { customRoutesSchemas } from '../utils/validation';
 
 export default function notificationRoutes(context: { logger: Logger; emailService: EmailService }) {
     const router = Router();
@@ -11,14 +13,15 @@ export default function notificationRoutes(context: { logger: Logger; emailServi
      * Sends a gallery-ready notification to a customer.
      * Routed through the Cloudflare Hub Worker → Resend.
      */
-    router.post('/notify/customer', async (req: Request, res: Response): Promise<void> => {
+    router.post('/notify/customer', strictRateLimiter, async (req: Request, res: Response): Promise<void> => {
         try {
-            const { email, customerName, albumName, accessCode, url } = req.body;
+            const parsed = customRoutesSchemas.notificationCustomer.safeParse(req.body);
 
-            if (!email) {
-                res.status(400).json({ success: false, message: 'Missing recipient email' });
+            if (!parsed.success) {
+                res.status(400).json({ success: false, message: 'Missing recipient email or invalid data' });
                 return;
             }
+            const { email, customerName, albumName, accessCode, url } = parsed.data;
 
             const html = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

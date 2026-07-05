@@ -1,0 +1,78 @@
+config:
+  target: "https://moneytrash-api.clickflash-office.workers.dev"
+  phases:
+    - duration: 60
+      arrivalRate: 5
+    - duration: 120
+      arrivalRate: 20
+    - duration: 60
+      arrivalRate: 50
+    - duration: 60
+      arrivalRate: 5
+  defaults:
+    headers:
+      User-Agent: "Artillery API Load Test"
+      Authorization: "Bearer test-token"
+
+scenarios:
+  - name: "List Products"
+    weight: 40
+    requests:
+      - get:
+          url: "/products"
+          capture:
+            - json: "$.products[0].id"
+              as: "productId"
+
+  - name: "Get Product Details"
+    weight: 30
+    requests:
+      - get:
+          url: "/products/{{ productId }}"
+
+  - name: "Create Order"
+    weight: 20
+    requests:
+      - post:
+          url: "/orders"
+          json:
+            customerName: "Load Test"
+            customerEmail: "load@test.com"
+            items:
+              - productId: "photo-1"
+                quantity: 1
+                price: 10.00
+            total: 10.00
+
+  - name: "Health Check"
+    weight: 10
+    requests:
+      - get:
+          url: "/health"
+
+  - name: "Full Purchase Flow"
+    weight: 5
+    requests:
+      - get:
+          url: "/products"
+      - think: 2
+      - get:
+          url: "/products/{{ productId }}"
+      - think: 3
+      - post:
+          url: "/orders"
+          json:
+            customerName: "Load Test"
+            customerEmail: "load@test.com"
+            items:
+              - productId: "photo-1"
+                quantity: 1
+                price: 10.00
+            total: 10.00
+      - think: 1
+      - post:
+          url: "/payments"
+          json:
+            orderId: "{{ orderId }}"
+            paymentMethod: "card"
+            token: "tok_test"

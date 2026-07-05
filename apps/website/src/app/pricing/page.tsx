@@ -14,15 +14,68 @@ const packages: {
     highlighted?: boolean;
     cta: string;
 }[] = [
-        // ... (rest of packages remains same)
-    ];
+    {
+        name: "Starter",
+        description: "Perfect for independent photographers starting their digital journey.",
+        price: "Free",
+        features: [
+            "Up to 3 user accounts",
+            "Basic client galleries",
+            "5GB secure storage",
+            "Standard support",
+        ],
+        cta: "Start Free",
+    },
+    {
+        name: "Studio Pro",
+        description: "Everything a growing photography studio needs to thrive.",
+        price: "$49/mo",
+        features: [
+            "Unlimited users",
+            "1TB secure storage",
+            "AI face matching & auto-cull",
+            "White-label galleries",
+            "Referral program access",
+        ],
+        highlighted: true,
+        popular: true,
+        cta: "Start Free Trial",
+    },
+    {
+        name: "Enterprise",
+        description: "Custom solutions for high-volume agencies and resorts.",
+        price: "Custom",
+        features: [
+            "Unlimited storage",
+            "On-premise deployment options",
+            "Dedicated account manager",
+            "Custom API integrations",
+        ],
+        cta: "Contact Sales",
+    }
+];
 
 const faqs: {
     question: string;
     answer: string;
 }[] = [
-        // ... (rest of faqs remains same)
-    ];
+    {
+        question: "Is there a setup fee?",
+        answer: "No, there are no hidden setup fees. You can sign up and start using the platform immediately on the Starter or Studio Pro plans."
+    },
+    {
+        question: "Can I upgrade or downgrade anytime?",
+        answer: "Yes, you can manage your subscription from the ClickFlash Management Hub and adjust your tier at any time."
+    },
+    {
+        question: "What happens if I exceed my storage limit?",
+        answer: "We will notify you when you reach 90% of your storage limit. You can easily purchase additional storage packs or upgrade your tier."
+    },
+    {
+        question: "Is white-labeling included?",
+        answer: "White-labeling (removing the 'Powered by ClickFlash' branding from your client galleries) is included in the Studio Pro and Enterprise tiers."
+    }
+];
 
 export default function PricingPage() {
     return (
@@ -35,13 +88,13 @@ export default function PricingPage() {
                     transition={{ duration: 0.6 }}
                 >
                     <SectionHeader
-                        title="Photography Packages"
-                        subtitle="Crystal Clear Pricing"
+                        title="Platform Pricing"
+                        subtitle="Scale Your Studio"
                         align="center"
                         light={true}
                     />
                     <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium mt-8 leading-relaxed">
-                        Professional photography services tailored to your needs. From intimate portraits to grand celebrations across Greece and Spain.
+                        The ultimate ecosystem for photography businesses. Choose the tier that fits your growth.
                     </p>
                 </motion.div>
             </section>
@@ -86,7 +139,7 @@ export default function PricingPage() {
                             </ul>
 
                             <Link
-                                href="/bookings"
+                                href="/signup"
                                 className={`block w-full text-center py-5 px-8 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all transform active:scale-95 ${pkg.highlighted
                                     ? "bg-cyan-500 text-white hover:bg-slate-900 shadow-lg shadow-cyan-500/20"
                                     : "bg-slate-900 text-white hover:bg-cyan-500 shadow-lg shadow-slate-900/10"
@@ -131,23 +184,23 @@ export default function PricingPage() {
 
                     <div className="relative z-10 text-center px-2">
                         <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 mb-6 md:mb-8 tracking-tighter">
-                            Ready to <span className="text-cyan-500 italic">Capture?</span>
+                            Ready to <span className="text-cyan-500 italic">Upgrade?</span>
                         </h2>
                         <p className="text-slate-500 mb-8 md:mb-12 text-base md:text-lg font-medium max-w-xl mx-auto leading-relaxed">
-                            Contact us for a personalized quote or book your session today and secure your date across our premium locations.
+                            Start using the platform that powers the world's most successful photography studios.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center">
                             <Link
-                                href="/bookings"
+                                href="/signup"
                                 className="bg-cyan-500 text-white font-black uppercase tracking-widest text-[10px] md:text-[11px] py-4 md:py-6 px-8 md:px-12 rounded-full hover:bg-slate-900 transition-all shadow-xl shadow-cyan-500/20 active:scale-95"
                             >
-                                Book Now
+                                Start Free Trial
                             </Link>
                             <Link
                                 href="/contact"
                                 className="bg-transparent text-slate-900 font-black uppercase tracking-widest text-[10px] md:text-[11px] py-4 md:py-6 px-8 md:px-12 rounded-full hover:bg-slate-900 hover:text-white transition-all border-2 border-slate-300 active:scale-95"
                             >
-                                Contact Us
+                                Contact Sales
                             </Link>
                         </div>
                     </div>

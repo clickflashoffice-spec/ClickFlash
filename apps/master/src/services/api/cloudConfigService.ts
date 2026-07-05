@@ -5,6 +5,25 @@
  * Eliminates the dual localStorage vs SQLite config split.
  */
 import { pb } from '../pb';
+import { logger } from '@/utils/logger';
+import { z } from 'zod';
+
+export const cloudConfigSchema = z.object({
+  deskId: z.string().regex(/^[a-zA-Z0-9_-]+$/, 'Invalid Desk ID format').optional().or(z.literal('')),
+  deskName: z.string().optional(),
+  deskLocation: z.string().optional(),
+  hubUrl: z.string().url('Invalid Hub URL').optional().or(z.literal('')),
+  hubEmail: z.string().email('Invalid Hub Email').optional().or(z.literal('')),
+  hubPassword: z.string().optional(),
+  deskToken: z.string().optional(),
+  galleryUrl: z.string().url('Invalid Gallery URL').optional().or(z.literal('')),
+  galleryApiKey: z.string().optional(),
+  moneytrash: z.object({
+    enabled: z.boolean(),
+    retentionDays: z.number().min(1).max(365),
+    price: z.string()
+  }).optional()
+});
 
 export interface CloudConfig {
   deskId: string;
@@ -46,7 +65,7 @@ export const cloudConfigService = {
   /** Load the full config from the Master backend (SQLite via /api/network-settings) */
   async load(): Promise<CloudConfig> {
     try {
-      const res = await fetch("/api/network-settings");
+      const res = await fetch("/api/network/settings");
       if (res.ok) {
         const data = await res.json();
         return {
@@ -60,7 +79,7 @@ export const cloudConfigService = {
         };
       }
     } catch (e) {
-      console.warn("[CloudConfig] Failed to load from backend:", e);
+      logger.warn("[CloudConfig] Failed to load from backend:", e);
     }
     return { ...DEFAULTS };
   },
@@ -74,8 +93,17 @@ export const cloudConfigService = {
         retentionDays: Math.round(config.moneytrash.retentionDays),
       },
     };
+    // Zod validation before saving
+    try {
+      cloudConfigSchema.parse(sanitized);
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        throw new Error(e.issues[0].message);
+      }
+      throw e;
+    }
     const csrfToken = await pb.getCsrfToken();
-    const res = await fetch("/api/network-settings", {
+    const res = await fetch("/api/network/settings", {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",

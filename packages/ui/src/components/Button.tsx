@@ -1,6 +1,7 @@
 'use client';
 
-import React, { memo, forwardRef } from 'react';
+import type React from 'react';
+import { memo, forwardRef } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 

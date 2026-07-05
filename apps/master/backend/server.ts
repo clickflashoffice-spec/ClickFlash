@@ -4,20 +4,6 @@ dotenv.config();
 // Ensure NODE_ENV is always defined — rateLimiter and other middleware depend on it
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
-import { initSentry } from "./shared/sentryService";
-
-// P2-F: Sentry is activated when SENTRY_DSN env var is present.
-if (process.env.SENTRY_DSN) {
-  initSentry(
-    process.env.SENTRY_DSN,
-    process.env.NODE_ENV || "development",
-    `clickflash-master@${process.env.npm_package_version || "4.2.0"}`,
-    "master-backend"
-  ).then(() => {
-    console.info("[Sentry] Node.js error tracking ACTIVE");
-  }).catch(() => {});
-}
-
 import express, { Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
 import fs from "fs";
@@ -29,23 +15,17 @@ import helmet from "helmet";
 import { getTLSConfig, createSecureServer } from "./config/tlsConfig";
 
 // Shared Modules
-import rateLimiter, {
-  strictRateLimiter,
-  userRateLimiter,
-  setAuditLogger as setRateLimiterAuditLogger,
-} from "./shared/rateLimiter";
-import { getLocalNetworkIPs } from "./shared/networkDetection";
-import { DatabaseManager } from "./shared/db";
-import AuditLogger from "./shared/auditLogger";
-import { Logger } from "./shared/logger";
-import { PhotoProcessor } from "./shared/photoProcessor";
-import { ThermalService } from "./shared/thermalService";
-import { ResourceMonitor } from "./shared/ResourceMonitor";
+import rateLimiter, { userRateLimiter, setAuditLogger as setRateLimiterAuditLogger } from "./middleware/rateLimiter";
+import { getLocalNetworkIPs } from "./services/networkDetection";
+import { DatabaseManager } from "./database/db";
+import AuditLogger from "./utils/auditLogger";
+import { Logger } from "./utils/logger";
+import { PhotoProcessor } from "./services/photoProcessor";
+import { ThermalService } from "./services/thermalService";
+import { ResourceMonitor } from "./services/ResourceMonitor";
 
-import { sendNotFoundError } from "./shared/errorHandler";
-import { createErrorMiddleware } from "./shared/apiError";
-import { initDefaultUser } from "./shared/init-default-user";
-import { tunnelService } from "./services/tunnelService";
+import { sendNotFoundError } from "./utils/errorHandler";
+import { createErrorMiddleware } from "./utils/apiError";
 
 // Rule 05: Universal Environment Parity - Detection
 const isElectron = process.versions && !!process.versions.electron;
@@ -53,46 +33,21 @@ console.log(`[Environment] Running in ${isElectron ? "Electron" : "Web"} mode`);
 
 // Middleware
 import { createSessionMiddleware } from "./middleware/session";
+import { initCsrfTokenStore } from "./utils/csrfStore";
 import { csrfMiddleware } from "./middleware/csrf";
-import { initCsrfTokenStore } from "./shared/csrf";
 import { authMiddleware } from "./middleware/auth";
 import { createMutationAuditMiddleware } from "./middleware/mutationAudit";
 
 // Routes
-import authRoutes from "./routes/auth";
-import collectionRoutes from "./routes/collections";
-import systemRoutes from "./routes/system";
-import fileRoutes from "./routes/files";
-import realtimeRoutes from "./routes/realtime";
-import pairingRoutes from "./routes/pairing";
-import sessionTypeRoutes from "./routes/sessionTypes";
-import cullingRoutes from "./routes/culling";
-import cloudRoutes from "./routes/cloud";
-import faceRoutes from "./routes/faces";
-import orderRoutes from "./routes/orders";
-import notificationRoutes from "./routes/notification";
-import assistanceRoutes from "./routes/assistance";
-import galleryRoutes from "./routes/gallery";
-import galleryAuthRoutes from "./routes/galleryAuth";
-import galleryCheckoutRoutes from "./routes/galleryCheckout";
-import syncRoutes from "./routes/sync";
-import analyticsRoutes from "./routes/analytics";
-import marketingRoutes from "./routes/marketing";
-import dashboardRoutes from "./routes/dashboard";
-import healthRoutes from "./routes/health";
-import exportRoutes from "./routes/export";
-import { createResortAnalyticsRoutes } from "./routes/resortAnalytics";
-import setupRoutes from "./routes/setup";
-import backupRoutes from "./routes/backup";
+import { mountRoutes } from "./setup/routes";
+import { initializeEcosystem } from "./setup/bootstrap";
 
 // Services
-import startFolderMonitor from "./services/folderMonitor";
 import initWebSocketServer from "./services/websocket";
 import RealtimeService from "./services/realtimeService";
 import { NetworkMonitor } from "./services/NetworkMonitor";
 import { SyncManager } from "./services/SyncManager";
 import { CloudSyncService } from "./services/cloudSyncService";
-import MaintenanceService from "./services/maintenanceService";
 import { HardwareService } from "./services/HardwareService";
 import { OrderValidationService } from "./services/OrderValidationService";
 import { QueueProcessor } from "./services/QueueProcessor";
@@ -101,7 +56,6 @@ import { FulfillmentService } from "./services/FulfillmentService";
 import { FulfillmentSlipService } from "./services/FulfillmentSlipService";
 import MoneyTrashService from "./services/MoneyTrashService";
 import { EmailService } from "./services/emailService";
-import { BootstrapService } from "./services/provisioning/BootstrapService";
 import { BookingService } from "./services/bookingService";
 
 import { CampaignScheduler } from "./services/campaignScheduler";
@@ -112,8 +66,6 @@ import { MaintenancePoller } from "./services/MaintenancePoller";
 import { ExportService } from "./services/ExportService";
 import { ResortAnalyticsService } from "./services/ResortAnalyticsService";
 import { DiagnosticSyncService } from "./services/DiagnosticSyncService";
-import { FaceIndexingWorker } from "./services/FaceIndexingWorker";
-import startOrderWatcher from "./services/orderWatcher";
 
 // Configuration
 import {
@@ -155,7 +107,7 @@ requiredDirs.forEach((dir) => {
 export let dbManager: DatabaseManager;
 export let logger: Logger;
 export let auditLogger: AuditLogger;
-import { TokenRefreshService } from "./shared/tokenRefresh";
+import { TokenRefreshService } from "./middleware/tokenRefresh";
 export let tokenRefreshService: TokenRefreshService;
 
 try {
@@ -243,7 +195,6 @@ let ledgerService: LedgerService;
 let exportService: ExportService;
 let resortAnalytics: ResortAnalyticsService;
 let diagnosticSync: DiagnosticSyncService;
-let faceIndexingWorker: FaceIndexingWorker;
 
 try {
   // Write Queue (Zero-Block IO)
@@ -284,7 +235,6 @@ try {
   inventoryService = new InventoryService(dbManager, logger);
   ledgerService = new LedgerService(dbManager, logger);
   vectorIndex = VectorIndexService.getInstance(dbManager, logger);
-  faceIndexingWorker = new FaceIndexingWorker(dbManager, logger, vectorIndex, UPLOAD_DIR);
 
   // --- P3: Export Service (Law 14) ---
   exportService = new ExportService(logger, dbManager);
@@ -399,6 +349,7 @@ const context = {
   exportService,
   resortAnalytics,
   diagnosticSync,
+  auditService: null as any, // Will be set after initialization
 };
 
 // ... (middleware) ...
@@ -585,43 +536,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // --- Routes Mounting ---
-// Specific API routes
-// Auth routes get stricter rate limiting (5 req/min) to resist brute-force
-app.use("/api/auth", strictRateLimiter, authRoutes(context));
-app.use("/api/collections", collectionRoutes(context)); // Handles /:collection/records
-app.use("/api/cloud", cloudRoutes(context)); // Handles /status, /sync, /stats, /retention
-app.use("/api/session-types", sessionTypeRoutes(context)); // Handles /session-types
-app.use("/api/culling", cullingRoutes(context)); // Handles /culling/analyze, /culling/results
-app.use("/api/faces", faceRoutes(context)); // Handles /faces/search, /faces/reindex
-app.use("/api/orders", orderRoutes(context)); // Handles /orders fulfillment
-app.use("/api/analytics", analyticsRoutes(context));
-app.use("/api/marketing", marketingRoutes(context));
-app.use("/api/dashboard", dashboardRoutes(context)); // Handles /dashboard/system-health
-app.use("/api/health", healthRoutes(dbManager, thermalService)); // Federated deep diagnostics
-app.use("/api/export", exportRoutes(context as any)); // Phase P3: Backend Batch Export
-app.use("/api/backup", backupRoutes(context));      // Backup / Restore (admin-only)
-app.use(
-  "/api/resort-analytics",
-  createResortAnalyticsRoutes(resortAnalytics, logger),
-); // Phase 75: BI Dash
-
-// General API routes mounted at /api
-app.use("/api", fileRoutes(context)); // Handles /files and /settings/logo
-app.use("/api", systemRoutes(context)); // Handles /health, /ip, /printers, etc.
-app.use("/api", realtimeRoutes(context)); // Handles /realtime SSE
-app.use("/api", pairingRoutes(context)); // Handles /pairing
-app.use("/api", notificationRoutes(context)); // Handles /notify/customer
-app.use("/api", assistanceRoutes(context)); // Handles /assistance
-app.use("/api/gallery", galleryRoutes(context)); // Handles /gallery/export watermark generation
-app.use("/api/gallery-auth", strictRateLimiter, galleryAuthRoutes(context));
-app.use("/api/gallery-checkout", strictRateLimiter, galleryCheckoutRoutes(context));
-app.use("/api", syncRoutes(context as any)); // Mount /api/sync/mutation — Touch→Master push
-app.use("/api/setup", setupRoutes(context)); // 1-Click Installation endpoints
-
-// Fallback for unhandled API routes
-app.all(/\/api\/(.*)/, (_req: Request, res: Response) => {
-  sendNotFoundError(res, "API endpoint");
-});
+mountRoutes(app, context);
 
 // Static Serving (Web App)
 if (WEB_ROOT && fs.existsSync(WEB_ROOT)) {
@@ -664,79 +579,15 @@ if (process.env.ENABLE_CLOUDFLARED_TUNNEL === "true") {
   // Services started via initializeBackgroundServices()
 
 // Start Server
-// --- Unified Ecosystem Initialization (P3-D, P3-E) ---
-const initializeEcosystem = async () => {
-    logger.info("[Startup] Initiating architectural startup sequence...");
-    const bootTime = Date.now();
-
-    try {
-        // 1. Critical: Default User & Bootstrap
-        await initDefaultUser(dbManager);
-        const bootstrapService = new BootstrapService(dbManager, logger);
-        await bootstrapService.runIfRequired();
-        logger.info("[Startup] Data Integrity: Default User and Bootstrap checks verified.");
-
-        // 2. Critical: Vector Index
-        await vectorIndex.initialize();
-        faceIndexingWorker.start();
-        logger.info("[Startup] AI Layer: Vector Index + Face Indexing Worker initialized.");
-
-        // 3. Operational: Queue & Sync
-        queueProcessor.start();
-        maintenancePoller.start();
-        await cloudSyncService.syncRemoteSettings().catch((e: Error) => logger.warn("[Startup] Settings sync failed", { error: e.message }));
-        logger.info("[Startup] Core: Queue and Maintenance Poller active.");
-
-        // 4. Operational Workers (Law 13 Compliance)
-        startFolderMonitor(context as any);
-        logger.info("[Startup] Folder Monitor: Active (Law 13).");
-
-        const maintenanceService = new MaintenanceService(dbManager, logger);
-        maintenanceService.start();
-        logger.info("[Startup] Maintenance Agent: Active.");
-
-        startOrderWatcher(context);
-        logger.info("[Startup] Order Watcher: Active.");
-
-        // 5. External Hub Integrations
-        cloudSyncService.start();
-        logger.info("[Startup] Cloud Relay: Sync service started.");
-
-        moneyTrashService.start();
-        logger.info("[Startup] MoneyTrash Integration: Active.");
-
-        // 6. Cloudflare Tunnel (if configured)
-        if (process.env.TUNNEL_ID) {
-            tunnelService.start().then((started) => {
-                if (started) {
-                    logger.info("[Startup] Cloudflare Tunnel: Connected and routing traffic.");
-                } else {
-                    logger.warn("[Startup] Cloudflare Tunnel: Failed to start - check credentials and network.");
-                }
-            }).catch((err: Error) => {
-                logger.error("[Startup] Cloudflare Tunnel error:", { error: err?.message ?? String(err) });
-            });
-        } else {
-            logger.info("[Startup] Cloudflare Tunnel: Not configured (TUNNEL_ID not set).");
-        }
-
-        campaignScheduler.start();
-        logger.info("[Startup] Marketing Layer: Scheduler active.");
-
-        logger.info(`[Startup] Ecosystem initialized successfully in ${Date.now() - bootTime}ms.`);
-    } catch (err) {
-        const error = err instanceof Error ? err : new Error(String(err));
-        logger.error("[Startup] CRITICAL SYSTEM BOOT FAILURE:", {
-            message: error.message,
-            stack: error.stack
-        });
-    }
-};
-
 // Start Server
 const protocol = tlsConfig.enabled ? 'https' : 'http';
 server.listen(PORT, "0.0.0.0", async () => {
     try {
+        // Signal to parent process (Electron) that server is ready
+        if (process.send) {
+            process.send({ type: 'server-ready', port: PORT });
+        }
+
         const ips = getLocalNetworkIPs();
         logger.info(`[Titan Protocol] Master Server running on port ${PORT} (${protocol.toUpperCase()})`);
         ips.forEach((ip) =>
@@ -763,7 +614,7 @@ server.listen(PORT, "0.0.0.0", async () => {
         });
 
         // Fire off background services
-        await initializeEcosystem();
+        await initializeEcosystem(context);
 
         // Graceful shutdown: stop all background services before exit (P7 audit fix)
         const gracefulShutdown = async (signal: string) => {
@@ -846,7 +697,7 @@ server.on("error", (e: any) => {
 process.on("uncaughtException", async (err: Error) => {
     console.error("[FATAL] Uncaught Exception:", err.message, err.stack);
     try {
-        const { Logger: LoggerC } = await import("./shared/logger");
+        const { Logger: LoggerC } = await import("./utils/logger");
         const logDir = process.env.DATA_DIR || "./pb_data";
         const emergencyLogger = new LoggerC(logDir);
         emergencyLogger.error("[FATAL] Uncaught Exception", {
@@ -864,7 +715,7 @@ process.on("unhandledRejection", async (reason: unknown) => {
   const stack = reason instanceof Error ? reason.stack : undefined;
   console.error("[FATAL] Unhandled Promise Rejection:", message);
   try {
-    const { Logger: LoggerC } = await import("./shared/logger");
+    const { Logger: LoggerC } = await import("./utils/logger");
     const logDir = process.env.DATA_DIR || "./pb_data";
     const emergencyLogger = new LoggerC(logDir);
     emergencyLogger.error("[FATAL] Unhandled Promise Rejection", {

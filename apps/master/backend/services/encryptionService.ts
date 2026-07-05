@@ -14,8 +14,8 @@
 import Database from "better-sqlite3-multiple-ciphers";
 import crypto from "crypto";
 import fs from "fs";
-import path from "path";
-import { Logger } from "../shared/logger";
+
+import { Logger } from '../utils/logger';
 
 const PBKDF2_ITERATIONS = 100_000;
 const KEY_LENGTH = 32; // 256 bits

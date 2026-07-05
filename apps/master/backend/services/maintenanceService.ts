@@ -1,10 +1,11 @@
 // backend/services/maintenanceService.ts
 import fs from "fs";
 import path from "path";
-import DatabaseManager from "../shared/db";
-import { Logger } from "../shared/logger";
+import DatabaseManager from '../database/db';
+import { Logger } from '../utils/logger';
 import { ArchiveService } from "./ArchiveService";
 import { BACKUP_DIR, UPLOAD_DIR } from "../config/constants";
+import { runOrphanScan, ensureOrphanAuditSchema } from '../services/orphanScanner';
 
 /**
  * MaintenanceService - Rules 19, 20, 21
@@ -25,6 +26,7 @@ export default class MaintenanceService {
       archivalInterval: 24 * 60 * 60 * 1000, // Daily archival
       checkpointInterval: 4 * 60 * 60 * 1000, // 4 hours
       previewRepairInterval: 10 * 60 * 1000, // 10 minutes
+      orphanScanInterval: 6 * 60 * 60 * 1000, // 6 hours (P0-1 fix)
     };
   }
 
@@ -60,8 +62,34 @@ export default class MaintenanceService {
       this.intervalParams.previewRepairInterval,
     );
 
-    // Initial run
+    // P0-1: Orphan file scanner — every 6 hours
+    setInterval(
+      () => this.runOrphanScanSafe(),
+      this.intervalParams.orphanScanInterval,
+    );
+
+    // Initial runs
     setTimeout(() => this.repairAlbumPreviews(), 30 * 1000);
+    setTimeout(() => this.runOrphanScanSafe(), 60 * 1000); // 1 minute after boot
+  }
+
+  /**
+   * P0-1 fix: Run the bidirectional orphan scanner. Wrapped in try/catch
+   * so a scan failure cannot kill the maintenance interval loop.
+   */
+  private async runOrphanScanSafe(): Promise<void> {
+    try {
+      ensureOrphanAuditSchema(this.dbManager);
+      const report = await runOrphanScan(this.dbManager, this.logger);
+      if (report.dbToFs.missingHighres > 0) {
+        this.logger.warn(
+          `[Maintenance] Orphan scan flagged ${report.dbToFs.missingHighres} photo(s) with missing high-res on disk. ` +
+          `View with: SELECT * FROM orphan_audit WHERE scan_id='${report.scanId}'`,
+        );
+      }
+    } catch (err: any) {
+      this.logger.error("[Maintenance] Orphan scan failed", { error: err.message });
+    }
   }
 
   // Rule 21: Drive-Space Sentinel

@@ -154,6 +154,15 @@ CREATE TABLE IF NOT EXISTS webhook_events (
 CREATE INDEX IF NOT EXISTS idx_webhook_events_type ON webhook_events(type);
 CREATE INDEX IF NOT EXISTS idx_webhook_events_processed ON webhook_events(processed);
 
+-- Distributed rate limit counters (shared across Worker instances)
+CREATE TABLE IF NOT EXISTS rate_limits (
+    key TEXT PRIMARY KEY,
+    count INTEGER NOT NULL DEFAULT 0,
+    window_start TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_rate_limits_window_start ON rate_limits(window_start);
+
 -- API keys table (for rotation)
 CREATE TABLE IF NOT EXISTS api_keys (
     id TEXT PRIMARY KEY,

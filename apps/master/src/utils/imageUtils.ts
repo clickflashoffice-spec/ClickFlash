@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 /**
  * Image Utilities
@@ -143,7 +144,7 @@ export async function urlToInlineData(imageUrl: string): Promise<{ mimeType: str
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.error("Error converting URL to InlineData:", error);
+    logger.error("Error converting URL to InlineData:", { error });
     throw new Error("Could not convert image URL to InlineData.");
   }
 }
@@ -343,7 +344,7 @@ export function revokeBlob(url: string): void {
       URL.revokeObjectURL(url);
       blobRegistry.delete(url);
     } catch (e) {
-      console.warn('Failed to revoke blob URL:', url, e);
+      logger.warn('Failed to revoke blob URL', { url, error: e });
     }
   }
 }
@@ -360,7 +361,7 @@ export function cleanupAllBlobs(): void {
   blobRegistry.forEach(url => {
     try {
       URL.revokeObjectURL(url);
-    } catch (e) {
+    } catch (_e) {
       // Ignore errors during mass cleanup
     }
   });

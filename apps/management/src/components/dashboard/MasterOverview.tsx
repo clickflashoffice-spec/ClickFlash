@@ -1,18 +1,26 @@
 import React from "react";
 import Gauge from "../common/Gauge";
-import { useStation } from "../../context/StationContext";
+
+interface MasterOverviewKpis {
+  currentIncome: number;
+  monthlyIncome: number;
+  monthlyTarget: number;
+  basketAverage: number;
+  incomePerCustomer: number;
+  actualMeetingsAvg: number;
+  captureRate: number;
+  conversion: number;
+}
 
 interface MasterOverviewProps {
-  stats: any;
-  kpis: any;
+  stats: unknown;
+  kpis: MasterOverviewKpis;
 }
 
 const getPercentageValue = (val: number, max: number) =>
   Math.min(100, (val / max) * 100);
 
-const MasterOverview: React.FC<MasterOverviewProps> = ({ stats, kpis }) => {
-  const { selectedStationId } = useStation();
-
+const MasterOverview: React.FC<MasterOverviewProps> = ({ stats: stats, kpis }) => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* KPI Row */}

@@ -10,22 +10,30 @@ Write-Host "Starting ClickFlash Cloud Zero-Touch Deployment" -ForegroundColor Cy
 Write-Host "`n[0/4] Applying D1 migrations..." -ForegroundColor Yellow
 
 Write-Host "  Gallery DB migrations..." -ForegroundColor Gray
-npx wrangler d1 migrations apply gallery-db --config apps/gallery/backend/wrangler.toml
-if ($LASTEXITCODE -ne 0) { throw "Gallery D1 migration failed" }
+if (Test-Path "apps/gallery/backend/migrations") {
+    npx wrangler d1 migrations apply gallery-db --config apps/gallery/backend/wrangler.toml
+    if ($LASTEXITCODE -ne 0) { throw "Gallery D1 migration failed" }
+} else {
+    Write-Host "  No migrations found for Gallery DB, skipping..." -ForegroundColor Gray
+}
 
 Write-Host "  Management DB migrations..." -ForegroundColor Gray
-npx wrangler d1 migrations apply management-db --config apps/management/backend/wrangler.toml
-if ($LASTEXITCODE -ne 0) { throw "Management D1 migration failed" }
+if (Test-Path "apps/management/backend/migrations") {
+    npx wrangler d1 migrations apply management-db --config apps/management/backend/wrangler.toml
+    if ($LASTEXITCODE -ne 0) { throw "Management D1 migration failed" }
+} else {
+    Write-Host "  No migrations found for Management DB, skipping..." -ForegroundColor Gray
+}
 
 Write-Host "  D1 migrations applied successfully" -ForegroundColor Green
 
 # 1. Website (Next.js Pages)
-Write-Host "`n[1/4] Deploying Main Website..." -ForegroundColor Yellow
-Push-Location apps/website
-npm run build
-if ($LASTEXITCODE -ne 0) { throw "Website build failed" }
-npx wrangler pages deploy out --project-name clickflash-website
-Pop-Location
+# Handled via GitHub integration to avoid Windows Next-on-Pages limitations.
+Write-Host "`n[1/4] Skipping Main Website (Deployed via GitHub Integration)..." -ForegroundColor Yellow
+# Push-Location apps/website
+# npm run build
+# npx wrangler pages deploy .vercel/output/static --project-name clickflash-website
+# Pop-Location
 
 # 2. Management Hub (Worker + Pages)
 Write-Host "`n[2/4] Deploying Management Hub..." -ForegroundColor Yellow
@@ -57,8 +65,8 @@ Pop-Location
 Write-Host "`n[4/4] Verifying deployments..." -ForegroundColor Yellow
 
 $verifyUrls = @{
-  "Gallery API"    = "https://gallery-backend.clickflash.com/api/health"
-  "Management API" = "https://management-hub.clickflash.com/api/health"
+  "Gallery API"    = "https://gallery-backend.clickflash-office.workers.dev/api/health"
+  "Management API" = "https://management-hub.clickflash-office.workers.dev/api/health"
 }
 
 foreach ($name in $verifyUrls.Keys) {

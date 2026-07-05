@@ -1,5 +1,5 @@
 import Bonjour from "bonjour-service";
-import { Logger } from "../shared/logger";
+import { Logger } from '../utils/logger';
 
 export interface DiscoveredDevice {
   name: string;
@@ -66,9 +66,13 @@ export class MasterMdnsDiscovery {
   }
 
   stop(): void {
+    // @ts-ignore
     this.service?.stop();
+    // @ts-ignore
     this.browser?.stop();
-    this.bonjour.destroy();
+    if (this.bonjour && typeof (this.bonjour as any).destroy === 'function') {
+      (this.bonjour as any).destroy();
+    }
     this.logger.info("[mDNS] Discovery stopped");
   }
 

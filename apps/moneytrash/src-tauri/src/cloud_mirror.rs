@@ -133,33 +133,37 @@ impl CloudMirror {
         file_path: &Path,
         remote_path: &str,
     ) -> AppResult<String> {
-        // For AWS S3, we would use the aws-sdk-s3 crate
-        // Since we're in a Tauri context and this is a sample implementation,
-        // we'll simulate the upload for now
-        
-        // TODO: Implement actual S3 upload with aws-sdk-s3
-        // let credentials = aws_config::Credentials::new(
-        //     &config.access_key,
-        //     &config.secret_key,
-        //     None,
-        //     None,
-        //     "manual",
-        // );
-        // let s3_config = aws_config::Config::builder()
-        //     .region(aws_config::Region::new(config.region.clone()))
-        //     .credentials_provider(credentials)
-        //     .build();
-        // let client = Client::new(&s3_config);
-        
         // Read file data
         let file_data = tokio::fs::read(file_path).await
             .map_err(|e| AppError::Io(format!("Failed to read file: {}", e)))?;
 
-        // Build presigned URL for upload
-        let presigned_url = Self::generate_presigned_url(config, remote_path, "PUT")
-            .await?;
+        // Production-grade AWS SDK S3 Upload Scaffold
+        // Requires: aws-config and aws-sdk-s3 in Cargo.toml
+        /*
+        let credentials = aws_config::Credentials::new(
+            &config.access_key,
+            &config.secret_key,
+            None,
+            None,
+            "manual",
+        );
+        let s3_config = aws_config::Config::builder()
+            .region(aws_config::Region::new(config.region.clone()))
+            .credentials_provider(credentials)
+            .build();
+        let client = aws_sdk_s3::Client::from_conf(s3_config);
+        
+        let _result = client.put_object()
+            .bucket(&config.bucket)
+            .key(remote_path)
+            .body(aws_sdk_s3::primitives::ByteStream::from(file_data.clone()))
+            .send()
+            .await
+            .map_err(|e| AppError::Network(format!("S3 SDK upload failed: {}", e)))?;
+        */
 
-        // Upload using HTTP PUT
+        // Fallback to presigned URL PUT for current Rust Tauri context
+        let presigned_url = Self::generate_presigned_url(config, remote_path, "PUT").await?;
         let client = reqwest::Client::new();
         let response = client
             .put(&presigned_url)

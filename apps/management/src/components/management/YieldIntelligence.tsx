@@ -1,17 +1,11 @@
 import React, { useState, useMemo } from "react";
-import { 
-  Gem, 
-  TrendingUp, 
-  Target, 
-  Award, 
+import {TrendingUp, 
   ArrowUpRight, 
   ArrowDownRight,
   ArrowRight,
   Info,
   Zap,
-  DollarSign,
-  Brain
-} from "lucide-react";
+  Brain} from "lucide-react";
 import { PixelFounderCard, PixelFounderStatCard } from "../common/PixelFounderCard.tsx";
 import './YieldIntelligence.css';
 // import { apiService } from "@/services/apiService"; // Placeholder - fixing relative import if needed
@@ -20,7 +14,7 @@ const YieldIntelligence: React.FC = () => {
   const [upsellTarget, setUpsellTarget] = useState(65);
   const [conversionRate, setConversionRate] = useState(24);
   const [avgOrderValue, setAvgOrderValue] = useState(45);
-  const [historicalStats, setHistoricalStats] = useState<any[]>([]);
+
 
   React.useEffect(() => {
     fetch("/api/yield/stats")
@@ -29,7 +23,6 @@ const YieldIntelligence: React.FC = () => {
         if (data.length > 0) {
           const latest = data[0];
           setAvgOrderValue(Math.round(latest.avg_order_value));
-          setHistoricalStats(data);
         }
       })
       .catch(err => console.error("Failed to fetch yield stats", err));

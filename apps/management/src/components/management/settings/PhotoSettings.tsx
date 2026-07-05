@@ -42,7 +42,7 @@ const PhotoSettings: React.FC = () => {
     isLoading,
   } = useSystemSetting<PhotoSettingsType>("photoSettings", DEFAULT_SETTINGS);
 
-  const handleChange = (field: keyof PhotoSettingsType, value: any) => {
+  const handleChange = (field: keyof PhotoSettingsType, value: PhotoSettingsType[keyof PhotoSettingsType]) => {
     setSettings({ ...settings, [field]: value });
   };
 

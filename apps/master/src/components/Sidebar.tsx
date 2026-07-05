@@ -12,6 +12,7 @@ import { pb } from "../services/pb.ts";
 import { useSync } from "../context/SyncContext";
 import { BarChart3 } from "lucide-react";
 import DailyResortStatsModal from "./modals/DailyResortStatsModal";
+import { logger } from '@/utils/logger';
 
 interface SidebarProps {
   currentView: View;
@@ -295,7 +296,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         // This could be a separate endpoint or handled by the same one
       }
     } catch (error) {
-      console.error("Failed to save daily stats:", error);
+      logger.error("Failed to save daily stats:", error);
     } finally {
       setIsSavingStats(false);
       setIsDailyStatsOpen(false);
@@ -309,7 +310,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       }
       setIsFullscreen(false);
     } catch (error) {
-      console.error("Failed to exit kiosk/fullscreen:", error);
+      logger.error("Failed to exit kiosk/fullscreen:", error);
     }
   };
 
@@ -347,7 +348,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch((err) => {
-        console.error(
+        logger.error(
           `Error attempting to enable full-screen mode: ${err.message}`,
         );
       });

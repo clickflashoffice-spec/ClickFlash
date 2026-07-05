@@ -4,6 +4,7 @@ import Card from '../common/Card.tsx';
 import OnScreenKeyboard from './OnScreenKeyboard';
 import { syncService } from '../../services/syncService.ts';
 import type { PairingData } from '../../types/pairing.ts';
+import { logger } from '@/utils/logger';
 
 interface TouchConnectionSetupProps {
     onConnected: (ip?: string, wsUrl?: string, pairingToken?: string) => void;
@@ -46,6 +47,32 @@ const TouchConnectionSetup: React.FC<TouchConnectionSetupProps> = ({ onConnected
                 setPairingToken(data.pairingToken);
                 setQrData(data);
 
+                // Phase 4: Auto-configure paths from QR (zero-config pairing)
+                if (data.uploadFolderPath || data.ordersFolderPath) {
+                    try {
+                        // Persist auto-paths to Touch local DB
+                        const settings = [];
+                        if (data.uploadFolderPath) {
+                            settings.push({ id: 'sharedFolderPath', key: 'sharedFolderPath', value: JSON.stringify({ path: data.uploadFolderPath }) });
+                        }
+                        if (data.ordersFolderPath) {
+                            settings.push({ id: 'touchOrdersFolder', key: 'touchOrdersFolder', value: JSON.stringify({ path: data.ordersFolderPath }) });
+                        }
+                        // Fire-and-forget: save to local backend
+                        Promise.all(settings.map(s =>
+                            fetch(`http://localhost:8091/api/collections/settings/records`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(s)
+                            }).catch(() => null)
+                        )).then(() => {
+                            logger.info('[Pairing] Auto-paths saved to local DB');
+                        });
+                    } catch (pathErr) {
+                        logger.warn('[Pairing] Failed to save auto-paths:', pathErr);
+                    }
+                }
+
                 // Auto-test connection
                 setTimeout(() => handleTestConnection(), 500);
             } catch (e) {
@@ -57,7 +84,7 @@ const TouchConnectionSetup: React.FC<TouchConnectionSetupProps> = ({ onConnected
                         setIpAddress(host);
                     }
                 } catch (urlError) {
-                    console.error('Failed to parse QR data:', e);
+                    logger.error('Failed to parse QR data:', e);
                 }
             }
         } else {
@@ -100,7 +127,7 @@ const TouchConnectionSetup: React.FC<TouchConnectionSetupProps> = ({ onConnected
                         }
                     }
                 } catch (e) {
-                    console.warn('Discovery failed:', e);
+                    logger.warn('Discovery failed:', e);
                 }
             };
             discoverMaster();
@@ -141,7 +168,7 @@ const TouchConnectionSetup: React.FC<TouchConnectionSetupProps> = ({ onConnected
 
             return await res.json();
         } catch (e) {
-            console.error('Pairing validation error:', e);
+            logger.error('Pairing validation error:', e);
             throw e;
         }
     };
@@ -198,9 +225,9 @@ const TouchConnectionSetup: React.FC<TouchConnectionSetupProps> = ({ onConnected
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ id: 'kioskId', key: 'kioskId', value: resolvedKioskId })
                             });
-                            console.log('[Pairing] Signing credentials persisted to local DB');
+                            logger.info('[Pairing] Signing credentials persisted to local DB');
                         } catch (dbErr) {
-                            console.warn('[Pairing] Failed to persist signing secret to local DB:', dbErr);
+                            logger.warn('[Pairing] Failed to persist signing secret to local DB:', dbErr);
                         }
 
                         localStorage.setItem('signingSecret', validation.signingSecret);

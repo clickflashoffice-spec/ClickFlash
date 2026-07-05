@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import { logger } from '@/utils/logger';
 
 /**
  * useKeyboardShortcuts Hook
@@ -30,7 +31,7 @@ export const useKeyboardShortcuts = (
 
         // Check key - Defensive check for keyCombo to prevent crash
         if (!keyCombo) {
-            console.warn('[useKeyboardShortcuts] Hook called with undefined/null keyCombo');
+            logger.warn('[useKeyboardShortcuts] Hook called with undefined/null keyCombo');
             return;
         }
 

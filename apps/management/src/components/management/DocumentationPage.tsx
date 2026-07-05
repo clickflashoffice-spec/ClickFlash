@@ -17,7 +17,7 @@ interface DocumentationPageProps {
 }
 
 const DocumentationPage: React.FC<DocumentationPageProps> = ({
-  currentUser,
+  currentUser: currentUser,
 }) => {
   const [activeSection, setActiveSection] = useState("overview");
 
@@ -29,7 +29,15 @@ const DocumentationPage: React.FC<DocumentationPageProps> = ({
     { id: "security", label: "Security & Auth", icon: Shield },
   ];
 
-  const SidebarItem = ({ id, label, icon: Icon }: any) => (
+  const SidebarItem = ({
+    id,
+    label,
+    icon: Icon,
+  }: {
+    id: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }) => (
     <button
       onClick={() => setActiveSection(id)}
       className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${

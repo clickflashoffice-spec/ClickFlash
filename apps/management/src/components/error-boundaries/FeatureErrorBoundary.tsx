@@ -64,12 +64,13 @@ export class FeatureErrorBoundary extends Component<Props, State> {
         }
 
         // Send to Sentry in production
-        if (import.meta.env.PROD && (window as any).Sentry) {
-            (window as any).Sentry.withScope((scope: any) => {
+        if (import.meta.env.PROD && (window as unknown as { Sentry?: { withScope: (cb: (scope: { setTag: (k: string, v: string) => void; setExtra: (k: string, v: unknown) => void }) => void) => void; captureException: (e: Error) => void } }).Sentry) {
+            const sentryWindow = window as unknown as { Sentry: { withScope: (cb: (scope: { setTag: (k: string, v: string) => void; setExtra: (k: string, v: unknown) => void }) => void) => void; captureException: (e: Error) => void } };
+            sentryWindow.Sentry.withScope((scope) => {
                 scope.setTag('feature', feature);
                 scope.setTag('severity', severity);
                 scope.setExtra('componentStack', errorInfo.componentStack);
-                (window as any).Sentry.captureException(error);
+                sentryWindow.Sentry.captureException(error);
             });
         }
     }

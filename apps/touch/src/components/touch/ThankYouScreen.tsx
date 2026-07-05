@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface ThankYouScreenProps {
     orderId: string;
@@ -39,6 +40,21 @@ const ThankYouScreen: React.FC<ThankYouScreenProps> = ({ orderId, name, email, o
                     <p className="text-xl mt-2">A confirmation has been sent to <span className="font-bold">{email}</span>.</p>
                 </>
             )}
+            
+            {/* Apple Wallet QR Code */}
+            {!isOffline && (
+                <div className="mt-8 flex flex-col items-center bg-white p-4 rounded-2xl shadow-2xl">
+                    <p className="text-gray-800 font-bold mb-2">Scan to add to Apple Wallet</p>
+                    <QRCodeSVG
+                        value={`${window.location.origin}/api/gallery/wallet-pass?orderId=${orderId}`}
+                        size={150}
+                        bgColor={"#ffffff"}
+                        fgColor={"#000000"}
+                        level={"L"}
+                    />
+                </div>
+            )}
+
             <p className={`text-lg mt-12 ${textColor}`}>This screen will reset automatically for the next guest.</p>
         </div>
     );

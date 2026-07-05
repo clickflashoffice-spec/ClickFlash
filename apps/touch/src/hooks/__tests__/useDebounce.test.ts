@@ -7,11 +7,11 @@ import { useDebounce } from '../useDebounce';
 
 describe('useDebounce', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('should return initial value immediately', () => {
@@ -33,7 +33,7 @@ describe('useDebounce', () => {
 
     // Fast-forward past the delay
     act(() => {
-      jest.advanceTimersByTime(500);
+      vi.advanceTimersByTime(500);
     });
 
     // Now value should be updated
@@ -51,7 +51,7 @@ describe('useDebounce', () => {
     
     // Advance partially
     act(() => {
-      jest.advanceTimersByTime(300);
+      vi.advanceTimersByTime(300);
     });
     
     // Second change
@@ -59,7 +59,7 @@ describe('useDebounce', () => {
     
     // Advance remaining time of first delay
     act(() => {
-      jest.advanceTimersByTime(200);
+      vi.advanceTimersByTime(200);
     });
     
     // Should still be initial (timer was reset)
@@ -67,7 +67,7 @@ describe('useDebounce', () => {
     
     // Advance full second delay
     act(() => {
-      jest.advanceTimersByTime(500);
+      vi.advanceTimersByTime(500);
     });
     
     // Now should be change2
@@ -83,7 +83,7 @@ describe('useDebounce', () => {
     rerender({ value: 100, delay: 300 });
     
     act(() => {
-      jest.advanceTimersByTime(300);
+      vi.advanceTimersByTime(300);
     });
     
     expect(result.current).toBe(100);

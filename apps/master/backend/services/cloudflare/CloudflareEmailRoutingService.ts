@@ -5,7 +5,7 @@
  * Routes: admin@, alerts@, orders@ to configured destinations
  */
 
-import { Logger } from '../../shared/logger';
+import { Logger } from '../../utils/logger';
 import { z } from 'zod';
 
 export const EmailRoutingConfigSchema = z.object({

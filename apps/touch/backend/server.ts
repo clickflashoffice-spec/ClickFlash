@@ -14,13 +14,12 @@ import { DatabaseManager } from "./shared/db";
 import { verifyPassword, hashPassword } from "./shared/auth";
 import { validateRequest, validateLogin } from "./shared/validation";
 import AuditLogger from "./shared/auditLogger";
-import { Logger } from "./shared/logger";
+import { logger } from "./shared/logger";
 import PhotoProcessor from "./shared/photoProcessor";
 import rateLimiter, {
   setAuditLogger as setRateLimiterAuditLogger,
 } from "./shared/rateLimiter";
 import { initDefaultUser } from "./shared/init-default-user";
-import { initSentry } from "./shared/sentryService";
 
 import createAuthRouter from "./routes/auth";
 import createCollectionsRouter from "./routes/collections";
@@ -53,7 +52,7 @@ import {
 // Rule 05: Universal Environment Parity - Detection
 const isElectron = process.versions && !!process.versions.electron;
 const isWeb = !isElectron;
-console.log(`[Environment] Running in ${isElectron ? "Electron" : "Web"} mode`);
+logger.info(`[Environment] Running in ${isElectron ? "Electron" : "Web"} mode`);
 
 // Fix for __dirname in ESM (Not needed for CommonJS target, but keeping for reference if we switch)
 // const __filename = fileURLToPath(import.meta.url);
@@ -66,7 +65,7 @@ dotenv.config();
 
 // Global Error Handling
 process.on("uncaughtException", (err: Error) => {
-  console.error("[FATAL] Uncaught Exception:", err);
+  logger.error("[FATAL] Uncaught Exception:", err);
   try {
     fs.appendFileSync(
       "touch_crash.log",
@@ -80,7 +79,7 @@ process.on("uncaughtException", (err: Error) => {
 
 process.on("unhandledRejection", (reason: unknown) => {
   const msg = reason instanceof Error ? reason.message : String(reason);
-  console.error("[FATAL] Unhandled Rejection:", msg);
+  logger.error("[FATAL] Unhandled Rejection:", msg);
   try {
     fs.appendFileSync(
       "touch_crash.log",
@@ -112,23 +111,15 @@ const photoProcessor = new PhotoProcessor(UPLOAD_DIR);
 const app = express();
 
 // --- Startup Diagnostics ---
-console.log("========================================");
-console.log("ClickFlash Photography OS - Touch Backend Server");
-console.log("========================================");
-console.log(`[Startup] Port: ${PORT}`);
-console.log(`[Startup] Data Directory: ${DATA_DIR}`);
-console.log(`[Startup] Environment: ${process.env.NODE_ENV || "development"}`);
-
-// 0. Initialize Sentry
-if (process.env.SENTRY_DSN) {
-  initSentry(process.env.SENTRY_DSN, process.env.NODE_ENV || 'development')
-    .then(() => console.log('[Init] Sentry initialized'))
-    .catch(err => console.error('[Init] Sentry initialization failed:', err));
-}
+logger.info("========================================");
+logger.info("ClickFlash Photography OS - Touch Backend Server");
+logger.info("========================================");
+logger.info(`[Startup] Port: ${PORT}`);
+logger.info(`[Startup] Data Directory: ${DATA_DIR}`);
+logger.info(`[Startup] Environment: ${process.env.NODE_ENV || "development"}`);
 
 // --- Services & Global State ---
 let dbManager: DatabaseManager;
-let logger: Logger;
 let auditLogger: AuditLogger;
 
 // --- Initialization ---
@@ -148,10 +139,10 @@ try {
   const testFile = path.join(DATA_DIR, ".write-test");
   fs.writeFileSync(testFile, "test");
   fs.unlinkSync(testFile);
-  console.log("[Init] Storage verified");
+  logger.info("[Init] Storage verified");
 
   // --- Database ---
-  console.log("[Init] Initializing database...");
+  logger.info("[Init] Initializing database...");
   const MIGRATIONS_DIR = path.join(__dirname, "migrations");
   dbManager = new DatabaseManager(DB_FILE);
   dbManager.connect(MIGRATIONS_DIR);
@@ -170,25 +161,25 @@ try {
         new Date().toISOString(),
       ],
     );
-    console.log(
+    logger.info(
       `[Init] Created default touchOrdersFolder setting: ${ORDERS_DIR}`,
     );
   }
-  console.log(`[Init] Database connected`);
+  logger.info(`[Init] Database connected`);
 
   // --- Security Validation ---
   if (process.env.NODE_ENV === 'production') {
     const jwtSecretFile = path.join(DATA_DIR, 'jwt.secret');
     if (!fs.existsSync(jwtSecretFile)) {
-      console.warn('[Security] JWT secret will be generated on first start. Consider pre-generating with: openssl rand -hex 64');
+      logger.warn('[Security] JWT secret will be generated on first start. Consider pre-generating with: openssl rand -hex 64');
     }
     
     if (!process.env.KIOSK_PASSWORD) {
-      console.warn('[Security] KIOSK_PASSWORD not set. Kiosk exit will require database configuration.');
+      logger.warn('[Security] KIOSK_PASSWORD not set. Kiosk exit will require database configuration.');
     }
     
     if (!process.env.DEFAULT_ADMIN_PASSWORD || process.env.DEFAULT_ADMIN_PASSWORD === 'DEFAULT_PASSWORD_PLACEHOLDER') {
-      console.warn('[Security] Default admin password in use. Set DEFAULT_ADMIN_PASSWORD environment variable.');
+      logger.warn('[Security] Default admin password in use. Set DEFAULT_ADMIN_PASSWORD environment variable.');
     }
   }
 
@@ -204,20 +195,18 @@ try {
     }
   });
 } catch (err: any) {
-  console.error("[Fatal] Initialization Error:", err.message);
+  logger.error("[Fatal] Initialization Error:", err.message);
   process.exit(1);
 }
 
 // --- Logging ---
-console.log("[Init] Initializing logging...");
+logger.info("[Init] Initializing logging...");
 try {
-  logger = new Logger(DATA_DIR, process.env.LOG_LEVEL || "INFO");
   auditLogger = new AuditLogger(DATA_DIR);
   setRateLimiterAuditLogger(auditLogger); // Use exported setter
 } catch (logErr: any) {
-  console.warn(`[Warning] Logging initialization failed: ${logErr.message}`);
+  logger.warn(`[Warning] Logging initialization failed: ${logErr.message}`);
   // Fallback/Mock
-  logger = new Logger(DATA_DIR, "INFO");
   auditLogger = new AuditLogger(DATA_DIR);
 }
 
@@ -616,10 +605,10 @@ server.listen(PORT, "0.0.0.0", () => {
 
 server.on("error", (e: any) => {
   if (e.code === "EADDRINUSE") {
-    console.error(`[FATAL] Port ${PORT} is already in use.`);
+    logger.error(`[FATAL] Port ${PORT} is already in use.`);
     process.exit(1);
   } else {
-    console.error("[FATAL] Server error:", e);
+    logger.error("[FATAL] Server error:", e);
     process.exit(1);
   }
 });

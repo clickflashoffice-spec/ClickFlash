@@ -1,7 +1,8 @@
 import { Router, Request, Response } from "express";
 import { ResortAnalyticsService } from "../services/ResortAnalyticsService";
-import { Logger } from "../shared/logger";
-
+import { Logger } from '../utils/logger';
+import { strictRateLimiter } from '../middleware/rateLimiter';
+import { customRoutesSchemas } from '../utils/validation';
 export function createResortAnalyticsRoutes(
   analyticsService: ResortAnalyticsService,
   logger: Logger,
@@ -12,14 +13,15 @@ export function createResortAnalyticsRoutes(
    * POST /api/resort-analytics/log-meeting
    * Log a photographer meeting outcome
    */
-  router.post("/log-meeting", async (req: Request, res: Response) => {
-    const { photographerId, type, date } = req.body;
-    if (!photographerId || !type) {
-      return res.status(400).json({ error: "Missing required fields" });
+  router.post("/log-meeting", strictRateLimiter, async (req: Request, res: Response) => {
+    const parsed = customRoutesSchemas.logMeeting.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Missing or invalid required fields", details: parsed.error.issues });
     }
+    const { photographerId, type, date } = parsed.data;
 
     try {
-      analyticsService.logMeetingOutcome(Number(photographerId), type, date);
+      analyticsService.logMeetingOutcome(Number(photographerId), type as "taken" | "made" | "noshow" | "late" | "rescheduled", date);
       res.json({ success: true });
     } catch (e: any) {
       logger.error(`[Routes:ResortBI] Failed to log meeting: ${e.message}`);
@@ -31,11 +33,12 @@ export function createResortAnalyticsRoutes(
    * POST /api/resort-analytics/operational-stats
    * Update daily guests and departures (Local local knowledge)
    */
-  router.post("/operational-stats", async (req: Request, res: Response) => {
-    const { date, total_guests, departures } = req.body;
-    if (!date || total_guests === undefined || departures === undefined) {
-      return res.status(400).json({ error: "Missing required fields" });
+  router.post("/operational-stats", strictRateLimiter, async (req: Request, res: Response) => {
+    const parsed = customRoutesSchemas.operationalStats.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Missing or invalid required fields", details: parsed.error.issues });
     }
+    const { date, total_guests, departures } = parsed.data;
 
     try {
       await analyticsService.updateOperationalStats(
@@ -68,13 +71,12 @@ export function createResortAnalyticsRoutes(
    * POST /api/resort-analytics/log-session
    * Logs a customer interaction duration.
    */
-  router.post("/log-session", (req: any, res: any) => {
-    const { photographerId, seconds, date } = req.body;
-    if (!photographerId || seconds === undefined) {
-      return res
-        .status(400)
-        .json({ error: "photographerId and seconds required" });
+  router.post("/log-session", strictRateLimiter, (req: any, res: any) => {
+    const parsed = customRoutesSchemas.logSession.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "photographerId and seconds required or invalid format", details: parsed.error.issues });
     }
+    const { photographerId, seconds, date } = parsed.data;
 
     try {
       analyticsService.logSessionDuration(
@@ -166,8 +168,12 @@ export function createResortAnalyticsRoutes(
    * POST /api/resort-analytics/trigger-auto-calc
    * Manually trigger auto-calculation of meetings from orders
    */
-  router.post("/trigger-auto-calc", async (req: Request, res: Response) => {
-    const { date } = req.body;
+  router.post("/trigger-auto-calc", strictRateLimiter, async (req: Request, res: Response) => {
+    const parsed = customRoutesSchemas.triggerAutoCalc.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Invalid format", details: parsed.error.issues });
+    }
+    const { date } = parsed.data;
     try {
       const results =
         await analyticsService.calculateMeetingsMadeFromOrders(date);

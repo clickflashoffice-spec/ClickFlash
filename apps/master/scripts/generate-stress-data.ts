@@ -1,4 +1,4 @@
-import { DatabaseManager } from "../backend/shared/db";
+import { DatabaseManager } from "../backend/database/db";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";

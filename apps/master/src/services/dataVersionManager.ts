@@ -95,7 +95,7 @@ class DataVersionManager {
     try {
       this.versions = await this.loadVersions();
       this.initialized = true;
-      console.log("[DataVersionManager] Initialized:", this.initialized);
+      logger.info("[DataVersionManager] Initialized:", this.initialized);
       logger.info("DataVersionManager initialized from storage");
     } catch (err) {
       logger.error("Failed to initialize DataVersionManager", err);

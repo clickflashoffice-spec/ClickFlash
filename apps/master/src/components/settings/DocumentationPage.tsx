@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 import { DEFAULT_MASTER_PORT } from '../../constants';
 import { useDebounce } from '../../hooks/useDebounce.ts';
+import { logger } from '@/utils/logger';
 
 const Section: React.FC<{ title: string; children: React.ReactNode; id: string; }> = ({ title, children, id }) => (
     <div className="documentation-section scroll-mt-32 mb-16 border-b border-slate-200/60 dark:border-slate-800/60 pb-12 last:border-0" id={id}>
@@ -34,7 +35,7 @@ const CodeBlock: React.FC<{ title: string; code: string }> = ({ title, code }) =
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
-            console.error('Failed to copy:', err);
+            logger.error('Failed to copy:', err);
         }
     };
 

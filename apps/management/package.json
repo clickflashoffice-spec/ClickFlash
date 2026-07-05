@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "npx vite",
-    "dev:backend": "npx tsx watch backend/server.js",
+    "dev:backend": "npm run dev --prefix backend",
     "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
     "build": "vite build",
     "preview": "vite preview",
@@ -24,7 +24,8 @@
     "playwright:install": "playwright install"
   },
   "dependencies": {
-    "@sentry/react": "^10.39.0",
+    "@clickflash/logger": "workspace:*",
+    "@clickflash/telemetry-web": "workspace:*",
     "@supabase/supabase-js": "^2.97.0",
     "@tanstack/react-query": "^5.90.10",
     "clsx": "^2.1.1",
@@ -72,6 +73,7 @@
     "tailwindcss": "^3.4.18",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
-    "vite": "^7.3.2"
+    "vite": "^7.3.2",
+    "vitest": "^4.1.9"
   }
 }

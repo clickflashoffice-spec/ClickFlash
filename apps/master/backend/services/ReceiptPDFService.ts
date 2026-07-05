@@ -14,7 +14,7 @@
 
 import fs from "fs";
 import path from "path";
-import { Logger } from "../shared/logger";
+import { Logger } from '../utils/logger';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const PdfPrinter = require("pdfmake") as {

@@ -5,7 +5,7 @@
  */
 
 import { apiService as localApiService } from "./apiService.ts";
-import { Order } from "../types.ts";
+import { Order, User } from "../types.ts";
 import { pb } from "./pb.ts";
 import type { PocketRecord } from "./pbTypes.ts";
 
@@ -44,7 +44,7 @@ export const cloudApiService = {
                 (o.email as string | undefined)?.toLowerCase() ===
                 normalizedEmail,
             ) || null;
-        } catch (fallbackError) {
+        } catch {
           throw exactMatchError; // Throw original error
         }
       }
@@ -114,7 +114,7 @@ export const cloudApiService = {
   },
 
   async getUsers() {
-    return pb.collection("users").getFullList();
+    return (await pb.collection("users").getFullList()) as User[];
   },
 
   async getBookings() {
@@ -155,68 +155,74 @@ export const cloudApiService = {
   /**
    * Login user using the API endpoint
    */
-  async loginUser(email: string, password: string) {
-    return pb.login(email, password);
+  async loginUser(
+    email: string,
+    password: string,
+  ): Promise<{ token: string; user: User } | null> {
+    return (await pb.login(email, password)) as unknown as {
+      token: string;
+      user: User;
+    };
   },
 
   // --- Generic HTTP Methods for Fleet & Cloud Operations ---
 
-  async get(url: string, options: any = {}) {
+  async get(url: string, options: Record<string, unknown> = {}) {
     const baseUrl = pb.baseUrlValue;
     const res = await fetch(`${baseUrl}${url}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${pb.authStore.token}`,
-        ...options.headers,
+        ...(options.headers as Record<string, string> | undefined),
       },
       ...options,
-    });
+    } as Parameters<typeof fetch>[1]);
     if (!res.ok) throw new Error(`GET ${url} failed: ${res.statusText}`);
     return { data: await res.json(), status: res.status };
   },
 
-  async post(url: string, data?: any, options: any = {}) {
+  async post(url: string, data?: unknown, options: Record<string, unknown> = {}) {
     const baseUrl = pb.baseUrlValue;
     const res = await fetch(`${baseUrl}${url}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${pb.authStore.token}`,
         "Content-Type": "application/json",
-        ...options.headers,
+        ...(options.headers as Record<string, string> | undefined),
       },
       body: data ? JSON.stringify(data) : undefined,
       ...options,
-    });
+    } as Parameters<typeof fetch>[1]);
     if (!res.ok) throw new Error(`POST ${url} failed: ${res.statusText}`);
     return { data: await res.json(), status: res.status };
   },
 
-  async patch(url: string, data?: any, options: any = {}) {
+  async patch(url: string, data?: unknown, options: Record<string, unknown> = {}) {
     const baseUrl = pb.baseUrlValue;
     const res = await fetch(`${baseUrl}${url}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${pb.authStore.token}`,
         "Content-Type": "application/json",
-        ...options.headers,
+        ...(options.headers as Record<string, string> | undefined),
       },
       body: data ? JSON.stringify(data) : undefined,
       ...options,
-    });
+    } as Parameters<typeof fetch>[1]);
     if (!res.ok) throw new Error(`PATCH ${url} failed: ${res.statusText}`);
     return { data: await res.json(), status: res.status };
   },
 
-  async delete(url: string, options: any = {}) {
+  async delete(url: string, options: Record<string, unknown> = {}) {
     const baseUrl = pb.baseUrlValue;
     const res = await fetch(`${baseUrl}${url}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${pb.authStore.token}`,
-        ...options.headers,
+        ...(options.headers as Record<string, string> | undefined),
       },
       ...options,
-    });
+    } as Parameters<typeof fetch>[1]);
     if (!res.ok) throw new Error(`DELETE ${url} failed: ${res.statusText}`);
     return { data: await res.json(), status: res.status };
   },

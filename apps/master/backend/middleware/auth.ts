@@ -3,9 +3,9 @@
 
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { sendAuthError } from "../shared/errorHandler";
+import { sendAuthError } from '../utils/errorHandler';
 import { JWT_SECRET } from "../config/constants";
-import AuditLogger from "../shared/auditLogger";
+import AuditLogger from '../utils/auditLogger';
 import type { User } from "../types/shared";
 
 // JWT payload type

@@ -83,7 +83,10 @@ class MoneyTrashEmailMarketingService extends EventEmitter {
   private templates: Map<string, EmailTemplate> = new Map();
   private segments: Map<string, CustomerSegment> = new Map();
   private emailLogs: EmailLog[] = [];
-  private autoSendTimers: Map<string, any> = new Map();
+  private autoSendTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+
+  // GDPR Compliance Registry
+  private unsubscribedEmails: Set<string> = new Set();
 
   constructor() {
     super();
@@ -435,7 +438,7 @@ Best regards,
   /**
    * Get photos expiring in given days
    */
-  private async getExpiringPhotos(days: number): Promise<any[]> {
+  private async getExpiringPhotos(_days: number): Promise<Record<string, unknown>[]> {
     // Mock implementation - would query database
     return [];
   }
@@ -445,13 +448,21 @@ Best regards,
    */
   private async sendEmail(
     campaign: EmailCampaign,
-    recipientData: any,
+    recipientData: Record<string, unknown>,
   ): Promise<boolean> {
+    const recipientEmail = String(recipientData.customerEmail ?? "");
+
+    // Privacy Interceptor: Abort if user has opted out (GDPR Compliance)
+    if (this.unsubscribedEmails.has(recipientEmail)) {
+      console.warn(`[GDPR] Blocked outbound email to unsubscribed user: ${recipientEmail}`);
+      return false;
+    }
+
     try {
       // Process template variables
-      const processedHtml = this.processTemplate(campaign.template.html, {
+      const _processedHtml = this.processTemplate(campaign.template.html, {
         ...recipientData,
-        galleryUrl: `https://clickflash.com/gallery/${recipientData.accessCode}`,
+        galleryUrl: `https://clickflash.com/gallery/${String(recipientData.accessCode ?? "")}`,
         companyName: "ClickFlash Photography",
       });
 
@@ -462,7 +473,7 @@ Best regards,
       const log: EmailLog = {
         id: `log_${Date.now()}`,
         campaignId: campaign.id,
-        recipient: recipientData.customerEmail,
+        recipient: String(recipientData.customerEmail ?? ""),
         status: "sent",
         sentAt: new Date(),
       };
@@ -485,11 +496,11 @@ Best regards,
    */
   private processTemplate(
     template: string,
-    variables: Record<string, any>,
+    variables: Record<string, unknown>,
   ): string {
     let processed = template;
     for (const [key, value] of Object.entries(variables)) {
-      processed = processed.replace(new RegExp(`{{${key}}}`, "g"), value);
+      processed = processed.replace(new RegExp(`{{${key}}}`, "g"), String(value));
     }
     return processed;
   }
@@ -715,10 +726,37 @@ Best regards,
   }
 
   /**
+   * GDPR: Register user opt-out and block future communications
+   */
+  unsubscribeUser(email: string): void {
+    if (!email) return;
+    this.unsubscribedEmails.add(email);
+    this.emit("user:unsubscribed", email);
+  }
+
+  /**
+   * GDPR Article 17: Right to be Forgotten
+   * Erases all PII logs and communication history for the given email
+   */
+  rightToBeForgotten(email: string): void {
+    if (!email) return;
+    
+    // 1. Block future communications
+    this.unsubscribeUser(email);
+
+    // 2. Erase historical tracking PII
+    const initialLogCount = this.emailLogs.length;
+    this.emailLogs = this.emailLogs.filter((log) => log.recipient !== email);
+    
+    console.warn(`[GDPR] Right to be Forgotten executed for ${email}. Purged ${initialLogCount - this.emailLogs.length} logs.`);
+    this.emit("user:forgotten", email);
+  }
+
+  /**
    * Cleanup
    */
   dispose(): void {
-    for (const [id, timer] of this.autoSendTimers) {
+    for (const [_id, timer] of this.autoSendTimers) {
       clearInterval(timer);
     }
     this.autoSendTimers.clear();

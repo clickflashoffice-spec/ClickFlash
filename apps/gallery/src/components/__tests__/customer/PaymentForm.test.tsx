@@ -170,9 +170,18 @@ describe('PaymentForm', () => {
       await user.type(screen.getByTestId('card-cvc-input'), '123');
       await user.click(screen.getByRole('button', { name: /pay/i }));
 
-      // When confirmPayment rejects, the component stays in processing state
-      // because the error is not caught in the event handler
-      expect(screen.getByRole('button', { name: /processing/i })).toBeInTheDocument();
+      // After network error, the component should:
+      // 1. Show a user-friendly error message
+      // 2. Release the loading state so the form is usable again
+      // (Previously the component had no try/catch around confirmPayment,
+      //  which would leave the form stuck in "Processing..." state and
+      //  surface an unhandled promise rejection.)
+      await waitFor(() => {
+        expect(screen.getByText(/network error|connection/i)).toBeInTheDocument();
+      });
+
+      // The submit button should be enabled again (not "Processing...")
+      expect(screen.getByRole('button', { name: /^pay/i })).toBeInTheDocument();
     });
 
     it('disables submit button while processing', async () => {

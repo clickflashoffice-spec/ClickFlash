@@ -5,6 +5,7 @@
 
 import { app, dialog, ipcMain, BrowserWindow } from 'electron';
 import { autoUpdater, UpdateInfo } from 'electron-updater';
+import { logger } from '@/utils/logger';
 
 // Configure auto-updater
 autoUpdater.logger = console;
@@ -66,13 +67,13 @@ function setupIpcHandlers(): void {
 
 function setupEventHandlers(): void {
   autoUpdater.on('checking-for-update', () => {
-    console.log('[AutoUpdater] Checking for update...');
+    logger.info('[AutoUpdater] Checking for update...');
     updateStatus = { ...updateStatus, checking: true, error: null };
     notifyRenderer('checking');
   });
 
   autoUpdater.on('update-available', (info: UpdateInfo) => {
-    console.log('[AutoUpdater] Update available:', info.version);
+    logger.info('[AutoUpdater] Update available:', info.version);
     updateStatus = {
       ...updateStatus,
       checking: false,
@@ -85,7 +86,7 @@ function setupEventHandlers(): void {
   });
 
   autoUpdater.on('update-not-available', () => {
-    console.log('[AutoUpdater] No update available');
+    logger.info('[AutoUpdater] No update available');
     updateStatus = { ...updateStatus, checking: false, available: false };
     notifyRenderer('not-available');
   });
@@ -96,14 +97,14 @@ function setupEventHandlers(): void {
   });
 
   autoUpdater.on('update-downloaded', (info: UpdateInfo) => {
-    console.log('[AutoUpdater] Update downloaded');
+    logger.info('[AutoUpdater] Update downloaded');
     updateStatus = { ...updateStatus, downloaded: true, checking: false };
     notifyRenderer('downloaded', info);
     showUpdateDownloadedDialog(info);
   });
 
   autoUpdater.on('error', (error) => {
-    console.error('[AutoUpdater] Error:', error);
+    logger.error('[AutoUpdater] Error:', error);
     updateStatus = { ...updateStatus, checking: false, error: error.message };
     notifyRenderer('error', { message: error.message });
   });
@@ -112,13 +113,13 @@ function setupEventHandlers(): void {
 async function checkForUpdates(): Promise<UpdateStatus> {
   try {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[AutoUpdater] Skipping update check in development');
+      logger.info('[AutoUpdater] Skipping update check in development');
       return updateStatus;
     }
     await autoUpdater.checkForUpdates();
     return updateStatus;
   } catch (error) {
-    console.error('[AutoUpdater] Failed to check:', error);
+    logger.error('[AutoUpdater] Failed to check:', error);
     updateStatus = { ...updateStatus, error: (error as Error).message };
     return updateStatus;
   }
@@ -129,14 +130,14 @@ async function downloadUpdate(): Promise<UpdateStatus> {
     await autoUpdater.downloadUpdate();
     return updateStatus;
   } catch (error) {
-    console.error('[AutoUpdater] Failed to download:', error);
+    logger.error('[AutoUpdater] Failed to download:', error);
     updateStatus = { ...updateStatus, error: (error as Error).message };
     return updateStatus;
   }
 }
 
 function installUpdate(): void {
-  console.log('[AutoUpdater] Installing update...');
+  logger.info('[AutoUpdater] Installing update...');
   autoUpdater.quitAndInstall();
 }
 

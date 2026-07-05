@@ -1,5 +1,6 @@
 import { ManualEdits } from '@/types';
 import { apiService } from '@/services/apiService';
+import { logger } from '@/utils/logger';
 
 export interface Preset {
     id: string;
@@ -41,12 +42,12 @@ export class PresetManager {
                         createdAt: r.createdAt
                     });
                 } catch (e) {
-                    console.warn('Skipping preset with invalid adjustments:', r.id, e);
+                    logger.warn('Skipping preset with invalid adjustments', { id: r.id, error: e });
                 }
                 return acc;
             }, []);
         } catch (error) {
-            console.error('Failed to fetch presets:', error);
+            logger.error('Failed to fetch presets:', error);
             return [];
         }
     }
@@ -71,7 +72,7 @@ export class PresetManager {
                 createdAt: saved.createdAt
             };
         } catch (error) {
-            console.error('Failed to save preset:', error);
+            logger.error('Failed to save preset:', { error });
             return null;
         }
     }
@@ -80,7 +81,7 @@ export class PresetManager {
         try {
             return await (apiService as any).deleteRecord(this.COLLECTION, id);
         } catch (error) {
-            console.error('Failed to delete preset:', error);
+            logger.error('Failed to delete preset:', error);
             return false;
         }
     }

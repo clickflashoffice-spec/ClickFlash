@@ -1,8 +1,8 @@
 import path from "path";
 import fs from "fs";
 import { createCanvas, Image } from "@napi-rs/canvas";
-import { Logger } from "../shared/logger";
-import DatabaseManager from "../shared/db";
+import { Logger } from '../utils/logger';
+import DatabaseManager from '../database/db';
 import { UPLOAD_DIR } from "../config/constants";
 
 // Local definition to avoid cross-layer import issues in backend

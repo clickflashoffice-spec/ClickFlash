@@ -237,7 +237,7 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
             // 4. Persistence: Force save the NEW ID immediately
             try {
                 const existingRaw = localStorage.getItem('kioskSettingsV2');
-                let settings = existingRaw ? JSON.parse(existingRaw) : {};
+                const settings = existingRaw ? JSON.parse(existingRaw) : {};
 
                 if (settings.kioskId !== finalKioskId) {
                     logger.info(`[KioskSetup] Persisting CORRECTED Kiosk ID: ${finalKioskId}`);
@@ -459,6 +459,11 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
                     try {
                         if (e.action === 'create' || e.action === 'update') {
                             const albumId = e.record.id;
+                            
+                            // Prevent unbounded memory growth in long-running kiosk
+                            if (realtimeReceivedAlbums.size > 1000) {
+                                realtimeReceivedAlbums.clear();
+                            }
                             realtimeReceivedAlbums.add(albumId);
 
                             const fetchPromise = pb.collection('albums').getOne(albumId, { expand: 'photos_via_album' });

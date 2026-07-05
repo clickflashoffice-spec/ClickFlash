@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { DEFAULT_MASTER_PORT } from '../../constants';
+import { logger } from '@/utils/logger';
 
 
 const Code: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -60,7 +61,7 @@ const SetupGuide: React.FC = () => {
                 setNetworkError(data.message || 'Port test failed');
             }
         } catch (error) {
-            console.error('Network test error:', error);
+            logger.error('Network test error:', error);
             setNetworkStatus('error');
             setNetworkError(error instanceof Error ? error.message : 'Failed to connect to server');
         }

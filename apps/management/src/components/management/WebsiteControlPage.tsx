@@ -1,17 +1,12 @@
 import React, { useState } from "react";
-import Card from "../common/Card.tsx";
 import Spinner from "../common/Spinner.tsx";
-import {
-  Save,
+import {Save,
   Globe,
   LayoutTemplate,
   MessageSquare,
   Image as ImageIcon,
   Link as LinkIcon,
-  Star,
-  CheckCircle,
-} from "lucide-react";
-import { apiService } from "../../services/apiService";
+  Star} from "lucide-react";
 import { logger } from "../../utils/logger";
 import PortfolioManager from "./website/PortfolioManager";
 import { useSystemSetting } from "../../hooks/useSystemSetting";
@@ -123,7 +118,15 @@ const WebsiteControlPage: React.FC = () => {
       </div>
     );
 
-  const TabButton = ({ id, label, icon: Icon }: any) => (
+  const TabButton = ({
+    id,
+    label,
+    icon: Icon,
+  }: {
+    id: typeof activeTab;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }) => (
     <button
       onClick={() => setActiveTab(id)}
       className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-wider transition-all ${

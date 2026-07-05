@@ -3,6 +3,7 @@ import Modal from './common/Modal';
 // import { generateShootIdeas } from '../services/geminiService.ts';
 import { PHOTO_THEMES } from '../constants.ts';
 import { ShootIdea } from '../types.ts';
+import { logger } from '@/utils/logger';
 
 // Stub function - geminiService removed
 const generateShootIdeas = async (_location: string, _theme: string, _expertise: string): Promise<ShootIdea[]> => {
@@ -24,9 +25,11 @@ const AIIdeasModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOp
         try {
             const result = await generateShootIdeas(location, theme, expertise);
             setIdeas(result);
-        } catch (err) {
-            setError('Failed to generate ideas. Please check the console for details.');
-            console.error(err);
+        } catch (err: any) {
+            const message = err instanceof Error ? err.message : "Failed to generate ideas";
+            setError(message);
+            console.error(message);
+            logger.error(message, { error: err });
         }
         setLoading(false);
     };

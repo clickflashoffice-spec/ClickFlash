@@ -1,6 +1,7 @@
 import React, { useRef, useCallback } from "react";
 import { generateCSSFilter } from "@/utils/imageFilters";
 import { ManualEdits } from "@/types/shared";
+import { logger } from '@/utils/logger';
 
 interface ImageExporterProps {
   imageUrl: string;
@@ -112,7 +113,7 @@ export const ImageExporter: React.FC<ImageExporterProps> = ({
       };
 
       img.onerror = () => {
-        console.error("Failed to load image for export");
+        logger.error("Failed to load image for export");
         resolve(null);
       };
 

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ArrowRight, ArrowLeft, Monitor, Wifi, QrCode, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { InstallerState } from "../types/installer";
+import QRCode from "qrcode";
 
 interface TouchPairingStepProps {
   state: InstallerState;
@@ -16,6 +17,27 @@ const TouchPairingStep: React.FC<TouchPairingStepProps> = ({
   onPrev,
 }) => {
   const result = state.pairingResult;
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [manualIp, setManualIp] = useState("");
+
+  const qrPayload = useMemo(() => {
+    if (!result?.masterIp || !result?.kioskId) return null;
+    return JSON.stringify({
+      master_url: `http://${result.masterIp}:8090`,
+      desk_id: result.kioskId,
+      fp: result.hardwareFingerprint,
+    });
+  }, [result]);
+
+  useEffect(() => {
+    if (qrPayload) {
+      QRCode.toDataURL(qrPayload, { width: 160, margin: 2 })
+        .then(setQrDataUrl)
+        .catch(() => setQrDataUrl(null));
+    } else {
+      setQrDataUrl(null);
+    }
+  }, [qrPayload]);
 
   return (
     <div className="step-card max-w-2xl mx-auto mt-4">
@@ -30,16 +52,18 @@ const TouchPairingStep: React.FC<TouchPairingStepProps> = ({
             <Monitor className="w-8 h-8 text-cyan-400" />
           </div>
           <p className="text-slate-400 mb-4">
-            The installer will search for Touch Kiosks on your local network via mDNS.
+            The installer will search for Touch Kiosks on your local network via mDNS and LAN sweep.
           </p>
-          <button
-            onClick={onPair}
-            disabled={state.isLoading}
-            className="btn-primary flex items-center gap-2 mx-auto"
-          >
-            <RefreshCw className={`w-4 h-4 ${state.isLoading ? "animate-spin" : ""}`} />
-            {state.isLoading ? "Searching..." : "Auto-Discover Kiosk"}
-          </button>
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={onPair}
+              disabled={state.isLoading}
+              className="btn-primary flex items-center gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${state.isLoading ? "animate-spin" : ""}`} />
+              {state.isLoading ? "Searching..." : "Auto-Discover Kiosk"}
+            </button>
+          </div>
         </div>
       )}
 
@@ -54,7 +78,13 @@ const TouchPairingStep: React.FC<TouchPairingStepProps> = ({
               <div className="space-y-1 text-xs text-emerald-200/80">
                 <p>Master IP: <span className="font-mono">{result.masterIp}</span></p>
                 <p>Latency: <span className="font-mono">{result.latencyMs}ms</span></p>
+                <p>Kiosk ID: <span className="font-mono">{result.kioskId || "—"}</span></p>
                 <p>HMAC Secret: <span className="font-mono">Exchanged ✓</span></p>
+                {result.hardwareFingerprint && (
+                  <p className="text-emerald-200/50">
+                    HW Fingerprint: <span className="font-mono">{result.hardwareFingerprint}</span>
+                  </p>
+                )}
               </div>
             </div>
           ) : (
@@ -64,29 +94,41 @@ const TouchPairingStep: React.FC<TouchPairingStepProps> = ({
                 <span className="text-sm font-semibold text-amber-300">No Kiosk Found</span>
               </div>
               <p className="text-xs text-amber-200/80 mb-3">
-                No Touch Kiosk detected on the local network. You can pair manually later or skip this step.
+                No Touch Kiosk detected on the local network. Use the QR code fallback below or enter the Master IP manually.
               </p>
             </div>
           )}
 
-          {/* Manual Pairing Option */}
+          {/* QR Fallback */}
           <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700/50">
             <div className="flex items-center gap-2 mb-2">
               <QrCode className="w-4 h-4 text-slate-400" />
-              <span className="text-sm font-medium text-slate-300">Manual Pairing</span>
+              <span className="text-sm font-medium text-slate-300">QR Code Fallback</span>
             </div>
-            <p className="text-xs text-slate-500 mb-2">
-              If auto-discovery fails, scan this QR code with the Touch Kiosk or enter the Master IP manually.
+            <p className="text-xs text-slate-500 mb-3">
+              If automatic discovery fails, scan this QR code on the Touch Kiosk to pair manually.
             </p>
-            <div className="flex items-center gap-2">
-              <Wifi className="w-4 h-4 text-slate-500" />
-              <input
-                type="text"
-                placeholder="192.168.1.100"
-                className="input-field flex-1 text-sm"
-              />
-              <button className="btn-secondary text-sm">Pair</button>
-            </div>
+            {qrDataUrl ? (
+              <div className="flex items-center gap-4">
+                <img src={qrDataUrl} alt="Pairing QR Code" className="w-40 h-40 rounded border border-slate-700" />
+                <div className="space-y-1 text-xs text-slate-400">
+                  <p>Master URL: <span className="font-mono text-slate-300">http://{result.masterIp}:8090</span></p>
+                  <p>Desk ID: <span className="font-mono text-slate-300">{result.kioskId}</span></p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Wifi className="w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  value={manualIp}
+                  onChange={(e) => setManualIp(e.target.value)}
+                  placeholder="192.168.1.100"
+                  className="input-field flex-1 text-sm"
+                />
+                <button className="btn-secondary text-sm">Pair</button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -104,7 +146,7 @@ const TouchPairingStep: React.FC<TouchPairingStepProps> = ({
               className="btn-secondary flex items-center gap-2"
             >
               <RefreshCw className={`w-4 h-4 ${state.isLoading ? "animate-spin" : ""}`} />
-              Retry
+              Re-scan
             </button>
           )}
           <button onClick={onNext} className="btn-primary flex items-center gap-2">

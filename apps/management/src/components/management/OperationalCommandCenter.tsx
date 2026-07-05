@@ -8,19 +8,13 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import {
-  Globe,
-  Wifi,
-  DollarSign,
-  ShoppingBag,
+import {ShoppingBag,
   TrendingUp,
   Layers,
   Zap,
   Activity,
   Server,
-  AlertTriangle,
-  Clock,
-} from "lucide-react";
+  Clock} from "lucide-react";
 import { cloudApiService } from "../../services/cloudApiService";
 import { fleetService, MasterStation } from "../../services/fleetService";
 import { ManagementContext } from "../../constants";
@@ -31,8 +25,16 @@ interface OperationalCommandCenterProps {
   context?: ManagementContext;
 }
 
+interface StationWithLocation extends MasterStation {
+  locationId?: string;
+}
+
+interface AnalyticsData {
+  trend?: Array<{ date: string; revenue?: number }>;
+}
+
 const OperationalCommandCenter: React.FC<OperationalCommandCenterProps> = ({
-  currentUser,
+  currentUser: currentUser,
   context = "global",
 }) => {
   const [loading, setLoading] = useState(true);
@@ -51,7 +53,7 @@ const OperationalCommandCenter: React.FC<OperationalCommandCenterProps> = ({
   });
 
   // Analytics & Projections
-  const [analytics, setAnalytics] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [stations, setStations] = useState<MasterStation[]>([]);
 
   useEffect(() => {
@@ -67,7 +69,7 @@ const OperationalCommandCenter: React.FC<OperationalCommandCenterProps> = ({
 
         setStations(stationsRes);
         const analyticsData = analyticsRes.data?.data || analyticsRes.data;
-        setAnalytics(analyticsData);
+        setAnalytics((analyticsData as AnalyticsData | null) ?? null);
 
         // Filter stations based on context if not global
         const filteredStations =
@@ -76,7 +78,7 @@ const OperationalCommandCenter: React.FC<OperationalCommandCenterProps> = ({
             : stationsRes.filter(
                 (s) =>
                   s.id === context ||
-                  (s as any).locationId === context ||
+                  (s as StationWithLocation).locationId === context ||
                   s.name
                     .toLowerCase()
                     .includes(context.replace("marhaba_", "")),
@@ -97,15 +99,15 @@ const OperationalCommandCenter: React.FC<OperationalCommandCenterProps> = ({
           grossVolume: metrics.grossVolume || 0,
           networkARR: metrics.networkARR || 0,
         });
-      } catch (err: any) {
-        setError(err.message || "Failed to synchronize command center");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to synchronize command center");
       } finally {
         setLoading(false);
       }
     };
 
     loadCommandCenter();
-  }, []);
+  }, [context]);
 
   const isMobile = window.innerWidth < 1024;
 
@@ -128,7 +130,7 @@ const OperationalCommandCenter: React.FC<OperationalCommandCenterProps> = ({
       : stations.filter(
           (s) =>
             s.id === context ||
-            (s as any).locationId === context ||
+            (s as StationWithLocation).locationId === context ||
             s.name.toLowerCase().includes(context.replace("marhaba_", "")),
         );
 
@@ -275,10 +277,10 @@ const OperationalCommandCenter: React.FC<OperationalCommandCenterProps> = ({
             </div>
           </div>
           <div className="h-[300px] lg:h-[400px]">
-            {analytics?.trend?.length > 0 ? (
+            {analytics?.trend && analytics.trend.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={analytics.trend.map((t: any) => ({
+                  data={analytics.trend.map((t) => ({
                     date: t.date,
                     revenue: t.revenue,
                   }))}

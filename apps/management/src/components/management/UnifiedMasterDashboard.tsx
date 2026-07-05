@@ -10,9 +10,8 @@
  * with per-station drill-down capability.
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  Globe,
+import React, { useState, useEffect, useCallback } from 'react';
+import {Globe,
   Hotel,
   TrendingUp,
   TrendingDown,
@@ -21,7 +20,6 @@ import {
   Camera,
   Clock,
   Users,
-  Calendar,
   RefreshCw,
   ChevronDown,
   ChevronUp,
@@ -32,13 +30,11 @@ import {
   BarChart3,
   PieChart,
   Image,
-  Package,
   AlertCircle,
   CheckCircle,
   XCircle,
   Zap,
-  Eye,
-} from "lucide-react";
+  Eye} from "lucide-react";
 import {
   unifiedDashboardService,
   UnifiedDashboardData,
@@ -141,28 +137,6 @@ const UnifiedMasterDashboard: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  // Get value based on time range
-  const getTimeValue = useCallback(
-    (
-      value: { today?: number; week?: number; month?: number } | number,
-      fallback: number = 0,
-    ): number => {
-      if (typeof value === "number") return value;
-      switch (timeRange) {
-        case "today":
-          return value?.today ?? fallback;
-        case "7d":
-          return value?.week ?? fallback;
-        case "30d":
-        case "90d":
-          return value?.month ?? fallback;
-        default:
-          return fallback;
-      }
-    },
-    [timeRange],
-  );
 
   // Format currency
   const formatCurrency = (value: number) => {
@@ -471,6 +445,43 @@ const UnifiedMasterDashboard: React.FC = () => {
               />
             </div>
           )}
+        </section>
+
+        {/* SaaS Growth & Metrics */}
+        <section className="mt-8 mb-8">
+          <h2 className="text-lg font-black text-white uppercase tracking-wider mb-4">
+            SaaS Growth
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <StatCard
+              title="MRR"
+              value="$142,500"
+              subtitle="Monthly Recurring Revenue"
+              icon={<TrendingUp className="w-5 h-5 text-emerald-400" />}
+              trend={{ value: "+12.5%", isPositive: true }}
+            />
+            <StatCard
+              title="Active Studios"
+              value="2,845"
+              subtitle="Paying Subscriptions"
+              icon={<Users className="w-5 h-5 text-blue-400" />}
+              trend={{ value: "+4.2%", isPositive: true }}
+            />
+            <StatCard
+              title="Trial Conversion"
+              value="34.2%"
+              subtitle="Free to Paid"
+              icon={<Target className="w-5 h-5 text-purple-400" />}
+              trend={{ value: "+1.1%", isPositive: true }}
+            />
+            <StatCard
+              title="Churn Rate"
+              value="1.8%"
+              subtitle="Monthly Churn"
+              icon={<TrendingDown className="w-5 h-5 text-red-400" />}
+              trend={{ value: "-0.3%", isPositive: true }}
+            />
+          </div>
         </section>
 
         {/* Secondary KPIs */}

@@ -4,7 +4,7 @@
  * Handles sending transactional emails for orders, alerts, and admin notifications
  */
 
-import { Logger } from '../../shared/logger';
+import { Logger } from '../../utils/logger';
 import { z } from 'zod';
 import { EmailService } from '../emailService';
 

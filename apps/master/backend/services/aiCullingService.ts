@@ -1,5 +1,5 @@
-import DatabaseManager from '../shared/db';
-import { Logger } from '../shared/logger';
+import DatabaseManager from '../database/db';
+import { Logger } from '../utils/logger';
 import crypto from 'crypto';
 
 interface AICullingConfig {
@@ -22,42 +22,50 @@ export class AICullingService {
     }
 
     /**
-     * Simulation of AI Analysis
-     * In a real implementation, this would load a model or call an external API
+     * Real AI Analysis using FaceService
      */
-    async analyzePhoto(photoId: string, _filePath: string): Promise<Record<string, number>> {
+    async analyzePhoto(photoId: string, filePath: string): Promise<Record<string, number>> {
         this.logger.info(`Starting AI analysis for photo ${photoId}`);
 
-        // Mock Analysis: Generate deterministic random scores based on file hash or ID
-        // This ensures the same photo gets the same score (consistency)
-        const pseudoRandom = (seed: string) => {
-            let hash = 0;
-            for (let i = 0; i < seed.length; i++) {
-                const char = seed.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
+        try {
+            // Import faceService here to avoid circular dependencies if any, or just import at top.
+            // We'll import at top, but since it's a singleton, we can just require it.
+            const { faceService } = require('./faceService');
+            
+            // Run real analysis through worker
+            const analysis = await faceService.analyzeImage(filePath);
+            
+            // Default scores if faceService fails or returns nothing
+            let overallScore = 0.5;
+            let sharpness = 0.5;
+            let exposure = 0.5;
+            let composition = 0.5;
+            let expression = 0.5;
+
+            if (analysis && analysis.scores) {
+                overallScore = analysis.scores.overall || 0.5;
+                sharpness = analysis.scores.sharpness || 0.5;
+                expression = analysis.scores.expression || 0.5;
+                // Composition & exposure could be inferred or stubbed
+                composition = analysis.faceCount > 0 ? 0.8 : 0.4;
+                exposure = 0.6; // Not currently calculated by FaceWorker
             }
-            return (Math.abs(hash) % 1000) / 1000;
-        };
 
-        const baseScore = pseudoRandom(photoId); // 0.0 - 1.0
+            // Save scores
+            this.db.run(`
+                INSERT OR REPLACE INTO ai_scores 
+                (photoId, overallScore, sharpnessScore, exposureScore, compositionScore, expressionScore)
+                VALUES (?, ?, ?, ?, ?, ?)
+            `, [photoId, overallScore, sharpness, exposure, composition, expression]);
 
-        const sharpness = Math.min(1.0, baseScore + 0.1);
-        const exposure = Math.min(1.0, baseScore + 0.05); // Assume decently lit
-        const composition = Math.max(0.0, baseScore - 0.1);
-        const expression = pseudoRandom(photoId + '_exp');
-
-        // Weighted total
-        const overallScore = (sharpness * 0.4) + (exposure * 0.2) + (composition * 0.2) + (expression * 0.2);
-
-        // Save scores
-        this.db.run(`
-            INSERT OR REPLACE INTO ai_scores 
-            (photoId, overallScore, sharpnessScore, exposureScore, compositionScore, expressionScore)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [photoId, overallScore, sharpness, exposure, composition, expression]);
-
-        return { overallScore, sharpness, exposure, composition, expression };
+            // Optional: Save face bounding boxes or count if needed
+            // e.g. updating photos table with faceCount
+            
+            return { overallScore, sharpness, exposure, composition, expression };
+        } catch (err: any) {
+            this.logger.error(`[AICullingService] AI analysis failed for ${photoId}: ${err.message}`);
+            return { overallScore: 0, sharpness: 0, exposure: 0, composition: 0, expression: 0 };
+        }
     }
 
     /**

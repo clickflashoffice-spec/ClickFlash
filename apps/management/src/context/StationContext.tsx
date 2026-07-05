@@ -29,17 +29,17 @@ export const StationProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         // Fetch from the fleet endpoint which lists Masters
         const response = await fetch(
-          `${(window as any).pb?.baseUrlValue}/api/cloud/fleet`,
+          `${(window as unknown as { pb?: { baseUrlValue?: string; authStore?: { token?: string } } }).pb?.baseUrlValue}/api/cloud/fleet`,
           {
             headers: {
-              Authorization: `Bearer ${(window as any).pb?.authStore?.token}`,
+              Authorization: `Bearer ${(window as unknown as { pb?: { baseUrlValue?: string; authStore?: { token?: string } } }).pb?.authStore?.token}`,
             },
           },
         );
         const data = await response.json();
         if (data.success && data.fleet) {
           setStations(
-            data.fleet.map((s: any) => ({
+            data.fleet.map((s: Record<string, unknown>) => ({
               id: s.id,
               name: s.name,
               location: s.location,

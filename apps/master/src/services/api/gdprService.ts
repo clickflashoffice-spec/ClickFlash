@@ -5,6 +5,7 @@
  */
 
 import { pb } from "../pb";
+// @ts-ignore
 import { logger } from "../../utils/logger";
 
 export const gdprService = {

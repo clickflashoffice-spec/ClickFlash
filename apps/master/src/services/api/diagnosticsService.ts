@@ -1,5 +1,6 @@
 import { pb } from '../pb';
 import { safeStorage } from '../../utils/safeStorage';
+import { logger } from '@/utils/logger';
 
 export interface ScanReport {
     issues: string[];
@@ -333,7 +334,7 @@ export const diagnosticsService = {
 
             return { success: false, cleaned: 0 };
         } catch (e) {
-            console.error("Maintenance failed", e);
+            logger.error("Maintenance failed", e);
             throw e;
         }
     },

@@ -9,8 +9,10 @@ import {
     sendDatabaseError,
     sendInvalidInputError,
     sendInternalError,
-    sendNotFoundError
+    sendNotFoundError,
+    sendValidationError
 } from '../shared/errorHandler';
+import { customRoutesSchemas } from '../shared/validation';
 
 const streamPipeline = promisify(pipeline);
 
@@ -48,11 +50,11 @@ export default function createSyncRouter(context: SyncContext): Router {
      */
     router.post('/pull-photo', authMiddleware, async (req: Request, res: Response) => {
         try {
-            const { url, filename, photoId, albumId, photographerId, title } = req.body;
-
-            if (!url || !filename || !photoId || !albumId) {
-                return sendInvalidInputError(res, 'Missing required fields: url, filename, photoId, albumId');
+            const validation = customRoutesSchemas.syncFetchPhoto.safeParse(req.body);
+            if (!validation.success) {
+                return sendValidationError(res, 'Invalid pull request', validation.error);
             }
+            const { url, filename, photoId, albumId, photographerId, title } = validation.data;
 
             logger.info(`[Sync] Pulling photo directly to backend`, { photoId, url, filename });
 

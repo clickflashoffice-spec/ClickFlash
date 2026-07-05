@@ -2,8 +2,8 @@ import { createCanvas, loadImage } from "@napi-rs/canvas";
 import QRCode from "qrcode";
 import fs from "fs-extra";
 import path from "path";
-import { Logger } from "../shared/logger";
-import DatabaseManager from "../shared/db";
+import { Logger } from '../utils/logger';
+import DatabaseManager from '../database/db';
 
 export class FulfillmentSlipService {
   private logger: Logger;

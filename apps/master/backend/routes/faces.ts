@@ -8,16 +8,17 @@ import {
   sendInternalError,
   sendAuthError,
   sendAuthorizationError,
-} from "../shared/errorHandler";
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
+} from '../utils/errorHandler';
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
 import { UPLOAD_DIR } from "../config/constants";
 import { faceService } from "../services/faceService";
 import { VectorIndexService } from "../services/VectorIndexService";
 
 import jwt from "jsonwebtoken";
-import AuditLogger from "../shared/auditLogger";
+import AuditLogger from '../utils/auditLogger';
 import { authMiddleware } from "../middleware/auth";
+import { strictRateLimiter } from '../middleware/rateLimiter';
 
 interface FacesContext {
   logger: Logger;
@@ -57,7 +58,7 @@ export default function faceRoutes(context: FacesContext): Router {
    * @route POST /login
    * @description Login with Face
    */
-  router.post("/login", (req: Request, res: Response) => {
+  router.post("/login", strictRateLimiter, (req: Request, res: Response) => {
     const form = formidable({
       uploadDir: path.join(UPLOAD_DIR, "temp"),
       keepExtensions: true,
@@ -194,7 +195,7 @@ export default function faceRoutes(context: FacesContext): Router {
    * @route POST /register
    * @description Register face for current user or a targeted user (Admin/Team Leader only)
    */
-  router.post("/register", (req: Request, res: Response) => {
+  router.post("/register", strictRateLimiter, (req: Request, res: Response) => {
     const sessionUser = (req as any).session ? (req as any).session.user : null;
     if (!sessionUser) return sendAuthError(res, "Not authenticated");
 
@@ -258,7 +259,7 @@ export default function faceRoutes(context: FacesContext): Router {
    * @description Search for photos matching the uploaded face
    * @access Staff Only
    */
-  router.post("/search", auth, (req: Request, res: Response) => {
+  router.post("/search", auth, strictRateLimiter, (req: Request, res: Response) => {
     const form = formidable({
       uploadDir: path.join(UPLOAD_DIR, "temp"),
       keepExtensions: true,
@@ -324,7 +325,7 @@ export default function faceRoutes(context: FacesContext): Router {
    * @description Re-scan all photos for faces (Admin)
    * @access Staff/Admin Only
    */
-  router.post("/reindex", auth, async (_req: Request, res: Response) => {
+  router.post("/reindex", auth, strictRateLimiter, async (_req: Request, res: Response) => {
     try {
       dbManager.run(`
                 INSERT INTO face_indexing_queue (photoId, status)

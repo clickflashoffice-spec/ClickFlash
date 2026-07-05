@@ -1,10 +1,10 @@
-import * as Sentry from "@sentry/cloudflare";
 import DatabaseManager from "./db.js";
 import PhotoProcessor from "./photoProcessor.js";
 import { validateLogin } from "./validation.js";
 import { verifyPassword } from "./auth.js";
 import { createToken, verifyToken, extractTokenFromHeader } from "./jwt.js";
 import { checkLoginRateLimit, recordLoginAttempt } from "./loginRateLimiter.js";
+import { handleRest } from "./routes/rest.js";
 
 export interface Env {
   GALLERY_DB: any; // D1 binding
@@ -24,7 +24,7 @@ export interface Env {
  * D1-backed per-IP rate limiter for public (unauthenticated) endpoints.
  * Returns false if the IP has exceeded `limit` requests within `windowMs`.
  */
-async function checkPublicRateLimit(
+export async function checkPublicRateLimit(
   db: any,
   ip: string,
   endpoint: string,
@@ -320,21 +320,61 @@ const galleryHandler = {
               );
             }
 
+            // P0-3: Idempotency guard. Stripe may retry the same event (network
+            // hiccup, 5xx, etc.). Without this, we'd create a duplicate order
+            // per delivery, charging the customer for multiple fulfilments.
+            //
+            // The webhook_events table is created by schema.sql with a
+            // UNIQUE constraint on stripe_event_id. We insert before processing
+            // — if the insert fails with UNIQUE violation, this event was
+            // already handled. Returning 200 prevents Stripe from retrying.
+            try {
+              await env.GALLERY_DB.prepare(`
+                INSERT INTO webhook_events (stripe_event_id, event_type, payload, processed)
+                VALUES (?, ?, ?, 0)
+              `).bind(event.id, event.type, JSON.stringify(event)).run();
+            } catch (insertErr: any) {
+              if (String(insertErr?.message || "").includes("UNIQUE")) {
+                console.info(`[Webhook] Duplicate event ${event.id} ignored (already processed)`);
+                return new Response(
+                  JSON.stringify({ received: true, idempotent: true }),
+                  { status: 200, headers: { "Content-Type": "application/json" } }
+                );
+              }
+              // Real DB error — surface it
+              throw insertErr;
+            }
+
             if (event.type === 'checkout.session.completed') {
               const session = event.data.object;
-              
-              await env.GALLERY_DB.prepare(`
-                INSERT INTO orders (id, clientName, email, status, totalAmount, albumId, stripe_session_id, created_at)
-                VALUES (?, ?, ?, 'paid', ?, ?, ?, CURRENT_TIMESTAMP)
-              `).bind(
-                crypto.randomUUID(),
-                session.customer_details?.name || 'Guest',
-                session.customer_email,
-                session.amount_total ? session.amount_total / 100 : 0,
-                session.metadata?.albumId || '',
-                session.id
-              ).run();
+
+              // Idempotency: also dedup on stripe_session_id in the orders table
+              // (in case webhook_events was pruned/cleaned but orders remain).
+              const existing = await env.GALLERY_DB.prepare(
+                `SELECT id FROM orders WHERE stripe_session_id = ? LIMIT 1`
+              ).bind(session.id).first();
+
+              if (existing) {
+                console.info(`[Webhook] Order already exists for session ${session.id} (dedup)`);
+              } else {
+                await env.GALLERY_DB.prepare(`
+                  INSERT INTO orders (id, clientName, email, status, totalAmount, albumId, stripe_session_id, created_at)
+                  VALUES (?, ?, ?, 'paid', ?, ?, ?, CURRENT_TIMESTAMP)
+                `).bind(
+                  crypto.randomUUID(),
+                  session.customer_details?.name || 'Guest',
+                  session.customer_email,
+                  session.amount_total ? session.amount_total / 100 : 0,
+                  session.metadata?.albumId || '',
+                  session.id
+                ).run();
+              }
             }
+
+            // Mark the event as processed (best-effort; not critical)
+            await env.GALLERY_DB.prepare(
+              `UPDATE webhook_events SET processed = 1 WHERE stripe_event_id = ?`
+            ).bind(event.id).run().catch(() => {});
 
             return new Response(
               JSON.stringify({ received: true }),
@@ -708,183 +748,10 @@ const galleryHandler = {
           // Attach user context for use in route handlers
           const userContext = { user: payload };
 
-          // Records CRUD with SQL Injection protection
-          if (pathName.includes("/records")) {
-            const collection = pathName.split("/")[3];
-            
-            // Whitelist of allowed tables - prevents SQL injection
-            const ALLOWED_TABLES: Record<string, string> = {
-              albums: "albums",
-              photos: "photos",
-              orders: "orders",
-              users: "users",
-              products: "products",
-              bookings: "bookings",
-              destinations: "destinations",
-            };
-            
-            // Strict validation - reject unknown tables
-            if (!ALLOWED_TABLES[collection]) {
-              return new Response(
-                JSON.stringify({
-                  error: "Bad Request",
-                  message: "Invalid collection: " + collection,
-                }),
-                {
-                  status: 400,
-                },
-              );
-            }
-            
-            const table = ALLOWED_TABLES[collection];
-
-            if (request.method === "GET") {
-              const url = new URL(request.url);
-              const filterParam = url.searchParams.get("filter");
-              const limit = parseInt(url.searchParams.get("limit") || "100", 10);
-              const offset = parseInt(url.searchParams.get("offset") || "0", 10);
-
-              // Build parameterized query
-              let query = `SELECT * FROM ${table}`;
-              const params: any[] = [];
-
-              if (filterParam) {
-                const filters = filterParam.split("&&").map((f) => f.trim());
-                filters.forEach((f) => {
-                  const match = f.match(
-                    /([a-zA-Z0-9_]+)\s*=\s*["']?([^"']+)["']?/,
-                  );
-                  if (match) {
-                    const key = match[1];
-                    const val = match[2];
-                    // Validate column name against whitelist pattern
-                    if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {
-                      query +=
-                        (params.length === 0 ? " WHERE " : " AND ") +
-                        `${key} = ?`;
-                      params.push(val);
-                    }
-                  }
-                });
-              }
-
-              // Add pagination
-              query += ` LIMIT ? OFFSET ?`;
-              params.push(Math.min(limit, 100), offset); // Cap at 100 records
-
-              const records = await dbManager.query(query, params);
-              return new Response(
-                JSON.stringify({ results: records, count: records.length }),
-                {
-                  status: 200,
-                  headers: { "Content-Type": "application/json" },
-                },
-              );
-            }
-
-            // POST - Create record
-            if (request.method === "POST") {
-              try {
-                const body = await request.json() as any;
-                
-                // Get column names from body
-                const columns = Object.keys(body).filter(k => 
-                  /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(k)
-                );
-                
-                if (columns.length === 0) {
-                  return new Response(
-                    JSON.stringify({ error: "Bad Request", message: "No valid fields provided" }),
-                    { status: 400 }
-                  );
-                }
-                
-                const placeholders = columns.map(() => "?").join(", ");
-                const values = columns.map(c => body[c]);
-                
-                const query = `INSERT INTO ${table} (${columns.join(", ")}) VALUES (${placeholders})`;
-                await dbManager.run(query, values);
-                
-                return new Response(
-                  JSON.stringify({ success: true, message: "Record created" }),
-                  { status: 201 }
-                );
-              } catch (e: any) {
-                return new Response(
-                  JSON.stringify({ error: "Create Error", message: e.message }),
-                  { status: 500 }
-                );
-              }
-            }
-
-            // PATCH - Update record
-            if (request.method === "PATCH") {
-              try {
-                const body = await request.json() as any;
-                const id = body.id;
-                
-                if (!id) {
-                  return new Response(
-                    JSON.stringify({ error: "Bad Request", message: "ID required" }),
-                    { status: 400 }
-                  );
-                }
-                
-                const columns = Object.keys(body)
-                  .filter(k => k !== "id" && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(k));
-                
-                if (columns.length === 0) {
-                  return new Response(
-                    JSON.stringify({ error: "Bad Request", message: "No valid fields to update" }),
-                    { status: 400 }
-                  );
-                }
-                
-                const setClause = columns.map(c => `${c} = ?`).join(", ");
-                const values = [...columns.map(c => body[c]), id];
-                
-                const query = `UPDATE ${table} SET ${setClause} WHERE id = ?`;
-                await dbManager.run(query, values);
-                
-                return new Response(
-                  JSON.stringify({ success: true, message: "Record updated" }),
-                  { status: 200 }
-                );
-              } catch (e: any) {
-                return new Response(
-                  JSON.stringify({ error: "Update Error", message: e.message }),
-                  { status: 500 }
-                );
-              }
-            }
-
-            // DELETE - Delete record
-            if (request.method === "DELETE") {
-              try {
-                const body = await request.json() as any;
-                const id = body.id;
-                
-                if (!id) {
-                  return new Response(
-                    JSON.stringify({ error: "Bad Request", message: "ID required" }),
-                    { status: 400 }
-                  );
-                }
-                
-                const query = `DELETE FROM ${table} WHERE id = ?`;
-                await dbManager.run(query, [id]);
-                
-                return new Response(
-                  JSON.stringify({ success: true, message: "Record deleted" }),
-                  { status: 200 }
-                );
-              } catch (e: any) {
-                return new Response(
-                  JSON.stringify({ error: "Delete Error", message: e.message }),
-                  { status: 500 }
-                );
-              }
-            }
+          // Modern REST endpoints
+          const restResponse = await handleRest(request, url, pathName, dbManager, payload);
+          if (restResponse) {
+            return restResponse;
           }
 
           // File Serving (R2) with Law 13 Hardware Hardening
@@ -1196,10 +1063,128 @@ const galleryHandler = {
 };
 
 /**
+ * P0-4: MoneyTrash R2 Auto-Deletion
+ *
+ * Finds photos whose access code has expired (access_codes.expires_at < now)
+ * AND the photo has not been purchased (status='available'). For each, deletes
+ * the R2 object (preview, thumb, watermarked, highres) and marks the photo
+ * as expired. Audit row recorded in moneytrash_deletion_log.
+ *
+ * Runs hourly via the Cloudflare Cron Trigger. Limit: 100 photos per run to
+ * stay within Worker CPU budget. Unprocessed photos are picked up next run.
+ */
+async function purgeExpiredMoneyTrashPhotos(env: Env): Promise<void> {
+  if (!env.GALLERY_BUCKET) {
+    console.log("[MoneyTrash] GALLERY_BUCKET not bound — skipping R2 purge");
+    return;
+  }
+
+  const nowIso = new Date().toISOString();
+
+  // Find candidate photos:
+  //   - photo.status = 'available' (not purchased)
+  //   - photo.access_code IS NOT NULL (it's a MoneyTrash upload, not a regular photo)
+  //   - access_codes.expires_at < now
+  //   - AND the access code itself is still active (don't double-process)
+  const candidates = await env.GALLERY_DB.prepare(`
+    SELECT p.id, p.url, p.thumbnailUrl, p.storagePath, p.access_code
+      FROM photos p
+      JOIN access_codes ac ON ac.code = p.access_code
+     WHERE p.status = 'available'
+       AND p.access_code IS NOT NULL
+       AND ac.expires_at IS NOT NULL
+       AND ac.expires_at < ?
+     LIMIT 100
+  `).bind(nowIso).all() as any;
+
+  if (!candidates.results || candidates.results.length === 0) {
+    return;
+  }
+
+  console.log(`[MoneyTrash] Purging ${candidates.results.length} expired photo(s)`);
+
+  // Ensure audit table exists (idempotent)
+  await env.GALLERY_DB.prepare(`
+    CREATE TABLE IF NOT EXISTS moneytrash_deletion_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      photo_id TEXT NOT NULL,
+      access_code TEXT,
+      r2_keys_deleted TEXT,
+      deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      status TEXT NOT NULL,
+      error TEXT
+    )
+  `).run();
+
+  for (const photo of candidates.results) {
+    const r2Keys: string[] = [];
+    const errors: string[] = [];
+    try {
+      // Derive R2 keys from the photo URL pattern: photos are stored at
+      //   photos/{id}/highres.jpg
+      //   photos/{id}/thumb.jpg
+      //   photos/{id}/preview.jpg
+      // The `storagePath` column may carry the canonical key; fall back to URL parsing.
+      const baseKey = (photo.storagePath && photo.storagePath.startsWith("photos/"))
+        ? photo.storagePath
+        : `photos/${photo.id}/highres.jpg`;
+      // Extract the photos/<id> prefix and try common variants
+      const photosPrefix = baseKey.replace(/\/[^/]+$/, "");  // strip filename
+      const candidateKeys = [
+        `${photosPrefix}/highres.jpg`,
+        `${photosPrefix}/preview.jpg`,
+        `${photosPrefix}/thumb.jpg`,
+        `${photosPrefix}/tiny.jpg`,
+        `${photosPrefix}/preview_wm.webp`,
+      ];
+
+      for (const key of candidateKeys) {
+        try {
+          await env.GALLERY_BUCKET.delete(key);
+          r2Keys.push(key);
+        } catch (r2err: any) {
+          // Per-key failures are not fatal — the photo row is updated regardless.
+          // We log so an operator can investigate stale R2 objects later.
+          errors.push(`${key}: ${r2err?.message || String(r2err)}`);
+        }
+      }
+
+      // Mark photo as expired (do NOT delete the row — keep for audit trail)
+      await env.GALLERY_DB.prepare(
+        `UPDATE photos SET status = 'expired', updated_at = ? WHERE id = ?`
+      ).bind(nowIso, photo.id).run();
+
+      // Audit log
+      await env.GALLERY_DB.prepare(`
+        INSERT INTO moneytrash_deletion_log (photo_id, access_code, r2_keys_deleted, status, error)
+        VALUES (?, ?, ?, 'success', ?)
+      `).bind(photo.id, photo.access_code, JSON.stringify(r2Keys), errors.length > 0 ? errors.join("; ") : null).run();
+
+      console.log(`[MoneyTrash] Purged ${photo.id} (${r2Keys.length} R2 objects)`);
+    } catch (e: any) {
+      const errMsg = e?.message || String(e);
+      await env.GALLERY_DB.prepare(`
+        INSERT INTO moneytrash_deletion_log (photo_id, access_code, r2_keys_deleted, status, error)
+        VALUES (?, ?, ?, 'failed', ?)
+      `).bind(photo.id, photo.access_code, JSON.stringify(r2Keys), errMsg).run();
+      console.error(`[MoneyTrash] Failed to purge ${photo.id}:`, errMsg);
+    }
+  }
+}
+
+/**
  * Abandoned Cart Recovery — Cron Trigger
  * Runs hourly to find carts idle for >1 hour and sends recovery emails via Resend.
  */
 async function handleScheduled(env: Env): Promise<void> {
+  // P0-4: MoneyTrash R2 auto-deletion runs FIRST, regardless of RESEND_API_KEY.
+  // Expired photos need to be reaped even if the email job is disabled.
+  try {
+    await purgeExpiredMoneyTrashPhotos(env);
+  } catch (e: any) {
+    console.error(`[Cron] MoneyTrash purge failed:`, e);
+  }
+
   if (!env.RESEND_API_KEY) {
     console.log("[Cron] RESEND_API_KEY not set — skipping abandoned cart emails");
     return;
@@ -1276,19 +1261,7 @@ async function handleScheduled(env: Env): Promise<void> {
 
 export default {
   fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    if (!env.SENTRY_DSN) {
-      // Sentry DSN not configured — run without instrumentation
-      return galleryHandler.fetch(request, env);
-    }
-    return (Sentry.withSentry(
-      () => ({
-        dsn: env.SENTRY_DSN!,
-        tracesSampleRate: 0.1,
-        environment: "production",
-        release: "clickflash-gallery@4.2.0",
-      }),
-      galleryHandler as any,
-    ) as any).fetch(request, env, ctx);
+    return galleryHandler.fetch(request, env);
   },
 
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {

@@ -26,25 +26,35 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({ amount, orderId
 
         setIsLoading(true);
 
-        const { error } = await stripe.confirmPayment({
-            elements,
-            confirmParams: {
-                // Make sure to change this to your payment completion page
-                return_url: `${window.location.origin}/checkout_success?orderId=${orderId}`,
-            },
-            redirect: 'if_required',
-        });
+        try {
+            const { error } = await stripe.confirmPayment({
+                elements,
+                confirmParams: {
+                    // Make sure to change this to your payment completion page
+                    return_url: `${window.location.origin}/checkout_success?orderId=${orderId}`,
+                },
+                redirect: 'if_required',
+            });
 
-        if (error) {
-            if (error.type === "card_error" || error.type === "validation_error") {
-                setMessage(error.message || "An unexpected error occurred.");
+            if (error) {
+                if (error.type === "card_error" || error.type === "validation_error") {
+                    setMessage(error.message || "An unexpected error occurred.");
+                } else {
+                    setMessage("An unexpected error occurred.");
+                }
+                setIsLoading(false);
             } else {
-                setMessage("An unexpected error occurred.");
+                // Payment succeeded!
+                onSuccess();
             }
+        } catch (err) {
+            // Network or unexpected error: surface a user-friendly message
+            // and release the loading state so the form is usable again.
+            const errorMessage = err instanceof Error
+                ? "Network error. Please check your connection and try again."
+                : "An unexpected error occurred.";
+            setMessage(errorMessage);
             setIsLoading(false);
-        } else {
-            // Payment succeeded!
-            onSuccess();
         }
     };
 
@@ -93,6 +103,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({ amount, orderId
 
 interface PaymentFormProps {
     amount: number;
+    tipAmount?: number;
     orderId: string;
     email?: string;
     currency?: string;
@@ -100,13 +111,13 @@ interface PaymentFormProps {
     onCancel: () => void;
 }
 
-export const PaymentForm: React.FC<PaymentFormProps> = ({ amount, orderId, email, currency = 'eur', onSuccess, onCancel }) => {
+export const PaymentForm: React.FC<PaymentFormProps> = ({ amount, tipAmount, orderId, email, currency = 'eur', onSuccess, onCancel }) => {
     const [clientSecret, setClientSecret] = useState("");
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         // Create PaymentIntent as soon as the page loads
-        stripeService.createPaymentIntent(orderId, amount, email, currency)
+        stripeService.createPaymentIntent(orderId, amount, email, currency, tipAmount)
             .then((data) => {
                 if (data.error) {
                     setError(data.error);
@@ -115,7 +126,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ amount, orderId, email
                 }
             })
             .catch((err) => setError("Failed to initialize payment"));
-    }, [amount, orderId, email]);
+    }, [amount, tipAmount, orderId, email]);
 
     if (error) {
         return (

@@ -77,4 +77,5 @@ const RecentOrdersWidget: React.FC<RecentOrdersWidgetProps> = ({ orders, onOrder
   );
 };
 
+RecentOrdersWidget.displayName = 'RecentOrdersWidget';
 export default React.memo(RecentOrdersWidget);

@@ -4,6 +4,8 @@
  */
 
 import crypto from 'crypto';
+import { Logger } from '../shared/logger';
+const logger = new Logger('logs');
 
 export interface DefaultUserConfig {
     name: string;
@@ -30,7 +32,7 @@ export function getDefaultUserConfig(): DefaultUserConfig {
         if (isProduction()) {
             throw new Error('FATAL: DEFAULT_ADMIN_PASSWORD environment variable is required in production. Cannot start without secure admin credentials.');
         }
-        console.warn('[Security] DEFAULT_ADMIN_PASSWORD not set. Using insecure default. This is only acceptable in development.');
+        logger.warn('[Security] DEFAULT_ADMIN_PASSWORD not set. Using insecure default. This is only acceptable in development.');
         return {
             name: process.env.DEFAULT_ADMIN_NAME || 'Alaeddine',
             email,
@@ -94,7 +96,7 @@ export function shouldAutoCreateUser(): boolean {
     if (isProduction()) {
         const allowed = process.env.ALLOW_AUTO_CREATE_USER === 'true';
         if (!allowed) {
-            console.warn('[Security] Auto-create user disabled in production. Set ALLOW_AUTO_CREATE_USER=true to enable.');
+            logger.warn('[Security] Auto-create user disabled in production. Set ALLOW_AUTO_CREATE_USER=true to enable.');
         }
         return allowed;
     }

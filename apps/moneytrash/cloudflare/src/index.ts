@@ -43,17 +43,17 @@ export default {
       env.ALLOWED_ORIGINS ||
       "https://moneytrash.clickflash.app,https://gallery.clickflash.app";
     const requestOrigin = request.headers.get("Origin") || "";
-    const corsOrigin = allowedOrigins.split(",").includes(requestOrigin)
-      ? requestOrigin
-      : ""; // fails closed — browser rejects response when origin is not whitelisted
-
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": corsOrigin,
+    
+    const corsHeaders: Record<string, string> = {
       "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
       "Access-Control-Allow-Headers":
         "Content-Type, Authorization, X-Desk-Id, X-Office-Type",
       "Access-Control-Max-Age": "86400",
     };
+
+    if (allowedOrigins.split(",").includes(requestOrigin)) {
+      corsHeaders["Access-Control-Allow-Origin"] = requestOrigin;
+    }
 
     // Handle preflight
     if (request.method === "OPTIONS") {
@@ -109,12 +109,22 @@ export default {
       });
     } catch (error) {
       console.error("API Error:", error);
-      return Response.json(
-        {
+
+      const errorHeaders = new Headers();
+      Object.entries(corsHeaders).forEach(([key, value]) => {
+        errorHeaders.set(key, value);
+      });
+      errorHeaders.set("Content-Type", "application/json");
+
+      return new Response(
+        JSON.stringify({
           error: "Internal server error",
           message: error instanceof Error ? error.message : "Unknown error",
+        }),
+        { 
+          status: 500,
+          headers: errorHeaders 
         },
-        { status: 500 },
       );
     }
   },

@@ -7,16 +7,10 @@ import { ThemeProvider } from "./components/ThemeContext";
 import { CurrencyProvider } from "./components/CurrencyContext";
 import GlobalErrorBoundary from "./components/common/GlobalErrorBoundary";
 import { logger } from "./utils/logger";
-import { initSentry } from "./services/sentryService";
 import { safeStorage } from "./utils/safeStorage";
 import "./index.css";
+import "./i18n";
 
-// Initialize Sentry error tracking — release version injected by Vite from package.json
-initSentry(
-  import.meta.env.VITE_SENTRY_DSN,
-  import.meta.env.MODE,
-  `master-portal@${import.meta.env.VITE_APP_VERSION ?? "unknown"}`,
-);
 
 // Suppress harmless browser extension warnings (e.g., wallet extensions competing for window.ethereum)
 const originalWarn = console.warn;
@@ -40,7 +34,7 @@ window.addEventListener("error", (event) => {
     event.message?.includes("Importing a module script failed");
 
   if (isChunkError) {
-    console.error("Dynamic chunk missing, forcing reload...", event.error);
+    logger.error("Dynamic chunk missing, forcing reload...", event.error);
     // Prevent infinite reload loops with a session storage flag
     const now = Date.now();
     const lastReload = parseInt(

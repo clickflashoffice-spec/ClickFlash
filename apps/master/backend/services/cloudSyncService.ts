@@ -1,26 +1,22 @@
-import { Logger } from "../shared/logger";
-import DatabaseManager from "../shared/db";
+import { Logger } from '../utils/logger';
+import DatabaseManager from '../database/db';
 import * as path from "path";
 import * as fs from "fs";
 import FormData from "form-data";
-import { HardwareService } from "../shared/hardwareService";
+import { HardwareService } from '../services/SystemHardwareService';
 import { ArchiveService } from "./ArchiveService";
-import { ResourceMonitor } from "../shared/ResourceMonitor";
+import { ResourceMonitor } from '../services/ResourceMonitor';
 import { tunnelManager } from "./TunnelManager";
 import { ResortAnalyticsService } from "./ResortAnalyticsService";
-import { AuditService } from "./auditService";
+import { AuditService } from './auditService';
 import { TABLE_MAP, ALLOWED_COLUMNS } from "../config/constants";
-import { executeWithRetry } from "../shared/networkUtils";
-import { timeService } from "../shared/timeService";
+import { executeWithRetry } from '../utils/networkUtils';
+import { timeService } from '../services/timeService';
+import { PipelineResult, SyncContext } from './sync/SyncPipeline';
+import { PhotosPipeline } from "./sync/pipelines/PhotosPipeline";
 import { Order } from "../types/shared";
 import crypto from "crypto";
-
-interface PipelineResult {
-  name: string;
-  success: boolean;
-  error?: string;
-}
-
+import { LicenseService } from "./license-service";
 interface SyncConfig {
   enabled: boolean;
   retentionDays: number;
@@ -77,7 +73,7 @@ function getErrorMessage(err: unknown): string {
 }
 
 // Use global fetch (Node 18+)
-const fetchFn = (globalThis as any).fetch;
+const fetchFn = (...args: any[]) => ((globalThis as any).fetch)(...args);
 
 // Constants
 const MIN_SYNC_INTERVAL = 1000 * 60 * 1; // 1 Minute
@@ -101,6 +97,7 @@ export class CloudSyncService {
   private isSyncing = false;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private retentionTimer: ReturnType<typeof setInterval> | null = null;
+  private dlqTimer: ReturnType<typeof setInterval> | null = null;
   private enabled = false;
   private isPaused = false;
   private resortAnalytics: ResortAnalyticsService | null = null;
@@ -136,6 +133,63 @@ export class CloudSyncService {
       throw new Error("CLOUD_API_URL not configured");
     }
     return url;
+  }
+
+  private get cloudFailoverUrl(): string | undefined {
+    try {
+      const row = this.dbManager.get<{ value: string }>(
+        "SELECT value FROM settings WHERE key = 'cloud_failover_url'",
+      );
+      if (row && row.value) return row.value;
+    } catch (e) {}
+    return process.env.CLOUD_FAILOVER_URL || process.env.CLOUD_API_FAILOVER_URL;
+  }
+
+  /**
+   * Helper to perform HTTP requests with automatic multi-region failover.
+   * If the primary HQ URL fails (network error, DNS failure, timeout, or HTTP 5xx/503),
+   * it automatically retries against the configured secondary/failover URL.
+   */
+  public async fetchWithFailover(urlOrPath: string, init?: RequestInit): Promise<Response> {
+    const primaryUrl = urlOrPath.startsWith("http") ? urlOrPath : `${this.cloudApiUrl}${urlOrPath}`;
+    let res: Response | undefined;
+    let err: any;
+
+    try {
+      res = await fetchFn(primaryUrl, init);
+      if (res && res.status < 500) {
+        return res;
+      }
+    } catch (e) {
+      err = e;
+    }
+
+    const failoverBase = this.cloudFailoverUrl;
+    if (failoverBase) {
+      const endpointPath = urlOrPath.startsWith("http")
+        ? urlOrPath.replace(this.cloudApiUrl, "")
+        : urlOrPath;
+      const failoverUrl = `${failoverBase}${endpointPath}`;
+      this.logger.warn(`[CloudSync] Primary hub request failed (${primaryUrl}, status: ${res?.status || err?.message || 'unknown'}). Attempting failover to: ${failoverUrl}`);
+      try {
+        const failoverRes = await fetchFn(failoverUrl, init);
+        if (failoverRes && failoverRes.status < 500) {
+          return failoverRes;
+        }
+        if (failoverRes) {
+          err = new Error(`Failover hub returned status ${failoverRes.status}: ${failoverRes.statusText}`);
+        }
+      } catch (failoverErr) {
+        this.logger.error(`[CloudSync] Failover hub request also failed: ${failoverUrl}`, failoverErr);
+        err = failoverErr;
+      }
+    }
+
+    if (err) throw err;
+    if (res && res.status >= 500) {
+      throw new Error(`Cloud hub returned status ${res.status}: ${res.statusText || 'Server Error'}`);
+    }
+    return res!;
   }
 
   private get cloudGalleryUrl(): string {
@@ -217,7 +271,7 @@ export class CloudSyncService {
     this.resortAnalytics = resortAnalytics;
 
     // Initialize audit service
-    this.auditService = new AuditService(logger, dbManager);
+    this.auditService = new (AuditService as any)(dbManager, logger, {} as any, { DATA_DIR: process.env.DATA_DIR || "./pb_data" });
 
     // Default Upload Dir calculation based on env or relative path
     const dataDir = process.env.DATA_DIR || path.join(process.cwd(), "pb_data");
@@ -428,6 +482,12 @@ export class CloudSyncService {
       () => this.runRetentionBatch(),
       RETENTION_CHECK_INTERVAL,
     );
+
+    // Periodic DLQ Automated Replay (every 30 minutes)
+    this.dlqTimer = setInterval(
+      () => this.replayDeadLetterQueue(),
+      30 * 60 * 1000,
+    );
   }
 
   private hydrateQueueState(): void {
@@ -485,6 +545,7 @@ export class CloudSyncService {
   stop() {
     if (this.timer) clearTimeout(this.timer as any);
     if (this.retentionTimer) clearInterval(this.retentionTimer);
+    if (this.dlqTimer) clearInterval(this.dlqTimer);
     this.logger.info("[CloudSync] Service stopped.");
   }
 
@@ -505,7 +566,7 @@ export class CloudSyncService {
     try {
       const machineId = await HardwareService.getMachineId();
       const res = await executeWithRetry(async () => {
-        return await fetchFn(`${this.cloudApiUrl}/api/auth/login`, {
+        return await this.fetchWithFailover("/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -552,11 +613,11 @@ export class CloudSyncService {
   }
 
   private generateIdempotencyKey(pipeline: string, seq: number): string {
-    const raw = `${this.deskId}:${pipeline}:${seq}:${Date.now()}`;
+    const raw = `${this.deskId}:${pipeline}:${seq}`;
     return crypto.createHash('sha256').update(raw).digest('hex');
   }
 
-  private recordPipelineResult(name: string, success: boolean, error?: string): void {
+  private recordPipelineResult(name: string, success: boolean, _error?: string): void {
     if (success) {
       this.failuresByPipeline.delete(name);
       try {
@@ -621,6 +682,18 @@ export class CloudSyncService {
     return false;
   }
 
+  private createSyncContext(): SyncContext {
+    return {
+      dbManager: this.dbManager,
+      logger: this.logger,
+      cloudApiUrl: this.cloudApiUrl,
+      deskId: this.deskId,
+      token: this.token,
+      setToken: (t: string | null) => { this.token = t; },
+      getHeaders: async () => this.getHeaders(),
+    } as unknown as SyncContext;
+  }
+
   public async sync() {
     if (this.isPaused) return;
     if (this.isSyncing) return;
@@ -641,7 +714,7 @@ export class CloudSyncService {
     this.isSyncing = true;
     const results: PipelineResult[] = [];
 
-    const runPipeline = async (name: string, fn: () => Promise<void>): Promise<void> => {
+    const runPipeline = async (name: string, fn: () => Promise<any>): Promise<void> => {
       if (this.isPipelineOpen(name)) {
         this.logger.debug(`[CloudSync] Pipeline ${name} circuit OPEN, skipping`);
         results.push({ name, success: false, error: 'Pipeline circuit OPEN' });
@@ -665,6 +738,7 @@ export class CloudSyncService {
         runPipeline('expenses', () => this.syncExpenses()),
         runPipeline('inventory', () => this.syncInventory()),
         runPipeline('orders_to_gallery', () => this.syncOrdersToGallery()),
+        runPipeline('photos_to_cloud', () => new PhotosPipeline().execute(this.createSyncContext())), 
         runPipeline('heartbeat', () => this.sendHeartbeat()),
         runPipeline('yield_intelligence', () => this.syncYieldIntelligence()),
         runPipeline('prospecting_crm', () => this.syncProspectingCRM()),
@@ -771,8 +845,8 @@ export class CloudSyncService {
 
       const res = await executeWithRetry(async () => {
         const headers = await this.getHeaders();
-        return await fetchFn(
-          `${this.cloudApiUrl}/api/cloud/sync/operations`,
+        return await this.fetchWithFailover(
+          "/api/cloud/sync/operations",
           {
             method: "POST",
             headers: {
@@ -1023,7 +1097,7 @@ export class CloudSyncService {
         this.logger.info(
           `[CloudSync] Phase 70: Pushed ${json.processed ?? audits.length} photographer audit(s) for ${date} to Hub.`,
         );
-        return { pushed: json.processed ?? audits.length, date };
+        return { pushed: json.processed ?? audits.length, date } as any;
       } else {
         const txt = await res.text();
         this.logger.error(
@@ -1184,6 +1258,16 @@ export class CloudSyncService {
         this.dbManager.get<{ count: number }>(
           `SELECT COUNT(*) as count FROM operation_logs WHERE status = 'pending'`,
         )?.count || 0;
+
+      // Online License Verification
+      const licenseService = new LicenseService(this.dbManager, this.logger, this.cloudApiUrl);
+      const isLicenseValid = await licenseService.verifyWithHub(this.deskId);
+      
+      if (!isLicenseValid) {
+         this.logger.warn("[CloudSync] License verification failed. Kiosk features may be restricted.");
+         // We still send the heartbeat to ensure hub knows we're online,
+         // but we could set an offline flag if needed.
+      }
 
       const health = await HardwareService.getHealthStatus();
 
@@ -1550,6 +1634,14 @@ export class CloudSyncService {
         this.dbManager.get<{ count: number }>(
           "SELECT COUNT(*) as count FROM fulfillment_queue WHERE status = 'pending'",
         )?.count || 0;
+      const queueDepth =
+        this.dbManager.get<{ count: number }>(
+          "SELECT COUNT(*) as count FROM operation_logs WHERE status = 'pending'",
+        )?.count || 0;
+      const dlqCount =
+        this.dbManager.get<{ count: number }>(
+          `SELECT COUNT(*) as count FROM operation_logs WHERE status = '${DLQ_STATUS}'`,
+        )?.count || 0;
 
       return {
         enabled: this.config.enabled,
@@ -1571,6 +1663,12 @@ export class CloudSyncService {
         queues: {
           retention: retentionCount,
           fulfillment: fulfillmentCount,
+          operations: queueDepth,
+          dlq: dlqCount,
+        },
+        metrics: {
+          'sync.queue_depth': queueDepth,
+          'sync.dlq_count': dlqCount,
         },
         lastSync: new Date().toISOString(),
       };
@@ -1702,6 +1800,98 @@ export class CloudSyncService {
   public purgeQueue() {
     this.dbManager.run("DELETE FROM retention_queue WHERE status = 'pending'");
     this.logger.info("[CloudSync] Queue Purged.");
+  }
+
+  public replayDeadLetterQueue(ids?: string[]): { replayed: number; errors: string[] } {
+    const errors: string[] = [];
+    let replayed = 0;
+
+    try {
+      if (!this._isConnected && !ids) {
+        this.logger.debug("[CloudSync] Skipping automated DLQ replay while offline.");
+        return { replayed: 0, errors };
+      }
+
+      let query = `UPDATE operation_logs SET status = 'pending', retry_count = 0, error_log = NULL WHERE status = ?`;
+      const params: any[] = [DLQ_STATUS];
+
+      if (ids && ids.length > 0) {
+        const placeholders = ids.map(() => '?').join(',');
+        query += ` AND id IN (${placeholders})`;
+        params.push(...ids);
+      } else {
+        // For automated replay, limit to 50 items at a time
+        query = `UPDATE operation_logs SET status = 'pending', retry_count = 0, error_log = NULL WHERE id IN (SELECT id FROM operation_logs WHERE status = ? LIMIT 50)`;
+      }
+
+      const res = this.dbManager.run(query, params);
+      replayed += res.changes || 0;
+
+      // Also replay retention_queue DLQ items
+      let reqQuery = `UPDATE retention_queue SET status = 'pending', retry_count = 0, error_log = NULL WHERE status = ?`;
+      const reqParams: any[] = [DLQ_STATUS];
+      if (ids && ids.length > 0) {
+        const placeholders = ids.map(() => '?').join(',');
+        reqQuery += ` AND id IN (${placeholders})`;
+        reqParams.push(...ids);
+      } else {
+        reqQuery = `UPDATE retention_queue SET status = 'pending', retry_count = 0, error_log = NULL WHERE id IN (SELECT id FROM retention_queue WHERE status = ? LIMIT 50)`;
+      }
+      const reqRes = this.dbManager.run(reqQuery, reqParams);
+      replayed += reqRes.changes || 0;
+
+      if (replayed > 0) {
+        this.logger.info(`[CloudSync] DLQ Replay: Re-queued ${replayed} dead_letter operations for retry.`);
+        if (this._isConnected) {
+          this.scheduleNextSync(100);
+        }
+      }
+    } catch (err: any) {
+      const msg = `Failed to replay DLQ: ${err?.message || String(err)}`;
+      this.logger.error(`[CloudSync] ${msg}`);
+      errors.push(msg);
+    }
+
+    return { replayed, errors };
+  }
+
+  public getDeadLetterQueue(limit = 100, offset = 0): { items: any[]; total: number } {
+    try {
+      const totalOps = this.dbManager.query(`SELECT COUNT(*) as count FROM operation_logs WHERE status = ?`, [DLQ_STATUS])[0]?.count || 0;
+      const totalReq = this.dbManager.query(`SELECT COUNT(*) as count FROM retention_queue WHERE status = ?`, [DLQ_STATUS])[0]?.count || 0;
+      
+      const ops = this.dbManager.query(`SELECT id, 'operation_log' as type, table_name, action, record_id, created_at, updated_at, error_log, retry_count FROM operation_logs WHERE status = ? ORDER BY updated_at DESC LIMIT ? OFFSET ?`, [DLQ_STATUS, limit, offset]);
+      
+      const reqs = this.dbManager.query(`SELECT id, 'retention_asset' as type, album_id as table_name, 'UPLOAD' as action, asset_id as record_id, created_at, updated_at, error_log, retry_count FROM retention_queue WHERE status = ? ORDER BY updated_at DESC LIMIT ? OFFSET ?`, [DLQ_STATUS, limit, offset]);
+      
+      return {
+        items: [...ops, ...reqs].slice(0, limit),
+        total: totalOps + totalReq,
+      };
+    } catch (err: any) {
+      this.logger.error(`[CloudSync] Failed to get DLQ: ${err?.message || String(err)}`);
+      return { items: [], total: 0 };
+    }
+  }
+
+  public deleteDeadLetterQueueItems(ids: string[]): { deleted: number } {
+    if (!ids || ids.length === 0) return { deleted: 0 };
+    let deleted = 0;
+    try {
+      const placeholders = ids.map(() => '?').join(',');
+      const resOps = this.dbManager.run(`DELETE FROM operation_logs WHERE status = ? AND id IN (${placeholders})`, [DLQ_STATUS, ...ids]);
+      deleted += resOps.changes || 0;
+      
+      const resReq = this.dbManager.run(`DELETE FROM retention_queue WHERE status = ? AND id IN (${placeholders})`, [DLQ_STATUS, ...ids]);
+      deleted += resReq.changes || 0;
+      
+      if (deleted > 0) {
+        this.logger.info(`[CloudSync] Deleted ${deleted} DLQ items permanently.`);
+      }
+    } catch (err: any) {
+      this.logger.error(`[CloudSync] Failed to delete DLQ items: ${err?.message || String(err)}`);
+    }
+    return { deleted };
   }
 
   public getCandidates() {
@@ -1959,7 +2149,7 @@ export class CloudSyncService {
           };
 
           // Log audit: ORDER_SYNC_STARTED
-          this.auditService.logOrderSyncEvent({
+          (this.auditService as any).logOrderSyncEvent({
             event: 'ORDER_SYNCED',
             correlationId,
             orderId: order.id,
@@ -2002,7 +2192,7 @@ export class CloudSyncService {
             const duration = Date.now() - orderStartTime;
             
             // Log audit: ORDER_SYNCED success
-            this.auditService.logOrderSyncEvent({
+            (this.auditService as any).logOrderSyncEvent({
               event: 'ORDER_SYNCED',
               correlationId,
               orderId: order.id,
@@ -2022,7 +2212,7 @@ export class CloudSyncService {
             const duration = Date.now() - orderStartTime;
             
             // Log audit: ORDER_SYNC_FAILED
-            this.auditService.logOrderSyncEvent({
+            (this.auditService as any).logOrderSyncEvent({
               event: 'ORDER_FAILED',
               correlationId,
               orderId: order.id,
@@ -2044,7 +2234,7 @@ export class CloudSyncService {
           const duration = Date.now() - orderStartTime;
           
           // Log audit: ORDER_SYNC_FAILED
-          this.auditService.logOrderSyncEvent({
+          (this.auditService as any).logOrderSyncEvent({
             event: 'ORDER_FAILED',
             correlationId,
             orderId: order.id,

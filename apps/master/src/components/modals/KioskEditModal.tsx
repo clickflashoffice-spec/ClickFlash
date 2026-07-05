@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal.tsx';
 import { TouchKiosk } from '../../types';
+import { z } from 'zod';
+import { kioskEditSchema } from './schemas.ts';
 
 interface KioskEditModalProps {
   isOpen: boolean;
@@ -32,21 +34,23 @@ const KioskEditModal: React.FC<KioskEditModalProps> = ({ isOpen, onClose, onSave
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!kiosk.name?.trim()) {
-      alert('Kiosk name is required');
-      return;
-    }
-    if (!kiosk.id?.trim()) {
-      alert('Kiosk ID is required');
-      return;
-    }
+    try {
+      const validatedData = kioskEditSchema.parse(kiosk);
+      
+      const kioskToSave = {
+        ...kiosk,
+        ...validatedData,
+        settings: { ...(kiosk.settings || {}) }
+      };
 
-    const kioskToSave = {
-      ...kiosk,
-      settings: { ...(kiosk.settings || {}) }
-    };
-
-    onSave(kioskToSave as TouchKiosk);
+      onSave(kioskToSave as TouchKiosk);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        alert(error.issues[0].message);
+      } else {
+        alert("Failed to validate kiosk data");
+      }
+    }
   };
 
   return (

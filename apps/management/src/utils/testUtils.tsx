@@ -143,7 +143,7 @@ export function mockApiResponse<T>(data: T, delay = 0): Promise<T> {
     });
 }
 
-export function mockApiError(message: string, status = 500): Promise<never> {
+export function mockApiError(message: string, _status = 500): Promise<never> {
     return Promise.reject(new Error(message));
 }
 
@@ -159,7 +159,7 @@ export function waitForAsync(ms = 0): Promise<void> {
  * Event simulation utilities
  */
 
-export function createFile(name: string, type = 'image/jpeg', size = 1024): File {
+export function createFile(name: string, type = 'image/jpeg', _size = 1024): File {
     const blob = new Blob(['test'], { type });
     return new File([blob], name, { type });
 }

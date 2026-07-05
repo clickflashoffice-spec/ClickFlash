@@ -21,7 +21,7 @@ interface ProductsPageProps {
   context?: string;
 }
 
-const ProductsPage: React.FC<ProductsPageProps> = ({ context }) => {
+const ProductsPage: React.FC<ProductsPageProps> = ({ context: context }) => {
   const [activeTab, setActiveTab] = useState<"products" | "packs" | "pricing">("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [packs, setPacks] = useState<Pack[]>([]);
@@ -88,7 +88,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ context }) => {
       alert(
         `Pricing pushed successfully to: ${syncTarget === "global" ? "Global Hub" : syncTarget}`,
       );
-    } catch (error) {
+    } catch {
       alert("Sync failed. Check console for details.");
     } finally {
       setIsSyncing(false);

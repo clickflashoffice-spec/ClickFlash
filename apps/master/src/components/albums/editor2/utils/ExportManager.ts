@@ -1,5 +1,6 @@
 import { ManualEdits } from "../../../../types/shared";
 import { CanvasFilterEngine } from "./CanvasFilterEngine";
+import { logger } from '@/utils/logger';
 
 export interface ExportOptions {
   format: "image/jpeg" | "image/png" | "image/webp";
@@ -116,7 +117,7 @@ export class ExportManager {
       if (error instanceof DOMException && error.name === 'AbortError') {
         return { success: false, exportedCount: 0, errors: ['Export cancelled'] };
       }
-      console.error("Backend Export failed:", error);
+      logger.error("Backend Export failed:", error);
       throw error;
     }
   }

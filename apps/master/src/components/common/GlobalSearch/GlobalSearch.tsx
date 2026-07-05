@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Photographer } from '../../../types';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { searchService } from '../../../services/SearchService';
+import { logger } from '@/utils/logger';
 
 interface GlobalSearchProps {
     currentUser: Photographer | null;
@@ -70,7 +71,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ currentUser }) => {
                     setResults([...navMatches, ...searchResults]);
                 }
             } catch (error) {
-                console.error('Search failed:', error);
+                logger.error('Search failed:', error);
             } finally {
                 setIsLoading(false);
             }

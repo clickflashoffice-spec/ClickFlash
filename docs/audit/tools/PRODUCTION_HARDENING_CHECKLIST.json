@@ -1,0 +1,266 @@
+{
+  "title": "ClickFlash Production Hardening Checklist",
+  "generated": "2025-06-08",
+  "auto_execution": "ENABLED",
+  "categories": [
+    {
+      "name": "Secrets & Credentials",
+      "checks": [
+        {
+          "item": "All API keys rotated in dashboards",
+          "status": "PENDING - HUMAN REQUIRED"
+        },
+        {
+          "item": "Real .env files updated with new secrets",
+          "status": "PENDING - HUMAN REQUIRED"
+        },
+        {
+          "item": "JWT secrets generated and distributed",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Git history purged of secrets",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Backup branch contains original history",
+          "status": "COMPLETE - needs deletion"
+        },
+        {
+          "item": "No hardcoded passwords in source",
+          "status": "COMPLETE"
+        },
+        {
+          "item": ".env files in .gitignore",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Pre-commit hook blocks .env commits",
+          "status": "COMPLETE"
+        }
+      ]
+    },
+    {
+      "name": "Build & Deployment",
+      "checks": [
+        {
+          "item": "Master Electron app signed",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Touch Kiosk installer built",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "MoneyTrash Tauri built (MSI+NSIS)",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Management Worker deployable",
+          "status": "PENDING - needs wrangler deploy"
+        },
+        {
+          "item": "Website static build verified",
+          "status": "PENDING"
+        },
+        {
+          "item": "Installer payload tested",
+          "status": "PENDING"
+        },
+        {
+          "item": "Auto-update manifest generated",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Blockmap for delta updates",
+          "status": "COMPLETE"
+        }
+      ]
+    },
+    {
+      "name": "Infrastructure & Networking",
+      "checks": [
+        {
+          "item": "Cloudflare Workers configured",
+          "status": "PENDING - verify wrangler.toml"
+        },
+        {
+          "item": "Cloudflare R2 buckets provisioned",
+          "status": "PENDING"
+        },
+        {
+          "item": "D1 databases created",
+          "status": "PENDING"
+        },
+        {
+          "item": "Custom domain configured",
+          "status": "PENDING"
+        },
+        {
+          "item": "SSL/TLS certificates active",
+          "status": "PENDING"
+        },
+        {
+          "item": "DDoS protection enabled",
+          "status": "PENDING"
+        },
+        {
+          "item": "WAF rules configured",
+          "status": "PENDING"
+        },
+        {
+          "item": "Rate limiting enabled",
+          "status": "COMPLETE - in code"
+        }
+      ]
+    },
+    {
+      "name": "Application Security",
+      "checks": [
+        {
+          "item": "CORS properly configured",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "JWT signing uses strong secret",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Password hashing (SHA-256)",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Rate limiting on login",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Hardware binding for stations",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Refresh token rotation",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Token reuse detection",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Input validation on all routes",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "SQL injection prevention",
+          "status": "COMPLETE - parameterized queries"
+        },
+        {
+          "item": "XSS protection headers",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "CSRF protection",
+          "status": "PENDING"
+        },
+        {
+          "item": "Content Security Policy",
+          "status": "COMPLETE"
+        }
+      ]
+    },
+    {
+      "name": "Monitoring & Logging",
+      "checks": [
+        {
+          "item": "Sentry DSN configured",
+          "status": "COMPLETE - optional"
+        },
+        {
+          "item": "Error tracking enabled",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Audit logging",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Access logging",
+          "status": "PENDING"
+        },
+        {
+          "item": "Performance monitoring",
+          "status": "PENDING"
+        },
+        {
+          "item": "Health check endpoint",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Alerting configured",
+          "status": "PENDING"
+        }
+      ]
+    },
+    {
+      "name": "Data Protection",
+      "checks": [
+        {
+          "item": "Database encryption at rest",
+          "status": "PENDING - SQLite needs encryption"
+        },
+        {
+          "item": "Backup strategy",
+          "status": "PENDING"
+        },
+        {
+          "item": "GDPR compliance",
+          "status": "COMPLETE - features implemented"
+        },
+        {
+          "item": "Data retention policies",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "PII handling procedures",
+          "status": "PENDING"
+        },
+        {
+          "item": "Secure deletion",
+          "status": "PENDING"
+        }
+      ]
+    },
+    {
+      "name": "Disaster Recovery",
+      "checks": [
+        {
+          "item": "Backup branch preserved",
+          "status": "COMPLETE"
+        },
+        {
+          "item": "Rollback procedure documented",
+          "status": "PENDING"
+        },
+        {
+          "item": "Database backup automation",
+          "status": "PENDING"
+        },
+        {
+          "item": "Multi-region deployment",
+          "status": "PENDING"
+        },
+        {
+          "item": "Failover testing",
+          "status": "PENDING"
+        }
+      ]
+    }
+  ],
+  "fixes_applied": [
+    "Added CSP to Master app",
+    "Created .env.production for master",
+    "Created .env.production for moneytrash",
+    "Created .env.production for website",
+    "Created security.txt"
+  ],
+  "last_updated": "2025-06-08"
+}

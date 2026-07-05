@@ -1,3 +1,4 @@
+import { logger } from "@/utils/logger";
 /**
  * Cloud Bridge Authentication Test
  * 
@@ -13,22 +14,22 @@ const EMAIL = process.env.CLOUD_EMAIL;
 const PASSWORD = process.env.CLOUD_PASSWORD;
 const DESK_ID = process.env.DESK_ID || 'MASTER_01';
 
-console.log('🔍 Cloud Bridge Authentication Test\n');
-console.log('Configuration:');
-console.log(`  Hub URL: ${HUB_URL}`);
-console.log(`  Desk ID: ${DESK_ID}`);
-console.log(`  Email:   ${EMAIL || '(not set)'}`);
-console.log(`  Password: ${PASSWORD ? '*****' : '(not set)'}`);
-console.log('');
+logger.info('🔍 Cloud Bridge Authentication Test\n');
+logger.info('Configuration:');
+logger.info(`  Hub URL: ${HUB_URL}`);
+logger.info(`  Desk ID: ${DESK_ID}`);
+logger.info(`  Email:   ${EMAIL || '(not set)'}`);
+logger.info(`  Password: ${PASSWORD ? '*****' : '(not set)'}`);
+logger.info('');
 
 // Check credentials
 if (!EMAIL || !PASSWORD) {
-    console.error('❌ Missing credentials!');
-    console.error('Set CLOUD_EMAIL and CLOUD_PASSWORD environment variables.');
-    console.error('');
-    console.error('Example:');
-    console.error('  $env:CLOUD_EMAIL="your-email@clickflash.ai"');
-    console.error('  $env:CLOUD_PASSWORD="your-password"');
+    logger.error('❌ Missing credentials!');
+    logger.error('Set CLOUD_EMAIL and CLOUD_PASSWORD environment variables.');
+    logger.error('');
+    logger.error('Example:');
+    logger.error('  $env:CLOUD_EMAIL="your-email@clickflash.ai"');
+    logger.error('  $env:CLOUD_PASSWORD="your-password"');
     process.exit(1);
 }
 
@@ -57,11 +58,11 @@ const options = {
 
 const protocol = url.protocol === 'https:' ? https : http;
 
-console.log('🚀 Sending authentication request...\n');
+logger.info('🚀 Sending authentication request...\n');
 
 const req = protocol.request(options, (res) => {
-    console.log(`Response Status: ${res.statusCode} ${res.statusMessage}`);
-    console.log('Response Headers:', JSON.stringify(res.headers, null, 2));
+    logger.info(`Response Status: ${res.statusCode} ${res.statusMessage}`);
+    logger.info('Response Headers:', JSON.stringify(res.headers, null, 2));
     
     let data = '';
     res.on('data', (chunk) => {
@@ -69,36 +70,36 @@ const req = protocol.request(options, (res) => {
     });
     
     res.on('end', () => {
-        console.log('\nResponse Body:');
+        logger.info('\nResponse Body:');
         try {
             const json = JSON.parse(data);
-            console.log(JSON.stringify(json, null, 2));
+            logger.info(JSON.stringify(json, null, 2));
             
             if (res.statusCode === 200 && json.token) {
-                console.log('\n✅ Authentication SUCCESSFUL!');
-                console.log(`Token: ${json.token.substring(0, 20)}...`);
+                logger.info('\n✅ Authentication SUCCESSFUL!');
+                logger.info(`Token: ${json.token.substring(0, 20)}...`);
                 
                 // Test heartbeat
                 testHeartbeat(json.token);
             } else if (res.statusCode === 423) {
-                console.log('\n❌ Hardware Lock Error!');
-                console.log('This desk is already registered to another machine.');
+                logger.info('\n❌ Hardware Lock Error!');
+                logger.info('This desk is already registered to another machine.');
             } else if (res.statusCode === 401) {
-                console.log('\n❌ Authentication FAILED!');
-                console.log('Invalid email or password.');
+                logger.info('\n❌ Authentication FAILED!');
+                logger.info('Invalid email or password.');
             } else {
-                console.log('\n⚠️ Unexpected response');
+                logger.info('\n⚠️ Unexpected response');
             }
         } catch (e) {
-            console.log(data);
+            logger.info(data);
         }
     });
 });
 
 req.on('error', (e) => {
-    console.error(`\n❌ Request failed: ${e.message}`);
+    logger.error(`\n❌ Request failed: ${e.message}`);
     if (e.code === 'ECONNREFUSED') {
-        console.error('The Management Hub is not reachable.');
+        logger.error('The Management Hub is not reachable.');
     }
 });
 
@@ -107,7 +108,7 @@ req.end();
 
 // Test heartbeat with token
 function testHeartbeat(token) {
-    console.log('\n📡 Testing heartbeat...\n');
+    logger.info('\n📡 Testing heartbeat...\n');
     
     const heartbeatUrl = new URL(`${HUB_URL}/api/cloud/heartbeat`);
     const heartbeatData = JSON.stringify({
@@ -131,7 +132,7 @@ function testHeartbeat(token) {
     };
     
     const hbReq = protocol.request(heartbeatOptions, (res) => {
-        console.log(`Heartbeat Status: ${res.statusCode} ${res.statusMessage}`);
+        logger.info(`Heartbeat Status: ${res.statusCode} ${res.statusMessage}`);
         
         let data = '';
         res.on('data', (chunk) => {
@@ -141,22 +142,22 @@ function testHeartbeat(token) {
         res.on('end', () => {
             try {
                 const json = JSON.parse(data);
-                console.log('Response:', JSON.stringify(json, null, 2));
+                logger.info('Response:', JSON.stringify(json, null, 2));
                 
                 if (res.statusCode === 200) {
-                    console.log('\n✅ Heartbeat SUCCESSFUL!');
-                    console.log('\n✨ Cloud Bridge is FULLY OPERATIONAL');
+                    logger.info('\n✅ Heartbeat SUCCESSFUL!');
+                    logger.info('\n✨ Cloud Bridge is FULLY OPERATIONAL');
                 } else {
-                    console.log('\n⚠️ Heartbeat failed');
+                    logger.info('\n⚠️ Heartbeat failed');
                 }
             } catch (e) {
-                console.log(data);
+                logger.info(data);
             }
         });
     });
     
     hbReq.on('error', (e) => {
-        console.error(`\n❌ Heartbeat failed: ${e.message}`);
+        logger.error(`\n❌ Heartbeat failed: ${e.message}`);
     });
     
     hbReq.write(heartbeatData);

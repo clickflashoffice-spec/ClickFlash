@@ -8,6 +8,7 @@ import { apiService } from '../services/apiService.ts';
 import Spinner from './common/Spinner';
 import Card from './common/Card';
 import { useDebounce } from '../hooks/useDebounce.ts';
+import { logger } from '@/utils/logger';
 
 /**
  * PackCard Component
@@ -99,7 +100,7 @@ const ProductsPage: React.FC = () => {
             setProducts(productsData);
             setPacks(packsData);
         } catch (e) {
-            console.error("Failed to load products/packs", e);
+            logger.error("Failed to load products/packs", e);
             setError('Failed to load products and packs. Please try again.');
         } finally {
             setLoading(false);
@@ -126,7 +127,7 @@ const ProductsPage: React.FC = () => {
                 await apiService.deleteProduct(id);
                 fetchData();
             } catch (e) {
-                console.error("Failed to delete product", e);
+                logger.error("Failed to delete product", e);
                 alert('Failed to delete product. Please try again.');
             }
         }
@@ -148,7 +149,7 @@ const ProductsPage: React.FC = () => {
                 await apiService.deletePack(id);
                 fetchData();
             } catch (e) {
-                console.error("Failed to delete pack", e);
+                logger.error("Failed to delete pack", e);
                 alert('Failed to delete pack. Please try again.');
             }
         }

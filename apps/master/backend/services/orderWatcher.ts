@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { WebSocket, WebSocketServer } from "ws";
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
 
 import { OrderValidationService } from "../services/OrderValidationService";
 

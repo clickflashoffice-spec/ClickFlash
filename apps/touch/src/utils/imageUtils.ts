@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 /**
  * Image Utilities
@@ -58,7 +59,7 @@ export async function urlToInlineData(imageUrl: string): Promise<{ mimeType: str
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.error("Error converting URL to InlineData:", error);
+    logger.error("Error converting URL to InlineData:", error);
     throw new Error("Could not convert image URL to InlineData.");
   }
 }

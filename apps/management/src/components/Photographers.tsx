@@ -14,10 +14,6 @@ import { useDebounce } from "../hooks/useDebounce.ts";
 import { usePhotographers } from "../hooks/usePhotographers.ts";
 import { useOrders } from "../hooks/useOrders.ts";
 import StatCard from "./common/StatCard.tsx";
-import { PhotographerCard } from "./photographers/PhotographerCard.tsx";
-import { PhotographersFilters } from "./photographers/PhotographersFilters.tsx";
-import { PhotographersStats } from "./photographers/PhotographersStats.tsx";
-import { Search, Grid, List } from "lucide-react";
 
 /**
  * Photographers Component Props

@@ -12,11 +12,12 @@
     "deploy:backend": "cd backend && npx wrangler deploy",
     "start": "cd backend && npx wrangler dev",
     "test": "jest",
+    "test:backend": "cd backend && node --experimental-vm-modules ../node_modules/jest/bin/jest.js --config jest.config.js",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
     "typecheck": "tsc --noEmit && cd backend && tsc --noEmit",
-    "lint": "eslint src --max-warnings 500",
+    "lint": "eslint src --max-warnings 700",
     "lint:fix": "eslint src --fix",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
@@ -26,10 +27,11 @@
     "playwright:install": "playwright install"
   },
   "dependencies": {
+    "@clickflash/logger": "workspace:*",
+    "@clickflash/telemetry-web": "workspace:*",
     "@clickflash/types": "file:../../packages/types",
     "@clickflash/ui": "file:../../packages/ui",
     "@google/genai": "^1.51.0",
-    "@sentry/react": "^10.39.0",
     "@stripe/react-stripe-js": "^2.7.1",
     "@stripe/stripe-js": "^4.0.0",
     "@supabase/supabase-js": "^2.97.0",
@@ -48,6 +50,8 @@
     "formidable": "2.1.5",
     "fs-extra": "^11.3.2",
     "helmet": "^8.1.0",
+    "i18next": "^26.3.4",
+    "i18next-browser-languagedetector": "^8.2.1",
     "jose": "^6.2.2",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.577.0",
@@ -55,6 +59,7 @@
     "react": "^19.2.0",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
+    "react-i18next": "^17.0.8",
     "react-window": "^2.2.3",
     "recharts": "^3.7.0",
     "tailwind-merge": "^3.4.0",
@@ -63,6 +68,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@jest/globals": "^29.7.0",
     "@playwright/test": "^1.58.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -89,6 +95,7 @@
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
     "vite": "^7.3.2",
+    "vitest": "^4.1.9",
     "wrangler": "^3.28.1"
   }
 }

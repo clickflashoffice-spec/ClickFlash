@@ -72,7 +72,7 @@ describe('DbWriteQueue', () => {
             }
         ]);
 
-        const recoveredQueue = new DbWriteQueue(mockDb as any, { logger: mockLogger as any });
+        new DbWriteQueue(mockDb as any, { logger: mockLogger as any });
 
         // Recovery should query pending_writes
         expect(mockDb.query).toHaveBeenCalledWith(
@@ -105,5 +105,11 @@ describe('DbWriteQueue', () => {
         }
         // The 5th enqueue should trigger a flush
         expect(mockDb.transaction).toHaveBeenCalled();
+    });
+
+    it('should track writeLatencyMs in getStats()', async () => {
+        expect(queue.getStats().writeLatencyMs).toBe(0);
+        await queue.enqueue('photos', 'p1', { title: 'Test' }, 'high');
+        expect(queue.getStats().writeLatencyMs).toBeGreaterThanOrEqual(0);
     });
 });

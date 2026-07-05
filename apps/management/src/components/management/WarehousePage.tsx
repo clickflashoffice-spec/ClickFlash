@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from "react";
-import Card from "../common/Card.tsx";
 import {
   Equipment,
   Photographer,
@@ -35,7 +34,15 @@ const WarehousePage: React.FC<WarehousePageProps> = ({ context }) => {
   const [equipmentToEdit, setEquipmentToEdit] = useState<Equipment | null>(
     null,
   );
-  const [inventory, setInventory] = useState<any[]>([]);
+  interface InventoryItem {
+    id: string;
+    name: string;
+    type: string;
+    current_count: number;
+    low_stock_threshold: number;
+  }
+
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [activeTab, setActiveTab] = useState<"equipment" | "inventory">(
     "equipment",
   );

@@ -134,7 +134,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Website
-        run: pnpm --filter main-website run build
+        run: pnpm --filter main-website exec npx @cloudflare/next-on-pages
 
       - name: Deploy Website Pages
         uses: cloudflare/wrangler-action@v3
@@ -142,4 +142,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/website
-          command: pages deploy out --project-name=clickflash-website --branch=main --commit-dirty=true
+          command: pages deploy .vercel/output/static --project-name=clickflash-website --branch=main --commit-dirty=true

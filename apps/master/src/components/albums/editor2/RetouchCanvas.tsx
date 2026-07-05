@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { ManualEdits } from '../../../types';
 import { EditEngine } from '../../../utils/canvas/EditEngine';
+import { logger } from '@/utils/logger';
 
 interface RetouchCanvasProps {
     imageElement: HTMLImageElement | null;
@@ -70,7 +71,7 @@ export const RetouchCanvas: React.FC<RetouchCanvasProps> = ({
         try {
             await engineRef.current.render(imageElement, edits);
         } catch (err) {
-            console.error('Failed to render retouch edits:', err);
+            logger.error('Failed to render retouch edits:', err);
         }
     }, [imageElement, edits]);
 

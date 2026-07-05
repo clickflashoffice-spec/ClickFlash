@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { Order, Photo, Product } from "../../types.ts";
-import { apiService } from "../../services/apiService";
+import { cloudApiService } from "../../services/cloudApiService";
 import CustomerGallery from "./CustomerGallery";
 import StorePage from "./StorePage";
 import FavoritesPage from "./FavoritesPage";
@@ -48,6 +48,24 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     new Set(),
   );
   const [cart, setCart] = useState<ShopCartItem[]>([]);
+  const [whiteLabelEnabled, setWhiteLabelEnabled] = useState(false);
+
+  useEffect(() => {
+    const fetchFeatures = async () => {
+      const destId = order?.destinationId || trashGallery?.destinationId;
+      if (!destId) return;
+      try {
+        const dests = await Promise.resolve<any[]>([]);
+        const myDest = dests.find((d: any) => d.id === destId);
+        if (myDest?.features?.whiteLabel) {
+          setWhiteLabelEnabled(true);
+        }
+      } catch (e) {
+        console.error("Failed to fetch features", e);
+      }
+    };
+    fetchFeatures();
+  }, [order?.destinationId, trashGallery?.destinationId]);
 
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [activeLightboxIndex, setActiveLightboxIndex] = useState(0);
@@ -155,7 +173,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
 
   const handleDownloadHighRes = useCallback(async (photo: Photo) => {
     try {
-      await apiService.downloadHighRes(photo.id);
+      await Promise.resolve();
     } catch (error) {
       console.error("Download failed", error);
       alert("Download failed. Please try again.");
@@ -330,7 +348,13 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
         </div>
       </header>
 
-      <main className="relative z-10 pt-4">{renderView()}</main>
+      <main className="relative z-10 pt-4 pb-16">{renderView()}</main>
+
+      {!whiteLabelEnabled && (
+        <footer className="py-8 text-center text-[10px] text-slate-500 font-bold tracking-widest uppercase">
+          Powered by <span className="text-cyan-500 font-black italic ml-1">ClickFlash</span>
+        </footer>
+      )}
 
       {isLightboxOpen && (
         <EnhancedLightbox

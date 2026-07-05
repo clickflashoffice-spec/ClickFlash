@@ -1,42 +1,77 @@
 import type { Config } from 'jest';
-import path from 'path';
 
 const config: Config = {
-  testEnvironment: 'jsdom',
-  preset: 'ts-jest',
-  testMatch: [
-    '**/tests/unit/**/*.test.ts',
-    '**/tests/unit/**/*.test.tsx',
-    '**/src/**/*.test.ts',
-    '**/src/**/*.test.tsx',
-    '**/backend/**/*.test.ts',
-    '**/backend/**/*.test.tsx',
-  ],
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-    '^@components/(.*)$': '<rootDir>/src/components/$1',
-    '^@services/(.*)$': '<rootDir>/src/services/$1',
-    '^@hooks/(.*)$': '<rootDir>/src/hooks/$1',
-    '^@utils/(.*)$': '<rootDir>/src/utils/$1',
-    '^@types/(.*)$': '<rootDir>/src/types/$1',
-    '^uuid$': '<rootDir>/__mocks__/uuid.ts',
-  },
-  transform: {
-    '^.+\\.tsx?$': [
-      'ts-jest',
-      {
-        useESM: true,
-        tsconfig: {
-          jsx: 'react-jsx',
-          module: 'ESNext',
-          moduleResolution: 'Node',
-        },
+  // Split tests into two projects:
+  // - frontend: jsdom environment for React components
+  // - backend: node environment for Express/Node APIs (uses setInterval().unref())
+  projects: [
+    {
+      displayName: 'frontend',
+      testEnvironment: 'jsdom',
+      preset: 'ts-jest',
+      testMatch: [
+        '**/tests/unit/**/*.test.ts',
+        '**/tests/unit/**/*.test.tsx',
+        '**/src/**/*.test.ts',
+        '**/src/**/*.test.tsx',
+      ],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/src/$1',
+        '^@components/(.*)$': '<rootDir>/src/components/$1',
+        '^@services/(.*)$': '<rootDir>/src/services/$1',
+        '^@hooks/(.*)$': '<rootDir>/src/hooks/$1',
+        '^@utils/(.*)$': '<rootDir>/src/utils/$1',
+        '^@types/(.*)$': '<rootDir>/src/types/$1',
+        '^uuid$': '<rootDir>/__mocks__/uuid.ts',
       },
-    ],
-  },
-  transformIgnorePatterns: [
-    'node_modules/(?!(lucide-react|framer-motion|uuid|@uuid)/)',
+      transform: {
+        '^.+\\.tsx?$': [
+          'ts-jest',
+          {
+            useESM: true,
+            tsconfig: {
+              jsx: 'react-jsx',
+              module: 'ESNext',
+              moduleResolution: 'Node',
+            },
+          },
+        ],
+      },
+      transformIgnorePatterns: [
+        'node_modules/(?!(lucide-react|framer-motion|uuid|@uuid)/)',
+      ],
+      setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+    },
+    {
+      displayName: 'backend',
+      testEnvironment: 'node',
+      preset: 'ts-jest',
+      testMatch: [
+        '**/backend/**/*.test.ts',
+        '**/backend/**/*.test.tsx',
+      ],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/src/$1',
+        '^@services/(.*)$': '<rootDir>/src/services/$1',
+        '^@utils/(.*)$': '<rootDir>/src/utils/$1',
+        '^uuid$': '<rootDir>/__mocks__/uuid.ts',
+      },
+      transform: {
+        '^.+\\.tsx?$': [
+          'ts-jest',
+          {
+            useESM: true,
+            tsconfig: {
+              module: 'ESNext',
+              moduleResolution: 'Node',
+            },
+          },
+        ],
+      },
+    },
   ],
+  // Global settings (apply to all projects)
+  testTimeout: 10000,
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
@@ -97,7 +132,6 @@ const config: Config = {
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   globalSetup: '<rootDir>/tests/global-setup.ts',
   globalTeardown: '<rootDir>/tests/global-teardown.ts',
-  testTimeout: 10000,
   verbose: true,
   detectOpenHandles: true,
   forceExit: true,

@@ -1,12 +1,12 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { DatabaseManager } from "../shared/db";
-import { HardwareService } from "../shared/hardwareService";
-import { ThermalService } from "../shared/thermalService";
+import { DatabaseManager } from '../database/db';
+import { HardwareService } from '../services/SystemHardwareService';
+import { ThermalService } from '../services/thermalService';
 
 const router = Router();
 
-export default (db: DatabaseManager, thermalService: ThermalService) => {
+export default (db: DatabaseManager, thermalService: ThermalService, context?: any) => {
   // Detailed health check
   router.get("/detailed", async (_req: Request, res: Response) => {
     const healthResult = await HardwareService.getHealthStatus();
@@ -45,6 +45,7 @@ export default (db: DatabaseManager, thermalService: ThermalService) => {
           totalGB: healthResult?.diskTotal || 0,
         },
         thermal: thermal || { status: "UNKNOWN" },
+        telemetry: context?.telemetryService ? context.telemetryService.getTelemetry() : undefined,
       },
     };
 
@@ -76,6 +77,14 @@ export default (db: DatabaseManager, thermalService: ThermalService) => {
       version: process.env.npm_package_version || process.env.APP_VERSION || "unknown",
       uptime: Math.floor(process.uptime()),
     });
+  });
+
+  router.get("/telemetry", (_req: Request, res: Response) => {
+    if (context?.telemetryService) {
+      res.json(context.telemetryService.getTelemetry());
+    } else {
+      res.status(503).json({ status: "error", message: "Telemetry service unavailable" });
+    }
   });
 
   return router;

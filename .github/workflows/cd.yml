@@ -25,22 +25,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: '10.28.2'
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm install --prefix apps/website --legacy-peer-deps
+        run: pnpm install --frozen-lockfile
 
       - name: Build website
-        run: npm run build --prefix apps/website
+        run: pnpm --filter main-website run build
         env:
           NODE_ENV: production
 
       - name: Deploy to Cloudflare Pages
-        run: npx wrangler pages deploy apps/website/out --project-name=clickflash-website --branch=main --commit-dirty=true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/website
+          command: pages deploy out --project-name=clickflash-website --branch=main --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -51,22 +61,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: '10.28.2'
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm install --prefix apps/gallery --legacy-peer-deps
+        run: pnpm install --frozen-lockfile
 
       - name: Build gallery
-        run: npm run build --prefix apps/gallery
+        run: pnpm --filter star-master-customer run build
         env:
           NODE_ENV: production
 
       - name: Deploy to Cloudflare Pages
-        run: npx wrangler pages deploy apps/gallery/dist --project-name=click-flash-gallery --branch=main --commit-dirty=true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/gallery
+          command: pages deploy dist --project-name=click-flash-gallery --branch=main --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -77,22 +97,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: '10.28.2'
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm install --prefix apps/management --legacy-peer-deps
+        run: pnpm install --frozen-lockfile
 
       - name: Build management
-        run: npm run build --prefix apps/management
+        run: pnpm --filter star-master-management run build
         env:
           NODE_ENV: production
 
       - name: Deploy to Cloudflare Pages
-        run: npx wrangler pages deploy apps/management/dist --project-name=management-hub --branch=main --commit-dirty=true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/management
+          command: pages deploy dist --project-name=management-hub --branch=main --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

@@ -2,7 +2,7 @@
 // Rate Limiting Middleware
 
 import { Request, Response, NextFunction } from 'express';
-import rateLimiter from '../shared/rateLimiter';
+import rateLimiter from '../middleware/rateLimiter';
 
 /**
  * Rate Limiting Middleware

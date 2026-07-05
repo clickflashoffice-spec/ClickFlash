@@ -212,12 +212,12 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
           const isFresh =
             Date.now() - (draft.timestamp || 0) < 24 * 60 * 60 * 1000;
           if (draft.albumId === albumId && isFresh && draft.edits) {
-            console.log(`[Editor] Restoring draft for album ${albumId}`);
+            logger.info(`[Editor] Restoring draft for album ${albumId}`);
             actions.restoreDraft(draft.edits);
             showToast("Restored unsaved changes from previous session");
           }
         } catch (e) {
-          console.error("Failed to restore draft", e);
+          logger.error("Failed to restore draft", e);
         }
       }
     }
@@ -236,17 +236,34 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
 
     // Re-schedule only when the set of dirty photos changes, not on every edit.
     const timer = setTimeout(() => {
+      const draftData = {
+        albumId,
+        edits: latestEditsRef.current,
+        timestamp: Date.now(),
+      };
       try {
-        const draftData = {
-          albumId,
-          edits: latestEditsRef.current,
-          timestamp: Date.now(),
-        };
         localStorage.setItem(`CF_DRAFT_${albumId}`, JSON.stringify(draftData));
       } catch (e) {
         // QuotaExceededError — clear old drafts and retry once
-        console.warn("[Editor] localStorage quota exceeded, clearing old drafts");
-        Object.keys(localStorage).filter(k => k.startsWith("CF_DRAFT_")).forEach(k => localStorage.removeItem(k));
+        logger.warn("[Editor] localStorage quota exceeded, clearing oldest drafts");
+        try {
+          const drafts = Object.keys(localStorage)
+            .filter(k => k.startsWith("CF_DRAFT_"))
+            .map(k => {
+              try { return { key: k, data: JSON.parse(localStorage.getItem(k) || "{}") }; }
+              catch { return { key: k, data: { timestamp: 0 } }; }
+            })
+            .sort((a, b) => (a.data.timestamp || 0) - (b.data.timestamp || 0));
+          
+          // Remove oldest half of the drafts to free up space
+          const toRemove = drafts.slice(0, Math.max(1, Math.floor(drafts.length / 2)));
+          toRemove.forEach(d => localStorage.removeItem(d.key));
+          
+          // Retry save
+          localStorage.setItem(`CF_DRAFT_${albumId}`, JSON.stringify(draftData));
+        } catch (retryErr) {
+          logger.error("[Editor] Failed to save draft even after cleanup", retryErr);
+        }
       }
     }, 2000);
 

@@ -2,7 +2,7 @@ import React from "react";
 import Card from "../../common/Card.tsx";
 import { Order, Destination } from "../../../types.ts";
 import { useCurrency } from "../../CurrencyContext.tsx";
-import { Globe, Trophy, ArrowUpRight } from "lucide-react";
+import {Globe, Trophy} from "lucide-react";
 
 interface GlobalReportViewProps {
   orders: Order[];

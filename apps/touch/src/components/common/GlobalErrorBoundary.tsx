@@ -1,10 +1,11 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { logger } from '@/utils/logger';
 
 // Use a simple inline logger or console if the main logger isn't available in this context
 const logError = (error: Error, errorInfo: ErrorInfo) => {
     // In production, this would go to Sentry or the backend logger via IPC
-    console.error('Uncaught error:', error, errorInfo);
+    logger.error('Uncaught error:', error, errorInfo);
     try {
         if (window.electron?.logger) {
             window.electron.logger.error('Frontend Crash', { error: error.message, stack: error.stack, componentStack: errorInfo.componentStack });

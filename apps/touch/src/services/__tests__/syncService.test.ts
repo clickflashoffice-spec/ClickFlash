@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-const mockFetch = jest.fn();
+const mockFetch = vi.fn();
 (global as any).fetch = mockFetch;
 
 // Polyfill AbortSignal.timeout for jsdom
@@ -21,59 +21,60 @@ Object.defineProperty(global, 'import', {
     writable: true,
 });
 
-jest.mock('../../utils/logger', () => ({
+vi.mock('../../utils/logger', () => ({
     logger: {
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-        debug: jest.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
     }
 }));
 
-jest.mock('../pb', () => {
+vi.mock('../pb', () => {
     const mockPbCollection = {
-        getFullList: jest.fn(),
-        getOne: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
+        getFullList: vi.fn(),
+        getOne: vi.fn(),
+        create: vi.fn(),
+        update: vi.fn(),
+        delete: vi.fn(),
     };
     return {
         pb: {
             baseUrlValue: 'http://localhost:8091',
-            collection: jest.fn(() => mockPbCollection),
+            collection: vi.fn(() => mockPbCollection),
         }
     };
 });
 
-jest.mock('../db', () => ({
+vi.mock('../db', () => ({
     db: {
-        albums: { bulkPut: jest.fn(), orderBy: jest.fn(() => ({ reverse: jest.fn(() => ({ toArray: jest.fn(() => Promise.resolve([])) })) })) },
-        orders: { put: jest.fn(), toArray: jest.fn(() => Promise.resolve([])), where: jest.fn(() => ({ equals: jest.fn(() => ({ toArray: jest.fn(() => Promise.resolve([])) })) })), bulkDelete: jest.fn() },
+        albums: { bulkPut: vi.fn(), orderBy: vi.fn(() => ({ reverse: vi.fn(() => ({ toArray: vi.fn(() => Promise.resolve([])) })) })) },
+        orders: { put: vi.fn(), toArray: vi.fn(() => Promise.resolve([])), where: vi.fn(() => ({ equals: vi.fn(() => ({ toArray: vi.fn(() => Promise.resolve([])) })) })), bulkDelete: vi.fn() },
     }
 }));
 
-jest.mock('../syncCheckpointService', () => ({
+vi.mock('../syncCheckpointService', () => ({
     syncCheckpointService: {
-        loadCheckpoint: jest.fn(() => Promise.resolve(null)),
-        saveCheckpoint: jest.fn(() => Promise.resolve()),
-        updateCheckpoint: jest.fn(() => Promise.resolve()),
-        clearCheckpoint: jest.fn(() => Promise.resolve()),
-        isAlbumProcessed: jest.fn(() => Promise.resolve(false)),
-        isPhotoProcessed: jest.fn(() => Promise.resolve(false)),
-        markAlbumProcessed: jest.fn(() => Promise.resolve()),
-        markPhotoProcessed: jest.fn(() => Promise.resolve()),
+        loadCheckpoint: vi.fn(() => Promise.resolve(null)),
+        saveCheckpoint: vi.fn(() => Promise.resolve()),
+        updateCheckpoint: vi.fn(() => Promise.resolve()),
+        clearCheckpoint: vi.fn(() => Promise.resolve()),
+        isAlbumProcessed: vi.fn(() => Promise.resolve(false)),
+        isPhotoProcessed: vi.fn(() => Promise.resolve(false)),
+        markAlbumProcessed: vi.fn(() => Promise.resolve()),
+        markPhotoProcessed: vi.fn(() => Promise.resolve()),
     }
 }));
 
 import { syncService } from '../syncService';
 import { pb } from '../pb';
+import { type Mock } from 'vitest';
 
 const mockPbCollection = pb.collection('orders');
 
 describe('Touch SyncService', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         localStorage.setItem('masterLocalIPAddress', '192.168.1.100');
         localStorage.setItem('kioskId', 'kiosk-test-01');
         (syncService as any).masterUrl = 'http://192.168.1.100:8090';
@@ -86,7 +87,7 @@ describe('Touch SyncService', () => {
     });
 
     it('should subscribe and receive sync state updates', () => {
-        const listener = jest.fn();
+        const listener = vi.fn();
         const unsubscribe = syncService.subscribe(listener);
 
         expect(listener).toHaveBeenCalledWith(
@@ -102,7 +103,7 @@ describe('Touch SyncService', () => {
     });
 
     it('should push orders with clientMutationId to Master', async () => {
-        (mockPbCollection.getFullList as jest.Mock).mockResolvedValue([
+        (mockPbCollection.getFullList as Mock).mockResolvedValue([
             {
                 id: 'ord-1',
                 clientName: 'Alice',
@@ -139,7 +140,7 @@ describe('Touch SyncService', () => {
     });
 
     it('should handle 208 deduplication from Master', async () => {
-        (mockPbCollection.getFullList as jest.Mock).mockResolvedValue([
+        (mockPbCollection.getFullList as Mock).mockResolvedValue([
             {
                 id: 'ord-2',
                 clientName: 'Bob',

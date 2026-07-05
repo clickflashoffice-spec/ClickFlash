@@ -6,7 +6,7 @@
  */
 
 import { Request, Response, NextFunction } from "express";
-import AuditLogger from "../shared/auditLogger";
+import AuditLogger from '../utils/auditLogger';
 
 // Permission definitions
 export const PERMISSIONS = {

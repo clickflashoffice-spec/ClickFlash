@@ -145,7 +145,7 @@ class WebSocketService {
             let registration: ServiceWorkerRegistration | null = null;
             try {
                 registration = await navigator.serviceWorker.ready;
-            } catch (readyError) {
+            } catch {
                 // If ready fails, try to get existing registration
                 try {
                     registration = await navigator.serviceWorker.getRegistration() ?? null;
@@ -171,7 +171,7 @@ class WebSocketService {
                         try {
                             registration.active.postMessage({ type: 'PING' });
                             await new Promise(resolve => setTimeout(resolve, 200));
-                        } catch (pingError) {
+                        } catch {
                             // Ignore ping errors
                         }
                     }

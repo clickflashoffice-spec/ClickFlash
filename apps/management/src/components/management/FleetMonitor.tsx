@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/apiService';
 import { Destination } from '../../types';
-import {
-    Monitor,
+import {Monitor,
     Signal,
     Wifi,
     WifiOff,
@@ -10,12 +9,7 @@ import {
     Cpu,
     HardDrive,
     Database,
-    AlertTriangle,
-    CheckCircle2,
-    Clock,
-    DollarSign,
-    ShoppingCart
-} from 'lucide-react';
+    Clock} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export const FleetMonitor: React.FC = () => {
@@ -76,7 +70,7 @@ export const FleetMonitor: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {masters.map(master => {
                         const isOnline = master.status === 'Online';
-                        const metrics = master.healthMetrics || {};
+                        const metrics = master.healthMetrics ?? {};
 
                         return (
                             <div
@@ -120,11 +114,11 @@ export const FleetMonitor: React.FC = () => {
                                             </div>
                                             <div className="flex items-end justify-between">
                                                 <span className="text-lg font-mono font-bold text-slate-700 dark:text-slate-300">
-                                                    {(metrics as any).cpu?.load || 0}%
+                                                    {metrics.cpu?.load ?? 0}%
                                                 </span>
-                                                {(metrics as any).cpu?.temp && (
-                                                    <span className={`text-[10px] font-bold ${(metrics as any).cpu.temp > 80 ? 'text-red-500' : 'text-slate-400'}`}>
-                                                        {(metrics as any).cpu.temp}°C
+                                                {metrics.cpu?.temp != null && (
+                                                    <span className={`text-[10px] font-bold ${(metrics.cpu.temp > 80) ? 'text-red-500' : 'text-slate-400'}`}>
+                                                        {metrics.cpu.temp}°C
                                                     </span>
                                                 )}
                                             </div>
@@ -136,7 +130,7 @@ export const FleetMonitor: React.FC = () => {
                                             </div>
                                             <div className="flex items-end justify-between">
                                                 <span className="text-lg font-mono font-bold text-slate-700 dark:text-slate-300">
-                                                    {(metrics as any).disk?.percent || 0}%
+                                                    {metrics.disk?.percent ?? 0}%
                                                 </span>
                                                 <span className="text-[10px] text-slate-400 mb-0.5">Used</span>
                                             </div>
@@ -151,7 +145,7 @@ export const FleetMonitor: React.FC = () => {
                                                 <span className="text-[10px] uppercase font-bold tracking-wider">Memory</span>
                                             </div>
                                             <div className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300">
-                                                {(metrics as any).memory?.percent || 0}%
+                                                {metrics.memory?.percent ?? 0}%
                                             </div>
                                         </div>
                                         <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50">
@@ -160,7 +154,7 @@ export const FleetMonitor: React.FC = () => {
                                                 <span className="text-[10px] uppercase font-bold tracking-wider">Queue</span>
                                             </div>
                                             <div className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300">
-                                                {(metrics as any).queueDepth?.photos || 0}
+                                                {metrics.queueDepth?.photos ?? 0}
                                             </div>
                                         </div>
                                     </div>
@@ -182,7 +176,7 @@ export const FleetMonitor: React.FC = () => {
                                                 Uptime
                                             </span>
                                             <span className="font-mono text-slate-700 dark:text-slate-300">
-                                                {(metrics as any).uptime ? `${Math.floor((metrics as any).uptime / 3600)}h ${Math.floor(((metrics as any).uptime % 3600) / 60)}m` : 'N/A'}
+                                                {metrics.uptime ? `${Math.floor(metrics.uptime / 3600)}h ${Math.floor((metrics.uptime % 3600) / 60)}m` : 'N/A'}
                                             </span>
                                         </div>
                                     </div>

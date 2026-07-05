@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../common/Card';
 import useLocalStorage from '../../hooks/useLocalStorage';
+import { logger } from '@/utils/logger';
 
 // Type guard for Electron API
 const isElectron = (): boolean => {
@@ -38,7 +39,7 @@ const PrintSettings: React.FC = () => {
                     setInstalledPrinters(printers.map((p: any) => p.name || p.deviceId || p));
                 }
             } catch (error) {
-                console.error('Failed to detect printers:', error);
+                logger.error('Failed to detect printers:', error);
                 setPrinterError('Failed to detect printers. Please check your system.');
                 // Fallback to common printers if API also fails
                 setInstalledPrinters([
@@ -72,7 +73,7 @@ const PrintSettings: React.FC = () => {
                 setInstalledPrinters(printers.map((p: any) => p.name || p.deviceId || p));
             }
         } catch (error) {
-            console.error('Failed to refresh printers:', error);
+            logger.error('Failed to refresh printers:', error);
             setPrinterError('Failed to refresh printers.');
         } finally {
             setIsLoadingPrinters(false);
@@ -114,7 +115,7 @@ const PrintSettings: React.FC = () => {
                 alert(result.message || 'Test print sent successfully!');
             }
         } catch (error) {
-            console.error('Test print failed:', error);
+            logger.error('Test print failed:', error);
             alert(`Test print failed: ${error instanceof Error ? error.message : String(error)}`);
         }
     };

@@ -1,6 +1,7 @@
 /**
  * Rate Limiting Middleware
- * Prevents abuse of upload endpoints
+ * Prevents abuse of upload endpoints using a shared D1-backed counter.
+ * Falls back to an in-memory store when D1 is unavailable.
  */
 
 interface RateLimitStore {
@@ -10,7 +11,7 @@ interface RateLimitStore {
   };
 }
 
-// In-memory store (use Redis or similar in production)
+// In-memory fallback store (per-Worker instance)
 const rateLimitStore: RateLimitStore = {};
 
 // Rate limits per endpoint
@@ -20,10 +21,71 @@ const RATE_LIMITS = {
   chunk: { requests: 100, window: 60 },   // 100 chunks per minute
 };
 
-export async function rateLimitMiddleware(request: Request): Promise<Response | null> {
+interface RateLimitEnv {
+  DB?: D1Database;
+}
+
+function getClientId(request: Request): string {
+  // Use IP address or API key as client identifier
+  const forwarded = request.headers.get('CF-Connecting-IP');
+  const realIp = request.headers.get('X-Real-IP');
+
+  return forwarded || realIp || 'unknown';
+}
+
+function getWindowStart(windowSeconds: number): string {
+  const now = Math.floor(Date.now() / 1000);
+  const windowStart = Math.floor(now / windowSeconds) * windowSeconds;
+  return new Date(windowStart * 1000).toISOString();
+}
+
+async function getDbCount(
+  db: D1Database,
+  key: string,
+  windowStart: string,
+): Promise<number | null> {
+  try {
+    const row = await db
+      .prepare('SELECT count FROM rate_limits WHERE key = ? AND window_start = ?')
+      .bind(key, windowStart)
+      .first<{ count: number }>();
+    return row?.count ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function incrementDbCount(
+  db: D1Database,
+  key: string,
+  windowStart: string,
+): Promise<void> {
+  await db
+    .prepare(
+      `INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?)
+       ON CONFLICT(key) DO UPDATE SET count = count + 1`,
+    )
+    .bind(key, windowStart)
+    .run();
+
+  // Best-effort cleanup of old windows with probabilistic execution (5%)
+  // This massively reduces D1 write contention compared to running on every request.
+  if (Math.random() < 0.05) {
+    await db
+      .prepare('DELETE FROM rate_limits WHERE window_start < ?')
+      .bind(windowStart)
+      .run()
+      .catch(() => {});
+  }
+}
+
+export async function rateLimitMiddleware(
+  request: Request,
+  env?: RateLimitEnv,
+): Promise<Response | null> {
   const url = new URL(request.url);
   const clientId = getClientId(request);
-  
+
   // Determine rate limit based on endpoint
   let limit = RATE_LIMITS.default;
   if (url.pathname.includes('/upload/chunk') && request.method === 'PUT') {
@@ -31,29 +93,47 @@ export async function rateLimitMiddleware(request: Request): Promise<Response | 
   } else if (url.pathname.includes('/upload')) {
     limit = RATE_LIMITS.upload;
   }
-  
+
   const key = `${clientId}:${url.pathname}`;
+  const windowSeconds = limit.window;
+  const windowStart = getWindowStart(windowSeconds);
   const now = Date.now();
-  
-  // Clean up expired entries
-  if (rateLimitStore[key] && rateLimitStore[key].resetTime < now) {
-    delete rateLimitStore[key];
-  }
-  
-  // Initialize or increment counter
-  if (!rateLimitStore[key]) {
-    rateLimitStore[key] = {
-      count: 1,
-      resetTime: now + (limit.window * 1000),
-    };
+  const resetTime = now + (limit.window * 1000);
+
+  let count: number;
+  const db = env?.DB;
+
+  if (db) {
+    const dbCount = await getDbCount(db, key, windowStart);
+    if (dbCount === null) {
+      await incrementDbCount(db, key, windowStart);
+      count = 1;
+    } else {
+      count = dbCount + 1;
+      await incrementDbCount(db, key, windowStart);
+    }
   } else {
-    rateLimitStore[key].count++;
+    // Fallback to in-memory store
+    if (rateLimitStore[key] && rateLimitStore[key].resetTime < now) {
+      delete rateLimitStore[key];
+    }
+
+    if (!rateLimitStore[key]) {
+      rateLimitStore[key] = {
+        count: 1,
+        resetTime,
+      };
+    } else {
+      rateLimitStore[key].count++;
+    }
+
+    count = rateLimitStore[key].count;
   }
-  
+
   // Check if limit exceeded
-  if (rateLimitStore[key].count > limit.requests) {
-    const retryAfter = Math.ceil((rateLimitStore[key].resetTime - now) / 1000);
-    
+  if (count > limit.requests) {
+    const retryAfter = Math.ceil((resetTime - now) / 1000);
+
     return new Response(
       JSON.stringify({
         error: 'Rate limit exceeded',
@@ -70,21 +150,13 @@ export async function rateLimitMiddleware(request: Request): Promise<Response | 
       }
     );
   }
-  
+
   // Add rate limit headers to response (will be applied in main handler)
   (request as any).rateLimit = {
     limit: limit.requests,
-    remaining: limit.requests - rateLimitStore[key].count,
-    reset: rateLimitStore[key].resetTime,
+    remaining: Math.max(0, limit.requests - count),
+    reset: resetTime,
   };
-  
-  return null; // Continue to next middleware/route
-}
 
-function getClientId(request: Request): string {
-  // Use IP address or API key as client identifier
-  const forwarded = request.headers.get('CF-Connecting-IP');
-  const realIp = request.headers.get('X-Real-IP');
-  
-  return forwarded || realIp || 'unknown';
+  return null; // Continue to next middleware/route
 }

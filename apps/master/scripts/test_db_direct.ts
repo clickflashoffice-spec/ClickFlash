@@ -1,5 +1,5 @@
 
-import { DatabaseManager } from '../backend/shared/db';
+import { DatabaseManager } from '../backend/database/db';
 import path from 'path';
 
 const DATA_DIR = path.join(process.cwd(), 'pb_data');

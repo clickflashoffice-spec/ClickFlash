@@ -5,7 +5,7 @@
  * All data access must be scoped to the authenticated user's destination
  */
 
-import { jwtVerify } from 'jose';
+import { verifyToken, extractTokenFromHeader } from './jwt.js';
 import DatabaseManager from './db.js';
 
 export interface AuthContext {
@@ -26,34 +26,28 @@ export interface TenantScope {
  */
 export async function extractTenantScope(
   request: Request,
-  dbManager: DatabaseManager,
+  _dbManager: DatabaseManager,
   jwtSecret: string,
 ): Promise<TenantScope | null> {
-  const authHeader = request.headers.get('Authorization');
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const token = extractTokenFromHeader(request.headers.get('Authorization'));
+  if (!token) {
     return null;
   }
 
-  const token = authHeader.slice(7);
-
-  try {
-    const secret = new TextEncoder().encode(jwtSecret);
-    const { payload } = await jwtVerify(token, secret, { algorithms: ['HS256'] });
-
-    const destinationId = payload['destinationId'];
-    if (typeof destinationId !== 'string' || !destinationId) {
-      return null;
-    }
-
-    const orderId = payload['orderId'];
-    return {
-      destinationId,
-      orderId: typeof orderId === 'string' ? orderId : undefined,
-    };
-  } catch {
+  const payload = await verifyToken(token, jwtSecret);
+  if (!payload) {
     return null;
   }
+
+  const destinationId = payload.destinationId;
+  if (typeof destinationId !== 'string' || !destinationId) {
+    return null;
+  }
+
+  return {
+    destinationId,
+    orderId: typeof payload.orderId === 'string' ? payload.orderId : undefined,
+  };
 }
 
 /**

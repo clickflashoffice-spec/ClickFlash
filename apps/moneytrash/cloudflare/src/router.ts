@@ -45,24 +45,31 @@ export class Router {
   }
 
   async handle(request: Request, env: any, ctx: ExecutionContext): Promise<Response> {
-    // Run middlewares
+    // Run middlewares — each middleware can return a modified Request
+    // (via Response with header `X-Modified-Request`) or a Response to short-circuit.
+    let currentRequest = request;
     for (const middleware of this.middlewares) {
-      const result = await middleware(request, env, ctx);
+      const result = await middleware(currentRequest, env, ctx);
       if (result !== null) {
+        // If the middleware returned a Request (not a Response), use it as the new request.
+        if (result instanceof Request) {
+          currentRequest = result;
+          continue;
+        }
         return result;
       }
     }
 
     // Find matching route
-    const url = new URL(request.url);
-    
+    const url = new URL(currentRequest.url);
+
     for (const route of this.routes) {
-      if (route.method !== request.method) continue;
-      
+      if (route.method !== currentRequest.method) continue;
+
       const match = route.pattern.exec({ pathname: url.pathname });
       if (match) {
         const params = match.pathname.groups;
-        return await route.handler(request, env, ctx, params);
+        return await route.handler(currentRequest, env, ctx, params);
       }
     }
 

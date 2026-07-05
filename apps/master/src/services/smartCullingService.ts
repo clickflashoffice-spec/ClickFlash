@@ -19,6 +19,7 @@ export interface PhotoQualityScore {
     duplicateGroupId: string | null;
     issues: string[];          // List of detected issues
     recommendation: 'keep' | 'review' | 'reject';
+    semanticTags?: string[];   // AI generated scene tags
 }
 
 export interface CullingAnalysisResult {
@@ -81,6 +82,7 @@ class SmartCullingService {
             duplicateGroupId: null,
             issues: [],
             recommendation: 'keep',
+            semanticTags: [],
         };
 
         try {
@@ -139,6 +141,14 @@ class SmartCullingService {
             } else {
                 score.recommendation = 'reject';
             }
+
+            // Optional: Gemini Semantic Tagging (Async)
+            // Run without awaiting so it doesn't block the UI
+            this.generateSemanticTags(photo).then(tags => {
+                if (tags && tags.length > 0) {
+                    score.semanticTags = tags;
+                }
+            }).catch(e => logger.warn('Semantic tagging failed', e));
 
             logger.debug(`[SmartCulling] Photo ${photo.id} scored: ${score.overall}`, score);
         } catch (error) {
@@ -270,7 +280,7 @@ class SmartCullingService {
     private async assessSharpness(img: HTMLImageElement): Promise<number> {
         try {
             const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d')!;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
             
             // Use smaller size for performance
             const size = 100;
@@ -326,7 +336,7 @@ class SmartCullingService {
     private async assessExposure(img: HTMLImageElement): Promise<number> {
         try {
             const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d')!;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
             
             const size = 100;
             canvas.width = size;
@@ -448,6 +458,70 @@ class SmartCullingService {
             hash = hash & hash;
         }
         return hash.toString(16);
+    }
+
+    /**
+     * Use Gemini API for Semantic Scene Tagging
+     */
+    private async generateSemanticTags(photo: Photo): Promise<string[]> {
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) return [];
+
+        try {
+            // Need base64 of the image. For browser, we fetch the previewUrl.
+            const response = await fetch(photo.previewUrl || photo.url || '');
+            const blob = await response.blob();
+            
+            // Convert to base64
+            const base64Data = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const str = reader.result as string;
+                    // strip data:image/jpeg;base64,
+                    resolve(str.split(',')[1]);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+
+            const prompt = `
+                Analyze this photo and provide 3-5 semantic scene tags.
+                Examples: "Sunset", "Indoor", "Action", "Portrait", "Wedding", "Landscape".
+                Return ONLY a JSON array of strings.
+            `;
+
+            const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            {
+                                inline_data: {
+                                    mime_type: blob.type || "image/jpeg",
+                                    data: base64Data
+                                }
+                            }
+                        ]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json"
+                    }
+                })
+            });
+
+            if (!geminiRes.ok) return [];
+
+            const data = await geminiRes.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!text) return [];
+
+            return JSON.parse(text) as string[];
+        } catch (error) {
+            logger.warn('Error in Gemini Semantic Tagging:', error);
+            return [];
+        }
     }
 
     /**

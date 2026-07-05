@@ -63,8 +63,8 @@ const PricingRulesPanel: React.FC = () => {
         apiService.getCollection("seasonal_rates"),
       ]);
       setProducts(productsData);
-      setOverrides((overridesData?.items || []) as PricingOverride[]);
-      setSeasonalRates((ratesData?.items || []) as SeasonalRate[]);
+      setOverrides((overridesData?.items || []) as unknown as PricingOverride[]);
+      setSeasonalRates((ratesData?.items || []) as unknown as SeasonalRate[]);
     } catch (e) {
       console.error("Failed to load pricing data", e);
     } finally {

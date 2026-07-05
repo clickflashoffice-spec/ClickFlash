@@ -44,8 +44,34 @@ export const orderService = {
     },
 
     async createOrder(data: Partial<Order>): Promise<Order> {
-        const record = await pb.collection('orders').create(data);
-        return record as Order;
+        try {
+            const record = await pb.collection('orders').create(data);
+            return record as Order;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const isNetworkError = errorMessage.includes('Failed to fetch') ||
+                errorMessage.includes('NetworkError') ||
+                errorMessage.includes('timeout') ||
+                errorMessage.includes('Type error');
+
+            if (isNetworkError) {
+                logger.warn(`[SyncResilience] Offline detected. Queueing create for Order`);
+                const { offlineQueue } = await import('../OfflineQueue');
+                
+                const tempId = data.id || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                const queuedData = { ...data, id: tempId };
+                offlineQueue.enqueue('orders', 'create', queuedData);
+
+                return {
+                    ...queuedData,
+                    status: data.status || 'Pending',
+                    updatedAt: new Date().toISOString()
+                } as Order;
+            }
+            
+            logger.error('Failed to create order', error instanceof Error ? error : undefined);
+            throw error;
+        }
     },
 
     async updateOrder(id: string, data: Partial<Order>, retryCount = 0): Promise<Order> {
@@ -230,13 +256,57 @@ export const orderService = {
     },
 
     async createBooking(data: Partial<Booking>): Promise<Booking> {
-        const record = await pb.collection('bookings').create(data);
-        return record as Booking;
+        try {
+            const record = await pb.collection('bookings').create(data);
+            return record as Booking;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const isNetworkError = errorMessage.includes('Failed to fetch') ||
+                errorMessage.includes('NetworkError') ||
+                errorMessage.includes('timeout') ||
+                errorMessage.includes('Type error');
+
+            if (isNetworkError) {
+                logger.warn(`[SyncResilience] Offline detected. Queueing create for Booking`);
+                const { offlineQueue } = await import('../OfflineQueue');
+                
+                const tempId = data.id || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                const queuedData = { ...data, id: tempId };
+                offlineQueue.enqueue('bookings', 'create', queuedData);
+
+                return {
+                    ...queuedData,
+                    status: data.status || 'Pending'
+                } as Booking;
+            }
+            throw error;
+        }
     },
 
     async updateBooking(id: string, data: Partial<Booking>): Promise<Booking> {
-        const record = await pb.collection('bookings').update(id, data);
-        return record as Booking;
+        try {
+            const record = await pb.collection('bookings').update(id, data);
+            return record as Booking;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const isNetworkError = errorMessage.includes('Failed to fetch') ||
+                errorMessage.includes('NetworkError') ||
+                errorMessage.includes('timeout') ||
+                errorMessage.includes('Type error');
+
+            if (isNetworkError) {
+                logger.warn(`[SyncResilience] Offline detected. Queueing update for Booking ${id}`);
+                const { offlineQueue } = await import('../OfflineQueue');
+                
+                offlineQueue.enqueue('bookings', 'update', { id, ...data });
+
+                return {
+                    id,
+                    ...data
+                } as Booking;
+            }
+            throw error;
+        }
     },
 
     async deleteBooking(id: string): Promise<void> {

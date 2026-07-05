@@ -8,6 +8,9 @@ import Spinner from './components/common/Spinner';
 import { Album, CartItem, Photo, AppMode } from './types';
 import { useKiosk, KioskProvider } from './context/KioskContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import { logger } from '@/utils/logger';
+import { analytics } from '@/utils/telemetry';
+import { AnimatePresence, motion, Transition } from 'framer-motion';
 
 type TouchView = 'welcome' | 'photos' | 'photo-detail' | 'order-config';
 
@@ -43,6 +46,43 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
         localStorage.setItem('touch_cart', JSON.stringify(cart));
     }, [cart]);
 
+    // RFID Integration for Keyboard Emulation
+    React.useEffect(() => {
+        const { rfidIntegrationService } = require('./services/rfidIntegrationService');
+        const { rfidService } = require('./services/rfidService'); // Using existing rfidService to map UID to room
+
+        const handleRFIDScan = async (uid: string) => {
+            resetIdleTimer();
+            logger.info("RFID Scanned globally", { uid });
+            analytics.trackEvent({
+                eventName: 'RFID_SCANNED',
+                category: 'Authentication',
+                properties: { uid }
+            });
+            
+            // Try to find local mapping or database mapping
+            let roomNumber = rfidService.getRoomFromRFID(uid);
+            if (!roomNumber) {
+                // Optionally lookup from DB if we want
+                roomNumber = await rfidService.lookupRoomFromDatabase(uid);
+            }
+
+            if (roomNumber) {
+                showToast(`Wristband recognized for Room ${roomNumber}`);
+                setRoomFilter(roomNumber);
+                setTouchView('photos');
+            } else {
+                showToast("Wristband not recognized. Please ask staff for assistance.");
+            }
+        };
+
+        rfidIntegrationService.startListening(handleRFIDScan);
+
+        return () => {
+            rfidIntegrationService.stopListening();
+        };
+    }, []);
+
     // Reset view when idle
     React.useEffect(() => {
         if (isIdle) {
@@ -57,15 +97,16 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.ctrlKey && e.shiftKey && e.altKey && e.key === 'F12') {
                 e.preventDefault();
-                // Send IPC to main process to exit or un-kiosk
-                // Assuming "window.electronAPI" exists or similar, or just window.close()
-                // In Kiosk, window.close() might be blocked or handled.
-                // We'll try window.close() and a fetch specific endpoint if available
-                console.log('Admin Override Triggered');
+                logger.info('Admin Override Triggered');
                 try {
-                    window.close(); // For Electron
-                    // Also try calling backend to kill?
-                } catch (err) { }
+                    if (window.electron && typeof window.electron.exitKiosk === 'function') {
+                        window.electron.exitKiosk();
+                    } else {
+                        window.close();
+                    }
+                } catch (err) {
+                    logger.error('Admin override failed', err instanceof Error ? err : undefined);
+                }
             }
         };
         window.addEventListener('keydown', handleKeyDown);
@@ -105,7 +146,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
     const handleBulkUpdateCart = (items: CartItem[]) => {
         resetIdleTimer();
         setCart(prevCart => {
-            let newCart = [...prevCart];
+            const newCart = [...prevCart];
             items.forEach(newItem => {
                 const existingIndex = newCart.findIndex(item => item.id === newItem.id);
                 if (newItem.quantity <= 0) {
@@ -128,6 +169,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
         setCart([]);
         setTouchView('welcome');
         setRoomFilter(undefined);
+        analytics.trackUserFlow('KIOSK_SESSION', 'CHECKOUT_SUCCESS');
         showToast("Order placed successfully!");
     };
 
@@ -135,6 +177,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
         resetIdleTimer();
         setRoomFilter(roomNum);
         setTouchView('photos');
+        analytics.trackUserFlow('KIOSK_SESSION', 'BROWSE_PHOTOS', { roomNum });
     };
 
     const handlePhotoClick = (photo: Photo, album: Album) => {
@@ -142,6 +185,11 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
         setActivePhoto(photo);
         setActiveAlbum(album);
         setTouchView('photo-detail');
+        analytics.trackEvent({
+            eventName: 'PHOTO_VIEWED',
+            category: 'Engagement',
+            properties: { photoId: photo.id, albumId: album.id }
+        });
     };
 
     const handleConfigure = (mode: AppMode, config?: { masterIp?: string }) => {
@@ -188,9 +236,18 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
     }
 
     const renderTouchContent = () => {
+        const variants = {
+            initial: { opacity: 0, scale: 0.98, filter: 'blur(4px)' },
+            animate: { opacity: 1, scale: 1, filter: 'blur(0px)' },
+            exit: { opacity: 0, scale: 1.02, filter: 'blur(4px)' },
+        };
+        const transition: Transition = { duration: 0.3, ease: [0.4, 0, 0.2, 1] };
+
+        let content = null;
+
         if (touchView === 'photos' && displayedKioskAlbums.length === 0) {
-            return (
-                <div className="h-screen w-screen flex flex-col items-center justify-center bg-white dark:bg-slate-900 text-center p-8">
+            content = (
+                <motion.div key="empty" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-screen w-screen flex flex-col items-center justify-center bg-white dark:bg-slate-900 text-center p-8">
                     <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-full mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                     </div>
@@ -201,76 +258,91 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
                             : "The gallery is currently empty. Please wait for a photographer to send your photos."}
                     </p>
                     <button onClick={() => setTouchView('welcome')} className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">Return to Home</button>
-                </div>
+                </motion.div>
             );
+        } else {
+            switch (touchView) {
+                case 'welcome':
+                    content = (
+                        <motion.div key="welcome" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-full w-full">
+                            <ErrorBoundary screenName="WelcomeScreen">
+                                <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900"><Spinner /></div>}>
+                                    <WelcomeScreen
+                                        onBrowsePhotos={handleBrowsePhotos}
+                                        kioskConnectionStatus={kioskConnectionStatus}
+                                        onExit={onExit}
+                                        showToast={showToast}
+                                        isConfigRequired={isConfigRequired}
+                                        features={globalFeatures}
+                                    />
+                                </Suspense>
+                            </ErrorBoundary>
+                        </motion.div>
+                    );
+                    break;
+                case 'photos':
+                    content = (
+                        <motion.div key="photos" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-full w-full">
+                            <ErrorBoundary screenName="PhotoSelectionScreen">
+                                <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-slate-900"><Spinner /></div>}>
+                                    <PhotoSelectionScreen
+                                        albums={displayedKioskAlbums}
+                                        onPhotoClick={handlePhotoClick}
+                                        onShowCart={() => setTouchView('order-config')}
+                                        cart={cart}
+                                        onBack={() => setTouchView('welcome')}
+                                        roomNumber={roomFilter}
+                                        showToast={showToast}
+                                        globalFeatures={globalFeatures}
+                                        onBulkUpdateCart={handleBulkUpdateCart}
+                                    />
+                                </Suspense>
+                            </ErrorBoundary>
+                        </motion.div>
+                    );
+                    break;
+                case 'photo-detail':
+                    content = (
+                        <motion.div key="photo-detail" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-full w-full">
+                            <ErrorBoundary screenName="PhotoPreviewScreen">
+                                <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-black"><Spinner /></div>}>
+                                    {activePhoto && activeAlbum ? <PhotoPreviewScreen
+                                        photo={activePhoto}
+                                        albumPhotos={activeAlbum.photos}
+                                        cart={cart}
+                                        onUpdateCart={handleUpdateCart}
+                                        onBack={() => setTouchView('photos')}
+                                        setActivePhoto={setActivePhoto}
+                                        isOnline={isOnline}
+                                        globalFeatures={globalFeatures}
+                                    /> : null}
+                                </Suspense>
+                            </ErrorBoundary>
+                        </motion.div>
+                    );
+                    break;
+                case 'order-config':
+                    content = (
+                        <motion.div key="order-config" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-full w-full">
+                            <ErrorBoundary screenName="OrderConfigurationScreen">
+                                <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-slate-900"><Spinner /></div>}>
+                                    <OrderConfigurationScreen
+                                        cart={cart}
+                                        onUpdateCart={handleUpdateCart}
+                                        onBack={() => setTouchView(cart.length > 0 ? 'photos' : 'welcome')}
+                                        onCheckoutSuccess={handleCheckoutSuccess}
+                                    />
+                                </Suspense>
+                            </ErrorBoundary>
+                        </motion.div>
+                    );
+                    break;
+                default: 
+                    content = null;
+            }
         }
-
-        switch (touchView) {
-            case 'welcome':
-                return (
-                    <ErrorBoundary screenName="WelcomeScreen">
-                        <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900"><Spinner /></div>}>
-                            <WelcomeScreen
-                                onBrowsePhotos={handleBrowsePhotos}
-                                kioskConnectionStatus={kioskConnectionStatus}
-                                onExit={onExit}
-                                showToast={showToast}
-                                isConfigRequired={isConfigRequired}
-                                features={globalFeatures}
-                            />
-                        </Suspense>
-                    </ErrorBoundary>
-                );
-            case 'photos':
-                return (
-                    <ErrorBoundary screenName="PhotoSelectionScreen">
-                        <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-slate-900"><Spinner /></div>}>
-                            <PhotoSelectionScreen
-                                albums={displayedKioskAlbums}
-                                onPhotoClick={handlePhotoClick}
-                                onShowCart={() => setTouchView('order-config')}
-                                cart={cart}
-                                onBack={() => setTouchView('welcome')}
-                                roomNumber={roomFilter}
-                                showToast={showToast}
-                                globalFeatures={globalFeatures}
-                                onBulkUpdateCart={handleBulkUpdateCart}
-                            />
-                        </Suspense>
-                    </ErrorBoundary>
-                );
-            case 'photo-detail':
-                return (
-                    <ErrorBoundary screenName="PhotoPreviewScreen">
-                        <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-black"><Spinner /></div>}>
-                            {activePhoto && activeAlbum ? <PhotoPreviewScreen
-                                photo={activePhoto}
-                                albumPhotos={activeAlbum.photos}
-                                cart={cart}
-                                onUpdateCart={handleUpdateCart}
-                                onBack={() => setTouchView('photos')}
-                                setActivePhoto={setActivePhoto}
-                                isOnline={isOnline}
-                                globalFeatures={globalFeatures}
-                            /> : null}
-                        </Suspense>
-                    </ErrorBoundary>
-                );
-            case 'order-config':
-                return (
-                    <ErrorBoundary screenName="OrderConfigurationScreen">
-                        <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-slate-900"><Spinner /></div>}>
-                            <OrderConfigurationScreen
-                                cart={cart}
-                                onUpdateCart={handleUpdateCart}
-                                onBack={() => setTouchView(cart.length > 0 ? 'photos' : 'welcome')}
-                                onCheckoutSuccess={handleCheckoutSuccess}
-                            />
-                        </Suspense>
-                    </ErrorBoundary>
-                );
-            default: return null;
-        }
+        
+        return <AnimatePresence mode="wait">{content}</AnimatePresence>;
     };
 
     return (

@@ -8,6 +8,7 @@ import Card from '../common/Card.tsx';
 import KioskPairing from './KioskPairing';
 import { pb } from '../../services/pb.ts';
 import Modal from '../common/Modal.tsx';
+import { logger } from '@/utils/logger';
 
 const KioskConnections: React.FC = () => {
     const [kiosks, setKiosks] = useState<TouchKiosk[]>([]);
@@ -24,7 +25,7 @@ const KioskConnections: React.FC = () => {
             const data = await apiService.getKiosks();
             setKiosks(data);
         } catch (err) {
-            console.error('Failed to fetch kiosks:', err);
+            logger.error('Failed to fetch kiosks:', err);
             setError('Failed to load kiosks. Please check your connection and try again.');
             setKiosks([]);
         } finally {
@@ -37,7 +38,7 @@ const KioskConnections: React.FC = () => {
             const activeIds = await apiService.getActiveKioskSessions();
             setConnectedKioskIds(activeIds);
         } catch (err) {
-            console.error('Failed to refresh active sessions:', err);
+            logger.error('Failed to refresh active sessions:', err);
             // Don't show error for background refresh failures
         }
     };
@@ -57,7 +58,7 @@ const KioskConnections: React.FC = () => {
                 refreshActiveSessions();
             });
         } catch (e) {
-            console.warn('Failed to subscribe to kiosk_sessions:', e);
+            logger.warn('Failed to subscribe to kiosk_sessions:', e);
         }
 
         return () => {
@@ -116,7 +117,7 @@ const KioskConnections: React.FC = () => {
             setIsModalOpen(false);
             fetchData();
         } catch (err) {
-            console.error('Failed to save kiosk:', err);
+            logger.error('Failed to save kiosk:', err);
             // Extract error message from the error object
             let errorMessage = 'Failed to save kiosk. Please try again.';
             if (err instanceof Error) {
@@ -134,7 +135,7 @@ const KioskConnections: React.FC = () => {
                 await apiService.deleteKiosk(kioskId);
                 fetchData();
             } catch (err) {
-                console.error('Failed to delete kiosk:', err);
+                logger.error('Failed to delete kiosk:', err);
                 alert('Failed to delete kiosk. Please try again.');
             }
         }

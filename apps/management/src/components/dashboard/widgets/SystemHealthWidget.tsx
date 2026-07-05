@@ -275,5 +275,6 @@ const SystemHealthWidget: React.FC<SystemHealthWidgetProps> = ({
   );
 };
 
+SystemHealthWidget.displayName = 'SystemHealthWidget';
 export default React.memo(SystemHealthWidget);
 

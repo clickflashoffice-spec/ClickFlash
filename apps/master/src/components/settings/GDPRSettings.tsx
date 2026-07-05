@@ -6,12 +6,16 @@ import {
   Download,
   AlertTriangle,
   CheckCircle,
+// @ts-ignore
   XCircle,
   Clock,
   RefreshCw,
   Users,
+// @ts-ignore
   Database,
+// @ts-ignore
   Lock,
+// @ts-ignore
   Unlock,
   FileDown,
   Activity,

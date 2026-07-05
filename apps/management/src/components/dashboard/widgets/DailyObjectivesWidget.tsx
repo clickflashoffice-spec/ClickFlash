@@ -65,5 +65,6 @@ const DailyObjectivesWidget: React.FC<DailyObjectivesWidgetProps> = ({ currentUs
   );
 };
 
+DailyObjectivesWidget.displayName = 'DailyObjectivesWidget';
 export default React.memo(DailyObjectivesWidget);
 

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 /**
  * Performance Monitoring Utility
  * Tracks app performance metrics and reports slow operations
@@ -34,7 +35,7 @@ export function measureRenderTime<T>(
   metrics.componentRenderTime.set(componentName, duration);
   
   if (duration > SLOW_RENDER_THRESHOLD) {
-    console.warn(`[Performance] Slow render: ${componentName} took ${duration.toFixed(2)}ms`);
+    logger.warn(`[Performance] Slow render: ${componentName} took ${duration.toFixed(2)}ms`);
   }
   
   return result;
@@ -56,7 +57,7 @@ export async function measureAsyncTime<T>(
   metrics.apiCallTime.set(operationName, duration);
   
   if (duration > threshold) {
-    console.warn(`[Performance] Slow operation: ${operationName} took ${duration.toFixed(2)}ms`);
+    logger.warn(`[Performance] Slow operation: ${operationName} took ${duration.toFixed(2)}ms`);
   }
   
   return result;
@@ -82,7 +83,7 @@ export function measure(measureName: string, startMark: string, endMark: string)
       if (entries.length > 0) {
         const duration = entries[0].duration;
         if (duration > SLOW_RENDER_THRESHOLD) {
-          console.warn(`[Performance] ${measureName}: ${duration.toFixed(2)}ms`);
+          logger.warn(`[Performance] ${measureName}: ${duration.toFixed(2)}ms`);
         }
       }
     } catch (e) {

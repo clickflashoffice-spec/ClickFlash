@@ -8,6 +8,9 @@ main = "src/index.ts"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Enable Smart Placement to optimize routing for D1 database latency
+placement = { mode = "smart" }
+
 # Cloudflare D1 Database (SQLite)
 [[d1_databases]]
 binding = "DB"
@@ -37,3 +40,31 @@ ALLOWED_ORIGINS = "https://moneytrash.clickflash.app,https://gallery.clickflash.
 # JWT_SECRET - For API authentication
 # STRIPE_SECRET_KEY - For payment processing
 # WEBHOOK_SECRET - For securing webhooks
+
+[env.staging]
+name = "moneytrash-api-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "moneytrash-db-staging"
+database_id = "STAGING_MONEYTRASH_DB_ID_HERE"
+
+[[env.staging.r2_buckets]]
+binding = "UPLOADS_BUCKET"
+bucket_name = "moneytrash-uploads-staging"
+
+[[env.staging.kv_namespaces]]
+binding = "UPLOAD_SESSIONS"
+id = "STAGING_KV_ID_HERE"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+GALLERY_APP_URL = "http://localhost:3000"
+MAX_UPLOAD_SIZE = "52428800"
+CHUNK_SIZE = "1048576"
+MAX_CONCURRENT_UPLOADS = "10"
+ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:8090"
+# Staging secrets:
+# wrangler secret put JWT_SECRET --env staging
+# wrangler secret put STRIPE_SECRET_KEY --env staging
+

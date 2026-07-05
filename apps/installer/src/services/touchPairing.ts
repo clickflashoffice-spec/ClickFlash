@@ -1,6 +1,5 @@
-import crypto from "crypto";
-import { exec } from "child_process";
-import os from "os";
+import * as crypto from "crypto";
+import * as os from "os";
 
 export interface MasterInfo {
   deskId: string;
@@ -30,7 +29,6 @@ export async function discoverMasters(): Promise<MasterInfo[]> {
   const localSubnet = getLocalSubnet(interfaces);
   if (!localSubnet) return [];
 
-  const candidates: MasterInfo[] = [];
   const baseIp = localSubnet.replace(/\.\d+$/, "");
 
   // Scan .1 - .254 for /24 subnets (limited to avoid timeout)

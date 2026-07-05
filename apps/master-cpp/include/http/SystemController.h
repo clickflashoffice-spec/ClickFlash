@@ -1,88 +1,41 @@
+/// @file SystemController.h
+/// @brief Drogon HTTP controller for system health, info, and stats endpoints
 #pragma once
 
-#include "http/HttpServer.h"
-#include "http/Router.h"
-#include "database/DatabaseManager.h"
+#include <drogon/HttpController.h>
+#include <nlohmann/json.hpp>
 
-namespace ClickFlash {
+namespace cf::http {
 
-class SystemController {
+/// System health and diagnostics controller
+/// displayName: SystemController
+class SystemController : public drogon::HttpController<SystemController> {
 public:
-    static void registerRoutes(Router& router) {
-        router.get("/api/system", handleSystemInfo);
-        router.get("/api/system/health", handleHealth);
-        router.get("/api/system/stats", handleStats);
-    }
-    
-    static void handleSystemInfo(const HttpRequest& req, HttpResponse& res) {
-        QVariantMap info;
-        info["app"] = "ClickFlash Master";
-        info["version"] = "1.0.0";
-        info["platform"] = "Windows";
-        info["database"] = "SQLite";
-        
-        QVariantMap db;
-        DatabaseManager& dbManager = DatabaseManager::instance();
-        
-        auto userCount = dbManager.executeQuery("SELECT COUNT(*) as count FROM users");
-        auto albumCount = dbManager.executeQuery("SELECT COUNT(*) as count FROM albums");
-        auto photoCount = dbManager.executeQuery("SELECT COUNT(*) as count FROM photos");
-        auto orderCount = dbManager.executeQuery("SELECT COUNT(*) as count FROM orders");
-        
-        db["users"] = userCount.value("count");
-        db["albums"] = albumCount.value("count");
-        db["photos"] = photoCount.value("count");
-        db["orders"] = orderCount.value("count");
-        
-        info["database"] = db;
-        
-        res.setJson(info);
-    }
-    
-    static void handleHealth(const HttpRequest& req, HttpResponse& res) {
-        QVariantMap health;
-        
-        DatabaseManager& db = DatabaseManager::instance();
-        bool dbOk = db.db().isOpen();
-        
-        health["status"] = dbOk ? "healthy" : "unhealthy";
-        health["database"] = dbOk ? "connected" : "disconnected";
-        health["timestamp"] = QDateTime::currentSecsSinceEpoch();
-        
-        res.setJson(health);
-    }
-    
-    static void handleStats(const HttpRequest& req, HttpResponse& res) {
-        DatabaseManager& db = DatabaseManager::instance();
-        
-        QVariantMap stats;
-        
-        auto todayOrders = db.executeQuery(
-            "SELECT COUNT(*) as count, SUM(total) as revenue FROM orders WHERE DATE(created_at) = DATE('now')"
-        );
-        
-        auto weekOrders = db.executeQuery(
-            "SELECT COUNT(*) as count, SUM(total) as revenue FROM orders WHERE created_at >= DATE('now', '-7 days')"
-        );
-        
-        auto pendingOrders = db.executeQuery(
-            "SELECT COUNT(*) as count FROM orders WHERE status = 'pending'"
-        );
-        
-        stats["today"] = QVariantMap({
-            {"orders", todayOrders.value("count")},
-            {"revenue", todayOrders.value("revenue")}
-        });
-        
-        stats["week"] = QVariantMap({
-            {"orders", weekOrders.value("count")},
-            {"revenue", weekOrders.value("revenue")}
-        });
-        
-        stats["pending"] = pendingOrders.value("count");
-        
-        res.setJson(stats);
-    }
+    METHOD_LIST_BEGIN
+    ADD_METHOD_TO(SystemController::getHealth, "/api/health", drogon::Get);
+    ADD_METHOD_TO(SystemController::getInfo, "/api/system/info", drogon::Get);
+    ADD_METHOD_TO(SystemController::getStats, "/api/system/stats", drogon::Get);
+    METHOD_LIST_END
+
+    /// GET /api/health — lightweight liveness probe
+    drogon::Task<> getHealth(
+        drogon::HttpRequestPtr req,
+        std::function<void(const drogon::HttpResponsePtr&)> callback);
+
+    /// GET /api/system/info — service metadata + DB counts
+    drogon::Task<> getInfo(
+        drogon::HttpRequestPtr req,
+        std::function<void(const drogon::HttpResponsePtr&)> callback);
+
+    /// GET /api/system/stats — today/week orders, revenue, pending
+    drogon::Task<> getStats(
+        drogon::HttpRequestPtr req,
+        std::function<void(const drogon::HttpResponsePtr&)> callback);
+
+private:
+    /// Build a standard JSON response with correct Content-Type
+    static drogon::HttpResponsePtr jsonResp(const nlohmann::json& j,
+                                            drogon::HttpStatusCode code = drogon::k200OK);
 };
 
-} // namespace ClickFlash
+} // namespace cf::http

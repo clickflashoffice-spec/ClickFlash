@@ -53,14 +53,14 @@ const FaceSearchModal: React.FC<FaceSearchModalProps> = ({ isOpen, onClose, onSe
             const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
             handleStreamSuccess(mediaStream);
         } catch (err: any) {
-            console.warn("Specific camera constraint failed, retrying with generic...", err);
+            logger.warn("Specific camera constraint failed, retrying with generic...", err);
             
             // Fallback: Try any available video device
             try {
                 const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
                 handleStreamSuccess(mediaStream);
             } catch (fallbackErr: any) {
-                console.error("Camera access error:", fallbackErr);
+                logger.error("Camera access error:", fallbackErr);
                 let msg = "Unable to access camera.";
                 if (fallbackErr.name === 'NotAllowedError' || fallbackErr.name === 'PermissionDeniedError') {
                     msg = "Camera access denied. Please check permissions.";

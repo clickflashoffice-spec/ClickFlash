@@ -3,7 +3,7 @@
  * Multi-master registration, heartbeat, and fleet coordination.
  */
 
-import { sign } from "@tsndr/cloudflare-worker-jwt";
+import { verifyToken, extractTokenFromHeader } from "../jwt.js";
 import DatabaseManager from "../db.js";
 import FleetService from "../services/fleetService.js";
 import {
@@ -161,20 +161,13 @@ export async function handleMasters(
       return sendAuthError("Missing or invalid Authorization header");
     }
 
-    const token = authHeader.split(" ")[1];
-    let payload: any;
-    try {
-      const { verify, decode } = await import("@tsndr/cloudflare-worker-jwt");
-      const isValid = await verify(token, JWT_SECRET);
-      if (!isValid) {
-        return sendAuthError("Invalid JWT token");
-      }
-      payload = (decode(token) as any).payload;
-    } catch {
-      return sendAuthError("JWT verification failed");
+    const token = extractTokenFromHeader(authHeader);
+    const payload = token ? await verifyToken(token, JWT_SECRET) : null;
+    if (!payload) {
+      return sendAuthError("Invalid JWT token");
     }
 
-    const deskId = payload?.desk_id;
+    const deskId = payload.desk_id;
     if (!deskId) {
       return createErrorResponse(
         403,
@@ -223,20 +216,14 @@ export async function handleMasters(
       return sendAuthError("Missing or invalid Authorization header");
     }
 
-    const token = authHeader.split(" ")[1];
-    try {
-      const { verify, decode } = await import("@tsndr/cloudflare-worker-jwt");
-      const isValid = await verify(token, JWT_SECRET);
-      if (!isValid) {
-        return sendAuthError("Invalid JWT token");
-      }
-      const payload = (decode(token) as any).payload;
-      // Allow admin or desk roles
-      if (!payload?.role || (payload.role !== "admin" && payload.role !== "desk")) {
-        return sendAuthError("Insufficient privileges");
-      }
-    } catch {
-      return sendAuthError("JWT verification failed");
+    const token = extractTokenFromHeader(authHeader);
+    const payload = token ? await verifyToken(token, JWT_SECRET) : null;
+    if (!payload) {
+      return sendAuthError("Invalid JWT token");
+    }
+    // Allow admin or desk roles
+    if (!payload.role || (payload.role !== "admin" && payload.role !== "desk")) {
+      return sendAuthError("Insufficient privileges");
     }
 
     try {
@@ -264,17 +251,10 @@ export async function handleMasters(
       return sendAuthError("Missing or invalid Authorization header");
     }
 
-    const token = authHeader.split(" ")[1];
-    let payload: any;
-    try {
-      const { verify, decode } = await import("@tsndr/cloudflare-worker-jwt");
-      const isValid = await verify(token, JWT_SECRET);
-      if (!isValid) {
-        return sendAuthError("Invalid JWT token");
-      }
-      payload = (decode(token) as any).payload;
-    } catch {
-      return sendAuthError("JWT verification failed");
+    const token = extractTokenFromHeader(authHeader);
+    const payload = token ? await verifyToken(token, JWT_SECRET) : null;
+    if (!payload) {
+      return sendAuthError("Invalid JWT token");
     }
 
     // Desk can only query its own peers; admin can query any

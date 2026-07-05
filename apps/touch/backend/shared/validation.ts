@@ -185,6 +185,31 @@ export interface ValidationResult<T = any> {
     details?: any[];
 }
 
+
+export const customRoutesSchemas = {
+    pairingScanQr: z.object({
+        qrData: z.string().min(1, 'qrData is required')
+    }),
+    pairingComplete: z.object({
+        masterIp: z.string().min(1, 'masterIp is required'),
+        port: z.number().optional(),
+        pairingToken: z.string().min(1, 'pairingToken is required'),
+        kioskId: z.string().optional(),
+        kioskName: z.string().optional()
+    }),
+    syncFetchPhoto: z.object({
+        url: z.string().min(1, 'url is required'),
+        filename: z.string().min(1, 'filename is required'),
+        photoId: z.string().optional(),
+        albumId: z.string().optional(),
+        photographerId: z.union([z.string(), z.number()]).optional(),
+        title: z.string().optional()
+    }),
+    systemSettings: z.object({
+        settings: z.record(z.string(), z.any())
+    })
+};
+
 export function validateRequest(data: any, tableName: string, isUpdate: boolean = false): ValidationResult {
     const schema = VALIDATION_SCHEMAS[tableName];
     if (!schema) return { success: true, data };

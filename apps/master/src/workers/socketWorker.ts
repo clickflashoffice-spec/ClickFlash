@@ -18,7 +18,7 @@ self.onmessage = (event: MessageEvent) => {
                 type: 'MESSAGE_PARSED',
                 payload: parsed
             });
-        } catch (error) {
+        } catch (_error) {
             self.postMessage({
                 type: 'ERROR',
                 error: 'Failed to parse message'

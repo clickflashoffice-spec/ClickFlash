@@ -1,5 +1,4 @@
 import React from "react";
-import Card from "../../common/Card.tsx";
 import { Order, Photographer, Album } from "../../../types.ts";
 import { useCurrency } from "../../CurrencyContext.tsx";
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Photographer } from "../types.ts";
 import { logger } from "../utils/logger.ts";
-import { pb } from "../services/pb.ts";
+import { config } from "../utils/env.ts";
 import { Logo } from "./common/Logo";
 
 interface LoginProps {
@@ -103,7 +103,7 @@ const Login: React.FC<LoginProps> = ({
       ) {
         try {
           const initResponse = await fetch(
-            `${pb.baseUrl}/api/init/default-user`,
+            `${config.apiUrl}/api/init/default-user`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },

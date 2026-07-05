@@ -85,7 +85,7 @@ export const SyncLogViewer: React.FC = () => {
                                     </td>
                                     <td className="p-2 text-slate-700 dark:text-slate-300">
                                         {log.message}
-                                        {log.details && (
+                                        {log.details != null && (
                                             <span className="ml-2 opacity-50 italic">
                                                 ({JSON.stringify(log.details).substring(0, 50)}...)
                                             </span>

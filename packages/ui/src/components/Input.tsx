@@ -1,4 +1,5 @@
-import React, { memo, forwardRef, useId } from 'react';
+import type React from 'react';
+import { memo, forwardRef, useId } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 

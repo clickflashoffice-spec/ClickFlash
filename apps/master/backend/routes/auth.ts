@@ -3,24 +3,24 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { randomUUID } from "crypto";
-import { verifyPassword } from "../shared/auth";
+import { verifyPassword } from '../utils/passwordUtils';
 import {
   sendAuthError,
   sendAuthorizationError,
   sendInternalError,
   sendValidationError,
   sendNotFoundError,
-} from "../shared/errorHandler";
-import { strictRateLimiter } from "../shared/rateLimiter";
-
+} from '../utils/errorHandler';
+import { strictRateLimiter } from '../middleware/rateLimiter';
+import { validateLogin, validateRequest, customRoutesSchemas } from '../utils/validation';
 // JWT Secret imported from constants below
 
 import { JWT_SECRET } from "../config/constants";
 import { User } from "../types/shared";
 
-import { Logger } from "../shared/logger";
-import { DatabaseManager } from "../shared/db";
-import AuditLogger from "../shared/auditLogger";
+import { Logger } from '../utils/logger';
+import { DatabaseManager } from '../database/db';
+import AuditLogger from '../utils/auditLogger';
 
 interface AppContext {
   dbManager: DatabaseManager;
@@ -42,13 +42,16 @@ export default function authRoutes(context: AppContext) {
     strictRateLimiter,
     async (req: Request, res: Response) => {
       try {
-        const { email, password } = req.body;
-        const clientIp = req.socket.remoteAddress || "unknown";
+        const parsedBody = req.body;
+        const validation = validateLogin(parsedBody);
 
-        if (!email || !password) {
-          sendValidationError(res, "Email and password are required");
+        if (!validation.success) {
+          sendValidationError(res, "Invalid login credentials. Please check your email and password format.", validation.details);
           return;
         }
+
+        const { email, password } = validation.data!;
+        const clientIp = req.socket.remoteAddress || "unknown";
 
         const user = dbManager.get<User>(
           "SELECT * FROM users WHERE email = ?",
@@ -162,18 +165,15 @@ export default function authRoutes(context: AppContext) {
     },
     async (req: Request, res: Response) => {
       try {
-        const { email, password, name } = req.body;
-
-        if (!email || !password || !name) {
-          sendValidationError(res, "Missing required fields", {
-            email: !email,
-            password: !password,
-            name: !name,
-          });
+        const validation = validateRequest(req.body, "users");
+        if (!validation.success) {
+          sendValidationError(res, "Validation failed", validation.details);
           return;
         }
 
-        if (password.length < 8) {
+        const { email, password, name } = validation.data!;
+
+        if (!password || password.length < 8) {
           sendValidationError(res, "Password must be at least 8 characters");
           return;
         }
@@ -242,11 +242,13 @@ export default function authRoutes(context: AppContext) {
       sendAuthError(res, "Not authenticated");
       return;
     }
-    const { pin } = req.body;
-    if (!pin || typeof pin !== "string") {
-      sendValidationError(res, "pin is required");
+    
+    const parsed = customRoutesSchemas.verifyPin.safeParse(req.body);
+    if (!parsed.success) {
+      sendValidationError(res, "Invalid pin format", parsed.error.issues);
       return;
     }
+    const { pin } = parsed.data;
     try {
       const user = dbManager.get<User & { password: string }>(
         "SELECT id, email, password FROM users WHERE id = ?",

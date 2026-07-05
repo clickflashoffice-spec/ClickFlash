@@ -1,8 +1,9 @@
 import { Router, Request, Response } from 'express';
 import fs from 'fs';
 import { AICullingService } from '../services/aiCullingService';
-import { sendInternalError, sendInvalidInputError } from '../shared/errorHandler';
-// import { Context } from '../types'; // Assuming types file, or use any for now if not strict
+import { sendInternalError, sendInvalidInputError } from '../utils/errorHandler';
+import { strictRateLimiter } from '../middleware/rateLimiter';
+import { customRoutesSchemas } from '../utils/validation';
 
 export default function cullingRoutes(context: any): Router {
     const router = Router();
@@ -10,7 +11,7 @@ export default function cullingRoutes(context: any): Router {
 
     // POST /api/culling/analyze/:albumId
     // Triggers full analysis and grouping for an album
-    router.post('/analyze/:albumId', async (req: Request, res: Response) => {
+    router.post('/analyze/:albumId', strictRateLimiter, async (req: Request, res: Response) => {
         const albumId = req.params.albumId as string;
         if (!albumId) return sendInvalidInputError(res, 'Album ID is required');
 
@@ -77,18 +78,24 @@ export default function cullingRoutes(context: any): Router {
 
     // POST /api/culling/confirm/:albumId
     // Apply culling choices (delete/hide rejected)
-    router.post('/confirm/:albumId', async (req: Request, res: Response) => {
+    router.post('/confirm/:albumId', strictRateLimiter, async (req: Request, res: Response) => {
         const { albumId } = req.params;
-        const { actions } = req.body; // e.g., { mode: 'archive' | 'delete' }
+        
+        const parsed = customRoutesSchemas.cullingConfirm.safeParse(req.body);
+        if (!parsed.success) {
+            return sendInvalidInputError(res, "Invalid confirmation format", parsed.error.issues);
+        }
+        
+        const { actions, mode } = parsed.data;
 
         if (!albumId) return sendInvalidInputError(res, 'Album ID is required');
 
         try {
             // Support both { actions: { mode: 'delete' } } and { mode: 'delete' }
-            const effectiveActions = actions || req.body || {};
-            context.logger.info(`Confirming culling for album ${albumId}`, { actions: effectiveActions });
+            const effectiveMode = actions?.mode || mode || 'archive';
+            context.logger.info(`Confirming culling for album ${albumId}`, { mode: effectiveMode });
 
-            if (effectiveActions.mode === 'delete') {
+            if (effectiveMode === 'delete') {
                 const rejected = context.dbManager.query('SELECT storagePath FROM photos WHERE albumId = ? AND cullingStatus = "Rejected"', [albumId]);
                 for (const p of rejected) {
                     if (p.storagePath && fs.existsSync(p.storagePath)) {

@@ -64,7 +64,7 @@ interface MarketingStats {
 class MarketingAutomationService extends EventEmitter {
   private campaigns: Map<string, EmailCampaign> = new Map();
   private segments: Map<string, CustomerSegment> = new Map();
-  private scheduledJobs: Map<string, any> = new Map();
+  private scheduledJobs: Map<string, ReturnType<typeof setTimeout>> = new Map();
 
   /**
    * Create a new email campaign
@@ -177,7 +177,7 @@ class MarketingAutomationService extends EventEmitter {
         // Simulate API call to email service
         await this.simulateEmailSend(campaign);
         success++;
-      } catch (error) {
+      } catch {
         failed++;
       }
     }
@@ -196,7 +196,7 @@ class MarketingAutomationService extends EventEmitter {
   /**
    * Simulate email sending (replace with actual email API)
    */
-  private async simulateEmailSend(campaign: EmailCampaign): Promise<void> {
+  private async simulateEmailSend(_campaign: EmailCampaign): Promise<void> {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 10));
 
@@ -231,7 +231,7 @@ class MarketingAutomationService extends EventEmitter {
   /**
    * Trigger automated workflows based on events
    */
-  triggerWorkflow(trigger: string, context: any): void {
+  triggerWorkflow(trigger: string, context: Record<string, unknown>): void {
     // Find campaigns with matching trigger
     const matchingCampaigns = Array.from(this.campaigns.values()).filter(
       (c) => c.schedule?.trigger === trigger && c.status === "active",
@@ -257,11 +257,11 @@ class MarketingAutomationService extends EventEmitter {
    */
   private matchesTargeting(
     targeting: EmailCampaign["targeting"],
-    context: any,
+    context: Record<string, unknown>,
   ): boolean {
     // Check destination
     if ((targeting.destinations?.length ?? 0) > 0) {
-      if (!targeting.destinations?.includes(context.destinationId)) {
+      if (!targeting.destinations?.includes(context.destinationId as string)) {
         return false;
       }
     }
@@ -269,7 +269,7 @@ class MarketingAutomationService extends EventEmitter {
     // Check days since event
     if (context.eventDate) {
       const daysSince = Math.floor(
-        (Date.now() - new Date(context.eventDate).getTime()) /
+        (Date.now() - new Date(context.eventDate as string).getTime()) /
           (1000 * 60 * 60 * 24),
       );
 

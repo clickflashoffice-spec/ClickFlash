@@ -1,8 +1,10 @@
 // backend/routes/analytics.ts
 import express, { Request, Response, Router } from "express";
-import DatabaseManager from "../shared/db";
-import { Logger } from "../shared/logger";
-import { sendError, ERROR_CODES } from "../shared/errorHandler";
+import DatabaseManager from '../database/db';
+import { Logger } from '../utils/logger';
+import { sendError, ERROR_CODES } from "../utils/errorHandler";
+import { strictRateLimiter } from '../middleware/rateLimiter';
+import { customRoutesSchemas } from '../utils/validation';
 
 interface AnalyticsContext {
   dbManager: DatabaseManager;
@@ -216,11 +218,12 @@ export default function analyticsRoutes(context: AnalyticsContext): Router {
    * POST /api/analytics/track
    * Report photo engagement (view/selection) from Kiosks
    */
-  router.post("/track", (req: Request, res: Response) => {
-    const { photoId, type } = req.body;
-    if (!photoId || !["view", "selection"].includes(type)) {
+  router.post("/track", strictRateLimiter, (req: Request, res: Response) => {
+    const parsed = customRoutesSchemas.analyticsTrack.safeParse(req.body);
+    if (!parsed.success) {
       return res.status(400).json({ error: "Invalid tracking data" });
     }
+    const { photoId, type } = parsed.data;
 
     try {
       const column = type === "view" ? "viewCount" : "selectionCount";

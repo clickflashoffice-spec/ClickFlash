@@ -16,12 +16,7 @@ files:
   - "!scripts/**/*"
   - "!build/**/*"
   - "!**/*.map"
-  # Include production node_modules that are specifically needed for native components
-  - node_modules/better-sqlite3-multiple-ciphers/**/*
-  - node_modules/sharp/**/*
-  - node_modules/@img/**/*
-  - node_modules/@napi-rs/canvas-win32-x64-msvc/**/*
-  - node_modules/@napi-rs/canvas-win32-x64/**/*
+  - node_modules/**/*
 
 # CRITICAL: Native .node binaries MUST be unpacked from asar.
 # fork() with ELECTRON_RUN_AS_NODE cannot read asar archives.
@@ -34,6 +29,8 @@ asarUnpack:
   - "node_modules/@napi-rs"
 
 extraResources:
+  - from: installer_scripts
+    to: installer_scripts
   - from: helper_scripts
     to: helper_scripts
   - from: public/models
@@ -53,10 +50,11 @@ win:
 compression: normal
 
 nsis:
-  oneClick: false
+  oneClick: true
   perMachine: true
+  include: build/installer.nsh
   deleteAppDataOnUninstall: true
-  allowToChangeInstallationDirectory: true
+  
   createDesktopShortcut: false
   runAfterFinish: false
   shortcutName: ClickFlash Master OS
@@ -65,7 +63,7 @@ electronVersion: "39.8.7"
 npmRebuild: false
 asar: true
 
-afterPack: scripts/generate-guardian-hash.js
+afterPack: scripts/ensure-native-deps.js
 
 publish:
   provider: github

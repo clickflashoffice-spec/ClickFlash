@@ -7,7 +7,7 @@
 
 import { CloudflareAppsProvisioningService } from '../backend/services/cloudflare/CloudflareAppsProvisioningService';
 
-import { Logger } from '../backend/shared/logger';
+import { Logger } from '../backend/utils/logger';
 
 // Mock logger
 const logger: Logger = {

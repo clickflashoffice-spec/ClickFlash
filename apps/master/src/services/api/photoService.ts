@@ -430,7 +430,7 @@ export const photoService = {
                     }
                 }
             } catch (error) {
-                console.warn(`Failed to fetch blob for photo ${photoId}:`, error);
+                logger.warn(`Failed to fetch blob for photo ${photoId}:`, error);
             }
         }
 

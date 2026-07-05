@@ -20,7 +20,7 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
     return <div>No error</div>;
 };
 
-describe.skip('ErrorBoundary Component', () => {
+describe('ErrorBoundary Component', () => {
     beforeEach(() => {
         // Suppress console.error for error boundary tests
         jest.spyOn(console, 'error').mockImplementation(() => {});

@@ -1,15 +1,16 @@
 import fs from 'fs';
 import path from 'path';
 import { BootstrapService } from '../services/provisioning/BootstrapService';
-import DatabaseManager from '../shared/db';
-import { Logger } from '../shared/logger';
+import DatabaseManager from '../database/db';
+import { Logger } from '../utils/logger';
+import { logger } from '../utils/logger';
 
 // Mock global fetch for ZTP verification
 (global as any).fetch = async (url: string, init: any) => {
-    console.log(`[Mock Fetch] ${init.method} ${url}`);
+    logger.info(`[Mock Fetch] ${init.method} ${url}`);
     if (url.includes('/api/auth/register-desk')) {
         const body = JSON.parse(init.body);
-        console.log(`[Mock Fetch] Payload:`, {
+        logger.info(`[Mock Fetch] Payload:`, {
             desk_id: body.desk_id,
             machine_id: body.machine_id,
             provisioningSecret: body.provisioningSecret ? '***PRESENT***' : '***MISSING***'
@@ -43,11 +44,11 @@ async function simulateZtpBirth() {
     const dataDir = path.join(process.cwd(), 'pb_data');
     const logger = new Logger(dataDir);
     const db = new DatabaseManager(path.join(dataDir, 'master.db'));
-    db.connect(path.join(process.cwd(), 'backend/shared/migrations'));
+    db.connect(path.join(process.cwd(), 'backend/database/migrations'));
     db.runMigrations(path.join(process.cwd(), 'backend/migrations'));
     
-    console.log('\n--- Industrial ZTP Simulation: Resort Birth ---');
-    console.log('Target: Zero-Touch Provisioning (Hardened Phase 5)');
+    logger.info('\n--- Industrial ZTP Simulation: Resort Birth ---');
+    logger.info('Target: Zero-Touch Provisioning (Hardened Phase 5)');
     
     // 1. Ensure clean state
     db.run("DELETE FROM settings WHERE id = 'setup_completed'");
@@ -57,10 +58,10 @@ async function simulateZtpBirth() {
     const bootstrapService = new BootstrapService(db, logger);
     const bootstrapPath = bootstrapService.getBootstrapPath();
     
-    console.log(`Checking bootstrap file at: ${bootstrapPath}`);
+    logger.info(`Checking bootstrap file at: ${bootstrapPath}`);
     
     if (!fs.existsSync(bootstrapPath)) {
-        console.error('ERROR: bootstrap.json not found. Run "seed-bootstrap" first.');
+        logger.error('ERROR: bootstrap.json not found. Run "seed-bootstrap" first.');
         process.exit(1);
     }
 
@@ -69,7 +70,7 @@ async function simulateZtpBirth() {
     // NOTE: In a real test we'd use MSW or similar, but for this simulation 
     // we are verifying the STAGE MACHINE transition.
 
-    console.log('Initiating runIfRequired()...');
+    logger.info('Initiating runIfRequired()...');
     
     try {
         await bootstrapService.runIfRequired();
@@ -79,18 +80,18 @@ async function simulateZtpBirth() {
         const machineId = db.get<{ value: string }>("SELECT value FROM settings WHERE id = 'machine_id'");
         const deskId = db.get<{ value: string }>("SELECT value FROM settings WHERE id = 'desk_id'");
 
-        console.log('\n--- Verification ---');
-        console.log(`Setup Completed: ${setupCompleted?.value}`);
-        console.log(`Machine ID (Hardware Bound): ${machineId?.value}`);
-        console.log(`Desk ID: ${deskId?.value}`);
+        logger.info('\n--- Verification ---');
+        logger.info(`Setup Completed: ${setupCompleted?.value}`);
+        logger.info(`Machine ID (Hardware Bound): ${machineId?.value}`);
+        logger.info(`Desk ID: ${deskId?.value}`);
 
         if (setupCompleted?.value === 'true' && machineId?.value) {
-            console.log('\nSUCCESS: ZTP Birth Simulation passed industrial verification.');
+            logger.info('\nSUCCESS: ZTP Birth Simulation passed industrial verification.');
         } else {
-            console.log('\nFAILURE: ZTP state machine did not complete or machine_id missing.');
+            logger.info('\nFAILURE: ZTP state machine did not complete or machine_id missing.');
         }
     } catch (err) {
-        console.error('ZTP Simulation Failed:', err);
+        logger.error('ZTP Simulation Failed:', err);
     }
 }
 

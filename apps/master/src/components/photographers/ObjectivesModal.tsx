@@ -11,6 +11,7 @@ interface ObjectivesModalProps {
 }
 
 import { apiService } from '../../services/apiService';
+import { logger } from '@/utils/logger';
 
 const ObjectivesModal: React.FC<ObjectivesModalProps> = ({ isOpen, onClose, photographer, onSave }) => {
     const [newTarget, setNewTarget] = useState<number | ''>('');
@@ -37,8 +38,8 @@ const ObjectivesModal: React.FC<ObjectivesModalProps> = ({ isOpen, onClose, phot
             } else {
                 setTodayTarget(null);
             }
-        } catch (e) {
-            console.error(e);
+        } catch (e: any) {
+            logger.error(e);
         }
     };
 

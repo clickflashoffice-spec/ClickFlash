@@ -1,6 +1,12 @@
 import { albumService } from '../albumService';
 import { mockCollection, resetPbMocks } from '../../__mocks__/pb';
 
+Object.defineProperty(global, 'crypto', {
+    value: {
+        randomUUID: () => '12345678-1234-1234-1234-123456789012'
+    }
+});
+
 jest.mock('../../../utils/logger', () => ({
     logger: {
         error: jest.fn(),
@@ -22,14 +28,14 @@ describe('albumService', () => {
     describe('getAlbums', () => {
         it('should fetch albums', async () => {
             const mockAlbums = [
-                { id: 'a1', name: 'Album 1', coverPhotoUrl: 'cover.jpg' },
+                { id: 'a1', title: 'Album 1', coverPhotoUrl: 'cover.jpg' },
             ];
             mockCollection.getFullList.mockResolvedValue(mockAlbums);
 
             const albums = await albumService.getAlbums();
 
             expect(albums).toHaveLength(1);
-            expect((albums[0] as any).name).toBe('Album 1');
+            expect((albums[0] as any).title).toBe('Album 1');
         });
 
         it('should return empty array on error', async () => {
@@ -57,36 +63,36 @@ describe('albumService', () => {
 
     describe('getAlbum', () => {
         it('should fetch single album', async () => {
-            const mockAlbum = { id: 'a1', name: 'Album 1' };
+            const mockAlbum = { id: 'a1', title: 'Album 1' };
             mockCollection.getOne.mockResolvedValue(mockAlbum);
 
             const album = await albumService.getAlbum('a1');
 
             expect(album).toBeDefined();
-            expect((album as any)?.name).toBe('Album 1');
+            expect((album as any)?.title).toBe('Album 1');
         });
     });
 
     describe('createAlbum', () => {
         it('should create new album', async () => {
-            const newAlbum = { name: 'New Album' };
-            mockCollection.create.mockResolvedValue({ id: 'a2', ...newAlbum });
+            const newAlbum = { title: 'New Album' };
+            mockCollection.create.mockResolvedValue({ id: '12345678-1234-1234-1234-123456789012', ...newAlbum });
 
             const created = await albumService.createAlbum(newAlbum as any);
 
-            expect((created as any).name).toBe('New Album');
+            expect((created as any).title).toBe('New Album');
         });
     });
 
     describe('updateAlbum', () => {
         it('should update album', async () => {
-            const updates = { name: 'Updated Album' };
+            const updates = { title: 'Updated Album' };
             mockCollection.update.mockResolvedValue({ id: 'a1', ...updates });
 
             const result = await albumService.updateAlbum('a1', updates as any);
 
             expect(result.success).toBe(true);
-            expect((result.album as any)?.name).toBe('Updated Album');
+            expect((result.album as any)?.title).toBe('Updated Album');
         });
     });
 

@@ -10,6 +10,7 @@ import ConnexionHistoryModal from '../photographers/ConnexionHistoryModal';
 import Spinner from '../common/Spinner';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Clock, Target, History } from 'lucide-react';
+import { logger } from '@/utils/logger';
 
 interface UserManagementProps {
     currentUser: Photographer;
@@ -66,7 +67,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
             fetchUsers();
             handleCloseModal();
         } catch (error) {
-            console.error("Failed to save working hours:", error);
+            logger.error("Failed to save working hours:", error);
             alert("Failed to save working hours. Please try again.");
         }
     };
@@ -77,7 +78,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
             await apiService.setObjective(photographerId, target, today);
             fetchUsers();
         } catch (error) {
-            console.error("Failed to save daily objective:", error);
+            logger.error("Failed to save daily objective:", error);
             alert("Failed to save daily objective.");
         }
     };
@@ -88,7 +89,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                 await apiService.deleteUser(userId);
                 fetchUsers(); // Refresh list
             } catch (err) {
-                console.error("Failed to delete user", err);
+                logger.error("Failed to delete user", err);
             }
         }
     };

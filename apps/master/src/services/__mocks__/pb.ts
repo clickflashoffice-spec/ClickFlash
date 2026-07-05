@@ -16,6 +16,7 @@ export const pb = {
         isValid: true,
         clear: jest.fn(),
     },
+    getCsrfToken: jest.fn().mockResolvedValue('mock-csrf-token'),
 };
 
 export const resetPbMocks = () => {

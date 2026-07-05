@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Users, PlusSquare, Search, Filter, AlertCircle, CheckCircle2, UserPlus, LogOut, Briefcase, ChevronRight } from "lucide-react";
+import {Search, AlertCircle, UserPlus, LogOut, Briefcase, ChevronRight} from "lucide-react";
 import { PixelFounderCard } from "../common/PixelFounderCard.tsx";
 
 interface StaffAction {
@@ -13,7 +13,7 @@ interface StaffAction {
 const HRRecruitment: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [actions, setActions] = useState<StaffAction[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
 
   React.useEffect(() => {
     fetch("/api/hr/actions")

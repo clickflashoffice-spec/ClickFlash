@@ -1,6 +1,6 @@
 import { CloudSyncService } from "../backend/services/cloudSyncService";
-import { DatabaseManager } from "../backend/shared/db";
-import { Logger } from "../backend/shared/logger";
+import { DatabaseManager } from "../backend/database/db";
+import { Logger } from "../backend/utils/logger";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";

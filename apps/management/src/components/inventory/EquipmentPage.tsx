@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../../services/apiService';
 import Spinner from '../common/Spinner';
-import { Plus, Edit, Trash2, Camera, Monitor, Tag } from 'lucide-react';
+import {Plus, Edit, Trash2, Camera, Tag} from 'lucide-react';
 
 interface Equipment {
     id: string;
@@ -31,7 +31,7 @@ export default function EquipmentPage() {
         queryKey: ['equipment'],
         queryFn: async () => {
             const res = await apiService.getCollection('equipment');
-            return res.items as Equipment[];
+            return res.items as unknown as Equipment[];
         }
     });
 
@@ -39,17 +39,17 @@ export default function EquipmentPage() {
         queryKey: ['equipment_categories'],
         queryFn: async () => {
             const res = await apiService.getCollection('equipment_categories');
-            return res.items as EquipmentCategory[];
+            return res.items as unknown as EquipmentCategory[];
         }
     });
 
     // Mutations (Generic wrapper could be better but keeping it simple)
     const createEquipMutation = useMutation({
-        mutationFn: (data: any) => apiService.createRecord('equipment', data),
+        mutationFn: (data: Record<string, unknown>) => apiService.createRecord('equipment', data),
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['equipment'] }); setIsModalOpen(false); }
     });
     const updateEquipMutation = useMutation({
-        mutationFn: ({ id, data }: any) => apiService.updateRecord('equipment', id, data),
+        mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) => apiService.updateRecord('equipment', id, data),
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['equipment'] }); setEditingItem(null); }
     });
     const deleteEquipMutation = useMutation({
@@ -58,11 +58,11 @@ export default function EquipmentPage() {
     });
 
     const createCatMutation = useMutation({
-        mutationFn: (data: any) => apiService.createRecord('equipment_categories', data),
+        mutationFn: (data: Record<string, unknown>) => apiService.createRecord('equipment_categories', data),
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['equipment_categories'] }); setIsModalOpen(false); }
     });
     const updateCatMutation = useMutation({
-        mutationFn: ({ id, data }: any) => apiService.updateRecord('equipment_categories', id, data),
+        mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) => apiService.updateRecord('equipment_categories', id, data),
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['equipment_categories'] }); setEditingCategory(null); }
     });
     const deleteCatMutation = useMutation({

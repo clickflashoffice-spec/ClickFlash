@@ -45,3 +45,5 @@ export function StatsSection({ stats = DEFAULT_STATS }: StatsSectionProps) {
     </section>
   );
 }
+
+StatsSection.displayName = "StatsSection";

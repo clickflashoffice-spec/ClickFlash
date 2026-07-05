@@ -1,5 +1,6 @@
 // backend/workers/faceWorker.ts
 import { parentPort } from 'worker_threads';
+import { logger } from '../utils/logger';
 
 /**
  * Worker Thread for Face Recognition
@@ -122,7 +123,7 @@ parentPort.on('message', async (job: any) => {
                 const mean = sum / laplacian.length;
                 sharpness = (sqSum / laplacian.length) - (mean * mean);
             } catch (e: any) {
-                console.warn('[FaceWorker] Failed to calculate sharpness:', e.message);
+                logger.warn('[FaceWorker] Failed to calculate sharpness:', e.message);
             }
 
             const heroScore = (avgFaceScore * 0.7) + (Math.min(sharpness / 1000, 1.0) * 0.3);

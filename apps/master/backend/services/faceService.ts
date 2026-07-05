@@ -1,9 +1,9 @@
 // backend/services/faceService.ts
 import path from "path";
 import fs from "fs";
-import { Logger } from "../shared/logger";
+import { Logger } from '../utils/logger';
 import { FaceAnalysis, FaceWorkerResult, FaceWorkerJob } from "../types/face";
-import { WorkerPool } from "../shared/WorkerPool";
+import { WorkerPool } from '../services/WorkerPool';
 
 const logger = new Logger(path.resolve(process.cwd(), "pb_data"));
 

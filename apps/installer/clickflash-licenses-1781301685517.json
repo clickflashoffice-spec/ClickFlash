@@ -1,0 +1,44 @@
+[
+  {
+    "key": "CF-LIVE-C799-9FA7-4F8E-4EDC",
+    "data": {
+      "tenant_id": "tenant-7a6ef02f",
+      "plan": "pro",
+      "region": "global",
+      "max_masters": 5,
+      "features": [
+        "basic"
+      ],
+      "expires_at": "2027-06-12T22:01:25.506Z",
+      "issued_at": "2026-06-12T22:01:25.508Z"
+    }
+  },
+  {
+    "key": "CF-LIVE-C3A4-E4BC-8670-070A",
+    "data": {
+      "tenant_id": "tenant-29cde091",
+      "plan": "pro",
+      "region": "global",
+      "max_masters": 5,
+      "features": [
+        "basic"
+      ],
+      "expires_at": "2027-06-12T22:01:25.508Z",
+      "issued_at": "2026-06-12T22:01:25.508Z"
+    }
+  },
+  {
+    "key": "CF-LIVE-B4E5-7E44-C327-C444",
+    "data": {
+      "tenant_id": "tenant-6a91045a",
+      "plan": "pro",
+      "region": "global",
+      "max_masters": 5,
+      "features": [
+        "basic"
+      ],
+      "expires_at": "2027-06-12T22:01:25.508Z",
+      "issued_at": "2026-06-12T22:01:25.508Z"
+    }
+  }
+]

@@ -4,7 +4,6 @@ import { apiService } from '../services/apiService';
 import { authService } from '../services/api/authService';
 import { pb } from '../services/pb';
 import { logger } from '../utils/logger';
-import { setSentryUser } from '../services/sentryService';
 import { safeStorage } from '../utils/safeStorage';
 
 type AuthState = 'unauthenticated' | 'authenticated' | 'loading';
@@ -108,7 +107,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const handleLoginSuccess = (userData: Photographer) => {
         setUser(userData);
         setAuthState('authenticated');
-        setSentryUser(userData);
     };
 
     const login = (userData: Photographer) => {
@@ -123,7 +121,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } finally {
             setUser(null);
             setAuthState('unauthenticated');
-            setSentryUser(null);
             safeStorage.removeItem('masterPortalUser');
         }
     };

@@ -1,5 +1,5 @@
-import { Logger } from "../shared/logger";
-import { DatabaseManager } from "../shared/db";
+import { Logger } from '../utils/logger';
+import { DatabaseManager } from '../database/db';
 import { ResortAnalyticsService } from "./ResortAnalyticsService";
 
 interface SyncTarget {

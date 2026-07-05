@@ -1,9 +1,10 @@
 import express, { Request, Response, Router } from "express";
-import { Logger } from "../shared/logger";
+import { Logger } from '../utils/logger';
 import { EmailService } from "../services/emailService";
-import { sendError, ERROR_CODES } from "../shared/errorHandler";
-import { DatabaseManager } from "../shared/db";
-
+import { sendError, ERROR_CODES } from '../utils/errorHandler';
+import { DatabaseManager } from '../database/db';
+import { strictRateLimiter } from '../middleware/rateLimiter';
+import { customRoutesSchemas } from '../utils/validation';
 interface MarketingContext {
   logger: Logger;
   emailService: EmailService;
@@ -143,8 +144,13 @@ export default function marketingRoutes(context: MarketingContext): Router {
    * POST /api/marketing/campaigns
    * Create new campaign
    */
-  router.post("/campaigns", (req: Request, res: Response) => {
+  router.post("/campaigns", strictRateLimiter, (req: Request, res: Response) => {
     try {
+      const parsed = customRoutesSchemas.marketingCampaign.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Missing or invalid required fields", details: parsed.error.issues });
+      }
+
       const {
         name,
         type,
@@ -154,21 +160,7 @@ export default function marketingRoutes(context: MarketingContext): Router {
         bodyTemplate,
         bodyText,
         isActive,
-      } = req.body;
-
-      if (
-        !name ||
-        !type ||
-        !triggerEvent ||
-        !subjectTemplate ||
-        !bodyTemplate
-      ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            "Missing required fields: name, type, triggerEvent, subjectTemplate, bodyTemplate",
-        });
-      }
+      } = parsed.data;
 
       const ALLOWED_TYPES = ['post-event', 'abandoned-cart', 're-engagement', 'retention'];
       if (!ALLOWED_TYPES.includes(type)) {
@@ -178,7 +170,7 @@ export default function marketingRoutes(context: MarketingContext): Router {
         });
       }
 
-      const parsedDelay = delayMinutes != null ? parseInt(delayMinutes, 10) : 60;
+      const parsedDelay = delayMinutes != null ? delayMinutes : 60;
       if (isNaN(parsedDelay) || parsedDelay < 0 || parsedDelay > 43200) {
         return res.status(400).json({
           success: false,
@@ -340,15 +332,17 @@ export default function marketingRoutes(context: MarketingContext): Router {
    * POST /api/marketing/test-email
    * Send a test email for campaign preview
    */
-  router.post("/test-email", async (req: Request, res: Response) => {
-    const { campaignId, to } = req.body;
+  router.post("/test-email", strictRateLimiter, async (req: Request, res: Response) => {
+    const parsed = customRoutesSchemas.testEmail.safeParse(req.body);
 
-    if (!to || !campaignId) {
+    if (!parsed.success) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields: to, campaignId",
+        message: "Missing or invalid required fields: to, campaignId",
+        details: parsed.error.issues
       });
     }
+    const { campaignId, to } = parsed.data;
 
     if (!emailService.isConfigured()) {
       return res.status(503).json({

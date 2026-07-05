@@ -39,7 +39,9 @@ export const AppRouter: React.FC<AppRouterProps> = ({ onExit, isLocked }) => {
     return (
         <React.Suspense fallback={<Spinner />}>
             <Routes>
-                <Route path="/audit" element={<SystemAudit />} />
+                <Route path="/audit" element={
+                    user.role === 'Admin' ? <SystemAudit /> : <Navigate to="/" replace />
+                } />
                 <Route path="/" element={
                     <MainLayout
                         onSwitchUser={logout}

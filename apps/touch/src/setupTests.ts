@@ -6,6 +6,7 @@
  */
 
 import "@testing-library/jest-dom";
+import { logger } from '@/utils/logger';
 
 // Intercept attempts to redefine window storage properties so test-local
 // mocks can be detected by helpers that read from `window.__TEST_LOCAL_STORAGE`.

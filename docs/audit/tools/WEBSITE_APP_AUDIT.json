@@ -1,0 +1,27 @@
+{
+  "app": "website",
+  "audited_at": "2025-06-08",
+  "findings": [
+    {
+      "file": "apps\\website\\public\\gallery\\assets\\index-BKjQkWmz.js",
+      "issue": "Potential API key in public JS",
+      "action": "Remove immediately"
+    },
+    {
+      "file": "apps\\website\\public\\gallery\\assets\\index-C9hhMWVa.js",
+      "issue": "Potential API key in public JS",
+      "action": "Remove immediately"
+    },
+    {
+      "file": "apps\\website\\public\\manage\\assets\\index-CulmLkEM.js",
+      "issue": "Potential API key in public JS",
+      "action": "Remove immediately"
+    },
+    {
+      "file": "apps\\website\\public\\manage\\assets\\index-jN4d3Fsi.js",
+      "issue": "Potential API key in public JS",
+      "action": "Remove immediately"
+    }
+  ],
+  "status": "NEEDS_REMEDIATION"
+}

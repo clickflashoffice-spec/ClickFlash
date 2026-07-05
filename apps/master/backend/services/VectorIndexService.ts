@@ -1,6 +1,6 @@
 // backend/services/VectorIndexService.ts
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
 import path from "path";
 import fs from "fs";
 import { DATA_DIR } from "../config/constants";

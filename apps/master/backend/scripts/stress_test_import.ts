@@ -3,12 +3,13 @@ import fetch from 'node-fetch';
 import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
+import { logger } from '../utils/logger';
 
 const API_URL = 'http://localhost:8090';
 const CONCURRENCY = 100;
 
 async function runStressTest() {
-    console.log(`Starting Stress Test: ${CONCURRENCY} concurrent uploads...`);
+    logger.info(`Starting Stress Test: ${CONCURRENCY} concurrent uploads...`);
 
     const results = {
         startTime: new Date().toISOString(),

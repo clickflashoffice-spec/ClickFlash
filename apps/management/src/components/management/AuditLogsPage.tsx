@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ClipboardList, Search, Filter, Download, Calendar, User, AlertCircle } from 'lucide-react';
+import {ClipboardList, Search, Filter, Download, User} from 'lucide-react';
 
 interface AuditLog {
   id: string;

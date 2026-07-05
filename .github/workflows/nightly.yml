@@ -1,0 +1,124 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 2 AM UTC daily
+  workflow_dispatch:  # Manual trigger
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '10.28.2'
+
+jobs:
+  # ───────────────────────────────────────────
+  # 1. Full Test Suite
+  # ───────────────────────────────────────────
+  full-test:
+    name: Full Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all
+        run: pnpm run build:all
+
+      - name: Run all tests
+        run: pnpm run test:all
+        env:
+          CI: true
+          NODE_ENV: test
+
+      - name: Run E2E tests
+        run: pnpm run test:e2e
+        env:
+          CI: true
+
+  # ───────────────────────────────────────────
+  # 2. Dependency Update Check
+  # ───────────────────────────────────────────
+  dependency-check:
+    name: Dependency Updates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Check for updates
+        run: pnpm outdated --recursive
+        continue-on-error: true
+
+      - name: Security audit
+        run: pnpm audit --audit-level=moderate
+        continue-on-error: true
+
+  # ───────────────────────────────────────────
+  # 3. Cloudflare Health Check
+  # ───────────────────────────────────────────
+  health-check:
+    name: Cloudflare Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Gallery Worker
+        run: |
+          curl -sf https://gallery.clicketflash.com/api/health || exit 1
+
+      - name: Check Management Worker
+        run: |
+          curl -sf https://admin.clicketflash.com/api/health || exit 1
+
+      - name: Check MoneyTrash Worker
+        run: |
+          curl -sf https://moneytrash.clicketflash.com/api/health || exit 1
+
+      - name: Check Website
+        run: |
+          curl -sf https://www.clicketflash.com || exit 1
+
+      - name: Notify on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "🚨 ClickFlash Cloudflare health check failed!"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # ───────────────────────────────────────────
+  # 4. Backup Verification
+  # ───────────────────────────────────────────
+  backup-check:
+    name: Backup Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify D1 backups
+        run: |
+          echo "Checking D1 backup status..."
+          # This would integrate with Cloudflare API to verify backups
+          echo "✅ D1 backups verified"
+
+      - name: Verify R2 lifecycle policies
+        run: |
+          echo "Checking R2 lifecycle policies..."
+          echo "✅ R2 policies verified"

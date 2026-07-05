@@ -115,5 +115,6 @@ const TopPhotographersWidget: React.FC<TopPhotographersWidgetProps> = ({
   );
 };
 
+TopPhotographersWidget.displayName = 'TopPhotographersWidget';
 export default React.memo(TopPhotographersWidget);
 

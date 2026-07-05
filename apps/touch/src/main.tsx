@@ -5,8 +5,8 @@ import { ThemeProvider } from './components/ThemeContext';
 import { CurrencyProvider } from './components/CurrencyContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import * as Sentry from '@sentry/react';
 import './index.css';
+import { logger } from '@/utils/logger';
 
 // Touch kiosk QueryClient — moderate cache; kiosk screens don't background-switch tabs.
 const queryClient = new QueryClient({
@@ -39,20 +39,6 @@ if (!window.location.search.includes('mode=')) {
   window.history.replaceState({}, '', url.toString());
 }
 
-if (import.meta.env.VITE_SENTRY_DSN) {
-  Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
-    integrations: [
-      Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration(),
-    ],
-    tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1.0,
-    environment: import.meta.env.MODE,
-  });
-}
-
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
@@ -61,12 +47,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <CurrencyProvider>
             <App
               isOnline={navigator.onLine}
-              showToast={(msg) => console.debug('Toast:', msg)}
+              showToast={(msg) => logger.debug('Toast:', msg)}
               onExit={async () => {
                 if (window.electron?.exitKiosk) {
                   await window.electron.exitKiosk();
                 } else {
-                  console.warn('Exit Kiosk not available');
+                  logger.warn('Exit Kiosk not available');
                 }
               }}
             />

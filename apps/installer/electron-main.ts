@@ -23,6 +23,8 @@ import fs from "fs";
 import os from "os";
 import http from "http";
 import { spawn, exec } from "child_process";
+import crypto from "crypto";
+import dgram from "dgram";
 
 // ─── Protocol Registration ────────────────────────────────────────────────────
 protocol.registerSchemesAsPrivileged([
@@ -42,6 +44,7 @@ protocol.registerSchemesAsPrivileged([
 const WIZARD_PORT = 5175;
 const WIZARD_URL = `http://localhost:${WIZARD_PORT}`;
 const INSTALLER_LOG = path.join(os.tmpdir(), "clickflash-installer.log");
+const HUB_BASE = process.env.CLICKFLASH_HUB_BASE || "https://hub.clickflash.app";
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let mainWindow: BrowserWindow | null = null;
@@ -169,6 +172,124 @@ function setupIpc(): void {
     log("info", "Opening OAuth URL", { url });
     await shell.openExternal(url);
     return { success: true };
+  });
+
+  // Open external URL
+  ipcMain.handle("installer:openExternalUrl", async (_e: IpcMainInvokeEvent, url: string) => {
+    log("info", "Opening external URL", { url });
+    await shell.openExternal(url);
+    return { success: true };
+  });
+
+  // Validate license (OFFLINE — no server required)
+  ipcMain.handle("installer:validateLicense", async (_e: IpcMainInvokeEvent, key: string) => {
+    log("info", "Validating license key (offline)");
+    try {
+      // Import the offline validator
+      const { validateLicenseKey } = require("../scripts/license-key");
+      const result = validateLicenseKey(key);
+      
+      if (result.valid && result.data) {
+        return { 
+          success: true, 
+          data: {
+            key: key,
+            tenant_id: result.data.tenant_id,
+            region: result.data.region,
+            plan: result.data.plan,
+            features: result.data.features,
+            max_masters: result.data.max_masters,
+            expires_at: result.data.expires_at,
+          }
+        };
+      }
+      return { success: false, error: result.error || "Invalid license key" };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      log("error", "License validation failed", { error: msg });
+      return { success: false, error: msg };
+    }
+  });
+
+  // Request device code
+  ipcMain.handle("installer:requestDeviceCode", async () => {
+    log("info", "Requesting device code from Hub");
+    try {
+      const res = await fetch(`${HUB_BASE}/api/v1/oauth/device/code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ client_id: "clickflash-installer" }),
+      });
+      if (res.ok) return { success: true, data: await res.json() };
+      return { success: false, error: `HTTP ${res.status}` };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { success: false, error: msg };
+    }
+  });
+
+  // Poll for token
+  ipcMain.handle("installer:pollForToken", async (_e: IpcMainInvokeEvent, deviceCode: string) => {
+    try {
+      const res = await fetch(`${HUB_BASE}/api/v1/oauth/token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          grant_type: "urn:ietf:params:oauth:grant-type:device_code",
+          device_code: deviceCode,
+        }),
+      });
+      const data = (await res.json()) as Record<string, unknown>;
+      return { success: res.ok, data, status: res.status };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { success: false, error: msg };
+    }
+  });
+
+  // Check desk_id availability
+  ipcMain.handle("installer:checkDeskId", async (_e: IpcMainInvokeEvent, deskId: string) => {
+    try {
+      const res = await fetch(`${HUB_BASE}/api/masters/check-desk-id?desk_id=${encodeURIComponent(deskId)}`);
+      if (res.ok) return { success: true, data: await res.json() };
+      return { success: false, error: `HTTP ${res.status}` };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { success: false, error: msg };
+    }
+  });
+
+  // Register with Hub
+  ipcMain.handle("installer:registerWithHub", async (_e: IpcMainInvokeEvent, payload: Record<string, unknown>) => {
+    log("info", "Registering with Hub", { deskId: payload.desk_id });
+    try {
+      const res = await fetch(`${HUB_BASE}/api/masters/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${payload.access_token}` },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) return { success: true, data: await res.json() };
+      return { success: false, error: `HTTP ${res.status}` };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { success: false, error: msg };
+    }
+  });
+
+  // Send heartbeat
+  ipcMain.handle("installer:sendHeartbeat", async (_e: IpcMainInvokeEvent, payload: Record<string, unknown>) => {
+    try {
+      const res = await fetch(`${HUB_BASE}/api/masters/heartbeat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${payload.access_token}` },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) return { success: true, data: await res.json() };
+      return { success: false, error: `HTTP ${res.status}` };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { success: false, error: msg };
+    }
   });
 
   // Cloudflare API test
@@ -341,6 +462,218 @@ function setupIpc(): void {
       return [];
     }
   });
+
+  // ─── Pairing: mDNS discovery ────────────────────────────────────────────────
+  ipcMain.handle("installer:discoverMasters", async () => {
+    log("info", "Browsing mDNS for ClickFlash Masters");
+    const masters: Array<{
+      desk_id: string;
+      tenant_id: string;
+      host: string;
+      port: number;
+      addresses: string[];
+      latencyMs: number;
+    }> = [];
+
+    try {
+      const socket = dgram.createSocket({ type: "udp4", reuseAddr: true });
+      socket.bind(5353, () => {
+        socket.addMembership("224.0.0.251");
+      });
+
+      const query = buildMdnsQuery("_clickflash-master._tcp.local");
+      socket.send(query, 5353, "224.0.0.251");
+
+      const responses = await new Promise<Buffer[]>((resolve) => {
+        const packets: Buffer[] = [];
+        const timer = setTimeout(() => {
+          socket.close();
+          resolve(packets);
+        }, 5000);
+        socket.on("message", (msg) => {
+          packets.push(msg);
+        });
+        socket.on("error", () => {
+          clearTimeout(timer);
+          socket.close();
+          resolve(packets);
+        });
+      });
+
+      const records = parseMdnsResponses(responses);
+      for (const svc of records) {
+        if (!svc.host || !svc.port) continue;
+        const start = Date.now();
+        let alive = false;
+        try {
+          const res = await fetchWithTimeout(`http://${svc.host}:${svc.port}/api/v1/pairing/challenge`, 1500);
+          alive = res.ok;
+        } catch {
+          alive = false;
+        }
+        if (alive) {
+          masters.push({
+            desk_id: svc.desk_id || svc.host,
+            tenant_id: svc.tenant_id || "default",
+            host: svc.host,
+            port: svc.port,
+            addresses: svc.addresses,
+            latencyMs: Date.now() - start,
+          });
+        }
+      }
+    } catch (err: unknown) {
+      log("warn", "mDNS discovery failed", { error: err instanceof Error ? err.message : String(err) });
+    }
+
+    log("info", `mDNS discovered ${masters.length} master(s)`);
+    return { success: true, masters };
+  });
+
+  // ─── Pairing: LAN sweep ───────────────────────────────────────────────────
+  ipcMain.handle("installer:scanLan", async () => {
+    log("info", "Sweeping LAN for ClickFlash Masters on port 8090");
+    const masters: Array<{
+      desk_id: string;
+      tenant_id: string;
+      host: string;
+      port: number;
+      addresses: string[];
+      latencyMs: number;
+    }> = [];
+
+    const subnets = getLocalSubnets();
+    const ports = [8090, 8080];
+    const candidates: string[] = [];
+
+    for (const subnet of subnets) {
+      for (let i = 1; i <= 254; i++) {
+        candidates.push(`${subnet}.${i}`);
+      }
+    }
+
+    // Limit sweep to avoid excessive traffic
+    const sweepTargets = candidates.slice(0, 512);
+
+    await Promise.all(
+      sweepTargets.map(async (ip) => {
+        for (const port of ports) {
+          const start = Date.now();
+          try {
+            const res = await fetchWithTimeout(`http://${ip}:${port}/api/v1/pairing/challenge`, 1500);
+            if (res.ok) {
+              const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+              masters.push({
+                desk_id: (data.desk_id as string) || ip,
+                tenant_id: (data.tenant_id as string) || "default",
+                host: ip,
+                port,
+                addresses: [ip],
+                latencyMs: Date.now() - start,
+              });
+              return; // found on this IP, stop trying other ports
+            }
+          } catch {
+            // ignore unreachable hosts
+          }
+        }
+      })
+    );
+
+    log("info", `LAN sweep found ${masters.length} master(s)`);
+    return { success: true, masters };
+  });
+
+  // ─── Pairing: exchange challenge for HMAC secret ────────────────────────────
+  ipcMain.handle("installer:exchangePairing", async (_e, params: {
+    masterHost: string;
+    masterPort: number;
+    masterDeskId: string;
+    kioskId: string;
+    hardwareFingerprint: string;
+  }) => {
+    log("info", "Exchanging pairing with master", { deskId: params.masterDeskId });
+    try {
+      // 1. GET challenge
+      const challengeRes = await fetchWithTimeout(
+        `http://${params.masterHost}:${params.masterPort}/api/v1/pairing/challenge`,
+        5000
+      );
+      if (!challengeRes.ok) {
+        return { success: false, error: `Challenge request failed: HTTP ${challengeRes.status}` };
+      }
+      const challengeData = (await challengeRes.json()) as { nonce?: string; error?: string };
+      const nonce = challengeData.nonce;
+      if (!nonce) {
+        return { success: false, error: "Invalid challenge response: missing nonce" };
+      }
+
+      // 2. Build signature
+      const secret = params.masterDeskId + params.hardwareFingerprint;
+      const signature = crypto
+        .createHmac("sha256", secret)
+        .update(params.kioskId + nonce)
+        .digest("hex");
+
+      // 3. POST exchange
+      const exchangeRes = await fetchWithTimeout(
+        `http://${params.masterHost}:${params.masterPort}/api/v1/pairing/exchange`,
+        5000,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            kiosk_id: params.kioskId,
+            nonce,
+            signature,
+            hardware_fingerprint: params.hardwareFingerprint,
+          }),
+        }
+      );
+      if (!exchangeRes.ok) {
+        return { success: false, error: `Exchange request failed: HTTP ${exchangeRes.status}` };
+      }
+      const exchangeData = (await exchangeRes.json()) as {
+        hmac_secret?: string;
+        tenant_id?: string;
+        master_desk_id?: string;
+        master_ip?: string;
+        master_port?: number;
+        error?: string;
+      };
+
+      if (!exchangeData.hmac_secret) {
+        return { success: false, error: exchangeData.error || "Exchange response missing hmac_secret" };
+      }
+
+      return {
+        success: true,
+        hmac_secret: exchangeData.hmac_secret,
+        tenant_id: exchangeData.tenant_id || "default",
+        master_desk_id: exchangeData.master_desk_id || params.masterDeskId,
+        master_ip: exchangeData.master_ip || params.masterHost,
+        master_port: exchangeData.master_port || params.masterPort,
+      };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      log("error", "Pairing exchange failed", { error: msg });
+      return { success: false, error: msg };
+    }
+  });
+
+  // ─── Pairing: generate kiosk ID ─────────────────────────────────────────────
+  ipcMain.handle("installer:generateKioskId", async (_e, _hardwareFingerprint: string) => {
+    log("info", "Generating kiosk_id");
+    const location = os.hostname().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+    const suffix = crypto.randomBytes(2).toString("hex").toUpperCase();
+    return { kioskId: `KIOSK_${location}_${suffix}` };
+  });
+
+  // ─── Hardware fingerprint ───────────────────────────────────────────────────
+  ipcMain.handle("installer:getHardwareFingerprint", async () => {
+    log("info", "Getting hardware fingerprint");
+    return { fingerprint: await getHardwareFingerprint() };
+  });
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -409,15 +742,186 @@ async function getHardwareFingerprint(): Promise<string> {
   return require("crypto").createHash("sha256").update(data).digest("hex").slice(0, 32);
 }
 
-async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response> {
+async function fetchWithTimeout(url: string, timeoutMs: number, init?: RequestInit): Promise<Response> {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, { signal: controller.signal });
+    const res = await fetch(url, { ...(init || {}), signal: controller.signal });
     return res;
   } finally {
     clearTimeout(id);
   }
+}
+
+// ─── mDNS helpers ─────────────────────────────────────────────────────────────
+function buildMdnsQuery(name: string): Buffer {
+  // Minimal mDNS query packet
+  const id = crypto.randomBytes(2);
+  const flags = Buffer.from([0x00, 0x00]);
+  const questions = Buffer.from([0x00, 0x01]);
+  const answerRRs = Buffer.from([0x00, 0x00]);
+  const authorityRRs = Buffer.from([0x00, 0x00]);
+  const additionalRRs = Buffer.from([0x00, 0x00]);
+  const qName = encodeDnsName(name);
+  const qType = Buffer.from([0x00, 0x0c]); // PTR
+  const qClass = Buffer.from([0x00, 0x01]); // IN
+  return Buffer.concat([id, flags, questions, answerRRs, authorityRRs, additionalRRs, qName, qType, qClass]);
+}
+
+function encodeDnsName(name: string): Buffer {
+  const parts = name.split(".");
+  const buffers: Buffer[] = [];
+  for (const part of parts) {
+    buffers.push(Buffer.from([part.length]));
+    buffers.push(Buffer.from(part, "ascii"));
+  }
+  buffers.push(Buffer.from([0x00]));
+  return Buffer.concat(buffers);
+}
+
+interface MdnsService {
+  host: string;
+  port: number;
+  desk_id: string;
+  tenant_id: string;
+  addresses: string[];
+}
+
+function parseMdnsResponses(packets: Buffer[]): MdnsService[] {
+  const services = new Map<string, MdnsService>();
+  for (const pkt of packets) {
+    try {
+      let offset = 12; // skip header
+      const qdcount = pkt.readUInt16BE(4);
+      const ancount = pkt.readUInt16BE(6);
+      // skip questions
+      for (let i = 0; i < qdcount; i++) {
+        const res = skipName(pkt, offset);
+        offset = res.offset + 4; // QTYPE + QCLASS
+      }
+      let currentHost = "";
+      let currentPort = 0;
+      let currentDeskId = "";
+      let currentTenantId = "";
+      const currentAddresses: string[] = [];
+      for (let i = 0; i < ancount; i++) {
+        const nameRes = readName(pkt, offset);
+        offset = nameRes.offset;
+        const type = pkt.readUInt16BE(offset);
+        offset += 2;
+        const rdlength = pkt.readUInt16BE(offset);
+        offset += 2;
+        const rdata = pkt.slice(offset, offset + rdlength);
+        offset += rdlength;
+
+        if (type === 12) {
+          // PTR — read the name to advance the offset; the desk_id/tenant_id are
+          // resolved in the SRV+TXT records that follow.
+          const ptrRes = readName(pkt, offset - rdlength);
+          void ptrRes.name;
+        } else if (type === 33) {
+          // SRV
+          currentPort = rdata.readUInt16BE(4);
+          const targetRes = readName(pkt, offset - rdlength + 6);
+          currentHost = targetRes.name;
+        } else if (type === 16) {
+          // TXT
+          let txtOffset = 0;
+          while (txtOffset < rdata.length) {
+            const len = rdata[txtOffset];
+            txtOffset++;
+            const txt = rdata.slice(txtOffset, txtOffset + len).toString("utf8");
+            txtOffset += len;
+            if (txt.startsWith("desk_id=")) currentDeskId = txt.slice(8);
+            if (txt.startsWith("tenant_id=")) currentTenantId = txt.slice(10);
+          }
+        } else if (type === 1) {
+          // A
+          currentAddresses.push(`${rdata[0]}.${rdata[1]}.${rdata[2]}.${rdata[3]}`);
+        }
+      }
+      if (currentHost && currentPort) {
+        const key = `${currentHost}:${currentPort}`;
+        services.set(key, {
+          host: currentAddresses[0] || currentHost,
+          port: currentPort,
+          desk_id: currentDeskId || currentHost,
+          tenant_id: currentTenantId || "default",
+          addresses: currentAddresses.length ? currentAddresses : [currentHost],
+        });
+      }
+    } catch {
+      // ignore malformed packets
+    }
+  }
+  return Array.from(services.values());
+}
+
+function skipName(buf: Buffer, offset: number): { offset: number } {
+  let o = offset;
+  while (o < buf.length) {
+    const len = buf[o];
+    if (len === 0) {
+      o++;
+      break;
+    }
+    if ((len & 0xc0) === 0xc0) {
+      o += 2;
+      break;
+    }
+    o += len + 1;
+  }
+  return { offset: o };
+}
+
+function readName(buf: Buffer, offset: number): { name: string; offset: number } {
+  const parts: string[] = [];
+  let o = offset;
+  let jumped = false;
+  const visited = new Set<number>();
+  while (o < buf.length) {
+    if (visited.has(o)) break;
+    visited.add(o);
+    const len = buf[o];
+    if (len === 0) {
+      if (!jumped) o++;
+      break;
+    }
+    if ((len & 0xc0) === 0xc0) {
+      const pointer = buf.readUInt16BE(o) & 0x3fff;
+      if (!jumped) {
+        o += 2;
+        jumped = true;
+      }
+      o = pointer;
+      continue;
+    }
+    o++;
+    parts.push(buf.slice(o, o + len).toString("ascii"));
+    o += len;
+  }
+  return { name: parts.join("."), offset: o };
+}
+
+function getLocalSubnets(): string[] {
+  const nets = os.networkInterfaces();
+  const subnets = new Set<string>();
+  for (const addrs of Object.values(nets)) {
+    for (const addr of addrs || []) {
+      if (addr.family === "IPv4" && !addr.internal) {
+        const parts = addr.address.split(".");
+        if (parts.length === 4) {
+          subnets.add(`${parts[0]}.${parts[1]}.${parts[2]}`);
+        }
+      }
+    }
+  }
+  // Fallback subnets if we can't detect
+  if (subnets.size === 0) {
+    subnets.add("192.168.1");
+    subnets.add("10.0.0");
+  }
+  return Array.from(subnets);
 }
 
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
@@ -461,6 +965,9 @@ app.on("window-all-closed", () => {
 
 app.on("before-quit", () => {
   isQuitting = true;
+  // Reference isQuitting to avoid the noUnusedLocals error while keeping the flag available
+  // for future handlers (e.g., prevent the window from being closed if a save is in progress).
+  void isQuitting;
 });
 
 process.on("uncaughtException", (err) => {

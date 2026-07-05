@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { StationStatus } from "../types/shared";
 import { FleetHealthWidget } from "./dashboard/widgets/FleetHealthWidget";
+import { logger } from '@/utils/logger';
 
 /**
  * LocalResortDashboard
@@ -67,7 +68,7 @@ const LocalResortDashboard: React.FC = () => {
       const data = await res.json();
       setStationStatus(data);
     } catch (err) {
-      console.error("Failed to fetch station status:", err);
+      logger.error("Failed to fetch station status:", err);
     } finally {
       setIsStatusLoading(false);
     }

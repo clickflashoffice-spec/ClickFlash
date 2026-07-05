@@ -17,6 +17,7 @@ import {
   Command as CommandIcon,
 } from "lucide-react";
 import Spinner from "../common/Spinner.tsx";
+import { logger } from '@/utils/logger';
 
 const AIChatBot = lazy(() => import("./AIChatBot.tsx"));
 
@@ -55,7 +56,7 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
   const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
   const [selectedContext, setSelectedContext] =
     useState<ManagementContext>("global");
-  const [selectedStationId, setSelectedStationId] = useState<string | null>(
+  const [_selectedStationId, setSelectedStationId] = useState<string | null>(
     null,
   );
   const [syncStatus, setSyncStatus] = useState({
@@ -82,12 +83,13 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
   useEffect(() => {
     orchestrationService.startGlobalPulse();
 
-    const handlePulse = (data: { timestamp: number; onlineCount: number }) => {
+    const handlePulse = (data: unknown) => {
+      const pulse = data as { timestamp: number; onlineCount: number };
       setSyncStatus((prev) => ({
         ...prev,
-        lastPulse: data.timestamp,
-        onlineCount: data.onlineCount,
-        status: data.onlineCount > 0 ? "online" : "warning",
+        lastPulse: pulse.timestamp,
+        onlineCount: pulse.onlineCount,
+        status: pulse.onlineCount > 0 ? "online" : "warning",
       }));
     };
 
@@ -156,7 +158,7 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
             <Suspense fallback={<PageLoader />}>
               <Orders
                 currentUser={currentUser}
-                showToast={(msg) => console.log(msg)}
+                showToast={(msg) => logger.info(msg)}
                 onPrintOrder={() => {}}
                 onPrintReceipt={() => {}}
                 onOpenLabFolder={() => {}}
@@ -254,6 +256,8 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
 
       {/* Persistent Floating Sidebar */}
       <aside
+        id="sidebar-navigation"
+        aria-label="Sidebar Navigation"
         className={`fixed left-0 top-0 z-50 transition-all duration-500 ease-in-out ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } h-full lg:h-[calc(100vh-2rem)] lg:my-4 lg:ml-4 lg:rounded-[2rem] overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/10`}
@@ -271,14 +275,17 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
 
       {/* Main Content Area */}
       <main
+        role="main"
         className={`flex-1 flex flex-col min-w-0 transition-all duration-500 ease-in-out relative z-10 ${
           isSidebarOpen && !isMobile ? "pl-[320px]" : "pl-0"
         } pb-24 lg:pb-0`}
       >
         {/* Top Operational Bar - Command Deck Style */}
-        <header className="h-20 flex items-center justify-between px-4 lg:px-8 bg-[#070b14]/80 backdrop-blur-xl border-b border-white/5 z-20 sticky top-0">
+        <header role="banner" className="h-20 flex items-center justify-between px-4 lg:px-8 bg-[#070b14]/80 backdrop-blur-xl border-b border-white/5 z-20 sticky top-0">
           <div className="flex items-center gap-4">
             <button
+              aria-expanded={isSidebarOpen}
+              aria-controls="sidebar-navigation"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               title={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
               aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}

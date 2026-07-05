@@ -28,9 +28,9 @@ class TunnelService {
 
   constructor(logger?: any) {
     this.logger = logger || {
-      info: (msg: string, ...args: any[]) => console.log('[Tunnel]', msg, ...args),
-      error: (msg: string, ...args: any[]) => console.error('[Tunnel]', msg, ...args),
-      warn: (msg: string, ...args: any[]) => console.warn('[Tunnel]', msg, ...args),
+      info: (msg: string, ...args: any[]) => logger.info('[Tunnel]', msg, ...args),
+      error: (msg: string, ...args: any[]) => logger.error('[Tunnel]', msg, ...args),
+      warn: (msg: string, ...args: any[]) => logger.warn('[Tunnel]', msg, ...args),
     };
   }
 

@@ -131,7 +131,7 @@ class OfflineAnalyticsService {
             }
         } catch (error) {
             // Silent fail for analytics
-            console.debug('[Analytics] Failed to track event', error);
+            logger.debug('[Analytics] Failed to track event', error);
         }
     }
 
@@ -209,7 +209,7 @@ class OfflineAnalyticsService {
 
             await db.table<Session>(SESSION_TABLE).add(session);
         } catch (error) {
-            console.debug('[Analytics] Failed to start session', error);
+            logger.debug('[Analytics] Failed to start session', error);
         }
     }
 
@@ -222,7 +222,7 @@ class OfflineAnalyticsService {
                 endTime: Date.now()
             });
         } catch (error) {
-            console.debug('[Analytics] Failed to end session', error);
+            logger.debug('[Analytics] Failed to end session', error);
         }
     }
 
@@ -239,7 +239,7 @@ class OfflineAnalyticsService {
             
             void this.trackBusiness('order_completed', total, { orderId });
         } catch (error) {
-            console.debug('[Analytics] Failed to record order', error);
+            logger.debug('[Analytics] Failed to record order', error);
         }
     }
 
@@ -262,7 +262,7 @@ class OfflineAnalyticsService {
                 logger.info(`[Analytics] Trimmed ${oldEvents.length} old events`);
             }
         } catch (error) {
-            console.debug('[Analytics] Failed to trim events', error);
+            logger.debug('[Analytics] Failed to trim events', error);
         }
     }
 
@@ -305,7 +305,7 @@ class OfflineAnalyticsService {
             }
         } catch (error) {
             // Silent fail, will retry later
-            console.debug('[Analytics] Sync failed', error);
+            logger.debug('[Analytics] Sync failed', error);
         } finally {
             this.syncInProgress = false;
         }
@@ -359,7 +359,7 @@ class OfflineAnalyticsService {
             await db.table<Session>(SESSION_TABLE).clear();
             logger.info('[Analytics] All data cleared');
         } catch (error) {
-            console.debug('[Analytics] Failed to clear data', error);
+            logger.debug('[Analytics] Failed to clear data', error);
         }
     }
 }
@@ -373,7 +373,7 @@ try {
         });
     }
 } catch (error) {
-    console.debug('[Analytics] Could not upgrade db', error);
+    logger.debug('[Analytics] Could not upgrade db', error);
 }
 
 export const offlineAnalytics = new OfflineAnalyticsService();

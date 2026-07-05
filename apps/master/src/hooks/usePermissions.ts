@@ -23,7 +23,7 @@ const fetchPermissions = async () => {
         // Fallback to static permissions is automatic since cachedPermissions remains null
         // Only log non-401 errors
         if (error instanceof Error && !error.message.includes('401')) {
-            console.error('Failed to fetch permissions:', error);
+            logger.error('Failed to fetch permissions:', error);
         }
     } finally {
         isFetching = false;

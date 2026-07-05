@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { randomUUID } from 'crypto';
-import { Logger } from '../../shared/logger';
-import DatabaseManager from '../../shared/db';
-import { hashPassword } from '../../shared/auth';
+import { Logger } from '../../utils/logger';
+import DatabaseManager from '../../database/db';
+import { hashPassword } from '../../utils/passwordUtils';
 
 export const CloudflareConfigSchema = z.object({
   apiToken: z.string().min(1, 'Cloudflare API token is required'),

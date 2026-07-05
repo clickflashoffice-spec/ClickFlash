@@ -1,17 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { pb } from "../../services/pb";
-import {
-  Users,
-  Clock,
-  TrendingUp,
-  ShoppingBag,
+import {Users,
   Search,
   ChevronUp,
-  ChevronDown,
-  Briefcase,
-  Zap,
-  Target,
-} from "lucide-react";
+  ChevronDown} from "lucide-react";
 import { logger } from "../../utils/logger";
 
 interface PhotographerMetric {
@@ -45,15 +37,15 @@ const PhotographerPerformanceTable: React.FC = () => {
           .collection("photographer_performance")
           .getFullList();
 
-        const metrics: PhotographerMetric[] = records.map((r: any) => {
-          const totalRev = r.total_revenue || 0;
-          const orderCount = r.order_count || 0;
-          const sessionSecs = r.total_session_seconds || 0;
-          const sessionCount = r.session_count || 0;
+        const metrics: PhotographerMetric[] = records.map((r: Record<string, unknown>) => {
+          const totalRev = (r.total_revenue as number) || 0;
+          const orderCount = (r.order_count as number) || 0;
+          const sessionSecs = (r.total_session_seconds as number) || 0;
+          const sessionCount = (r.session_count as number) || 0;
 
           return {
-            id: r.id,
-            name: r.photographer_name || "Unknown",
+            id: r.id as string,
+            name: (r.photographer_name as string) || "Unknown",
             total_revenue: totalRev,
             order_count: orderCount,
             total_session_seconds: sessionSecs,
@@ -62,14 +54,14 @@ const PhotographerPerformanceTable: React.FC = () => {
             avg_session_duration:
               sessionCount > 0 ? sessionSecs / sessionCount : 0,
             revenue_per_session: sessionCount > 0 ? totalRev / sessionCount : 0,
-            meetings_made: r.meetings_made || 0,
-            meetings_taken: r.meetings_taken || 0,
+            meetings_made: (r.meetings_made as number) || 0,
+            meetings_taken: (r.meetings_taken as number) || 0,
           };
         });
 
         setData(metrics);
-      } catch (err: any) {
-        logger.error("Failed to fetch photographer performance", err);
+      } catch (err: unknown) {
+        logger.error("Failed to fetch photographer performance", err instanceof Error ? err : undefined);
         setError("Failed to load performance data");
       } finally {
         setLoading(false);

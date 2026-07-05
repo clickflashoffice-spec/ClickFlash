@@ -17,9 +17,19 @@ import { useStation } from "../../context/StationContext";
 const BAR_COLORS = ["#6366f1", "#14b8a6"];
 const DONUT_COLORS = ["#3b82f6", "#14b8a6", "#8b5cf6", "#f59e0b", "#ec4899"];
 
+export interface BusinessChartsData {
+  photographerNames?: string[];
+  meetingsTaken?: number[];
+  meetingsMade?: number[];
+  themeLabels?: string[];
+  incomeThemePie?: number[];
+  simpleSessions?: { income: number; meetings: number };
+  multipleSessions?: { income: number; meetings: number };
+}
+
 interface BusinessIntelligenceProps {
-  chartsData: any;
-  trendData: any;
+  chartsData: BusinessChartsData;
+  trendData?: unknown;
 }
 
 const BusinessIntelligence: React.FC<BusinessIntelligenceProps> = ({
@@ -36,8 +46,8 @@ const BusinessIntelligence: React.FC<BusinessIntelligenceProps> = ({
   );
 
   const themeLabels: string[] =
-    chartsData.themeLabels?.length > 0
-      ? chartsData.themeLabels
+    (chartsData.themeLabels?.length ?? 0) > 0
+      ? chartsData.themeLabels ?? []
       : ["Pool", "Beach", "Night", "Restaurant"];
 
   const donutData = (chartsData.incomeThemePie ?? []).map(
@@ -131,7 +141,7 @@ const BusinessIntelligence: React.FC<BusinessIntelligenceProps> = ({
                     strokeWidth={2}
                     stroke="#020617"
                   >
-                    {donutData.map((_: any, index: number) => (
+                    {donutData.map((_: unknown, index: number) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={DONUT_COLORS[index % DONUT_COLORS.length]}
@@ -199,13 +209,13 @@ const BusinessIntelligence: React.FC<BusinessIntelligenceProps> = ({
                   </span>
                 </td>
                 <td className="py-3 px-4 text-right text-sm font-black text-white">
-                  €{chartsData.simpleSessions.income.toFixed(2)}
+                  €{(chartsData.simpleSessions?.income ?? 0).toFixed(2)}
                 </td>
                 <td className="py-3 px-4 text-right text-xs font-bold text-slate-300">
                   1.0 Units
                 </td>
                 <td className="py-3 px-4 text-right text-xs font-bold text-slate-300">
-                  {chartsData.simpleSessions.meetings.toFixed(0)}
+                  {(chartsData.simpleSessions?.meetings ?? 0).toFixed(0)}
                 </td>
               </tr>
               <tr className="hover:bg-slate-800/40 transition-colors">
@@ -215,13 +225,13 @@ const BusinessIntelligence: React.FC<BusinessIntelligenceProps> = ({
                   </span>
                 </td>
                 <td className="py-3 px-4 text-right text-sm font-black text-white">
-                  €{chartsData.multipleSessions.income.toFixed(2)}
+                  €{(chartsData.multipleSessions?.income ?? 0).toFixed(2)}
                 </td>
                 <td className="py-3 px-4 text-right text-xs font-bold text-slate-300">
                   3.5 Units
                 </td>
                 <td className="py-3 px-4 text-right text-xs font-bold text-slate-300">
-                  {chartsData.multipleSessions.meetings.toFixed(0)}
+                  {(chartsData.multipleSessions?.meetings ?? 0).toFixed(0)}
                 </td>
               </tr>
             </tbody>

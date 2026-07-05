@@ -7,6 +7,7 @@ import FilterPanel, { FilterOptions } from './FilterPanel';
 import { useDebounce } from '../../hooks/useDebounce';
 import ReprocessModal from './ReprocessModal';
 import Toast from '../common/Toast';
+import { logger } from '@/utils/logger';
 
 interface OrderManagementViewProps {
     order: Order;
@@ -62,7 +63,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({ order, onBack
             const updatedOrder = await apiService.updateOrder(order.id, { status: newStatus });
             onUpdateOrder(updatedOrder);
         } catch (error) {
-            console.error('Failed to update order status', error);
+            logger.error('Failed to update order status', error);
             showToast('Failed to update order status');
         } finally {
             setIsUpdating(false);
@@ -81,7 +82,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({ order, onBack
                 throw new Error('Failed to open folder');
             }
         } catch (error) {
-            console.error('Failed to open order folder:', error);
+            logger.error('Failed to open order folder:', error);
             showToast('Failed to open order folder. Please check if the folder exists.');
         }
     }, [order.id]);
@@ -102,7 +103,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({ order, onBack
 
             showToast('Print enqueued successfully');
         } catch (error) {
-            console.error('Print failed:', error);
+            logger.error('Print failed:', error);
             showToast('Failed to print: ' + (error instanceof Error ? error.message : String(error)));
             // Revert optimistic update on failure
             setPrintedItems(prev => {

@@ -513,4 +513,5 @@ const Photographers: React.FC<PhotographersProps> = ({ currentUser, photographer
     );
 };
 
+Photographers.displayName = 'Photographers';
 export default React.memo(Photographers);

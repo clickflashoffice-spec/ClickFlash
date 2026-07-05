@@ -1,0 +1,230 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "ClickFlash API",
+    "description": "Complete API documentation for ClickFlash Studio ecosystem",
+    "version": "4.2.0",
+    "contact": {
+      "name": "ClickFlash Support",
+      "email": "support@clickflash.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://gallery-backend.clickflash-office.workers.dev",
+      "description": "Gallery API (Production)"
+    },
+    {
+      "url": "https://moneytrash-api.clickflash-office.workers.dev",
+      "description": "MoneyTrash API (Production)"
+    },
+    {
+      "url": "https://management-hub.clickflash-office.workers.dev",
+      "description": "Management API (Production)"
+    },
+    {
+      "url": "https://clickflash-update-server.clickflash-office.workers.dev",
+      "description": "Update Server (Production)"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Check if the service is running",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "timestamp": { "type": "string", "format": "date-time" },
+                    "version": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/albums": {
+      "get": {
+        "summary": "List Albums",
+        "description": "Get all albums for the authenticated studio",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of albums",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Album" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Album",
+        "description": "Create a new photo album",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AlbumInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Album created" },
+          "400": { "description": "Invalid input" }
+        }
+      }
+    },
+    "/api/orders": {
+      "get": {
+        "summary": "List Orders",
+        "description": "Get all orders for the authenticated studio",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of orders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Order" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/upload": {
+      "post": {
+        "summary": "Upload Photos",
+        "description": "Upload photos to an album",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": { "type": "string", "format": "binary" }
+                  },
+                  "albumId": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check": {
+      "get": {
+        "summary": "Check for Updates",
+        "description": "Check if a new version is available for the app",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "enum": ["clickflash-master", "clickflash-touch", "clickflash-installer"] }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "4.1.0" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Update information",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UpdateCheck" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Album": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "photoCount": { "type": "integer" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "AlbumInput": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "description": { "type": "string", "maxLength": 500 }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "albumId": { "type": "string" },
+          "customerEmail": { "type": "string", "format": "email" },
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/OrderItem" } },
+          "total": { "type": "number" },
+          "status": { "type": "string", "enum": ["pending", "paid", "processing", "shipped", "delivered"] },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "OrderItem": {
+        "type": "object",
+        "properties": {
+          "photoId": { "type": "string" },
+          "productType": { "type": "string", "enum": ["print_4x6", "print_5x7", "print_8x10", "digital", "canvas"] },
+          "quantity": { "type": "integer", "minimum": 1 },
+          "price": { "type": "number" }
+        }
+      },
+      "UpdateCheck": {
+        "type": "object",
+        "properties": {
+          "upToDate": { "type": "boolean" },
+          "updateAvailable": { "type": "boolean" },
+          "forcedUpdate": { "type": "boolean" },
+          "currentVersion": { "type": "string" },
+          "latestVersion": { "type": "string" },
+          "downloadUrl": { "type": "string", "format": "uri" },
+          "releaseNotes": { "type": "string" },
+          "size": { "type": "integer" }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

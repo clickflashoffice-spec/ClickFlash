@@ -1,7 +1,7 @@
 'use client';
 
 import React, { memo, Component, ReactNode } from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import {Outlet} from 'react-router-dom';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 

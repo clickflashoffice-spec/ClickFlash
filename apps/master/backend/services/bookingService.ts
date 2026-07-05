@@ -1,4 +1,4 @@
-import { Logger } from "../shared/logger";
+import { Logger } from '../utils/logger';
 import { EmailService } from "./emailService";
 
 export interface BookingInviteOptions {

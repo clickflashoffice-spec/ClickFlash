@@ -1,4 +1,4 @@
-import { DatabaseManager } from '../backend/shared/db';
+import { DatabaseManager } from '../backend/database/db';
 import path from 'path';
 import { DB_FILE } from '../backend/config/constants';
 
@@ -7,7 +7,7 @@ async function verifyFixes() {
 
     // Use a fresh DB manager instance
     const dbManager = new DatabaseManager(DB_FILE);
-    const MIGRATIONS_DIR = path.resolve(__dirname, '../backend/shared/migrations');
+    const MIGRATIONS_DIR = path.resolve(__dirname, '../backend/database/migrations');
 
     try {
         console.log('1. Testing Database Connection & WAL Checkpoint...');

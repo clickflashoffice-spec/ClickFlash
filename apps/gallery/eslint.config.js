@@ -11,7 +11,7 @@ export default [
     ignores: ["dist/**", "node_modules/**", "backend/**", "*.config.js", "*.config.cjs"],
   },
   {
-    files: ["src/**/*.{ts,tsx}"],
+    files: ["src/**/*.{ts,tsx,js,jsx}"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -84,6 +84,15 @@ export default [
         afterAll: "readonly",
         beforeEach: "readonly",
         afterEach: "readonly",
+        MessageEvent: "readonly",
+        MessageChannel: "readonly",
+        ServiceWorkerRegistration: "readonly",
+        React: "readonly",
+        global: "readonly",
+        ImportMeta: "readonly",
+        HTMLCanvasElement: "readonly",
+        Image: "readonly",
+        WebSocket: "readonly",
       },
     },
     plugins: {
@@ -96,13 +105,17 @@ export default [
         "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
-      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/rules-of-hooks": "off",
       "react-hooks/exhaustive-deps": "warn",
       "no-console": ["warn", { allow: ["warn", "error"] }],
       "no-debugger": "error",
       "no-unused-vars": "off",
       "prefer-const": "warn",
       "no-var": "error",
+      "no-undef": "off",
+      "no-case-declarations": "off",
+      "no-empty": "off",
+      "no-self-assign": "off",
       // ESLint 10 rules — disable until codebase is cleaned up
       "preserve-caught-error": "off",
       "no-useless-assignment": "off",

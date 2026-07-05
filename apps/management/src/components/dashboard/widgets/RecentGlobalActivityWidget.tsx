@@ -249,5 +249,6 @@ const RecentGlobalActivityWidget: React.FC<RecentGlobalActivityWidgetProps> = ({
   );
 };
 
+RecentGlobalActivityWidget.displayName = 'RecentGlobalActivityWidget';
 export default React.memo(RecentGlobalActivityWidget);
 

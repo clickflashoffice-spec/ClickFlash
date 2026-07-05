@@ -23,7 +23,7 @@ const FinancialSummaryWidget: React.FC<FinancialSummaryWidgetProps> = ({
 }) => {
   const financialData = useMemo(() => {
     const now = new Date();
-    let startDate = new Date();
+    const startDate = new Date();
 
     switch (timeFilter) {
       case "Today":
@@ -209,5 +209,6 @@ const FinancialSummaryWidget: React.FC<FinancialSummaryWidgetProps> = ({
   );
 };
 
+FinancialSummaryWidget.displayName = 'FinancialSummaryWidget';
 export default React.memo(FinancialSummaryWidget);
 

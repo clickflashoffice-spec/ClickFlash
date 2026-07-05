@@ -19,6 +19,15 @@ jest.mock('../../pb', () => ({
     }
 }));
 
+jest.mock('@/utils/logger', () => ({
+    logger: {
+        info: jest.fn(),
+        error: jest.fn(),
+        warn: jest.fn(),
+        debug: jest.fn()
+    }
+}));
+
 describe('Face Service', () => {
     beforeEach(() => {
         jest.clearAllMocks();

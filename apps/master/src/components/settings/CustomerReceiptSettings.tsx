@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../common/Card';
 import useSystemSetting from '../../hooks/useSystemSetting';
+import { logger } from '@/utils/logger';
 
 const DEFAULT_SETTINGS = {
     logoUrl: '/logo.png',
@@ -45,7 +46,7 @@ const CustomerReceiptSettings: React.FC = () => {
                 setSettings({ ...settings, logoUrl: base64String });
             };
             reader.onerror = () => {
-                console.error('Failed to read logo image file');
+                logger.error('Failed to read logo image file');
             };
             reader.readAsDataURL(file);
         }

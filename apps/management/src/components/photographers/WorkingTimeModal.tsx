@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal.tsx';
 import { Photographer, WorkingHours, DayOfWeek, DayWorkingHours } from '../../types.ts';
+import { logger } from '@/utils/logger';
 
 interface WorkingTimeModalProps {
   isOpen: boolean;
@@ -12,7 +13,7 @@ const ShiftControls: React.FC<{
     shift: 'shift1' | 'shift2';
     day: DayOfWeek;
     data: { start: string; end: string; enabled: boolean };
-    onChange: (day: DayOfWeek, shift: 'shift1' | 'shift2', field: 'start' | 'end' | 'enabled', value: any) => void;
+    onChange: (day: DayOfWeek, shift: 'shift1' | 'shift2', field: 'start' | 'end' | 'enabled', value: string | boolean) => void;
 }> = ({ shift, day, data, onChange }) => (
     <div className="flex flex-col space-y-2 bg-slate-100 dark:bg-slate-800/50 p-3 rounded-lg">
         <div className="flex items-center space-x-2">
@@ -49,7 +50,7 @@ const ShiftControls: React.FC<{
 const DayRow: React.FC<{ 
     day: string; 
     hours: DayWorkingHours;
-    onChange: (day: DayOfWeek, shift: 'shift1' | 'shift2', field: 'start' | 'end' | 'enabled', value: any) => void;
+    onChange: (day: DayOfWeek, shift: 'shift1' | 'shift2', field: 'start' | 'end' | 'enabled', value: string | boolean) => void;
 }> = ({ day, hours, onChange }) => (
     <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr_2fr] items-start gap-x-6 gap-y-2 py-4 border-b border-slate-200 dark:border-slate-700 last:border-b-0">
         <div className="capitalize font-semibold pt-2">{day}</div>
@@ -66,7 +67,7 @@ const WorkingTimeModal: React.FC<WorkingTimeModalProps> = ({ isOpen, onClose, ph
         setWorkingHours(photographer.workingHours);
     }, [photographer]);
 
-    const handleHoursChange = (day: DayOfWeek, shift: 'shift1' | 'shift2', field: 'start' | 'end' | 'enabled', value: any) => {
+    const handleHoursChange = (day: DayOfWeek, shift: 'shift1' | 'shift2', field: 'start' | 'end' | 'enabled', value: string | boolean) => {
         setWorkingHours(prev => {
             if (!prev) return prev;
             return {
@@ -84,7 +85,7 @@ const WorkingTimeModal: React.FC<WorkingTimeModalProps> = ({ isOpen, onClose, ph
     
     const handleSave = () => {
         // In a real app, this would call an API service to save the hours
-        console.log("Saving working hours for", photographer.name, workingHours);
+        logger.info(`Saving working hours for ${photographer.name}`, workingHours);
         onClose();
     };
 

@@ -39,7 +39,7 @@ export async function provisionCloudflareResources(
 
     // 2. Check if D1 database exists (global, shared across all desks)
     const d1Databases = await listD1Databases(config.accountId, config.apiToken);
-    let d1Database = d1Databases.find((db) => db.name === "clickflash-hub-db");
+    const d1Database = d1Databases.find((db) => db.name === "clickflash-hub-db");
 
     if (!d1Database) {
       warnings.push("D1 database 'clickflash-hub-db' not found. Please create it manually or run the Management Hub deploy first.");
@@ -62,7 +62,7 @@ export async function provisionCloudflareResources(
     // 4. Verify KV namespace
     const kvNamespaces = await listKVNamespaces(config.accountId, config.apiToken);
     const kvName = "CLICKFLASH_SESSIONS";
-    let kvNamespace = kvNamespaces.find((ns) => ns.title === kvName);
+    const kvNamespace = kvNamespaces.find((ns) => ns.title === kvName);
 
     if (!kvNamespace) {
       warnings.push(`KV namespace '${kvName}' not found. Sessions may use in-memory fallback.`);

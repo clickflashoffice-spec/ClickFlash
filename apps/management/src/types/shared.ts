@@ -128,7 +128,7 @@ export interface User extends BaseRecord {
   monthlySalary?: number;
   commissionRate?: number; // 0-100
   destinationId?: string;
-  workingHoursJSON?: any;
+  workingHoursJSON?: unknown;
   workingHours?: WorkingHours;
   password?: string;
 }
@@ -386,7 +386,7 @@ export interface SyncLog extends BaseRecord {
   level: "info" | "warn" | "error";
   event: string;
   message: string;
-  details?: any;
+  details?: unknown;
   timestamp: string;
 }
 
@@ -509,7 +509,7 @@ export interface Booking extends BaseRecord {
 
 export interface SystemSetting extends BaseRecord {
   key: string;
-  value: any;
+  value: unknown;
   description?: string;
 }
 
@@ -517,7 +517,7 @@ export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
-  details?: any;
+  details?: unknown;
 }
 
 export interface PaginatedList<T> {

@@ -1,16 +1,12 @@
-import React, { useState } from "react";
-import { 
-  Truck, 
+import React from 'react';
+import {Truck, 
   MapPin, 
-  TrendingUp, 
   AlertTriangle, 
   ArrowRight,
   Target,
   Zap,
   CheckCircle2,
-  Brain
-} from "lucide-react";
-import { PixelFounderCard, PixelFounderStatCard } from "../common/PixelFounderCard.tsx";
+  Brain} from "lucide-react";
 import { apiService } from "../../services/apiService";
 import { useQuery } from "@tanstack/react-query";
 import { ManagementContext } from "../../constants";
@@ -19,19 +15,27 @@ interface TriageDashboardProps {
   context?: ManagementContext;
 }
 
-const TriageDashboard: React.FC<TriageDashboardProps> = ({ context = "global" }) => {
+interface FleetMetric {
+  name: string;
+  status: "online" | "offline";
+  location: string;
+  ip: string;
+  metrics: Record<string, unknown>;
+}
+
+const TriageDashboard: React.FC<TriageDashboardProps> = ({ context: context = "global" }) => {
   const { data: triageMetrics = [] } = useQuery({
     queryKey: ["fleet-triage"],
     queryFn: () => apiService.getFleetTriage(),
     refetchInterval: 15000 // Refetch every 15s
   });
 
-  const fleetData = triageMetrics.map((m: any) => ({
-    name: m.desk_id,
-    status: (Date.now() - new Date(m.timestamp).getTime()) < 60000 ? 'online' : 'offline',
+  const fleetData: FleetMetric[] = triageMetrics.map((m: Record<string, unknown>) => ({
+    name: m.desk_id as string,
+    status: (Date.now() - new Date(m.timestamp as string).getTime()) < 60000 ? 'online' : 'offline',
     location: 'Sector 7',
-    ip: '192.168.1.' + m.id,
-    metrics: m
+    ip: '192.168.1.' + (m.id as string | number),
+    metrics: m as Record<string, unknown>
   }));
 
   return (
@@ -87,7 +91,7 @@ const TriageDashboard: React.FC<TriageDashboardProps> = ({ context = "global" })
                     </div>
                     
                     <div className="text-right min-w-[100px]">
-                    <div className="text-xl font-serif font-black text-white">€{(station.metrics?.orders?.today || 0).toLocaleString()}</div>
+                    <div className="text-xl font-serif font-black text-white">€{(((station.metrics.orders as { today?: number } | undefined)?.today) ?? 0).toLocaleString()}</div>
                       <div className="text-[10px] text-emerald-500 font-extrabold">+12.4% vs Avg</div>
                     </div>
 

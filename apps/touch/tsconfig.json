@@ -14,7 +14,8 @@
       "node",
       "vite/client",
       "w3c-web-serial",
-      "jest"
+      "jest",
+      "vitest/globals"
     ],
     "moduleResolution": "bundler",
     "isolatedModules": true,

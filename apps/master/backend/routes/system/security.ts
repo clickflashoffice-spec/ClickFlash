@@ -1,10 +1,11 @@
 // backend/routes/system/security.ts
 import express, { Request, Response, Router } from "express";
-import { Logger } from "../../shared/logger";
-import DatabaseManager from "../../shared/db";
-import { verifyPassword, hashPassword } from "../../shared/auth";
-import { sendInternalError, sendInvalidInputError, sendAuthError } from "../../shared/errorHandler";
-
+import { Logger } from '../../utils/logger';
+import DatabaseManager from '../../database/db';
+import { verifyPassword, hashPassword } from '../../utils/passwordUtils';
+import { sendInternalError, sendInvalidInputError, sendAuthError } from '../../utils/errorHandler';
+import { strictRateLimiter } from '../../middleware/rateLimiter';
+import { customRoutesSchemas } from '../../utils/validation';
 interface SecurityContext {
   dbManager: DatabaseManager;
   logger: Logger;
@@ -23,12 +24,13 @@ export default function securityRoutes(context: SecurityContext): Router {
    * @route POST /verify-pin
    * @desc Verify the administrative PIN
    */
-  router.post("/verify-pin", async (req: Request, res: Response) => {
+  router.post("/verify-pin", strictRateLimiter, async (req: Request, res: Response) => {
     try {
-      const { pin } = req.body;
-      if (!pin) {
+      const parsed = customRoutesSchemas.securityVerifyPin.safeParse(req.body);
+      if (!parsed.success) {
         return sendInvalidInputError(res, "PIN is required");
       }
+      const { pin } = parsed.data;
 
       const row = dbManager.get<{ value: string }>(
         "SELECT value FROM settings WHERE key = 'admin_pin_hash'"
@@ -67,12 +69,13 @@ export default function securityRoutes(context: SecurityContext): Router {
    * @route POST /update-pin
    * @desc Update the administrative PIN (requires current PIN verification)
    */
-  router.post("/update-pin", async (req: Request, res: Response) => {
+  router.post("/update-pin", strictRateLimiter, async (req: Request, res: Response) => {
     try {
-      const { currentPin, newPin } = req.body;
-      if (!currentPin || !newPin) {
-        return sendInvalidInputError(res, "Current and new PIN are required");
+      const parsed = customRoutesSchemas.securityUpdatePin.safeParse(req.body);
+      if (!parsed.success) {
+        return sendInvalidInputError(res, "Current and new PIN required");
       }
+      const { currentPin, newPin } = parsed.data;
 
       if (String(newPin).length < 4) {
         return sendInvalidInputError(res, "New PIN must be at least 4 characters");

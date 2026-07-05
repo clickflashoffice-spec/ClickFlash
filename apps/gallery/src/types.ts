@@ -358,6 +358,7 @@ export interface DestinationFeatures {
     ai: boolean;
     face: boolean;
     watermark: boolean;
+    whiteLabel?: boolean;
 }
 
 export interface Destination {

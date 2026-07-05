@@ -233,4 +233,5 @@ const DashboardProfitability: React.FC<DashboardProfitabilityProps> = ({
   );
 };
 
+DashboardProfitability.displayName = 'DashboardProfitability';
 export default React.memo(DashboardProfitability);

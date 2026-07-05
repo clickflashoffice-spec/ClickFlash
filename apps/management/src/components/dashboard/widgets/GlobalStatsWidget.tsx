@@ -1,5 +1,4 @@
 import React from "react";
-import Card from "../../common/Card.tsx";
 import { useCurrency } from "../../CurrencyContext.tsx";
 
 interface GlobalStatsWidgetProps {

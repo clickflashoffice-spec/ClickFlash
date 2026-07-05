@@ -1,5 +1,5 @@
-import { Logger } from "../shared/logger";
-import { DatabaseManager } from "../shared/db";
+import { Logger } from '../utils/logger';
+import { DatabaseManager } from '../database/db';
 
 interface PendingWrite {
   table: string;
@@ -44,6 +44,7 @@ export class DbWriteQueue {
   private db: DatabaseManager;
   private logger?: Logger;
   private isFlushing = false;
+  private _lastWriteLatencyMs = 0;
 
   constructor(db: DatabaseManager, options: DbWriteQueueOptions = {}) {
     this.db = db;
@@ -183,6 +184,7 @@ export class DbWriteQueue {
     }
 
     try {
+      const startTime = Date.now();
       this.db.transaction(() => {
         for (const [table, tableWrites] of writesByTable.entries()) {
           for (const write of tableWrites) {
@@ -206,6 +208,8 @@ export class DbWriteQueue {
           }
         }
       });
+      const duration = Date.now() - startTime;
+      this._lastWriteLatencyMs = pendingWrites.length > 0 ? duration / pendingWrites.length : duration;
 
       // Phase 3: On success, delete 'flushing' records from pending_writes
       if (keys.length > 0) {
@@ -341,7 +345,7 @@ export class DbWriteQueue {
   /**
    * Get current queue statistics.
    */
-  getStats(): { queueSize: number; oldestWrite: number | null } {
+  getStats(): { queueSize: number; oldestWrite: number | null; writeLatencyMs: number } {
     let oldestTimestamp: number | null = null;
 
     for (const write of this.queue.values()) {
@@ -353,6 +357,7 @@ export class DbWriteQueue {
     return {
       queueSize: this.queue.size,
       oldestWrite: oldestTimestamp ? Date.now() - oldestTimestamp : null,
+      writeLatencyMs: this._lastWriteLatencyMs,
     };
   }
 }

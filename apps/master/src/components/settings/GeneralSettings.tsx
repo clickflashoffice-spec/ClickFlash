@@ -112,7 +112,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
         const initializeSettings = async () => {
             try {
                 const baseUrl = pb.baseUrlValue || DEFAULT_API_URL;
-                const response = await fetch(`${baseUrl}/api/network-settings`);
+                const response = await fetch(`${baseUrl}/api/network/settings`);
                 if (response.ok) {
                     const savedSettings = await response.json();
                     if (savedSettings.masterLocalIp) setMasterLocalIp(savedSettings.masterLocalIp);
@@ -191,7 +191,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
 
         setIsCreatingDestLoading(true);
         try {
-            const licenseKey = 'SM-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            const licenseKey = 'CF-LIVE-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-XXXX';
             const created = await apiService.createDestination({
                 name: newDestData.name.trim(),
                 country: newDestData.country.trim(),
@@ -218,7 +218,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
         setIsSavingNetwork(true);
         try {
             const baseUrl = pb.baseUrlValue || DEFAULT_API_URL;
-            await fetch(`${baseUrl}/api/network-settings`, {
+            await fetch(`${baseUrl}/api/network/settings`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -245,7 +245,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
         }
     };
 
-    const isKeyValid = destination?.licenseKey?.startsWith('SM-') && destination.licenseKey.length > 8;
+    const isKeyValid = destination?.licenseKey?.startsWith('CF-LIVE-') && destination.licenseKey.length >= 24;
 
     if (loading) {
         return (
@@ -467,7 +467,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
                                                 ? 'border-green-500 focus:ring-green-500' 
                                                 : 'border-slate-200 dark:border-slate-700 focus:ring-cyan-500'}
                                         `}
-                                        placeholder="SM-XXXXXXXXX"
+                                        placeholder="CF-LIVE-XXXX-XXXX-XXXX-XXXX"
                                         disabled={!canManageSettings}
                                     />
                                     {isKeyValid && (

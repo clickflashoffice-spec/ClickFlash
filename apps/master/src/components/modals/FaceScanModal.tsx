@@ -1,5 +1,6 @@
 
 import React, { useRef, useEffect, useState } from 'react';
+import { logger } from '@/utils/logger';
 
 interface FaceScanModalProps {
     isOpen: boolean;
@@ -42,7 +43,7 @@ const FaceScanModal: React.FC<FaceScanModalProps> = ({ isOpen, onClose, onScan, 
                 videoRef.current.srcObject = mediaStream;
             }
         } catch (err) {
-            console.error('Failed to access camera', err);
+            logger.error('Failed to access camera', err);
             setError('Unable to access camera. Please ensure you have granted permission.');
         }
     };

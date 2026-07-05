@@ -10,7 +10,7 @@ interface SessionTypesSettingsProps {
 }
 
 const SessionTypesSettings: React.FC<SessionTypesSettingsProps> = ({
-  context,
+  context: context,
 }) => {
   const [sessionTypes, setSessionTypes] = useState<SessionType[]>([]);
   const [loading, setLoading] = useState(true);

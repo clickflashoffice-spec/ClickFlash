@@ -1,4 +1,5 @@
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
+import { logger } from '@/utils/logger';
 
 /**
  * useLocalStorage Hook
@@ -56,8 +57,8 @@ function useLocalStorage<T>(
         try {
           const item = candidate.getItem(key);
           if (process.env.DEBUG_USE_LOCAL_STORAGE === "1") {
-            // eslint-disable-next-line no-console
-            console.log("[useLocalStorage] readValue", {
+             
+            logger.info("[useLocalStorage] readValue", {
               key,
               storageType:
                 candidate === window.localStorage
@@ -70,15 +71,15 @@ function useLocalStorage<T>(
         } catch (err) {
           // try next candidate
           if (process.env.DEBUG_USE_LOCAL_STORAGE === "1") {
-            // eslint-disable-next-line no-console
-            console.log("[useLocalStorage] read candidate error", { key, err });
+             
+            logger.info("[useLocalStorage] read candidate error", { key, err });
           }
           continue;
         }
       }
       return initialValue;
     } catch (error) {
-      console.warn(`Error reading localStorage key “${key}”:`, error);
+      logger.warn(`Error reading localStorage key “${key}”:`, error);
       return initialValue;
     }
   };
@@ -101,8 +102,8 @@ function useLocalStorage<T>(
           window.__TEST_LOCAL_STORAGE,
         ];
         if (process.env.DEBUG_USE_LOCAL_STORAGE === "1") {
-          // eslint-disable-next-line no-console
-          console.log("[useLocalStorage] setValue (attempting candidates)", {
+           
+          logger.info("[useLocalStorage] setValue (attempting candidates)", {
             key,
             value: valueToStore,
           });
@@ -112,8 +113,8 @@ function useLocalStorage<T>(
           try {
             candidate.setItem(key, JSON.stringify(valueToStore));
             if (process.env.DEBUG_USE_LOCAL_STORAGE === "1") {
-              // eslint-disable-next-line no-console
-              console.log("[useLocalStorage] setValue written to", {
+               
+              logger.info("[useLocalStorage] setValue written to", {
                 key,
                 storageType:
                   candidate === window.localStorage
@@ -124,17 +125,17 @@ function useLocalStorage<T>(
             // keep trying other candidates to keep them in sync
           } catch (e) {
             if (process.env.DEBUG_USE_LOCAL_STORAGE === "1") {
-              // eslint-disable-next-line no-console
-              console.log("[useLocalStorage] set candidate error", { key, e });
+               
+              logger.info("[useLocalStorage] set candidate error", { key, e });
             }
             continue;
           }
         }
       } catch (e) {
-        console.warn(`Error setting localStorage key “${key}”:`, e);
+        logger.warn(`Error setting localStorage key “${key}”:`, e);
       }
     } catch (error) {
-      console.warn(`Error setting localStorage key “${key}”:`, error);
+      logger.warn(`Error setting localStorage key “${key}”:`, error);
     }
   };
 

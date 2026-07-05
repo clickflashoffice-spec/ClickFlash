@@ -5,8 +5,8 @@ import os from 'os';
 import path from 'path';
 import fs from 'fs';
 import { IncomingMessage, ServerResponse } from 'http';
-import DatabaseManager from '../shared/db';
-import { Logger } from '../shared/logger';
+import DatabaseManager from '../database/db';
+import { Logger } from '../utils/logger';
 
 interface Context {
     PORT: number | string;

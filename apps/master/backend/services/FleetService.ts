@@ -1,7 +1,7 @@
 import * as si from 'systeminformation';
-import { Logger } from '../shared/logger';
-import { DatabaseManager } from '../shared/db';
-import { ThermalService } from '../shared/thermalService';
+import { Logger } from '../utils/logger';
+import { DatabaseManager } from '../database/db';
+import { ThermalService } from '../services/thermalService';
 
 export interface FleetMetrics {
     cpu: {

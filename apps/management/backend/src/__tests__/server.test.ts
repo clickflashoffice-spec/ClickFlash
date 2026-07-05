@@ -7,7 +7,7 @@
 import { jest } from '@jest/globals';
 
 // Mock D1 Database
-const mockDb = {
+const mockDb: any = {
     prepare: jest.fn(() => mockDb),
     bind: jest.fn(() => mockDb),
     first: jest.fn(),
@@ -22,6 +22,11 @@ const mockR2Bucket = {
     delete: jest.fn(),
     list: jest.fn(),
 };
+
+const createExecutionContext = (): any => ({
+    waitUntil: jest.fn(),
+    passThroughOnException: jest.fn(),
+});
 
 // Test environment
 const createEnv = (): any => ({
@@ -46,10 +51,10 @@ describe('Management Hub API', () => {
             
             // Import the server handler
             const { default: worker } = await import('../server');
-            const response = await worker.fetch(request, env);
+            const response = await worker.fetch(request, env, createExecutionContext());
             
             expect(response.status).toBe(200);
-            const data = await response.json();
+            const data = (await response.json()) as any;
             expect(data.status).toBe('ok');
             expect(data.timestamp).toBeDefined();
         });
@@ -72,10 +77,10 @@ describe('Management Hub API', () => {
             
             const env = createEnv();
             const { default: worker } = await import('../server');
-            const response = await worker.fetch(request, env);
+            const response = await worker.fetch(request, env, createExecutionContext());
             
             expect(response.status).toBe(201);
-            const data = await response.json();
+            const data = (await response.json()) as any;
             expect(data.success).toBe(true);
             expect(data.token).toBeDefined();
             expect(data.desk.deskId).toBe('TEST_DESK_01');
@@ -85,7 +90,7 @@ describe('Management Hub API', () => {
             mockDb.first.mockResolvedValueOnce({
                 id: 'user-123',
                 email: 'test@clickflash.ai',
-                password: '$2a$10$hashedpassword',
+                password: '$2b$10$moD2jKc7ePooDDqfE6OBJeWcjsEj6yN1cMj66nwqtLbowArvk7lsS',
                 role: 'desk',
                 desk_id: 'TEST_DESK_01',
                 machine_id: null
@@ -103,10 +108,10 @@ describe('Management Hub API', () => {
             
             const env = createEnv();
             const { default: worker } = await import('../server');
-            const response = await worker.fetch(request, env);
+            const response = await worker.fetch(request, env, createExecutionContext());
             
             expect(response.status).toBe(200);
-            const data = await response.json();
+            const data = (await response.json()) as any;
             expect(data.token).toBeDefined();
             expect(data.user.email).toBe('test@clickflash.ai');
         });
@@ -125,7 +130,7 @@ describe('Management Hub API', () => {
             
             const env = createEnv();
             const { default: worker } = await import('../server');
-            const response = await worker.fetch(request, env);
+            const response = await worker.fetch(request, env, createExecutionContext());
             
             expect(response.status).toBe(401);
         });
@@ -151,10 +156,10 @@ describe('Management Hub API', () => {
             
             const env = createEnv();
             const { default: worker } = await import('../server');
-            const response = await worker.fetch(request, env);
+            const response = await worker.fetch(request, env, createExecutionContext());
             
             expect(response.status).toBe(200);
-            const data = await response.json();
+            const data = (await response.json()) as any;
             expect(data.id).toBe('order-123');
             expect(Array.isArray(data.items)).toBe(true);
         });
@@ -174,10 +179,10 @@ describe('Management Hub API', () => {
             
             const env = createEnv();
             const { default: worker } = await import('../server');
-            const response = await worker.fetch(request, env);
+            const response = await worker.fetch(request, env, createExecutionContext());
             
             expect(response.status).toBe(200);
-            const data = await response.json();
+            const data = (await response.json()) as any;
             expect(data.id).toBe('order-123');
         });
     });
@@ -209,7 +214,7 @@ describe('Management Hub API', () => {
             
             const env = createEnv();
             const { default: worker } = await import('../server');
-            const response = await worker.fetch(request, env);
+            const response = await worker.fetch(request, env, createExecutionContext());
             
             expect(response.status).toBe(200);
         });
@@ -242,7 +247,7 @@ describe('Management Hub API', () => {
             
             const env = createEnv();
             const { default: worker } = await import('../server');
-            const response = await worker.fetch(request, env);
+            const response = await worker.fetch(request, env, createExecutionContext());
             
             expect(response.status).toBe(200);
         });
@@ -256,7 +261,7 @@ describe('Management Hub API', () => {
             
             const env = createEnv();
             const { default: worker } = await import('../server');
-            const response = await worker.fetch(request, env);
+            const response = await worker.fetch(request, env, createExecutionContext());
             
             expect(response.status).toBe(200);
             expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');

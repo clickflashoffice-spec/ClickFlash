@@ -4,9 +4,9 @@
  * Simulates a kiosk creating orders offline, then reconnecting and syncing to Master.
  */
 
-import Database from 'better-sqlite3-multiple-ciphers';
-import { DatabaseManager } from '../shared/db';
+
 import { SyncManager } from '../services/SyncManager';
+import { DatabaseManager } from '../database/db';
 
 describe('Offline -> Online Sync Integration', () => {
     let db: DatabaseManager;

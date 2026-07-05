@@ -85,6 +85,7 @@ const ALLOWED_COLUMNS: Record<string, string[]> = {
     "id",
     "created_at",
     "updated_at",
+    "date",
     "items",
     "total",
     "status",

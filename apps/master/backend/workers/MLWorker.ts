@@ -4,6 +4,7 @@ import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-backend-cpu";
 import path from "path";
 import sharp from "sharp";
+import { logger } from '../utils/logger';
 
 // P0 AI Retouch Safety threshold
 const AREA_THRESHOLD_PERCENT = 0.5;
@@ -22,7 +23,7 @@ async function initModels() {
 
   await faceapi.nets.tinyFaceDetector.loadFromDisk(modelPath);
   modelsLoaded = true;
-  console.log("[MLWorker] Face detection models loaded");
+  logger.info("[MLWorker] Face detection models loaded");
 }
 
 parentPort?.on("message", async (job) => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { cloudService } from '../../services/api';
+import { logger } from '@/utils/logger';
 
 interface CloudStatusIndicatorProps {
     size?: 'small' | 'normal';
@@ -18,7 +19,7 @@ export const CloudStatusIndicator: React.FC<CloudStatusIndicatorProps> = ({ size
                 setStatus(s);
                 setError(false);
             } catch (err) {
-                console.error('Failed to check cloud status', err);
+                logger.error('Failed to check cloud status', err);
                 setError(true);
             }
         };

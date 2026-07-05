@@ -31,7 +31,7 @@ test.describe("Accessibility Audit", () => {
       await page.waitForLoadState("networkidle");
       
       // Run axe accessibility scan
-      const accessibilityScanResults = await new AxeBuilder({ page })
+      const accessibilityScanResults = await new AxeBuilder({ page: page as any })
         .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
         .exclude("[data-testid='skip-a11y-check']") // Allow excluding elements
         .analyze();
@@ -44,7 +44,7 @@ test.describe("Accessibility Audit", () => {
       await page.goto(`${BASE_URL}${path}`);
       await page.waitForLoadState("networkidle");
       
-      const accessibilityScanResults = await new AxeBuilder({ page })
+      const accessibilityScanResults = await new AxeBuilder({ page: page as any })
         .withRules(["color-contrast"])
         .analyze();
       

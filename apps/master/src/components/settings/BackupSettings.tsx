@@ -6,6 +6,7 @@ interface BackupSettingsProps {
 }
 
 import { apiService } from '../../services/apiService';
+import { logger } from '@/utils/logger';
 
 const BackupSettings: React.FC<BackupSettingsProps> = ({ showToast }) => {
     const [isBackingUp, setIsBackingUp] = useState(false);
@@ -47,7 +48,7 @@ const BackupSettings: React.FC<BackupSettingsProps> = ({ showToast }) => {
             showToast('Restore successful! Please RESTART the server.');
             alert('Restore successful! Please restart the application server to apply changes.');
         } catch (error) {
-            console.error('Restore failed:', error);
+            logger.error('Restore failed:', error);
             showToast('Restore failed. See console for details.');
         } finally {
             setIsRestoring(false);

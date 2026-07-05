@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from "react";
-import Card from "../common/Card.tsx";
 import Spinner from "../common/Spinner.tsx";
 import { apiService } from "../../services/apiService.ts";
 import { Order, Expense, Photographer, Destination } from "../../types.ts";
@@ -73,7 +72,7 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ context }) => {
       return true;
     });
 
-    let filteredPhotographers = data.photographers;
+    const filteredPhotographers = data.photographers;
 
     if (!isGlobal) {
       filteredOrders = filteredOrders.filter(

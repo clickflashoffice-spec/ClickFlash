@@ -27,8 +27,8 @@ const ConnectionSettings: React.FC = () => {
   );
 
   const [status, setStatus] = useState<ConnectionStatus>("unknown");
-  const [syncedPortals, setSyncedPortals] = useState<Destination[]>([]);
-  const [loadingPortals, setLoadingPortals] = useState(false);
+  const [_syncedPortals, setSyncedPortals] = useState<Destination[]>([]);
+  const [_loadingPortals, setLoadingPortals] = useState(false);
 
   const fetchSyncedPortals = async () => {
     setLoadingPortals(true);

@@ -10,7 +10,7 @@ import {
   formatPercentage
 } from '../formatters';
 
-describe.skip('Formatters', () => {
+describe('Formatters', () => {
   describe('formatCurrency', () => {
     it('should format USD correctly', () => {
       expect(formatCurrency(100)).toBe('$100.00');

@@ -31,7 +31,7 @@ interface SyncSource {
 class MoneyTrashSyncService extends EventEmitter {
   private sources: Map<string, SyncSource> = new Map();
   private masterConfig: MoneyTrashConfig = this.getDefaultConfig();
-  private syncInterval: any | null = null;
+  private syncInterval: ReturnType<typeof setInterval> | null = null;
 
   /**
    * Get default configuration

@@ -102,6 +102,8 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
               className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-sans font-black text-white mb-6 md:mb-10 leading-[0.95] md:leading-[0.9] tracking-tighter drop-shadow-2xl px-2"
             >
               {title ? (
+                // SECURITY: title comes from CMS/build-time config, not user input.
+                // If title ever accepts user input, replace with: title.split('\n').map((line, i) => (<React.Fragment key={i}>{i > 0 && <br />}{line}</React.Fragment>))
                 <span dangerouslySetInnerHTML={{ __html: title.replace(/\n/g, '<br />') }} />
               ) : (
                 <>

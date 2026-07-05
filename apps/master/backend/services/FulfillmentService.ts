@@ -2,9 +2,9 @@ import fs from "fs-extra";
 import path from "path";
 // @ts-ignore — archiver has no @types package; treat as any
 import archiver from "archiver";
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
-import { PhotoProcessor } from "../shared/photoProcessor";
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
+import { PhotoProcessor } from '../services/photoProcessor';
 import { UPLOAD_DIR, DATA_DIR } from "../config/constants";
 
 export class FulfillmentService {

@@ -4,6 +4,7 @@ import { Sparkles, Crop, User, X, Loader2 } from 'lucide-react';
 import { useAIBatch } from '../hooks/useAIBatch';
 // @ts-ignore — aiBatchService not yet implemented
 import { AIBatchOperation } from '../services/aiBatchService';
+import { logger } from '@/utils/logger';
 
 interface AIBatchActionsProps {
     selectedPhotoIds: string[];
@@ -21,7 +22,7 @@ const AIBatchActions: React.FC<AIBatchActionsProps> = ({ selectedPhotoIds, onClo
         try {
             await submitBatchJob(selectedPhotoIds, operation);
         } catch (error) {
-            console.error('Batch action failed:', error);
+            logger.error('Batch action failed:', error);
         } finally {
             setActiveOperation(null);
         }

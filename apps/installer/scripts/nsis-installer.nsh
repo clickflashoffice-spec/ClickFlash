@@ -48,10 +48,7 @@
   DeleteRegValue HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "CLICKFLASH_TOUCH_PORT"
 
   ; Ask to preserve data
-  MessageBox MB_YESNO|MB_ICONQUESTION "Preserve photo data and studio configuration?$
-$
-Select YES to keep your photos, orders, and settings.$
-Select NO to delete all data." IDYES preserve_data
+  MessageBox MB_YESNO|MB_ICONQUESTION "Preserve photo data and studio configuration? Select YES to keep your photos, orders, and settings. Select NO to delete all data." IDYES preserve_data
   RMDir /r "$LOCALAPPDATA\ClickFlash"
   preserve_data:
 

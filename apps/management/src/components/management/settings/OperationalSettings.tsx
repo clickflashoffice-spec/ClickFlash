@@ -6,7 +6,6 @@ import EquipmentCategorySettings from "./EquipmentCategorySettings";
 import SessionTypesSettings from "./SessionTypesSettings";
 import PhotoCategorySettings from "./PhotoCategorySettings";
 import ReceiptTemplateSettings from "./ReceiptTemplateSettings";
-import Card from "../../common/Card";
 
 type SubTab =
   | "Currencies"

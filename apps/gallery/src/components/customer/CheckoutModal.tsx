@@ -1,8 +1,8 @@
 import React, { useState, Suspense } from 'react';
-import { Product, Photo, OrderItem } from '../../types';
+import { Product, Photo, OrderItem, Order } from '../../types';
+import { cloudApiService } from '../../services/cloudApiService';
 import Modal from '../common/Modal.tsx';
 import { useCurrency } from '../CurrencyContext.tsx';
-import { apiService } from '../../services/apiService.ts';
 
 const PaymentForm = React.lazy(() => import('./PaymentForm.tsx'));
 
@@ -29,6 +29,9 @@ interface CheckoutModalProps {
 const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, cart, total, onClose, onUpdateQuantity, clientName, email, photographerId, destinationId, onCheckoutSuccess }) => {
     const { formatCurrency, currency } = useCurrency();
     const [isLoading, setIsLoading] = useState(false);
+    const [tipAmount, setTipAmount] = useState<number>(0);
+    const [customTip, setCustomTip] = useState<string>('');
+    const [isCustomTip, setIsCustomTip] = useState(false);
 
     const handleCheckout = async () => {
         setIsLoading(true);
@@ -43,15 +46,17 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, cart, total, onCl
         }));
 
         try {
-            const newOrder = await apiService.createOrder({
+            const newOrder = await cloudApiService.createOrder({
                 clientName,
                 email,
-                total,
+                total: total + tipAmount,
                 photographerId,
                 destinationId,
                 items: orderItems,
                 appliedDiscount: 0,
-            });
+                // Add tip if supported by DB schema, but the prompt mentioned tip columns are added
+                tipAmount,
+            } as unknown as Partial<Order>);
             onCheckoutSuccess(newOrder.id);
         } catch (error) {
             console.error("Failed to create order:", error);
@@ -94,16 +99,69 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, cart, total, onCl
                             ))}
                         </div>
                     )}
+                    <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-4">
+                        <h3 className="font-semibold mb-3">Add a Tip for the Photographer?</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {[0, 0.1, 0.15, 0.2].map((pct) => (
+                                <button
+                                    key={pct}
+                                    onClick={() => {
+                                        setTipAmount(total * pct);
+                                        setIsCustomTip(false);
+                                    }}
+                                    className={`px-3 py-2 rounded-lg font-medium text-sm transition-colors ${
+                                        tipAmount === total * pct && !isCustomTip
+                                            ? 'bg-cyan-500 text-white'
+                                            : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600'
+                                    }`}
+                                >
+                                    {pct === 0 ? 'No Tip' : `${pct * 100}% (${formatCurrency(total * pct)})`}
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => setIsCustomTip(true)}
+                                className={`px-3 py-2 rounded-lg font-medium text-sm transition-colors ${
+                                    isCustomTip
+                                        ? 'bg-cyan-500 text-white'
+                                        : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600'
+                                }`}
+                            >
+                                Custom
+                            </button>
+                        </div>
+                        {isCustomTip && (
+                            <div className="mt-3 flex items-center space-x-2">
+                                <span className="text-slate-500">{currency.symbol}</span>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={customTip}
+                                    onChange={(e) => {
+                                        setCustomTip(e.target.value);
+                                        setTipAmount(Number(e.target.value) || 0);
+                                    }}
+                                    className="w-24 p-2 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded"
+                                    placeholder="Amount"
+                                />
+                            </div>
+                        )}
+                    </div>
                     <div className="text-right mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                        <span className="text-slate-500 dark:text-slate-400 text-xl">Total: </span>
-                        <span className="text-3xl font-bold">{formatCurrency(total)}</span>
+                        <div className="text-slate-500 dark:text-slate-400 mb-1">Subtotal: {formatCurrency(total)}</div>
+                        {tipAmount > 0 && <div className="text-slate-500 dark:text-slate-400 mb-1">Tip: {formatCurrency(tipAmount)}</div>}
+                        <div className="flex justify-end items-baseline space-x-2">
+                            <span className="text-slate-500 dark:text-slate-400 text-xl">Total: </span>
+                            <span className="text-3xl font-bold">{formatCurrency(total + tipAmount)}</span>
+                        </div>
                     </div>
                 </>
             ) : (
                 <div className="mt-4">
                     <Suspense fallback={<div className="text-center p-4">Loading secure payment...</div>}>
                         <PaymentForm
-                            amount={total}
+                            amount={total + tipAmount}
+                            tipAmount={tipAmount}
                             orderId={`TEMP-${Date.now()}`} // Ideally create order first, then pay
                             email={email}
                             currency={currency.code.toLowerCase()}

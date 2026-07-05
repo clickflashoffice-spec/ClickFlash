@@ -7,6 +7,7 @@
 import { pb } from '../pb';
 import { PocketRecord } from '../pbTypes';
 import { Product } from '../../types';
+import { logger } from '@/utils/logger';
 
 export const productService = {
     /**
@@ -60,9 +61,9 @@ export const productService = {
 
             const newStock = Math.max(0, currentStock - amount);
             await pb.collection('products').update(id, { stock: newStock });
-            console.log(`Stock reduced for ${id}: ${currentStock} -> ${newStock}`);
+            logger.info(`Stock reduced for ${id}: ${currentStock} -> ${newStock}`);
         } catch (error) {
-            console.error(`Failed to reduce stock for product ${id}:`, error);
+            logger.error(`Failed to reduce stock for product ${id}:`, error);
             throw error;
         }
     }

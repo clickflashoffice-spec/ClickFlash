@@ -2,22 +2,23 @@
 import express, { Request, Response, Router } from "express";
 import fs from "fs-extra";
 import path from "path";
-import DatabaseManager from "../shared/db";
-import { Logger } from "../shared/logger";
+import { DatabaseManager } from '../database/db';
+import { customRoutesSchemas } from '../utils/validation';
+import { Logger } from '../utils/logger';
 import {
   sendError,
   sendNotFoundError,
   ERROR_CODES,
   sendInvalidInputError,
-} from "../shared/errorHandler";
+} from '../utils/errorHandler';
 import { FulfillmentService } from "../services/FulfillmentService";
 import { isAdminOrManager } from "../middleware/role";
 import { SyncManager } from "../services/SyncManager";
 import { LedgerService } from "../services/LedgerService";
 import { OrderValidationService } from "../services/OrderValidationService";
-import AuditLogger from "../shared/auditLogger";
+import AuditLogger from '../utils/auditLogger';
 
-import { strictRateLimiter } from "../shared/rateLimiter";
+import { strictRateLimiter } from '../middleware/rateLimiter';
 
 interface OrdersContext {
   dbManager: DatabaseManager;
@@ -155,7 +156,7 @@ export default function orderRoutes(context: OrdersContext): Router {
   });
 
   // Law 14 Compliance: Replacing ZIP Browser Download with Push-to-Kiosk
-  router.post("/:id/fulfillment/push", async (req: Request, res: Response) => {
+  router.post("/:id/fulfillment/push", strictRateLimiter, async (req: Request, res: Response) => {
     const orderId = req.params.id as string;
     try {
       logger.info(`[Orders] Manual push-to-kiosk requested for ${orderId}`);
@@ -182,11 +183,12 @@ export default function orderRoutes(context: OrdersContext): Router {
   });
 
   // Rule 1.1c: Offline High-Res Printing (with Edits)
-  router.post("/:id/print", async (req: Request, res: Response) => {
+  router.post("/:id/print", strictRateLimiter, async (req: Request, res: Response) => {
     const orderId = req.params.id as string;
-    const { photoId, printerName } = req.body;
+    const parsed = customRoutesSchemas.ordersPrint.safeParse(req.body);
 
-    if (!photoId) return sendInvalidInputError(res, "Missing photoId");
+    if (!parsed.success) return sendInvalidInputError(res, "Missing photoId");
+    const { photoId, printerName } = parsed.data;
 
     try {
       logger.info(
@@ -408,7 +410,7 @@ export default function orderRoutes(context: OrdersContext): Router {
   );
 
   // Phase 29: Branded Production Slips
-  router.post("/:id/slip", async (req: Request, res: Response) => {
+  router.post("/:id/slip", strictRateLimiter, async (req: Request, res: Response) => {
     const orderId = req.params.id as string;
     try {
       logger.info(`[Orders] Production slip requested for ${orderId}`);
@@ -444,6 +446,11 @@ export default function orderRoutes(context: OrdersContext): Router {
    */
   router.post("/kiosk/orders", strictRateLimiter, async (req: Request, res: Response) => {
     try {
+      const parsed = customRoutesSchemas.kioskOrder.safeParse(req.body);
+      if (!parsed.success) {
+        return sendInvalidInputError(res, "Invalid kiosk order format", parsed.error.issues);
+      }
+      
       const {
         clientMutationId,
         clientDeviceId,
@@ -457,11 +464,8 @@ export default function orderRoutes(context: OrdersContext): Router {
         photographerId,
         roomNumber,
         appliedDiscount,
-      } = req.body;
-
-      if (!clientMutationId) {
-        return sendInvalidInputError(res, "clientMutationId is required");
-      }
+        tipAmount,
+      } = parsed.data;
 
       // Deduplication check
       const existing = dbManager.get<{ id: string }>(
@@ -484,17 +488,23 @@ export default function orderRoutes(context: OrdersContext): Router {
       const now = new Date().toISOString();
       const id = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
 
+      // Calculate total server-side
+      const safeDiscount = Math.max(0, Math.min(100, appliedDiscount || 0));
+      const calculatedTotal = (items || []).reduce((sum: number, item: any) => {
+        return sum + (Number(item.price) || 0) * (Number(item.quantity) || 1);
+      }, 0) * (1 - safeDiscount / 100);
+
       dbManager.run(
         `INSERT INTO orders (
           id, clientName, email, total, status, items, date,
-          destinationId, photographerId, roomNumber, appliedDiscount,
+          destinationId, photographerId, roomNumber, appliedDiscount, tip_amount,
           client_mutation_id, client_device_id, mutation_timestamp, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           clientName || "",
           email || "",
-          total || 0,
+          calculatedTotal,
           status || "Pending",
           JSON.stringify(items || []),
           date || now.split("T")[0],
@@ -502,6 +512,7 @@ export default function orderRoutes(context: OrdersContext): Router {
           photographerId || 0,
           roomNumber || "",
           appliedDiscount || 0,
+          tipAmount || 0,
           clientMutationId,
           clientDeviceId || "",
           Date.now(),

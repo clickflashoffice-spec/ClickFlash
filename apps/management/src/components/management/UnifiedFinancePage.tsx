@@ -1,11 +1,7 @@
 import React, { useState } from "react";
-import {
-  Wallet,
-  DollarSign,
-  ArrowUpRight,
+import {DollarSign,
   ArrowDownRight,
-  Users,
-} from "lucide-react";
+  Users} from "lucide-react";
 import ExpensesPage from "./ExpensesPage";
 import CapitalPage from "./CapitalPage";
 import PayrollPage from "./PayrollPage";

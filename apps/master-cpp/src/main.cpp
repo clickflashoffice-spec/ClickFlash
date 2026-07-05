@@ -1,52 +1,68 @@
-#include <QApplication>
-#include <QDebug>
-#include <QMessageBox>
-#include <QStyleFactory>
-
-#include "core/Logger.h"
+#include <drogon/drogon.h>
+#include <spdlog/spdlog.h>
 #include "core/Config.h"
-#include "database/DatabaseManager.h"
-#include "http/HttpServer.h"
-#include "ui/MainWindow.h"
+#include "db/DatabaseManager.h"
+#include <csignal>
 
-using namespace ClickFlash;
+using namespace drogon;
 
-int main(int argc, char *argv[])
-{
-    QApplication app(argc, argv);
+std::function<void()> shutdownHandler;
+
+void signalHandler(int sig) {
+    spdlog::info("Received signal {}, shutting down...", sig);
+    if (shutdownHandler) {
+        shutdownHandler();
+    }
+}
+
+int main(int argc, char* argv[]) {
+    // Setup logging
+    spdlog::set_level(spdlog::level::debug);
+    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
     
-    app.setApplicationName("ClickFlash Master");
-    app.setApplicationVersion("1.0.0");
-    app.setOrganizationName("ClickFlash");
-    app.setStyle(QStyleFactory::create("Fusion"));
-    
-    Logger::instance().init();
-    Logger::info("ClickFlash Master starting...");
+    spdlog::info("ClickFlash Master Service v6.0.0 starting...");
     
     try {
-        Config& config = Config::instance();
+        // Load configuration
+        auto& config = cf::core::Config::instance();
         config.load();
         
-        DatabaseManager& db = DatabaseManager::instance();
-        db.initialize();
+        // Initialize database
+        auto& db = cf::db::DatabaseManager::instance();
+        std::string dbPath = config.getDbPath();
+        std::string dbKey = config.getDbKey();
         
-        HttpServer server;
-        server.start(config.getPort());
+        // Run async initialization
+        drogon::sync_wait(db.initialize(dbPath, dbKey));
         
-        MainWindow window;
-        window.show();
+        // Run migrations
+        std::string migrationsDir = config.getMigrationsDir();
+        drogon::sync_wait(db.runMigrations(migrationsDir));
         
-        int result = app.exec();
+        spdlog::info("Database ready: {}", dbPath);
         
-        server.stop();
-        Logger::info("ClickFlash Master shutting down...");
+        // Setup Drogon HTTP server
+        app().setLogPath("./logs")
+            .setLogLevel(trantor::Logger::kWarn)
+            .addListener("0.0.0.0", config.getPort())
+            .setThreadNum(config.getThreadNum());
         
-        return result;
+        // Signal handlers
+        shutdownHandler = []() {
+            app().quit();
+        };
+        std::signal(SIGINT, signalHandler);
+        std::signal(SIGTERM, signalHandler);
+        
+        // Start server
+        spdlog::info("HTTP server starting on port {}", config.getPort());
+        app().run();
+        
+        spdlog::info("ClickFlash Master Service stopped");
+        return 0;
         
     } catch (const std::exception& e) {
-        Logger::critical("Fatal error: {}", e.what());
-        QMessageBox::critical(nullptr, "Fatal Error", 
-            QString("Failed to start ClickFlash Master:\n%1").arg(e.what()));
+        spdlog::critical("Fatal error: {}", e.what());
         return 1;
     }
 }

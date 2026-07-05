@@ -1,5 +1,6 @@
 import { CollectionOptions, PocketRecord, AuthResponse } from './pbTypes';
 import { DEFAULT_TOUCH_PORT, DEFAULT_MASTER_PORT, DEFAULT_TOUCH_PORT as FALLBACK_PORT } from '../constants'; // Using fallback logic if needed
+import { logger } from '@/utils/logger';
 
 // Helper to reliably detect network errors across browsers
 const isNetworkError = (error: any): boolean => {
@@ -72,6 +73,13 @@ class CustomPocketBaseAdapter {
     baseUrl: string;
     authStore: { isValid: boolean; isAdmin: boolean; model: { id: string; email: string }; token: string; onChange: (callback?: (token: string, model: any) => void) => () => void; clear: () => void; };
     private authToken: string | null = null;
+    
+    // SSE Singleton State
+    private sseConnection: EventSource | null = null;
+    private sseListeners: Map<string, Array<(e: { action: string; record: PocketRecord }) => void>> = new Map();
+    private sseReconnectTimer: NodeJS.Timeout | null = null;
+    private sseRetryCount = 0;
+    private readonly SSE_MAX_RETRIES = 50;
 
     constructor(baseUrl: string) {
         this.baseUrl = baseUrl;
@@ -172,7 +180,7 @@ class CustomPocketBaseAdapter {
 
                     // Only log non-network errors or log network errors at debug level
                     if (!isNetError) {
-                        console.warn(`[CustomAdapter] Failed to fetch list for ${name}`, e);
+                        logger.warn(`[CustomAdapter] Failed to fetch list for ${name}`, e);
                     }
                     // Return empty array for all errors (network or otherwise)
                     return [];
@@ -205,7 +213,7 @@ class CustomPocketBaseAdapter {
             },
             getOne: async (id: string, options?: CollectionOptions) => {
                 // Backend doesn't support /records/{id}, use filter instead
-                let filter = `id="${id}"`;
+                const filter = `id="${id}"`;
                 let query = `?filter=${encodeURIComponent(filter)}`;
                 if (options && options.expand) {
                     query += `&expand=${encodeURIComponent(options.expand)}`;
@@ -236,7 +244,7 @@ class CustomPocketBaseAdapter {
                             data = JSON.parse(responseText);
                         }
                     } catch (parseError) {
-                        console.warn(`[CustomAdapter] Failed to parse JSON response for ${name}.getOne`, parseError);
+                        logger.warn(`[CustomAdapter] Failed to parse JSON response for ${name}.getOne`, parseError);
                         return null;
                     }
 
@@ -261,7 +269,7 @@ class CustomPocketBaseAdapter {
                     const isNetError = isNetworkError(error);
 
                     if (!isNetError) {
-                        console.warn(`[CustomAdapter] Error in getOne for ${name}`, error);
+                        logger.warn(`[CustomAdapter] Error in getOne for ${name}`, error);
                     }
                     return null;
                 }
@@ -279,7 +287,7 @@ class CustomPocketBaseAdapter {
                         try {
                             hasFile = Object.values(data).some(val => val instanceof File || val instanceof Blob);
                         } catch (error) {
-                            console.warn('[CustomAdapter] Error checking for files in create', error);
+                            logger.warn('[CustomAdapter] Error checking for files in create', error);
                             hasFile = false;
                         }
                     }
@@ -333,7 +341,7 @@ class CustomPocketBaseAdapter {
                             errorMessage = res.statusText || `HTTP ${res.status} error`;
                             errorData = { message: errorMessage };
                         }
-                        console.error(`[PB Adapter] Create failed for ${name}:`, {
+                        logger.error(`[PB Adapter] Create failed for ${name}:`, {
                             status: res.status,
                             statusText: res.statusText,
                             errorData,
@@ -413,70 +421,93 @@ class CustomPocketBaseAdapter {
                 return all.length > 0 ? all[0] : null;
             },
             subscribe: (topic: string, callback: (e: { action: string; record: PocketRecord }) => void) => {
-                let evtSource: EventSource | null = null;
-                let reconnectTimer: NodeJS.Timeout | null = null;
-                let retryCount = 0;
-                const MAX_RETRIES = 50; // Persistent retry
+                // Ensure array for topic exists
+                const listeners = this.sseListeners.get(topic) || [];
+                listeners.push(callback);
+                this.sseListeners.set(topic, listeners);
 
-                const connect = () => {
-                    if (evtSource) {
-                        evtSource.close();
-                    }
+                // Add to catch-all topic as well if it's not '*'
+                if (topic !== '*') {
+                    const allListeners = this.sseListeners.get('*') || [];
+                    // We don't add specific callbacks to '*' to avoid duplicate calls, 
+                    // but we ensure the SSE connection is alive.
+                }
 
-                    evtSource = new EventSource(`${this.baseUrl}/api/realtime`);
-
-                    evtSource.onopen = () => {
-                        console.log('[PB Adapter] Realtime connected');
-                        retryCount = 0; // Reset retry count on success
-                    };
-
-                    evtSource.onmessage = (e) => {
-                        if (e.data && e.data !== ': connected') {
-                            try {
-                                const payload = JSON.parse(e.data);
-                                if (payload.collection === name || topic === '*') {
-                                    callback({
-                                        action: payload.action,
-                                        record: payload.record
-                                    });
-                                }
-                            } catch (err) { console.error("SSE Parse Error", err); }
-                        }
-                    };
-
-                    evtSource.onerror = (err) => {
-                        console.warn('[PB Adapter] SSE Error, reconnecting...', err);
-                        evtSource?.close();
-
-                        // Exponential backoff with cap
-                        const delay = Math.min(1000 * Math.pow(1.5, retryCount), 10000);
-                        retryCount++;
-
-                        if (retryCount <= MAX_RETRIES) {
-                            reconnectTimer = setTimeout(connect, delay);
-                        } else {
-                            console.error('[PB Adapter] SSE Max retries reached');
-                        }
-                    };
-                };
-
-                connect();
+                if (!this.sseConnection) {
+                    this.connectSSE();
+                }
 
                 return Promise.resolve(() => {
-                    if (reconnectTimer) clearTimeout(reconnectTimer);
-                    if (evtSource) evtSource.close();
+                    this.collection(name).unsubscribe(topic, callback);
                 });
             },
-            unsubscribe: (topic?: string) => {
-                // Since we don't track individual subscriptions by topic in this simple mock,
-                // and the real-time implementation uses a single EventSource for all,
-                // we can't easily unsubscribe just one topic without more complex logic.
-                // However, the subscribe method returns a cleanup function which is the preferred way to unsubscribe.
-                // We'll leave this as a no-op or log a warning if strict behavior is needed.
-                // For now, to "finalize" it, we can add a log.
-                // console.debug('[PB Adapter] unsubscribe called', topic);
+            unsubscribe: (topic?: string, callback?: (e: { action: string; record: PocketRecord }) => void) => {
+                if (topic && callback) {
+                    const listeners = this.sseListeners.get(topic) || [];
+                    this.sseListeners.set(topic, listeners.filter(cb => cb !== callback));
+                } else if (topic) {
+                    this.sseListeners.delete(topic);
+                } else {
+                    this.sseListeners.clear();
+                }
+
+                // If no listeners left, close connection
+                let totalListeners = 0;
+                this.sseListeners.forEach(list => totalListeners += list.length);
+                if (totalListeners === 0 && this.sseConnection) {
+                    this.sseConnection.close();
+                    this.sseConnection = null;
+                }
             }
         }
+    }
+
+    private connectSSE() {
+        if (this.sseConnection) {
+            this.sseConnection.close();
+        }
+
+        this.sseConnection = new EventSource(`${this.baseUrl}/api/realtime`);
+
+        this.sseConnection.onopen = () => {
+            logger.info('[PB Adapter] Realtime connected (Multiplexed)');
+            this.sseRetryCount = 0;
+        };
+
+        this.sseConnection.onmessage = (e) => {
+            if (e.data && e.data !== ': connected') {
+                try {
+                    const payload = JSON.parse(e.data);
+                    const coll = payload.collection;
+                    
+                    // Trigger specific topic listeners
+                    if (coll && this.sseListeners.has(coll)) {
+                        this.sseListeners.get(coll)!.forEach(cb => cb({ action: payload.action, record: payload.record }));
+                    }
+                    
+                    // Trigger wildcard listeners
+                    if (this.sseListeners.has('*')) {
+                        this.sseListeners.get('*')!.forEach(cb => cb({ action: payload.action, record: payload.record }));
+                    }
+                } catch (err) { logger.error("SSE Parse Error", err); }
+            }
+        };
+
+        this.sseConnection.onerror = (err) => {
+            logger.warn('[PB Adapter] SSE Error, reconnecting...', err);
+            this.sseConnection?.close();
+            this.sseConnection = null;
+
+            const delay = Math.min(1000 * Math.pow(1.5, this.sseRetryCount), 10000);
+            this.sseRetryCount++;
+
+            if (this.sseRetryCount <= this.SSE_MAX_RETRIES) {
+                if (this.sseReconnectTimer) clearTimeout(this.sseReconnectTimer);
+                this.sseReconnectTimer = setTimeout(() => this.connectSSE(), delay);
+            } else {
+                logger.error('[PB Adapter] SSE Max retries reached');
+            }
+        };
     }
 
     get files() {
@@ -587,7 +618,7 @@ export const configureConnection = () => {
 
     if (pb.baseUrl !== targetUrl) {
         pb.baseUrlValue = targetUrl;
-        console.log(`[PB] Reconfigured connection to: ${targetUrl}`);
+        logger.info(`[PB] Reconfigured connection to: ${targetUrl}`);
     }
 };
 

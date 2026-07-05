@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { generateToken, validateToken } from "../shared/csrf";
-import { sendAuthorizationError } from "../shared/errorHandler";
+import { generateToken, validateToken } from "../utils/csrfStore";
+import { sendAuthorizationError } from "../utils/errorHandler";
+import { logger } from '../utils/logger';
 
 /**
  * CSRF Protection Middleware
@@ -44,7 +45,7 @@ export const csrfMiddleware = (
   const clientToken = req.headers["x-csrf-token"] as string;
 
   if (!clientToken || !validateToken(clientToken, session.user?.id || null)) {
-    console.warn(`[CSRF] Validation failed for ${req.method} ${req.url}.`);
+    logger.warn(`[CSRF] Validation failed for ${req.method} ${req.url}.`);
     return sendAuthorizationError(res, "Invalid or missing CSRF token");
   }
 

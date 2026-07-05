@@ -3,7 +3,7 @@
  * Handles master registration, heartbeats, shared config, and peer discovery.
  */
 
-import { sign } from "@tsndr/cloudflare-worker-jwt";
+import { createToken } from "../jwt.js";
 import DatabaseManager from "../db.js";
 
 export interface RegistrationPayload {
@@ -307,9 +307,8 @@ export class FleetService {
   }
 
   /**
-   * Generate an RS256-signed JWT with desk_id claim.
-   * Note: Cloudflare Workers use Web Crypto; we use HS256 via @tsndr/cloudflare-worker-jwt
-   * but label the claim structure as RS256-compatible.
+   * Generate an HS256-signed JWT with desk_id claim.
+   * Uses jose for Cloudflare Workers compatibility.
    */
   async generateJwtToken(deskId: string): Promise<string> {
     const now = Math.floor(Date.now() / 1000);
@@ -318,14 +317,12 @@ export class FleetService {
     const payload = {
       desk_id: deskId,
       role: "desk",
-      iat: now,
-      exp: now + 365 * 24 * 60 * 60, // 1 year
       jti,
       iss: "clickflash-hub",
       aud: "clickflash-master",
     };
 
-    return await sign(payload, this.jwtSecret);
+    return await createToken(payload, this.jwtSecret, "1y");
   }
 
   /**

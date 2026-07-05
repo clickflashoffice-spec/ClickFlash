@@ -26,7 +26,7 @@ export default defineConfig({
 
 
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://127.0.0.1:5173',
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -47,33 +47,4 @@ export default defineConfig({
   // 1420: MoneyTrash (Tauri Web)
   // 3000: Website (Next.js)
 
-  webServer: [
-    {
-      command: "npm run dev:master",
-      url: "http://localhost:8090",
-      reuseExistingServer: !process.env.CI,
-      timeout: 180 * 1000,
-      env: { NODE_ENV: "test" },
-      stdout: "pipe",
-      stderr: "pipe",
-    },
-    {
-      command: "npm run dev:touch",
-      url: "http://localhost:8091",
-      reuseExistingServer: !process.env.CI,
-      timeout: 180 * 1000,
-      env: { NODE_ENV: "test" },
-      stdout: "pipe",
-      stderr: "pipe",
-    },
-    {
-      command: "npm run dev:management",
-      url: "http://localhost:5175",
-      reuseExistingServer: !process.env.CI,
-      timeout: 180 * 1000,
-      env: { NODE_ENV: "test" },
-      stdout: "pipe",
-      stderr: "pipe",
-    }
-  ],
-});
+  });

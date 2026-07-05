@@ -20,7 +20,7 @@ interface RevenueByDestinationWidgetProps {
 const RevenueByDestinationWidget: React.FC<RevenueByDestinationWidgetProps> = ({
     destinations,
     orders,
-    timeFilter,
+    timeFilter: timeFilter,
     formatCurrency,
     detailed = false
 }) => {
@@ -119,5 +119,6 @@ const RevenueByDestinationWidget: React.FC<RevenueByDestinationWidgetProps> = ({
     );
 };
 
+RevenueByDestinationWidget.displayName = 'RevenueByDestinationWidget';
 export default React.memo(RevenueByDestinationWidget);
 

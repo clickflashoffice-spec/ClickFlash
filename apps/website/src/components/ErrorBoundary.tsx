@@ -55,8 +55,17 @@ export class ErrorBoundary extends Component<Props, State> {
 
     // Log to analytics in production
     if (process.env.NODE_ENV === "production") {
-      // TODO: Send to error tracking service (Sentry, LogRocket, etc.)
-      // Example: Sentry.captureException(error, { extra: errorInfo });
+      // Safely capture exception for structured logging / Sentry
+      try {
+        if (typeof window !== 'undefined' && (window as any).Sentry) {
+          (window as any).Sentry.captureException(error, { extra: errorInfo });
+        } else {
+          console.error("[Production Error]", { error, errorInfo });
+        }
+      } catch (loggingError) {
+        // Prevent telemetry failure from crashing the boundary
+        console.error("Failed to log error", loggingError);
+      }
     }
   }
 

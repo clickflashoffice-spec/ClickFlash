@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Download, RefreshCw, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { logger } from '@/utils/logger';
 
 interface UpdateStatus {
   checking: boolean;
@@ -64,7 +65,7 @@ export const UpdateNotification: React.FC = () => {
     try {
       await (window.electron as any)?.ipcRenderer.invoke('updater:check');
     } catch (error) {
-      console.error('Failed to check for updates:', error);
+      logger.error('Failed to check for updates:', error);
     }
   };
 
@@ -72,7 +73,7 @@ export const UpdateNotification: React.FC = () => {
     try {
       await (window.electron as any)?.ipcRenderer.invoke('updater:download');
     } catch (error) {
-      console.error('Failed to download update:', error);
+      logger.error('Failed to download update:', error);
     }
   };
 

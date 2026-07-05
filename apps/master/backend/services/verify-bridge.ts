@@ -1,10 +1,11 @@
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
-import { DatabaseManager } from "../shared/db";
+import { DatabaseManager } from '../database/db';
 import { CloudSyncService } from "./cloudSyncService";
-import { Logger } from "../shared/logger";
-import { ResourceMonitor } from "../shared/ResourceMonitor";
+import { logger } from '../utils/logger';
+import { ResourceMonitor } from '../services/ResourceMonitor';
+
 // HardwareService imported via CloudSyncService
 
 // Load environment variables
@@ -14,14 +15,14 @@ const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "pb_data");
 const DB_FILE = process.env.DATABASE_PATH || path.join(DATA_DIR, "master.db");
 
 async function verifyBridge() {
-    console.log("🚀 Starting Cloud Bridge Verification...");
+    logger.info("🚀 Starting Cloud Bridge Verification...");
 
     if (!fs.existsSync(DB_FILE)) {
-        console.error(`❌ Database not found at ${DB_FILE}`);
+        logger.error(`❌ Database not found at ${DB_FILE}`);
         process.exit(1);
     }
 
-    const logger = new Logger(DATA_DIR);
+
     const dbManager = new DatabaseManager(DB_FILE);
     dbManager.connect();
 
@@ -34,35 +35,35 @@ async function verifyBridge() {
         resourceMonitor
     );
 
-    console.log("--- Connection Info ---");
-    console.log(`Hub URL: ${process.env.CLOUD_API_URL}`);
-    console.log(`Desk ID: ${process.env.DESK_ID || "MASTER_01"}`);
-    console.log(`Email:   ${process.env.CLOUD_EMAIL}`);
+    logger.info("--- Connection Info ---");
+    logger.info(`Hub URL: ${process.env.CLOUD_API_URL}`);
+    logger.info(`Desk ID: ${process.env.DESK_ID || "MASTER_01"}`);
+    logger.info(`Email:   ${process.env.CLOUD_EMAIL}`);
 
     try {
         // 1. Authentication
-        console.log("\n1️⃣  Testing Authentication...");
+        logger.info("\n1️⃣  Testing Authentication...");
         await (cloudSyncService as any).authenticate();
         const stats = cloudSyncService.getStats();
         if (stats.cloudConnection === "online") {
-            console.log("✅ Authenticated successfully.");
+            logger.info("✅ Authenticated successfully.");
         } else {
-            console.error("❌ Authentication failed. Check credentials and Cloud Hub status.");
+            logger.error("❌ Authentication failed. Check credentials and Cloud Hub status.");
             process.exit(1);
         }
 
         // 2. Heartbeat push
-        console.log("\n2️⃣  Testing Heartbeat...");
+        logger.info("\n2️⃣  Testing Heartbeat...");
         await cloudSyncService.sendHeartbeat();
-        console.log("✅ Heartbeat sent.");
+        logger.info("✅ Heartbeat sent.");
 
         // 3. Remote Settings Pull
-        console.log("\n3️⃣  Testing Remote Settings Pull...");
+        logger.info("\n3️⃣  Testing Remote Settings Pull...");
         await cloudSyncService.syncRemoteSettings();
-        console.log("✅ Settings sync completed.");
+        logger.info("✅ Settings sync completed.");
 
         // 4. Order Sync (Simulated)
-        console.log("\n4️⃣  Testing Order Sync...");
+        logger.info("\n4️⃣  Testing Order Sync...");
         // Create a dummy order to sync if none exist for testing
         const testOrderId = `test_order_${Date.now()}`;
         dbManager.run(`
@@ -70,20 +71,20 @@ async function verifyBridge() {
             VALUES (?, 'paid', 50.00, ?, CURRENT_TIMESTAMP, 'test_photographer', 'pending')
         `, [testOrderId, new Date().toISOString().split('T')[0]]);
 
-        console.log(`Created test order ${testOrderId}. Triggering sync...`);
+        logger.info(`Created test order ${testOrderId}. Triggering sync...`);
         await cloudSyncService.syncOrdersToGallery();
         
         // Check if status updated
         const order = dbManager.get<{ cloud_sync_status: string }>("SELECT cloud_sync_status FROM orders WHERE id = ?", [testOrderId]);
         if (order?.cloud_sync_status === 'synced') {
-            console.log("✅ Order synced successfully.");
+            logger.info("✅ Order synced successfully.");
         } else {
-            console.log(`⚠️ Order sync status: ${order?.cloud_sync_status || 'unknown'}. Check logs if 'pending'.`);
+            logger.info(`⚠️ Order sync status: ${order?.cloud_sync_status || 'unknown'}. Check logs if 'pending'.`);
         }
 
-        console.log("\n✨ Cloud Bridge Verification COMPLETE.");
+        logger.info("\n✨ Cloud Bridge Verification COMPLETE.");
     } catch (error) {
-        console.error("\n❌ Verification FAILED:", error);
+        logger.error("\n❌ Verification FAILED:", error);
         process.exit(1);
     } finally {
         dbManager.close();
@@ -92,6 +93,6 @@ async function verifyBridge() {
 }
 
 verifyBridge().catch(err => {
-    console.error("Fatal error during verification:", err);
+    logger.error("Fatal error during verification:", err);
     process.exit(1);
 });

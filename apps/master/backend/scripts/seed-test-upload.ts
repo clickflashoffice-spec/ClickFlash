@@ -1,14 +1,16 @@
-import { DatabaseManager } from "../shared/db";
+import { DatabaseManager } from '../database/db';
 import path from "path";
 import fs from "fs";
+
+import { logger } from "../utils/logger";
 
 const DATA_DIR = "E:\\ClickFlash\\apps\\master\\pb_data";
 const DB_FILE = path.join(DATA_DIR, "master.db");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 
 async function seed() {
-    console.log("--- Seeding Master Test Data (Path Fixed) ---");
-    console.log(`Using Database: ${DB_FILE}`);
+    logger.info("--- Seeding Master Test Data (Path Fixed) ---");
+    logger.info(`Using Database: ${DB_FILE}`);
     
     if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
     if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -24,7 +26,7 @@ async function seed() {
             INSERT INTO users (id, name, email, role, created_at)
             VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
         `, [photographerId, "Test Photographer", "test@photographer.com", "Photographer"]);
-        console.log("Created test photographer");
+        logger.info("Created test photographer");
     }
 
     // 2. Create test album
@@ -34,7 +36,7 @@ async function seed() {
         INSERT INTO albums (id, title, date, photographerId, status, created_at)
         VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `, [albumId, "Cloud Test Album", new Date().toISOString(), photographerId, "Published"]);
-    console.log(`Created test album: ${albumId}`);
+    logger.info(`Created test album: ${albumId}`);
 
     // 3. Create album directory
     const albumUploadDir = path.join(UPLOAD_DIR, albumId);
@@ -59,7 +61,7 @@ async function seed() {
             VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)
         `, [photoId, albumId, `Test Photo ${p}`, fileName, photographerId, path.join(albumId, fileName)]);
     }
-    console.log(`Created ${photoIds.length} test photos`);
+    logger.info(`Created ${photoIds.length} test photos`);
 
     // 5. Create test order
     const orderId = "TEST_ORDER_" + albumTimestamp;
@@ -87,12 +89,12 @@ async function seed() {
         'pending'
     ]);
     
-    console.log(`Created test order: ${orderId} (${orderNumber})`);
-    console.log("--- Seeding Complete ---");
+    logger.info(`Created test order: ${orderId} (${orderNumber})`);
+    logger.info("--- Seeding Complete ---");
     process.exit(0);
 }
 
 seed().catch(err => {
-    console.error("Seeding failed:", err);
+    logger.error("Seeding failed:", err);
     process.exit(1);
 });

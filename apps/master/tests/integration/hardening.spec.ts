@@ -1,5 +1,5 @@
-import { timeService } from '../../backend/shared/timeService';
-import { TimeService } from '../../backend/shared/timeService';
+import { timeService } from '../../backend/services/timeService';
+import { TimeService } from '../../backend/services/timeService';
 import { expect } from 'expect';
 
 describe('Hardening Integration Verification', () => {

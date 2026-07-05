@@ -1,16 +1,18 @@
 import React, { useState } from "react";
 import { X, Save, Target, TrendingUp, Calendar } from "lucide-react";
 
+interface PerformanceTargets {
+  daily_income: number;
+  monthly_income: number;
+  daily_meetings: number;
+  capture_rate: number;
+}
+
 interface TargetSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (targets: any) => void;
-  initialTargets: {
-    daily_income: number;
-    monthly_income: number;
-    daily_meetings: number;
-    capture_rate: number;
-  };
+  onSave: (targets: PerformanceTargets) => void;
+  initialTargets: PerformanceTargets;
 }
 
 const TargetSettingsModal: React.FC<TargetSettingsModalProps> = ({

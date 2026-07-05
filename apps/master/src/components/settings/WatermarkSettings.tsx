@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import Card from '../common/Card.tsx';
 import useSystemSetting from '../../hooks/useSystemSetting.ts';
 import PageHeader from '../common/PageHeader';
+import { logger } from '@/utils/logger';
 
 export interface WatermarkSettingsType {
     enabled: boolean;
@@ -33,7 +34,7 @@ const WatermarkSettings: React.FC = () => {
             const reader = new FileReader();
             reader.onloadend = () => setSettings({ ...settings, imageUrl: reader.result as string });
             reader.onerror = () => {
-                console.error('Failed to read watermark image file');
+                logger.error('Failed to read watermark image file');
             };
             reader.readAsDataURL(file);
         }

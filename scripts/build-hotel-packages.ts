@@ -11,8 +11,14 @@
  *   npx tsx scripts/build-hotel-packages.ts
  *
  * Prerequisites:
- *   - Master installer built: npm --prefix apps/master run package:installer
- *   - Touch installer built:  npm --prefix apps/touch run build:electron
+ *   - Master installer built: pnpm --filter clickflash-master run package:installer
+ *   - Touch installer built:  pnpm --filter clickflash-touch run build:electron
+ *
+ * Security notice:
+ *   All passwords, PINs, and secrets are read from environment variables.
+ *   If a secret is not provided, a cryptographically random value is generated
+ *   and printed to stdout. Record these values securely; they are not persisted
+ *   by this script.
  */
 
 import * as fs from "fs";
@@ -37,7 +43,33 @@ interface HotelConfig {
   moneytrashPrice: string;
 }
 
-const HOTELS: HotelConfig[] = [
+function getEnv(key: string, fallback?: string): string {
+  const value = process.env[key];
+  if (value) return value;
+  if (fallback !== undefined) return fallback;
+  throw new Error(`Missing required environment variable: ${key}`);
+}
+
+function generateSecret(lengthBytes = 32): string {
+  return crypto.randomBytes(lengthBytes).toString("hex");
+}
+
+function getHotelSecret(hotelId: string, field: string): string {
+  const envKey = `HOTEL_${hotelId.replace(/-/g, "_")}_${field.toUpperCase()}`;
+  const value = process.env[envKey];
+  if (value) return value;
+
+  const generated = generateSecret();
+  console.warn(
+    `[build-hotel-packages] ${envKey} not set. Generated random ${field}: ${generated}`,
+  );
+  console.warn(
+    `[build-hotel-packages] Store this value securely and set ${envKey} on subsequent runs to keep credentials stable.`,
+  );
+  return generated;
+}
+
+const HOTEL_TEMPLATES = [
   {
     id: "TN001-MO",
     name: "Marhaba Occidental",
@@ -46,11 +78,6 @@ const HOTELS: HotelConfig[] = [
     deskId: "TN001-MO",
     machineId: "station_mo_001",
     adminEmail: "admin@mo.clickflash.photo",
-    adminPassword: "mo_secure_2026",
-    adminPin: "314159",
-    kioskPassword: "mo_exit_2026",
-    jwtSecret:
-      "42898c0d9a60e0a55c2f061c0d0d4a7c8e9b0a1c2d3e4f5a6b7c8d9e0f1a2b3c",
     moneytrashPrice: "20.00",
   },
   {
@@ -61,11 +88,6 @@ const HOTELS: HotelConfig[] = [
     deskId: "TN002-MC",
     machineId: "station_mc_001",
     adminEmail: "admin@mc.clickflash.photo",
-    adminPassword: "mc_secure_2026",
-    adminPin: "271828",
-    kioskPassword: "mc_exit_2026",
-    jwtSecret:
-      "b7d2f8e1c3a5d9f0a2b4c6e8d0f2a4b6c8e0d2f4a6b8c0e2d4f6a8b0c2d4f6a8",
     moneytrashPrice: "20.00",
   },
   {
@@ -76,20 +98,29 @@ const HOTELS: HotelConfig[] = [
     deskId: "TN003-CGP",
     machineId: "station_cgp_001",
     adminEmail: "admin@cgp.clickflash.photo",
-    adminPassword: "cgp_secure_2026",
-    adminPin: "161803",
-    kioskPassword: "cgp_exit_2026",
-    jwtSecret:
-      "f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8",
     moneytrashPrice: "25.00",
   },
 ];
 
-const HUB_URL = "https://management-hub.clickflash-office.workers.dev";
-const GALLERY_URL = "https://gallery-backend.clickflash-office.workers.dev";
-const CLOUD_EMAIL = "clickflash.office@gmail.com";
-const CLOUD_PASSWORD = "DEFAULT_PASSWORD_PLACEHOLDER";
-const PROVISIONING_SECRET = "IndustrialProvisioningSecret2026";
+const HOTELS: HotelConfig[] = HOTEL_TEMPLATES.map((template) => ({
+  ...template,
+  adminPassword: getHotelSecret(template.id, "admin_password"),
+  adminPin: getHotelSecret(template.id, "admin_pin"),
+  kioskPassword: getHotelSecret(template.id, "kiosk_password"),
+  jwtSecret: getHotelSecret(template.id, "jwt_secret"),
+}));
+
+const HUB_URL = getEnv(
+  "CLICKFLASH_HUB_URL",
+  "https://management-hub.clickflash-office.workers.dev",
+);
+const GALLERY_URL = getEnv(
+  "CLICKFLASH_GALLERY_URL",
+  "https://gallery-backend.clickflash-office.workers.dev",
+);
+const CLOUD_EMAIL = getEnv("CLICKFLASH_CLOUD_EMAIL");
+const CLOUD_PASSWORD = getEnv("CLICKFLASH_CLOUD_PASSWORD");
+const PROVISIONING_SECRET = getEnv("CLICKFLASH_PROVISIONING_SECRET");
 
 function generateMasterEnv(hotel: HotelConfig): string {
   return `# ClickFlash Master Station — ${hotel.name} (${hotel.deskId})

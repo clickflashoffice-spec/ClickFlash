@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 const categories = ["All", "Weddings", "Resorts", "Portraits", "Events"];
@@ -129,12 +130,12 @@ export function PortfolioClient() {
                         Let us capture your special moments with our professional photography services. 
                         Book a session today and create memories that last a lifetime.
                     </p>
-                    <a 
+                    <Link 
                         href="/contact" 
                         className="inline-block px-8 md:px-10 py-3 md:py-4 bg-cyan-500 text-white font-black uppercase tracking-widest text-[11px] md:text-[12px] rounded-full hover:bg-slate-900 transition-all"
                     >
                         Book Now
-                    </a>
+                    </Link>
                 </div>
             </section>
         </main>

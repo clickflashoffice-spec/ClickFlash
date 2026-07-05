@@ -8,9 +8,9 @@ import WatermarkSettings from "./settings/WatermarkSettings";
 import GeneralSettings from "./settings/GeneralSettings";
 import PhotoSettings from "./settings/PhotoSettings";
 import SystemStatusSettings from "./settings/SystemStatusSettings";
-import CurrencySettings from "./settings/CurrencySettings";
 import ConnectionSettings from "./settings/ConnectionSettings";
 import AiSettings from "./settings/AiSettings";
+import SubscriptionSettings from "./settings/SubscriptionSettings";
 
 type SettingsTab =
   | "general"
@@ -23,7 +23,8 @@ type SettingsTab =
   | "ai"
   | "admins"
   | "permissions"
-  | "status";
+  | "status"
+  | "subscription";
 
 interface ManagementSettingsPageProps {
   currentUser: Photographer;
@@ -84,6 +85,13 @@ const ManagementSettingsPage: React.FC<ManagementSettingsPageProps> = ({
       component: <AiSettings />,
       permission: can("manageGlobalSettings"),
       description: "Central AI API Key and model settings.",
+    },
+    {
+      id: "subscription" as SettingsTab,
+      label: "Subscription",
+      component: <SubscriptionSettings />,
+      permission: can("manageGlobalSettings"),
+      description: "Manage billing, referrals, and white-labeling.",
     },
     {
       id: "permissions" as SettingsTab,

@@ -5,6 +5,7 @@ import session from 'express-session';
 import Database from 'better-sqlite3-multiple-ciphers';
 import path from 'path';
 import { DATA_DIR, SESSION_SECRET } from '../config/constants';
+import { logger } from '../utils/logger';
 
 // Require because better-sqlite3-session-store often doesn't have Typescript definitions or default export structure issues
 const SqliteStore = require('better-sqlite3-session-store')(session);
@@ -27,9 +28,9 @@ export function createSessionMiddleware() {
                 intervalMs: 900000 // 15min
             }
         });
-        console.log('[Session] Using SQLite store');
+        logger.info('[Session] Using SQLite store');
     } catch (err: any) {
-        console.warn('[Session] Failed to initialize SQLite store, falling back to MemoryStore:', err.message);
+        logger.warn('[Session] Failed to initialize SQLite store, falling back to MemoryStore:', err.message);
         sessionStore = new session.MemoryStore();
     }
 

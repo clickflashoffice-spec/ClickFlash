@@ -1,9 +1,11 @@
 // backend/routes/system/health.ts
 import express, { Request, Response, Router } from "express";
 import os from "os";
-import { Logger } from "../../shared/logger";
-import DatabaseManager from "../../shared/db";
-import { sendInvalidInputError } from "../../shared/errorHandler";
+import { Logger } from '../../utils/logger';
+import DatabaseManager from '../../database/db';
+import { sendInvalidInputError } from '../../utils/errorHandler';
+import { strictRateLimiter } from '../../middleware/rateLimiter';
+import { customRoutesSchemas } from '../../utils/validation';
 
 interface HealthContext {
   dbManager: DatabaseManager;
@@ -87,13 +89,13 @@ export default function healthRoutes(context: HealthContext): Router {
   /**
    * @route POST /kiosk/heartbeat
    */
-  router.post("/kiosk/heartbeat", (req: Request, res: Response) => {
+  router.post("/kiosk/heartbeat", strictRateLimiter, (req: Request, res: Response) => {
     try {
-      const { kioskId, status = "Active" } = req.body;
-
-      if (!kioskId) {
-        return sendInvalidInputError(res, "kioskId is required");
+      const parsed = customRoutesSchemas.kioskHeartbeat.safeParse(req.body);
+      if (!parsed.success) {
+        return sendInvalidInputError(res, "kioskId is required or invalid format");
       }
+      const { kioskId, status = "Active" } = parsed.data;
 
       const now = new Date().toISOString();
 

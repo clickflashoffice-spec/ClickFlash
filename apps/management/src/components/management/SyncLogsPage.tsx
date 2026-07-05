@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-    RefreshCw,
+import {RefreshCw,
     CheckCircle2,
     XCircle,
     Clock,
     Database,
-    AlertTriangle,
     ChevronDown,
     ChevronUp,
     Download,
@@ -15,9 +13,7 @@ import {
     ShoppingBag,
     DollarSign,
     Activity,
-    Search,
-    Wifi
-} from 'lucide-react';
+    Search} from 'lucide-react';
 import { fleetService, SyncOperation } from '../../services/fleetService';
 import Spinner from '../common/Spinner.tsx';
 
@@ -37,7 +33,7 @@ const MOCK_OPERATIONS: SyncOperation[] = [
     { id: 'sync_010', deskId: 'MASTER_01', deskName: 'Soneva Fushi', type: 'photo', status: 'pending', timestamp: '2026-02-21 14:10:00', duration: 0, recordsCount: 23, retryCount: 0 },
 ];
 
-const StatusIcon: React.FC<{ status: SyncStatus; className?: string }> = ({ status, className = '' }) => {
+const _StatusIcon: React.FC<{ status: SyncStatus; className?: string }> = ({ status, className = '' }) => {
     switch (status) {
         case 'success':
             return <CheckCircle2 className={`text-emerald-500 ${className}`} />;
@@ -115,7 +111,7 @@ export const SyncLogsPage: React.FC = () => {
             console.error('Failed to fetch operations:', err);
             setLoading(false);
         }
-    }, [filterStatus, filterType, filterDesk]);
+    }, []);
 
     useEffect(() => {
         fetchOperations();

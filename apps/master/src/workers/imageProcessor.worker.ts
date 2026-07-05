@@ -149,12 +149,12 @@ async function generateImageHash(imageData: ImageData): Promise<string> {
     
     // Resize to 8x8 for average hash
     const smallCanvas = new OffscreenCanvas(8, 8);
-    const smallCtx = smallCanvas.getContext('2d');
+    const smallCtx = smallCanvas.getContext('2d', { willReadFrequently: true });
     if (!smallCtx) throw new Error('Failed to create canvas context');
     
     // Draw and resize
     const tempCanvas = new OffscreenCanvas(width, height);
-    const tempCtx = tempCanvas.getContext('2d');
+    const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
     if (!tempCtx) throw new Error('Failed to create temp canvas context');
     
     const imageDataClone = new ImageData(data, width, height);
@@ -213,7 +213,7 @@ async function generateThumbnail(
     
     // Create canvas and draw
     const canvas = new OffscreenCanvas(width, height);
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) throw new Error('Failed to create canvas context');
     
     ctx.drawImage(bitmap, 0, 0, width, height);
@@ -271,7 +271,7 @@ async function resizeImage(
     }
     
     const canvas = new OffscreenCanvas(width, height);
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) throw new Error('Failed to create canvas context');
     
     ctx.drawImage(bitmap, 0, 0, width, height);
@@ -312,7 +312,7 @@ async function compressImage(
     }
     
     const canvas = new OffscreenCanvas(width, height);
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) throw new Error('Failed to create canvas context');
     
     ctx.drawImage(bitmap, 0, 0, width, height);
@@ -382,7 +382,7 @@ async function applyFilters(
     const bitmap = await createImageBitmap(blob);
     
     const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) throw new Error('Failed to create canvas context');
     
     // Build filter string
@@ -466,7 +466,7 @@ async function batchProcess(
                         const blob = new Blob([item.buffer]);
                         const bitmap = await createImageBitmap(blob);
                         const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-                        const ctx = canvas.getContext('2d');
+                        const ctx = canvas.getContext('2d', { willReadFrequently: true });
                         if (!ctx) throw new Error('Failed to create context');
                         ctx.drawImage(bitmap, 0, 0);
                         bitmap.close();
@@ -533,7 +533,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
                 const blob = new Blob([buffer]);
                 const bitmap = await createImageBitmap(blob);
                 const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-                const ctx = canvas.getContext('2d');
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
                 if (!ctx) throw new Error('Failed to create context');
                 ctx.drawImage(bitmap, 0, 0);
                 bitmap.close();

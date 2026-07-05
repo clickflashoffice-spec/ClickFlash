@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useDebounce } from "../hooks/useDebounce.ts";
 import { Order, Photographer } from "../types.ts";
-import { apiService } from "../services/apiService.ts";
 import Spinner from "./common/Spinner.tsx";
 import Card from "./common/Card.tsx";
 import { useCurrency } from "./CurrencyContext.tsx";
@@ -118,7 +117,7 @@ const Clients: React.FC<ClientsProps> = ({ currentUser }) => {
   }, [orders, currentUser, can]);
 
   const filteredAndSortedClients = useMemo(() => {
-    let result = clients.filter(
+    const result = clients.filter(
       (c) =>
         c.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         c.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()),
@@ -183,7 +182,7 @@ const Clients: React.FC<ClientsProps> = ({ currentUser }) => {
 
   const ClientRow = ({
     index,
-    style,
+    style: style,
   }: {
     index: number;
     style: React.CSSProperties;
@@ -193,7 +192,7 @@ const Clients: React.FC<ClientsProps> = ({ currentUser }) => {
 
     return (
       <div
-        className="flex border-b border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer items-center min-h-[64px]"
+        style={style} className="flex border-b border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer items-center min-h-[64px]"
         onClick={() => setSelectedClient(client)}
       >
         <div className="p-4 w-[25%] shrink-0 font-bold text-slate-900 truncate">

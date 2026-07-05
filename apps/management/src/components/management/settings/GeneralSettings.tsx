@@ -52,7 +52,7 @@ const GeneralSettings: React.FC = () => {
     DEFAULT_SETTINGS,
   );
 
-  const handleChange = (field: keyof GeneralSettingsType, value: any) => {
+  const handleChange = (field: keyof GeneralSettingsType, value: GeneralSettingsType[keyof GeneralSettingsType]) => {
     setSettings({ ...settings, [field]: value });
   };
 

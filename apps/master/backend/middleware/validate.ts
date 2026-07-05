@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodObject, ZodError } from 'zod';
-import { sendInvalidInputError } from '../shared/errorHandler';
+import { sendInvalidInputError } from '../utils/errorHandler';
 
 export const validate = (schema: ZodObject<any>) => async (req: Request, res: Response, next: NextFunction) => {
     try {

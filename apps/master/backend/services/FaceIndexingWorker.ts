@@ -9,8 +9,8 @@
  *   5. Mark queue items completed / failed with retry
  */
 
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
 import { faceService } from "./faceService";
 import { VectorIndexService } from "./VectorIndexService";
 import path from "path";

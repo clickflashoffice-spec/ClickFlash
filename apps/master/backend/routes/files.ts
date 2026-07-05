@@ -12,13 +12,14 @@ import {
   sendFileError,
   sendInternalError,
   ERROR_CODES,
-} from "../shared/errorHandler";
+} from '../utils/errorHandler';
 import { UPLOAD_DIR } from "../config/constants";
-import DatabaseManager from "../shared/db";
-import { Logger } from "../shared/logger";
+import DatabaseManager from '../database/db';
+import { Logger } from '../utils/logger';
 
-import { PhotoProcessor } from "../shared/photoProcessor";
-import { validateImageMagicNumber } from "../shared/validateImage";
+import { PhotoProcessor } from '../services/photoProcessor';
+import { validateImageMagicNumber } from '../services/validateImage';
+import { signedUrlMiddleware } from '../utils/signedUrls';
 
 interface FilesContext {
   logger: Logger;
@@ -30,6 +31,17 @@ interface FilesContext {
 export default function fileRoutes(context: FilesContext): Router {
   const { logger, dbManager } = context;
   const router = express.Router();
+
+  // P0-2: signed URL enforcement for file delivery.
+  //   - `SIGNED_URL_ENFORCED=true` blocks unsigned requests to /api/files/*.
+  //   - Always-on middleware populates req.signedUrl for downstream audit logging.
+  //   - /api/files/settings/logo is exempt (it's referenced by the SPA shell
+  //     before any signed URL can be issued).
+  const signedUrlEnforce = process.env.SIGNED_URL_ENFORCED === "true";
+  router.use(
+    /^\/files\/(?!settings\/logo).*/,
+    signedUrlMiddleware({ enforce: signedUrlEnforce }),
+  );
 
   /**
    * @route GET /files/*

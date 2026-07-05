@@ -4,20 +4,21 @@
 
 import { renderHook, act } from '@testing-library/react';
 import useLocalStorage from '../useLocalStorage';
+import { logger } from '@/utils/logger';
 
 describe('useLocalStorage', () => {
   // Mock localStorage
   const localStorageMock = (() => {
     let store: { [key: string]: string } = {};
     return {
-      getItem: jest.fn((key: string) => store[key] || null),
-      setItem: jest.fn((key: string, value: string) => {
+      getItem: vi.fn((key: string) => store[key] || null),
+      setItem: vi.fn((key: string, value: string) => {
         store[key] = value;
       }),
-      removeItem: jest.fn((key: string) => {
+      removeItem: vi.fn((key: string) => {
         delete store[key];
       }),
-      clear: jest.fn(() => {
+      clear: vi.fn(() => {
         store = {};
       }),
     };
@@ -29,7 +30,7 @@ describe('useLocalStorage', () => {
       writable: true,
     });
     localStorageMock.clear();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return initial value when localStorage is empty', () => {
@@ -94,7 +95,7 @@ describe('useLocalStorage', () => {
 
   it('should handle localStorage errors gracefully', () => {
     // Suppress console.warn for this test
-    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     
     localStorageMock.getItem.mockImplementation(() => {
       throw new Error('localStorage error');
@@ -107,7 +108,7 @@ describe('useLocalStorage', () => {
   });
 
   it('should handle setItem errors gracefully', () => {
-    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     
     localStorageMock.setItem.mockImplementation(() => {
       throw new Error('localStorage error');
@@ -126,7 +127,7 @@ describe('useLocalStorage', () => {
   });
 
   it('should handle invalid JSON in localStorage', () => {
-    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     
     localStorageMock.getItem.mockReturnValueOnce('invalid json');
     

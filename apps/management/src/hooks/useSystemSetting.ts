@@ -22,7 +22,7 @@ export function useSystemSetting<T>(
     if (stored) {
       try {
         setValue(JSON.parse(stored));
-      } catch (e) {
+      } catch {
         console.warn(`Failed to parse local setting for ${key}`);
       }
     }
@@ -34,7 +34,7 @@ export function useSystemSetting<T>(
       try {
         const backendValue = await apiService.getSetting(key);
         if (backendValue !== null) {
-          setValue(backendValue);
+          setValue(backendValue as T);
           localStorage.setItem(
             `cf_setting_${key}`,
             JSON.stringify(backendValue),

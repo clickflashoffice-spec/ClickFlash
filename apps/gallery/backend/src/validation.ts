@@ -159,6 +159,28 @@ export function validateRequest(data: any, tableName: string, isUpdate = false) 
 /**
  * Validate login request
  */
+export const createPaymentIntentSchema = z.object({
+    orderId: z.string().min(1, 'orderId is required'),
+    amount: z.number().int().positive('amount must be a positive integer (cents)'),
+    currency: z.string().length(3, 'currency must be a 3-letter ISO code').default('eur'),
+    email: z.string().email('Invalid email format').optional(),
+    tipAmount: z.number().int().nonnegative().optional(),
+});
+
+export const createCheckoutSessionSchema = z.object({
+    amount: z.number().int().positive('amount must be a positive integer (cents)'),
+    currency: z.string().length(3, 'currency must be a 3-letter ISO code').default('eur'),
+    email: z.string().email('Invalid email format').optional(),
+    metadata: z.record(z.string()).optional(),
+    paymentMethodTypes: z.array(z.string()).optional(),
+    enableWallets: z.boolean().optional(),
+    mode: z.enum(['payment', 'subscription']).default('payment'),
+});
+
+export const getPaymentMethodsSchema = z.object({
+    customerId: z.string().min(1, 'customerId is required'),
+});
+
 export function validateLogin(data: any) {
     try {
         const validated = loginSchema.parse(data);

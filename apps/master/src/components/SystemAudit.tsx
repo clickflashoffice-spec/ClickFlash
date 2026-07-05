@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import DiagnosticMetrics from './dashboard/DiagnosticMetrics';
 import Spinner from './common/Spinner';
+import { logger } from '@/utils/logger';
 
 interface AuditLogEntry {
     timestamp: string;
@@ -24,39 +25,54 @@ export const SystemAudit: React.FC = () => {
     const [selectedLevel, setSelectedLevel] = useState('ALL');
     const [searchTerm, setSearchTerm] = useState('');
 
-    const fetchData = useCallback(async (isRefresh = false) => {
+    const fetchData = useCallback(async (isRefresh = false, abortSignal?: AbortSignal) => {
         if (isRefresh) setIsRefreshing(true);
         else setIsLoading(true);
 
         try {
             // 1. Fetch Diagnostics
-            const diagRes = await fetch('/api/system/diagnostics');
+            const diagRes = await fetch('/api/system/diagnostics', { signal: abortSignal });
             const diagData = await diagRes.json();
-            setDiagnostics(diagData);
+            if (!abortSignal?.aborted) setDiagnostics(diagData);
 
             // 2. Fetch Logs
-            const logRes = await fetch(`/api/system/logs?date=${selectedDate}&level=${selectedLevel}`);
+            const logRes = await fetch(`/api/system/logs?date=${selectedDate}&level=${selectedLevel}`, { signal: abortSignal });
             const logData = await logRes.json();
-            setLogs(logData.logs || []);
-        } catch (e) {
-            console.error('Audit Fetch Failed:', e);
+            if (!abortSignal?.aborted) setLogs(logData.logs || []);
+        } catch (e: any) {
+            if (e.name !== 'AbortError') {
+                logger.error('Audit Fetch Failed:', e);
+            }
         } finally {
-            setIsLoading(false);
-            setIsRefreshing(false);
+            if (!abortSignal?.aborted) {
+                setIsLoading(false);
+                setIsRefreshing(false);
+            }
         }
     }, [selectedDate, selectedLevel]);
 
     useEffect(() => {
-        fetchData();
+        const controller = new AbortController();
+        fetchData(false, controller.signal);
+        return () => controller.abort();
+    }, [fetchData]);
+
+    useEffect(() => {
+        let isMounted = true;
         // Poll diagnostics every 5s
         const interval = setInterval(() => {
             fetch('/api/system/diagnostics')
                 .then(r => r.json())
-                .then(setDiagnostics)
+                .then(data => {
+                    if (isMounted) setDiagnostics(data);
+                })
                 .catch(console.error);
         }, 5000);
-        return () => clearInterval(interval);
-    }, [fetchData]);
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
+    }, []);
 
     const filteredLogs = useMemo(() => {
         if (!searchTerm) return logs;

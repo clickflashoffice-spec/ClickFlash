@@ -2,7 +2,7 @@
 // Mutation audit middleware — logs every successful PUT, PATCH, DELETE to /api/*
 
 import { Request, Response, NextFunction, RequestHandler } from 'express';
-import AuditLogger from '../shared/auditLogger';
+import AuditLogger from '../utils/auditLogger';
 
 /** Matches a plain integer or a UUID v4 segment. */
 const RESOURCE_ID_RE = /^\d+$|^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

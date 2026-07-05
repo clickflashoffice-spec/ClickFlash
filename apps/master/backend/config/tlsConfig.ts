@@ -1,6 +1,7 @@
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
+import { logger } from '../utils/logger';
 
 export interface ServerConfig {
   port: number;
@@ -45,7 +46,7 @@ export function getTLSConfig(): TLSConfig {
     };
   }
 
-  console.warn('[TLS] Enabled but no valid configuration found, falling back to HTTP');
+  logger.warn('[TLS] Enabled but no valid configuration found, falling back to HTTP');
   return { enabled: false };
 }
 
@@ -74,7 +75,7 @@ export function createSecureServer(
     }
 
     const server = https.createServer(httpsOptions, app);
-    console.log(`[HTTPS] TLS enabled, server will use HTTPS on port ${port}`);
+    logger.info(`[HTTPS] TLS enabled, server will use HTTPS on port ${port}`);
 
     return {
       server,
@@ -87,7 +88,7 @@ export function createSecureServer(
   }
 
   const server = http.createServer(app);
-  console.log(`[HTTP] TLS not enabled, using HTTP on port ${port}`);
+  logger.info(`[HTTP] TLS not enabled, using HTTP on port ${port}`);
 
   return {
     server,

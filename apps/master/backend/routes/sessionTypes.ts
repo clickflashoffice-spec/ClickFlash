@@ -1,6 +1,8 @@
 import express, { Request, Response, Router } from 'express';
 import { SessionTypeService } from '../services/sessionTypeService';
-import { sendInternalError, sendInvalidInputError, sendNotFoundError } from '../shared/errorHandler';
+import { sendInternalError, sendInvalidInputError, sendNotFoundError } from '../utils/errorHandler';
+import { strictRateLimiter } from '../middleware/rateLimiter';
+import { customRoutesSchemas } from '../utils/validation';
 
 export default function sessionTypeRoutes(context: any): Router {
     const router = express.Router();
@@ -17,10 +19,13 @@ export default function sessionTypeRoutes(context: any): Router {
     });
 
     // POST / (Create)
-    router.post('/', (req: Request, res: Response) => {
+    router.post('/', strictRateLimiter, (req: Request, res: Response) => {
         try {
-            const { name, numberOfPhotos, price } = req.body;
-            if (!name) return sendInvalidInputError(res, 'Name is required');
+            const parsed = customRoutesSchemas.sessionType.safeParse(req.body);
+            if (!parsed.success) {
+                return sendInvalidInputError(res, 'Name is required or invalid input');
+            }
+            const { name, numberOfPhotos, price } = parsed.data;
 
             const newType = service.create({ name, numberOfPhotos, price });
             res.status(201).json(newType);
@@ -38,10 +43,14 @@ export default function sessionTypeRoutes(context: any): Router {
     });
 
     // PUT /:id (Update)
-    router.put('/:id', (req: Request, res: Response) => {
+    router.put('/:id', strictRateLimiter, (req: Request, res: Response) => {
         const id = String(req.params.id);
         try {
-            const updated = service.update(id, req.body);
+            const parsed = customRoutesSchemas.sessionType.partial().safeParse(req.body);
+            if (!parsed.success) {
+                return sendInvalidInputError(res, 'Invalid input');
+            }
+            const updated = service.update(id, parsed.data);
             res.status(200).json(updated);
         } catch (err: any) {
             if (err.message === 'Session Type not found') sendNotFoundError(res, err.message);
@@ -50,7 +59,7 @@ export default function sessionTypeRoutes(context: any): Router {
     });
 
     // DELETE /:id (Delete)
-    router.delete('/:id', (req: Request, res: Response) => {
+    router.delete('/:id', strictRateLimiter, (req: Request, res: Response) => {
         const id = String(req.params.id);
         try {
             service.delete(id);

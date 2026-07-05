@@ -1,6 +1,6 @@
 import { VectorIndexService } from "../services/VectorIndexService";
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
 import path from "path";
 import fs from "fs";
 
@@ -9,7 +9,7 @@ const logger = new Logger(path.dirname(TEST_DB));
 const db = new DatabaseManager(TEST_DB);
 
 async function runBenchmark(count: number) {
-  console.log(`\n=== VectorIndex Benchmark: ${count} records ===`);
+  logger.info(`\n=== VectorIndex Benchmark: ${count} records ===`);
 
   // Cleanup
   if (fs.existsSync(TEST_DB)) fs.unlinkSync(TEST_DB);
@@ -47,7 +47,7 @@ async function runBenchmark(count: number) {
   const binFile = path.join(process.cwd(), "pb_data", "face_vectors.bin");
   if (fs.existsSync(binFile)) {
     const stats = fs.statSync(binFile);
-    console.log(
+    logger.info(
       `Binary File Size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`,
     );
   }
@@ -64,11 +64,11 @@ async function runBenchmark(count: number) {
   console.time("Search (Limit 20)");
   const results = service.search(query, 20, 0.6);
   console.timeEnd("Search (Limit 20)");
-  console.log(`Results found: ${results.length}`);
+  logger.info(`Results found: ${results.length}`);
 
   // Memory usage
   const used = process.memoryUsage();
-  console.log(`Heap Used: ${(used.heapUsed / 1024 / 1024).toFixed(2)} MB`);
+  logger.info(`Heap Used: ${(used.heapUsed / 1024 / 1024).toFixed(2)} MB`);
 
   db.close();
 }

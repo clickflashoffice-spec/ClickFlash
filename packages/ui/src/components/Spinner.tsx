@@ -21,7 +21,7 @@ const sizeClasses = {
   large: { container: 'p-4', spinner: 'h-10 w-10 border-[3px]' },
 };
 
-const Spinner: React.FC<SpinnerProps> = memo(({ 
+export const Spinner: React.FC<SpinnerProps> = memo(({ 
   size = 'medium', 
   className,
   color = 'primary'

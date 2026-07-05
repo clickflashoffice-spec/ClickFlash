@@ -1,7 +1,7 @@
 // backend/routes/system.ts
 import express, { Router } from "express";
-import { Logger } from "../shared/logger";
-import DatabaseManager from "../shared/db";
+import { Logger } from '../utils/logger';
+import DatabaseManager from '../database/db';
 
 // Sub-routers
 import healthRoutes from "./system/health";
@@ -10,6 +10,7 @@ import hardwareRoutes from "./system/hardware";
 import maintenanceRoutes from "./system/maintenance";
 import operationsRoutes from "./system/operations";
 import securityRoutes from "./system/security";
+import telemetryRoutes from "./system/telemetry";
 
 interface SystemContext {
   dbManager: DatabaseManager;
@@ -22,6 +23,9 @@ interface SystemContext {
   cloudSyncService?: any;
   photoProcessor?: any;
   vectorIndex?: any;
+  telemetryService?: any;
+  backupService?: any;
+  dbWriteQueue?: any;
 }
 
 /**
@@ -40,6 +44,7 @@ export default function systemRoutes(context: SystemContext): Router {
   router.use("/maintenance", maintenanceRoutes(context));
   router.use("/ops", operationsRoutes(context));
   router.use("/security", securityRoutes(context));
+  router.use("/telemetry", telemetryRoutes(context));
 
   // Legacy/Compatibility Root Routes (if not covered by healthRoutes)
   // router.get("/ip", ...); // Already in healthRoutes

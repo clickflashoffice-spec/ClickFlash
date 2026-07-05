@@ -7,7 +7,7 @@ import { randomIntBetween } from "https://jslib.k6.io/k6-utils/1.2.0/index.js";
  * ClickFlash Ecosystem — Load Test Suite
  * Tests: Master Portal, Touch Kiosk, Gallery Checkout, Cloud Sync
  *
- * Run: k6 run --env MASTER_URL=http://localhost:8090 --env GALLERY_URL=https://gallery.clickflash.app tests/performance/k6-load.js
+ * Run: k6 run --env MASTER_URL=http://127.0.0.1:8090 --env GALLERY_URL=https://gallery.clickflash.app tests/performance/k6-load.js
  */
 
 // Custom metrics
@@ -56,8 +56,8 @@ export const options = {
   },
 };
 
-const MASTER_URL = __ENV.MASTER_URL || "http://localhost:8090";
-const TOUCH_URL = __ENV.TOUCH_URL || "http://localhost:8091";
+const MASTER_URL = __ENV.MASTER_URL || "http://127.0.0.1:8090";
+const TOUCH_URL = __ENV.TOUCH_URL || "http://127.0.0.1:8091";
 const GALLERY_URL = __ENV.GALLERY_URL || "https://gallery.clickflash.app";
 const CLOUD_URL = __ENV.CLOUD_URL || "https://management.clickflash.app";
 

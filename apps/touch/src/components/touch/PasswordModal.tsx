@@ -15,7 +15,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSucces
 
     const handleSubmit = () => {
         const savedSettingsRaw = localStorage.getItem('kioskSettingsV2');
-        let adminPassword = 'DEFAULT_PASSWORD_PLACEHOLDER'; // Default password
+        let adminPassword = '1234'; // Default password
 
         if (savedSettingsRaw) {
             try {
@@ -55,6 +55,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSucces
                     type="password"
                     readOnly
                     value={password}
+                    data-testid="admin-password-input"
                     className="w-full h-16 bg-slate-100 dark:bg-slate-900 rounded-lg text-center text-4xl tracking-widest text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
 
@@ -68,6 +69,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSucces
                     </button>
                     <button
                         onClick={handleSubmit}
+                        data-testid="admin-password-submit"
                         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-xl transition-colors"
                     >
                         Submit

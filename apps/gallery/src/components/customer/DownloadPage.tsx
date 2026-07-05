@@ -64,6 +64,37 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ photos, orderId }) => {
         }
     };
 
+    const handleAppleWallet = async () => {
+        if (!orderId) return;
+        setIsDownloading(true);
+        try {
+            const response = await fetch(`/api/gallery/wallet-pass`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId,
+                    albumId: photos[0]?.albumId || 'GALLERY',
+                    total: 0 // Ideally we'd pass total here, but DownloadPage only gets photos
+                })
+            });
+            if (!response.ok) throw new Error('Failed to generate pass');
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Pass-${orderId}.pkpass`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Apple Wallet pass failed', err);
+            alert('Failed to generate Apple Wallet pass.');
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     return (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-down pb-32">
             <div className="glass-panel p-8 rounded-3xl border border-white/5 mb-10 flex flex-wrap justify-between items-center gap-8 shadow-2xl">
@@ -107,6 +138,19 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ photos, orderId }) => {
                             </>
                         )}
                     </button>
+
+                    {orderId && (
+                        <button
+                            onClick={handleAppleWallet}
+                            disabled={isDownloading}
+                            className={`bg-black/60 hover:bg-black text-white border border-slate-700 font-bold py-3.5 px-6 rounded-2xl transition-all flex items-center gap-2 shadow-xl ${isDownloading ? 'opacity-50 cursor-wait' : ''}`}
+                        >
+                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+                            </svg>
+                            <span className="text-[10px] font-black uppercase tracking-widest">Add to Apple Wallet</span>
+                        </button>
+                    )}
                 </div>
             </div>
 

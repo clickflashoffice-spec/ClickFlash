@@ -10,6 +10,8 @@ import { execSync } from 'child_process';
 const BASE_DIR = process.cwd();
 const APPS = ['master', 'touch', 'management', 'gallery', 'website', 'moneytrash'];
 
+import { SharedSeed } from './utils/SharedSeed';
+
 async function reset() {
     console.log('--- ClickFlash Ecosystem Reset ---');
 
@@ -54,7 +56,7 @@ async function reset() {
             try {
                 fs.rmSync(dir, { recursive: true, force: true });
                 fs.mkdirSync(dir, { recursive: true });
-            } catch (err) {
+            } catch (err: any) {
                 console.warn(`Could not fully clean ${dir}: ${err.message}`);
             }
         }
@@ -67,6 +69,9 @@ async function reset() {
         console.error('FATAL: apps/master/.env is missing! Tests will fail.');
         process.exit(1);
     }
+
+    // 4. Seed databases
+    await SharedSeed.resetEcosystem();
 
     console.log('--- Reset Complete ---');
 }

@@ -54,9 +54,22 @@ const HEALTH_URL     = `http://localhost:${BACKEND_PORT}/api/health`;
 const HEALTH_TIMEOUT = 120_000; // ms — first boot runs 90+ migrations
 const POLL_INTERVAL  = 300;    // ms between health polls
 
+// C++ Backend configuration
+const CPP_BACKEND_PORT = 8092;
+const CPP_BACKEND_URL = `http://localhost:${CPP_BACKEND_PORT}`;
+const CPP_BACKEND_HEALTH = `${CPP_BACKEND_URL}/api/health`;
+
+// Backend mode: 'node' (default) or 'cpp'
+let backendMode = process.env.CF_BACKEND_MODE || 'node';
+
 // Both dev and prod load from the same Express server on port 8090.
 // Use `vite build --watch` in dev for incremental rebuilds served by Express.
-const APP_URL = `http://localhost:${BACKEND_PORT}`;
+let APP_URL = `http://localhost:${BACKEND_PORT}`;
+
+// If using C++ backend, update APP_URL
+if (backendMode === 'cpp') {
+  APP_URL = CPP_BACKEND_URL;
+}
 
 const ADMIN_PIN      = process.env.ADMIN_PIN || null;
 const DEFAULT_PIN    = "000000";
@@ -105,18 +118,44 @@ function getDataDir() {
  * Returns a Promise that resolves when backend is forked and ready.
  */
 function startBackend() {
-  return new Promise((resolve, reject) => {
-    if (!app.isPackaged) {
-      console.log("[Main] Dev mode — backend expected on port", BACKEND_PORT);
-      resolve(null);
-      return;
-    }
-
-    const serverPath = getUnpackedPath("dist/backend/server.js");
+  return new Promise(async (resolve, reject) => {
+    // Always fork backend — both dev and packaged mode
+    // In dev, this ensures the backend is running before renderer loads
+    const serverPath = app.isPackaged 
+      ? getUnpackedPath("dist/backend/server.js")
+      : path.join(__dirname, "dist/backend/server.js");
+    
     if (!fs.existsSync(serverPath)) {
       console.error("[Main] Backend bundle not found:", serverPath);
       reject(new Error("Backend bundle not found: " + serverPath));
       return;
+    }
+
+    // Check if port is already in use and kill existing process
+    const net = require('net');
+    const portAvailable = await new Promise((res) => {
+      const tester = net.createServer()
+        .once('error', () => res(false))
+        .once('listening', () => {
+          tester.close();
+          res(true);
+        })
+        .listen(BACKEND_PORT);
+    });
+
+    if (!portAvailable) {
+      console.warn(`[Main] Port ${BACKEND_PORT} in use, killing existing process...`);
+      try {
+        const { execSync } = require('child_process');
+        if (process.platform === 'win32') {
+          execSync(`FOR /F "tokens=5" %a IN ('netstat -ano ^| findstr :${BACKEND_PORT}') DO taskkill //F //PID %a`, { stdio: 'ignore' });
+        } else {
+          execSync(`lsof -ti:${BACKEND_PORT} | xargs kill -9 2>/dev/null || true`, { stdio: 'ignore' });
+        }
+        await new Promise(r => setTimeout(r, 2000)); // Wait for port release
+      } catch (e) {
+        console.warn('[Main] Could not kill existing process:', e.message);
+      }
     }
 
     const dataDir = getDataDir();
@@ -124,8 +163,66 @@ function startBackend() {
       fs.mkdirSync(dataDir, { recursive: true });
     }
 
-    const appDir = path.dirname(app.getPath("exe"));
-    console.log("[Main] Forking backend:", serverPath);
+    const appDir = app.isPackaged ? path.dirname(app.getPath("exe")) : __dirname;
+    
+    // If using C++ backend, start it instead of Node.js backend
+    if (backendMode === 'cpp') {
+      console.log("[Main] Starting C++ backend on port", CPP_BACKEND_PORT);
+      const cppPath = app.isPackaged
+        ? getUnpackedPath("dist/cpp/ClickFlashMasterService.exe")
+        : path.join(__dirname, "../master-cpp/build/Release/ClickFlashMasterService.exe");
+      
+      if (!fs.existsSync(cppPath)) {
+        console.error("[Main] C++ backend not found:", cppPath);
+        console.log("[Main] Falling back to Node.js backend...");
+        backendMode = 'node';
+        APP_URL = `http://localhost:${BACKEND_PORT}`;
+      } else {
+        const cppEnv = {
+          ...process.env,
+          CF_DB_PATH: path.join(dataDir, "clickflash.db"),
+          CF_DB_KEY: process.env.DB_ENCRYPTION_KEY || "",
+          CF_PORT: String(CPP_BACKEND_PORT),
+          CF_THREADS: "4",
+          CF_MIGRATIONS_DIR: app.isPackaged
+            ? getUnpackedPath("migrations")
+            : path.join(__dirname, "../master-cpp/migrations"),
+        };
+        
+        backendProcess = spawn(cppPath, [], {
+          env: cppEnv,
+          stdio: ["pipe", "pipe", "pipe"],
+          cwd: appDir,
+        });
+        
+        backendProcess.stdout?.on("data", (d) => process.stdout.write("[C++ Backend] " + d));
+        backendProcess.stderr?.on("data", (d) => process.stderr.write("[C++ Backend:ERR] " + d));
+        
+        backendProcess.on("error", (err) => {
+          console.error("[Main] C++ backend error:", err.message);
+          console.log("[Main] Falling back to Node.js backend...");
+          backendMode = 'node';
+          APP_URL = `http://localhost:${BACKEND_PORT}`;
+          startBackend().catch(console.error);
+        });
+        
+        backendProcess.on("exit", (code) => {
+          console.warn("[Main] C++ backend exited (code", code, ")");
+          if (!isQuitting) {
+            console.log("[Main] Falling back to Node.js backend...");
+            backendMode = 'node';
+            APP_URL = `http://localhost:${BACKEND_PORT}`;
+            setTimeout(() => startBackend().catch(console.error), 3000);
+          }
+        });
+        
+        resolve(null);
+        return;
+      }
+    }
+    
+    // Start Node.js backend (default or fallback)
+    console.log("[Main] Forking Node.js backend:", serverPath);
     console.log("[Main] DATA_DIR:", dataDir);
     console.log("[Main] Working dir:", appDir);
 
@@ -172,10 +269,14 @@ function waitForBackend(deadline = Date.now() + HEALTH_TIMEOUT) {
         console.warn("[Main] Backend health-check timed out — loading UI anyway");
         return resolve(false);
       }
-      const req = http.get(HEALTH_URL, (res) => {
+      
+      // Use appropriate health URL based on backend mode
+      const healthUrl = backendMode === 'cpp' ? CPP_BACKEND_HEALTH : HEALTH_URL;
+      
+      const req = http.get(healthUrl, (res) => {
         res.resume();
         if (res.statusCode < 500) {
-          console.log("[Main] Backend ready");
+          console.log("[Main] Backend ready (mode:", backendMode, ")");
           return resolve(true);
         }
         setTimeout(attempt, POLL_INTERVAL);

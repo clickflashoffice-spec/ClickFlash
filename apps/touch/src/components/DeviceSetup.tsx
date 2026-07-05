@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { AppMode } from '../types';
+import { logger } from '@/utils/logger';
 
 interface DeviceSetupProps {
     onConfigure: (mode: AppMode, config?: { masterIp?: string }) => void;
@@ -50,7 +51,7 @@ const DeviceSetup: React.FC<DeviceSetupProps> = ({ onConfigure }) => {
                         // if (data.servers.length === 1) setMasterIp(data.servers[0].ip);
                     }
                 })
-                .catch(err => console.warn('Discovery failed', err));
+                .catch(err => logger.warn('Discovery failed', err));
         }
     }, [step]);
 

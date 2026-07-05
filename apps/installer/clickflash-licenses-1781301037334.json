@@ -1,0 +1,72 @@
+[
+  {
+    "key": "CF-LIVE-AD09-568F-49F7-DBD6",
+    "data": {
+      "tenant_id": "tenant-07da4372",
+      "plan": "pro",
+      "region": "global",
+      "max_masters": 5,
+      "features": [
+        "basic"
+      ],
+      "expires_at": "2027-06-12T21:50:37.320Z",
+      "issued_at": "2026-06-12T21:50:37.321Z"
+    }
+  },
+  {
+    "key": "CF-LIVE-0C8B-0C04-B4D8-FC49",
+    "data": {
+      "tenant_id": "tenant-d0ab9abf",
+      "plan": "pro",
+      "region": "global",
+      "max_masters": 5,
+      "features": [
+        "basic"
+      ],
+      "expires_at": "2027-06-12T21:50:37.323Z",
+      "issued_at": "2026-06-12T21:50:37.323Z"
+    }
+  },
+  {
+    "key": "CF-LIVE-195D-AB1A-2932-4218",
+    "data": {
+      "tenant_id": "tenant-4760a183",
+      "plan": "pro",
+      "region": "global",
+      "max_masters": 5,
+      "features": [
+        "basic"
+      ],
+      "expires_at": "2027-06-12T21:50:37.323Z",
+      "issued_at": "2026-06-12T21:50:37.323Z"
+    }
+  },
+  {
+    "key": "CF-LIVE-6CCD-37A1-2C11-67D9",
+    "data": {
+      "tenant_id": "tenant-a4bc4657",
+      "plan": "pro",
+      "region": "global",
+      "max_masters": 5,
+      "features": [
+        "basic"
+      ],
+      "expires_at": "2027-06-12T21:50:37.323Z",
+      "issued_at": "2026-06-12T21:50:37.323Z"
+    }
+  },
+  {
+    "key": "CF-LIVE-0019-6DE0-9465-0C96",
+    "data": {
+      "tenant_id": "tenant-35462eeb",
+      "plan": "pro",
+      "region": "global",
+      "max_masters": 5,
+      "features": [
+        "basic"
+      ],
+      "expires_at": "2027-06-12T21:50:37.323Z",
+      "issued_at": "2026-06-12T21:50:37.323Z"
+    }
+  }
+]

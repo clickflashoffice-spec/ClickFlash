@@ -26,6 +26,7 @@ const WelcomeButton: React.FC<{
   gradient: string;
   highlight?: boolean;
   delay?: number;
+  testId?: string;
 }> = ({
   title,
   description,
@@ -34,9 +35,11 @@ const WelcomeButton: React.FC<{
   gradient,
   highlight,
   delay = 0,
+  testId,
 }) => (
   <button
     onClick={onClick}
+    data-testid={testId}
     className={`relative w-full h-auto min-h-[220px] max-h-[280px] ${gradient} rounded-3xl flex flex-col items-center justify-center text-center p-5 cursor-pointer transition-all duration-500 hover:scale-[1.03] active:scale-95 shadow-xl hover:shadow-2xl border border-white/10 group overflow-hidden animate-fadeInUp`}
     style={{ animationDelay: `${delay}ms` }}
   >
@@ -136,9 +139,9 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const handleRequestHelp = () => {
     if (helpRequested) return;
 
-    console.log("[WelcomeScreen] Requesting Help...");
-    console.log("[WelcomeScreen] Connection Status:", webSocketService.status);
-    console.log("[WelcomeScreen] Kiosk Settings:", settings);
+    logger.info("[WelcomeScreen] Requesting Help...");
+    logger.info("[WelcomeScreen] Connection Status:", webSocketService.status);
+    logger.info("[WelcomeScreen] Kiosk Settings:", settings);
 
     setHelpRequested(true);
     webSocketService.sendMessage({
@@ -183,7 +186,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       if (e.key === "Enter") {
         if (buffer.length >= 4) {
           // Assume valid RFID is at least 4 chars
-          console.log("[WelcomeScreen] Keyboard Wedge detected RFID:", buffer);
+          logger.info("[WelcomeScreen] Keyboard Wedge detected RFID:", buffer);
           await processRFID(buffer);
         }
         buffer = "";
@@ -464,7 +467,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       {(kioskConnectionStatus === "Offline" ||
         kioskConnectionStatus === "Disconnected") && (
         <div
-          className={`absolute top-0 left-0 w-full ${kioskConnectionStatus === "Offline" ? "bg-red-700" : "bg-orange-600"} text-white z-50 p-4 shadow-lg flex items-center justify-center space-x-4 animate-slideDown`}
+          className={`absolute top-0 left-0 w-full ${kioskConnectionStatus === "Offline" ? "bg-red-700" : "bg-orange-600"} text-white z-50 p-4 shadow-lg flex items-center justify-center space-x-4 animate-slideDown pointer-events-none`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -487,13 +490,13 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </span>
           <button
             onClick={() => window.location.reload()}
-            className={`bg-white ${kioskConnectionStatus === "Offline" ? "text-red-700" : "text-orange-600"} px-4 py-1 rounded-full font-bold text-sm hover:bg-opacity-90 transition-colors shadow-sm`}
+            className={`bg-white ${kioskConnectionStatus === "Offline" ? "text-red-700" : "text-orange-600"} px-4 py-1 rounded-full font-bold text-sm hover:bg-opacity-90 transition-colors shadow-sm pointer-events-auto`}
           >
             Retry Connection
           </button>
           <button
             onClick={() => setSettingsOpen(true)}
-            className="text-white underline text-sm hover:text-red-100 ml-4"
+            className="text-white underline text-sm hover:text-red-100 ml-4 pointer-events-auto"
           >
             Configure IP
           </button>
@@ -514,6 +517,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           className="p-4 bg-white/80 dark:bg-black/20 backdrop-blur-xl rounded-full hover:bg-white dark:hover:bg-white/20 transition-all border border-slate-200 dark:border-white/10 text-slate-500 dark:text-white/70 hover:text-slate-900 dark:hover:text-white shadow-lg hover:scale-105 active:scale-95"
           title="Kiosk Settings"
           aria-label="Open Kiosk Settings"
+          data-testid="settings-button"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -665,6 +669,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               onClick={() => onBrowsePhotos()}
               title="View All Photos"
               description="Browse the complete gallery of photos."
+              testId="welcome-view-all-button"
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -688,6 +693,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               onClick={() => setRoomNumberModalOpen(true)}
               title="Find by Room"
               description="Enter your room number to find photos."
+              testId="welcome-find-room-button"
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -712,6 +718,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               onClick={() => setIsFaceSearchOpen(true)}
               title="Search by Face"
               description="Scan your face to find your photos instantly."
+              testId="welcome-face-search-button"
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -744,6 +751,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 onClick={handleRFIDTap}
                 title="Tap Wristband"
                 description="Scan RFID bracelet to login instantly."
+                testId="welcome-rfid-button"
                 icon={
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

@@ -8,8 +8,8 @@
  * 3. Multiple Touch-App connections (concurrent SSE + order-push load)
  */
 
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
 import fs from "fs";
 import path from "path";
 import http from "http";

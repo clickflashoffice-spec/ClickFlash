@@ -1,7 +1,6 @@
 
 
-import React, { useState, useEffect } from 'react';
-import useLocalStorage from '../../hooks/useLocalStorage.ts';
+import React from 'react';
 
 interface SyncStatusIndicatorProps {
     connectionStatus: 'Connected' | 'Disconnected' | 'Reconnecting';

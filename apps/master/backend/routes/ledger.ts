@@ -1,8 +1,10 @@
 import express, { Request, Response, Router } from 'express';
-import { DatabaseManager } from '../shared/db';
-import { Logger } from '../shared/logger';
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
 import { LedgerService } from '../services/LedgerService';
-import { sendError, ERROR_CODES, sendInvalidInputError } from '../shared/errorHandler';
+import { sendError, sendInvalidInputError, ERROR_CODES } from '../utils/errorHandler';
+import { strictRateLimiter } from '../middleware/rateLimiter';
+import { customRoutesSchemas } from '../utils/validation';
 
 interface LedgerContext {
     dbManager: DatabaseManager;
@@ -36,18 +38,15 @@ export default function ledgerRoutes(context: LedgerContext): Router {
 
     // POST /api/ledger/adjust
     // Manual adjustment (Bonus, Deduction, Payout, etc.)
-    router.post('/adjust', async (req: Request, res: Response) => {
+    router.post('/adjust', strictRateLimiter, async (req: Request, res: Response) => {
         try {
-            const { photographerId, type, amount, description, date } = req.body;
+            const parsed = customRoutesSchemas.ledgerAdjust.safeParse(req.body);
 
-            if (!photographerId || !type || amount === undefined || !description) {
-                return sendInvalidInputError(res, 'Missing required fields');
+            if (!parsed.success) {
+                return sendInvalidInputError(res, 'Missing or invalid fields');
             }
 
-            const validTypes = ['Bonus', 'Deduction', 'Salary', 'Payout', 'Correction'];
-            if (!validTypes.includes(type)) {
-                return sendInvalidInputError(res, 'Invalid adjustment type');
-            }
+            const { photographerId, type, amount, description, date } = parsed.data;
 
             const entryDate = date || new Date().toISOString().split('T')[0];
 
@@ -72,10 +71,10 @@ export default function ledgerRoutes(context: LedgerContext): Router {
 
     // POST /api/ledger/backfill
     // One-time utility to populate ledger from past orders
-    router.post('/backfill', async (req: Request, res: Response) => {
+    router.post('/backfill', strictRateLimiter, async (req: Request, res: Response) => {
         try {
-            const { secret } = req.body;
-            if (secret !== process.env.JWT_SECRET) {
+            const parsed = customRoutesSchemas.ledgerBackfill.safeParse(req.body);
+            if (!parsed.success || parsed.data.secret !== process.env.JWT_SECRET) {
                 return sendError(res, 403, 'Forbidden', 'Invalid secret', ERROR_CODES.AUTHORIZATION_ERROR);
             }
 

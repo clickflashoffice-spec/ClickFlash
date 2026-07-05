@@ -21,7 +21,7 @@ export const IdentitySettings: React.FC<IdentitySettingsProps> = ({
             <div className="space-y-4">
                 <div>
                     <label htmlFor="welcome-message-input" className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">Welcome Message</label>
-                    <input id="welcome-message-input" type="text" name="welcomeMessage" value={settings.welcomeMessage} onChange={handleChange} className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md px-3 py-2" placeholder="Enter welcome message" title="Welcome message input" />
+                    <input id="welcome-message-input" data-testid="settings-welcome-message-input" type="text" name="welcomeMessage" value={settings.welcomeMessage} onChange={handleChange} className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md px-3 py-2" placeholder="Enter welcome message" title="Welcome message input" />
                 </div>
                 <div className="flex items-center space-x-4">
                     <div className="flex-grow">

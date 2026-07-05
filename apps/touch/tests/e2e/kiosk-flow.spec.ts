@@ -1,25 +1,23 @@
 import { test, expect } from "@playwright/test";
+import { installMockRoutes } from "./helpers/mock-routes";
 
 test.describe("Kiosk User Flow", () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to the root instead of /scan directly
-    await page.goto("/");
+    await installMockRoutes(page);
 
+    // Navigate to the root
+    await page.goto("/", { waitUntil: "load" });
+
+    // Handle initial setup if it appears (fresh browser instance)
     try {
-      // If this is a fresh browser instance, DeviceSetup UI will show up.
-      // We wait for it briefly, if it's there we configure the kiosk.
       const setupHeader = page.getByRole("heading", {
         name: "System Configuration",
       });
       await setupHeader.waitFor({ state: "visible", timeout: 4000 });
-
-      // Click the Touch Kiosk option
       await page.locator("text=Install as Touch Kiosk").click();
-
-      // Click connect on the IP step
       await page.getByRole("button", { name: "Connect" }).click();
     } catch (e) {
-      // Setup might already be done or bypassed, continue.
+      // Setup already done or bypassed
     }
 
     // Wait for Welcome screen to fully load
@@ -29,23 +27,13 @@ test.describe("Kiosk User Flow", () => {
   });
 
   test("should complete full customer journey", async ({ page }) => {
-    // Wait for animations to settle
-    await page.waitForTimeout(2000);
-
-    // Click 'Find My Photos' (using specific matching to avoid ambiguity)
-    await page
-      .getByRole("button")
-      .filter({ hasText: "Find My Photos" })
-      .first()
-      .click();
+    // Click 'Find by Room'
+    await page.getByTestId("welcome-find-room-button").click();
 
     // Enter Room Number '101' using on-screen keyboard
     await expect(
       page.getByRole("heading", { name: "Enter Your Room Number" }),
     ).toBeVisible();
-
-    // Wait for Modal to animate in
-    await page.waitForTimeout(1000);
 
     // Switch to numeric layout
     await page.getByRole("button", { name: "123", exact: true }).click();
@@ -55,10 +43,10 @@ test.describe("Kiosk User Flow", () => {
     await page.getByRole("button", { name: "0", exact: true }).click();
     await page.getByRole("button", { name: "1", exact: true }).click();
 
-    // Click "Find My Photos" to confirm the modal
-    await page
-      .getByRole("button", { name: "Find My Photos", exact: true })
-      .click();
+    await expect(page.getByTestId("room-number-input")).toHaveValue("101");
+
+    // Click confirm
+    await page.getByTestId("room-number-confirm-button").click();
 
     // Expect to be on Photo Selection Screen for room 101
     await expect(
@@ -70,108 +58,79 @@ test.describe("Kiosk User Flow", () => {
       page.getByRole("heading", { name: "Sunset Couples" }),
     ).toBeVisible();
 
-    // Click a photo to open preview (just click the first img)
-    const photoImages = page.locator("img[alt]");
+    // Click the first photo to open preview
+    const photoImages = page.locator("[data-testid='photo-card-image']");
     await expect(photoImages.first()).toBeVisible();
     await photoImages.first().click();
 
-    // Expecting to open photo preview/cart operations
-    // Wait for the modal or screen displaying photo controls
-    await expect(page.getByText(/Prints|Digital|Add/i).first()).toBeVisible();
+    // Wait for photo preview with add to cart
+    await expect(page.getByTestId("add-to-cart-button")).toBeVisible();
 
-    // Add to cart by clicking the first applicable "Add" or "Select" button
-    const addButton = page
-      .locator('button:has-text("Add"), button:has-text("Select")')
-      .first();
-    if (await addButton.isVisible()) {
-      await addButton.click();
-    }
+    // Add to cart
+    await page.getByTestId("add-to-cart-button").click();
 
     // Go back to gallery
-    await page.getByRole("button", { name: /back/i }).first().click();
+    await page.getByTestId("back-to-gallery-button").click();
 
-    // View Cart (Submit Order or View Order)
-    const cartButton = page
-      .locator('button:has-text("Cart"), button:has-text("Order")')
-      .first();
-    if (await cartButton.isVisible()) {
-      await cartButton.click();
-    }
+    // Back on the selection screen
+    await expect(
+      page.getByRole("heading", { name: "Viewing Room: 101" }),
+    ).toBeVisible();
+
+    // Open cart and verify item is present
+    await page.getByTestId("cart-button").click();
+    await expect(page.getByText(/Your Cart/i)).toBeVisible();
+    await expect(page.getByText(/Order Summary/i)).toBeVisible();
   });
 
   test("should work offline when data is cached", async ({ page }) => {
-    // Ensure we are fully loaded and online to cache things
-    await expect(
-      page.getByRole("heading", { name: "Welcome", exact: true }),
-    ).toBeVisible({ timeout: 10000 });
-
-    // IMPORTANT: Wait for the app to fetch albums from the local backend
-    // and save them to IndexedDB before we sever the network connection.
-    // Playwright isolates IndexedDB per test.
-    await page.waitForTimeout(3000);
-
-    // --- PRELOAD CHUNKS (Online) ---
-    // Navigate into the target screen once while online to ensure Vite dev server
-    // serves the JS modules to the browser cache.
-    // 1. Click Find My Photos
-    await page
-      .getByRole("button")
-      .filter({ hasText: "Find My Photos" })
-      .first()
-      .click();
+    // Navigate to room 101 once while online to cache data
+    await page.getByTestId("welcome-find-room-button").click();
     await expect(
       page.getByRole("heading", { name: "Enter Your Room Number" }),
     ).toBeVisible();
-    await page.waitForTimeout(1000);
 
-    // 2. Enter Room 101
     await page.getByRole("button", { name: "123", exact: true }).click();
     await page.getByRole("button", { name: "1", exact: true }).click();
     await page.getByRole("button", { name: "0", exact: true }).click();
     await page.getByRole("button", { name: "1", exact: true }).click();
-    await page
-      .getByRole("button", { name: "Find My Photos", exact: true })
-      .click();
+    await page.getByTestId("room-number-confirm-button").click();
 
-    // 4. Wait for screen to load and ensure it works online
     await expect(
       page.getByRole("heading", { name: "Viewing Room: 101" }),
     ).toBeVisible({ timeout: 10000 });
-    await page.waitForTimeout(500);
 
-    // 5. Go back to Home
-    await page.getByRole("button", { name: /Back to Home/i }).click();
+    // Go back to home
+    await page.getByTestId("back-to-home-button").click();
     await expect(
       page.getByRole("heading", { name: "Welcome", exact: true }),
     ).toBeVisible();
 
-    // --- OFFLINE TEST ---
-    // Now set offline
+    // Set offline
     await page.context().setOffline(true);
-    await page.waitForTimeout(1000);
 
-    // Attempt to select room 101 again (Offline mode)
-    await page
-      .getByRole("button")
-      .filter({ hasText: "Find My Photos" })
-      .first()
-      .click();
+    // Attempt to select room 101 again
+    await page.getByTestId("welcome-find-room-button").click();
     await expect(
       page.getByRole("heading", { name: "Enter Your Room Number" }),
     ).toBeVisible();
-    await page.waitForTimeout(1000);
 
     await page.getByRole("button", { name: "123", exact: true }).click();
     await page.getByRole("button", { name: "1", exact: true }).click();
     await page.getByRole("button", { name: "0", exact: true }).click();
     await page.getByRole("button", { name: "1", exact: true }).click();
-    await page
-      .getByRole("button", { name: "Find My Photos", exact: true })
-      .click();
+    await page.getByTestId("room-number-confirm-button").click();
 
-    // Still able to see the album offline since it's cached in memory/storage
+    // Still able to see the album offline since it's cached in memory
     await expect(
       page.getByRole("heading", { name: "Viewing Room: 101" }),
     ).toBeVisible({ timeout: 10000 });
+
+    await expect(
+      page.getByRole("heading", { name: "Sunset Couples" }),
+    ).toBeVisible();
+
+    // Restore online
+    await page.context().setOffline(false);
   });
 });

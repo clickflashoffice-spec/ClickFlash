@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
-import { Logger } from "../shared/logger";
+import { Logger } from '../utils/logger';
 import { CloudSyncService } from "../services/cloudSyncService";
+import { strictRateLimiter } from '../middleware/rateLimiter';
+import { customRoutesSchemas } from '../utils/validation';
 
 interface CloudRouteContext {
   logger: Logger;
@@ -25,24 +27,51 @@ export default (context: CloudRouteContext) => {
   });
 
   // POST /api/cloud/queue/pause
-  router.post("/queue/pause", (_req: Request, res: Response) => {
+  router.post("/queue/pause", strictRateLimiter, (_req: Request, res: Response) => {
     if (!cloudSyncService) return res.status(503).json({ success: false });
     cloudSyncService.pause();
     res.json({ success: true, message: "Sync Paused" });
   });
 
   // POST /api/cloud/queue/resume
-  router.post("/queue/resume", (_req: Request, res: Response) => {
+  router.post("/queue/resume", strictRateLimiter, (_req: Request, res: Response) => {
     if (!cloudSyncService) return res.status(503).json({ success: false });
     cloudSyncService.resume();
     res.json({ success: true, message: "Sync Resumed" });
   });
 
   // POST /api/cloud/queue/purge
-  router.post("/queue/purge", (_req: Request, res: Response) => {
+  router.post("/queue/purge", strictRateLimiter, (_req: Request, res: Response) => {
     if (!cloudSyncService) return res.status(503).json({ success: false });
     cloudSyncService.purgeQueue();
     res.json({ success: true, message: "Queue Purged" });
+  });
+
+  // GET /api/cloud/dlq
+  router.get("/dlq", (_req: Request, res: Response) => {
+    if (!cloudSyncService) return res.status(503).json({ success: false, msg: "Cloud Service not initialized" });
+    const limit = parseInt(_req.query.limit as string) || 100;
+    const offset = parseInt(_req.query.offset as string) || 0;
+    const result = cloudSyncService.getDeadLetterQueue(limit, offset);
+    res.json({ success: true, ...result });
+  });
+
+  // POST /api/cloud/dlq/replay
+  router.post("/dlq/replay", strictRateLimiter, (req: Request, res: Response) => {
+    if (!cloudSyncService) return res.status(503).json({ success: false, msg: "Cloud Service not initialized" });
+    const ids = Array.isArray(req.body?.ids) ? req.body.ids : undefined;
+    const result = cloudSyncService.replayDeadLetterQueue(ids);
+    res.json({ success: true, ...result });
+  });
+
+  // DELETE /api/cloud/dlq/:id
+  router.delete("/dlq/:id", strictRateLimiter, (req: Request, res: Response) => {
+    if (!cloudSyncService) return res.status(503).json({ success: false, msg: "Cloud Service not initialized" });
+    const rawId = req.params.id;
+    const id = Array.isArray(rawId) ? rawId[0] : rawId;
+    if (!id || typeof id !== 'string') return res.status(400).json({ success: false, msg: "Missing id parameter" });
+    const result = cloudSyncService.deleteDeadLetterQueueItems([id]);
+    res.json({ success: true, ...result });
   });
 
   router.get("/stats", (_req: Request, res: Response) => {
@@ -63,21 +92,21 @@ export default (context: CloudRouteContext) => {
   });
 
   // POST /api/cloud/candidates/:id/action
-  router.post("/candidates/:id/action", (req: Request, res: Response) => {
+  router.post("/candidates/:id/action", strictRateLimiter, (req: Request, res: Response) => {
     if (!cloudSyncService) return res.status(503).json({ success: false });
     const id = String(req.params.id);
-    const action = String(req.body?.action ?? "") as "exclude" | "upload" | "delete";
+    const parsed = customRoutesSchemas.cloudCandidatesAction.safeParse(req.body);
 
-    if (!["exclude", "upload", "delete"].includes(action)) {
+    if (!parsed.success) {
       return res.status(400).json({ success: false, msg: "Invalid action" });
     }
 
-    cloudSyncService.processCandidate(id, action);
+    cloudSyncService.processCandidate(id, parsed.data.action);
     res.json({ success: true });
   });
 
   // POST /api/cloud/sync (Force Sync)
-  router.post("/sync", async (_req: Request, res: Response) => {
+  router.post("/sync", strictRateLimiter, async (_req: Request, res: Response) => {
     try {
       logger.info("Manual Cloud Sync Triggered");
       cloudSyncService.sync(); // Async (Fire and Forget)
@@ -89,7 +118,7 @@ export default (context: CloudRouteContext) => {
   });
 
   // POST /api/cloud/retention (Force Retention Batch)
-  router.post("/retention", async (_req: Request, res: Response) => {
+  router.post("/retention", strictRateLimiter, async (_req: Request, res: Response) => {
     try {
       logger.info("Manual Retention Batch Triggered");
       cloudSyncService.runRetentionBatch(); // Async
@@ -101,7 +130,7 @@ export default (context: CloudRouteContext) => {
   });
 
   // POST /api/cloud/sync/payroll (Force Payroll Sync)
-  router.post("/sync/payroll", async (_req: Request, res: Response) => {
+  router.post("/sync/payroll", strictRateLimiter, async (_req: Request, res: Response) => {
     try {
       logger.info("Manual Payroll Sync Triggered");
       const result =
@@ -129,7 +158,7 @@ export default (context: CloudRouteContext) => {
   });
 
   // POST /api/cloud/sync/expenses (Force Expenses Sync)
-  router.post("/sync/expenses", async (_req: Request, res: Response) => {
+  router.post("/sync/expenses", strictRateLimiter, async (_req: Request, res: Response) => {
     try {
       logger.info("Manual Expenses Sync Triggered");
       const result = (await cloudSyncService.syncExpenses?.()) ?? {
@@ -157,7 +186,7 @@ export default (context: CloudRouteContext) => {
   });
 
   // POST /api/cloud/sync/inventory (Force Inventory Sync)
-  router.post("/sync/inventory", async (_req: Request, res: Response) => {
+  router.post("/sync/inventory", strictRateLimiter, async (_req: Request, res: Response) => {
     try {
       logger.info("Manual Inventory Sync Triggered");
       const result = (await cloudSyncService.syncInventory?.()) ?? {
@@ -185,7 +214,7 @@ export default (context: CloudRouteContext) => {
   });
 
   // POST /api/cloud/heartbeat (Manual Heartbeat)
-  router.post("/heartbeat", async (_req: Request, res: Response) => {
+  router.post("/heartbeat", strictRateLimiter, async (_req: Request, res: Response) => {
     try {
       logger.info("Manual Heartbeat Triggered");
       const result = (await cloudSyncService.sendHeartbeat?.()) ?? {
@@ -199,7 +228,7 @@ export default (context: CloudRouteContext) => {
   });
 
   // POST /api/cloud/sync/analytics (Phase 70: Force Analytics Push for a date)
-  router.post("/sync/analytics", async (req: Request, res: Response) => {
+  router.post("/sync/analytics", strictRateLimiter, async (req: Request, res: Response) => {
     try {
       const date =
         (req.query.date as string) || (req.body?.date as string) || undefined;

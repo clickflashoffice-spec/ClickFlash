@@ -1,5 +1,5 @@
-import { Logger } from "../shared/logger";
-import { DatabaseManager } from "../shared/db";
+import { Logger } from '../utils/logger';
+import { DatabaseManager } from '../database/db';
 import { v4 as uuidv4 } from "uuid";
 
 export interface ResortKPIs {

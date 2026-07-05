@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Modal from "../common/Modal.tsx";
 import { Album, Photographer } from "../../types.ts";
 import Spinner from "../common/Spinner.tsx";
+import { logger } from '@/utils/logger';
 import {
   createThumbnail,
   createSafeObjectURL,
@@ -227,17 +228,9 @@ const ImportAlbumModal: React.FC<ImportAlbumModalProps> = ({
       categories: [selectedCategory],
     };
 
-    // Debug log to help diagnose import issues
-    console.log("[ImportAlbumModal] Album data being sent:", albumData);
-    console.log(
-      "[ImportAlbumModal] Selected files count:",
-      selectedFiles.length,
-    );
-    console.log(
-      "[ImportAlbumModal] Photographer ID type:",
-      typeof selectedPhotographerId,
-      selectedPhotographerId,
-    );
+    logger.info("[ImportAlbumModal] Album data being sent", { data: albumData });
+    logger.info("[ImportAlbumModal] Selected files count", { count: selectedFiles.length });
+    logger.info("[ImportAlbumModal] Photographer ID type", { type: typeof selectedPhotographerId, id: selectedPhotographerId });
 
     // Fix: show loading state and keep modal open until import resolves
     setIsImporting(true);
@@ -245,7 +238,7 @@ const ImportAlbumModal: React.FC<ImportAlbumModalProps> = ({
       await onImport(albumData, selectedFiles);
       onClose();
     } catch (e) {
-      console.error("[ImportAlbumModal] Import error:", e);
+      logger.error("[ImportAlbumModal] Import error:", { error: e });
       setValidationErrors({ submit: "Import failed — please try again." });
     } finally {
       setIsImporting(false);

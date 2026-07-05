@@ -15,7 +15,7 @@ interface HotelReportViewProps {
 export const HotelReportView: React.FC<HotelReportViewProps> = ({
   orders,
   expenses,
-  photographers,
+  photographers: photographers,
   guestsCount = 0,
   viewingSessionsCount = 0,
 }) => {

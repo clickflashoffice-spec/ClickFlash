@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Shield, Lock, X, AlertCircle, Loader2 } from 'lucide-react';
 import { securityService } from '../../services/api/securityService';
+import { logger } from '@/utils/logger';
 
 interface AdminPINChallengeProps {
     onSuccess: () => void;
@@ -33,7 +34,7 @@ const AdminPINChallenge: React.FC<AdminPINChallengeProps> = ({ onSuccess, onCanc
         } catch (err) {
             setError(true);
             setPin('');
-            console.error('[AdminPIN] Verification failed:', err);
+            logger.error('[AdminPIN] Verification failed:', err);
         } finally {
             setIsProcessing(false);
         }

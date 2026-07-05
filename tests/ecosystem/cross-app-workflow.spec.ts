@@ -11,11 +11,11 @@ import { test, expect, Page } from '@playwright/test';
 
 // Test configuration
 const BASE_URLS = {
-    master: 'http://localhost:8090',
-    touch: 'http://localhost:8091',
-    gallery: 'http://localhost:5174',
-    management: 'http://localhost:5173',
-    moneytrash: 'http://localhost:3000',
+    master: 'http://127.0.0.1:8090',
+    touch: 'http://127.0.0.1:8091',
+    gallery: 'http://127.0.0.1:5176',
+    management: 'http://127.0.0.1:5175',
+    moneytrash: 'http://127.0.0.1:3000',
 };
 
 test.describe('Cross-App Workflow: Master → Touch → Gallery', () => {
@@ -33,7 +33,7 @@ test.describe('Cross-App Workflow: Master → Touch → Gallery', () => {
         // For now, we test the individual components
         
         await masterPage.goto(BASE_URLS.master);
-        await expect(masterPage).toHaveTitle(/Master Portal/i);
+        await expect(masterPage).toHaveTitle(/ClickFlash Master/i);
         
         // Verify we're on the login page or dashboard
         const isLoggedIn = await masterPage.locator('[data-testid="dashboard"]').isVisible().catch(() => false);

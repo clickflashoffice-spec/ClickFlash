@@ -37,7 +37,7 @@ export interface EcommerceExtension {
   description: string;
   status: "active" | "inactive";
   icon: string;
-  config?: Record<string, any>;
+  config?: Record<string, unknown>;
 }
 
 export interface LoanPayment {

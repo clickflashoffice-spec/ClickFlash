@@ -22,6 +22,12 @@ const mockEmailService = {
     setCloudConfig: jest.fn(),
 };
 
+jest.mock('../SystemHardwareService', () => ({
+    HardwareService: {
+        getMachineId: jest.fn().mockResolvedValue('test-machine-id')
+    }
+}));
+
 describe('CloudSyncService', () => {
     let service: CloudSyncService;
 
@@ -85,13 +91,9 @@ describe('CloudSyncService', () => {
             headers: { get: () => new Date().toUTCString() },
         });
 
-        (service as any).syncOperationLogs = jest.fn(() => Promise.resolve());
-        (service as any).syncLedgerEntries = jest.fn(() => Promise.resolve());
-        (service as any).syncExpenses = jest.fn(() => Promise.reject(new Error('fail')));
-        (service as any).syncInventory = jest.fn(() => Promise.resolve());
-        (service as any).syncOrdersToGallery = jest.fn(() => Promise.resolve());
-        (service as any).sendHeartbeat = jest.fn(() => Promise.resolve());
-        (service as any).syncYieldIntelligence = jest.fn(() => Promise.resolve());
+        // Mock the internal logic by directly forcing the circuit breaker loop via fetch mocks
+        // Or simply force an error in one of the direct pipeline calls
+        (service as any).syncYieldIntelligence = jest.fn(() => Promise.reject(new Error('fail')));
         (service as any).syncProspectingCRM = jest.fn(() => Promise.resolve());
         (service as any).sendFleetTriage = jest.fn(() => Promise.resolve());
         (service as any).pullRemoteOperations = jest.fn(() => Promise.resolve());
@@ -99,12 +101,29 @@ describe('CloudSyncService', () => {
         (service as any).pollPaidOrders = jest.fn(() => Promise.resolve());
         (service as any).processRetentionQueue = jest.fn(() => Promise.resolve());
         (service as any).syncRetentionStats = jest.fn(() => Promise.resolve());
-        (service as any).syncDailyAnalytics = jest.fn(() => Promise.resolve());
         (service as any).syncResortBI = jest.fn(() => Promise.resolve());
 
         await service.sync();
 
         expect((service as any).consecutiveFailures).toBeGreaterThanOrEqual(1);
+    });
+});
+
+import { OperationLogsPipeline } from '../sync/pipelines/OperationLogsPipeline';
+
+describe('OperationLogsPipeline', () => {
+    let pipeline: OperationLogsPipeline;
+    let mockCtx: any;
+
+    beforeEach(() => {
+        pipeline = new OperationLogsPipeline();
+        mockCtx = {
+            dbManager: mockDbManager,
+            logger: mockLogger,
+            cloudApiUrl: 'https://hub.example.com',
+            deskId: 'TEST_DESK_01',
+            getHeaders: async () => ({ Authorization: 'Bearer token' })
+        };
     });
 
     it('should store idempotency key before sending operations', async () => {
@@ -118,7 +137,7 @@ describe('CloudSyncService', () => {
             headers: { get: () => new Date().toUTCString() },
         });
 
-        await (service as any).syncOperationLogs();
+        await pipeline.execute(mockCtx);
 
         expect(mockDbManager.run).toHaveBeenCalledWith(
             expect.stringContaining('INSERT INTO sync_idempotency_keys'),
@@ -142,7 +161,7 @@ describe('CloudSyncService', () => {
             headers: { get: () => new Date().toUTCString() },
         });
 
-        await (service as any).syncOperationLogs();
+        await pipeline.execute(mockCtx);
 
         // Transaction should have been called to mark all ops as synced
         expect(mockDbManager.transaction).toHaveBeenCalled();

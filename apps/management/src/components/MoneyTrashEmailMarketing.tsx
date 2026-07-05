@@ -23,7 +23,7 @@ const MoneyTrashEmailMarketing: React.FC = () => {
     "campaigns" | "templates" | "analytics"
   >("campaigns");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedCampaign, setSelectedCampaign] =
+  const [_selectedCampaign, setSelectedCampaign] =
     useState<EmailCampaign | null>(null);
   const [analytics, setAnalytics] = useState({
     totalCampaigns: 0,
@@ -45,12 +45,14 @@ const MoneyTrashEmailMarketing: React.FC = () => {
     setAnalytics(moneyTrashEmailMarketing.getGlobalAnalytics());
   };
 
-  const handleCreateCampaign = (campaignData: any) => {
+  const handleCreateCampaign = (
+    campaignData: Partial<Omit<EmailCampaign, "id" | "createdAt" | "stats">>,
+  ) => {
     moneyTrashEmailMarketing.createCampaign({
       ...campaignData,
       type: "manual",
       status: "draft",
-    });
+    } as Omit<EmailCampaign, "id" | "createdAt" | "stats">);
     loadData();
     setShowCreateModal(false);
   };

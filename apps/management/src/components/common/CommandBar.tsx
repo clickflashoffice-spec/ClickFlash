@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, Command, X } from "lucide-react";
-import { ManagementView, HOTELS } from "../../constants.ts";
+import {ManagementView} from "../../constants.ts";
 
 interface CommandBarProps {
   onSelect: (view: ManagementView) => void;

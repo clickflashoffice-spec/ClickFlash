@@ -2,6 +2,7 @@ import React from "react";
 import { Order } from "../../types.ts";
 import useSystemSetting from "../../hooks/useSystemSetting.ts";
 import { useCurrency } from "../CurrencyContext.tsx";
+import QRCode from "qrcode";
 
 interface CustomerReceiptProps {
   order: Order;
@@ -29,6 +30,13 @@ const CustomerReceipt: React.FC<CustomerReceiptProps> = ({ order }) => {
     DEFAULT_SETTINGS,
   );
   const { formatCurrency } = useCurrency();
+  const [qrCodeDataUrl, setQrCodeDataUrl] = React.useState<string>("");
+
+  React.useEffect(() => {
+    QRCode.toDataURL(order.id, { margin: 1, width: 128 })
+      .then((url: string) => setQrCodeDataUrl(url))
+      .catch((err: any) => console.error("QR Code generation failed", err));
+  }, [order.id]);
 
   if (loading)
     return (
@@ -40,17 +48,15 @@ const CustomerReceipt: React.FC<CustomerReceiptProps> = ({ order }) => {
   const netAmount = order.total / (1 + taxRateDecimal);
   const taxAmount = order.total - netAmount;
 
-  // Generate a simple barcode pattern based on ID length
-  const renderBarcode = (text: string) => {
+  // Real QR Code for hardware scanners
+  const renderBarcode = () => {
     return (
-      <div className="flex h-8 items-end space-x-[1px] justify-center opacity-80">
-        {text.split("").map((char, i) => (
-          <div
-            key={i}
-            className={`bg-black ${i % 2 === 0 ? "h-full" : "h-2/3"}`}
-            style={{ width: (char.charCodeAt(0) % 3) + 1 + "px" }}
-          ></div>
-        ))}
+      <div className="flex justify-center opacity-90">
+        {qrCodeDataUrl ? (
+          <img src={qrCodeDataUrl} alt={`QR Code for ${order.id}`} className="w-20 h-20" />
+        ) : (
+          <div className="w-20 h-20 bg-gray-200 animate-pulse rounded"></div>
+        )}
       </div>
     );
   };
@@ -77,7 +83,7 @@ const CustomerReceipt: React.FC<CustomerReceiptProps> = ({ order }) => {
         <div className="mt-6 pt-4 border-t border-gray-100">
           <p className="text-xl font-mono font-bold">Order #{order.id}</p>
           <div className="mt-2 flex justify-center">
-            {renderBarcode(order.id)}
+            {renderBarcode()}
           </div>
         </div>
       </header>

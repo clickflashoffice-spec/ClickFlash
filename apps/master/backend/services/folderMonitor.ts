@@ -6,11 +6,11 @@ import path from "path";
 import crypto from "crypto";
 import { Worker } from "worker_threads";
 import { IMPORT_DIR } from "../config/constants";
-import DatabaseManager from "../shared/db";
-import { Logger } from "../shared/logger";
+import DatabaseManager from '../database/db';
+import { Logger } from '../utils/logger';
 import RealtimeService from "./realtimeService";
 import AlbumService from "./albumService";
-import { PhotoProcessor } from "../shared/photoProcessor";
+import { PhotoProcessor } from '../services/photoProcessor';
 
 interface FolderMonitorContext {
   dbManager: DatabaseManager;

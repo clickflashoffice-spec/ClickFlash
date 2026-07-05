@@ -144,7 +144,7 @@ const PermissionsMatrix: React.FC = () => {
       await loadPermissions();
       window.location.reload(); // Simple way to ensure all hooks update
     } catch (err) {
-      console.error("Failed to save permissions:", err);
+      logger.error("Failed to save permissions:", err);
       setError("Failed to save changes.");
     } finally {
       setSaving(false);

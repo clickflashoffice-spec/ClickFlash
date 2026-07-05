@@ -4,6 +4,7 @@
  */
 
 import { invoke } from '@tauri-apps/api/core';
+import { env } from '@/utils/env';
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks for high-volume uploads
 const STORAGE_KEY = 'moneytrash_upload_sessions';
@@ -262,7 +263,7 @@ class ResumableUploadService {
    */
   private async initializeServerSession(session: UploadSession): Promise<string> {
     // Call backend to initialize chunked upload
-    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8090'}/api/upload/chunk/init`, {
+    const response = await fetch(`${env.API_BASE_URL}/api/upload/chunk/init`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -330,7 +331,7 @@ class ResumableUploadService {
    * Finalize the upload
    */
   private async finalizeUpload(session: UploadSession): Promise<void> {
-    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8090'}/api/upload/chunk/finalize`, {
+    const response = await fetch(`${env.API_BASE_URL}/api/upload/chunk/finalize`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -429,7 +430,7 @@ class ResumableUploadService {
 
     // Delete server session if exists
     if (session.serverSessionId) {
-      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8090'}/api/upload/chunk/cancel`, {
+      fetch(`${env.API_BASE_URL}/api/upload/chunk/cancel`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: session.serverSessionId })

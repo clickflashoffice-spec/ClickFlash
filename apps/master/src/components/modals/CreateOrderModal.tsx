@@ -6,6 +6,7 @@ import { Order, OrderItem, Product, Photographer } from '../../types.ts';
 import { useCurrency } from '../CurrencyContext.tsx';
 import { useCreateOrder } from '../../hooks/useOrders.ts';
 import { usePhotographers } from '../../hooks/usePhotographers.ts';
+import { logger } from '@/utils/logger';
 
 /**
  * CreateOrderModal Component Props
@@ -175,7 +176,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
       setSelectedPhotographerId(currentUser.id);
       onClose();
     } catch (error: any) {
-      console.error('Failed to create order:', error);
+      logger.error('Failed to create order:', error);
       const errorMessage = error?.message || 'Error creating order. Please try again.';
       showToast(errorMessage);
     }

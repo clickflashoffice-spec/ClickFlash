@@ -100,7 +100,7 @@ export function useEditorTools({
             setRetouchTarget(null);
             setRetouchStep('target');
         }
-    }, [retouchStep, retouchTarget, retouchBrushSize, activeEdits, updateEdit]);
+    }, [retouchStep, retouchTarget, retouchBrushSize, updateEdit]);
 
     // Memoize handlers to prevent cascading re-renders
     const handlers = useMemo(() => ({

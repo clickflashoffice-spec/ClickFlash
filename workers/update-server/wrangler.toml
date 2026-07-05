@@ -1,0 +1,13 @@
+name = "clickflash-update-server"
+main = "index.ts"
+compatibility_date = "2026-06-13"
+
+# Add D1/KV bindings for production
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "clickflash-updates"
+# database_id = "your-database-id"
+
+# [[kv_namespaces]]
+# binding = "UPDATES"
+# id = "your-namespace-id"

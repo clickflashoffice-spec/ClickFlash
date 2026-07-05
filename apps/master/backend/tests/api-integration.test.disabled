@@ -1,0 +1,420 @@
+/**
+ * ClickFlash API Integration Test Suite
+ * 
+ * Tests all cloud APIs, webhooks, and external integrations
+ * 
+ * Run: npx jest api-integration.test.ts
+ */
+
+import { describe, test, expect, beforeAll } from '@jest/globals';
+
+const BASE_URLS = {
+  master: 'http://localhost:8090',
+  touch: 'http://localhost:3001',
+  gallery: 'https://gallery-backend.clickflash-office.workers.dev',
+  moneytrash: 'https://moneytrash-api.clickflash-office.workers.dev',
+  management: 'https://management-hub.clickflash-office.workers.dev',
+  website: 'https://clickflash-website.pages.dev',
+  update: 'https://clickflash-update-server.clickflash-office.workers.dev'
+};
+
+describe('API Integration - Health Checks', () => {
+  test('Master API is healthy', async () => {
+    const response = await fetch(`${BASE_URLS.master}/api/health`);
+    expect(response.status).toBe(200);
+    
+    const body = await response.json();
+    expect(body.status).toBe('ok');
+  });
+
+  test('Update Server is healthy', async () => {
+    const response = await fetch(`${BASE_URLS.update}/health`);
+    expect(response.status).toBe(200);
+    
+    const body = await response.json();
+    expect(body.status).toBe('ok');
+  });
+
+  test('Website is accessible', async () => {
+    const response = await fetch(BASE_URLS.website);
+    expect(response.status).toBe(200);
+  });
+});
+
+describe('API Integration - Authentication', () => {
+  let authToken: string;
+
+  test('Login returns JWT token', async () => {
+    const response = await fetch(`${BASE_URLS.master}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'admin@clickflash.local',
+        password: 'ClickFlash2025!'
+      })
+    });
+
+    expect(response.status).toBe(200);
+    
+    const body = await response.json();
+    expect(body.token).toBeDefined();
+    expect(body.token.length).toBeGreaterThan(100);
+    
+    authToken = body.token;
+  });
+
+  test('Protected endpoint requires auth', async () => {
+    const response = await fetch(`${BASE_URLS.master}/api/admin/users`);
+    expect(response.status).toBe(401);
+  });
+
+  test('Protected endpoint accepts valid token', async () => {
+    const response = await fetch(`${BASE_URLS.master}/api/auth/me`, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+
+    expect(response.status).toBe(200);
+    
+    const body = await response.json();
+    expect(body.email).toBe('admin@clickflash.local');
+  });
+});
+
+describe('API Integration - CRUD Operations', () => {
+  let authToken: string;
+  let testAlbumId: string;
+  let testOrderId: string;
+
+  beforeAll(async () => {
+    const response = await fetch(`${BASE_URLS.master}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'admin@clickflash.local',
+        password: 'ClickFlash2025!'
+      })
+    });
+
+    const body = await response.json();
+    authToken = body.token;
+  });
+
+  test('Create album', async () => {
+    const response = await fetch(`${BASE_URLS.master}/api/albums`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        name: 'Integration Test Album',
+        description: 'Test Description',
+        date: new Date().toISOString()
+      })
+    });
+
+    expect(response.status).toBe(200);
+    
+    const body = await response.json();
+    expect(body.id).toBeDefined();
+    expect(body.name).toBe('Integration Test Album');
+    
+    testAlbumId = body.id;
+  });
+
+  test('Get album', async () => {
+    const response = await fetch(`${BASE_URLS.master}/api/albums/${testAlbumId}`, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+
+    expect(response.status).toBe(200);
+    
+    const body = await response.json();
+    expect(body.id).toBe(testAlbumId);
+    expect(body.name).toBe('Integration Test Album');
+  });
+
+  test('Update album', async () => {
+    const response = await fetch(`${BASE_URLS.master}/api/albums/${testAlbumId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        name: 'Updated Test Album'
+      })
+    });
+
+    expect(response.status).toBe(200);
+    
+    const body = await response.json();
+    expect(body.name).toBe('Updated Test Album');
+  });
+
+  test('Create order', async () => {
+    const response = await fetch(`${BASE_URLS.master}/api/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        customerName: 'Integration Test',
+        customerEmail: 'test@integration.com',
+        items: [
+          { productId: 'photo-1', quantity: 1, price: 10.00 }
+        ],
+        total: 10.00
+      })
+    });
+
+    expect(response.status).toBe(200);
+    
+    const body = await response.json();
+    expect(body.id).toBeDefined();
+    expect(body.status).toBe('pending');
+    
+    testOrderId = body.id;
+  });
+
+  test('Update order status', async () => {
+    const statuses = ['processing', 'shipped', 'delivered'];
+    
+    for (const status of statuses) {
+      const response = await fetch(`${BASE_URLS.master}/api/orders/${testOrderId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ status })
+      });
+
+      expect(response.status).toBe(200);
+    }
+  });
+
+  test('Delete album', async () => {
+    const response = await fetch(`${BASE_URLS.master}/api/albums/${testAlbumId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+
+    expect(response.status).toBe(200);
+  });
+});
+
+describe('API Integration - Webhooks', () => {
+  test('Stripe webhook signature is verified', async () => {
+    // Simulate webhook with invalid signature
+    const response = await fetch(`${BASE_URLS.moneytrash}/webhooks/stripe`, {
+      method: 'POST',
+      headers: {
+        'Stripe-Signature': 'invalid_signature'
+      },
+      body: JSON.stringify({
+        type: 'payment_intent.succeeded',
+        data: { object: { id: 'pi_test' } }
+      })
+    });
+
+    expect(response.status).toBe(400);
+  });
+
+  test('Webhook event is processed', async () => {
+    // This test requires a valid Stripe webhook signature
+    // In production, use Stripe CLI to trigger test events
+    const response = await fetch(`${BASE_URLS.moneytrash}/webhooks/stripe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Stripe-Signature': 't=1234567890,v1=valid_signature'
+      },
+      body: JSON.stringify({
+        id: 'evt_test',
+        type: 'payment_intent.succeeded',
+        data: {
+          object: {
+            id: 'pi_test',
+            amount: 1000,
+            currency: 'usd'
+          }
+        }
+      })
+    });
+
+    // Should either accept or reject based on signature validation
+    expect([200, 400]).toContain(response.status);
+  });
+});
+
+describe('API Integration - Cloudflare Workers', () => {
+  test('Gallery API responds', async () => {
+    const response = await fetch(BASE_URLS.gallery);
+    // Gallery might return 404 for root, which is OK
+    expect([200, 401, 404]).toContain(response.status);
+  });
+
+  test('MoneyTrash API requires auth', async () => {
+    const response = await fetch(BASE_URLS.moneytrash);
+    expect(response.status).toBe(401);
+    
+    const body = await response.json();
+    expect(body.error).toContain('Missing or invalid authorization');
+  });
+
+  test('Management API requires auth', async () => {
+    const response = await fetch(BASE_URLS.management);
+    expect(response.status).toBe(401);
+  });
+
+  test('Update Server provides version info', async () => {
+    const response = await fetch(`${BASE_URLS.update}/health`);
+    expect(response.status).toBe(200);
+    
+    const body = await response.json();
+    expect(body.status).toBe('ok');
+    expect(body.service).toBe('clickflash-update-server');
+  });
+});
+
+describe('API Integration - Error Handling', () => {
+  test('404 returns proper error', async () => {
+    const response = await fetch(`${BASE_URLS.master}/api/nonexistent`);
+    expect(response.status).toBe(404);
+    
+    const body = await response.json();
+    expect(body.error).toBeDefined();
+  });
+
+  test('500 returns proper error', async () => {
+    // Trigger an error by sending invalid data
+    const response = await fetch(`${BASE_URLS.master}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: 'invalid json'
+    });
+
+    expect(response.status).toBe(400);
+  });
+
+  test('Validation errors are detailed', async () => {
+    const response = await fetch(`${BASE_URLS.master}/api/albums`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer invalid_token'
+      },
+      body: JSON.stringify({ name: '' })
+    });
+
+    // Should be 401 (invalid token) or 400 (validation)
+    expect([400, 401]).toContain(response.status);
+  });
+});
+
+describe('API Integration - Rate Limiting', () => {
+  test('Excessive requests are rate limited', async () => {
+    const responses = [];
+    
+    // Make 10 rapid requests
+    for (let i = 0; i < 10; i++) {
+      const response = await fetch(`${BASE_URLS.master}/api/health`);
+      responses.push(response.status);
+    }
+    
+    // Most should succeed, but some might be rate limited
+    const successCount = responses.filter(s => s === 200).length;
+    const rateLimitedCount = responses.filter(s => s === 429).length;
+    
+    expect(successCount).toBeGreaterThan(0);
+    // Rate limiting might not trigger in test environment
+    expect(rateLimitedCount + successCount).toBe(10);
+  });
+});
+
+describe('API Integration - CORS', () => {
+  test('Preflight request works', async () => {
+    const response = await fetch(`${BASE_URLS.master}/api/health`, {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': 'https://clickflash-website.pages.dev',
+        'Access-Control-Request-Method': 'GET'
+      }
+    });
+
+    expect(response.status).toBe(200);
+    
+    const allowOrigin = response.headers.get('Access-Control-Allow-Origin');
+    expect(allowOrigin).toBeTruthy();
+  });
+
+  test('Unauthorized origin is blocked', async () => {
+    const response = await fetch(`${BASE_URLS.master}/api/health`, {
+      headers: {
+        'Origin': 'https://evil.com'
+      }
+    });
+
+    // Should either not include CORS headers or block
+    const allowOrigin = response.headers.get('Access-Control-Allow-Origin');
+    expect(allowOrigin).not.toBe('https://evil.com');
+  });
+});
+
+describe('API Integration - Master ↔ Touch Sync', () => {
+  test('Touch can discover Master', async () => {
+    const response = await fetch(`${BASE_URLS.touch}/api/discovery`);
+    
+    if (response.status === 200) {
+      const body = await response.json();
+      expect(body.servers).toBeDefined();
+      expect(Array.isArray(body.servers)).toBe(true);
+    } else {
+      // Touch might not be running
+      expect(response.status).toBe(503);
+    }
+  });
+
+  test('Order sync queue works', async () => {
+    const response = await fetch(`${BASE_URLS.touch}/api/sync/queue`);
+    
+    if (response.status === 200) {
+      const body = await response.json();
+      expect(body.pending).toBeDefined();
+      expect(body.synced).toBeDefined();
+    }
+  });
+});
+
+describe('API Integration - Performance', () => {
+  test('API response time < 200ms', async () => {
+    const start = Date.now();
+    const response = await fetch(`${BASE_URLS.master}/api/health`);
+    const elapsed = Date.now() - start;
+
+    expect(response.status).toBe(200);
+    expect(elapsed).toBeLessThan(200);
+  });
+
+  test('Concurrent requests handled', async () => {
+    const requests = Array.from({ length: 50 }, () =>
+      fetch(`${BASE_URLS.master}/api/health`)
+    );
+
+    const start = Date.now();
+    const responses = await Promise.all(requests);
+    const elapsed = Date.now() - start;
+
+    const successCount = responses.filter(r => r.status === 200).length;
+    expect(successCount).toBeGreaterThanOrEqual(45); // 90% success
+    expect(elapsed).toBeLessThan(5000); // Under 5 seconds
+  });
+});

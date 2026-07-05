@@ -1,0 +1,60 @@
+{
+  "checked_at": "2025-06-08",
+  "session": "post-departure-check",
+  "git_clean": false,
+  "backup_branch_exists": true,
+  "installers_ready": true,
+  "next_actions": [
+    {
+      "priority": "CRITICAL",
+      "action": "Rotate Stripe API key",
+      "detail": "https://dashboard.stripe.com/test/apikeys"
+    },
+    {
+      "priority": "CRITICAL",
+      "action": "Rotate Resend API key",
+      "detail": "https://resend.com/api-keys"
+    },
+    {
+      "priority": "CRITICAL",
+      "action": "Rotate Cloudflare token",
+      "detail": "https://dash.cloudflare.com/profile/api-tokens"
+    },
+    {
+      "priority": "HIGH",
+      "action": "Update real .env files with new secrets",
+      "detail": "Edit local files"
+    },
+    {
+      "priority": "HIGH",
+      "action": "Force-push clean git history",
+      "detail": "git push origin --force --all"
+    },
+    {
+      "priority": "HIGH",
+      "action": "Delete backup branch",
+      "detail": "git branch -D backup-original-history-before-rotation"
+    },
+    {
+      "priority": "MEDIUM",
+      "action": "Install and test Master app",
+      "detail": "Run installer"
+    },
+    {
+      "priority": "MEDIUM",
+      "action": "Deploy Management Worker",
+      "detail": "cd apps/management && wrangler deploy"
+    },
+    {
+      "priority": "MEDIUM",
+      "action": "Run E2E tests",
+      "detail": "cd tests/ecosystem && npx playwright test"
+    },
+    {
+      "priority": "LOW",
+      "action": "Enable monitoring alerts",
+      "detail": "Configure Sentry/Cloudflare"
+    }
+  ],
+  "message": "Ready for human actions. All automated work complete."
+}

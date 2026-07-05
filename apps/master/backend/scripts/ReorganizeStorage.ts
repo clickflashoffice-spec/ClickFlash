@@ -1,8 +1,9 @@
 // backend/scripts/ReorganizeStorage.ts
 import fs from 'fs';
 import path from 'path';
-import { DatabaseManager } from '../shared/db';
+import { DatabaseManager } from '../database/db';
 import { UPLOAD_DIR, DB_FILE } from '../config/constants';
+import { logger } from '../utils/logger';
 
 /**
  * Maintenance Script: Law 12 Reorganization
@@ -10,13 +11,13 @@ import { UPLOAD_DIR, DB_FILE } from '../config/constants';
  */
 
 async function run() {
-    console.log('[Maintenance] Starting Law 12 Storage Reorganization...');
+    logger.info('[Maintenance] Starting Law 12 Storage Reorganization...');
 
     const db = new DatabaseManager(DB_FILE);
     db.connect();
 
     const photos = db.query('SELECT id, albumId, url, thumbnailUrl, storagePath FROM photos');
-    console.log(`[Maintenance] Found ${photos.length} photos to audit.`);
+    logger.info(`[Maintenance] Found ${photos.length} photos to audit.`);
 
     let migratedCount = 0;
     let errorCount = 0;
@@ -42,7 +43,7 @@ async function run() {
             const targetRelativeUrl = `${albumId}/highres/${fileName}`;
 
             if (fs.existsSync(currentMainPath) && currentMainPath !== targetMainPath) {
-                console.log(`[Migrate] Moving ${fileName} -> ${albumId}/highres/`);
+                logger.info(`[Migrate] Moving ${fileName} -> ${albumId}/highres/`);
                 fs.renameSync(currentMainPath, targetMainPath);
 
                 db.run('UPDATE photos SET url = ?, storagePath = ? WHERE id = ?', [
@@ -61,7 +62,7 @@ async function run() {
                 const targetRelativeThumbUrl = `${albumId}/thumbs/${thumbFileName}`;
 
                 if (fs.existsSync(currentThumbPath) && currentThumbPath !== targetThumbPath) {
-                    console.log(`[Migrate] Moving thumb ${thumbFileName} -> ${albumId}/thumbs/`);
+                    logger.info(`[Migrate] Moving thumb ${thumbFileName} -> ${albumId}/thumbs/`);
                     fs.renameSync(currentThumbPath, targetThumbPath);
 
                     db.run('UPDATE photos SET thumbnailUrl = ? WHERE id = ?', [
@@ -72,14 +73,14 @@ async function run() {
             }
 
         } catch (err: any) {
-            console.error(`[Error] Failed to migrate photo ${photo.id}:`, err.message);
+            logger.error(`[Error] Failed to migrate photo ${photo.id}:`, err.message);
             errorCount++;
         }
     }
 
-    console.log(`[Maintenance] Completed.`);
-    console.log(`- Migrated: ${migratedCount}`);
-    console.log(`- Errors: ${errorCount}`);
+    logger.info(`[Maintenance] Completed.`);
+    logger.info(`- Migrated: ${migratedCount}`);
+    logger.info(`- Errors: ${errorCount}`);
 
     db.maintenance(); // VACUUM and ANALYZE
     db.close();

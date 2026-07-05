@@ -3,6 +3,7 @@ import { Photographer } from '../../types';
 import { apiService } from '../../services/apiService';
 import FaceEnrollmentSection from './FaceEnrollmentSection';
 import { User, Mail, Camera, Shield } from 'lucide-react';
+import { logger } from '@/utils/logger';
 
 interface AccountSettingsProps {
     currentUser: Photographer;
@@ -24,7 +25,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                 const userData = await apiService.getUser(currentUser.id);
                 setHasFaceRegistered(!!userData.faceDescriptor);
             } catch (err) {
-                console.error('Failed to check face status:', err);
+                logger.error('Failed to check face status:', err);
             } finally {
                 setIsLoading(false);
             }

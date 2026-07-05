@@ -79,12 +79,14 @@ export default async function RootLayout({
         {/* Analytics Scripts - Load conditionally in production when GA ID is set */}
         {process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_GA_ID && (
           <>
-            {/* Google Analytics 4 */}
+            {/* Google Analytics 4 - static script, no user input */}
             <script
               async
               src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
             />
             <script
+              // SECURITY: This is a static GA snippet with no user-controlled data.
+              // The only dynamic value is NEXT_PUBLIC_GA_ID which is a build-time env var.
               dangerouslySetInnerHTML={{
                 __html: `
                   window.dataLayer = window.dataLayer || [];
@@ -99,6 +101,28 @@ export default async function RootLayout({
               }}
             />
           </>
+        )}
+
+        {/* Sentry Error Monitoring - Load in production when DSN is set */}
+        {process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_SENTRY_DSN && (
+          <script
+            // SECURITY: Static Sentry loader script. DSN is a build-time env var.
+            dangerouslySetInnerHTML={{
+              __html: `
+                (function(c,u,v,n,p,m,l,h,q,b,f,k,g,d,e){e=window.Sentry={};e.onLoad=function(a){a()};e.init=function(a){d=a};c=document;u=c.head||c.body||c.documentElement;v="script";n=c.createElement(v);n.async=1;n.crossOrigin="anonymous";n.src="https://browser.sentry-cdn.com/7.100.0/bundle.min.js";n.onload=function(){Sentry.init(d)};u.appendChild(n);})(document);
+                Sentry.onLoad(function() {
+                  Sentry.init({
+                    dsn: "${process.env.NEXT_PUBLIC_SENTRY_DSN}",
+                    environment: "production",
+                    release: "clickflash-website@4.2.0",
+                    tracesSampleRate: 0.1,
+                    replaysSessionSampleRate: 0.01,
+                    replaysOnErrorSampleRate: 1.0,
+                  });
+                });
+              `,
+            }}
+          />
         )}
       </body>
     </html>

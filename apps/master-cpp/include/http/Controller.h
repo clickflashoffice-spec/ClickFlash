@@ -1,21 +1,8 @@
+/// @file Controller.h
+/// @deprecated This Qt-based Controller base class is superseded by drogon::HttpController<T>.
+///   All new controllers inherit from drogon::HttpController<T> directly.
 #pragma once
+#pragma message("WARNING: http/Controller.h is DEPRECATED – use drogon::HttpController<T>")
 
-#include "http/Request.h"
-#include "http/Response.h"
-#include <QString>
-
-namespace ClickFlash {
-
-class Controller {
-public:
-    virtual ~Controller() = default;
-    
-    virtual void handleRequest(const HttpRequest& req, HttpResponse& res) = 0;
-    
-protected:
-    static void sendJsonResponse(HttpResponse& res, const QVariantMap& data);
-    static void sendError(HttpResponse& res, int code, const QString& message);
-    static void sendSuccess(HttpResponse& res, const QString& message = "OK");
-};
-
-} // namespace ClickFlash
+// Original content intentionally removed.
+// See git history for the Qt-based Controller base class.

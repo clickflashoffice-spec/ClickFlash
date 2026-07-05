@@ -19,7 +19,7 @@ const AIChatBot: React.FC = () => {
     },
   ]);
   const [inputValue, setInputValue] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [_isTyping, setIsTyping] = useState(false);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
@@ -36,7 +36,7 @@ const AIChatBot: React.FC = () => {
     setIsTyping(true);
 
     try {
-      const apiUrl = (import.meta as any).env.VITE_API_URL ?? "";
+      const apiUrl = import.meta.env.VITE_API_BASE_URL ?? "";
       const token = localStorage.getItem("authToken") ?? "";
 
       const res = await fetch(`${apiUrl}/api/ai/chat`, {
@@ -52,7 +52,7 @@ const AIChatBot: React.FC = () => {
       });
 
       if (!res.ok) throw new Error(`AI service error: ${res.status}`);
-      const data = await res.json() as any;
+      const data = (await res.json()) as { response?: string };
       const responseText: string = data.response ?? "No response from AI service.";
 
       const aiMsg: Message = {
@@ -62,11 +62,11 @@ const AIChatBot: React.FC = () => {
         timestamp: new Date().toLocaleTimeString(),
       };
       setMessages((prev) => [...prev, aiMsg]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("AI PixelFounder Error:", error);
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
-        text: `Analysis error: ${error.message || "Failed to reach intelligence layer. Check API key permissions or model availability."}`,
+        text: `Analysis error: ${error instanceof Error ? error.message : "Failed to reach intelligence layer. Check API key permissions or model availability."}`,
         sender: "ai",
         timestamp: new Date().toLocaleTimeString(),
       };

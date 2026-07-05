@@ -1,5 +1,5 @@
-import { DatabaseManager } from '../backend/shared/db';
-import { PhotoProcessor } from '../backend/shared/photoProcessor';
+import { DatabaseManager } from '../backend/database/db';
+import { PhotoProcessor } from '../backend/services/photoProcessor';
 import path from 'path';
 import { DATA_DIR as _DATA_DIR, UPLOAD_DIR, DB_FILE } from '../backend/config/constants';
 
@@ -7,7 +7,7 @@ async function verifyFixes() {
     console.log('--- Phase 34: Verification of Import Fixes ---');
 
     const dbManager = new DatabaseManager(DB_FILE);
-    const MIGRATIONS_DIR = path.resolve(__dirname, '../backend/shared/migrations');
+    const MIGRATIONS_DIR = path.resolve(__dirname, '../backend/database/migrations');
 
     try {
         console.log('1. Testing Database Connection & Timeout...');

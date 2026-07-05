@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Login from "./components/Login";
-import ManagementLayout from "./components/management/ManagementLayout";
+const ManagementLayout = React.lazy(() => import("./components/management/ManagementLayout"));
 import { Photographer } from "./types";
 import OfflineScreen from "./components/common/OfflineScreen";
 import { cloudApiService } from "./services/cloudApiService";
@@ -63,7 +63,9 @@ const ManagementPortal: React.FC<ManagementPortalProps> = ({ onExit }) => {
 
   return currentUser ? (
     <StationProvider>
-      <ManagementLayout onLogout={handleLogout} currentUser={currentUser} />
+      <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading Management Portal...</div>}>
+        <ManagementLayout onLogout={handleLogout} currentUser={currentUser} />
+      </Suspense>
     </StationProvider>
   ) : null;
 };

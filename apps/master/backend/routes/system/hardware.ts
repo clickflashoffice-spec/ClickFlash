@@ -1,8 +1,9 @@
 // backend/routes/system/hardware.ts
 import express, { Request, Response, Router } from "express";
-import { Logger } from "../../shared/logger";
-import { sendInternalError } from "../../shared/errorHandler";
-
+import { Logger } from '../../utils/logger';
+import { sendInternalError, sendInvalidInputError } from '../../utils/errorHandler';
+import { strictRateLimiter } from '../../middleware/rateLimiter';
+import { customRoutesSchemas } from '../../utils/validation';
 interface HardwareContext {
   logger: Logger;
   hardwareService?: any;
@@ -100,9 +101,13 @@ export default function hardwareRoutes(context: HardwareContext): Router {
   /**
    * @route POST /print
    */
-  router.post("/print", async (req: Request, res: Response) => {
+  router.post("/print", strictRateLimiter, async (req: Request, res: Response) => {
     try {
-      const { printer, photoPath } = req.body || {};
+      const parsed = customRoutesSchemas.hardwarePrint.safeParse(req.body);
+      if (!parsed.success) {
+        return sendInvalidInputError(res, 'Printer name is required or invalid format');
+      }
+      const { printer, photoPath } = parsed.data;
       if (!context.hardwareService) throw new Error("Hardware service not available");
 
       if (photoPath) {

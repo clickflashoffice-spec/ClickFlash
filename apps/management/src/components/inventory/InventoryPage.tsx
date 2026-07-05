@@ -27,14 +27,14 @@ export default function InventoryPage() {
     queryKey: ["inventory"],
     queryFn: async () => {
       const response = await apiService.getCollection("inventory");
-      return response.items as InventoryItem[];
+      return response.items as unknown as InventoryItem[];
     },
   });
 
   // Mutations
   const createMutation = useMutation({
     mutationFn: (newItem: Omit<InventoryItem, "id" | "updated">) =>
-      apiService.createRecord("inventory", newItem),
+      apiService.createRecord("inventory", newItem as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
       setIsAddModalOpen(false);

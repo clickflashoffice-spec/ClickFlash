@@ -1,6 +1,6 @@
 import { WebSocket } from 'ws';
-import { Logger } from '../shared/logger';
-import DatabaseManager from '../shared/db';
+import { Logger } from '../utils/logger';
+import DatabaseManager from '../database/db';
 import { TABLE_MAP, JSON_COLUMNS, ALLOWED_COLUMNS } from '../config/constants';
 import { z } from 'zod';
 import crypto from 'crypto';
@@ -162,7 +162,7 @@ export class SyncManager {
                 const parsed = { ...r };
                 jsonCols.forEach(c => {
                     if (parsed[c] && typeof parsed[c] === 'string') {
-                        try { parsed[c] = JSON.parse(parsed[c]); } catch (e) {
+                        try { parsed[c] = JSON.parse(parsed[c]); } catch (e: any) {
                             this.logger?.warn(`[SyncManager] Failed to parse JSON column ${c}`, { error: e instanceof Error ? e.message : String(e) });
                         }
                     }
@@ -219,7 +219,7 @@ export class SyncManager {
         const validation = mutationPayloadSchema.safeParse({ entity, action, data, clientId, vectorClock });
         if (!validation.success) {
             this.logger.warn(`[SyncManager] Validation failed for mutation from ${clientId}`, {
-                errors: validation.error.errors.map(e => e.message)
+                errors: (validation.error as any).errors?.map((e: any) => e.message)
             });
             return { status: 'INVALID' };
         }
@@ -269,7 +269,7 @@ export class SyncManager {
                     if (Array.isArray(items) && items.length > 0 && items[0].albumId) {
                         rowData.albumId = items[0].albumId;
                     }
-                } catch (e) {
+                } catch (e: any) {
                     this.logger.warn(`[SyncManager] Failed to extract albumId from order items: ${e instanceof Error ? e.message : String(e)}`);
                 }
             }
@@ -287,7 +287,7 @@ export class SyncManager {
                                 ? JSON.parse(existing.vector_clock) 
                                 : existing.vector_clock;
                         }
-                    } catch (e) {
+                    } catch (e: any) {
                         existingVC = {};
                     }
 

@@ -4,6 +4,7 @@
  */
 
 import { EventEmitter } from "../utils/EventEmitter";
+import { logger } from '@/utils/logger';
 
 interface AlertRule {
   id: string;
@@ -38,7 +39,7 @@ interface Alert {
   ruleName: string;
   severity: AlertRule["severity"];
   message: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   status: "active" | "acknowledged" | "resolved" | "suppressed";
   triggeredAt: Date;
   acknowledgedAt?: Date;
@@ -85,7 +86,7 @@ class AlertingService extends EventEmitter {
   private alerts: Map<string, Alert> = new Map();
   private notifications: Map<string, Notification> = new Map();
   private escalationPolicies: Map<string, EscalationPolicy> = new Map();
-  private ruleTimers: Map<string, any> = new Map();
+  private ruleTimers: Map<string, ReturnType<typeof setInterval>> = new Map();
 
   /**
    * Create a new alert rule
@@ -197,7 +198,7 @@ class AlertingService extends EventEmitter {
   /**
    * Get metric value (simulated)
    */
-  private async getMetricValue(metric: string): Promise<number> {
+  private async getMetricValue(_metric: string): Promise<number> {
     // In real implementation, fetch from monitoring system
     return Math.random() * 100;
   }
@@ -263,28 +264,28 @@ class AlertingService extends EventEmitter {
   private async sendToChannel(
     channel: string,
     alert: Alert,
-    rule: AlertRule,
+    _rule: AlertRule,
   ): Promise<void> {
     switch (channel) {
       case "email":
         // Send email via SMTP
-        console.log(`[Alerting] Email sent: ${alert.message}`);
+        logger.info(`[Alerting] Email sent: ${alert.message}`);
         break;
       case "sms":
         // Send SMS via Twilio/similar
-        console.log(`[Alerting] SMS sent: ${alert.message}`);
+        logger.info(`[Alerting] SMS sent: ${alert.message}`);
         break;
       case "push":
         // Send push notification
-        console.log(`[Alerting] Push sent: ${alert.message}`);
+        logger.info(`[Alerting] Push sent: ${alert.message}`);
         break;
       case "slack":
         // Send to Slack webhook
-        console.log(`[Alerting] Slack message sent: ${alert.message}`);
+        logger.info(`[Alerting] Slack message sent: ${alert.message}`);
         break;
       case "webhook":
         // POST to webhook URL
-        console.log(`[Alerting] Webhook called: ${alert.message}`);
+        logger.info(`[Alerting] Webhook called: ${alert.message}`);
         break;
     }
   }
@@ -309,7 +310,7 @@ class AlertingService extends EventEmitter {
       alert.escalationLevel = currentLevel;
 
       // Send to next level recipients
-      for (const recipient of level.recipients) {
+      for (const _recipient of level.recipients) {
         this.sendToChannel(level.channels[0], alert, this.rules.get(ruleId)!);
       }
 

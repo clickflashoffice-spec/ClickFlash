@@ -206,8 +206,8 @@ export default [
         // Storage
         Storage: "readonly",
 
-        // jest globals (for test files)
-        jest: "readonly",
+        // Vitest globals (for test files)
+        vi: "readonly",
         describe: "readonly",
         it: "readonly",
         test: "readonly",
@@ -228,7 +228,7 @@ export default [
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": [
         "warn",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
       ],
 
       // React
@@ -292,7 +292,7 @@ export default [
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": [
         "warn",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
       ],
       "no-console": "off", // Backend uses console for structured logging
       "no-unused-vars": "off",
@@ -329,7 +329,7 @@ export default [
       "no-console": "off",
       "no-unused-vars": [
         "warn",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
       ],
       "no-undef": "off", // Node globals handled above
     },

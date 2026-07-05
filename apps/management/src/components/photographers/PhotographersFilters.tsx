@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, X, Filter } from "lucide-react";
+import {X, Filter} from "lucide-react";
 
 interface PhotographersFiltersProps {
   startDate: string;

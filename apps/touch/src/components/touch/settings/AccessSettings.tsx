@@ -17,8 +17,8 @@ export const AccessSettings: React.FC<AccessSettingsProps> = ({ settings, handle
                         <span className="font-bold block text-slate-700 dark:text-slate-200">RFID Login</span>
                         <span className="text-xs text-slate-500">Tap bracelet to login.</span>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer" aria-label="Enable RFID Login">
-                        <input type="checkbox" name="enableRFID" checked={!!settings.enableRFID} onChange={handleCheckboxChange} className="sr-only peer" aria-label="Enable RFID Login" title="Enable RFID Login" />
+                    <label className="relative inline-flex items-center cursor-pointer" aria-label="Enable RFID Login" data-testid="settings-enable-rfid-toggle">
+                        <input type="checkbox" name="enableRFID" checked={!!settings.enableRFID} onChange={handleCheckboxChange} data-testid="settings-enable-rfid-checkbox" className="sr-only peer" aria-label="Enable RFID Login" title="Enable RFID Login" />
                         <div className="w-11 h-6 bg-slate-200 rounded-full peer dark:bg-slate-600 peer-checked:bg-blue-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                     </label>
                 </div>

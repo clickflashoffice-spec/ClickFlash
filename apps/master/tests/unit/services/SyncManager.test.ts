@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { SyncManager } from '../../../backend/services/SyncManager';
-import { Logger } from '../../../backend/shared/logger';
+import { Logger } from '../../../backend/utils/logger';
 
 describe('SyncManager', () => {
   let mockLogger: Logger;

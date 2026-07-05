@@ -119,7 +119,7 @@ export const SimplifiedSidebar: React.FC<SimplifiedSidebarProps> = ({
   currentUser,
 }) => {
   const [expandedTab, setExpandedTab] = useState<TabId>("dashboard");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [_isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Determine which tab contains the current view
   const activeTab =

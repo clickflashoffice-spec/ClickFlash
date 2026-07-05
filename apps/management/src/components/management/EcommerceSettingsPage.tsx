@@ -126,7 +126,7 @@ const EcommerceSettingsPage: React.FC = () => {
 
     try {
       await apiService.updateProduct(product.id, updatedProduct);
-    } catch (error) {
+    } catch {
       setProducts(originalProducts);
       alert("Failed to update product status.");
     }

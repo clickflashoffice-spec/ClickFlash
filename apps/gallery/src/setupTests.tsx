@@ -5,7 +5,26 @@
  */
 
 import '@testing-library/jest-dom';
+import 'whatwg-fetch';
 import { TextEncoder, TextDecoder } from 'util';
+
+// Mock PocketBase globally to prevent import.meta.env parse errors
+jest.mock('@/services/pb');
+
+// Mock matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
 
 // ============================================================================
 // Polyfills
@@ -46,49 +65,16 @@ class MockCanvasContext {
   clip = jest.fn();
 }
 
-Object.defineProperty(global, 'HTMLCanvasElement', {
-  value: class HTMLCanvasElement {
-    getContext = jest.fn(() => new MockCanvasContext());
-    toDataURL = jest.fn();
-  },
-});
+if (typeof HTMLCanvasElement !== 'undefined') {
+  HTMLCanvasElement.prototype.getContext = jest.fn(() => new MockCanvasContext() as any) as any;
+  HTMLCanvasElement.prototype.toDataURL = jest.fn() as any;
+}
 
 // ============================================================================
 // PocketBase Service Mock — prevents import.meta.env syntax errors in Jest
 // ============================================================================
 
-jest.mock('./services/pb', () => ({
-  pb: {
-    collection: () => ({
-      getList: jest.fn(),
-      getOne: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      subscribe: jest.fn(),
-      unsubscribe: jest.fn(),
-    }),
-    authStore: {
-      token: '',
-      model: null,
-      isValid: jest.fn(() => false),
-      onChange: jest.fn(),
-    },
-    authWithPassword: jest.fn(),
-    authRefresh: jest.fn(),
-    logout: jest.fn(),
-  },
-  isCloudMode: true,
-  default: {
-    collection: () => ({
-      getList: jest.fn(),
-      getOne: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-    }),
-  },
-}));
+
 
 // ============================================================================
 // Logger Mock — prevents import.meta syntax errors in Jest

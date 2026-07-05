@@ -1,0 +1,20 @@
+appId: com.clickflash.license-generator
+productName: ClickFlash License Generator
+copyright: Copyright © 2026 ClickFlash Studio
+
+files:
+  - dist/renderer/**/*
+  - dist/main.js
+
+win:
+  target:
+    - nsis
+
+nsis:
+  oneClick: false
+  perMachine: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+
+directories:
+  output: release

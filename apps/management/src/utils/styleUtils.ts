@@ -1,4 +1,5 @@
 import { ManualEdits } from '../types';
+import type { CSSProperties } from 'react';
 
 export const INITIAL_EDITS: ManualEdits = {
     exposure: 0,
@@ -29,7 +30,7 @@ export const getPhotoStyle = (edits: ManualEdits) => {
     const {
         exposure = 0, contrast = 0, highlights = 0, shadows = 0,
         saturate = 0, vibrance = 0, grayscale = 0, sepia = 0, invert = 0,
-        hueRotate = 0, temperature = 0, tint = 0, whites = 0, blacks = 0,
+        hueRotate = 0, temperature = 0, whites = 0, blacks = 0,
         soften = 0, rotate = 0, straighten = 0, perspectiveX = 0, perspectiveY = 0,
         clarity = 0, dropShadow = 0, vignette = 0
     } = edits;
@@ -98,11 +99,11 @@ export const getPhotoStyle = (edits: ManualEdits) => {
         transformStr = 'none';
     }
 
-    const res: any = {
+    const res: CSSProperties = {
         filter: filters.join(' '),
         transform: transformStr,
         transition: 'filter 0.2s ease-out, transform 0.2s ease-out',
-        position: 'relative' as 'relative'
+        position: 'relative'
     };
 
     if (vignette !== 0) {

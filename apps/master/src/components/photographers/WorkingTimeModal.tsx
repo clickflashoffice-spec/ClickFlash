@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal.tsx';
 import { Photographer, WorkingHours, DayOfWeek, DayWorkingHours } from '../../types.ts';
+import { logger } from '@/utils/logger';
 
 interface WorkingTimeModalProps {
     isOpen: boolean;
@@ -76,7 +77,7 @@ const WorkingTimeModal: React.FC<WorkingTimeModalProps> = ({ isOpen, onClose, ph
                     ? JSON.parse(photographer.workingHoursJSON)
                     : photographer.workingHoursJSON;
             } catch (e) {
-                console.error("Failed to parse workingHoursJSON:", e);
+                logger.error("Failed to parse workingHoursJSON:", e);
                 return undefined;
             }
         }
@@ -97,7 +98,7 @@ const WorkingTimeModal: React.FC<WorkingTimeModalProps> = ({ isOpen, onClose, ph
                     : photographer.workingHoursJSON;
                 setWorkingHours(parsed);
             } catch (e) {
-                console.error("Failed to parse workingHoursJSON in useEffect:", e);
+                logger.error("Failed to parse workingHoursJSON in useEffect:", e);
                 setWorkingHours(undefined);
             }
         } else {
@@ -128,7 +129,7 @@ const WorkingTimeModal: React.FC<WorkingTimeModalProps> = ({ isOpen, onClose, ph
             await onSave(photographer.id, workingHours);
             onClose();
         } catch (error) {
-            console.error("Failed to save working hours:", error);
+            logger.error("Failed to save working hours:", error);
             // Optionally add error state/notification here
         } finally {
             setLoading(false);

@@ -3,7 +3,6 @@ import { Order, Photographer } from "../types.ts";
 import OrderEditModal from "./modals/OrderEditModal.tsx";
 import { useCurrency } from "./CurrencyContext.tsx";
 import { usePermissions } from "../hooks/usePermissions.ts";
-import Card from "./common/Card.tsx";
 import OrdersBoard from "./orders/OrdersBoard.tsx";
 import { useDebounce } from "../hooks/useDebounce.ts";
 import { OrderCardSkeleton, ListItemSkeleton } from "./common/Skeleton.tsx";
@@ -132,7 +131,7 @@ const Orders: React.FC<OrdersProps> = ({
       });
       setSelectedOrder(null);
       showToast(`Order ${updatedOrder.id} has been updated.`);
-    } catch (err) {
+    } catch {
       showToast(`Error: Failed to update order.`);
     }
   };
@@ -148,7 +147,7 @@ const Orders: React.FC<OrdersProps> = ({
         data: { status: newStatus },
       });
       showToast(`Order ${orderId} marked as ${newStatus}.`);
-    } catch (error) {
+    } catch {
       showToast("Error updating order status.");
     }
   };
@@ -198,9 +197,8 @@ const Orders: React.FC<OrdersProps> = ({
     );
 
     return (
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       <div
-        style={style as any}
+        style={style as React.CSSProperties}
         className="flex border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group"
         onClick={() => setSelectedOrder(order)}
       >

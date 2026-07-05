@@ -1,6 +1,6 @@
 import Dexie, { Table } from 'dexie';
 import { Album, Order } from '../types';
-import { QueueItem } from './OfflineQueueV2';
+import type { QueueItem } from './OfflineQueue';
 import { AnalyticsEvent, Session } from './offlineAnalytics';
 
 export interface SyncCheckpointRecord {
@@ -33,6 +33,7 @@ export class StarTouchDB extends Dexie {
     analyticsSessions!: Table<Session>;
     checkpoints!: Table<SyncCheckpointRecord>;
     conflicts!: Table<SyncConflictRecord>;
+    files!: Table<{ id: string, data: Blob }>;
 
     constructor() {
         super('StarTouchDB');
@@ -78,6 +79,18 @@ export class StarTouchDB extends Dexie {
             analyticsSessions: 'id, startTime, kioskId',
             checkpoints: 'id, timestamp',
             conflicts: 'id, orderId, detectedAt, resolved'
+        });
+
+        // Version 6: Add files table for fallback storage
+        this.version(6).stores({
+            albums: 'id, date, roomNumber',
+            orders: 'id, timestamp, status',
+            offlineQueue: 'id, status, timestamp, priority',
+            analyticsEvents: 'id, type, name, timestamp, sessionId, synced',
+            analyticsSessions: 'id, startTime, kioskId',
+            checkpoints: 'id, timestamp',
+            conflicts: 'id, orderId, detectedAt, resolved',
+            files: 'id'
         });
     }
 }

@@ -50,7 +50,7 @@ export const pbManagement = {
       });
       return response.ok;
     } catch (e) {
-      console.error("Cloud connection test failed:", e);
+      logger.error("Cloud connection test failed:", e);
       return false;
     }
   },
@@ -302,7 +302,7 @@ export const pbManagement = {
       try {
         await pb.collections.getOne(col.name);
         results.push({ name: col.name, status: "Exists" });
-      } catch (e) {
+      } catch (_e) {
         try {
           await pb.collections.create(col);
           results.push({ name: col.name, status: "Created" });
@@ -343,7 +343,7 @@ export const pbManagement = {
 
       const authData = await authResponse.json();
       authToken = authData.token;
-    } catch (e) {
+    } catch (_e) {
       throw new Error("Authentication failed. Check Server URL and API Key.");
     }
 

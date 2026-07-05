@@ -1,6 +1,7 @@
 import { pb } from '../pb';
 import { CollectionOptions } from '../pbTypes';
 import { DailyObjective } from '../../types';
+import { logger } from '@/utils/logger';
 
 export const objectiveService = {
     // Get all objectives (optionally filtered by photographer)
@@ -14,7 +15,7 @@ export const objectiveService = {
             const records = await pb.collection('daily_objectives').getFullList(params);
             return records as unknown as DailyObjective[];
         } catch (error) {
-            console.error('Error fetching objectives:', error);
+            logger.error('Error fetching objectives:', error);
             return [];
         }
     },
@@ -49,7 +50,7 @@ export const objectiveService = {
                 }) as unknown as DailyObjective;
             }
         } catch (err) {
-            console.error('Set objective error:', err);
+            logger.error('Set objective error:', err);
             throw err;
         }
     },

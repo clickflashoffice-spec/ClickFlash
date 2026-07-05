@@ -12,10 +12,10 @@ export interface DiscoveredMaster {
 }
 
 export class TouchMdnsDiscovery {
-  private bonjour: Bonjour;
+  private bonjour: any;
   private logger: Logger;
-  private service?: ReturnType<Bonjour["publish"]>
-  private browser?: ReturnType<Bonjour["find"]>
+  private service?: any;
+  private browser?: any;
   private masters: DiscoveredMaster[] = []
 
   constructor(logger: Logger) {
@@ -40,7 +40,7 @@ export class TouchMdnsDiscovery {
 
   browseForMasters(callback: (masters: DiscoveredMaster[]) => void): void {
     this.browser = this.bonjour.find({ type: "clickflash" });
-    this.browser.on("up", async (service) => {
+    this.browser.on("up", async (service: any) => {
       const txt = service.txt as Record<string, string>;
       const master: DiscoveredMaster = {
         name: service.name,
@@ -59,7 +59,7 @@ export class TouchMdnsDiscovery {
       this.masters.sort((a, b) => (a.latencyMs || Infinity) - (b.latencyMs || Infinity));
       callback([...this.masters]);
     });
-    this.browser.on("down", (service) => {
+    this.browser.on("down", (service: any) => {
       this.masters = this.masters.filter((m) => m.name !== service.name);
       callback([...this.masters]);
     });

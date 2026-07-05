@@ -323,7 +323,7 @@ export const pbManagement = {
       try {
         await pb.collections.getOne(col.name);
         results.push({ name: col.name, status: "Exists" });
-      } catch (e) {
+      } catch {
         try {
           await pb.collections.create(col);
           results.push({ name: col.name, status: "Created" });
@@ -363,7 +363,7 @@ export const pbManagement = {
 
       const authData = await authResponse.json();
       authToken = authData.token;
-    } catch (e) {
+    } catch {
       throw new Error("Authentication failed. Check Server URL and API Key.");
     }
 
@@ -710,7 +710,7 @@ export const pbManagement = {
     authToken: string,
   ): Promise<boolean> {
     try {
-      console.log(`[pbManagement] Force pushing ${collectionName}...`);
+      logger.info(`[pbManagement] Force pushing ${collectionName}...`);
       const records = await pb.collection(collectionName).getFullList();
 
       for (const record of records) {
@@ -733,7 +733,7 @@ export const pbManagement = {
               record,
             );
           }
-        } catch (err) {
+        } catch {
           console.error(
             `Failed to push record ${record.id} in ${collectionName}`,
           );

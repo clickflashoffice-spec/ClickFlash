@@ -90,7 +90,7 @@ export const Modal = memo(({
         ref={modalRef}
         className={twMerge(
           clsx(
-            'relative w-full rounded-3xl flex flex-col overflow-hidden transition-all duration-500 scale-100',
+            'relative w-full rounded-3xl flex flex-col overflow-hidden transition-all duration-500 scale-100 max-h-[85vh]',
             sizeClasses[size],
             variantStyles[variant]
           )

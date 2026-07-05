@@ -3,11 +3,11 @@ import { ShootIdea, PhotoCategory } from "../types.ts";
 // All Gemini calls are proxied through the management backend worker.
 // The GOOGLE_API_KEY lives as a wrangler secret — never in the browser bundle.
 
-const API = (import.meta as any).env.VITE_API_URL ?? "";
+const API = import.meta.env.VITE_API_BASE_URL ?? "";
 
 const authHeaders = (): Record<string, string> => ({
   "Content-Type": "application/json",
-  Authorization: `Bearer ${localStorage.getItem("authToken") ?? ""}`,
+  Authorization: `Bearer ${sessionStorage.getItem("authToken") ?? ""}`,
 });
 
 /**
@@ -25,7 +25,7 @@ export async function generateShootIdeas(
       body: JSON.stringify({ location, theme, expertise: photographerExpertise }),
     });
     if (!res.ok) throw new Error(`Backend error: ${res.status}`);
-    const data = await res.json() as any;
+    const data = (await res.json()) as { ideas?: ShootIdea[] };
     return data.ideas ?? [];
   } catch (error) {
     console.error("Error generating shoot ideas:", error);
@@ -73,7 +73,12 @@ export async function generateAlbumSuggestions(
       body: JSON.stringify({ images, categories: availableCategories }),
     });
     if (!res.ok) throw new Error(`Backend error: ${res.status}`);
-    const d = await res.json() as any;
+    const d = (await res.json()) as {
+      title?: string;
+      description?: string;
+      categories?: PhotoCategory[];
+      coverPhotoIndex?: number;
+    };
     return {
       title: d.title ?? defaults.title,
       description: d.description ?? defaults.description,
@@ -89,7 +94,7 @@ export async function generateAlbumSuggestions(
 /**
  * Generates an end-of-week/month revenue forecast.
  */
-export async function generateSalesForecast(metrics: any): Promise<{
+export async function generateSalesForecast(metrics: Record<string, unknown>): Promise<{
   end_of_week_revenue: number;
   end_of_month_revenue: number;
   insights: string[];
@@ -101,7 +106,11 @@ export async function generateSalesForecast(metrics: any): Promise<{
       body: JSON.stringify({ metrics }),
     });
     if (!res.ok) throw new Error(`Backend error: ${res.status}`);
-    const d = await res.json() as any;
+    const d = (await res.json()) as {
+      end_of_week_revenue?: number;
+      end_of_month_revenue?: number;
+      insights?: string[];
+    };
     return {
       end_of_week_revenue: d.end_of_week_revenue ?? 0,
       end_of_month_revenue: d.end_of_month_revenue ?? 0,

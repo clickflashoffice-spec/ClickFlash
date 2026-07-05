@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { AssistanceRequest } from "../../types";
+import { logger } from '@/utils/logger';
 
 interface AssistanceNotificationBarProps {
   assistanceRequests: AssistanceRequest[];
@@ -29,7 +30,7 @@ const AssistanceNotificationBar: React.FC<AssistanceNotificationBarProps> = ({
 
         await Promise.race([onDismiss(id), timeoutPromise]);
       } catch (error) {
-        console.error("Failed to dismiss assistance request:", error);
+        logger.error("Failed to dismiss assistance request:", error);
       } finally {
         setDismissingIds((prev) => {
           const next = new Set(prev);

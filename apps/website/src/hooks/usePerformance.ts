@@ -289,6 +289,7 @@ export function usePerformance(options: {
         value,
         rating: getRating(value, WEB_VITALS_THRESHOLDS.TTFB),
       };
+      // TTFB is derived from a one-time navigation entry and stored as a metric
       updateMetric(metric);
     }
   }, [updateMetric]);
@@ -453,7 +454,6 @@ export function usePerformance(options: {
     metrics,
     observeElement,
     getPerformanceScore,
-    isPerformanceGood: getPerformanceScore() >= 90,
   };
 }
 
@@ -490,6 +490,7 @@ export function useDeviceCapabilities() {
       hasWebGL = false;
     }
 
+    // initial client-only capability probe
     setCapabilities({
       isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent

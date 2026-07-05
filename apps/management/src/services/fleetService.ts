@@ -1,4 +1,5 @@
 import { cloudApiService } from "./cloudApiService";
+import type { Order } from "../types.ts";
 
 export interface FleetStatus {
   total: number;
@@ -296,7 +297,7 @@ class FleetService {
   // Macro-Economic CEO Overview
   calculateGlobalNetworkMetrics(
     stations: MasterStation[],
-    allOrders: any[] = [],
+    allOrders: Order[] = [],
   ) {
     const activeStations = stations.filter((s) => s.status === "online").length;
     const warningStations = stations.filter(

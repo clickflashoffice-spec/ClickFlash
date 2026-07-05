@@ -183,7 +183,7 @@ export const faceRecognitionService = {
     referencePhoto: Blob,
     allPhotos: Photo[],
   ): Promise<Photo[]> {
-    console.warn(
+    logger.warn(
       "[FaceRecognition] findMatches is deprecated. Use searchFaces or searchByFace instead.",
     );
     return this.searchFaces(referencePhoto);

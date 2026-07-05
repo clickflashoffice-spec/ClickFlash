@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { logger } from '../utils/logger';
 
 let stripeInstance: Stripe | null = null;
 
@@ -6,10 +7,11 @@ const getStripe = () => {
     if (!stripeInstance) {
         const apiKey = process.env.STRIPE_SECRET_KEY;
         if (!apiKey || apiKey === 'sk_test_placeholder_key_for_dev_backup') {
-            console.warn('[StripeService] Warning: Using placeholder or missing STRIPE_SECRET_KEY');
+            logger.warn('[StripeService] Warning: Using placeholder or missing STRIPE_SECRET_KEY');
         }
         stripeInstance = new Stripe(apiKey || '', {
-            apiVersion: '2026-02-25.clover'
+            // @ts-ignore
+apiVersion: "2026-02-25.clover" as any
         });
     }
     return stripeInstance;
@@ -27,6 +29,7 @@ export interface CheckoutSessionParams {
     successUrl: string;
     cancelUrl: string;
     currency?: string;
+    tipAmount?: number;
 }
 
 /**
@@ -35,7 +38,7 @@ export interface CheckoutSessionParams {
 export const createCheckoutSession = async (
     params: CheckoutSessionParams
 ): Promise<Stripe.Checkout.Session> => {
-    const { orderId, items, customerEmail, successUrl, cancelUrl, currency: rawCurrency } = params;
+    const { orderId, items, customerEmail, successUrl, cancelUrl, currency: rawCurrency, tipAmount } = params;
 
     // Validate currency — Stripe ISO 4217 lowercase codes
     const ALLOWED_CURRENCIES = ['eur', 'usd', 'gbp', 'tnd'];
@@ -55,6 +58,21 @@ export const createCheckoutSession = async (
         },
         quantity: item.quantity
     }));
+
+    // Add Tip line item if provided
+    if (tipAmount && tipAmount > 0) {
+        lineItems.push({
+            price_data: {
+                currency,
+                product_data: {
+                    name: 'Photographer Gratuity',
+                    description: 'Thank you for supporting our photographers!'
+                },
+                unit_amount: Math.round(tipAmount * 100) // Convert to cents
+            },
+            quantity: 1
+        });
+    }
 
     // Create Checkout Session — idempotencyKey prevents double-charging on
     // network retries; key is stable per orderId so a duplicate request is a no-op.

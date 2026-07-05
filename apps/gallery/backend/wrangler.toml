@@ -5,14 +5,35 @@ main = "src/server.ts"
 compatibility_date = "2024-10-01"
 compatibility_flags = ["nodejs_compat"]
 
-# [env.staging]
-# name = "gallery-backend-staging"
-# [[env.staging.d1_databases]]
-# binding = "GALLERY_DB"
-# database_name = "gallery-db-staging"
-# database_id = "STAGING_ID_HERE"
+[env.staging]
+name = "gallery-backend-staging"
 
-# [env.production]
+[[env.staging.d1_databases]]
+binding = "GALLERY_DB"
+database_name = "gallery-db-staging"
+database_id = "STAGING_GALLERY_DB_ID_HERE"
+
+[[env.staging.d1_databases]]
+binding = "WEBSITE_DB"
+database_name = "clickflash-website-db-staging"
+database_id = "STAGING_WEBSITE_DB_ID_HERE"
+
+[[env.staging.r2_buckets]]
+binding = "GALLERY_BUCKET"
+bucket_name = "clickflash-gallery-assets-staging"
+
+[env.staging.vars]
+NODE_ENV = "staging"
+ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:8090"
+DEPLOY_ENV = "staging"
+GEO_RESTRICTED = "false"
+ALLOWED_COUNTRIES = ""
+WAF_RATE_LIMIT = "1000/min"
+SENTRY_PROJECT = "clickflash-gallery-staging"
+# Staging secrets:
+# wrangler secret put JWT_SECRET --env staging
+# wrangler secret put STRIPE_SECRET_KEY --env staging
+
 [[d1_databases]]
 binding = "GALLERY_DB"
 database_name = "gallery-db"
@@ -42,7 +63,6 @@ SENTRY_PROJECT = "clickflash-gallery"
 # wrangler secret put JWT_SECRET --env production
 # wrangler secret put STRIPE_SECRET_KEY --env production
 # wrangler secret put STRIPE_WEBHOOK_SECRET --env production
-# wrangler secret put SENTRY_DSN --env production
 
 [triggers]
 crons = ["0 * * * *"]  # Every hour — abandoned cart recovery emails

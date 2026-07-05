@@ -3,8 +3,6 @@
  * Post-installation verification of all system components
  */
 
-import http from "http";
-
 export interface HealthCheckConfig {
   masterPort: number;
   touchPort: number;

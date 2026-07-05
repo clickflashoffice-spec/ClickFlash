@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
-import { validateImageMagicNumber } from '../../shared/validateImage';
+import { validateImageMagicNumber } from '../../services/validateImage';
 
 describe('validateImage', () => {
   const testDir = path.join(__dirname, 'testFiles');
@@ -36,10 +36,8 @@ describe('validateImage', () => {
 
   it('should accept valid JPEG header', async () => {
     const validJpg = path.join(testDir, 'valid.jpg');
-    const jpegHeader = Buffer.from([
-      0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
-    ]);
-    fs.writeFileSync(validJpg, jpegHeader);
+    const jpegBuffer = Buffer.from('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=', 'base64');
+    fs.writeFileSync(validJpg, jpegBuffer);
 
     const result = await validateImageMagicNumber(validJpg);
     

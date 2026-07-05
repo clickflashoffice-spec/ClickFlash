@@ -1,11 +1,11 @@
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
 import { CloudSyncService } from "./cloudSyncService";
 import { FulfillmentService } from "./FulfillmentService";
 import { UPLOAD_DIR } from "../config/constants";
 import path from "path";
 import fs from "fs";
-import { PhotoProcessor } from "../shared/photoProcessor";
+import { PhotoProcessor } from '../services/photoProcessor';
 import { TransferService } from "./TransferService";
 
 export class QueueProcessor {

@@ -1,10 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
-import { Logger } from '../../shared/logger';
-import DatabaseManager from '../../shared/db';
+import { Logger } from '../../utils/logger';
+import DatabaseManager from '../../database/db';
 import { DeploymentStateMachine, ProvisioningContext, DeploymentResult } from './DeploymentStateMachine';
-import { HardwareService } from '../../shared/hardwareService';
+import { HardwareService } from '../../services/SystemHardwareService';
 
 const BootstrapConfigSchema = z.object({
     locationName: z.string().min(1, 'locationName is required'),

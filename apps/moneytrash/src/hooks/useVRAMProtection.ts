@@ -161,6 +161,7 @@ export function useVRAMProtection(config: Partial<VRAMConfig> = {}) {
     revokePreview,
     clearAllPreviews,
     isMemoryPressureHigh,
+    // eslint-disable-next-line react-hooks/refs
     memoryPressure: memoryPressure.current,
     config: fullConfig,
   };

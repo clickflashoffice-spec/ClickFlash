@@ -99,7 +99,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
     try {
       if (isNewUser) {
         // Create user WITH password
-        const newUserData: any = { ...user };
+        const newUserData: Partial<Photographer> & { password?: string } = { ...user };
         // Remove null values for numeric fields
         if (newUserData.monthlySalary === null)
           delete newUserData.monthlySalary;
@@ -117,7 +117,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
         await apiService.createUser(newUserData);
       } else {
         // Update user - only send fields that are defined and should be updated
-        const updates: any = {};
+        const updates: Partial<Photographer> & { password?: string } = {};
 
         // Only include fields that are defined (not undefined) and not null
         if (user.name !== undefined && user.name !== null)
@@ -169,7 +169,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
         errorMessage = err.message;
         // Check if it's a network error
         if (
-          (err as any).isNetworkError ||
+          (err as Error & { isNetworkError?: boolean }).isNetworkError ||
           err.message.includes("Failed to fetch") ||
           err.message.includes("Cannot connect")
         ) {

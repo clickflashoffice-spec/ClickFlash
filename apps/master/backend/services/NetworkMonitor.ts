@@ -1,5 +1,5 @@
 import os from "os";
-import { Logger } from "../shared/logger";
+import { Logger } from '../utils/logger';
 
 interface TransferEvent {
   timestamp: number;

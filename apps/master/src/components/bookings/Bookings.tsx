@@ -6,6 +6,7 @@ import Spinner from "../common/Spinner.tsx";
 import BookingEditModal from "./BookingEditModal";
 import BookingCalendar from "./BookingCalendar";
 import { useDebounce } from "../../hooks/useDebounce.ts";
+import { logger } from '@/utils/logger';
 
 interface BookingsProps {
   showToast: (message: string) => void;
@@ -67,7 +68,7 @@ const Bookings: React.FC<BookingsProps> = ({ showToast, refreshTrigger }) => {
         setPhotographers(photographersData);
         setSessionTypes(sessionsData);
       } catch (error) {
-        console.error("Failed to fetch booking data", error);
+        logger.error("Failed to fetch booking data", error);
         setError("Failed to load bookings. Please try again.");
       } finally {
         setLoading(false);

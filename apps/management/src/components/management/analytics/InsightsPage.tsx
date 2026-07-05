@@ -12,6 +12,7 @@ import {
 import { cloudApiService } from "../../../services/cloudApiService";
 import { apiService } from "../../../services/apiService";
 import Spinner from "../../common/Spinner";
+import type { Expense } from "../../../types";
 
 interface PhotographerAudit {
   id: string;
@@ -78,7 +79,7 @@ const InsightsPage: React.FC = () => {
                 dailyExpenses.forEach((exp) => {
                   const pIds = exp.photographerIds || [];
                   // Handle older records that might still have `photographerId` string
-                  const legacyId = (exp as any).photographerId;
+                  const legacyId = (exp as Expense & { photographerId?: string }).photographerId;
 
                   if (pIds.includes(pa.photographer_id) && pIds.length > 0) {
                     myExpenses += exp.cost / pIds.length;
@@ -104,9 +105,9 @@ const InsightsPage: React.FC = () => {
         } else {
           setHotels([]);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to fetch location audits", err);
-        setError(err.message || "Failed to load location audits.");
+        setError(err instanceof Error ? err.message : "Failed to load location audits.");
       } finally {
         setLoading(false);
       }

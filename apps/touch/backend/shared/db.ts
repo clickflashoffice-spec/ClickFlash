@@ -2,6 +2,8 @@
 import Database, { Database as DatabaseType } from 'better-sqlite3-multiple-ciphers';
 import path from 'path';
 import fs from 'fs';
+import { Logger } from '../shared/logger';
+const logger = new Logger('logs');
 
 interface Migration {
     id: number;
@@ -25,7 +27,32 @@ export class DatabaseManager {
                 fs.mkdirSync(dir, { recursive: true });
             }
 
+            // Track whether the DB file pre-existed so we know if encryption is safe to apply.
+            const dbAlreadyExists = fs.existsSync(this.dbPath);
+
             this.db = new Database(this.dbPath);
+
+            // Encryption — enabled when DB_ENCRYPTION_KEY env var is present AND the
+            // database is newly created.  Applying a key to an existing plaintext
+            // SQLite file causes SQLCipher to mis-interpret the data on every read,
+            // which crashes the backend.  Existing databases must be migrated manually
+            // (export → delete → reimport with encryption) to gain at-rest encryption.
+            // Mirrors the Master backend policy in apps/master/backend/shared/db.ts.
+            const encKey = process.env.DB_ENCRYPTION_KEY;
+            if (encKey) {
+                if (!/^[0-9a-fA-F]{64}$/.test(encKey)) {
+                    throw new Error('[Database] FATAL: DB_ENCRYPTION_KEY must be 64 hex characters (256-bit).');
+                }
+                if (!dbAlreadyExists) {
+                    this.db.pragma(`key = "x'${encKey}'"`);
+                    logger.info('[Database] Encryption enabled (SQLCipher) — new database.');
+                } else {
+                    logger.warn('[Database] DB_ENCRYPTION_KEY set but existing database detected — skipping encryption pragma to preserve compatibility. Delete the database file and restart to enable at-rest encryption.');
+                }
+            } else {
+                logger.warn('[Database] DB_ENCRYPTION_KEY not set — database is stored unencrypted at rest. Set this in .env for production.');
+            }
+
             // WAL mode is essential for concurrent read/write and visibility on Windows
             this.db.pragma('journal_mode = WAL');
             this.db.pragma('synchronous = NORMAL'); // Recommended for WAL
@@ -33,7 +60,7 @@ export class DatabaseManager {
             this.db.pragma('temp_store = MEMORY');
             this.db.pragma('cache_size = -20000'); // 20MB cache
             this.db.pragma('foreign_keys = ON');
-            console.info(`[Database] Connected to ${this.dbPath} (WAL Mode Active)`);
+            logger.info(`[Database] Connected to ${this.dbPath} (WAL Mode Active)`);
 
             if (migrationsDir) {
                 this.runMigrations(migrationsDir);
@@ -53,7 +80,7 @@ export class DatabaseManager {
                 this.db.exec('UPDATE _db_metrics SET last_checkpoint = CURRENT_TIMESTAMP WHERE id = 1');
             }
         } catch (err) {
-            console.error('[Database] Connection failed:', err);
+            logger.error('[Database] Connection failed:', err);
             throw err;
         }
     }
@@ -71,7 +98,7 @@ export class DatabaseManager {
         this.db.exec(migrationTable);
 
         if (!fs.existsSync(migrationsDir)) {
-            console.log('[Database] No migrations directory found at:', migrationsDir);
+            logger.info('[Database] No migrations directory found at:', migrationsDir);
             return;
         }
 
@@ -81,7 +108,7 @@ export class DatabaseManager {
             .filter(file => {
                 if (!file.endsWith('.sql')) return false;
                 if (!MIGRATION_PATTERN.test(file)) {
-                    console.warn(`[Database] Skipping invalid migration filename format: ${file}`);
+                    logger.warn(`[Database] Skipping invalid migration filename format: ${file}`);
                     return false;
                 }
                 return true;
@@ -95,9 +122,10 @@ export class DatabaseManager {
             if (!file.endsWith('.sql')) continue;
             if (applied.has(file)) continue;
 
-            console.log(`[Database] Applying migration: ${file}`);
+            logger.info(`[Database] Applying migration: ${file}`);
             const sqlFileContent = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
-            const statements = sqlFileContent
+            const upContent = sqlFileContent.split(/--\s*Down/i)[0];
+            const statements = upContent
                 .split(';')
                 .map(s => s.trim())
                 .filter(s => s.length > 0);
@@ -110,7 +138,7 @@ export class DatabaseManager {
                         } catch (err: any) {
                             const msg = err.message || '';
                             if (msg.includes('duplicate column name') || msg.includes('already exists')) {
-                                console.warn(`[Database] Warning in ${file} (ignored): ${msg}`);
+                                logger.warn(`[Database] Warning in ${file} (ignored): ${msg}`);
                                 continue;
                             }
                             throw err;
@@ -119,7 +147,7 @@ export class DatabaseManager {
                     insertMigration.run(file);
                 });
             } catch (err) {
-                console.error(`[Database] Critical Migration Error in ${file}:`, err);
+                logger.error(`[Database] Critical Migration Error in ${file}:`, err);
                 throw err;
             }
         }
@@ -165,7 +193,7 @@ export class DatabaseManager {
         if (this.db) {
             this.db.close();
             this.db = null;
-            console.log('[Database] Connection closed');
+            logger.info('[Database] Connection closed');
         }
     }
 }

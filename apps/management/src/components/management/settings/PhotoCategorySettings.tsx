@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from 'react';
 import { useSystemSetting } from "../../../hooks/useSystemSetting";
 import { Tag, Plus, Trash2, Edit2, Check, X, RefreshCw } from "lucide-react";
 

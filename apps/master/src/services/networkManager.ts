@@ -1,4 +1,5 @@
 import { isCloudMode } from '../utils/appMode';
+import { logger } from '@/utils/logger';
 
 export type NetworkQuality = 'excellent' | 'good' | 'fair' | 'poor' | 'offline';
 
@@ -101,7 +102,7 @@ class NetworkManager {
                 lastChecked: Date.now()
             });
         } catch (error) {
-            console.warn('Network quality check failed:', error);
+            logger.warn('Network quality check failed:', error);
             // Don't mark offline immediately unless navigator says so, 
             // but degrade quality if fetch fails
             this.updateState({

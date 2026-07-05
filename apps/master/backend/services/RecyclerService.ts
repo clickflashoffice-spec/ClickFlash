@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
+import { DatabaseManager } from '../database/db';
+import { Logger } from '../utils/logger';
 import { UPLOAD_DIR, DATA_DIR } from "../config/constants";
 
 /**

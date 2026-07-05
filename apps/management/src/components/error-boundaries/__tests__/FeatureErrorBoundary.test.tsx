@@ -18,7 +18,7 @@ const ThrowError: React.FC<{ message?: string }> = ({ message = 'Test error' }) 
     throw new Error(message);
 };
 
-describe.skip('FeatureErrorBoundary', () => {
+describe('FeatureErrorBoundary', () => {
     // Suppress console.error for expected errors
     const originalConsoleError = console.error;
     beforeAll(() => {

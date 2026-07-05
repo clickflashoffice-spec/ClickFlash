@@ -1,0 +1,135 @@
+# ClickFlash Production Deployment Environment (Self-Hosted)
+# Run with: docker-compose -f docker-compose.prod.yml up -d
+
+version: '3.8'
+
+services:
+  # ==========================================
+  # Management Hub (Nginx + static Vite build)
+  # ==========================================
+  management:
+    build:
+      context: .
+      dockerfile: apps/management/Dockerfile.prod
+    container_name: clickflash-management-prod
+    restart: always
+    environment:
+      - NODE_ENV=production
+    networks:
+      - clickflash-prod-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ==========================================
+  # Customer Gallery (Nginx + static Vite build)
+  # ==========================================
+  gallery:
+    build:
+      context: .
+      dockerfile: apps/gallery/Dockerfile.prod
+    container_name: clickflash-gallery-prod
+    restart: always
+    environment:
+      - NODE_ENV=production
+    networks:
+      - clickflash-prod-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ==========================================
+  # Website (Next.js Node server)
+  # ==========================================
+  website:
+    build:
+      context: .
+      dockerfile: apps/website/Dockerfile.prod
+    container_name: clickflash-website-prod
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    networks:
+      - clickflash-prod-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ==========================================
+  # MoneyTrash API (Node/Cloudflare Worker emulation if local)
+  # ==========================================
+  moneytrash:
+    build:
+      context: .
+      dockerfile: apps/moneytrash/Dockerfile.prod
+    container_name: clickflash-moneytrash-prod
+    restart: always
+    environment:
+      - NODE_ENV=production
+    networks:
+      - clickflash-prod-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:1420"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ==========================================
+  # Shared Services
+  # ==========================================
+
+  # Redis (for caching/sessions/queues)
+  redis:
+    image: redis:7-alpine
+    container_name: clickflash-redis-prod
+    restart: always
+    volumes:
+      - redis-prod-data:/data
+    networks:
+      - clickflash-prod-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ==========================================
+  # Gateway Reverse Proxy (Nginx)
+  # ==========================================
+  proxy:
+    image: nginx:alpine
+    container_name: clickflash-proxy-prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - clickflash-prod-network
+    depends_on:
+      - website
+      - gallery
+      - management
+      - moneytrash
+
+# ==========================================
+# Volumes
+# ==========================================
+volumes:
+  redis-prod-data:
+
+# ==========================================
+# Networks
+# ==========================================
+networks:
+  clickflash-prod-network:
+    driver: bridge

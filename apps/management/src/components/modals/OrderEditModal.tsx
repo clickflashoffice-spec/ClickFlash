@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Modal from '../common/Modal.tsx';
 import { MOCK_PRODUCTS } from '../../constants.ts';
-import { Order, OrderItem, Product, Photo } from '../../types.ts';
+import { Order, OrderItem, Product, Photo, ManualEdits } from '../../types.ts';
 import { useCurrency } from '../CurrencyContext.tsx';
 import { apiService } from '../../services/apiService.ts';
 import PhotoEditModal from '../PhotoEditModal.tsx';
@@ -146,7 +146,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
 
     // Add optimistic locking
     if (order.updatedAt) {
-      (orderToSave as any).updated_at = order.updatedAt;
+      (orderToSave as Order & { updated_at?: string }).updated_at = order.updatedAt;
     }
 
     onSave(orderToSave);
@@ -206,7 +206,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
     }
   };
 
-  const handlePhotoEditSave = (photoId: string, edits: any) => {
+  const handlePhotoEditSave = (photoId: string, edits: ManualEdits) => {
     if (!editingPhotoItem) return;
 
     const updatedItems = editedOrder.items.map(item => {

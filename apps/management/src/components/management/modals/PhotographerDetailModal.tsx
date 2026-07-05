@@ -1,17 +1,12 @@
 import React, { useMemo } from "react";
-import { Photographer, Order, Expense } from "../../../types.ts";
-import Card from "../../common/Card.tsx";
+import {Photographer, Order} from "../../../types.ts";
 import { useCurrency } from "../../CurrencyContext.tsx";
-import {
-  X,
+import {X,
   TrendingUp,
   ShoppingBag,
   DollarSign,
   Activity,
-  Calendar,
-  Clock,
-  ArrowUpRight,
-} from "lucide-react";
+  ArrowUpRight} from "lucide-react";
 import {
   AreaChart,
   Area,

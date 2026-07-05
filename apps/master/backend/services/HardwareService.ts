@@ -1,7 +1,7 @@
 import { execFile } from 'child_process';
 import { promisify } from 'util';
-import { Logger } from '../shared/logger';
-import DatabaseManager from '../shared/db';
+import { Logger } from '../utils/logger';
+import DatabaseManager from '../database/db';
 import { InventoryService } from './InventoryService';
 import * as ptp from 'pdf-to-printer';
 import fs from 'fs';

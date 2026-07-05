@@ -212,4 +212,5 @@ const DashboardIncomeAnalytics: React.FC<DashboardIncomeAnalyticsProps> = ({
   );
 };
 
+DashboardIncomeAnalytics.displayName = 'DashboardIncomeAnalytics';
 export default React.memo(DashboardIncomeAnalytics);

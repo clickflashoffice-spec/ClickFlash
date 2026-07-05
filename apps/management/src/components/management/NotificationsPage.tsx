@@ -164,7 +164,7 @@ const NotificationsPage: React.FC = () => {
         ].map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setFilter(tab.key as any)}
+            onClick={() => setFilter(tab.key as typeof filter)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               filter === tab.key
                 ? 'bg-cyan-500 text-white'

@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Grid } from 'react-window';
 import { logger } from '../../utils/logger';
 
-interface VirtualGridProps<T> {
+export interface VirtualGridProps<T> {
     items: T[];
     itemWidth: number;
     itemHeight: number;
@@ -36,7 +36,7 @@ interface VirtualGridProps<T> {
  * />
  * ```
  */
-export function VirtualGrid<T>({
+function VirtualGridInner<T>({
     items: itemsProp,
     itemWidth,
     itemHeight,
@@ -317,5 +317,8 @@ export function VirtualGrid<T>({
                     }
 }
 
-export default VirtualGrid;
+export const VirtualGrid = React.memo(VirtualGridInner) as <T>(
+  props: VirtualGridProps<T>
+) => React.ReactElement | null;
 
+export default VirtualGrid;

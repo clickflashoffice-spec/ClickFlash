@@ -202,7 +202,7 @@ class OfflineStressTestService {
 
             // Phase 2: Create photos
             this.reportProgress('photos', 0, fullConfig.albumCount * fullConfig.photosPerAlbum, 'Creating photos...');
-            let totalPhotos = fullConfig.albumCount * fullConfig.photosPerAlbum;
+            const totalPhotos = fullConfig.albumCount * fullConfig.photosPerAlbum;
             let photoIndex = 0;
             
             for (let albumIdx = 0; albumIdx < fullConfig.albumCount; albumIdx++) {

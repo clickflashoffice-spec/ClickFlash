@@ -15,8 +15,8 @@ async function copyAssets() {
     console.log('[Assets] Copying static assets...');
 
     // Migrations
-    const srcMigrations = path.join(SRC_DIR, 'shared', 'migrations');
-    const destMigrations = path.join(DIST_DIR, 'shared', 'migrations');
+    const srcMigrations = path.join(SRC_DIR, 'migrations');
+    const destMigrations = path.join(DIST_DIR, 'migrations');
 
     if (await fs.pathExists(srcMigrations)) {
         await fs.copy(srcMigrations, destMigrations);

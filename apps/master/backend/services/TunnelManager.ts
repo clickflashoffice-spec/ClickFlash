@@ -2,7 +2,7 @@ import { spawn, ChildProcess } from "child_process";
 import { EventEmitter } from "events";
 import * as fs from "fs";
 import * as path from "path";
-import { Logger } from "../shared/logger";
+import { Logger } from '../utils/logger';
 
 export class TunnelManager extends EventEmitter {
   private process: ChildProcess | null = null;

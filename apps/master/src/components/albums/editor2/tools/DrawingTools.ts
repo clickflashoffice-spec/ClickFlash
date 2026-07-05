@@ -456,6 +456,16 @@ export class DrawingEngine {
     resize() {
         this.setupCanvas();
     }
+
+    // Free canvas memory
+    destroy() {
+        if (this.canvas) {
+            this.canvas.width = 0;
+            this.canvas.height = 0;
+        }
+        this.strokes = [];
+        this.shapes = [];
+    }
 }
 
 // Utility function to create a drawing layer

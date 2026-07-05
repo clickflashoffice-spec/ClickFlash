@@ -1,8 +1,8 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { FixedSizeList as List } from "react-window";
 import { logger } from "../../utils/logger";
 
-interface VirtualListProps<T> {
+export interface VirtualListProps<T> {
   items: T[];
   itemHeight: number;
   containerHeight: number;
@@ -33,7 +33,7 @@ interface VirtualListProps<T> {
  * />
  * ```
  */
-export function VirtualList<T>({
+function VirtualListInner<T>({
   items: itemsProp,
   itemHeight: itemHeightProp,
   containerHeight: containerHeightProp,
@@ -42,7 +42,7 @@ export function VirtualList<T>({
   overscanCount = 5,
 }: VirtualListProps<T>) {
   // Ensure items is always a valid array
-  const items = Array.isArray(itemsProp) ? itemsProp : [];
+  const items = useMemo(() => (Array.isArray(itemsProp) ? itemsProp : []), [itemsProp]);
 
   // Validate numeric props - react-window requires valid numbers
   const containerHeight =
@@ -142,5 +142,9 @@ export function VirtualList<T>({
     return null;
   }
 }
+
+export const VirtualList = React.memo(VirtualListInner) as <T>(
+  props: VirtualListProps<T>
+) => React.ReactElement | null;
 
 export default VirtualList;

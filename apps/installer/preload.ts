@@ -22,6 +22,20 @@ export interface InstallerApi {
   testCloudflareToken: (token: string) => Promise<{ success: boolean; accounts?: Array<{ id: string; name: string }>; error?: string }>;
   onOAuthCallback: (callback: (data: { token: string }) => void) => () => void;
 
+  // License
+  validateLicense: (key: string) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+
+  // OAuth Device Code
+  requestDeviceCode: () => Promise<{ success: boolean; data?: unknown; error?: string }>;
+  pollForToken: (deviceCode: string) => Promise<{ success: boolean; data?: unknown; error?: string; status?: number }>;
+
+  // Desk ID
+  checkDeskId: (deskId: string) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+
+  // Hub Registration
+  registerWithHub: (payload: Record<string, unknown>) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+  sendHeartbeat: (payload: Record<string, unknown>) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+
   // Fleet
   registerFleet: (payload: {
     deskId: string;
@@ -33,6 +47,9 @@ export interface InstallerApi {
     cloudApiUrl: string;
     token: string;
   }) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+
+  // External URL
+  openExternalUrl: (url: string) => Promise<{ success: boolean }>;
 
   // Health
   runHealthChecks: (config: {
@@ -55,6 +72,27 @@ export interface InstallerApi {
   selectDirectory: () => Promise<string | null>;
   getLogs: () => Promise<string[]>;
 
+  // Pairing
+  discoverMasters: () => Promise<{ success: boolean; masters: Array<{ desk_id: string; tenant_id: string; host: string; port: number; addresses: string[]; latencyMs: number }> }>;
+  scanLan: () => Promise<{ success: boolean; masters: Array<{ desk_id: string; tenant_id: string; host: string; port: number; addresses: string[]; latencyMs: number }> }>;
+  exchangePairing: (params: {
+    masterHost: string;
+    masterPort: number;
+    masterDeskId: string;
+    kioskId: string;
+    hardwareFingerprint: string;
+  }) => Promise<{
+    success: boolean;
+    hmac_secret?: string;
+    tenant_id?: string;
+    master_desk_id?: string;
+    master_ip?: string;
+    master_port?: number;
+    error?: string;
+  }>;
+  generateKioskId: (hardwareFingerprint: string) => Promise<{ kioskId: string }>;
+  getHardwareFingerprint: () => Promise<{ fingerprint: string }>;
+
   // Platform
   platform: string;
   version: string;
@@ -71,6 +109,14 @@ const api: InstallerApi = {
     return () => ipcRenderer.off("installer:oauth-callback", handler);
   },
 
+  validateLicense: (key: string) => ipcRenderer.invoke("installer:validateLicense", key),
+  requestDeviceCode: () => ipcRenderer.invoke("installer:requestDeviceCode"),
+  pollForToken: (deviceCode: string) => ipcRenderer.invoke("installer:pollForToken", deviceCode),
+  checkDeskId: (deskId: string) => ipcRenderer.invoke("installer:checkDeskId", deskId),
+  registerWithHub: (payload: Record<string, unknown>) => ipcRenderer.invoke("installer:registerWithHub", payload),
+  sendHeartbeat: (payload: Record<string, unknown>) => ipcRenderer.invoke("installer:sendHeartbeat", payload),
+  openExternalUrl: (url: string) => ipcRenderer.invoke("installer:openExternalUrl", url),
+
   registerFleet: (payload) => ipcRenderer.invoke("installer:registerFleet", payload),
 
   runHealthChecks: (config) => ipcRenderer.invoke("installer:runHealthChecks", config),
@@ -79,6 +125,13 @@ const api: InstallerApi = {
   launchApps: (paths) => ipcRenderer.invoke("installer:launchApps", paths),
   selectDirectory: () => ipcRenderer.invoke("installer:selectDirectory"),
   getLogs: () => ipcRenderer.invoke("installer:getLogs"),
+
+  // Pairing
+  discoverMasters: () => ipcRenderer.invoke("installer:discoverMasters"),
+  scanLan: () => ipcRenderer.invoke("installer:scanLan"),
+  exchangePairing: (params) => ipcRenderer.invoke("installer:exchangePairing", params),
+  generateKioskId: (hardwareFingerprint) => ipcRenderer.invoke("installer:generateKioskId", hardwareFingerprint),
+  getHardwareFingerprint: () => ipcRenderer.invoke("installer:getHardwareFingerprint"),
 
   platform: process.platform,
   version: process.versions.electron || "unknown",

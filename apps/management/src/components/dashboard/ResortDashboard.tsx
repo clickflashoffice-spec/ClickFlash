@@ -1,20 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { 
-  BarChart3, 
-  Activity, 
-  ShieldCheck, 
-  Calendar,
+import {Activity, 
+  ShieldCheck,
   LayoutDashboard,
   LineChart,
-  HardDrive
-} from "lucide-react";
+  HardDrive} from "lucide-react";
 import { Photographer } from "../../types";
 import { cloudApiService } from "../../services/cloudApiService";
 import { useStation } from "../../context/StationContext";
 import { StationSelector } from "../controls/StationSelector";
 
 import MasterOverview from "./MasterOverview";
-import BusinessIntelligence from "./BusinessIntelligence";
+import BusinessIntelligence, { BusinessChartsData } from "./BusinessIntelligence";
 import ResortIntelligence from "./ResortIntelligence";
 
 interface ResortDashboardProps {
@@ -23,7 +19,7 @@ interface ResortDashboardProps {
 
 type DashboardTab = "overview" | "bi" | "fleet";
 
-const ResortDashboard: React.FC<ResortDashboardProps> = ({ currentUser }) => {
+const ResortDashboard: React.FC<ResortDashboardProps> = ({ currentUser: currentUser }) => {
   const { selectedStationId } = useStation();
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
   const [loading, setLoading] = useState(true);
@@ -42,17 +38,17 @@ const ResortDashboard: React.FC<ResortDashboardProps> = ({ currentUser }) => {
     conversion: 0,
   });
 
-  const [chartsData, setChartsData] = useState<any>({
+  const [chartsData, setChartsData] = useState<BusinessChartsData>({
     meetingsTaken: [],
     meetingsMade: [],
     photographerNames: [],
     incomeThemePie: [],
     themeLabels: [],
-    simpleSessions: { income: 0, units: 0, meetings: 0 },
-    multipleSessions: { income: 0, units: 0, meetings: 0 },
+    simpleSessions: { income: 0, meetings: 0 },
+    multipleSessions: { income: 0, meetings: 0 },
   });
 
-  const [trendData, setTrendData] = useState<any[]>([]);
+  const [trendData, setTrendData] = useState<{ date: string; income: number }[]>([]);
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -71,7 +67,6 @@ const ResortDashboard: React.FC<ResortDashboardProps> = ({ currentUser }) => {
         const { stats, performance } = res.data.data || res.data;
 
         let totalIncome = 0;
-        let totalMeetingsTaken = 0;
         let totalMeetingsMade = 0;
         let totalGuests = 0;
         let totalViewingSessions = 0;
@@ -82,23 +77,22 @@ const ResortDashboard: React.FC<ResortDashboardProps> = ({ currentUser }) => {
         const perfByPhotographer: Record<string, { taken: number; made: number }> = {};
 
         // Aggregate Stats (Daily stats from resorts)
-        stats.forEach((s: any) => {
-          totalGuests += s.total_guests || 0;
-          totalViewingSessions += s.viewing_sessions || 0;
+        stats.forEach((s: Record<string, unknown>) => {
+          totalGuests += (s.total_guests as number) || 0;
+          totalViewingSessions += (s.viewing_sessions as number) || 0;
         });
 
         // Aggregate Photographer Performance
         const dailyIncomeMap: Record<string, number> = {};
 
-        performance.forEach((p: any) => {
-            const date = p.date;
-            const pTaken = p.meetings_taken || 0;
-            const pMade = p.meetings_made || 0;
-            const pSimp = p.income_simple || 0;
-            const pMult = p.income_multiple || 0;
+        performance.forEach((p: Record<string, unknown>) => {
+            const date = String(p.date);
+            const pTaken = (p.meetings_taken as number) || 0;
+            const pMade = (p.meetings_made as number) || 0;
+            const pSimp = (p.income_simple as number) || 0;
+            const pMult = (p.income_multiple as number) || 0;
             const pInc = pSimp + pMult;
 
-            totalMeetingsTaken += pTaken;
             totalMeetingsMade += pMade;
             simpleIncome += pSimp;
             multipleIncome += pMult;
@@ -106,7 +100,7 @@ const ResortDashboard: React.FC<ResortDashboardProps> = ({ currentUser }) => {
 
             dailyIncomeMap[date] = (dailyIncomeMap[date] || 0) + pInc;
 
-            const name = p.photographer_name || p.photographer_id;
+            const name = String(p.photographer_name || p.photographer_id);
             if (!perfByPhotographer[name]) {
                 perfByPhotographer[name] = { taken: 0, made: 0 };
             }
@@ -114,11 +108,11 @@ const ResortDashboard: React.FC<ResortDashboardProps> = ({ currentUser }) => {
             perfByPhotographer[name].made += pMade;
 
             try {
-                const themes = p.photos_made_themes ? JSON.parse(p.photos_made_themes) : {};
+                const themes = p.photos_made_themes ? JSON.parse(String(p.photos_made_themes)) : {};
                 Object.keys(themes).forEach(t => {
                     photoThemes[t] = (photoThemes[t] || 0) + themes[t];
                 });
-            } catch (_e) {
+            } catch {
                 // Malformed JSON in photos_made_themes — skip silently
             }
         });
@@ -149,14 +143,14 @@ const ResortDashboard: React.FC<ResortDashboardProps> = ({ currentUser }) => {
             photographerNames: pNames,
             incomeThemePie: Object.values(photoThemes),
             themeLabels: Object.keys(photoThemes),
-            simpleSessions: { income: simpleIncome, units: 1, meetings: totalMeetingsMade / 2 },
-            multipleSessions: { income: multipleIncome, units: 3.5, meetings: totalMeetingsMade / 2 }
+            simpleSessions: { income: simpleIncome, meetings: totalMeetingsMade / 2 },
+            multipleSessions: { income: multipleIncome, meetings: totalMeetingsMade / 2 }
         });
 
         setTrendData(Object.keys(dailyIncomeMap).sort().map(d => ({ date: d, income: dailyIncomeMap[d] })));
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
@@ -166,7 +160,7 @@ const ResortDashboard: React.FC<ResortDashboardProps> = ({ currentUser }) => {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-  const TabButton = ({ id, label, icon: Icon }: { id: DashboardTab, label: string, icon: any }) => (
+  const TabButton = ({ id, label, icon: Icon }: { id: DashboardTab, label: string, icon: React.ComponentType<{ className?: string }> }) => (
     <button
       onClick={() => setActiveTab(id)}
       className={`flex items-center gap-2.5 py-2 px-5 rounded-2xl transition-all duration-500 font-bold uppercase tracking-widest text-[10px] ${

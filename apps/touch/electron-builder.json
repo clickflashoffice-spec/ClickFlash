@@ -4,6 +4,24 @@
   "copyright": "Copyright © 2025 ClickFlash Photography",
   "electronVersion": "39.8.7",
   "npmRebuild": false,
+  "nodeGypRebuild": false,
+  "asar": true,
+  "asarUnpack": [
+    "node_modules/better-sqlite3-multiple-ciphers/**/*",
+    "node_modules/sharp/**/*",
+    "node_modules/bcrypt/**/*",
+    "node_modules/bonjour-service/**/*",
+    "node_modules/multicast-dns/**/*",
+    "node_modules/dns-packet/**/*",
+    "node_modules/thunky/**/*",
+    "node_modules/bindings/**/*",
+    "node_modules/file-uri-to-path/**/*",
+    "node_modules/napi-build-utils/**/*",
+    "node_modules/node-addon-api/**/*",
+    "node_modules/prebuild-install/**/*",
+    "node_modules/simple-get/**/*",
+    "node_modules/detect-libc/**/*"
+  ],
   "directories": {
     "output": "release",
     "buildResources": "build"
@@ -13,13 +31,17 @@
     "autoUpdater.js",
     "package.json",
     "!pb_data/**/*",
-    "!node_modules/**/*"
+    "node_modules/**/*"
   ],
   "extraResources": [
     {
       "from": "dist/backend",
       "to": "backend/touch",
       "filter": ["**/*"]
+    },
+    {
+      "from": "installer_scripts",
+      "to": "installer_scripts"
     },
     {
       "from": "pb_data",
@@ -37,13 +59,17 @@
     "requestedExecutionLevel": "requireAdministrator",
     "forceCodeSigning": false,
     "signAndEditExecutable": false,
-    "sign": null
+    "sign": null,
+    "certificateSha1": null,
+    "certificateFile": null,
+    "certificatePassword": null
   },
   "nsis": {
-    "oneClick": false,
+    "oneClick": true,
     "perMachine": true,
+    "include": "build/installer.nsh",
     "deleteAppDataOnUninstall": true,
-    "allowToChangeInstallationDirectory": true,
+    
     "createDesktopShortcut": false,
     "runAfterFinish": false,
     "shortcutName": "ClickFlash Touch"

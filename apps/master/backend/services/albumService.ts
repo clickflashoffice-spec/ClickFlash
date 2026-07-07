@@ -43,6 +43,8 @@ const ALLOWED_PHOTO_COLUMNS = [
   "title",
   "status",
   "manualEdits",
+  "autoEdits",
+  "autoEnhanced",
   "quality_flags",
   "created_at",
   "updated_at",
@@ -68,6 +70,8 @@ export interface RegisterPhotoData {
   title?: string;
   status?: string;
   manualEdits?: string;
+  autoEdits?: string;
+  autoEnhanced?: number | boolean;
   quality_flags?: string;
   created_at?: string;
   updated_at?: string;

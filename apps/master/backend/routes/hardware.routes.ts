@@ -1,6 +1,5 @@
 import express, { Request, Response, Router } from "express";
 import { hardwareTriggerService } from "../../src/services/hardwareTriggerService";
-import { requireAuth } from "../middleware/auth"; // Optional if we want it secured
 
 export function createHardwareRouter(): Router {
     const router = express.Router();

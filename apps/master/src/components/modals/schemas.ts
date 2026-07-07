@@ -31,6 +31,29 @@ export const orderItemEditSchema = z.object({
 export const orderEditSchema = z.object({
   items: z.array(orderItemEditSchema).min(1, "Order must have at least one item"),
   appliedDiscount: z.number().min(0, "Discount cannot be negative"),
-  paymentMethod: z.enum(['Cash', 'Card']).optional().default('Cash'),
+  paymentMethod: z.enum(['Cash', 'Card'], {
+    message: "Please select a valid payment method"
+  }),
   rfidTag: z.string().optional()
 });
+
+export const createOrderSchema = orderEditSchema.extend({
+  clientName: z.string().min(2, "Client name must be at least 2 characters").max(100),
+  email: z.string().email("Invalid email address")
+});
+
+
+export const bookingEditSchema = z.object({
+  clientName: z.string().min(2, "Client name must be at least 2 characters").max(100),
+  clientEmail: z.string().email("Invalid email address"),
+  clientPhone: z.string().min(5, "Phone number is too short").max(20).optional().or(z.literal('')),
+  bookingDate: z.string().min(1, "Booking date is required"),
+  bookingTime: z.string().min(1, "Booking time is required"),
+  sessionId: z.string().min(1, "Session type is required"),
+  photographerId: z.string().optional(),
+  status: z.enum(['Pending', 'Confirmed', 'Cancelled']).default('Pending'),
+  notes: z.string().optional()
+});
+
+export const photographerEditSchema = userEditSchema; // Photographers share the same schema as users currently
+

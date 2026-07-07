@@ -45,6 +45,10 @@ class ConnectivityService {
         window.addEventListener('online', this.handleBrowserOnline);
         window.addEventListener('offline', this.handleBrowserOffline);
 
+        if (!this.masterUrl) {
+            this.startAutoDiscovery();
+        }
+
         // If browser thinks we're online, verify with a probe
         if (this.isOnline) {
             this.probe();
@@ -76,6 +80,72 @@ class ConnectivityService {
 
     public getIsOnline(): boolean {
         return this.isOnline;
+    }
+
+    public async startAutoDiscovery(): Promise<void> {
+        logger.info('[Connectivity] Starting auto-discovery...');
+
+        // Check if Electron IPC bridge is available
+        if (typeof window !== 'undefined' && (window as any).electronAPI?.startUdpDiscovery) {
+            try {
+                const masterInfo = await (window as any).electronAPI.startUdpDiscovery();
+                if (masterInfo && masterInfo.host) {
+                    logger.info(`[Connectivity] Auto-discovered Master via UDP at ${masterInfo.host}`);
+                    localStorage.setItem('masterLocalIPAddress', masterInfo.host);
+                    this.updateMasterUrl(masterInfo.host);
+                    this.probe();
+                    return;
+                }
+            } catch (error) {
+                logger.warn('[Connectivity] UDP Discovery failed', { error: (error as Error).message });
+            }
+        } else {
+            // Fallback for browser mode: Sweep common local subnet IPs (192.168.1.1 to .254)
+            logger.info('[Connectivity] Browser mode detected, falling back to subnet sweep...');
+            const controller = new AbortController();
+            const sweepTimeout = setTimeout(() => controller.abort(), 1500);
+
+            // Using common LAN defaults as a fallback when UDP isn't available
+            const commonIps = Array.from({length: 254}, (_, i) => `192.168.1.${i + 1}`);
+            // Also add .0. subnet
+            const subnet0 = Array.from({length: 254}, (_, i) => `192.168.0.${i + 1}`);
+            
+            const sweepPromises = [...commonIps, ...subnet0].map(async (ip) => {
+                try {
+                    const res = await fetch(`http://${ip}:8090/api/health`, {
+                        method: 'HEAD',
+                        signal: controller.signal
+                    });
+                    if (res.ok) {
+                        return ip;
+                    }
+                } catch {
+                    return null;
+                }
+                return null;
+            });
+
+            try {
+                // Wait for the first successful response (which won't be null)
+                const firstSuccess = await Promise.race(
+                    sweepPromises.map(p => p.then(res => {
+                        if (res) throw res; // Rejecting with the IP causes Promise.race to resolve early with the "error" (our success)
+                        return new Promise(() => {}); // Never resolve if null
+                    }))
+                ).catch(ip => ip); // Catch the thrown IP
+
+                clearTimeout(sweepTimeout);
+
+                if (firstSuccess && typeof firstSuccess === 'string') {
+                    logger.info(`[Connectivity] Auto-discovered Master via HTTP sweep at ${firstSuccess}`);
+                    localStorage.setItem('masterLocalIPAddress', firstSuccess);
+                    this.updateMasterUrl(firstSuccess);
+                    this.probe();
+                }
+            } catch (e) {
+                logger.warn('[Connectivity] HTTP Sweep auto-discovery failed');
+            }
+        }
     }
 
     private handleBrowserOnline = (): void => {

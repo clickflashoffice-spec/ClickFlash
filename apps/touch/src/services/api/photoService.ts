@@ -3,6 +3,31 @@ import { Album, Photo } from '../../types';
 import { PocketRecord } from '../../services/pbTypes';
 import { logger } from '../../utils/logger';
 
+function resolvePhotoUrl(record: any, baseUrl: string, manualEdits: any): string {
+    let photoUrl = record.url || '';
+    if (!photoUrl) return '';
+    if (photoUrl.startsWith('http') || photoUrl.startsWith('blob:') || photoUrl.startsWith('data:')) {
+        return photoUrl;
+    }
+
+    let hasEdits = false;
+    if (record.autoEnhanced === true || record.autoEnhanced === 1 || record.autoEnhanced === 'true') {
+        hasEdits = true;
+    } else if (record.autoEdits && typeof record.autoEdits === 'string' && record.autoEdits !== '{}') {
+        hasEdits = true;
+    } else if (record.autoEdits && typeof record.autoEdits === 'object' && Object.keys(record.autoEdits).length > 0) {
+        hasEdits = true;
+    } else if (manualEdits && typeof manualEdits === 'object' && Object.keys(manualEdits).length > 0) {
+        hasEdits = true;
+    }
+
+    if (hasEdits) {
+        return `${baseUrl}/api/files/photos/${record.id}/${record.id}_preview_edited.jpg`;
+    }
+
+    return `${baseUrl}/api/files/photos/${record.id}/${photoUrl}`;
+}
+
 export const photoService = {
     // --- Albums ---
     async getAlbums(): Promise<Album[]> {
@@ -32,12 +57,6 @@ export const photoService = {
                             photos = photosList
                                 .filter((p: PocketRecord) => p != null && typeof p === 'object' && p.id != null)
                                 .map((p: PocketRecord) => {
-                                    let photoUrl = (p.url as string) || '';
-                                    if (photoUrl && !photoUrl.startsWith('http') && !photoUrl.startsWith('blob:')) {
-                                        const baseUrl = pb.baseUrlValue;
-                                        photoUrl = `${baseUrl}/api/files/photos/${p.id}/${p.url}`;
-                                    }
-
                                     let manualEdits: any = {};
                                     try {
                                         if (typeof p.manualEdits === 'string' && p.manualEdits) {
@@ -50,6 +69,8 @@ export const photoService = {
                                         logger.warn('Failed to parse manualEdits for photo', { photoId: p.id, parseError });
                                         manualEdits = {};
                                     }
+                                    
+                                    const photoUrl = resolvePhotoUrl(p, pb.baseUrlValue, manualEdits);
 
                                     return {
                                         id: p.id,
@@ -126,12 +147,6 @@ export const photoService = {
                     photos = photosList
                         .filter((p: PocketRecord) => p != null && typeof p === 'object' && p.id != null)
                         .map((p: PocketRecord) => {
-                            let photoUrl = (p.url as string) || '';
-                            if (photoUrl && !photoUrl.startsWith('http') && !photoUrl.startsWith('blob:')) {
-                                const baseUrl = pb.baseUrlValue;
-                                photoUrl = `${baseUrl}/api/files/photos/${p.id}/${p.url}`;
-                            }
-
                             let manualEdits: any = {};
                             try {
                                 if (typeof p.manualEdits === 'string' && p.manualEdits) {
@@ -144,6 +159,8 @@ export const photoService = {
                                 logger.warn('Failed to parse manualEdits for photo', { photoId: p.id, parseError });
                                 manualEdits = {};
                             }
+
+                            const photoUrl = resolvePhotoUrl(p, pb.baseUrlValue, manualEdits);
 
                             return {
                                 id: p.id,
@@ -167,12 +184,6 @@ export const photoService = {
                         photos = expandedPhotos
                             .filter((p: any) => p != null && p.id != null)
                             .map((p: any) => {
-                                let photoUrl = p.url || '';
-                                if (photoUrl && !photoUrl.startsWith('http') && !photoUrl.startsWith('blob:')) {
-                                    const baseUrl = pb.baseUrlValue;
-                                    photoUrl = `${baseUrl}/api/files/photos/${p.id}/${p.url}`;
-                                }
-
                                 let manualEdits: any = {};
                                 try {
                                     if (typeof p.manualEdits === 'string' && p.manualEdits) {
@@ -186,13 +197,15 @@ export const photoService = {
                                     manualEdits = {};
                                 }
 
+                                const photoUrl = resolvePhotoUrl(p, pb.baseUrlValue, manualEdits);
+
                                 return {
                                     id: p.id,
-                                    albumId: p.albumId || '',
-                                    title: p.title || '',
+                                    albumId: (p.albumId as string) || '',
+                                    title: (p.title as string) || '',
                                     url: photoUrl,
-                                    photographerId: p.photographerId,
-                                    category: p.category || null,
+                                    photographerId: p.photographerId as number,
+                                    category: (p.category as string) || undefined,
                                     manualEdits: manualEdits
                                 };
                             });
@@ -326,10 +339,8 @@ export const photoService = {
         const records = await pb.collection('photos').getFullList();
         const baseUrl = pb.baseUrlValue;
         return records.map((r: PocketRecord) => {
-            let photoUrl = (r.url as string) || '';
-            if (photoUrl && !photoUrl.startsWith('http') && !photoUrl.startsWith('blob:')) {
-                photoUrl = `${baseUrl}/api/files/photos/${r.id}/${r.url}`;
-            }
+            const manualEdits = typeof r.manualEdits === 'string' ? JSON.parse(r.manualEdits) : (r.manualEdits || {});
+            const photoUrl = resolvePhotoUrl(r, baseUrl, manualEdits);
 
             return {
                 id: r.id,
@@ -338,7 +349,7 @@ export const photoService = {
                 url: photoUrl,
                 photographerId: r.photographerId,
                 category: r.category,
-                manualEdits: typeof r.manualEdits === 'string' ? JSON.parse(r.manualEdits) : (r.manualEdits || {})
+                manualEdits
             };
         });
     },
@@ -400,11 +411,16 @@ export const photoService = {
         for (const photoId of photoIds) {
             try {
                 const photo = await pb.collection('photos').getOne(photoId);
-                let photoUrl = photo.url || '';
-
-                if (photoUrl && !photoUrl.startsWith('http') && !photoUrl.startsWith('blob:') && !photoUrl.startsWith('data:')) {
-                    photoUrl = `${baseUrl}/api/files/photos/${photoId}/${photoUrl}`;
-                }
+                let manualEdits: any = {};
+                try {
+                    if (typeof photo.manualEdits === 'string' && photo.manualEdits) {
+                        manualEdits = JSON.parse(photo.manualEdits);
+                    } else if (photo.manualEdits) {
+                        manualEdits = photo.manualEdits;
+                    }
+                } catch { }
+                
+                const photoUrl = resolvePhotoUrl(photo, baseUrl, manualEdits);
 
                 if (photoUrl) {
                     const response = await fetch(photoUrl);

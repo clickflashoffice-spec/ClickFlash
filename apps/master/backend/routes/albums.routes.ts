@@ -2,6 +2,7 @@ import express, { Request, Response, Router } from "express";
 import crypto from "crypto";
 import { ALLOWED_COLUMNS } from "../config/constants";
 import { validateRequest } from "../utils/validation";
+import { requirePermission, PERMISSIONS } from "../middleware/permissions";
 
 export default function albumsRoutes(context: any): Router {
   const { dbManager, logger, auditLogger, realtimeService, dbWriteQueue } = context;
@@ -9,7 +10,7 @@ export default function albumsRoutes(context: any): Router {
   const table = "albums";
 
   // POST Create
-  router.post("/", async (req: Request, res: Response) => {
+  router.post("/", requirePermission(PERMISSIONS.ALBUM_CREATE, context.auditLogger), async (req: Request, res: Response) => {
     try {
       let data = { ...req.body };
 
@@ -78,7 +79,7 @@ export default function albumsRoutes(context: any): Router {
   });
 
   // PATCH Update
-  router.patch("/:id", async (req: Request, res: Response) => {
+  router.patch("/:id", requirePermission(PERMISSIONS.ALBUM_EDIT, context.auditLogger), async (req: Request, res: Response) => {
     try {
       const id = req.params.id;
       let data = { ...req.body };

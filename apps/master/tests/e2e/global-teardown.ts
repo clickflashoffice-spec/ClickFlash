@@ -10,6 +10,10 @@ const PHOTO_IDS = ["e2e-photo-001", "e2e-photo-002", "e2e-photo-003"];
 const ALBUM_ID = "e2e-test-album-001";
 
 async function globalTeardown() {
+  if (process.env.SKIP_GLOBAL_SETUP === "true") {
+    console.log("[E2E Teardown] Skipping global teardown (SKIP_GLOBAL_SETUP=true)");
+    return;
+  }
   console.log("[E2E Teardown] Starting cleanup...");
 
   // Login to get JWT

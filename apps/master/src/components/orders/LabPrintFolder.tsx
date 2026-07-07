@@ -15,6 +15,11 @@ const LabPrintFolder: React.FC<LabPrintFolderProps> = ({ order, onBack, onUpdate
     const [isUpdating, setIsUpdating] = useState(false);
 
     const handleStatusUpdate = async (newStatus: 'Completed' | 'Delivered') => {
+        if ((newStatus === 'Completed' || newStatus === 'Delivered') && !order.paymentMethod) {
+            alert('Please edit the order to select a payment method before validating.');
+            return;
+        }
+
         setIsUpdating(true);
         try {
             const updatedOrder = await apiService.updateOrder(order.id, { status: newStatus });

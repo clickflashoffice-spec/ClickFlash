@@ -22,10 +22,10 @@ import { marketingAutomationService } from "../marketingAutomationService";
 
 
 export const ordersApi = {
-  async getOrders(): Promise<Order[]> {
+  async getOrders(filter?: string): Promise<Order[]> {
     const records = await pb
       .collection("orders")
-      .getFullList({ sort: "-created" });
+      .getFullList({ sort: "-created", filter });
     return records.map((r: PocketRecord) => ({
       id: r.id,
       date: r.date,

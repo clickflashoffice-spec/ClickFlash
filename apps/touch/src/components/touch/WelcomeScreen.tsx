@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import KioskSettingsModal from "./KioskSettingsModal";
 import RoomNumberModal from "./RoomNumberModal";
 import { KioskSettings, DestinationFeatures, Photo } from "../../types.ts";
@@ -96,6 +96,27 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     enableFaceLogin: false,
     enableFaceSearch: true, // Enable face search by default
   });
+
+  // Idle Timer / Screensaver State
+  const [isIdle, setIsIdle] = useState(false);
+  const idleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const IDLE_TIMEOUT = 30000; // 30 seconds
+
+  const resetIdleTimer = () => {
+    setIsIdle(false);
+    if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
+    idleTimeoutRef.current = setTimeout(() => setIsIdle(true), IDLE_TIMEOUT);
+  };
+
+  useEffect(() => {
+    const events = ['touchstart', 'mousemove', 'keydown', 'click'];
+    events.forEach(e => window.addEventListener(e, resetIdleTimer));
+    resetIdleTimer();
+    return () => {
+      events.forEach(e => window.removeEventListener(e, resetIdleTimer));
+      if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const savedSettings = localStorage.getItem("kioskSettingsV2");
@@ -509,6 +530,33 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[150px] animate-pulse-slow"></div>
         <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] bg-purple-500/10 dark:bg-purple-600/10 rounded-full blur-[150px] animate-pulse-slow delay-700"></div>
       </div>
+
+      {/* Attract Screensaver Overlay */}
+      {isIdle && (
+        <div 
+          className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-opacity duration-1000"
+          onClick={() => setIsIdle(false)}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-black to-purple-900 opacity-60"></div>
+          
+          <div className="absolute top-[10%] left-[10%] w-72 h-72 bg-blue-600/30 rounded-full blur-[120px] animate-pulse-slow"></div>
+          <div className="absolute bottom-[10%] right-[10%] w-96 h-96 bg-purple-600/30 rounded-full blur-[120px] animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
+
+          <div className="relative z-10 flex flex-col items-center animate-float">
+             <div className="p-3 bg-white/10 backdrop-blur-md rounded-full shadow-[0_0_50px_rgba(255,255,255,0.1)] mb-8 border border-white/20">
+               <img src={settings.logoUrl} alt="ClickFlash Kiosk Logo" className="w-56 h-56 rounded-full object-cover border-4 border-white/40 shadow-2xl" />
+             </div>
+             <h1 className="text-7xl md:text-9xl font-black text-white tracking-tight drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]">
+               {settings.welcomeMessage}
+             </h1>
+             <div className="mt-12 px-8 py-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full animate-pulse">
+               <p className="text-3xl text-white font-bold tracking-widest uppercase">
+                 Touch Screen to Begin
+               </p>
+             </div>
+          </div>
+        </div>
+      )}
 
       {/* Controls Top Left */}
       <div className="absolute top-6 left-6 flex space-x-4 z-20">

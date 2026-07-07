@@ -16,17 +16,17 @@ export default function cullingRoutes(context: any): Router {
         if (!albumId) return sendInvalidInputError(res, 'Album ID is required');
 
         try {
-            // 1. Get all photos (simulated path resolution)
+            // 1. Get all photos with their existing score status
             const photos = context.dbManager.query(`
-                SELECT id, originalFilename, storagePath
-                FROM photos WHERE albumId = ?
+                SELECT p.id, p.originalFilename, p.storagePath, s.photoId as scored
+                FROM photos p
+                LEFT JOIN ai_scores s ON p.id = s.photoId
+                WHERE p.albumId = ?
             `, [albumId]);
 
             // Analyze each photo if not already scored
             for (const photo of photos) {
-                // Check if scored
-                const score = context.dbManager.get(`SELECT photoId FROM ai_scores WHERE photoId = ?`, [photo.id]);
-                if (!score) {
+                if (!photo.scored) {
                     // Fallback to uploads/filename if storagePath empty
                     const p = photo.storagePath || `uploads/${photo.originalFilename}`;
                     await service.analyzePhoto(photo.id, p);

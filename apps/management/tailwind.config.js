@@ -1,5 +1,8 @@
+const sharedConfig = require("@clickflash/config/tailwind");
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+    presets: [sharedConfig],
     content: [
         "./index.html",
         "./src/**/*.{js,ts,jsx,tsx}",
@@ -10,11 +13,9 @@ module.exports = {
         "./utils/**/*.{js,ts,jsx,tsx}",
         "./*.{js,ts,jsx,tsx}",
     ],
-    darkMode: 'class',
     theme: {
         extend: {
             colors: {
-                // CF Design System Tokens (mapped to CSS variables)
                 cf: {
                     base:    'var(--cf-bg-base)',
                     panel:   'var(--cf-bg-panel)',
@@ -51,34 +52,6 @@ module.exports = {
                     900: '#0f172a',
                     950: '#020617',
                 }
-            },
-            animation: {
-                'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                'float': 'float 6s ease-in-out infinite',
-                'fade-in-down': 'fadeInDown 0.5s ease-out',
-                'slide-in-right': 'slideInRight 0.3s ease-out',
-                'glow-pulse': 'glowPulse 2s ease-in-out infinite',
-            },
-            keyframes: {
-                float: {
-                    '0%, 100%': { transform: 'translateY(0)' },
-                    '50%': { transform: 'translateY(-10px)' },
-                },
-                fadeInDown: {
-                    '0%': { opacity: '0', transform: 'translateY(-10px)' },
-                    '100%': { opacity: '1', transform: 'translateY(0)' },
-                },
-                slideInRight: {
-                    '0%': { opacity: '0', transform: 'translateX(10px)' },
-                    '100%': { opacity: '1', transform: 'translateX(0)' },
-                },
-                glowPulse: {
-                    '0%, 100%': { boxShadow: '0 0 10px rgba(59,130,246,0.3)' },
-                    '50%': { boxShadow: '0 0 20px rgba(59,130,246,0.6)' },
-                },
-            },
-            backdropBlur: {
-                '4xl': '72px',
             },
         },
     },

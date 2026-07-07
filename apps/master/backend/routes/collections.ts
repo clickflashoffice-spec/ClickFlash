@@ -1225,6 +1225,19 @@ export default function collectionRoutes(context: CollectionsContext): Router {
     let updatedCount = 0;
 
     try {
+      // Pre-fetch existing photo IDs to avoid N+1 query in the loop
+      const validItemIds = items.map(item => item.id).filter(id => id && typeof id === 'string');
+      let existingIds = new Set<string>();
+      
+      if (validItemIds.length > 0) {
+          const placeholders = validItemIds.map(() => '?').join(',');
+          const existingPhotos = dbManager.query<{id: string}>(
+              `SELECT id FROM photos WHERE id IN (${placeholders})`,
+              validItemIds
+          );
+          existingIds = new Set(existingPhotos.map(p => p.id));
+      }
+
       dbManager.transaction(() => {
         for (const item of items) {
           if (!item || typeof item.id !== "string" || !item.id) {
@@ -1232,11 +1245,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
             continue;
           }
 
-          const exists = dbManager.get(
-            `SELECT 1 FROM photos WHERE id = ? LIMIT 1`,
-            [item.id],
-          );
-          if (!exists) {
+          if (!existingIds.has(item.id)) {
             errors.push(`Photo ${item.id} not found`);
             failedIds.push(item.id);
             continue;

@@ -34,6 +34,12 @@ interface SidebarControlsProps {
     selected: number;
     rejected: number;
   };
+  // Batch Auto Edits Props
+  albumId?: string;
+  photos?: any[];
+  onBatchAutoEditsComplete?: () => void;
+  activePhoto?: any;
+  onReviewAutoEdits?: () => void;
   // Straighten props
   isStraightening?: boolean;
   onStraightenStart?: () => void;
@@ -83,6 +89,11 @@ const SidebarControlsComponent: React.FC<SidebarControlsProps> = ({
   onApplyCulling,
   isApplyingCulling,
   cullingStats,
+  albumId,
+  photos,
+  onBatchAutoEditsComplete,
+  activePhoto,
+  onReviewAutoEdits,
   // Straighten
   isStraightening,
   onStraightenStart,
@@ -100,9 +111,27 @@ const SidebarControlsComponent: React.FC<SidebarControlsProps> = ({
   onResetActiveEdit,
   activePhotoUrl,
 }) => {
+  const [editMode, setEditMode] = React.useState<'manual' | 'automatic'>(activeTab === 'ai' ? 'automatic' : 'manual');
+
   const handleTabChange = useCallback((tabId: EditorTab) => {
     onTabChange(tabId);
+    if (tabId === 'ai') {
+      setEditMode('automatic');
+    } else {
+      setEditMode('manual');
+    }
   }, [onTabChange]);
+
+  const handleModeChange = useCallback((mode: 'manual' | 'automatic') => {
+    setEditMode(mode);
+    if (mode === 'automatic') {
+      onTabChange('ai');
+    } else if (activeTab === 'ai') {
+      onTabChange('adjust');
+    }
+  }, [activeTab, onTabChange]);
+
+  const manualTabs = TABS.filter(t => t.id !== 'ai');
 
   return (
     <div 
@@ -110,35 +139,63 @@ const SidebarControlsComponent: React.FC<SidebarControlsProps> = ({
       role="complementary"
       aria-label="Editor controls"
     >
-      {/* Tab Bar */}
-      <div 
-        className="flex border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-10"
-        role="tablist"
-        aria-label="Editor tool tabs"
-      >
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => handleTabChange(tab.id)}
-            className={`flex-1 px-1 py-4 text-[10px] font-black uppercase tracking-widest flex flex-col items-center justify-center gap-1.5 transition-all relative ${
-              activeTab === tab.id
-                ? "text-blue-600 bg-blue-50"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`}
-            role="tab"
-            aria-selected={activeTab === tab.id}
-            aria-controls={`${tab.id}-panel`}
-            id={`${tab.id}-tab`}
-            aria-label={tab.ariaLabel}
-          >
-            <span className="text-lg" aria-hidden="true">{tab.icon}</span>
-            <span>{tab.label}</span>
-            {activeTab === tab.id && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" aria-hidden="true" />
-            )}
-          </button>
-        ))}
+      {/* Top-Level Mode Switcher */}
+      <div className="p-2 border-b border-gray-200 bg-slate-50 flex items-center gap-1">
+        <button
+          onClick={() => handleModeChange('manual')}
+          className={`flex-1 py-2 px-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+            editMode === 'manual'
+              ? 'bg-white text-gray-900 shadow-sm border border-gray-200/80'
+              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
+          }`}
+        >
+          <span>🛠️</span>
+          <span>Manual Edit</span>
+        </button>
+        <button
+          onClick={() => handleModeChange('automatic')}
+          className={`flex-1 py-2 px-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+            editMode === 'automatic'
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20'
+              : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50/50'
+          }`}
+        >
+          <span>⚡</span>
+          <span>Automatic Edit</span>
+        </button>
       </div>
+
+      {/* Tab Bar (Only displayed in Manual Mode) */}
+      {editMode === 'manual' && (
+        <div 
+          className="flex border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-10"
+          role="tablist"
+          aria-label="Editor tool tabs"
+        >
+          {manualTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => handleTabChange(tab.id)}
+              className={`flex-1 px-1 py-4 text-[10px] font-black uppercase tracking-widest flex flex-col items-center justify-center gap-1.5 transition-all relative ${
+                activeTab === tab.id
+                  ? "text-blue-600 bg-blue-50"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`${tab.id}-panel`}
+              id={`${tab.id}-tab`}
+              aria-label={tab.ariaLabel}
+            >
+              <span className="text-lg" aria-hidden="true">{tab.icon}</span>
+              <span>{tab.label}</span>
+              {activeTab === tab.id && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" aria-hidden="true" />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Tab Content */}
       <div className="flex-1 overflow-hidden">
@@ -203,6 +260,11 @@ const SidebarControlsComponent: React.FC<SidebarControlsProps> = ({
               onApplyCulling={onApplyCulling}
               isApplyingCulling={isApplyingCulling}
               cullingStats={cullingStats}
+              albumId={albumId}
+              photos={photos}
+              onBatchAutoEditsComplete={onBatchAutoEditsComplete}
+              activePhoto={activePhoto}
+              onReviewAutoEdits={onReviewAutoEdits}
             />
           </div>
         )}

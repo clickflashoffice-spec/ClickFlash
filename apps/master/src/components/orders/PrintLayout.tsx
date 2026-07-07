@@ -61,7 +61,7 @@ const PrintLayout: React.FC<PrintLayoutProps> = ({ order }) => {
     };
 
     return (
-        <div className="printable-area p-8 bg-white text-black font-sans max-w-[210mm] mx-auto">
+        <div className="printable-area p-8 bg-white text-black font-sans max-w-[210mm] mx-auto print:p-0 print:m-0 print:w-full print:max-w-none">
             <header className="border-b-4 border-black pb-6 mb-6 flex justify-between items-start">
                 <div>
                     <h1 className="text-4xl font-extrabold uppercase tracking-tighter mb-2">Lab Sheet</h1>

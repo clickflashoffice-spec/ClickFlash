@@ -14,6 +14,7 @@ import ShareModal from "./ShareModal";
 import { MOCK_PRODUCTS } from "../../constants.ts";
 import { MoneyTrashGallery } from "./MoneyTrashGallery";
 import { useCartSync, markCartRecovered } from "../../hooks/useCartSync.ts";
+import useCartStore from "../../stores/useCartStore.ts";
 
 type CustomerView =
   | "Gallery"
@@ -23,12 +24,7 @@ type CustomerView =
   | "Status"
   | "Buy Photos";
 
-interface ShopCartItem {
-  id: string;
-  product: Product;
-  photo: Photo;
-  quantity: number;
-}
+// ShopCartItem type moved/replaced by CartItem from @clickflash/types
 
 interface CustomerLayoutProps {
   order?: Order;
@@ -47,7 +43,14 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
   const [favoritePhotoIds, setFavoritePhotoIds] = useState<Set<string>>(
     new Set(),
   );
-  const [cart, setCart] = useState<ShopCartItem[]>([]);
+  
+  // Zustand Cart Store
+  const { cart, getTotal, getItemCount, setCartOpen } = useCartStore((state) => ({
+    cart: state.items,
+    getTotal: state.getTotal,
+    getItemCount: state.getItemCount,
+    setCartOpen: state.setCartOpen
+  }));
   const [whiteLabelEnabled, setWhiteLabelEnabled] = useState(false);
 
   useEffect(() => {
@@ -108,48 +111,40 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     setIsAddToCartModalOpen(true);
   }, []);
 
+  const addItem = useCartStore(state => state.addItem);
+  const updateQuantity = useCartStore(state => state.updateQuantity);
+  const clearCart = useCartStore(state => state.clearCart);
+
   const handleAddToCart = useCallback(
     (product: Product, quantity: number) => {
       if (!photoToAddToCart) return;
-      const cartItemId = `${photoToAddToCart.id}-${product.id}`;
-      setCart((prevCart) => {
-        const existingItemIndex = prevCart.findIndex(
-          (item) => item.id === cartItemId,
-        );
-        const newCart = [...prevCart];
-        if (existingItemIndex > -1) {
-          newCart[existingItemIndex].quantity += quantity;
-        } else {
-          newCart.push({
-            id: cartItemId,
-            product,
-            photo: photoToAddToCart,
-            quantity,
-          });
-        }
-        return newCart;
-      });
+      
+      // We pass the product.name, product.price, product.category as format, and derive deliveryType
+      const deliveryType = product.category === 'Digital' ? 'digital' : 'print';
+      
+      for (let i = 0; i < quantity; i++) {
+        addItem(photoToAddToCart, product.name, product.price, product.category, deliveryType);
+      }
+      
       setIsAddToCartModalOpen(false);
       setPhotoToAddToCart(null);
     },
-    [photoToAddToCart],
+    [photoToAddToCart, addItem],
   );
 
   const handleUpdateCartQuantity = useCallback(
     (itemId: string, newQuantity: number) => {
-      setCart((prevCart) => {
-        if (newQuantity <= 0)
-          return prevCart.filter((item) => item.id !== itemId);
-        return prevCart.map((item) =>
-          item.id === itemId ? { ...item, quantity: newQuantity } : item,
-        );
-      });
+      // Find the specific cart item to get its photoId to update via store
+      const item = cart.find(i => i.id === itemId);
+      if (item) {
+        updateQuantity(item.photoId, newQuantity);
+      }
     },
-    [],
+    [cart, updateQuantity],
   );
 
   const handleCheckoutSuccess = (orderId: string) => {
-    setCart([]);
+    clearCart();
     setIsCheckoutModalOpen(false);
     setView("Status");
     markCartRecovered(); // Tell D1 this cart converted — don't send recovery email
@@ -180,15 +175,8 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     }
   }, []);
 
-  const cartItemCount = useMemo(
-    () => cart.reduce((sum, item) => sum + item.quantity, 0),
-    [cart],
-  );
-  const cartTotal = useMemo(
-    () =>
-      cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
-    [cart],
-  );
+  const cartItemCount = getItemCount();
+  const cartTotal = getTotal();
   const productsForStore = useMemo(
     () => MOCK_PRODUCTS.filter((p) => p.category !== "Digital"),
     [],

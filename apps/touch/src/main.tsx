@@ -7,6 +7,10 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './index.css';
 import { logger } from '@/utils/logger';
+import { initVitals } from '@/utils/telemetry';
+
+// Initialize web vitals reporting
+initVitals();
 
 // Touch kiosk QueryClient — moderate cache; kiosk screens don't background-switch tabs.
 const queryClient = new QueryClient({
@@ -39,26 +43,45 @@ if (!window.location.search.includes('mode=')) {
   window.history.replaceState({}, '', url.toString());
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <CurrencyProvider>
-            <App
-              isOnline={navigator.onLine}
-              showToast={(msg) => logger.debug('Toast:', msg)}
-              onExit={async () => {
-                if (window.electron?.exitKiosk) {
-                  await window.electron.exitKiosk();
-                } else {
-                  logger.warn('Exit Kiosk not available');
-                }
-              }}
-            />
-          </CurrencyProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
-  </React.StrictMode>
-);
+const TouchKioskApp = () => {
+  const [isOnline, setIsOnline] = React.useState(navigator.onLine);
+
+  React.useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  return (
+    <React.StrictMode>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <CurrencyProvider>
+              <App
+                isOnline={isOnline}
+                showToast={(msg) => logger.debug('Toast:', msg)}
+                onExit={async () => {
+                  if (window.electron?.exitKiosk) {
+                    await window.electron.exitKiosk();
+                  } else {
+                    logger.warn('Exit Kiosk not available');
+                  }
+                }}
+              />
+            </CurrencyProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </React.StrictMode>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')!).render(<TouchKioskApp />);

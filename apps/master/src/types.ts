@@ -20,7 +20,8 @@ export type View =
   | "Fulfillment"
   | "Marketing"
   | "Growth"
-  | "LocalResortDashboard";
+  | "LocalResortDashboard"
+  | "PrintQueue";
 
 export interface DestinationFeatures {
   ai: boolean;

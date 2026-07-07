@@ -345,6 +345,10 @@ class WebSocketService {
         return this.sendServiceWorkerMessage('CLEAR_OFFLINE_ORDERS');
     }
 
+    public async removeOfflineOrders(ids: string[]): Promise<void> {
+        return this.sendServiceWorkerMessage('REMOVE_OFFLINE_ORDERS', ids);
+    }
+
     public getConnectionStats() {
         return {
             status: this.status,

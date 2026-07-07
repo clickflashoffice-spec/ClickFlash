@@ -9,6 +9,9 @@ import OnScreenKeyboard from './OnScreenKeyboard';
 import { pb } from '../../services/pb.ts';
 import { logger } from '../../utils/logger.ts';
 import { orderService } from '../../services/orderService.ts';
+import { webSocketService } from '../../services/webSocketService.ts';
+import { analytics } from '../../utils/telemetry.ts';
+import { useEffect } from 'react';
 
 interface CheckoutScreenProps {
     cart: CartItem[];
@@ -30,12 +33,27 @@ function generateClientMutationId(): string {
 
 const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDiscount, onBack, onCheckoutSuccess }) => {
     const { formatCurrency } = useCurrency();
-    const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', roomNumber: '' });
+    const [customerDetails, setCustomerDetails] = useState(() => {
+        try {
+            const saved = localStorage.getItem('touch_checkout_details');
+            return saved ? JSON.parse(saved) : { name: '', email: '', roomNumber: '' };
+        } catch (e) {
+            return { name: '', email: '', roomNumber: '' };
+        }
+    });
     const [isComplete, setIsComplete] = useState(false);
     const [orderId, setOrderId] = useState('');
     const [focusedInput, setFocusedInput] = useState<'name' | 'email' | 'roomNumber' | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [tipAmount, setTipAmount] = useState<number>(0);
+
+    useEffect(() => {
+        analytics.trackUserFlow('KIOSK_SESSION', 'CHECKOUT_STARTED');
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem('touch_checkout_details', JSON.stringify(customerDetails));
+    }, [customerDetails]);
 
     const handleInputChange = (field: 'name' | 'email' | 'roomNumber', value: string) => {
         setCustomerDetails(prev => ({ ...prev, [field]: value }));
@@ -88,6 +106,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
             } catch (error: unknown) {
                 const offlineError = error instanceof Error ? error : new Error(String(error));
                 logger.error("Failed to save to offline cache", offlineError, { orderId: tempId });
+                analytics.trackError(offlineError, "Checkout_OfflineSave");
             }
 
             // 2. Try to save to Local Database Engine (PocketBase) if available
@@ -113,7 +132,9 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
                 // Trigger immediate sync to push order to Master
                 syncService.sync().catch(err => logger.warn("Failed to trigger immediate sync", { error: err }));
             } catch (dbError) {
+                const error = dbError instanceof Error ? dbError : new Error(String(dbError));
                 logger.warn("Could not save to local DB (offline mode). Order is safely stored in cache", { orderId: tempId, error: dbError });
+                analytics.trackError(error, "Checkout_LocalDBSave");
             }
 
             // 3. Export order to Master's orders folder (if database save succeeded)
@@ -128,11 +149,31 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
 
                     if (exportResponse.ok) {
                         const exportResult = await exportResponse.json();
+                        analytics.trackUserFlow('KIOSK_SESSION', 'CHECKOUT_SUCCESS');
+                        localStorage.removeItem('touch_checkout_details');
                         logger.info("Order exported to Master successfully", {
                             orderId: createdOrderId,
                             folderName: exportResult.folderName,
                             photosCopied: exportResult.photosCopied
                         });
+                        
+                        const hasPrints = cart.some(item => 
+                            item.deliveryType === 'print' || 
+                            item.deliveryType === 'both' || 
+                            item.size !== 'Digital'
+                        );
+                        
+                        if (hasPrints) {
+                            webSocketService.sendMessage({
+                                type: 'PRINT_REQUESTED',
+                                payload: { 
+                                    orderId: createdOrderId,
+                                    kioskId: localStorage.getItem('kioskId') || 'unknown',
+                                    customerName: customerDetails.name,
+                                    items: orderItems
+                                }
+                            });
+                        }
                     } else {
                         logger.warn("Failed to export order to Master", {
                             orderId: createdOrderId,

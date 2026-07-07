@@ -347,6 +347,16 @@ async function clearOfflineOrders() {
   });
 }
 
+async function removeOfflineOrder(id) {
+  const db = await getDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_ORDERS_STORE_NAME, 'readwrite');
+    tx.objectStore(OFFLINE_ORDERS_STORE_NAME).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 // Queue offline requests for background sync
 async function queueOfflineRequest(requestData) {
   const db = await getDb();
@@ -522,6 +532,15 @@ self.addEventListener('message', async (event) => {
 
       case 'CLEAR_OFFLINE_ORDERS':
         await clearOfflineOrders();
+        if (port) port.postMessage({ success: true });
+        break;
+
+      case 'REMOVE_OFFLINE_ORDERS':
+        if (Array.isArray(payload)) {
+          for (const id of payload) {
+            await removeOfflineOrder(id);
+          }
+        }
         if (port) port.postMessage({ success: true });
         break;
 

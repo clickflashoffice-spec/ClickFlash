@@ -1,4 +1,5 @@
 import React from 'react';
+import { BatchControls } from '../../../AutoEditor/BatchControls';
 
 interface AITabProps {
     onAutoEnhance?: () => void;
@@ -12,6 +13,11 @@ interface AITabProps {
         selected: number;
         rejected: number;
     };
+    albumId?: string;
+    photos?: any[];
+    onBatchAutoEditsComplete?: () => void;
+    activePhoto?: any;
+    onReviewAutoEdits?: () => void;
 }
 
 export const AITab: React.FC<AITabProps> = ({
@@ -22,6 +28,11 @@ export const AITab: React.FC<AITabProps> = ({
     onApplyCulling,
     isApplyingCulling,
     cullingStats,
+    albumId,
+    photos,
+    onBatchAutoEditsComplete,
+    activePhoto,
+    onReviewAutoEdits,
 }) => {
     return (
         <div className="flex flex-col h-full p-4 space-y-6 overflow-y-auto scrollbar-none">
@@ -63,7 +74,33 @@ export const AITab: React.FC<AITabProps> = ({
                         </>
                     )}
                 </button>
+
+                {activePhoto && activePhoto.autoEdits && (
+                    <button
+                        onClick={onReviewAutoEdits}
+                        className="mt-3 w-full px-4 py-3 bg-white hover:bg-gray-50 text-indigo-600 border border-indigo-200 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        Review Applied Edits
+                    </button>
+                )}
             </div>
+
+            {/* Batch Auto-Edits */}
+            {albumId && photos && photos.length > 0 && (
+                <BatchControls
+                    albumId={albumId}
+                    photos={photos}
+                    onBatchComplete={() => {
+                        if (onBatchAutoEditsComplete) {
+                            onBatchAutoEditsComplete();
+                        }
+                    }}
+                />
+            )}
 
             {/* AI Selection Studio */}
             <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 space-y-4">

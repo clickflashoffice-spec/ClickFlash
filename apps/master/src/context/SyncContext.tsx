@@ -7,6 +7,7 @@ import React, {
   useRef,
 } from "react";
 import { AssistanceRequest } from "../types/shared";
+import { OrderItem } from "../types";
 import { webSocketService } from "../services/webSocketService";
 import {
   dataVersionManager,
@@ -20,9 +21,19 @@ import { cloudSyncService } from "../services/cloudSyncService";
 
 import { useToast } from "./ToastContext";
 
+export interface PrintRequest {
+  orderId: string;
+  kioskId: string;
+  customerName?: string;
+  items: OrderItem[];
+  timestamp: Date;
+}
+
 interface SyncContextType {
   dataVersion: number;
   assistanceRequests: AssistanceRequest[];
+  printRequests: PrintRequest[];
+  dismissPrintRequest: (orderId: string) => void;
   triggerDataRefresh: (collection?: CollectionName) => void;
   dismissAssistance: (id: string) => Promise<void>;
   isOnline: boolean;
@@ -41,6 +52,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({
   const [assistanceRequests, setAssistanceRequests] = useState<
     AssistanceRequest[]
   >([]);
+  const [printRequests, setPrintRequests] = useState<PrintRequest[]>([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isDndMode, setDndModeState] = useState(false);
   const isDndModeRef = useRef(false);
@@ -48,6 +60,10 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({
   const setIsDndMode = useCallback((val: boolean) => {
     isDndModeRef.current = val;
     setDndModeState(val);
+  }, []);
+
+  const dismissPrintRequest = useCallback((orderId: string) => {
+    setPrintRequests((prev) => prev.filter((r) => r.orderId !== orderId));
   }, []);
 
   const isSyncingRef = useRef(false);
@@ -112,21 +128,28 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({
       const offlineOrders = await webSocketService.getOfflineOrders();
       if (offlineOrders && offlineOrders.length > 0) {
         let syncedCount = 0;
+        const syncedOrderIds: string[] = [];
         for (const order of offlineOrders) {
           try {
             await apiService.createOrder(order);
             syncedCount++;
+            syncedOrderIds.push(order.id);
           } catch (err: unknown) {
             const errorMessage = (err as Error).message || String(err);
-            if (!errorMessage.includes("duplicate")) {
+            if (errorMessage.includes("duplicate") || errorMessage.includes("already exists")) {
+              logger.warn("Order already exists on server, considering it synced (Server Wins)", err);
+              syncedOrderIds.push(order.id);
+            } else {
               logger.error("Failed to sync order", err);
             }
           }
         }
-        if (syncedCount > 0) {
-          await webSocketService.clearOfflineOrders();
-          showToast(`Received ${syncedCount} new order(s) from Kiosk!`);
-          setDataVersion((v) => v + 1);
+        if (syncedOrderIds.length > 0) {
+          await webSocketService.removeOfflineOrders(syncedOrderIds);
+          if (syncedCount > 0) {
+            showToast(`Received ${syncedCount} new order(s) from Kiosk!`);
+            setDataVersion((v) => v + 1);
+          }
         }
       }
     } catch {
@@ -236,6 +259,24 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({
               return [...prev, newRequest];
             });
           }
+          
+          if (data.type === "PRINT_REQUESTED") {
+            const payload = data.payload || {};
+            setPrintRequests((prev) => {
+              // Avoid duplicates
+              if (prev.some((r) => r.orderId === payload.orderId)) {
+                return prev;
+              }
+              showToast(`🖨️ New print request from ${payload.customerName || 'Customer'}`);
+              return [...prev, {
+                orderId: payload.orderId,
+                kioskId: payload.kioskId,
+                customerName: payload.customerName,
+                items: payload.items || [],
+                timestamp: new Date()
+              }];
+            });
+          }
         },
         (status) => {
           if (status === "Connected") triggerDataRefresh();
@@ -275,6 +316,8 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         dataVersion,
         assistanceRequests,
+        printRequests,
+        dismissPrintRequest,
         triggerDataRefresh,
         dismissAssistance,
         isOnline,

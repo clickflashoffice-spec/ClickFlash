@@ -26,6 +26,8 @@ services:
       - PORT=8090
       - DATABASE_PATH=/app/data/clickflash.db
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret-do-not-use-in-production}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_mock_secret_key_for_ci_tests}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-whsec_mock_webhook_secret_for_ci}
       - CLOUD_HUB_URL=${CLOUD_HUB_URL:-}
       - CLOUD_HUB_API_KEY=${CLOUD_HUB_API_KEY:-}
     networks:
@@ -167,6 +169,8 @@ services:
       - "1420:1420"
     environment:
       - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8090
+      - VITE_WS_URL=ws://localhost:8090
     networks:
       - clickflash-network
     command: pnpm dev -- --host

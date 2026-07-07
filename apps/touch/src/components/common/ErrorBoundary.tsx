@@ -1,6 +1,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logger } from '../../utils/logger';
+import { analytics } from '../../utils/telemetry';
 
 /**
  * ErrorBoundary Component
@@ -56,13 +57,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     // Store error info for display
     this.setState({ errorInfo });
 
-    logger.error("ErrorBoundary caught an error", error, {
-      componentStack: errorInfo.componentStack,
-      errorBoundary: true,
-      errorMessage: error.message,
-      errorStack: error.stack,
-      screenName: (this.props as ErrorBoundaryProps).screenName
-    });
+    const screenName = (this.props as ErrorBoundaryProps).screenName || "ErrorBoundary";
+    analytics.trackError(error, screenName);
   }
 
   public render(): ReactNode {

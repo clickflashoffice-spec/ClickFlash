@@ -1,4 +1,4 @@
-import logger from '../utils/logger';
+import { logger } from "../utils/logger";
 
 export interface DownloadEvent {
     galleryId: string;
@@ -37,26 +37,18 @@ export class AdvocacyFunnelService {
     /**
      * Executes the actual review request (called by a worker processing the queue)
      */
-    async sendReviewRequest(guestEmail: string, guestName: string, reviewLink: string): Promise<boolean> {
+    async sendReviewRequest(guestEmail: string, _guestName: string, _reviewLink: string): Promise<boolean> {
         logger.info(`[AdvocacyFunnel] Sending review request to ${guestEmail}...`);
         
-        const emailBody = `
-            Hi ${guestName},
-            
-            We hope you love your photos! If you had a great time, it would mean the world to our guides/photographers if you left a quick 5-star review here:
-            
-            ${reviewLink}
-            
-            Thank you!
-        `;
+        // _emailBody was here
         
-        // await emailService.send(guestEmail, 'How were your photos?', emailBody);
+        // await emailService.send(guestEmail, 'How were your photos?', _emailBody);
         
         logger.info(`[AdvocacyFunnel] Review request sent successfully to ${guestEmail}`);
         return true;
     }
 
-    private async checkIfAlreadyAsked(email: string): Promise<boolean> {
+    private async checkIfAlreadyAsked(_email: string): Promise<boolean> {
         // Mock check
         return false;
     }

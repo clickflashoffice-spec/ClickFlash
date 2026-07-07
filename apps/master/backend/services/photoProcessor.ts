@@ -29,6 +29,8 @@ interface PhotoMetadata {
   qualityScore: number;
   qualityFlags: string[];
   orientation?: number;
+  autoEdits?: any;
+  autoEnhanced?: boolean;
 }
 
 export interface QualityResult {
@@ -358,6 +360,8 @@ export class PhotoProcessor {
         qualityScore: 100, // Basic heuristics replace full quality score
         qualityFlags: workerResult.quality_flags || [],
         orientation: workerResult.metadata.orientation || 1,
+        autoEdits: workerResult.autoEdits,
+        autoEnhanced: Boolean(workerResult.autoEdits && Object.keys(workerResult.autoEdits).length > 0),
       };
     } catch (error) {
       logger.error("[PhotoProcessor] Processing failed:", error);

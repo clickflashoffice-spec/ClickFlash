@@ -67,6 +67,10 @@ function extractXsrf(cookies: string): string {
 }
 
 async function globalSetup() {
+  if (process.env.SKIP_GLOBAL_SETUP === "true") {
+    console.log("[E2E Seed] Skipping global setup (SKIP_GLOBAL_SETUP=true)");
+    return;
+  }
   console.log("[E2E Seed] Starting global setup...");
 
   // Step 1: Establish a session by hitting health endpoint

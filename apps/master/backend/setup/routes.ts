@@ -31,6 +31,7 @@ import backupRoutes from "../routes/backup";
 import telemetryRoutes from "../routes/system/telemetry";
 import licenseRoutes from "../routes/license";
 import { createHardwareRouter } from "../routes/hardware.routes";
+import createAutoRegisterRouter from "../routes/autoRegister";
 
 export function mountRoutes(app: Application, context: any) {
   // Specific API routes
@@ -69,6 +70,7 @@ export function mountRoutes(app: Application, context: any) {
   app.use("/api", syncRoutes(context as any));
   app.use("/api/setup", setupRoutes(context));
   app.use("/api/license", licenseRoutes(context));
+  app.use("/api/v1/kiosks", createAutoRegisterRouter(context.dbManager, context.logger));
 
   // Fallback for unhandled API routes
   app.all(/\/api\/(.*)/, (_req: Request, res: Response) => {

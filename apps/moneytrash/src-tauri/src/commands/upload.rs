@@ -170,18 +170,23 @@ async fn internal_upload_chunk(
     
     tokio::fs::create_dir_all(&temp_dir).await
         .map_err(|e| AppError::Io(format!("Failed to create temp directory: {}", e)))?;
-    
+        
     let file_path = temp_dir.join(format!("{}.tmp", session_id));
     
-    use tokio::io::AsyncWriteExt;
+    use std::io::SeekFrom;
+    use tokio::io::{AsyncSeekExt, AsyncWriteExt};
     let mut file = tokio::fs::OpenOptions::new()
         .create(true)
-        .append(true)
+        .write(true)
         .open(&file_path).await
         .map_err(|e| AppError::Io(format!("Failed to open temp file: {}", e)))?;
     
+    let offset = (chunk_index as u64) * (CHUNK_SIZE as u64);
+    file.seek(SeekFrom::Start(offset)).await
+        .map_err(|e| AppError::Io(format!("Failed to seek in temp file: {}", e)))?;
+
     file.write_all(chunk_data).await
-        .map_err(|e| AppError::Io(format!("Failed to append chunk: {}", e)))?;
+        .map_err(|e| AppError::Io(format!("Failed to write chunk: {}", e)))?;
     
     // Update session state
     let mut sessions = state.sessions.lock().await;

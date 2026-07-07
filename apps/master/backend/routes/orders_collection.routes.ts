@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import { ALLOWED_COLUMNS } from "../config/constants";
 import { validateRequest } from "../utils/validation";
+import { requirePermission, PERMISSIONS } from "../middleware/permissions";
 
 export default function ordersCollectionRoutes(context: any): Router {
   const { dbManager, logger, auditLogger, realtimeService, orderValidationService, config } = context;
@@ -11,7 +12,7 @@ export default function ordersCollectionRoutes(context: any): Router {
   const table = "orders";
 
   // POST Create
-  router.post("/", async (req: Request, res: Response) => {
+  router.post("/", requirePermission(PERMISSIONS.ORDER_CREATE, context.auditLogger), async (req: Request, res: Response) => {
     try {
       let data = { ...req.body };
 
@@ -112,7 +113,7 @@ export default function ordersCollectionRoutes(context: any): Router {
   });
 
   // PATCH Update
-  router.patch("/:id", async (req: Request, res: Response) => {
+  router.patch("/:id", requirePermission(PERMISSIONS.ORDER_EDIT, context.auditLogger), async (req: Request, res: Response) => {
     try {
       const id = req.params.id;
       let data = { ...req.body };

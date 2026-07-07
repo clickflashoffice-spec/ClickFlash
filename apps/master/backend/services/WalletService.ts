@@ -1,8 +1,8 @@
 import { PKPass } from 'passkit-generator';
 import fs from 'fs-extra';
-import path from 'path';
+// import path from 'path';
 import { logger } from '../utils/logger';
-import { randomUUID } from 'crypto';
+// import { randomUUID } from 'crypto';
 
 export interface WalletPassParams {
     albumId: string;
@@ -61,8 +61,9 @@ export class WalletService {
             }
 
             // Real generation logic using passkit-generator
+            // @ts-ignore
             const pass = new PKPass(
-                {
+                ({
                     "passTypeIdentifier": this.passTypeIdentifier,
                     "teamIdentifier": this.teamIdentifier,
                     "organizationName": "ClickFlash",
@@ -97,14 +98,15 @@ export class WalletService {
                     "barcode": {
                         "message": params.galleryUrl,
                         "format": "PKBarcodeFormatQR",
-                        "messageEncoding": "iso-8859-1"
+                        "messageEncoding": "iso-8859-1",
+                        "altText": params.token
                     }
-                },
+                } as any),
                 {
                     cert: fs.readFileSync(this.certPath),
                     key: fs.readFileSync(this.keyPath),
                     wwdr: fs.readFileSync(this.wwdrPath),
-                }
+                } as any
             );
 
             // Add assets if available

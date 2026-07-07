@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Photo, CartItem, DestinationFeatures } from '../../types.ts';
 import { MOCK_PRINT_SIZES } from '../../constants.ts';
 import { useCurrency } from '../CurrencyContext.tsx';
@@ -184,7 +185,12 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
     });
 
     return (
-        <div className="fixed inset-0 bg-black/95 z-40 flex items-center justify-center p-0 lg:p-4 backdrop-blur-xl">
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/95 z-40 flex items-center justify-center p-0 lg:p-4 backdrop-blur-xl"
+        >
             <div className="bg-white dark:bg-slate-900 w-full h-full lg:rounded-2xl flex flex-col text-slate-800 dark:text-white overflow-hidden shadow-2xl border-none lg:border border-slate-800">
                 <header className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center flex-shrink-0 bg-white dark:bg-slate-900 z-30">
                     <button onClick={onBack} data-testid="back-to-gallery-button" className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-lg">
@@ -214,7 +220,8 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
                             )}
 
                             {/* The Photo */}
-                            <img
+                            <motion.img
+                                layoutId={`photo-img-${photo.id}`}
                                 src={displayUrl}
                                 alt={photo.title}
                                 className="max-w-full max-h-full object-contain shadow-2xl transition-transform duration-100 select-none"
@@ -333,7 +340,7 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
                     </aside>
                 </main>
             </div>
-        </div>
+        </motion.div>
     );
 };
 

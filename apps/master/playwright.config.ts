@@ -58,6 +58,13 @@ export default defineConfig({
       },
       testMatch: /.*\.electron\.spec\.ts/,
     },
+    {
+      name: "cloud-integration",
+      use: {
+        ...devices["Desktop Chrome"],
+      },
+      testMatch: /.*production-integration\.spec\.ts/,
+    },
   ],
 
   webServer: isCI ? undefined : {

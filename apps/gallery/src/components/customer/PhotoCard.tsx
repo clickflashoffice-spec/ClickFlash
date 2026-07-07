@@ -1,9 +1,9 @@
-import React, { useRef, useLayoutEffect } from 'react';
-import { Photo } from '../../types.ts';
-import { getPhotoStyle } from '../../utils/styleUtils';
+import React from 'react';
+import { Photo as PhotoType } from '../../types.ts';
+import { Photo } from '@clickflash/ui';
 
 export interface PhotoCardProps {
-    photo: Photo;
+    photo: PhotoType;
     isFavorite: boolean;
     onToggleFavorite: () => void;
     onAddToCart: () => void;
@@ -31,36 +31,19 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
     className = '',
     style = {}
 }) => {
-    const editStyle = photo.manualEdits ? getPhotoStyle(photo.manualEdits) : { filter: undefined, transform: undefined };
-    const containerRef = useRef<HTMLDivElement>(null);
-    const overlayRef = useRef<HTMLDivElement>(null);
-    const imgRef = useRef<HTMLImageElement>(null);
-
-    useLayoutEffect(() => {
-        if (overlayRef.current) overlayRef.current.style.setProperty('--photo-transform', editStyle.transform || 'none');
-        if (imgRef.current) {
-            imgRef.current.style.setProperty('--photo-filter', editStyle.filter || 'none');
-            imgRef.current.style.setProperty('--photo-transform', editStyle.transform || 'none');
-        }
-    }, [editStyle]);
-
     return (
         <div
             className={`relative group overflow-hidden rounded-2xl cursor-pointer bg-slate-900 border border-white/5 transition-all duration-500 hover:shadow-[0_0_30px_rgba(34,211,238,0.2)] hover:-translate-y-1.5 ${isSelected ? 'ring-4 ring-cyan-500 border-transparent shadow-[0_0_40px_rgba(34,211,238,0.4)]' : ''} ${className}`}
             style={style}
             onClick={isSelectionMode && onToggleSelection ? onToggleSelection : onClick}
         >
-            <div
-                ref={overlayRef}
-                className="absolute inset-0 pointer-events-none z-[1] [transform:var(--photo-transform)]"
-            ></div>
-            <img
-                ref={imgRef}
-                src={photo.url}
-                alt={photo.title}
-                className="w-full h-full object-cover max-h-full origin-center transition-transform duration-700 group-hover:scale-110 [filter:var(--photo-filter)] [transform:var(--photo-transform)]"
-                loading="lazy"
-            />
+            <div className="absolute inset-0 z-0">
+                <Photo 
+                    photo={photo} 
+                    manualEdits={photo.manualEdits} 
+                    imageClassName="transition-transform duration-700 group-hover:scale-110" 
+                />
+            </div>
 
             {/* Premium Selection Checkbox */}
             {isSelectionMode && (

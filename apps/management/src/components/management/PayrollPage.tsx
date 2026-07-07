@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Photographer, Order, Adjustment } from "../../types.ts";
 import { useCurrency } from "../CurrencyContext.tsx";
+import { useManagement } from "../../context/ManagementContext.tsx";
 import { apiService } from "../../services/apiService.ts";
 import Spinner from "../common/Spinner.tsx";
 import StatCard from "../common/StatCard.tsx";
@@ -21,10 +22,10 @@ type PayrollRowData = Photographer & {
 
 interface PayrollPageProps {
   currentUser: Photographer;
-  context?: string;
 }
 
-const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser, context }) => {
+const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser }) => {
+  const { selectedContext: context } = useManagement();
   const [photographers, setPhotographers] = useState<Photographer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [adjustments, setAdjustments] = useState<Adjustment[]>([]);
@@ -53,8 +54,8 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser, context }) => {
     try {
       const [users, ordersData, adjustmentsData] = await Promise.all([
         apiService.getUsers(),
-        apiService.getOrders(),
-        apiService.getAdjustments(),
+        apiService.getOrders(`date ~ '${payrollPeriod}' && status = 'Completed'`),
+        apiService.getAdjustments(), // We still need all adjustments for YYYY and all-time KPIs, though this could be optimized later
       ]);
       setPhotographers(users);
       setOrders(ordersData);
@@ -68,12 +69,11 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser, context }) => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [payrollPeriod]); // Refetch when period changes
 
   const payrollData: PayrollRowData[] = useMemo(() => {
-    const filteredOrders = orders.filter(
-      (o) => o.date.startsWith(payrollPeriod) && o.status === "Completed",
-    );
+    // Orders are already filtered by the backend for this period and 'Completed' status
+    const filteredOrders = orders;
 
     const filteredPhotographers = photographers.filter((p) => {
       if (!context || context === "all" || context === "global") return true;

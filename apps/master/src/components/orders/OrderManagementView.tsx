@@ -58,6 +58,11 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({ order, onBack
 
     // Handle status update
     const handleStatusUpdate = async (newStatus: 'Completed' | 'Delivered') => {
+        if ((newStatus === 'Completed' || newStatus === 'Delivered') && !order.paymentMethod) {
+            showToast('Please edit the order to select a payment method before validating.');
+            return;
+        }
+
         setIsUpdating(true);
         try {
             const updatedOrder = await apiService.updateOrder(order.id, { status: newStatus });

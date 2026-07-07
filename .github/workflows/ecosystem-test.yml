@@ -10,6 +10,7 @@ env:
   JWT_SECRET: test-secret-for-ci-min-32-chars!!
   DEFAULT_ADMIN_PASSWORD: test-password
   NODE_ENV: test
+  STRIPE_SECRET_KEY: sk_test_mock_secret_key_for_ci_tests
 
 jobs:
   ecosystem-test:
@@ -51,6 +52,7 @@ jobs:
         env:
           NODE_ENV: test
           JWT_SECRET: ${{ env.JWT_SECRET }}
+          STRIPE_SECRET_KEY: ${{ env.STRIPE_SECRET_KEY }}
 
       - name: Upload ecosystem test results
         uses: actions/upload-artifact@v4

@@ -28,7 +28,17 @@ export class PhotosPipeline implements SyncPipeline {
 
       for (const photo of pendingPhotos) {
         try {
-          const filePath = path.join(UPLOAD_DIR, photo.albumId || 'unassigned', photo.url || '');
+          let filePath = '';
+          if (photo.url) {
+            const basename = path.basename(photo.url);
+            if (photo.autoEnhanced) {
+              const ext = path.extname(basename);
+              const editedBasename = basename.replace(ext, '_highres_edited.jpg');
+              filePath = path.join(UPLOAD_DIR, photo.albumId || 'unassigned', 'thumbs', editedBasename);
+            } else {
+              filePath = path.join(UPLOAD_DIR, photo.albumId || 'unassigned', 'highres', basename);
+            }
+          }
           let fileStream: fs.ReadStream | null = null;
           let fileExists = false;
 
@@ -36,10 +46,18 @@ export class PhotosPipeline implements SyncPipeline {
           if (photo.url && fs.existsSync(filePath)) {
             fileExists = true;
             fileStream = fs.createReadStream(filePath);
-          } else if (photo.url && fs.existsSync(path.join(UPLOAD_DIR, photo.url))) {
-            // Fallback for flat directory structure
-            fileExists = true;
-            fileStream = fs.createReadStream(path.join(UPLOAD_DIR, photo.url));
+          } else if (photo.url) {
+            // Fallbacks
+            const fallbackPath = path.join(UPLOAD_DIR, photo.albumId || 'unassigned', photo.url.replace('/uploads/', ''));
+            const flatFallbackPath = path.join(UPLOAD_DIR, photo.url.replace('/uploads/', ''));
+            
+            if (fs.existsSync(fallbackPath)) {
+                fileExists = true;
+                fileStream = fs.createReadStream(fallbackPath);
+            } else if (fs.existsSync(flatFallbackPath)) {
+                fileExists = true;
+                fileStream = fs.createReadStream(flatFallbackPath);
+            }
           }
 
           const formData = new FormData();
@@ -52,6 +70,8 @@ export class PhotosPipeline implements SyncPipeline {
             originalName: photo.originalName,
             size: photo.size,
             mimeType: photo.mimeType,
+            manualEdits: photo.manualEdits,
+            autoEnhanced: photo.autoEnhanced,
             created_at: photo.created_at,
           }));
 

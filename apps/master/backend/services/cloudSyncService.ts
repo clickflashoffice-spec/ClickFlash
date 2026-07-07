@@ -98,6 +98,7 @@ export class CloudSyncService {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private retentionTimer: ReturnType<typeof setInterval> | null = null;
   private dlqTimer: ReturnType<typeof setInterval> | null = null;
+  private offlineQueueTimer: ReturnType<typeof setInterval> | null = null;
   private enabled = false;
   private isPaused = false;
   private resortAnalytics: ResortAnalyticsService | null = null;
@@ -158,6 +159,11 @@ export class CloudSyncService {
     try {
       res = await fetchFn(primaryUrl, init);
       if (res && res.status < 500) {
+        if (!this._isConnected) {
+          this._isConnected = true;
+          this.logger.info("[CloudSync] Connection restored (Primary Hub)");
+          this.flushOfflineQueue().catch(e => this.logger.error(`[CloudSync] Background flush after reconnect failed`, e));
+        }
         return res;
       }
     } catch (e) {
@@ -174,6 +180,11 @@ export class CloudSyncService {
       try {
         const failoverRes = await fetchFn(failoverUrl, init);
         if (failoverRes && failoverRes.status < 500) {
+          if (!this._isConnected) {
+            this._isConnected = true;
+            this.logger.info("[CloudSync] Connection restored (Failover Hub)");
+            this.flushOfflineQueue().catch(e => this.logger.error(`[CloudSync] Background flush after reconnect failed`, e));
+          }
           return failoverRes;
         }
         if (failoverRes) {
@@ -183,6 +194,13 @@ export class CloudSyncService {
         this.logger.error(`[CloudSync] Failover hub request also failed: ${failoverUrl}`, failoverErr);
         err = failoverErr;
       }
+    }
+
+    // Both endpoints failed. Detect if it's a network error (TypeError is thrown by fetch on network failure)
+    const isNetworkError = err instanceof TypeError || (err && err.message && err.message.toLowerCase().includes('fetch'));
+    if (isNetworkError && this._isConnected) {
+      this._isConnected = false;
+      this.logger.warn("[CloudSync] Connection lost (Network Error). Offline queueing enabled.");
     }
 
     if (err) throw err;
@@ -404,7 +422,7 @@ export class CloudSyncService {
         this.logger.debug(`[CloudSync] remote_settings_hash not found: ${getErrorMessage(e)}`);
       }
 
-      const res = await fetchFn(
+      const res = await this.fetchWithFailover(
         `${this.cloudApiUrl}/api/cloud/sync/settings?hash=${encodeURIComponent(lastHash)}`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -488,6 +506,12 @@ export class CloudSyncService {
       () => this.replayDeadLetterQueue(),
       30 * 60 * 1000,
     );
+
+    // Phase 3: Offline Queue Flush (every 30 seconds)
+    this.offlineQueueTimer = setInterval(
+      () => this.flushOfflineQueue(),
+      30 * 1000,
+    );
   }
 
   private hydrateQueueState(): void {
@@ -546,6 +570,7 @@ export class CloudSyncService {
     if (this.timer) clearTimeout(this.timer as any);
     if (this.retentionTimer) clearInterval(this.retentionTimer);
     if (this.dlqTimer) clearInterval(this.dlqTimer);
+    if (this.offlineQueueTimer) clearInterval(this.offlineQueueTimer);
     this.logger.info("[CloudSync] Service stopped.");
   }
 
@@ -987,7 +1012,7 @@ export class CloudSyncService {
       }));
 
       const res = await executeWithRetry(async () => {
-        const r = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/ledger`, {
+        const r = await this.fetchWithFailover(`${this.cloudApiUrl}/api/cloud/sync/ledger`, {
           method: "POST",
           headers: await this.getHeaders(),
           body: JSON.stringify({ desk_id: this.deskId, operations }),
@@ -1080,7 +1105,7 @@ export class CloudSyncService {
         sales_revenue: row.sales_revenue,
       }));
 
-      const res = await fetchFn(
+      const res = await this.fetchWithFailover(
         `${this.cloudApiUrl}/api/analytics/daily-audit`,
         {
           method: "POST",
@@ -1131,7 +1156,7 @@ export class CloudSyncService {
 
     try {
       const res = await executeWithRetry(async () => {
-        const r = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/expenses`, {
+        const r = await this.fetchWithFailover(`${this.cloudApiUrl}/api/cloud/sync/expenses`, {
           method: "POST",
           headers: await this.getHeaders(),
           body: JSON.stringify({ desk_id: this.deskId, expenses }),
@@ -1193,7 +1218,7 @@ export class CloudSyncService {
       }));
 
       const res = await executeWithRetry(async () => {
-        const r = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/operations`, {
+        const r = await this.fetchWithFailover(`${this.cloudApiUrl}/api/cloud/sync/operations`, {
           method: "POST",
           headers: await this.getHeaders(),
           body: JSON.stringify({ desk_id: this.deskId, operations }),
@@ -1304,7 +1329,7 @@ export class CloudSyncService {
         },
       };
 
-      const res = await fetchFn(`${this.cloudApiUrl}/api/cloud/heartbeat`, {
+      const res = await this.fetchWithFailover(`${this.cloudApiUrl}/api/cloud/heartbeat`, {
         method: "POST",
         headers: await this.getHeaders(),
         body: JSON.stringify(heartbeat),
@@ -1337,9 +1362,97 @@ export class CloudSyncService {
         this.logger.warn(
           `[CloudSync] Heartbeat failed: ${res.status} - ${txt}`,
         );
+        this.queueOfflineRequest(`${this.cloudApiUrl}/api/cloud/heartbeat`, {
+          method: "POST",
+          headers: await this.getHeaders(),
+          body: JSON.stringify(heartbeat),
+        });
       }
     } catch (e: any) {
       this.logger.error(`[CloudSync] Heartbeat Error: ${getErrorMessage(e)}`);
+      try {
+        const heartbeatStr = JSON.stringify({
+          desk_id: this.deskId,
+          timestamp: new Date().toISOString(),
+          // basic offline payload
+        });
+        this.queueOfflineRequest(`${this.cloudApiUrl}/api/cloud/heartbeat`, {
+          method: "POST",
+          body: heartbeatStr,
+        });
+      } catch (err) {}
+    }
+  }
+
+  /**
+   * Phase 3: Queue failed API calls for offline resiliency
+   */
+  private queueOfflineRequest(url: string, init: any) {
+    try {
+      const method = init?.method || "GET";
+      const headers = init?.headers ? JSON.stringify(init.headers) : null;
+      const body = init?.body ? String(init.body) : null;
+      
+      this.dbManager.run(
+        `INSERT INTO api_request_queue (id, url, method, headers, body, sync_status) VALUES (?, ?, ?, ?, ?, 'pending')`,
+        [crypto.randomUUID(), url, method, headers, body]
+      );
+      this.logger.debug(`[CloudSync] Queued failed API call to ${url} for offline retry`);
+    } catch (e: any) {
+      this.logger.error(`[CloudSync] Failed to queue offline request: ${getErrorMessage(e)}`);
+    }
+  }
+
+  /**
+   * Phase 3: Flush the pending offline API queue
+   */
+  private async flushOfflineQueue() {
+    if (!this._isConnected) return; // Wait for internet
+
+    try {
+      const pending = this.dbManager.query(`
+        SELECT * FROM api_request_queue 
+        WHERE sync_status = 'pending' 
+        ORDER BY created_at ASC 
+        LIMIT 20
+      `);
+
+      if (pending.length === 0) return;
+
+      this.logger.info(`[CloudSync] Flushing ${pending.length} pending offline API requests...`);
+
+      for (const req of pending) {
+        if (!this._isConnected) {
+          this.logger.debug(`[CloudSync] Halting offline queue flush due to lost connection.`);
+          break;
+        }
+
+        try {
+          const init: any = { method: req.method };
+          if (req.headers) init.headers = JSON.parse(req.headers);
+          if (req.body) init.body = req.body;
+
+          const res = await this.fetchWithFailover(req.url, init);
+          
+          if (res.ok) {
+            this.dbManager.run(`UPDATE api_request_queue SET sync_status = 'synced', last_error = NULL WHERE id = ?`, [req.id]);
+            this.logger.debug(`[CloudSync] Successfully flushed queued request to ${req.url}`);
+          } else {
+            const txt = await res.text();
+            this.dbManager.run(
+              `UPDATE api_request_queue SET retry_count = retry_count + 1, last_error = ? WHERE id = ?`,
+              [txt, req.id]
+            );
+          }
+        } catch (e: any) {
+           this.dbManager.run(
+             `UPDATE api_request_queue SET retry_count = retry_count + 1, last_error = ? WHERE id = ?`,
+             [getErrorMessage(e), req.id]
+           );
+        }
+      }
+    } catch (e: any) {
+      this.logger.error(`[CloudSync] Offline queue flush error: ${getErrorMessage(e)}`);
     }
   }
 
@@ -1359,7 +1472,7 @@ export class CloudSyncService {
       );
 
       const res = await executeWithRetry(async () => {
-        const r = await fetchFn(
+        const r = await this.fetchWithFailover(
           `${this.cloudApiUrl}/api/cloud/sync/operations?since_hub_index=${sinceHubIndex}`,
           {
             headers: await this.getHeaders(),
@@ -1392,7 +1505,7 @@ export class CloudSyncService {
       );
       const currentHash = lastHash?.value || "";
 
-      const res = await fetchFn(
+      const res = await this.fetchWithFailover(
         `${this.cloudApiUrl}/api/cloud/sync/settings?hash=${encodeURIComponent(currentHash)}`,
         {
           headers: await this.getHeaders(),
@@ -2022,7 +2135,7 @@ export class CloudSyncService {
 
       // Upsert stats for this desk
       // We use the unified Hub 'settings' or 'stats' endpoint
-      const res = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/batch`, {
+      const res = await this.fetchWithFailover(`${this.cloudApiUrl}/api/cloud/sync/batch`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${this.token}`,
@@ -2056,7 +2169,7 @@ export class CloudSyncService {
   private async pollPaidOrders() {
     const url = `${this.cloudApiUrl}/api/cloud/poll-orders`;
 
-    const res = await fetchFn(url, {
+    const res = await this.fetchWithFailover(url, {
       headers: { Authorization: `Bearer ${this.token}` },
     });
 
@@ -2159,7 +2272,7 @@ export class CloudSyncService {
             totalAmount: order.total || order.totalAmount || 0,
           });
 
-          const res = await fetchFn(
+          const res = await this.fetchWithFailover(
             `${this.cloudApiUrl}/api/cloud/sync/order`,
             {
               method: "POST",
@@ -2226,7 +2339,7 @@ export class CloudSyncService {
               `[CloudSync] Failed to sync order ${order.id}: ${txt} [${correlationId}]`,
             );
             this.dbManager.run(
-              `UPDATE orders SET cloud_sync_status = 'failed', cloud_sync_error = ? WHERE id = ?`,
+              `UPDATE orders SET cloud_sync_status = 'pending', sync_status = 'pending', cloud_sync_error = ? WHERE id = ?`,
               [txt, order.id],
             );
           }
@@ -2247,8 +2360,8 @@ export class CloudSyncService {
             `[CloudSync] Error syncing order ${order.id}: ${getErrorMessage(e)} [${correlationId}]`,
           );
           this.dbManager.run(
-            `UPDATE orders SET cloud_sync_status = 'failed', cloud_sync_error = ? WHERE id = ?`,
-            [e.message, order.id],
+            `UPDATE orders SET cloud_sync_status = 'pending', sync_status = 'pending', cloud_sync_error = ? WHERE id = ?`,
+            [getErrorMessage(e), order.id],
           );
         }
       }
@@ -2317,7 +2430,7 @@ export class CloudSyncService {
 
       while (!chunkSuccess && chunkRetries < maxChunkRetries) {
         try {
-          const res = await fetchFn(
+          const res = await this.fetchWithFailover(
             `${this.cloudApiUrl}/api/cloud/upload-photo/chunk`,
             {
               method: "POST",
@@ -2390,7 +2503,7 @@ export class CloudSyncService {
       form.append("desk_id", this.deskId);
       form.append("file", fs.createReadStream(filePath));
 
-      const res = await fetchFn(
+      const res = await this.fetchWithFailover(
         `${this.cloudGalleryUrl}/api/cloud/upload-photo`,
         {
           method: "POST",
@@ -2422,7 +2535,7 @@ export class CloudSyncService {
 
   private async updateOrderStatus(orderId: string, status: string) {
     try {
-      const res = await fetchFn(
+      const res = await this.fetchWithFailover(
         `${this.cloudApiUrl}/api/cloud/update-order/${orderId}`,
         {
           method: "PATCH",
@@ -2474,7 +2587,7 @@ export class CloudSyncService {
 
       const payload = await this.resortAnalytics.getDailyReport(date);
 
-      const res = await fetchFn(
+      const res = await this.fetchWithFailover(
         `${this.cloudApiUrl}/api/analytics/resort-ingest`,
         {
           method: "POST",
@@ -2524,7 +2637,7 @@ export class CloudSyncService {
       if (stats.length === 0) return;
 
       await executeWithRetry(async () => {
-        const r = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/yield`, {
+        const r = await this.fetchWithFailover(`${this.cloudApiUrl}/api/cloud/sync/yield`, {
           method: "POST",
           headers: await this.getHeaders(),
           body: JSON.stringify({ desk_id: this.deskId, stats }),
@@ -2551,7 +2664,7 @@ export class CloudSyncService {
       if (leads.length === 0) return;
 
       const res = await executeWithRetry(async () => {
-        const r = await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/crm`, {
+        const r = await this.fetchWithFailover(`${this.cloudApiUrl}/api/cloud/sync/crm`, {
           method: "POST",
           headers: await this.getHeaders(),
           body: JSON.stringify({ desk_id: this.deskId, leads }),
@@ -2593,7 +2706,7 @@ export class CloudSyncService {
         }
       };
 
-      await fetchFn(`${this.cloudApiUrl}/api/cloud/sync/triage`, {
+      await this.fetchWithFailover(`${this.cloudApiUrl}/api/cloud/sync/triage`, {
         method: "POST",
         headers: await this.getHeaders(),
         body: JSON.stringify(payload)
@@ -2603,3 +2716,4 @@ export class CloudSyncService {
     }
   }
 }
+

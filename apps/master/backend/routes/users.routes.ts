@@ -2,6 +2,7 @@ import express, { Request, Response, Router } from "express";
 import crypto from "crypto";
 import { ALLOWED_COLUMNS } from "../config/constants";
 import { validateRequest } from "../utils/validation";
+import { requirePermission, PERMISSIONS } from "../middleware/permissions";
 
 // Helper to hash password
 function hashPassword(password: string): Promise<string> {
@@ -20,7 +21,7 @@ export default function usersRoutes(context: any): Router {
   const table = "users";
 
   // POST Create
-  router.post("/", async (req: Request, res: Response) => {
+  router.post("/", requirePermission(PERMISSIONS.USER_CREATE, context.auditLogger), async (req: Request, res: Response) => {
     try {
       let data = { ...req.body };
 
@@ -86,7 +87,7 @@ export default function usersRoutes(context: any): Router {
   });
 
   // PATCH Update
-  router.patch("/:id", async (req: Request, res: Response) => {
+  router.patch("/:id", requirePermission(PERMISSIONS.USER_EDIT, context.auditLogger), async (req: Request, res: Response) => {
     try {
       const id = req.params.id;
       let data = { ...req.body };

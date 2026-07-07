@@ -4,13 +4,16 @@ import { cloudApiService } from '../../services/cloudApiService';
 import Modal from '../common/Modal.tsx';
 import { useCurrency } from '../CurrencyContext.tsx';
 
-const PaymentForm = React.lazy(() => import('./PaymentForm.tsx'));
+// Local payment form removed in favor of Stripe Checkout redirect
 
 interface ShopCartItem {
     id: string;
-    product: Product;
+    name: string;
+    format?: string;
     photo?: Photo;
     quantity: number;
+    price: number;
+    deliveryType?: 'digital' | 'print' | 'both';
 }
 
 interface CheckoutModalProps {
@@ -38,10 +41,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, cart, total, onCl
 
         const orderItems: OrderItem[] = cart.map(item => ({
             id: item.id,
-            name: `${item.product.name} (Photo: ${item.photo?.title || 'N/A'})`,
-            format: item.product.category,
+            name: `${item.name} (Photo: ${item.photo?.title || 'N/A'})`,
+            format: item.format || 'Digital',
             quantity: item.quantity,
-            price: item.product.price,
+            price: item.price,
             photo: item.photo,
         }));
 
@@ -66,16 +69,43 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, cart, total, onCl
         }
     };
 
-    const [showPayment, setShowPayment] = useState(false);
+    const handleStripeCheckout = async () => {
+        setIsLoading(true);
+        try {
+            const baseUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8090";
+            const response = await fetch(`${baseUrl}/api/gallery/checkout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items: cart,
+                    successUrl: window.location.origin + window.location.pathname + '?checkout=success',
+                    cancelUrl: window.location.origin + window.location.pathname + '?checkout=cancel',
+                    clientName,
+                    email,
+                    photographerId,
+                    destinationId,
+                    total: total + tipAmount,
+                })
+            });
 
-    const handleCheckoutSuccessLocal = () => {
-        onCheckoutSuccess(`STRIPE-${Date.now()}`); // In real flow, get ID from PaymentIntent
+            if (!response.ok) throw new Error("Failed to create checkout session");
+            const data = await response.json();
+            
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error("No URL returned from checkout session");
+            }
+        } catch (error) {
+            console.error("Stripe Checkout Error:", error);
+            alert("Payment failed to initialize. Please try again.");
+            setIsLoading(false);
+        }
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={showPayment ? "Secure Payment" : "Your Shopping Cart"} size="lg">
-            {!showPayment ? (
-                <>
+        <Modal isOpen={isOpen} onClose={onClose} title="Your Shopping Cart" size="lg">
+            <>
                     {cart.length === 0 ? (
                         <div className="text-center py-10">
                             <p className="text-slate-400">Your shopping cart is empty.</p>
@@ -84,9 +114,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, cart, total, onCl
                         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                             {cart.map(item => (
                                 <div key={item.id} className="flex items-center space-x-4 p-2 rounded-lg bg-slate-100 dark:bg-slate-700/50">
-                                    <img src={item.photo?.url} alt={item.product.name} className="w-20 h-20 object-cover rounded-md" />
+                                    <img src={item.photo?.url} alt={item.name} className="w-20 h-20 object-cover rounded-md" />
                                     <div className="flex-1">
-                                        <p className="font-bold">{item.product.name}</p>
+                                        <p className="font-bold">{item.name}</p>
                                         <p className="text-sm text-slate-400">With photo: "{item.photo?.title}"</p>
                                     </div>
                                     <div className="flex items-center space-x-2">
@@ -94,7 +124,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, cart, total, onCl
                                         <span>{item.quantity}</span>
                                         <button onClick={() => onUpdateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 rounded bg-slate-200 dark:bg-slate-700">+</button>
                                     </div>
-                                    <p className="font-semibold w-24 text-right">{formatCurrency(item.product.price * item.quantity)}</p>
+                                    <p className="font-semibold w-24 text-right">{formatCurrency(item.price * item.quantity)}</p>
                                 </div>
                             ))}
                         </div>
@@ -156,26 +186,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, cart, total, onCl
                         </div>
                     </div>
                 </>
-            ) : (
-                <div className="mt-4">
-                    <Suspense fallback={<div className="text-center p-4">Loading secure payment...</div>}>
-                        <PaymentForm
-                            amount={total + tipAmount}
-                            tipAmount={tipAmount}
-                            orderId={`TEMP-${Date.now()}`} // Ideally create order first, then pay
-                            email={email}
-                            currency={currency.code.toLowerCase()}
-                            onSuccess={handleCheckoutSuccessLocal}
-                            onCancel={() => setShowPayment(false)}
-                        />
-                    </Suspense>
-                </div>
-            )}
-
-            {!showPayment && (
-                <div className="pt-6 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-700 mt-6">
+            
+            <div className="pt-6 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-700 mt-6">
                     <button onClick={onClose} className="bg-slate-200 hover:bg-slate-300 text-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500 dark:text-white font-semibold py-2 px-4 rounded-lg">Continue Shopping</button>
-                    {/* Legacy Button */}
                     <button
                         onClick={handleCheckout}
                         disabled={cart.length === 0 || isLoading}
@@ -183,16 +196,14 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, cart, total, onCl
                     >
                         {isLoading ? 'Processing...' : 'Pay Later (Room Charge)'}
                     </button>
-                    {/* Stripe Button */}
                     <button
-                        onClick={() => setShowPayment(true)}
+                        onClick={handleStripeCheckout}
                         disabled={cart.length === 0 || isLoading}
                         className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg disabled:bg-slate-500 shadow-lg"
                     >
-                        Pay Now (Card)
+                        {isLoading ? 'Processing...' : 'Pay Now (Card)'}
                     </button>
                 </div>
-            )}
         </Modal>
     );
 };

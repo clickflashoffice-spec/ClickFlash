@@ -275,11 +275,15 @@ class CloudApiService {
     this.config = config;
   }
 
-  private getApiUrl(): string {
+  public getApiUrl(): string {
     if (!this.config) {
-      throw new Error('Cloud API not configured');
+      return '';
     }
     return this.config.apiUrl.replace(/\/$/, '');
+  }
+
+  public getApiKey(): string {
+    return this.config?.apiKey || this.config?.token || '';
   }
 
   private getAuthHeader(): string {

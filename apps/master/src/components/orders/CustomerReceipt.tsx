@@ -62,7 +62,7 @@ const CustomerReceipt: React.FC<CustomerReceiptProps> = ({ order }) => {
   };
 
   return (
-    <div className="printable-area p-8 bg-white text-black font-sans max-w-2xl mx-auto my-8 border rounded-lg shadow-lg">
+    <div className="printable-area p-8 bg-white text-black font-sans max-w-2xl mx-auto my-8 border rounded-lg shadow-lg print:p-0 print:border-none print:shadow-none print:my-0 print:w-full print:max-w-none">
       <header className="text-center pb-6 border-b-2 border-dashed">
         <img
           src={settings.logoUrl}

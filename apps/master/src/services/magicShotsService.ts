@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
-import path from 'path';
+// import path from 'path';
 import sharp from 'sharp';
-import logger from '../utils/logger';
+import { logger } from "../utils/logger";
 
 export interface OverlayConfig {
     id: string;

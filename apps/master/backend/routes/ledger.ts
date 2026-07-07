@@ -79,7 +79,13 @@ export default function ledgerRoutes(context: LedgerContext): Router {
             }
 
             logger.info('[Ledger] Starting historical backfill...');
-            const orders = context.dbManager.query<any>('SELECT * FROM orders WHERE status = "Completed"');
+            const orders = context.dbManager.query<any>(`
+                SELECT o.*, u.commissionRate, u.id as u_id, l.id as ledger_id
+                FROM orders o
+                LEFT JOIN users u ON o.photographerId = u.id
+                LEFT JOIN photographer_ledger l ON o.id = l.order_id
+                WHERE o.status = "Completed"
+            `);
             let count = 0;
             let skipped = 0;
 
@@ -87,18 +93,13 @@ export default function ledgerRoutes(context: LedgerContext): Router {
                 if (!order.photographerId) continue;
 
                 // Check if entry exists (Idempotency)
-                const existing = context.dbManager.get<{ id: string }>(
-                    'SELECT id FROM photographer_ledger WHERE order_id = ?',
-                    [order.id]
-                );
-
-                if (existing) {
+                if (order.ledger_id) {
                     skipped++;
                     continue;
                 }
 
-                const photographer = context.dbManager.get<any>('SELECT * FROM users WHERE id = ?', [order.photographerId]);
-                if (photographer) {
+                if (order.u_id) {
+                    const photographer = { id: order.u_id, commissionRate: order.commissionRate };
                     await ledgerService.recordOrderCommission(order, photographer);
                     count++;
                 }

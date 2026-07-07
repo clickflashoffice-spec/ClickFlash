@@ -1,4 +1,4 @@
-import { WebLogger, TelemetryAnalyzer, LogLevel } from '@clickflash/telemetry-web';
+import { WebLogger, TelemetryAnalyzer, LogLevel, initializeWebVitals } from '@clickflash/telemetry-web';
 
 // Initialize the web logger
 const logger = new WebLogger({
@@ -10,3 +10,4 @@ const logger = new WebLogger({
 
 // Create and export the analyzer instance
 export const analytics = new TelemetryAnalyzer(logger);
+export const initVitals = () => initializeWebVitals(logger);

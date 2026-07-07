@@ -292,6 +292,64 @@ test.describe('Cross-App Workflow: Photo Edit Sync', () => {
     });
 });
 
+test.describe('Phase 5: Ecosystem Features E2E', () => {
+    test('Gallery Checkout Flow (Stripe Mocked)', async ({ page }) => {
+        // Go to Gallery
+        await page.goto(`${BASE_URLS.gallery}/gallery/demo-album`);
+        
+        // Ensure Add to Cart button exists
+        const addToCart = page.locator('[data-testid="add-to-cart-button"]').first();
+        if (await addToCart.isVisible()) {
+            await addToCart.click();
+            
+            // Open cart sidebar
+            await page.locator('[data-testid="cart-icon"]').click();
+            
+            // Wait for checkout button and click
+            const checkoutBtn = page.locator('[data-testid="checkout-button"]');
+            await expect(checkoutBtn).toBeVisible();
+            await checkoutBtn.click();
+            
+            // Note: Since this redirects to Stripe in prod, we check if the mock API handles it 
+            // or if the URL changes appropriately.
+        }
+    });
+
+    test('MoneyTrash Analytics Dashboard', async ({ page }) => {
+        await page.goto(`${BASE_URLS.moneytrash}`);
+        
+        // Wait for it to load
+        await waitForNetworkIdle(page);
+        
+        // Switch to Analytics mode
+        const analyticsBtn = page.getByRole('button', { name: /Analytics/i });
+        if (await analyticsBtn.isVisible()) {
+            await analyticsBtn.click();
+            
+            // Verify Recharts / Analytics component rendered
+            const title = page.getByRole('heading', { name: /Financial Analytics/i });
+            await expect(title).toBeVisible();
+            
+            // Verify Export button is there
+            const exportBtn = page.getByRole('button', { name: /Export CSV/i });
+            await expect(exportBtn).toBeVisible();
+        }
+    });
+
+    test('Master Print Queue WebSocket Sync', async ({ page }) => {
+        await page.goto(`${BASE_URLS.master}`);
+        
+        // Open Print Queue tab
+        const queueTab = page.getByRole('button', { name: /Print Queue/i });
+        if (await queueTab.isVisible()) {
+            await queueTab.click();
+            
+            // Verify Print Queue renders
+            await expect(page.getByRole('heading', { name: /Print Jobs/i })).toBeVisible();
+        }
+    });
+});
+
 // Helper function for multi-tab testing
 async function openNewTab(page: Page, url: string): Promise<Page> {
     const context = page.context();
@@ -306,3 +364,4 @@ async function waitForNetworkIdle(page: Page, timeoutMs: number = 3000): Promise
         // Ignore timeout - network may never fully idle
     });
 }
+

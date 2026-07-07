@@ -13,7 +13,7 @@ interface ImportAlbumModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImport: (
-    albumData: Omit<Album, "id" | "photos" | "coverPhotoUrl">,
+    albumData: Omit<Album, "id" | "photos" | "coverPhotoUrl"> & { autoProcess?: boolean },
     photoFiles: File[],
   ) => Promise<void> | void;
   photographers: Photographer[];
@@ -43,6 +43,8 @@ const ImportAlbumModal: React.FC<ImportAlbumModalProps> = ({
     { id: string; url: string; name: string }[]
   >([]);
 
+  const [isDragging, setIsDragging] = useState(false);
+
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(
     new Set(),
   );
@@ -51,10 +53,10 @@ const ImportAlbumModal: React.FC<ImportAlbumModalProps> = ({
   const [albumTitle, setAlbumTitle] = useState("");
   const [roomNumber, setRoomNumber] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
-  const [selectedCategory, setSelectedCategory] =
-    useState<string>("Photo Session");
+  const [selectedCategory, setSelectedCategory] = useState<string>("Weddings");
+  const [autoProcessEnabled, setAutoProcessEnabled] = useState<boolean>(true);
 
-  // Inline validation errors (replaces alert())
+  // Use a ref to keep track of created blob URLs (replaces alert())
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
@@ -87,8 +89,9 @@ const ImportAlbumModal: React.FC<ImportAlbumModalProps> = ({
       setAlbumTitle("");
       setRoomNumber("");
       setCustomerEmail(""); // Fix: removed duplicate call
-      setSelectedCategory(availableCategories[0] || "Photo Session");
+      setSelectedCategory("Weddings");
       setValidationErrors({});
+      setAutoProcessEnabled(true);
     }
   }, [isOpen]);
 
@@ -181,6 +184,36 @@ const ImportAlbumModal: React.FC<ImportAlbumModalProps> = ({
     if (event.target) event.target.value = "";
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const fileList = Array.from(e.dataTransfer.files);
+      const files = fileList.filter((f) => f.type.startsWith("image/"));
+      if (files.length === 0) {
+        setValidationErrors({
+          folder: "No image files found in the dropped items.",
+        });
+        return;
+      }
+      setValidationErrors({});
+      const firstFile = files[0];
+      const rootPath = (firstFile as any).webkitRelativePath?.split("/")[0] || "Dropped Files";
+      await processFiles(files, rootPath);
+    }
+  };
+
   useEffect(() => {
     return () => {
       photoPreviews.forEach((p) => revokeBlob(p.url));
@@ -226,6 +259,7 @@ const ImportAlbumModal: React.FC<ImportAlbumModalProps> = ({
       roomNumber: roomNumber,
       customerEmail: customerEmail,
       categories: [selectedCategory],
+      autoProcess: autoProcessEnabled,
     };
 
     logger.info("[ImportAlbumModal] Album data being sent", { data: albumData });
@@ -415,15 +449,24 @@ const ImportAlbumModal: React.FC<ImportAlbumModalProps> = ({
                 className="hidden"
                 {...{ webkitdirectory: "true", directory: "true" }}
               />
-              <div className="flex justify-center w-full">
+              <div 
+                className="flex justify-center w-full"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="group w-full max-w-md flex flex-col items-center justify-center p-10 border-2 border-dashed border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 rounded-2xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all hover:scale-[1.02]"
+                  className={`group w-full max-w-md flex flex-col items-center justify-center p-10 border-2 border-dashed rounded-2xl transition-all ${
+                    isDragging 
+                      ? "border-blue-500 bg-blue-100 dark:bg-blue-900/60 scale-[1.02]" 
+                      : "border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:scale-[1.02]"
+                  }`}
                 >
-                  <div className="p-4 bg-white dark:bg-slate-800 rounded-full shadow-sm mb-4 group-hover:scale-110 transition-transform">
+                  <div className={`p-4 rounded-full shadow-sm mb-4 transition-transform ${isDragging ? "bg-blue-500 text-white scale-110" : "bg-white dark:bg-slate-800 group-hover:scale-110 text-blue-500"}`}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-10 w-10 text-blue-500"
+                      className="h-10 w-10"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -437,10 +480,10 @@ const ImportAlbumModal: React.FC<ImportAlbumModalProps> = ({
                     </svg>
                   </div>
                   <span className="text-xl font-bold text-slate-800 dark:text-white mb-1">
-                    Local Device / USB
+                    {isDragging ? "Drop Photos Here" : "Local Device / USB"}
                   </span>
                   <span className="text-sm text-slate-500 dark:text-slate-400">
-                    Import from SD Card or Hard Drive
+                    Import from SD Card, Hard Drive, or drag and drop
                   </span>
                 </button>
               </div>
@@ -677,6 +720,43 @@ const ImportAlbumModal: React.FC<ImportAlbumModalProps> = ({
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Automatic Processing Toggle */}
+            <div className="mt-4 p-4 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border border-indigo-200 dark:border-indigo-700 rounded-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 flex items-center justify-center bg-indigo-100 dark:bg-indigo-800 rounded-lg">
+                    <span className="text-lg">⚡</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">Automatic Processing (Unattended)</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Auto-enhance all photos after import — no manual review needed</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAutoProcessEnabled((prev) => !prev)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                    autoProcessEnabled
+                      ? "bg-indigo-600"
+                      : "bg-slate-200 dark:bg-slate-600"
+                  }`}
+                  role="switch"
+                  aria-checked={autoProcessEnabled}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      autoProcessEnabled ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+              {autoProcessEnabled && (
+                <p className="mt-2 text-xs text-indigo-600 dark:text-indigo-400 font-medium flex items-center gap-1">
+                  <span>✓</span> Photos will be auto-enhanced, smart-cropped, and saved automatically after upload completes.
+                </p>
+              )}
             </div>
 
             {validationErrors.submit && (

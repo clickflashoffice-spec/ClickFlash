@@ -80,4 +80,5 @@ export type ManagementView =
   | "general_settings"
   | "staff_management"
   | "session_types"
-  | "reports_insights";
+  | "reports_insights"
+  | "billing_subscription";

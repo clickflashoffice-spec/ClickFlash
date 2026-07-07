@@ -3,7 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import {
   Upload, FolderUp, CheckCircle, X, Smartphone, HardDrive,
   Image, FileImage, Trash2, AlertCircle, Loader2, History,
-  FileCheck, Settings, FolderOpen, MonitorPlay
+  FileCheck, Settings, FolderOpen, MonitorPlay, BarChart2
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { desktopBatchUploadService } from './services/desktopBatchUploadService';
@@ -12,6 +12,7 @@ import { env } from '@/utils/env';
 import { cloudApiService } from './services/cloudApiService';
 import { initTauriApi, isTauri, invoke } from './services/tauriService';
 import { useVRAMProtection } from './hooks/useVRAMProtection';
+import { Analytics } from './components/Analytics';
 
 interface UploadFile {
   id: string;
@@ -26,7 +27,7 @@ interface UploadFile {
 
 
 function App() {
-  const [mode, setMode] = useState<"moneytrash" | "sold">("moneytrash");
+  const [mode, setMode] = useState<"moneytrash" | "sold" | "analytics">("moneytrash");
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [overallProgress, setOverallProgress] = useState(0);
@@ -344,7 +345,7 @@ function App() {
   };
 
   // Handle mode switch with form reset and validation
-  const handleModeSwitch = (newMode: "moneytrash" | "sold") => {
+  const handleModeSwitch = (newMode: "moneytrash" | "sold" | "analytics") => {
     if (newMode === mode) return;
     
     // Clear all form fields when switching modes
@@ -387,7 +388,7 @@ function App() {
     desktopBatchUploadService.createJob(rawFiles, {
       eventName,
       accessCode,
-      mode,
+      mode: mode === 'analytics' ? 'moneytrash' : mode,
       customerEmail,
       singlePhotoPrice,
       fullGalleryPrice,
@@ -430,13 +431,13 @@ function App() {
 
           // Add to history
           if (settings.saveHistory) {
-            const newHistoryItem = {
+            const newHistoryItem: UploadHistoryItem = {
               id: crypto.randomUUID(),
               eventName,
               accessCode,
               fileCount: rawFiles.length,
               timestamp: new Date().toISOString(),
-              mode
+              mode: mode === 'analytics' ? 'moneytrash' : mode
             };
             const updatedHistory = [newHistoryItem, ...uploadHistory].slice(0, 10);
             setUploadHistory(updatedHistory);
@@ -465,7 +466,7 @@ function App() {
           config: {
             event_name: eventName,
             access_code: accessCode,
-            mode,
+            mode: mode === 'analytics' ? 'moneytrash' : mode,
             customer_email: customerEmail || null,
             single_photo_price: singlePhotoPrice || null,
             full_gallery_price: fullGalleryPrice || null,
@@ -544,6 +545,18 @@ function App() {
             >
               <HardDrive className="w-4 h-4" />
               Order Backup
+            </button>
+            <button
+              onClick={() => handleModeSwitch("analytics")}
+              className={clsx(
+                "px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2",
+                mode === "analytics"
+                  ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20"
+                  : "text-zinc-400 hover:text-white"
+              )}
+            >
+              <BarChart2 className="w-4 h-4" />
+              Analytics
             </button>
           </div>
         </div>
@@ -689,7 +702,12 @@ function App() {
         </div>
       )}
 
-      {/* Main Content */}
+      {/* Main Content Area */}
+      {mode === 'analytics' ? (
+        <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 shadow-2xl h-[calc(100vh-200px)] overflow-y-auto w-full">
+            <Analytics />
+        </div>
+      ) : (
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Metadata Column */}
         <div className="lg:col-span-1 space-y-4">
@@ -1133,6 +1151,7 @@ function App() {
           </div>
         </div>
       </div>
+      )}
     </main>
   );
 }

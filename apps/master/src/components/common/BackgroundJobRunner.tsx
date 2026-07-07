@@ -11,12 +11,14 @@ import { logger } from "../../utils/logger";
  */
 export const BackgroundJobRunner: React.FC = () => {
   const isProcessingRef = useRef(false);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
+    isMountedRef.current = true;
 
     const runLoop = async () => {
-      if (isProcessingRef.current) return;
+      if (!isMountedRef.current || isProcessingRef.current) return;
 
       try {
         isProcessingRef.current = true;
@@ -28,12 +30,17 @@ export const BackgroundJobRunner: React.FC = () => {
         );
       } finally {
         isProcessingRef.current = false;
-        timer = setTimeout(runLoop, 10000); // Check every 10 seconds
+        if (isMountedRef.current) {
+          timer = setTimeout(runLoop, 10000); // Check every 10 seconds
+        }
       }
     };
 
     timer = setTimeout(runLoop, 2000);
-    return () => clearTimeout(timer);
+    return () => {
+      isMountedRef.current = false;
+      clearTimeout(timer);
+    };
   }, []);
 
   return null;

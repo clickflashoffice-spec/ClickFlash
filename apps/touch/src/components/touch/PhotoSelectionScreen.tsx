@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Album, Photo, PhotoCategory, CartItem, DestinationFeatures } from '../../types.ts';
 import SelectionCartBar from './SelectionCartBar';
 import { MOCK_PRINT_SIZES } from '../../constants.ts';
@@ -9,6 +10,7 @@ import FaceSearchModal from './FaceSearchModal';
 import { faceRecognitionService } from '../../services/faceRecognitionService.ts';
 import VirtualGrid from '../common/VirtualGrid';
 import { logger } from '../../utils/logger';
+import { analytics } from '../../utils/telemetry';
 
 // Threshold for enabling virtual scrolling (performance optimization)
 const VIRTUAL_SCROLL_THRESHOLD = 50; // Lower threshold for Touch kiosk performance
@@ -25,16 +27,25 @@ const PhotoCard: React.FC<{
 }> = React.memo(({ photo, isInCart, onClick, style }) => {
     const [isLoaded, setIsLoaded] = useState(false);
     return (
-    <div className="group cursor-pointer aspect-square relative" onClick={onClick} style={style} data-testid="photo-card">
+    <motion.div 
+        layoutId={`photo-container-${photo.id}`}
+        className="group cursor-pointer aspect-square relative" 
+        onClick={onClick} 
+        style={style} 
+        data-testid="photo-card"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.95 }}
+    >
         {!isLoaded && (
             <div className="absolute inset-0 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-lg" />
         )}
-        <img
+        <motion.img
+            layoutId={`photo-img-${photo.id}`}
             src={photo.url}
             alt={photo.title}
             onLoad={() => setIsLoaded(true)}
             data-testid="photo-card-image"
-            className={`w-full h-full object-cover rounded-lg shadow-md transition-all duration-300 group-hover:scale-105 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+            className={`w-full h-full object-cover rounded-lg shadow-md transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
             loading="lazy"
         />
         {isInCart && (
@@ -44,7 +55,7 @@ const PhotoCard: React.FC<{
                 </svg>
             </div>
         )}
-    </div>
+    </motion.div>
 )}, (prevProps, nextProps) => {
     // Custom comparison for better performance
     return prevProps.photo.id === nextProps.photo.id &&
@@ -154,6 +165,7 @@ const PhotoSelectionScreen: React.FC<PhotoSelectionScreenProps> = ({
         }
 
         showToast("Searching for matching faces...");
+        analytics.trackEvent({ eventName: 'FACE_SEARCH_INITIATED', category: 'Engagement' });
 
         try {
             // Check if face is detected first (Client-side optimization)
@@ -240,6 +252,7 @@ const PhotoSelectionScreen: React.FC<PhotoSelectionScreenProps> = ({
 
         onBulkUpdateCart(newItems);
         showToast(`Selected ${newItems.length} photos`);
+        analytics.trackEvent({ eventName: 'BULK_SELECT_ALL', category: 'Engagement' });
     };
 
     const handleDeselectAll = () => {

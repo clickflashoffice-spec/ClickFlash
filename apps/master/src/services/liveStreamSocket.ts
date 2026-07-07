@@ -1,6 +1,6 @@
 import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
-import logger from '../utils/logger';
+import { logger } from "../utils/logger";
 
 export class LiveStreamSocket {
     private io: Server | null = null;

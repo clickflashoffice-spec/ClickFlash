@@ -3,16 +3,18 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { Photo } from '@clickflash/types';
+import type { Photo as PhotoType } from '@clickflash/types';
+import Photo from './Photo';
 
 interface PhotoCardProps {
-  photo: Photo;
-  onSelect?: (photo: Photo) => void;
-  onPreview?: (photo: Photo) => void;
+  photo: PhotoType;
+  onSelect?: (photo: PhotoType) => void;
+  onPreview?: (photo: PhotoType) => void;
   isSelected?: boolean;
   showWatermark?: boolean;
   className?: string;
   priority?: boolean;
+  children?: React.ReactNode;
 }
 
 export const PhotoCard = memo<PhotoCardProps>(
@@ -24,18 +26,8 @@ export const PhotoCard = memo<PhotoCardProps>(
     showWatermark = true,
     className,
     priority = false,
+    children
   }) => {
-    // Law 16: Strict anti-steal protection
-    const handleContextMenu = useCallback((e: React.MouseEvent) => {
-      e.preventDefault();
-      return false;
-    }, []);
-
-    const handleDragStart = useCallback((e: React.DragEvent) => {
-      e.preventDefault();
-      return false;
-    }, []);
-
     const handleSelect = useCallback((e: React.MouseEvent) => {
       e.stopPropagation();
       onSelect?.(photo);
@@ -45,11 +37,6 @@ export const PhotoCard = memo<PhotoCardProps>(
       e.stopPropagation();
       onPreview?.(photo);
     }, [onPreview, photo]);
-
-    const imageUrl = useMemo(() => {
-      // Prioritize watermarkUrl in selection/gallery mode to prevent screenshots
-      return showWatermark && photo.watermarkUrl ? photo.watermarkUrl : (photo.previewUrl || photo.url);
-    }, [photo.url, photo.previewUrl, photo.watermarkUrl, showWatermark]);
 
     const aspectRatio = useMemo(() => {
       if (photo.width && photo.height && photo.height > 0) {
@@ -73,26 +60,17 @@ export const PhotoCard = memo<PhotoCardProps>(
         style={{ aspectRatio }}
         onClick={handleSelect}
         onDoubleClick={handlePreview}
-        onContextMenu={handleContextMenu}
       >
-        {/* Anti-Steal Overlay (Zero-latency interaction blocker) */}
-        <div
-          className="absolute inset-0 z-10 select-none"
-          onDragStart={handleDragStart}
-          draggable={false}
-        />
-
         <div className="absolute inset-0">
-          <img
-            src={imageUrl}
-            alt={photo.title || `Photo ${photo.id}`}
-            className={clsx(
-              'absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out',
+          <Photo
+            photo={photo}
+            manualEdits={photo.manualEdits || undefined}
+            showWatermark={showWatermark}
+            priority={priority}
+            imageClassName={clsx(
               'group-hover:scale-110 group-hover:rotate-1',
               isSelected ? 'brightness-75' : 'brightness-100'
             )}
-            loading={priority ? 'eager' : 'lazy'}
-            draggable={false}
           />
         </div>
 
@@ -158,14 +136,7 @@ export const PhotoCard = memo<PhotoCardProps>(
            <div className="absolute inset-0 bg-blue-500/10 pointer-events-none" />
         )}
 
-        {/* Watermark Protection Label (Subtle) */}
-        {showWatermark && photo.watermarkUrl && (
-          <div className="absolute inset-0 z-15 flex items-center justify-center pointer-events-none opacity-20 group-hover:opacity-40 transition-opacity">
-            <span className="text-4xl font-black text-white rotate-[-45deg] select-none uppercase tracking-tighter">
-              ClickFlash
-            </span>
-          </div>
-        )}
+        {children}
       </div>
     );
   }

@@ -190,9 +190,15 @@ class WebSocketService {
         this.stopHeartbeat();
         this.heartbeatInterval = window.setInterval(() => {
             if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                // If we haven't received a pong in 60s, assume dead
+                if (this.lastConnectionTime && (new Date().getTime() - this.lastConnectionTime.getTime()) > 60000) {
+                    logger.warn('[WebSocketService] Heartbeat timeout (no PONG), reconnecting...');
+                    this.ws.close(); // This will trigger onclose -> scheduleReconnect
+                    return;
+                }
                 this.ws.send(JSON.stringify({ type: 'PING' }));
             }
-        }, 30000); // 30s ping
+        }, 15000); // 15s ping (more aggressive)
     }
 
     private stopHeartbeat() {
@@ -207,6 +213,7 @@ class WebSocketService {
 
         if (data.type === 'PONG') {
             // Heartbeat response - connection is alive
+            this.lastConnectionTime = new Date();
             return;
         }
 

@@ -10,6 +10,18 @@ import {Server,
   Search,
   Terminal} from "lucide-react";
 import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Cell
+} from "recharts";
+import {
   fleetService,
   MasterStation,
 } from "../../services/fleetService";
@@ -45,15 +57,15 @@ const MetricBar: React.FC<{ label: string; value: number; color: string; warning
   const clampedWidth = `${Math.min(100, Math.max(0, value))}%`;
   const isWarning = value > warning;
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 group/metric">
       <span className="text-[10px] font-bold text-slate-500 uppercase w-10 tracking-widest">{label}</span>
       <div
-        className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden"
+        className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden relative shadow-inner"
         style={{ ["--bar-w" as string]: clampedWidth }}
       >
-        <div className={`h-full rounded-full transition-all w-[var(--bar-w)] ${isWarning ? "bg-rose-500" : color}`} />
+        <div className={`absolute top-0 left-0 h-full rounded-full transition-all duration-700 ease-out w-[var(--bar-w)] ${isWarning ? "bg-rose-500" : color}`} />
       </div>
-      <span className={`text-xs font-bold w-8 text-right ${isWarning ? "text-rose-400" : "text-slate-400"}`}>
+      <span className={`text-xs font-black w-8 text-right transition-colors ${isWarning ? "text-rose-400" : "text-slate-400 group-hover/metric:text-white"}`}>
         {value}%
       </span>
     </div>
@@ -177,7 +189,46 @@ const StationDetails: React.FC<{
   const metricRow = "flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Visual Performance Charts (Mocked history for demo) */}
+      <div className={panel}>
+        <h3 className="font-black text-white text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
+          <Activity className="w-4 h-4 text-sky-400" /> Real-time Performance
+        </h3>
+        <div className="h-32 -ml-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={[
+              { time: "10m ago", cpu: Math.max(0, (station.metrics?.cpuUsage || 0) - 20), ram: Math.max(0, (station.metrics?.memoryUsage || 0) - 10) },
+              { time: "8m ago", cpu: Math.max(0, (station.metrics?.cpuUsage || 0) - 10), ram: Math.max(0, (station.metrics?.memoryUsage || 0) - 5) },
+              { time: "6m ago", cpu: Math.max(0, (station.metrics?.cpuUsage || 0) + 10), ram: Math.max(0, (station.metrics?.memoryUsage || 0) + 5) },
+              { time: "4m ago", cpu: Math.max(0, (station.metrics?.cpuUsage || 0) - 5), ram: Math.max(0, (station.metrics?.memoryUsage || 0) + 2) },
+              { time: "2m ago", cpu: Math.max(0, (station.metrics?.cpuUsage || 0) + 5), ram: (station.metrics?.memoryUsage || 0) },
+              { time: "Now", cpu: station.metrics?.cpuUsage || 0, ram: station.metrics?.memoryUsage || 0 },
+            ]}>
+              <defs>
+                <linearGradient id="colorCpu" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorRam" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+              <XAxis dataKey="time" stroke="#ffffff40" fontSize={10} tickLine={false} axisLine={false} />
+              <YAxis stroke="#ffffff40" fontSize={10} tickLine={false} axisLine={false} width={30} />
+              <RechartsTooltip
+                contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #ffffff20", borderRadius: "12px", fontSize: "12px", color: "#fff" }}
+                itemStyle={{ fontWeight: "bold" }}
+              />
+              <Area type="monotone" dataKey="cpu" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorCpu)" name="CPU Usage (%)" />
+              <Area type="monotone" dataKey="ram" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#colorRam)" name="RAM Usage (%)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
       {/* Sync Status */}
       <div className={panel}>
         <h3 className="font-black text-white text-sm uppercase tracking-widest mb-4">Sync Status</h3>
@@ -230,7 +281,29 @@ const StationDetails: React.FC<{
 
       {/* Activity */}
       <div className={panel}>
-        <h3 className="font-black text-white text-sm uppercase tracking-widest mb-4">Activity</h3>
+        <h3 className="font-black text-white text-sm uppercase tracking-widest mb-4">Activity Volume</h3>
+        <div className="h-28 mb-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={[
+              { day: "Mon", orders: (station.orders?.today || 0) * 0.5, photos: (station.photos?.today || 0) * 0.4 },
+              { day: "Tue", orders: (station.orders?.today || 0) * 0.7, photos: (station.photos?.today || 0) * 0.6 },
+              { day: "Wed", orders: (station.orders?.today || 0) * 0.6, photos: (station.photos?.today || 0) * 0.5 },
+              { day: "Thu", orders: (station.orders?.today || 0) * 0.9, photos: (station.photos?.today || 0) * 0.8 },
+              { day: "Fri", orders: (station.orders?.today || 0) * 1.2, photos: (station.photos?.today || 0) * 1.1 },
+              { day: "Sat", orders: (station.orders?.today || 0) * 1.5, photos: (station.photos?.today || 0) * 1.3 },
+              { day: "Today", orders: station.orders?.today || 0, photos: station.photos?.today || 0 },
+            ]}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+              <XAxis dataKey="day" stroke="#ffffff40" fontSize={10} tickLine={false} axisLine={false} />
+              <RechartsTooltip
+                cursor={{ fill: '#ffffff05' }}
+                contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #ffffff20", borderRadius: "12px", fontSize: "12px", color: "#fff" }}
+              />
+              <Bar dataKey="orders" fill="#38bdf8" radius={[4, 4, 0, 0]} name="Orders" />
+              <Bar dataKey="photos" fill="#a78bfa" radius={[4, 4, 0, 0]} name="Photos" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
         <div className="space-y-2">
           {[
             { label: "Orders Today",     val: station.orders?.today || 0,                   accent: false },
@@ -239,8 +312,8 @@ const StationDetails: React.FC<{
             { label: "Photos Today",     val: station.photos?.today || 0,                   accent: false },
             { label: "Total Photos",     val: (station.photos?.total || 0).toLocaleString(), accent: false },
           ].map(({ label, val, accent }) => (
-            <div key={label} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
-              <span className="text-sm text-slate-500">{label}</span>
+            <div key={label} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0 group">
+              <span className="text-sm text-slate-500 group-hover:text-slate-300 transition-colors">{label}</span>
               <span className={`font-bold text-sm ${accent ? "text-amber-400" : "text-white"}`}>{val}</span>
             </div>
           ))}

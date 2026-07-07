@@ -100,69 +100,74 @@ const CommandBar: React.FC<CommandBarProps> = ({ onSelect, isOpen, onClose }) =>
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4 backdrop-blur-sm bg-slate-900/20 animate-in fade-in duration-200">
-      <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="relative flex items-center px-4 py-4 border-b border-slate-100">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4 backdrop-blur-md bg-slate-900/40 animate-in fade-in duration-300">
+      <div className="w-full max-w-xl bg-white/95 backdrop-blur-xl rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] border border-white/20 overflow-hidden animate-in zoom-in-95 slide-in-from-top-4 duration-300">
+        <div className="relative flex items-center px-4 py-4 border-b border-slate-200/50 bg-slate-50/50">
           <Search className="w-5 h-5 text-slate-400 mr-3" />
           <input
             ref={inputRef}
             type="text"
             placeholder="Type a command or search feature..."
-            className="flex-1 bg-transparent border-none outline-none text-slate-800 text-base placeholder:text-slate-400"
+            className="flex-1 bg-transparent border-none outline-none text-slate-800 text-base placeholder:text-slate-400 font-medium"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 rounded-md">
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-white border border-slate-200 rounded-md shadow-sm">
             <Command className="w-3 h-3 text-slate-500" />
             <span className="text-[10px] font-bold text-slate-500">K</span>
           </div>
           <button 
             onClick={onClose}
             title="Close Search"
-            className="ml-4 text-slate-400 hover:text-slate-600 p-1"
+            className="ml-4 text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-200/50 rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="max-h-[50vh] overflow-y-auto p-2 custom-scrollbar">
+        <div className="max-h-[50vh] overflow-y-auto p-3 custom-scrollbar">
           {filteredItems.length === 0 ? (
-            <div className="p-8 text-center text-slate-400">
-              No results found for "{query}"
+            <div className="p-8 flex flex-col items-center justify-center text-slate-400 gap-2">
+              <Search className="w-8 h-8 opacity-20" />
+              <p>No results found for "{query}"</p>
             </div>
           ) : (
-            filteredItems.map((item, index) => {
-              const isSelected = index === selectedIndex;
-              return (
-                <button
-                  key={`${item.hubLabel}-${item.view}`}
-                  onClick={() => {
-                    onSelect(item.view);
-                    onClose();
-                  }}
-                  onMouseEnter={() => setSelectedIndex(index)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-colors ${
-                    isSelected ? "bg-blue-50 text-blue-700" : "hover:bg-slate-50 text-slate-600"
-                  }`}
-                >
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold tracking-tight">{item.label}</span>
-                    <span className="text-[10px] text-slate-400 uppercase font-black tracking-widest leading-none mt-1">
-                      {item.hubLabel}
-                    </span>
-                  </div>
-                  {isSelected && (
-                    <span className="text-[10px] font-bold text-blue-500 flex items-center gap-1">
-                      ENTER <span className="opacity-50">↵</span>
-                    </span>
-                  )}
-                </button>
-              );
-            })
+            <div className="space-y-1">
+              {filteredItems.map((item, index) => {
+                const isSelected = index === selectedIndex;
+                return (
+                  <button
+                    key={`${item.hubLabel}-${item.view}`}
+                    onClick={() => {
+                      onSelect(item.view);
+                      onClose();
+                    }}
+                    onMouseEnter={() => setSelectedIndex(index)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-200 ${
+                      isSelected 
+                        ? "bg-[#38bdf8]/10 text-blue-700 shadow-sm border border-[#38bdf8]/20" 
+                        : "hover:bg-slate-50 text-slate-600 border border-transparent"
+                    }`}
+                  >
+                    <div className="flex flex-col">
+                      <span className={`text-sm font-bold tracking-tight ${isSelected ? 'text-[#0284c7]' : ''}`}>{item.label}</span>
+                      <span className={`text-[10px] uppercase font-black tracking-widest leading-none mt-1 ${isSelected ? 'text-[#38bdf8]' : 'text-slate-400'}`}>
+                        {item.hubLabel}
+                      </span>
+                    </div>
+                    {isSelected && (
+                      <span className="text-[10px] font-bold text-[#0284c7] flex items-center gap-1 bg-white px-2 py-1 rounded shadow-sm border border-[#38bdf8]/20">
+                        ENTER <span className="opacity-50 font-sans">↵</span>
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           )}
         </div>
 
-        <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+        <div className="px-4 py-3 bg-slate-50/80 border-t border-slate-200/50 flex items-center justify-between backdrop-blur-md">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
               <span className="px-1.5 py-0.5 bg-white border border-slate-200 rounded shadow-sm text-[10px] font-bold text-slate-500">↑↓</span>

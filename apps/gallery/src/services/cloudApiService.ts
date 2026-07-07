@@ -10,46 +10,47 @@ import { Order } from "../types.ts";
 type LocalStorageOrder = Order & { access_pin?: string; roomNumber?: string };
 
 export const cloudApiService = {
-  /**
-   * Fetches an order by credentials from the backend API.
-   */
   async getOrderByCredentials(
     pin: string,
     email: string,
   ): Promise<Order | null> {
     try {
-      // Normalize inputs: trim whitespace and lowercase email
       const normalizedPin = pin.trim();
       const normalizedEmail = email.trim().toLowerCase();
 
-      // Use the backend API endpoint for order lookup
       const baseUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8090";
-      const url = `${baseUrl}/api/orders/by-credentials?pin=${encodeURIComponent(normalizedPin)}&email=${encodeURIComponent(normalizedEmail)}`;
+      const url = `${baseUrl}/api/gallery-auth/order-login`;
 
       const response = await fetch(url, {
-        method: "GET",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ orderId: normalizedPin, customerEmail: normalizedEmail })
       });
 
       if (!response.ok) {
-        if (response.status === 404) {
+        if (response.status === 404 || response.status === 401) {
           return null;
         }
         throw new Error(`Failed to fetch order: ${response.statusText}`);
       }
 
-      const order = await response.json();
+      const data = await response.json();
 
-      if (!order) {
+      if (!data.success || !data.order) {
         return null;
       }
 
-      // Ensure items are properly formatted
+      // Store JWT token for subsequent requests
+      if (data.token) {
+        localStorage.setItem("gallery_token", data.token);
+      }
+
+      const order = data.order;
       const formattedOrder: Order = {
         id: order.id,
-        date: order.date,
+        date: order.date || new Date().toISOString(),
         clientName: order.clientName,
         email: order.email,
         status: order.status,
@@ -68,13 +69,13 @@ export const cloudApiService = {
   },
 
   /**
-   * Fetches an order via secure Magic Link Token
+   * Fetches an order via secure Magic Link Token or Stored JWT Token
    */
   async getOrderByToken(token: string): Promise<Order | null> {
     try {
       const normalizedToken = token.trim();
       const baseUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8090";
-      const url = `${baseUrl}/api/orders/by-token?token=${encodeURIComponent(normalizedToken)}`;
+      const url = `${baseUrl}/api/gallery-auth/${encodeURIComponent(normalizedToken)}/verify`;
 
       const response = await fetch(url, {
         method: "GET",
@@ -84,16 +85,20 @@ export const cloudApiService = {
       });
 
       if (!response.ok) {
-        if (response.status === 404) return null;
-        throw new Error(`Failed to fetch order: ${response.statusText}`);
+        if (response.status === 404 || response.status === 401) return null;
+        throw new Error(`Failed to verify token: ${response.statusText}`);
       }
 
-      const order = await response.json();
-      if (!order) return null;
+      const data = await response.json();
+      if (!data.success || !data.order) return null;
 
+      // Ensure we store it locally so it can be reused across reloads
+      localStorage.setItem("gallery_token", normalizedToken);
+
+      const order = data.order;
       const formattedOrder: Order = {
         id: order.id,
-        date: order.date,
+        date: order.date || new Date().toISOString(),
         clientName: order.clientName,
         email: order.email,
         status: order.status,

@@ -6,6 +6,7 @@ import ExpensesPage from "./ExpensesPage";
 import CapitalPage from "./CapitalPage";
 import PayrollPage from "./PayrollPage";
 import { Photographer } from "../../types";
+import { useManagement } from "../../context/ManagementContext";
 
 type FinanceTab =
   | "payroll"
@@ -16,13 +17,10 @@ type FinanceTab =
 
 interface UnifiedFinancePageProps {
   currentUser: Photographer;
-  context: string;
 }
 
-const UnifiedFinancePage: React.FC<UnifiedFinancePageProps> = ({
-  currentUser,
-  context,
-}) => {
+const UnifiedFinancePage: React.FC<UnifiedFinancePageProps> = ({ currentUser }) => {
+  const { selectedContext: context } = useManagement();
   const [activeTab, setActiveTab] = useState<FinanceTab>("payroll");
 
   return (
@@ -77,10 +75,10 @@ const UnifiedFinancePage: React.FC<UnifiedFinancePageProps> = ({
       {/* Content Area */}
       <div className="bg-white border border-slate-200 rounded-2xl min-h-[600px] overflow-hidden p-6 md:p-8">
         {activeTab === "payroll" && (
-          <PayrollPage currentUser={currentUser} context={context} />
+          <PayrollPage currentUser={currentUser} />
         )}
-        {activeTab === "expenses" && <ExpensesPage context={context} />}
-        {activeTab === "capital" && <CapitalPage context={context} />}
+        {activeTab === "expenses" && <ExpensesPage />}
+        {activeTab === "capital" && <CapitalPage />}
       </div>
     </div>
   );

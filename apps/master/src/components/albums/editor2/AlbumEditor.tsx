@@ -76,6 +76,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   // Before/After toggle: when true, the canvas shows the unedited original.
   const [showOriginal, setShowOriginal] = useState(false);
+  const [_isReviewingAutoEdits, setIsReviewingAutoEdits] = useState(false);
 
   // 3. Editor UI State
   const [activeTab, setActiveTab] = useState<EditorTab>("adjust");
@@ -805,6 +806,14 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
         rejected: state.photos.filter((p) => p.cullingStatus === "Rejected")
           .length,
       }}
+      albumId={albumId}
+      photos={state.photos}
+      onBatchAutoEditsComplete={() => {
+        // Refresh the photos when batch complete
+        refresh();
+      }}
+      activePhoto={activePhoto}
+      onReviewAutoEdits={() => setIsReviewingAutoEdits(true)}
       // Straighten
       onStraightenStart={toolHandlers.handleStraightenStart}
       onStraightenEnd={toolHandlers.handleStraightenEnd}

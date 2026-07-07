@@ -22,6 +22,7 @@ const Clients = lazy(() => import("./Clients"));
 const OrderManagementView = lazy(() => import("./orders/OrderManagementView"));
 const GrowthPage = lazy(() => import("./GrowthPage"));
 const LocalResortDashboard = lazy(() => import("./LocalResortDashboard"));
+const PrintQueue = lazy(() => import("./PrintQueue"));
 
 const AIIdeasModal = lazy(() => import("./AIIdeasModal"));
 import Toast from "./common/Toast";
@@ -519,6 +520,25 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                         refreshTrigger={effectiveRefreshTrigger}
                       />
                     </OrderErrorBoundary>
+                  );
+                case "PrintQueue":
+                  if (!can("viewOrders")) {
+                    logger.warn("Access denied to PrintQueue", {
+                      userId: currentUser.id,
+                      role: currentUser.role,
+                    });
+                    return (
+                      <AccessDenied
+                        permission="viewOrders"
+                        role={currentUser.role}
+                        page="PrintQueue"
+                      />
+                    );
+                  }
+                  return (
+                    <FeatureErrorBoundary feature="PrintQueue" severity="medium">
+                      <PrintQueue />
+                    </FeatureErrorBoundary>
                   );
                 case "Clients":
                   if (!can("viewClients")) {

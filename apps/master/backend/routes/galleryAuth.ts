@@ -68,9 +68,14 @@ export default function galleryAuthRoutes(context: GalleryAuthContext): Router {
         access: "order",
         order: {
           id: order.id,
-          albumId: order.album_id,
-          albumName: order.album_name,
+          albumId: order.albumId,
+          albumName: order.albumName,
           total: order.total,
+          clientName: order.clientName,
+          email: order.email,
+          status: order.status,
+          destinationId: order.destinationId,
+          photographerId: order.photographerId,
           items: JSON.parse(order.items || "[]"),
         },
       });
@@ -226,6 +231,25 @@ export default function galleryAuthRoutes(context: GalleryAuthContext): Router {
         return res.status(404).json({ error: "Album not found" });
       }
 
+      let orderObj = null;
+      if (payload.type === "order" && payload.orderId) {
+        const orderRecord = dbManager.get<any>("SELECT * FROM orders WHERE id = ?", [payload.orderId]);
+        if (orderRecord) {
+          orderObj = {
+            id: orderRecord.id,
+            albumId: orderRecord.albumId,
+            albumName: album.name,
+            total: orderRecord.total,
+            clientName: orderRecord.clientName,
+            email: orderRecord.email,
+            status: orderRecord.status,
+            destinationId: orderRecord.destinationId,
+            photographerId: orderRecord.photographerId,
+            items: JSON.parse(orderRecord.items || "[]"),
+          };
+        }
+      }
+
       res.json({
         success: true,
         accessType: payload.type,
@@ -238,6 +262,7 @@ export default function galleryAuthRoutes(context: GalleryAuthContext): Router {
         },
         customerEmail: payload.customerEmail,
         orderId: payload.orderId,
+        order: orderObj,
       });
     } catch (error: any) {
       logger.error("[GalleryAuth] Failed to verify token", {

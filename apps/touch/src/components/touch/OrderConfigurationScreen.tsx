@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CartItem } from '../../types.ts';
 import { useCurrency } from '../CurrencyContext.tsx';
 import CheckoutScreen from './CheckoutScreen';
@@ -152,36 +153,57 @@ const OrderConfigurationScreen: React.FC<OrderConfigurationScreenProps> = ({ car
             <main className="flex-1 p-8 overflow-y-auto grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto w-full">
                 <div className="lg:col-span-2 space-y-4">
                     {/* Upsell Banner */}
-                    {itemCount >= 5 && (
-                        <div className="bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 border border-yellow-200 dark:border-yellow-800 p-4 rounded-lg flex justify-between items-center shadow-sm">
-                            <div>
-                                <h3 className="font-bold text-lg text-yellow-800 dark:text-yellow-200">Create a Premium Photobook?</h3>
-                                <p className="text-sm text-yellow-700 dark:text-yellow-300">You have enough photos to create a beautiful memory book.</p>
-                            </div>
-                            <button
-                                onClick={handleAddPhotobook}
-                                className="min-w-[44px] min-h-[44px] bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded shadow transition-colors touch-manipulation focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
-                                aria-label="Preview photobook"
+                    <AnimatePresence>
+                        {itemCount >= 5 && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: -20, height: 0 }}
+                                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                                exit={{ opacity: 0, y: -20, height: 0 }}
+                                className="bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 border border-yellow-200 dark:border-yellow-800 p-4 rounded-lg flex justify-between items-center shadow-sm overflow-hidden"
                             >
-                                Preview Book
-                            </button>
-                        </div>
-                    )}
+                                <div>
+                                    <h3 className="font-bold text-lg text-yellow-800 dark:text-yellow-200">Create a Premium Photobook?</h3>
+                                    <p className="text-sm text-yellow-700 dark:text-yellow-300">You have enough photos to create a beautiful memory book.</p>
+                                </div>
+                                <button
+                                    onClick={handleAddPhotobook}
+                                    className="min-w-[44px] min-h-[44px] bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded shadow transition-colors touch-manipulation focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 whitespace-nowrap"
+                                    aria-label="Preview photobook"
+                                >
+                                    Preview Book
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-                    {cart.length > 0 ? cart.map(item => (
-                        <CartItemCard
-                            key={item.id}
-                            item={item}
-                            onUpdateQuantity={handleUpdateQuantity}
-                            onUpdateDeliveryType={handleUpdateDeliveryType}
-                            onRemove={() => onUpdateCart({ ...item, quantity: 0 })}
-                            formatCurrency={formatCurrency}
-                        />
-                    )) : (
-                        <div className="flex items-center justify-center h-full">
-                            <p className="text-xl text-center text-slate-500">Your cart is empty. Go back to the gallery to add photos.</p>
-                        </div>
-                    )}
+                    <AnimatePresence mode="popLayout">
+                        {cart.length > 0 ? cart.map(item => (
+                            <motion.div
+                                key={item.id}
+                                layout
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <CartItemCard
+                                    item={item}
+                                    onUpdateQuantity={handleUpdateQuantity}
+                                    onUpdateDeliveryType={handleUpdateDeliveryType}
+                                    onRemove={() => onUpdateCart({ ...item, quantity: 0 })}
+                                    formatCurrency={formatCurrency}
+                                />
+                            </motion.div>
+                        )) : (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="flex items-center justify-center h-full py-12"
+                            >
+                                <p className="text-xl text-center text-slate-500">Your cart is empty. Go back to the gallery to add photos.</p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
                 <aside className="bg-slate-100 dark:bg-slate-800 p-6 rounded-lg flex flex-col">
                     <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
@@ -211,7 +233,7 @@ const OrderConfigurationScreen: React.FC<OrderConfigurationScreenProps> = ({ car
                             Apply
                         </button>
                     </div>
-                    <div className="mt-4 flex-grow">{keyboardVisible && <OnScreenKeyboard value={discountCode} onChange={setDiscountCode} />}</div>
+                    <div className="mt-4 flex-grow">{keyboardVisible && <OnScreenKeyboard value={discountCode} onChange={setDiscountCode} onClose={() => setKeyboardVisible(false)} />}</div>
                     <button
                         onClick={() => setIsCheckingOut(true)}
                         disabled={cart.length === 0}

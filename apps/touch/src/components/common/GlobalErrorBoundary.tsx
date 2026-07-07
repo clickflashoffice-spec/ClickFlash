@@ -1,11 +1,12 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logger } from '@/utils/logger';
+import { analytics } from '@/utils/telemetry';
 
 // Use a simple inline logger or console if the main logger isn't available in this context
 const logError = (error: Error, errorInfo: ErrorInfo) => {
     // In production, this would go to Sentry or the backend logger via IPC
-    logger.error('Uncaught error:', error, errorInfo);
+    analytics.trackError(error, "GlobalErrorBoundary");
     try {
         if (window.electron?.logger) {
             window.electron.logger.error('Frontend Crash', { error: error.message, stack: error.stack, componentStack: errorInfo.componentStack });

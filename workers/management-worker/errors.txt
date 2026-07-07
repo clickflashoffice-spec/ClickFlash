@@ -1,0 +1,195 @@
+src/routes/cloud.ts(624,25): error TS1127: Invalid character.
+src/routes/cloud.ts(667,26): error TS1005: ',' expected.
+src/routes/cloud.ts(667,27): error TS1005: ',' expected.
+src/routes/cloud.ts(667,37): error TS1005: ',' expected.
+src/routes/cloud.ts(667,48): error TS1005: ',' expected.
+src/routes/cloud.ts(682,20): error TS1005: ']' expected.
+src/routes/cloud.ts(682,26): error TS1005: ',' expected.
+src/routes/cloud.ts(682,34): error TS1005: ',' expected.
+src/routes/cloud.ts(682,37): error TS1005: ',' expected.
+src/routes/cloud.ts(682,47): error TS1005: ',' expected.
+src/routes/cloud.ts(682,51): error TS1005: ',' expected.
+src/routes/cloud.ts(682,64): error TS1005: ',' expected.
+src/routes/cloud.ts(691,29): error TS1005: ',' expected.
+src/routes/cloud.ts(691,37): error TS1005: ',' expected.
+src/routes/cloud.ts(691,51): error TS1005: ',' expected.
+src/routes/cloud.ts(751,63): error TS1005: ',' expected.
+src/routes/cloud.ts(751,72): error TS1005: ',' expected.
+src/routes/cloud.ts(751,85): error TS1005: ',' expected.
+src/routes/cloud.ts(751,102): error TS1005: ',' expected.
+src/routes/cloud.ts(751,103): error TS1005: ',' expected.
+src/routes/cloud.ts(751,119): error TS1005: ',' expected.
+src/routes/cloud.ts(751,120): error TS1005: ',' expected.
+src/routes/cloud.ts(755,29): error TS1005: ',' expected.
+src/routes/cloud.ts(755,33): error TS1005: ',' expected.
+src/routes/cloud.ts(755,38): error TS1005: ',' expected.
+src/routes/cloud.ts(755,45): error TS1005: ',' expected.
+src/routes/cloud.ts(755,47): error TS1005: ',' expected.
+src/routes/cloud.ts(755,52): error TS1005: ',' expected.
+src/routes/cloud.ts(756,26): error TS1005: ',' expected.
+src/routes/cloud.ts(756,35): error TS1005: ',' expected.
+src/routes/cloud.ts(756,45): error TS1005: ',' expected.
+src/routes/cloud.ts(756,57): error TS1005: ',' expected.
+src/routes/cloud.ts(768,14): error TS1005: ',' expected.
+src/routes/cloud.ts(768,21): error TS1005: ',' expected.
+src/routes/cloud.ts(768,26): error TS1005: ',' expected.
+src/routes/cloud.ts(769,14): error TS1005: ',' expected.
+src/routes/cloud.ts(769,22): error TS1135: Argument expression expected.
+src/routes/cloud.ts(769,23): error TS1135: Argument expression expected.
+src/routes/cloud.ts(769,25): error TS1135: Argument expression expected.
+src/routes/cloud.ts(769,26): error TS1135: Argument expression expected.
+src/routes/cloud.ts(769,28): error TS1135: Argument expression expected.
+src/routes/cloud.ts(769,29): error TS1135: Argument expression expected.
+src/routes/cloud.ts(769,31): error TS1135: Argument expression expected.
+src/routes/cloud.ts(769,32): error TS1135: Argument expression expected.
+src/routes/cloud.ts(769,34): error TS1135: Argument expression expected.
+src/routes/cloud.ts(769,35): error TS1135: Argument expression expected.
+src/routes/cloud.ts(769,37): error TS1135: Argument expression expected.
+src/routes/cloud.ts(769,38): error TS1135: Argument expression expected.
+src/routes/cloud.ts(769,40): error TS1135: Argument expression expected.
+src/routes/cloud.ts(769,41): error TS1135: Argument expression expected.
+src/routes/cloud.ts(776,16): error TS1005: ',' expected.
+src/routes/cloud.ts(776,23): error TS1005: ',' expected.
+src/routes/cloud.ts(776,34): error TS1005: ',' expected.
+src/routes/cloud.ts(776,39): error TS1005: ',' expected.
+src/routes/cloud.ts(776,53): error TS1005: ',' expected.
+src/routes/cloud.ts(776,59): error TS1005: ',' expected.
+src/routes/cloud.ts(776,69): error TS1109: Expression expected.
+src/routes/cloud.ts(776,77): error TS1005: ':' expected.
+src/routes/cloud.ts(776,80): error TS1005: ',' expected.
+src/routes/cloud.ts(776,91): error TS1005: ',' expected.
+src/routes/cloud.ts(776,96): error TS1005: ',' expected.
+src/routes/cloud.ts(776,103): error TS1005: ',' expected.
+src/routes/cloud.ts(783,40): error TS1005: ',' expected.
+src/routes/cloud.ts(783,47): error TS1005: ',' expected.
+src/routes/cloud.ts(783,52): error TS1005: ',' expected.
+src/routes/cloud.ts(783,66): error TS1005: ',' expected.
+src/routes/cloud.ts(783,72): error TS1005: ',' expected.
+src/routes/cloud.ts(783,77): error TS1109: Expression expected.
+src/routes/cloud.ts(791,32): error TS1005: ']' expected.
+src/routes/cloud.ts(791,41): error TS1005: ',' expected.
+src/routes/cloud.ts(791,50): error TS1005: ',' expected.
+src/routes/cloud.ts(791,51): error TS1005: ',' expected.
+src/routes/cloud.ts(791,58): error TS1005: ',' expected.
+src/routes/cloud.ts(791,65): error TS1005: ',' expected.
+src/routes/cloud.ts(791,69): error TS1005: '(' expected.
+src/routes/cloud.ts(791,74): error TS1005: ';' expected.
+src/routes/cloud.ts(791,75): error TS1005: ';' expected.
+src/routes/cloud.ts(791,83): error TS1005: ')' expected.
+src/routes/cloud.ts(791,85): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(791,96): error TS1005: ')' expected.
+src/routes/cloud.ts(791,113): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(791,118): error TS1128: Declaration or statement expected.
+src/routes/cloud.ts(815,14): error TS1005: ';' expected.
+src/routes/cloud.ts(815,28): error TS1005: ';' expected.
+src/routes/cloud.ts(815,42): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(815,58): error TS1109: Expression expected.
+src/routes/cloud.ts(815,66): error TS1005: ':' expected.
+src/routes/cloud.ts(815,69): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(815,80): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(841,14): error TS1005: ':' expected.
+src/routes/cloud.ts(841,31): error TS1005: ';' expected.
+src/routes/cloud.ts(842,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(842,20): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(842,23): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(843,17): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(843,20): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(843,23): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(844,17): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(844,20): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(844,23): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(845,17): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(845,20): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(845,23): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(846,17): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(846,20): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(846,23): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(847,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(847,20): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(847,25): error TS1443: Module declaration names may only use ' or " quoted strings.
+src/routes/cloud.ts(892,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(892,43): error TS1005: ';' expected.
+src/routes/cloud.ts(893,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(893,20): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(893,23): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(894,17): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(894,20): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(894,23): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(895,17): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(895,20): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(895,23): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(896,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(896,20): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(896,25): error TS1443: Module declaration names may only use ' or " quoted strings.
+src/routes/cloud.ts(937,16): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(937,29): error TS1005: ';' expected.
+src/routes/cloud.ts(937,33): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(937,45): error TS1005: '(' expected.
+src/routes/cloud.ts(937,52): error TS1005: ';' expected.
+src/routes/cloud.ts(937,59): error TS1005: ';' expected.
+src/routes/cloud.ts(941,14): error TS1005: ')' expected.
+src/routes/cloud.ts(941,21): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(941,59): error TS1005: ';' expected.
+src/routes/cloud.ts(941,67): error TS1135: Argument expression expected.
+src/routes/cloud.ts(941,68): error TS1135: Argument expression expected.
+src/routes/cloud.ts(941,70): error TS1135: Argument expression expected.
+src/routes/cloud.ts(941,71): error TS1135: Argument expression expected.
+src/routes/cloud.ts(942,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(942,30): error TS1005: ';' expected.
+src/routes/cloud.ts(942,33): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(942,40): error TS1435: Unknown keyword or identifier. Did you mean 'set'?
+src/routes/cloud.ts(947,29): error TS1005: ';' expected.
+src/routes/cloud.ts(947,33): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(947,40): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(947,43): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(947,48): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(993,16): error TS1005: ';' expected.
+src/routes/cloud.ts(993,37): error TS1005: ';' expected.
+src/routes/cloud.ts(993,51): error TS1005: ';' expected.
+src/routes/cloud.ts(993,60): error TS1443: Module declaration names may only use ' or " quoted strings.
+src/routes/cloud.ts(998,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(998,21): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(999,22): error TS1135: Argument expression expected.
+src/routes/cloud.ts(999,23): error TS1135: Argument expression expected.
+src/routes/cloud.ts(999,25): error TS1135: Argument expression expected.
+src/routes/cloud.ts(999,26): error TS1135: Argument expression expected.
+src/routes/cloud.ts(999,28): error TS1135: Argument expression expected.
+src/routes/cloud.ts(999,29): error TS1135: Argument expression expected.
+src/routes/cloud.ts(999,31): error TS1135: Argument expression expected.
+src/routes/cloud.ts(999,32): error TS1135: Argument expression expected.
+src/routes/cloud.ts(999,63): error TS1443: Module declaration names may only use ' or " quoted strings.
+src/routes/cloud.ts(1026,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1026,39): error TS1005: ';' expected.
+src/routes/cloud.ts(1027,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1027,30): error TS1109: Expression expected.
+src/routes/cloud.ts(1027,36): error TS1005: ':' expected.
+src/routes/cloud.ts(1028,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1028,20): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1028,23): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1028,34): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1028,38): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1028,45): error TS1443: Module declaration names may only use ' or " quoted strings.
+src/routes/cloud.ts(1055,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1056,14): error TS1435: Unknown keyword or identifier. Did you mean 'set'?
+src/routes/cloud.ts(1056,45): error TS1109: Expression expected.
+src/routes/cloud.ts(1056,46): error TS1109: Expression expected.
+src/routes/cloud.ts(1057,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1057,25): error TS1109: Expression expected.
+src/routes/cloud.ts(1080,14): error TS1005: ':' expected.
+src/routes/cloud.ts(1081,21): error TS1109: Expression expected.
+src/routes/cloud.ts(1081,22): error TS1109: Expression expected.
+src/routes/cloud.ts(1083,14): error TS1435: Unknown keyword or identifier. Did you mean 'from'?
+src/routes/cloud.ts(1084,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1084,39): error TS1109: Expression expected.
+src/routes/cloud.ts(1093,14): error TS1005: ':' expected.
+src/routes/cloud.ts(1095,21): error TS1109: Expression expected.
+src/routes/cloud.ts(1095,22): error TS1109: Expression expected.
+src/routes/cloud.ts(1097,14): error TS1435: Unknown keyword or identifier. Did you mean 'from'?
+src/routes/cloud.ts(1098,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1099,16): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1100,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1100,20): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1101,14): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1101,20): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1101,23): error TS1434: Unexpected keyword or identifier.
+src/routes/cloud.ts(1180,1): error TS1160: Unterminated template literal.

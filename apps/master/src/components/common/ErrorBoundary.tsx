@@ -6,6 +6,7 @@ interface Props {
   children: ReactNode;
   fallback?: ReactNode;
   subtle?: boolean;
+  onReset?: () => void;
 }
 
 interface State {
@@ -47,8 +48,13 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   private handleReset = () => {
-    this.setState({ hasError: false, errorId: null, error: null });
-    window.location.reload();
+    if (this.props.onReset) {
+      this.props.onReset();
+      this.setState({ hasError: false, errorId: null, error: null });
+    } else {
+      this.setState({ hasError: false, errorId: null, error: null });
+      window.location.reload();
+    }
   };
 
   private copyErrorId = () => {

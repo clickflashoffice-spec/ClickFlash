@@ -17,6 +17,7 @@ const VIEW_META: Record<ManagementView, { tab: string; page: string }> = {
   expenses_payroll:    { tab: "Finance", page: "Expenses & Payroll" },
   capital_treasury:    { tab: "Finance", page: "Capital & Treasury" },
   general_settings:    { tab: "Settings", page: "General Settings" },
+  billing_subscription:{ tab: "Settings", page: "Billing & Subscription" },
   staff_management:    { tab: "Settings", page: "Staff Management" },
   session_types:       { tab: "Settings", page: "Session Types" },
   reports_insights:    { tab: "Settings", page: "Reports & Insights" },

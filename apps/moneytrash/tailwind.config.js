@@ -1,5 +1,8 @@
+import sharedConfig from "@clickflash/config/tailwind";
+
 /** @type {import('tailwindcss').Config} */
 export default {
+  presets: [sharedConfig],
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -24,6 +27,15 @@ export default {
           100: '#f4f4f5',
           50: '#fafafa',
         },
+      },
+      keyframes: {
+        gradient: {
+          '0%': { backgroundPosition: '200% center' },
+          '100%': { backgroundPosition: '-200% center' },
+        },
+      },
+      animation: {
+        gradient: 'gradient 2s linear infinite',
       },
     },
   },

@@ -7,6 +7,7 @@ import { useCurrency } from '../CurrencyContext.tsx';
 import { useCreateOrder } from '../../hooks/useOrders.ts';
 import { usePhotographers } from '../../hooks/usePhotographers.ts';
 import { logger } from '@/utils/logger';
+import { createOrderSchema } from './schemas.ts';
 
 /**
  * CreateOrderModal Component Props
@@ -50,7 +51,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
   const [clientName, setClientName] = useState('');
   const [email, setEmail] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card'>('Cash');
+  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card' | ''>('');
   const [selectedPhotographerId, setSelectedPhotographerId] = useState(currentUser.id);
   const { formatCurrency } = useCurrency();
   const createOrderMutation = useCreateOrder();
@@ -102,33 +103,17 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
   };
 
   const handleCreateOrder = async () => {
-    // Validation
-    if (!clientName.trim()) {
-      showToast('Please enter a client name.');
-      return;
-    }
+    // Validation using Zod
+    const validationResult = createOrderSchema.safeParse({
+      clientName: clientName.trim(),
+      email: email.trim(),
+      items: optimisticItems,
+      appliedDiscount,
+      paymentMethod
+    });
 
-    if (!email.trim()) {
-      showToast('Please enter a client email.');
-      return;
-    }
-
-    if (optimisticItems.length === 0) {
-      showToast('Please add at least one item to the order.');
-      return;
-    }
-
-    // Validate item quantities and prices
-    const invalidItems = optimisticItems.filter(item =>
-      item.quantity <= 0 || item.price < 0 || !item.name
-    );
-    if (invalidItems.length > 0) {
-      showToast('Please ensure all items have valid quantities, prices, and names.');
-      return;
-    }
-
-    if (appliedDiscount < 0) {
-      showToast('Discount cannot be negative.');
+    if (!validationResult.success) {
+      showToast((validationResult.error as any).errors?.[0]?.message || (validationResult.error as any).issues?.[0]?.message || 'Validation error');
       return;
     }
 
@@ -158,7 +143,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
           photo: item.photo // Optional
         })),
         appliedDiscount: appliedDiscount,
-        paymentMethod: paymentMethod,
+        paymentMethod: (paymentMethod || undefined) as any,
         source: 'manual' as const, // Mark as manual order
         destinationId: currentUser.destinationId || 'dest1'
       };
@@ -172,7 +157,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
       setEmail('');
       // optimisticItems resets via useOptimistic on parent re-render
       setAppliedDiscount(0);
-      setPaymentMethod('Cash');
+      setPaymentMethod('');
       setSelectedPhotographerId(currentUser.id);
       onClose();
     } catch (error: any) {
@@ -368,15 +353,16 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
         {/* Payment Method */}
         <div>
           <label htmlFor="payment-method" className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
-            Payment Method
+            Payment Method *
           </label>
           <select
             id="payment-method"
             value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value as 'Cash' | 'Card')}
+            onChange={(e) => setPaymentMethod(e.target.value as 'Cash' | 'Card' | '')}
             className={inputStyles}
             title="Select Payment Method"
           >
+            <option value="" disabled>Select Payment Method</option>
             <option value="Cash">Cash</option>
             <option value="Card">Card</option>
           </select>

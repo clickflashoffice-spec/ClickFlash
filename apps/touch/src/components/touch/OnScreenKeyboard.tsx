@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 interface OnScreenKeyboardProps {
     value: string;
     onChange: (value: string) => void;
+    onClose?: () => void;
 }
 
 type KeyDef = {
@@ -34,7 +35,7 @@ const Key: React.FC<{ def: KeyDef; onClick: (value: string) => void }> = ({ def,
 );
 
 
-const OnScreenKeyboard: React.FC<OnScreenKeyboardProps> = ({ value, onChange }) => {
+const OnScreenKeyboard: React.FC<OnScreenKeyboardProps> = ({ value, onChange, onClose }) => {
     const [layout, setLayout] = useState<'alpha' | 'numeric' | 'symbols'>('alpha');
     const [shift, setShift] = useState(false);
 
@@ -61,6 +62,9 @@ const OnScreenKeyboard: React.FC<OnScreenKeyboardProps> = ({ value, onChange }) 
                 setLayout('symbols');
                 setShift(false);
                 break;
+            case 'Done':
+                if (onClose) onClose();
+                break;
             default:
                 const char = shift ? key.toUpperCase() : key.toLowerCase();
                 onChange(value + char);
@@ -84,8 +88,9 @@ const OnScreenKeyboard: React.FC<OnScreenKeyboardProps> = ({ value, onChange }) 
         ],
         [
             { display: '123', value: '123', grow: 2, className: secondaryKeyClass },
-            { display: 'space', value: 'Space', grow: 8, className: keyClass },
+            { display: 'space', value: 'Space', grow: 6, className: keyClass },
             { display: '.', value: '.', grow: 1, className: secondaryKeyClass },
+            ...(onClose ? [{ display: 'Done', value: 'Done', grow: 2, className: 'bg-blue-600 text-white hover:bg-blue-700' }] : [])
         ]
     ];
 
@@ -99,8 +104,9 @@ const OnScreenKeyboard: React.FC<OnScreenKeyboardProps> = ({ value, onChange }) 
         ],
         [
             { display: 'ABC', value: 'ABC', grow: 2, className: secondaryKeyClass },
-            { display: 'space', value: 'Space', grow: 8, className: keyClass },
+            { display: 'space', value: 'Space', grow: 6, className: keyClass },
             { display: '.', value: '.', grow: 1, className: secondaryKeyClass },
+            ...(onClose ? [{ display: 'Done', value: 'Done', grow: 2, className: 'bg-blue-600 text-white hover:bg-blue-700' }] : [])
         ]
     ];
 
@@ -114,8 +120,9 @@ const OnScreenKeyboard: React.FC<OnScreenKeyboardProps> = ({ value, onChange }) 
         ],
         [
             { display: 'ABC', value: 'ABC', grow: 2, className: secondaryKeyClass },
-            { display: 'space', value: 'Space', grow: 8, className: keyClass },
+            { display: 'space', value: 'Space', grow: 6, className: keyClass },
             { display: '.', value: '.', grow: 1, className: secondaryKeyClass },
+            ...(onClose ? [{ display: 'Done', value: 'Done', grow: 2, className: 'bg-blue-600 text-white hover:bg-blue-700' }] : [])
         ]
     ];
 

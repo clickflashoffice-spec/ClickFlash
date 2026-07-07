@@ -11,6 +11,9 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import { logger } from '@/utils/logger';
 import { analytics } from '@/utils/telemetry';
 import { AnimatePresence, motion, Transition } from 'framer-motion';
+import PasswordModal from './components/touch/PasswordModal';
+import { rfidIntegrationService } from './services/rfidIntegrationService';
+import { rfidService } from './services/rfidService';
 
 type TouchView = 'welcome' | 'photos' | 'photo-detail' | 'order-config';
 
@@ -40,6 +43,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
             return saved ? JSON.parse(saved) : [];
         } catch (e) { return []; }
     });
+    const [showAdminExitModal, setShowAdminExitModal] = useState(false);
 
     // Rule 22: Smart-Sync Reconciliation (Persistence)
     React.useEffect(() => {
@@ -48,8 +52,6 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
 
     // RFID Integration for Keyboard Emulation
     React.useEffect(() => {
-        const { rfidIntegrationService } = require('./services/rfidIntegrationService');
-        const { rfidService } = require('./services/rfidService'); // Using existing rfidService to map UID to room
 
         const handleRFIDScan = async (uid: string) => {
             resetIdleTimer();
@@ -89,6 +91,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
             setTouchView('welcome');
             setCart([]);
             setRoomFilter(undefined);
+            localStorage.removeItem('touch_checkout_details');
         }
     }, [isIdle]);
 
@@ -97,20 +100,19 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.ctrlKey && e.shiftKey && e.altKey && e.key === 'F12') {
                 e.preventDefault();
-                logger.info('Admin Override Triggered');
-                try {
-                    if (window.electron && typeof window.electron.exitKiosk === 'function') {
-                        window.electron.exitKiosk();
-                    } else {
-                        window.close();
-                    }
-                } catch (err) {
-                    logger.error('Admin override failed', err instanceof Error ? err : undefined);
-                }
+                logger.info('Admin Override Triggered, requesting password');
+                setShowAdminExitModal(true);
             }
         };
+        const handleContextMenu = (e: MouseEvent) => {
+            e.preventDefault();
+        };
         window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        window.addEventListener('contextmenu', handleContextMenu);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('contextmenu', handleContextMenu);
+        };
     }, []);
 
     const displayedKioskAlbums = useMemo(() => {
@@ -345,11 +347,32 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
         return <AnimatePresence mode="wait">{content}</AnimatePresence>;
     };
 
+    const handleAdminExitSuccess = () => {
+        setShowAdminExitModal(false);
+        try {
+            if (window.electron && typeof window.electron.exitKiosk === 'function') {
+                window.electron.exitKiosk();
+            } else {
+                window.close();
+            }
+        } catch (err) {
+            logger.error('Admin override failed', err instanceof Error ? err : undefined);
+        }
+    };
+
     return (
         <div className="touch-portal h-screen w-screen overflow-hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-white select-none">
             <ErrorBoundary>
-                {renderTouchContent()}
+                <AnimatePresence mode="wait">
+                    {renderTouchContent()}
+                </AnimatePresence>
             </ErrorBoundary>
+            
+            <PasswordModal
+                isOpen={showAdminExitModal}
+                onClose={() => setShowAdminExitModal(false)}
+                onSuccess={handleAdminExitSuccess}
+            />
         </div>
     );
 };

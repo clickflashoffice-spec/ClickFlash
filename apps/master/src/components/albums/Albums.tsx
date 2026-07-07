@@ -30,6 +30,7 @@ import {
 } from "../../hooks/useAlbums.ts";
 import { usePhotographers } from "../../hooks/usePhotographers.ts";
 import ConfirmationModal from "../common/ConfirmationModal.tsx";
+import { backgroundJobService } from "../../services/backgroundJobService.ts";
 import ErrorBoundary from "../common/ErrorBoundary.tsx";
 import { AlbumCardSkeleton } from "../common/Skeleton.tsx";
 
@@ -523,7 +524,7 @@ const Albums: React.FC<AlbumsProps> = ({
 
   const handleImportComplete = useCallback(
     async (
-      albumData: Omit<Album, "id" | "photos" | "coverPhotoUrl">,
+      albumData: Omit<Album, "id" | "photos" | "coverPhotoUrl"> & { autoProcess?: boolean },
       photoFiles: File[],
     ) => {
       try {
@@ -628,6 +629,17 @@ const Albums: React.FC<AlbumsProps> = ({
             logger.debug(`Photo uploaded successfully: ${file.name}`);
 
             const photoUrl = `/api/files/photos/${photo.id}/${photo.url}`;
+            
+            // Queue auto-edit if enabled
+            if (albumData.autoProcess) {
+              await backgroundJobService.addJob("auto_edit", {
+                photoId: photo.id,
+                url: photoUrl,
+                albumId: createdAlbum.id
+              });
+              logger.debug(`Queued auto_edit job for ${file.name}`);
+            }
+
             return { success: true, url: photoUrl };
           } catch (photoError: any) {
             const errorMessage =

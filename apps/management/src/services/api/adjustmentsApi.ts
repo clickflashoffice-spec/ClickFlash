@@ -17,8 +17,8 @@ import {
 
 
 export const adjustmentsApi = {
-  async getAdjustments(): Promise<Adjustment[]> {
-    const records = await pb.collection("adjustments").getFullList();
+  async getAdjustments(filter?: string): Promise<Adjustment[]> {
+    const records = await pb.collection("adjustments").getFullList({ filter });
     return records as Adjustment[];
   },
 

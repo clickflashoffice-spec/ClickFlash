@@ -170,10 +170,10 @@ export function Uploader({
       <div
         {...getRootProps()}
         className={clsx(
-          'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors',
+          'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300 relative overflow-hidden',
           isDragActive
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-            : 'border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500'
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 scale-[1.02] shadow-[0_0_20px_rgba(59,130,246,0.3)]'
+            : 'border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-slate-50 dark:hover:bg-slate-800/50'
         )}
       >
         <input {...getInputProps()} />
@@ -215,7 +215,12 @@ export function Uploader({
                 <div className="flex items-center gap-2 mt-1">
                   <div className="flex-1 h-2 bg-slate-200 dark:bg-slate-600 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-blue-500 transition-all duration-300"
+                      className={clsx(
+                        'h-full transition-all duration-500 ease-out rounded-full',
+                        uploadFile.status === 'error' ? 'bg-red-500' :
+                        uploadFile.status === 'completed' ? 'bg-green-500' :
+                        'bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 bg-[length:200%_100%] animate-[gradient_2s_linear_infinite]'
+                      )}
                       style={{ width: `${uploadFile.progress}%` }}
                     />
                   </div>

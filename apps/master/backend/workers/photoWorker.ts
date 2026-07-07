@@ -11,6 +11,7 @@ import sharp from "sharp";
 
 import { validateImageMagicNumber } from '../services/validateImage';
 import { logger } from '../utils/logger';
+import { AutoEditEngine, ImageStats } from '../services/AutoEditEngine';
 
 if (!parentPort) {
   throw new Error("This file must be run as a worker thread");
@@ -126,6 +127,8 @@ async function handleProcessJob(job: WorkerJob) {
 
     // AI-Enhanced Analytics: Local Heuristic Image Auditing
     const quality_flags: string[] = [];
+    let imageStats: ImageStats | null = null;
+    
     try {
       const stats = await imageInstance.stats();
       if (stats && stats.channels && stats.channels.length >= 3) {
@@ -134,6 +137,9 @@ async function handleProcessJob(job: WorkerJob) {
         const b = stats.channels[2];
         const luminance = 0.299 * r.mean + 0.587 * g.mean + 0.114 * b.mean;
         const contrast = (r.stdev + g.stdev + b.stdev) / 3;
+        
+        imageStats = { luminance, contrast, rMean: r.mean, gMean: g.mean, bMean: b.mean };
+        
         if (luminance < 30) quality_flags.push("Dark");
         else if (luminance > 225) quality_flags.push("Overexposed");
         if (contrast < 20) quality_flags.push("Flat");
@@ -142,7 +148,20 @@ async function handleProcessJob(job: WorkerJob) {
       logger.warn(`[PhotoWorker] Failed to compute stats for ${photoId}`);
     }
 
-    await Promise.all([
+    let autoEdits: any = null;
+    if (imageStats) {
+      try {
+        autoEdits = AutoEditEngine.computeHeuristics(imageStats);
+        const crop = await AutoEditEngine.smartCrop(filepath);
+        if (crop) {
+          autoEdits.crop = crop;
+        }
+      } catch (err) {
+        logger.warn(`[PhotoWorker] Failed to compute auto edits for ${photoId}`, err);
+      }
+    }
+
+    const promises: Promise<any>[] = [
       // 1. Generate High-Res (Stripped & Corrected orientation)
       sharp(filepath, { failOnError: false })
         .rotate()
@@ -161,7 +180,31 @@ async function handleProcessJob(job: WorkerJob) {
         .resize(100, 100, { fit: "inside", withoutEnlargement: true })
         .toFormat("webp", { quality: 80 })
         .toFile(tinyPath),
-    ]);
+    ];
+
+    if (autoEdits && Object.keys(autoEdits).length > 0) {
+      const previewEditedFilename = `${photoId}_preview_edited.jpg`;
+      const previewEditedPath = path.join(outputDir, previewEditedFilename);
+      const highresEditedFilename = `${photoId}_highres_edited.jpg`;
+      const highresEditedPath = path.join(outputDir, highresEditedFilename);
+      
+      // Calculate true dimensions after rotation
+      let currentWidth = metadata.width || 0;
+      let currentHeight = metadata.height || 0;
+      if (orientation >= 5 && orientation <= 8) {
+          currentWidth = metadata.height || 0;
+          currentHeight = metadata.width || 0;
+      }
+      
+      let baseEditedPipeline = sharp(filepath, { failOnError: false }).rotate();
+      baseEditedPipeline = applyPipelineCrop(baseEditedPipeline, autoEdits.crop, currentWidth, currentHeight);
+      baseEditedPipeline = applyPipelineEdits(baseEditedPipeline, autoEdits);
+      
+      promises.push(baseEditedPipeline.clone().resize(2048, 2048, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 85, mozjpeg: true }).toFile(previewEditedPath));
+      promises.push(baseEditedPipeline.clone().jpeg({ quality: 95, mozjpeg: true }).toFile(highresEditedPath));
+    }
+
+    await Promise.all(promises);
 
 
     parentPort!.postMessage({
@@ -176,11 +219,16 @@ async function handleProcessJob(job: WorkerJob) {
         orientation: orientation,
       },
       quality_flags,
+      autoEdits,
       assets: {
         highres: strippedHighResFilename,
         thumbnail: thumbnailFilename,
         preview: previewFilename,
         tiny: tinyFilename,
+        ...(autoEdits && Object.keys(autoEdits).length > 0 ? {
+          previewEdited: `${photoId}_preview_edited.jpg`,
+          highresEdited: `${photoId}_highres_edited.jpg`,
+        } : {})
       },
     });
   } catch (error) {
@@ -251,6 +299,46 @@ function clampEdits(raw: Record<string, any>): Record<string, any> {
   return out;
 }
 
+function applyPipelineCrop(pipeline: sharp.Sharp, crop: any, currentWidth: number, currentHeight: number): sharp.Sharp {
+    if (crop && typeof crop === "object") {
+      const { x, y, width, height } = crop;
+      const safeLeft = Math.max(0, Math.min(currentWidth - 1, Math.round((x / 100) * currentWidth)));
+      const safeTop = Math.max(0, Math.min(currentHeight - 1, Math.round((y / 100) * currentHeight)));
+      const safeW = Math.max(1, Math.min(currentWidth - safeLeft, Math.round((width / 100) * currentWidth)));
+      const safeH = Math.max(1, Math.min(currentHeight - safeTop, Math.round((height / 100) * currentHeight)));
+
+      return pipeline.extract({ left: safeLeft, top: safeTop, width: safeW, height: safeH });
+    }
+    return pipeline;
+}
+
+function applyPipelineEdits(pipeline: sharp.Sharp, edits: Record<string, any>): sharp.Sharp {
+    const exposureFactor = Math.pow(2, (edits.exposure || 0) / 25);
+    const brightnessAdjust = exposureFactor * (1.0 + (edits.brightness || 0) / 100.0);
+    const saturationAdjust = 1.0 + (edits.saturate || 0) / 100.0;
+
+    if (brightnessAdjust !== 1.0 || saturationAdjust !== 1.0 || edits.hueRotate) {
+      pipeline = pipeline.modulate({
+        brightness: brightnessAdjust,
+        saturation: saturationAdjust,
+        hue: edits.hueRotate || 0,
+      });
+    }
+
+    const contrastAdjust = 1.0 + (edits.contrast || 0) / 100.0;
+    if (contrastAdjust !== 1.0) {
+      pipeline = pipeline.linear(contrastAdjust, -(128 * contrastAdjust) + 128);
+    }
+
+    if (edits.grayscale) pipeline = pipeline.grayscale();
+    if (edits.sepia) pipeline = pipeline.recomb([[0.3588, 0.7044, 0.1368], [0.299, 0.587, 0.114], [0.2392, 0.4696, 0.0912]]);
+    if (edits.invert) pipeline = pipeline.negate();
+    if (edits.soften && edits.soften > 0) pipeline = pipeline.blur(edits.soften / 5.0);
+    if (edits.clarity && edits.clarity > 0) pipeline = pipeline.sharpen(edits.clarity / 20.0);
+    
+    return pipeline;
+}
+
 async function handleApplyEditsJob(job: WorkerJob) {
   const { sourcePath, destPath, photoId } = job;
   const edits = clampEdits(job.edits || {});
@@ -292,39 +380,10 @@ async function handleApplyEditsJob(job: WorkerJob) {
     pipeline = sharp(currentBuffer);
 
     // 3. Crop (Percentage-based)
-    if (edits.crop && typeof edits.crop === "object") {
-      const { x, y, width, height } = edits.crop;
-      const safeLeft = Math.max(0, Math.min(currentWidth - 1, Math.round((x / 100) * currentWidth)));
-      const safeTop = Math.max(0, Math.min(currentHeight - 1, Math.round((y / 100) * currentHeight)));
-      const safeW = Math.max(1, Math.min(currentWidth - safeLeft, Math.round((width / 100) * currentWidth)));
-      const safeH = Math.max(1, Math.min(currentHeight - safeTop, Math.round((height / 100) * currentHeight)));
-
-      pipeline = pipeline.extract({ left: safeLeft, top: safeTop, width: safeW, height: safeH });
-    }
+    pipeline = applyPipelineCrop(pipeline, edits.crop, currentWidth, currentHeight);
 
     // 4. Global Color Adjustments
-    const exposureFactor = Math.pow(2, (edits.exposure || 0) / 25);
-    const brightnessAdjust = exposureFactor * (1.0 + (edits.brightness || 0) / 100.0);
-    const saturationAdjust = 1.0 + (edits.saturate || 0) / 100.0;
-
-    if (brightnessAdjust !== 1.0 || saturationAdjust !== 1.0 || edits.hueRotate) {
-      pipeline = pipeline.modulate({
-        brightness: brightnessAdjust,
-        saturation: saturationAdjust,
-        hue: edits.hueRotate || 0,
-      });
-    }
-
-    const contrastAdjust = 1.0 + (edits.contrast || 0) / 100.0;
-    if (contrastAdjust !== 1.0) {
-      pipeline = pipeline.linear(contrastAdjust, -(128 * contrastAdjust) + 128);
-    }
-
-    if (edits.grayscale) pipeline = pipeline.grayscale();
-    if (edits.sepia) pipeline = pipeline.recomb([[0.3588, 0.7044, 0.1368], [0.299, 0.587, 0.114], [0.2392, 0.4696, 0.0912]]);
-    if (edits.invert) pipeline = pipeline.negate();
-    if (edits.soften && edits.soften > 0) pipeline = pipeline.blur(edits.soften / 5.0);
-    if (edits.clarity && edits.clarity > 0) pipeline = pipeline.sharpen(edits.clarity / 20.0);
+    pipeline = applyPipelineEdits(pipeline, edits);
 
     // 5. Final Output
     if (destPath) {

@@ -37,7 +37,7 @@ export default function galleryRoutes(context: GalleryContext) {
         try {
             // 1. Get all photos in album
             const photos = dbManager.query(
-                'SELECT id, url, originalFilename FROM photos WHERE albumId = ? ORDER BY created_at ASC',
+                'SELECT id, url, originalFilename, manualEdits, autoEdits, autoEnhanced FROM photos WHERE albumId = ? ORDER BY created_at ASC',
                 [albumId]
             );
 
@@ -113,7 +113,29 @@ export default function galleryRoutes(context: GalleryContext) {
         }
 
         // Generate watermark via worker
-        const sourcePath = path.join(uploadsDir, photo.url);
+        let sourceUrl = photo.url;
+        try {
+            const parsedManual = typeof photo.manualEdits === 'string' ? JSON.parse(photo.manualEdits) : photo.manualEdits;
+            const parsedAuto = typeof photo.autoEdits === 'string' ? JSON.parse(photo.autoEdits) : photo.autoEdits;
+            const hasManual = parsedManual && Object.keys(parsedManual).length > 0;
+            const hasAuto = parsedAuto && Object.keys(parsedAuto).length > 0;
+            if (hasManual || hasAuto || photo.autoEnhanced) {
+                sourceUrl = sourceUrl.replace(/(_highres|_preview)\.[^.]+$/, '_preview_edited.jpg');
+                if (!sourceUrl.includes('_preview_edited.jpg')) {
+                    // Fallback for unexpected URL formats
+                    const parsed = path.parse(sourceUrl);
+                    sourceUrl = path.join(parsed.dir, `${parsed.name.replace(/(_highres|_preview)$/, '')}_preview_edited.jpg`);
+                }
+            }
+        } catch(e) {
+            // Ignore parse errors, use default url
+        }
+
+        let sourcePath = path.join(uploadsDir, sourceUrl);
+        if (!fs.existsSync(sourcePath)) {
+            // Fallback to original if edited doesn't exist yet
+            sourcePath = path.join(uploadsDir, photo.url);
+        }
 
         await runWatermarkWorker({
             photoId: photo.id,
@@ -195,13 +217,17 @@ export default function galleryRoutes(context: GalleryContext) {
                       storage_path_thumb: string;
                       storage_path_tiny: string;
                       storage_path_watermarked: string;
+                      manualEdits: any;
+                      autoEdits: any;
+                      autoEnhanced: number;
                   }>(
                       `SELECT id, 
                               url as storage_path_highres, 
                               previewUrl as storage_path_preview, 
                               thumbnailUrl as storage_path_thumb,
                               tinyUrl as storage_path_tiny, 
-                              watermarked_url as storage_path_watermarked
+                              watermarked_url as storage_path_watermarked,
+                              manualEdits, autoEdits, autoEnhanced
                          FROM photos WHERE albumId = ? AND id IN (${photoIds.map(() => '?').join(',')})`,
                       [albumId, ...photoIds],
                   )
@@ -212,22 +238,41 @@ export default function galleryRoutes(context: GalleryContext) {
                       storage_path_thumb: string;
                       storage_path_tiny: string;
                       storage_path_watermarked: string;
+                      manualEdits: any;
+                      autoEdits: any;
+                      autoEnhanced: number;
                   }>(
                       `SELECT id, 
                               url as storage_path_highres, 
                               previewUrl as storage_path_preview, 
                               thumbnailUrl as storage_path_thumb,
                               tinyUrl as storage_path_tiny, 
-                              watermarked_url as storage_path_watermarked
+                              watermarked_url as storage_path_watermarked,
+                              manualEdits, autoEdits, autoEnhanced
                          FROM photos WHERE albumId = ?`,
                       [albumId],
                   );
 
             const results = photoQuery.map((row) => {
                 const urls: Record<string, string> = {};
+                
+                let highres = row.storage_path_highres;
+                let preview = row.storage_path_preview;
+
+                try {
+                    const parsedManual = typeof row.manualEdits === 'string' ? JSON.parse(row.manualEdits) : row.manualEdits;
+                    const parsedAuto = typeof row.autoEdits === 'string' ? JSON.parse(row.autoEdits) : row.autoEdits;
+                    const hasManual = parsedManual && Object.keys(parsedManual).length > 0;
+                    const hasAuto = parsedAuto && Object.keys(parsedAuto).length > 0;
+                    if (hasManual || hasAuto || row.autoEnhanced) {
+                        if (highres) highres = highres.replace(/(_highres|_preview)\.[^.]+$/, '_preview_edited.jpg');
+                        if (preview) preview = preview.replace(/(_highres|_preview)\.[^.]+$/, '_preview_edited.jpg');
+                    }
+                } catch(e) {}
+
                 const tierToCol: Record<string, string> = {
-                    highres: row.storage_path_highres,
-                    preview: row.storage_path_preview,
+                    highres: highres,
+                    preview: preview,
                     thumb: row.storage_path_thumb,
                     tiny: row.storage_path_tiny,
                     watermarked: row.storage_path_watermarked,
@@ -266,7 +311,7 @@ export default function galleryRoutes(context: GalleryContext) {
             const orderId = req.method === 'GET' ? req.query.orderId : req.body.orderId;
             const albumId = req.method === 'GET' ? req.query.albumId : req.body.albumId;
             const clientName = req.method === 'GET' ? req.query.clientName : req.body.clientName;
-            const total = req.method === 'GET' ? req.query.total : req.body.total;
+            // const total = req.method === 'GET' ? req.query.total : req.body.total;
             
             if (!orderId) {
                 return res.status(400).json({ error: 'orderId is required' });

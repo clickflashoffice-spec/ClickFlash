@@ -9,7 +9,7 @@ interface RetouchCanvasProps {
     className?: string;
 }
 
-export const RetouchCanvas: React.FC<RetouchCanvasProps> = ({
+export const RetouchCanvas: React.FC<RetouchCanvasProps> = React.memo(({
     imageElement,
     edits,
     className = '',
@@ -90,6 +90,6 @@ export const RetouchCanvas: React.FC<RetouchCanvasProps> = ({
             className={`pointer-events-none absolute z-10 ${className}`}
         />
     );
-};
+});
 
 export default RetouchCanvas;

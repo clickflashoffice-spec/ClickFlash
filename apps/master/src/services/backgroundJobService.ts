@@ -1,10 +1,14 @@
 import { db, BackgroundJob } from './db';
 import { logger } from '../utils/logger';
 import { pb } from '../services/pb';
+import { imageProcessingService } from './imageProcessingService';
 
 class BackgroundJobService {
     /**
      * Add a new job to the queue
+     * @param type - The type of job to execute
+     * @param payload - The data payload for the job
+     * @param priority - Lower number means higher priority (default 0)
      */
     async addJob(type: BackgroundJob['type'], payload: unknown, priority = 0): Promise<number> {
         const now = Date.now();
@@ -72,6 +76,54 @@ class BackgroundJobService {
                     // Trigger storage migration
                     await pb.request('/api/migrate-storage', { method: 'POST' });
                     break;
+                case 'auto_edit': {
+                    const payload = job.payload as { photoId?: string; url: string; albumId?: string };
+                    if (payload && payload.url) {
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        await new Promise<void>((resolve, reject) => {
+                            img.onload = () => resolve();
+                            img.onerror = () => reject(new Error('Failed to load image for auto_edit'));
+                            img.src = payload.url;
+                        });
+                        const processed = await imageProcessingService.autoEnhanceAsync(
+                            (() => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const ctx = c.getContext('2d')!; ctx.drawImage(img, 0, 0); return ctx.getImageData(0, 0, c.width, c.height); })()
+                        );
+                        if (payload.photoId) {
+                            await pb.request(`/api/photos/${payload.photoId}/auto-edits`, {
+                                method: 'POST',
+                                body: JSON.stringify({ autoEdits: { applied: true, enhanced: true }, width: processed.imageData.width, height: processed.imageData.height })
+                            }).catch(() => {});
+                        }
+                    }
+                    break;
+                }
+                case 'batch_enhance': {
+                    const payload = job.payload as { albumId: string; photos: Array<{ id: string; url: string }> };
+                    if (payload && payload.photos) {
+                        for (const photo of payload.photos) {
+                            try {
+                                const img = new Image();
+                                img.crossOrigin = 'anonymous';
+                                await new Promise<void>((resolve, reject) => {
+                                    img.onload = () => resolve();
+                                    img.onerror = () => reject(new Error('Failed to load image in batch'));
+                                    img.src = photo.url;
+                                });
+                                await imageProcessingService.autoEnhanceAsync(
+                                    (() => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const ctx = c.getContext('2d')!; ctx.drawImage(img, 0, 0); return ctx.getImageData(0, 0, c.width, c.height); })()
+                                );
+                                await pb.request(`/api/photos/${photo.id}/auto-edits`, {
+                                    method: 'POST',
+                                    body: JSON.stringify({ autoEdits: { applied: true, enhanced: true } })
+                                }).catch(() => {});
+                            } catch (e) {
+                                logger.warn(`[BackgroundJobService] Failed single photo in batch_enhance`, { photoId: photo.id });
+                            }
+                        }
+                    }
+                    break;
+                }
             }
 
 

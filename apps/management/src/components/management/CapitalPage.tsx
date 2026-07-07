@@ -7,12 +7,14 @@ import { apiService } from "../../services/apiService.ts";
 import Spinner from "../common/Spinner.tsx";
 import StatCard from "../common/StatCard.tsx";
 import { DollarSign, AlertCircle, CreditCard, Plus } from "lucide-react";
+import { useManagement } from "../../context/ManagementContext.tsx";
 
 interface CapitalPageProps {
   context?: string;
 }
 
-const CapitalPage: React.FC<CapitalPageProps> = ({ context }) => {
+const CapitalPage: React.FC = () => {
+  const { selectedContext: context } = useManagement();
   const [loans, setLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);

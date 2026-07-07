@@ -12,7 +12,7 @@ export interface FileRecord {
 
 export interface BackgroundJob {
     id?: number;
-    type: 'thumbnail' | 'watermark' | 'migrate' | 'bridge_push' | 'ai_analyze';
+    type: 'thumbnail' | 'watermark' | 'migrate' | 'bridge_push' | 'ai_analyze' | 'auto_edit' | 'batch_enhance';
     status: 'pending' | 'processing' | 'completed' | 'failed';
     priority: number;
     payload: unknown;

@@ -10,6 +10,8 @@ import { apiService } from "../../services/apiService.ts";
 import Spinner from "../common/Spinner.tsx";
 import StatCard from "../common/StatCard.tsx";
 import AddEquipmentModal from "./modals/AddEquipmentModal.tsx";
+import { useManagement } from "../../context/ManagementContext.tsx";
+import { ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react";
 
 const EQUIPMENT_STATUSES: EquipmentStatus[] = [
   "Available",
@@ -18,11 +20,8 @@ const EQUIPMENT_STATUSES: EquipmentStatus[] = [
   "Needs Repair",
 ];
 
-interface WarehousePageProps {
-  context?: string;
-}
-
-const WarehousePage: React.FC<WarehousePageProps> = ({ context }) => {
+const WarehousePage: React.FC = () => {
+  const { selectedContext: context } = useManagement();
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [photographers, setPhotographers] = useState<Photographer[]>([]);
   const [destinations, setDestinations] = useState<Destination[]>([]);
@@ -43,9 +42,21 @@ const WarehousePage: React.FC<WarehousePageProps> = ({ context }) => {
   }
 
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [activeTab, setActiveTab] = useState<"equipment" | "inventory">(
-    "equipment",
-  );
+  const [activeTab, setActiveTab] = useState<"equipment" | "inventory">("equipment");
+
+  // Sorting
+  const [sortField, setSortField] = useState<string>("name");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Handle Tab Change
+  const handleTabChange = (tab: "equipment" | "inventory") => {
+    setActiveTab(tab);
+    setCurrentPage(1); // Reset page on tab change
+  };
 
   // Filters
   const [typeFilter, setTypeFilter] = useState("All");
@@ -91,7 +102,7 @@ const WarehousePage: React.FC<WarehousePageProps> = ({ context }) => {
   }, []);
 
   const filteredEquipment = useMemo(() => {
-    return equipment.filter((item) => {
+    let result = equipment.filter((item) => {
       if (typeFilter !== "All" && item.type !== typeFilter) return false;
       if (statusFilter !== "All" && item.status !== statusFilter) return false;
       if (
@@ -101,7 +112,58 @@ const WarehousePage: React.FC<WarehousePageProps> = ({ context }) => {
         return false;
       return true;
     });
-  }, [equipment, typeFilter, statusFilter, destinationFilter]);
+
+    // Sorting
+    result = result.sort((a, b) => {
+      let aVal: any = a[sortField as keyof Equipment] || "";
+      let bVal: any = b[sortField as keyof Equipment] || "";
+
+      if (sortField === "type") {
+        aVal = equipmentCategories.find((c) => c.id === a.type)?.label || a.type;
+        bVal = equipmentCategories.find((c) => c.id === b.type)?.label || b.type;
+      } else if (sortField === "destinationId") {
+        aVal = destinations.find((d) => d.id === a.destinationId)?.name || "";
+        bVal = destinations.find((d) => d.id === b.destinationId)?.name || "";
+      }
+
+      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  }, [equipment, typeFilter, statusFilter, destinationFilter, sortField, sortDirection, equipmentCategories, destinations]);
+
+  const paginatedEquipment = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredEquipment.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredEquipment, currentPage]);
+
+  const totalPages = Math.ceil(filteredEquipment.length / itemsPerPage);
+
+  const inventorySorted = useMemo(() => {
+    return [...inventory].sort((a, b) => {
+      if (a.name < b.name) return sortDirection === "asc" ? -1 : 1;
+      if (a.name > b.name) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [inventory, sortDirection]);
+
+  const paginatedInventory = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return inventorySorted.slice(startIndex, startIndex + itemsPerPage);
+  }, [inventorySorted, currentPage]);
+
+  const totalInventoryPages = Math.ceil(inventorySorted.length / itemsPerPage);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
 
   const kpiData = useMemo(() => {
     return {
@@ -143,6 +205,7 @@ const WarehousePage: React.FC<WarehousePageProps> = ({ context }) => {
     setTypeFilter("All");
     setStatusFilter("All");
     setDestinationFilter("All");
+    setCurrentPage(1);
   };
 
   if (loading) return <Spinner />;
@@ -169,13 +232,13 @@ const WarehousePage: React.FC<WarehousePageProps> = ({ context }) => {
           <h1 className="text-2xl font-black text-white tracking-tight">Warehouse &amp; Equipment</h1>
           <div className="flex mt-4 gap-1.5 p-1 bg-white/5 border border-white/8 rounded-xl w-fit">
             <button
-              onClick={() => setActiveTab("equipment")}
+              onClick={() => handleTabChange("equipment")}
               className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === "equipment" ? "bg-blue-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-300"}`}
             >
               Equipment
             </button>
             <button
-              onClick={() => setActiveTab("inventory")}
+              onClick={() => handleTabChange("inventory")}
               className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === "inventory" ? "bg-blue-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-300"}`}
             >
               Consumables
@@ -341,16 +404,36 @@ const WarehousePage: React.FC<WarehousePageProps> = ({ context }) => {
               <table className="w-full text-left">
                 <thead className="border-b border-white/8 text-[10px] font-black text-slate-600 uppercase tracking-widest">
                   <tr>
-                    <th className="p-4">Name</th>
-                    <th className="p-4">Type</th>
-                    <th className="p-4">Status</th>
+                    <th className="p-4 cursor-pointer hover:text-slate-300 group transition-colors" onClick={() => handleSort('name')}>
+                      <div className="flex items-center gap-1.5">
+                        Name
+                        {sortField === 'name' ? (sortDirection === 'asc' ? <ChevronUp className="w-3 h-3 text-blue-400" /> : <ChevronDown className="w-3 h-3 text-blue-400" />) : <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />}
+                      </div>
+                    </th>
+                    <th className="p-4 cursor-pointer hover:text-slate-300 group transition-colors" onClick={() => handleSort('type')}>
+                      <div className="flex items-center gap-1.5">
+                        Type
+                        {sortField === 'type' ? (sortDirection === 'asc' ? <ChevronUp className="w-3 h-3 text-blue-400" /> : <ChevronDown className="w-3 h-3 text-blue-400" />) : <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />}
+                      </div>
+                    </th>
+                    <th className="p-4 cursor-pointer hover:text-slate-300 group transition-colors" onClick={() => handleSort('status')}>
+                      <div className="flex items-center gap-1.5">
+                        Status
+                        {sortField === 'status' ? (sortDirection === 'asc' ? <ChevronUp className="w-3 h-3 text-blue-400" /> : <ChevronDown className="w-3 h-3 text-blue-400" />) : <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />}
+                      </div>
+                    </th>
                     <th className="p-4">Assigned To</th>
-                    <th className="p-4">Destination</th>
+                    <th className="p-4 cursor-pointer hover:text-slate-300 group transition-colors" onClick={() => handleSort('destinationId')}>
+                      <div className="flex items-center gap-1.5">
+                        Destination
+                        {sortField === 'destinationId' ? (sortDirection === 'asc' ? <ChevronUp className="w-3 h-3 text-blue-400" /> : <ChevronDown className="w-3 h-3 text-blue-400" />) : <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />}
+                      </div>
+                    </th>
                     <th className="p-4">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredEquipment.map((item) => {
+                  {paginatedEquipment.map((item) => {
                     const photographer = photographers.find((p) => p.id === item.assignedToPhotographerId);
                     const destination = destinations.find((d) => d.id === item.destinationId);
                     const category = equipmentCategories.find((c) => c.id === item.type);
@@ -375,6 +458,30 @@ const WarehousePage: React.FC<WarehousePageProps> = ({ context }) => {
                 </tbody>
               </table>
             </div>
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="p-4 border-t border-white/8 flex items-center justify-between">
+                <span className="text-xs font-medium text-slate-500">
+                  Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredEquipment.length)} of {filteredEquipment.length} items
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="px-3 py-1 bg-white/5 border border-white/8 rounded-lg text-xs font-black text-slate-300 uppercase disabled:opacity-50 transition-all hover:bg-white/10"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="px-3 py-1 bg-white/5 border border-white/8 rounded-lg text-xs font-black text-slate-300 uppercase disabled:opacity-50 transition-all hover:bg-white/10"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </>
       ) : (
@@ -383,7 +490,12 @@ const WarehousePage: React.FC<WarehousePageProps> = ({ context }) => {
             <table className="w-full text-left">
               <thead className="border-b border-white/8 text-[10px] font-black text-slate-600 uppercase tracking-widest">
                 <tr>
-                  <th className="p-4">Consumable</th>
+                  <th className="p-4 cursor-pointer hover:text-slate-300 group transition-colors" onClick={() => handleSort('name')}>
+                    <div className="flex items-center gap-1.5">
+                      Consumable
+                      {sortField === 'name' ? (sortDirection === 'asc' ? <ChevronUp className="w-3 h-3 text-blue-400" /> : <ChevronDown className="w-3 h-3 text-blue-400" />) : <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />}
+                    </div>
+                  </th>
                   <th className="p-4">Type</th>
                   <th className="p-4">Current Stock</th>
                   <th className="p-4">Threshold</th>
@@ -392,7 +504,7 @@ const WarehousePage: React.FC<WarehousePageProps> = ({ context }) => {
                 </tr>
               </thead>
               <tbody>
-                {inventory.map((item) => (
+                {paginatedInventory.map((item) => (
                   <tr key={item.id} className="border-b border-white/5 hover:bg-white/4 transition-colors">
                     <td className="p-4 font-semibold text-white text-sm">{item.name}</td>
                     <td className="p-4 text-slate-400 text-sm">{item.type}</td>
@@ -446,6 +558,30 @@ const WarehousePage: React.FC<WarehousePageProps> = ({ context }) => {
               </tbody>
             </table>
           </div>
+          {/* Inventory Pagination Controls */}
+          {totalInventoryPages > 1 && (
+            <div className="p-4 border-t border-white/8 flex items-center justify-between">
+              <span className="text-xs font-medium text-slate-500">
+                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, inventorySorted.length)} of {inventorySorted.length} items
+              </span>
+              <div className="flex gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className="px-3 py-1 bg-white/5 border border-white/8 rounded-lg text-xs font-black text-slate-300 uppercase disabled:opacity-50 transition-all hover:bg-white/10"
+                >
+                  Previous
+                </button>
+                <button
+                  disabled={currentPage === totalInventoryPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalInventoryPages, p + 1))}
+                  className="px-3 py-1 bg-white/5 border border-white/8 rounded-lg text-xs font-black text-slate-300 uppercase disabled:opacity-50 transition-all hover:bg-white/10"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

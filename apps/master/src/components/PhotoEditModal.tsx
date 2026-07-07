@@ -1,7 +1,6 @@
 import React, {
   useState,
   useEffect,
-  useMemo,
   useRef,
   useCallback,
 } from "react";
@@ -13,6 +12,7 @@ import Filmstrip from "./albums/components/Filmstrip";
 import { SliderControl as SharedSlider } from "./albums/editor2/controls/SliderControl";
 import { GridOverlay as EditorGrid } from "./albums/editor2/canvas/GridOverlay";
 import { useImageSpace } from "../hooks/useImageSpace";
+import { Photo as SharedPhoto } from "@clickflash/ui";
 import {
   Layers,
   Sun,
@@ -50,7 +50,7 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
   // --- State Management ---
   const [edits, setEdits] = useState<ManualEdits>(initialEdits);
   const [originalEdits, setOriginalEdits] = useState<ManualEdits>(initialEdits);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [_previewUrl, setPreviewUrl] = useState<string>("");
   const [history, setHistory] = useState<ManualEdits[]>([initialEdits]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<TabType>("light");
@@ -134,13 +134,13 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
     [historyIndex],
   );
 
-  const handleEditChange = (updates: Partial<ManualEdits>) => {
+  const handleEditChange = useCallback((updates: Partial<ManualEdits>) => {
     setEdits((prev: ManualEdits) => {
       const newEdits = { ...prev, ...updates };
       saveToHistory(newEdits);
       return newEdits;
     });
-  };
+  }, [saveToHistory]);
 
   // Undo/Redo
   const handleUndo = useCallback(() => {
@@ -174,7 +174,7 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
     });
   }, []);
 
-  const handleWheel = (e: React.WheelEvent) => {
+  const handleWheel = useCallback((e: React.WheelEvent) => {
     // Always intercept wheel events in the viewer to prevent scrolling controls
     if (e.ctrlKey || zoom > 1) {
       e.preventDefault();
@@ -182,10 +182,10 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
       const direction = e.deltaY < 0 ? "in" : "out";
       handleZoom(direction);
     }
-  };
+  }, [zoom, handleZoom]);
 
   // Panning Logic
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (zoom <= 1) return;
     e.preventDefault();
     setIsPanning(true);
@@ -193,18 +193,18 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
       x: e.clientX - pan.x,
       y: e.clientY - pan.y,
     };
-  };
+  }, [zoom, pan]);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isPanning) return;
     const newX = e.clientX - panStartRef.current.x;
     const newY = e.clientY - panStartRef.current.y;
     setPan({ x: newX, y: newY });
-  };
+  }, [isPanning]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     setIsPanning(false);
-  };
+  }, []);
 
   // Keyboard Shortcuts
   useEffect(() => {
@@ -270,170 +270,6 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
   const getModifiedCount = (keys: (keyof ManualEdits)[]) =>
     keys.filter((key) => isControlModified(key)).length;
 
-  // Style Generation
-  const photoStyle = useMemo(() => {
-    const {
-      exposure = 0,
-      contrast = 0,
-      highlights = 0,
-      shadows = 0,
-      saturate = 0,
-      vibrance = 0,
-      grayscale = 0,
-      sepia = 0,
-      invert = 0,
-      hueRotate = 0,
-      temperature = 0,
-      whites = 0,
-      blacks = 0,
-      soften = 0,
-      rotate = 0,
-      straighten = 0,
-      perspectiveX = 0,
-      perspectiveY = 0,
-      clarity = 0,
-      dropShadow = 0,
-    } = edits;
-
-    const whitesAdjust = whites / 200;
-    const blacksAdjust = blacks / 200;
-    const brightness =
-      1 +
-      exposure / 100 +
-      highlights / 200 +
-      shadows / 400 +
-      whitesAdjust -
-      blacksAdjust;
-    const contrastVal =
-      1 + contrast / 100 + highlights / 500 - shadows / 500 + clarity / 200;
-
-    const vibranceAmount = vibrance / 100;
-    const saturateAmount = 1 + saturate / 100;
-    const combinedSaturate =
-      vibranceAmount !== 0
-        ? saturateAmount +
-          (vibranceAmount > 0 ? vibranceAmount * 0.5 : vibranceAmount * 0.25)
-        : saturateAmount;
-
-    const filters = [
-      `brightness(${brightness})`,
-      `contrast(${contrastVal})`,
-      `saturate(${combinedSaturate})`,
-    ];
-
-    if (temperature !== 0)
-      filters.push(`sepia(${Math.abs(temperature) * 0.5}%)`);
-
-    filters.push(
-      `grayscale(${grayscale}%)`,
-      `sepia(${sepia}%)`,
-      `invert(${invert}%)`,
-      `hue-rotate(${hueRotate}deg)`,
-      `blur(${soften}px)`,
-    );
-
-    if (dropShadow > 0)
-      filters.push(`drop-shadow(0 4px ${dropShadow}px rgba(0,0,0,0.5))`);
-
-    const angle = rotate + straighten;
-    let transformStr = "";
-
-    if (straighten !== 0) {
-      const rad = Math.abs((straighten * Math.PI) / 180);
-      const scale = 1 / (Math.abs(Math.cos(rad)) + Math.abs(Math.sin(rad)));
-      transformStr = `rotate(${angle}deg) scale(${scale})`;
-    } else if (rotate !== 0) {
-      transformStr = `rotate(${angle}deg)`;
-    }
-
-    if (perspectiveX !== 0 || perspectiveY !== 0) {
-      const pVal = 1000 + Math.abs(perspectiveX) * 10;
-      const tStr = `perspective(${pVal}px) rotateX(${perspectiveY * 0.1}deg) rotateY(${perspectiveX * 0.1}deg)`;
-      transformStr = tStr + (transformStr ? " " + transformStr : "");
-    }
-
-    const finalTransform =
-      `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom}) ${transformStr || ""}`.trim();
-
-    return {
-      filter: filters.join(" "),
-      transform: finalTransform,
-      transition: isPanning
-        ? "none"
-        : "filter 0.2s ease-out, transform 0.2s ease-out",
-      willChange: "transform",
-    };
-  }, [edits, zoom, pan, isPanning]);
-
-  // Original Photo Logic for Before/After
-  const originalPhotoStyle = useMemo(() => {
-    // Since we don't have true "raw" data here, we use the style with current orientation but 0 edits
-    // Or if we want to show the photo as opened, we use originalEdits.
-    // Let's use "Zeroed out" edits to show true raw state?
-    // Actually, usually "Before" means "State when you started editing in this session" or "Unedited".
-    // Let's assume originalEdits is the 'Before' state.
-    const {
-      exposure = 0,
-      contrast = 0,
-      highlights = 0,
-      shadows = 0,
-      whites = 0,
-      blacks = 0,
-      rotate = 0,
-      straighten = 0,
-      perspectiveX = 0,
-      perspectiveY = 0,
-      clarity = 0,
-    } = originalEdits;
-
-    const whitesAdjust = whites / 200;
-    const blacksAdjust = blacks / 200;
-    const brightness =
-      1 +
-      exposure / 100 +
-      highlights / 200 +
-      shadows / 400 +
-      whitesAdjust -
-      blacksAdjust;
-    const contrastVal =
-      1 + contrast / 100 + highlights / 500 - shadows / 500 + clarity / 200;
-
-    const filters = [
-      `brightness(${brightness})`,
-      `contrast(${contrastVal})`,
-      "saturate(1)", // Baseline saturation
-    ];
-
-    // Skip effects
-    // Apply transform to match orientation so "Before/After" aligns perfectly
-    const angle = rotate + straighten;
-    let transformStr = "";
-    if (straighten !== 0) {
-      const rad = Math.abs((straighten * Math.PI) / 180);
-      const scale = 1 / (Math.abs(Math.cos(rad)) + Math.abs(Math.sin(rad)));
-      transformStr = `rotate(${angle}deg) scale(${scale})`;
-    } else if (rotate !== 0) {
-      transformStr = `rotate(${angle}deg)`;
-    }
-
-    if (perspectiveX !== 0 || perspectiveY !== 0) {
-      const pVal = 1000 + Math.abs(perspectiveX) * 10;
-      const tStr = `perspective(${pVal}px) rotateX(${perspectiveY * 0.1}deg) rotateY(${perspectiveX * 0.1}deg)`;
-      transformStr = tStr + (transformStr ? " " + transformStr : "");
-    }
-
-    // Apply same pan/zoom to keep aligned
-    const finalTransform =
-      `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom}) ${transformStr || ""}`.trim();
-
-    return {
-      filter: filters.join(" "),
-      transform: finalTransform,
-      transition: isPanning
-        ? "none"
-        : "filter 0.2s ease-out, transform 0.2s ease-out",
-    };
-  }, [originalEdits, zoom, pan, isPanning]);
 
   if (!isOpen || !photo) return null;
 
@@ -516,53 +352,43 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
                 <div className="absolute top-6 left-6 z-10 bg-black/60 backdrop-blur px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 border border-white/5">
                   Original
                 </div>
-                <img
-                  src={previewUrl}
-                  alt="Before"
-                  className={`${styles.photoPreview} ${styles.beforeAfterPanel} opacity-80`}
-                  style={
-                    {
-                      "--filter": originalPhotoStyle.filter,
-                      "--transform": originalPhotoStyle.transform,
-                    } as React.CSSProperties
-                  }
-                  draggable={false}
-                />
+                <div className="w-full h-full p-4 pointer-events-none opacity-80">
+                  <SharedPhoto
+                    photo={{ ...photo, photographerId: photo.photographerId || 0 } as any}
+                    manualEdits={originalEdits}
+                    showWatermark={false}
+                    extraTransform={`translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`}
+                    imageClassName={`${styles.photoPreview} ${styles.beforeAfterPanel}`}
+                  />
+                </div>
               </div>
               {/* After Panel */}
               <div className="flex-1 relative bg-slate-900/20 rounded-3xl border border-blue-500/20 flex items-center justify-center overflow-hidden">
                 <div className="absolute top-6 left-6 z-10 bg-blue-600/80 backdrop-blur px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] text-white">
                   Edited
                 </div>
-                <img
-                  src={previewUrl}
-                  alt="After"
-                  className={`${styles.photoPreview} ${styles.beforeAfterPanel}`}
-                  style={
-                    {
-                      "--filter": photoStyle.filter,
-                      "--transform": photoStyle.transform,
-                    } as React.CSSProperties
-                  }
-                  draggable={false}
-                />
+                <div className="w-full h-full p-4 pointer-events-none">
+                  <SharedPhoto
+                    photo={{ ...photo, photographerId: photo.photographerId || 0 } as any}
+                    manualEdits={edits}
+                    showWatermark={false}
+                    extraTransform={`translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`}
+                    imageClassName={`${styles.photoPreview} ${styles.beforeAfterPanel}`}
+                  />
+                </div>
               </div>
             </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center p-8">
-              <img
-                ref={imageRef}
-                src={previewUrl}
-                alt={photo.title}
-                className={`${styles.photoPreview} ${styles.mainPreviewShadow}`}
-                style={
-                  {
-                    "--filter": photoStyle.filter,
-                    "--transform": photoStyle.transform,
-                  } as React.CSSProperties
-                }
-                draggable={false}
-              />
+              <div className="w-full h-full relative" ref={imageRef}>
+                <SharedPhoto
+                  photo={{ ...photo, photographerId: photo.photographerId || 0 } as any}
+                  manualEdits={edits}
+                  showWatermark={false}
+                  extraTransform={`translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`}
+                  imageClassName={`${styles.photoPreview} ${styles.mainPreviewShadow}`}
+                />
+              </div>
               <EditorGrid visible={showGrid} />
             </div>
           )}

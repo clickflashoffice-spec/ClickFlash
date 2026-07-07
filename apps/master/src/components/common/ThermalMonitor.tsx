@@ -26,40 +26,44 @@ const ThermalMonitor: React.FC = () => {
     const [status, setStatus] = useState<ThermalStatus | null>(null);
     const [offline, setOffline] = useState(false);
     const failureCount = useRef(0);
-    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
-        const fetchStatus = async () => {
-            // Circuit-breaker: stop fetching once backend is confirmed unreachable
-            if (failureCount.current >= MAX_FAILURES) return;
+        let isMounted = true;
+        let timer: NodeJS.Timeout;
+
+        const runLoop = async () => {
+            if (!isMounted || failureCount.current >= MAX_FAILURES) return;
 
             try {
                 const response = await fetch('/api/hardware/thermal');
                 if (!response.ok) throw new Error('Thermal API failed');
                 const data: ThermalStatus = await response.json();
-                failureCount.current = 0;
-                setStatus(data);
-                setOffline(false);
+                
+                if (isMounted) {
+                    failureCount.current = 0;
+                    setStatus(data);
+                    setOffline(false);
+                }
             } catch {
-                failureCount.current += 1;
-                if (failureCount.current >= MAX_FAILURES) {
-                    setOffline(true);
-                    if (intervalRef.current !== null) {
-                        clearInterval(intervalRef.current);
-                        intervalRef.current = null;
+                if (isMounted) {
+                    failureCount.current += 1;
+                    if (failureCount.current >= MAX_FAILURES) {
+                        setOffline(true);
+                        return; // Stop the loop
                     }
+                }
+            } finally {
+                if (isMounted && failureCount.current < MAX_FAILURES) {
+                    timer = setTimeout(runLoop, 5000);
                 }
             }
         };
 
-        fetchStatus();
-        intervalRef.current = setInterval(fetchStatus, 5000);
+        runLoop();
 
         return () => {
-            if (intervalRef.current !== null) {
-                clearInterval(intervalRef.current);
-                intervalRef.current = null;
-            }
+            isMounted = false;
+            clearTimeout(timer);
         };
     }, []); // Stable empty deps — failure tracking is in a ref, not state
 

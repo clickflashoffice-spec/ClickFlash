@@ -47,6 +47,7 @@ import initWebSocketServer from "./services/websocket";
 import RealtimeService from "./services/realtimeService";
 import { NetworkMonitor } from "./services/NetworkMonitor";
 import { SyncManager } from "./services/SyncManager";
+import { udpDiscoveryService } from "./services/udpDiscoveryService";
 import { CloudSyncService } from "./services/cloudSyncService";
 import { HardwareService } from "./services/HardwareService";
 import { OrderValidationService } from "./services/OrderValidationService";
@@ -66,6 +67,8 @@ import { MaintenancePoller } from "./services/MaintenancePoller";
 import { ExportService } from "./services/ExportService";
 import { ResortAnalyticsService } from "./services/ResortAnalyticsService";
 import { DiagnosticSyncService } from "./services/DiagnosticSyncService";
+import { BackupService } from "./services/BackupService";
+import { AutomatedBackupService } from "./services/AutomatedBackupService";
 
 // Configuration
 import {
@@ -195,6 +198,8 @@ let ledgerService: LedgerService;
 let exportService: ExportService;
 let resortAnalytics: ResortAnalyticsService;
 let diagnosticSync: DiagnosticSyncService;
+let backupService: BackupService;
+let automatedBackupService: AutomatedBackupService;
 
 try {
   // Write Queue (Zero-Block IO)
@@ -244,6 +249,15 @@ try {
 
   // Real-time Hub Diagnostic Sync
   diagnosticSync = new DiagnosticSyncService(dbManager, logger, resortAnalytics);
+
+  // Automated Cloud Backup Service
+  backupService = new BackupService(DB_FILE, UPLOAD_DIR, logger);
+  automatedBackupService = new AutomatedBackupService(
+    backupService,
+    process.env.DESK_ID || "MASTER_01",
+    process.env.CLOUD_API_URL || "https://management.clickflash.com",
+    process.env.CLOUD_API_TOKEN || ""
+  );
 } catch (err) {
   console.error("[Fatal] Service Initialization Error:", err);
   process.exit(1);
@@ -349,6 +363,7 @@ const context = {
   exportService,
   resortAnalytics,
   diagnosticSync,
+  automatedBackupService,
   auditService: null as any, // Will be set after initialization
 };
 
@@ -613,6 +628,9 @@ server.listen(PORT, "0.0.0.0", async () => {
             txt: { mode: "master", version: "4.1.0" },
         });
 
+        // Start UDP auto-discovery for Touch pairing
+        udpDiscoveryService.start();
+
         // Fire off background services
         await initializeEcosystem(context);
 
@@ -623,6 +641,7 @@ server.listen(PORT, "0.0.0.0", async () => {
             );
 
             const serviceStoppers = [
+                { name: 'udpDiscovery', fn: () => { udpDiscoveryService.stop(); return Promise.resolve(); } },
                 { name: 'tunnelManager', fn: () => tunnelManager.stop() },
                 { name: 'cloudSyncService', fn: () => cloudSyncService?.stop?.() },
                 { name: 'queueProcessor', fn: () => queueProcessor?.stop?.() },
@@ -630,6 +649,7 @@ server.listen(PORT, "0.0.0.0", async () => {
                 { name: 'moneyTrashService', fn: () => moneyTrashService?.stop?.() },
                 { name: 'resourceMonitor', fn: () => resourceMonitor?.stop?.() },
                 { name: 'maintenancePoller', fn: () => maintenancePoller?.stop?.() },
+                { name: 'automatedBackupService', fn: () => automatedBackupService?.stop?.() },
             ];
 
             const results = await Promise.allSettled(

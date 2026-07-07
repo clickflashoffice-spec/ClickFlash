@@ -1,5 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
-import { ManagementContext, ManagementView, HOTELS } from "../../constants.ts";
+import { ManagementView, HOTELS } from "../../constants.ts";
+import { useManagement } from "../../context/ManagementContext.tsx";
 import {
   ManagementErrorBoundary,
   DashboardErrorBoundary,
@@ -24,6 +25,7 @@ const AIChatBot = lazy(() => import("./AIChatBot.tsx"));
 const UnifiedFinancePage = lazy(() => import("./UnifiedFinancePage.tsx"));
 const FleetMonitorPage = lazy(() => import("./FleetMonitorPage.tsx"));
 const ManagementSettingsPage = lazy(() => import("./ManagementSettingsPage.tsx"));
+const BillingPage = lazy(() => import("./BillingPage.tsx"));
 const Photographers = lazy(() => import("../Photographers.tsx"));
 const WarehousePage = lazy(() => import("./WarehousePage.tsx"));
 const ReportsPage = lazy(() => import("./ReportsPage.tsx"));
@@ -49,21 +51,20 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
   currentUser,
   onLogout,
 }) => {
-  const [currentView, setCurrentView] = useState<ManagementView>(
-    "executive_dashboard",
-  );
+  const {
+    currentView,
+    setCurrentView,
+    selectedContext,
+    setSelectedContext,
+    selectedStationId: _selectedStationId,
+    setSelectedStationId,
+    syncStatus,
+    setSyncStatus,
+    isCommandBarOpen,
+    setIsCommandBarOpen,
+  } = useManagement();
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
-  const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
-  const [selectedContext, setSelectedContext] =
-    useState<ManagementContext>("global");
-  const [_selectedStationId, setSelectedStationId] = useState<string | null>(
-    null,
-  );
-  const [syncStatus, setSyncStatus] = useState({
-    lastPulse: Date.now(),
-    onlineCount: 0,
-    status: "initializing" as "initializing" | "syncing" | "online" | "warning",
-  });
 
   const isMobile = window.innerWidth < 1024;
 
@@ -169,7 +170,7 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
         case "assets_inventory":
           return (
             <Suspense fallback={<PageLoader />}>
-              <WarehousePage context={selectedContext} />
+              <WarehousePage />
             </Suspense>
           );
 
@@ -183,21 +184,21 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
         case "revenue_income":
           return (
             <Suspense fallback={<PageLoader />}>
-              <UnifiedFinancePage currentUser={currentUser} context={selectedContext} />
+              <UnifiedFinancePage currentUser={currentUser} />
             </Suspense>
           );
 
         case "expenses_payroll":
           return (
             <Suspense fallback={<PageLoader />}>
-              <PayrollPage currentUser={currentUser} context={selectedContext} />
+              <PayrollPage currentUser={currentUser} />
             </Suspense>
           );
 
         case "capital_treasury":
           return (
             <Suspense fallback={<PageLoader />}>
-              <CapitalPage context={selectedContext} />
+              <CapitalPage />
             </Suspense>
           );
 
@@ -205,6 +206,13 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
           return (
             <Suspense fallback={<PageLoader />}>
               <ManagementSettingsPage currentUser={currentUser} />
+            </Suspense>
+          );
+          
+        case "billing_subscription":
+          return (
+            <Suspense fallback={<PageLoader />}>
+              <BillingPage currentUser={currentUser} />
             </Suspense>
           );
 
@@ -225,7 +233,7 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
         case "reports_insights":
           return (
             <Suspense fallback={<PageLoader />}>
-              <ReportsPage context={selectedContext} />
+              <ReportsPage />
             </Suspense>
           );
 

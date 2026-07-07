@@ -21,6 +21,8 @@ import { dashboardService } from "../services/api/dashboardService";
 import { useQueryClient, QueryErrorResetBoundary } from "@tanstack/react-query";
 import { orderKeys } from "../hooks/useOrders";
 import AnalyticsView from "./AnalyticsView";
+import { ErrorBoundary } from "./common/ErrorBoundary";
+import { DashboardViewportSkeleton } from "./dashboard/StatCard";
 
 // Lazy load widgets for better performance
 const RecentOrdersWidget = React.lazy(
@@ -89,159 +91,70 @@ interface StatCardProps {
   value: string;
   icon: React.ReactNode;
   className?: string;
+  color?: "blue" | "purple" | "emerald" | "amber" | "rose";
   onClick?: () => void;
   isLoading?: boolean;
 }
 
-interface ErrorBoundaryProps {
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-  onReset?: () => void;
-}
-
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
-}
-
-// ============================================================================
-// Error Boundary Component
-// ============================================================================
-
-class ErrorBoundary extends React.Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    logger.error("Dashboard Error Boundary caught error:", error);
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    logger.error("Error Boundary details:", error, {
-      componentStack: errorInfo.componentStack,
-    });
-  }
-
-  render(): React.ReactNode {
-    if (this.state.hasError) {
-      if (this.props.fallback) return this.props.fallback;
-
-      return (
-        <div className="p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
-          <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
-            Something went wrong
-          </h3>
-          <p className="text-sm text-red-600 dark:text-red-300">
-            {this.state.error?.message || "An unexpected error occurred."}
-          </p>
-          <button
-            onClick={() => {
-              if (this.props.onReset) this.props.onReset();
-              this.setState({ hasError: false });
-            }}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
-// ============================================================================
-// Loading Skeleton Component
-// ============================================================================
-
-const StatCardSkeleton: React.FC = React.memo(() => (
-  <div className="glass-card p-3 sm:p-4 animate-pulse">
-    <div className="flex items-start space-x-2.5 sm:space-x-3">
-      <div className="p-2 sm:p-2.5 rounded-lg bg-slate-200/50 dark:bg-slate-700/50 shrink-0">
-        <div className="h-4 w-4 sm:h-5 sm:w-5 bg-slate-300/50 dark:bg-slate-600/50 rounded" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="h-3 sm:h-4 w-20 sm:w-24 bg-slate-200/50 dark:bg-slate-700/50 rounded mb-2" />
-        <div className="h-6 sm:h-8 w-16 sm:w-20 bg-slate-200/50 dark:bg-slate-700/50 rounded" />
-      </div>
-    </div>
-  </div>
-));
-
-StatCardSkeleton.displayName = "StatCardSkeleton";
-
-const DashboardViewportSkeleton: React.FC = React.memo(() => (
-  <div className="space-y-8 animate-pulse">
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <StatCardSkeleton />
-      <StatCardSkeleton />
-      <StatCardSkeleton />
-      <StatCardSkeleton />
-    </div>
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div className="h-80 bg-slate-100 dark:bg-slate-800 rounded-2xl" />
-      <div className="h-80 bg-slate-100 dark:bg-slate-800 rounded-2xl" />
-    </div>
-  </div>
-));
-
-DashboardViewportSkeleton.displayName = "DashboardViewportSkeleton";
-
-// ============================================================================
-// Stat Card Component
-// ============================================================================
+// ... skipped down to StatCard component ...
 
 const StatCard: React.FC<StatCardProps> = React.memo(
-  ({ title, value, icon, className = "", onClick }) => (
-    <motion.div
-      variants={{
-        hidden: { opacity: 0, scale: 0.95, y: 20 },
-        show: {
-          opacity: 1,
-          scale: 1,
-          y: 0,
-          transition: { type: "spring", stiffness: 100 },
-        },
-      }}
-      whileHover={{
-        scale: 1.04,
-        y: -6,
-        boxShadow: "0 25px 50px -12px rgba(31, 38, 135, 0.15)",
-      }}
-      whileTap={{ scale: 0.98 }}
-      className={`group relative glass-card p-4 sm:p-5 flex items-start space-x-3 sm:space-x-4 overflow-visible transition-all duration-300 ${onClick ? "cursor-pointer border-blue-200/40 dark:border-blue-700/40" : ""} ${className}`}
-      onClick={onClick}
-      {...(onClick ? { role: "button" } : {})}
-      tabIndex={onClick ? 0 : undefined}
-      onKeyDown={onClick ? (e) => e.key === "Enter" && onClick() : undefined}
-    >
-      {/* Subtle internal shine effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none rounded-2xl" />
+  ({ title, value, icon, className = "", color = "blue", onClick }) => {
+    // Generate color-specific classes using useMemo so they evaluate correctly
+    const colorClasses = useMemo(() => {
+      const colors = {
+        blue: "bg-blue-500/10 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400",
+        purple: "bg-purple-500/10 dark:bg-purple-400/10 text-purple-600 dark:text-purple-400",
+        emerald: "bg-emerald-500/10 dark:bg-emerald-400/10 text-emerald-600 dark:text-emerald-400",
+        amber: "bg-amber-500/10 dark:bg-amber-400/10 text-amber-600 dark:text-amber-400",
+        rose: "bg-rose-500/10 dark:bg-rose-400/10 text-rose-600 dark:text-rose-400",
+      };
+      return colors[color] || colors.blue;
+    }, [color]);
 
-      <div className="relative p-2.5 sm:p-3 rounded-2xl bg-blue-500/10 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400 shrink-0 shadow-sm transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
-        {React.isValidElement(icon)
-          ? React.cloneElement(icon as React.ReactElement<any>, {
-              className: "h-5 w-5 sm:h-6 sm:w-6",
-            })
-          : icon}
-      </div>
-      <div className="relative flex-1 min-w-0">
-        <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold mb-1 sm:mb-1.5 uppercase tracking-[0.1em] opacity-70">
-          {title}
-        </p>
-        <p className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-850 dark:text-white leading-tight tracking-tight font-heading">
-          {value}
-        </p>
-      </div>
-    </motion.div>
-  ),
+    return (
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, scale: 0.95, y: 20 },
+          show: {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            transition: { type: "spring", stiffness: 100 },
+          },
+        }}
+        whileHover={{
+          scale: 1.04,
+          y: -6,
+          boxShadow: "0 25px 50px -12px rgba(31, 38, 135, 0.15)",
+        }}
+        whileTap={{ scale: 0.98 }}
+        className={`group relative glass-card p-4 sm:p-5 flex items-start space-x-3 sm:space-x-4 overflow-visible transition-all duration-300 ${onClick ? "cursor-pointer border-blue-200/40 dark:border-blue-700/40 hover:border-blue-400/50" : ""} ${className}`}
+        onClick={onClick}
+        {...(onClick ? { role: "button", tabIndex: 0 } : {})}
+        onKeyDown={onClick ? (e) => e.key === "Enter" && onClick() : undefined}
+      >
+        {/* Subtle internal shine effect */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none rounded-2xl" />
+
+        <div className={`relative p-2.5 sm:p-3 rounded-2xl shrink-0 shadow-sm transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${colorClasses}`}>
+          {React.isValidElement(icon)
+            ? React.cloneElement(icon as React.ReactElement<any>, {
+                className: "h-5 w-5 sm:h-6 sm:w-6",
+              })
+            : icon}
+        </div>
+        <div className="relative flex-1 min-w-0">
+          <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold mb-1 sm:mb-1.5 uppercase tracking-[0.1em] opacity-70">
+            {title}
+          </p>
+          <p className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-850 dark:text-white leading-tight tracking-tight font-heading">
+            {value}
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
 );
 
 StatCard.displayName = "StatCard";
@@ -726,7 +639,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
                                 <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" />
                               </svg>
                             }
-                            className="stat-card-blue"
+                            color="blue"
                           />
                           <StatCard
                             title="Photos Created"
@@ -741,7 +654,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
                                 <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                               </svg>
                             }
-                            className="stat-card-purple"
+                            color="purple"
                           />
                           <StatCard
                             title="Albums to Process"
@@ -756,7 +669,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
                                 <path d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9l-2-2H5a2 2 0 01-2 2v10a2 2 0 012 2z" />
                               </svg>
                             }
-                            className="stat-card-emerald"
+                            color="emerald"
                             onClick={() => onNavigate("Albums")}
                           />
                           <StatCard
@@ -772,7 +685,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
                                 <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
                             }
-                            className="stat-card-amber"
+                            color="amber"
                             onClick={() => onNavigate("Orders")}
                           />
                         </motion.div>

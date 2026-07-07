@@ -109,12 +109,12 @@ export class SSEManager {
     this.eventSource = new EventSource(this.url);
 
     this.eventSource.onopen = () => {
-      console.log(\[SSE] Connected to \\);
+      console.log(`[SSE] Connected to ${this.url}`);
       this.reconnectAttempts = 0;
     };
 
     this.eventSource.onerror = (error) => {
-      console.error(\[SSE] Connection error on \\, error);
+      console.error(`[SSE] Connection error on ${this.url}`, error);
       this.disconnect();
       this.reconnect();
     };
@@ -139,13 +139,13 @@ export class SSEManager {
 
   private reconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error(\[SSE] Max reconnect attempts reached for \\);
+      console.error(`[SSE] Max reconnect attempts reached for ${this.url}`);
       return;
     }
     
     this.reconnectAttempts++;
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-    console.log(\[SSE] Reconnecting in \ms (Attempt \)\);
+    console.log(`[SSE] Reconnecting in ${delay}ms (Attempt ${this.reconnectAttempts})`);
     setTimeout(() => this.connect(), delay);
   }
 

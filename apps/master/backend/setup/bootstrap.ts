@@ -19,6 +19,7 @@ export async function initializeEcosystem(context: any) {
     moneyTrashService,
     campaignScheduler,
     auditLogger,
+    automatedBackupService,
     config
   } = context;
 
@@ -78,6 +79,9 @@ export async function initializeEcosystem(context: any) {
 
     campaignScheduler.start();
     logger.info("[Startup] Marketing Layer: Scheduler active.");
+
+    automatedBackupService.start();
+    logger.info("[Startup] Automated Backup Service: Active.");
 
     // Initialize Audit Service after all services are ready
     const auditService = new AuditService(dbManager, logger, auditLogger, config || { DATA_DIR: process.env.DATA_DIR || "./pb_data" });

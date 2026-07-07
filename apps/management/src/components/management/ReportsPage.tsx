@@ -7,19 +7,19 @@ import { HotelReportView } from "./reports/HotelReportView.tsx";
 import { GlobalReportView } from "./reports/GlobalReportView.tsx";
 import { PhotographerPerformanceMatrix } from "./reports/PhotographerPerformanceMatrix.tsx";
 import {
-  BarChart3,
-  Globe,
+  FileText,
   Download,
   Calendar,
-  Filter,
+  TrendingUp,
   Trophy,
+  BarChart3,
+  Globe,
+  Filter,
 } from "lucide-react";
+import { useManagement } from "../../context/ManagementContext.tsx";
 
-interface ReportsPageProps {
-  context?: ManagementContext;
-}
-
-const ReportsPage: React.FC<ReportsPageProps> = ({ context }) => {
+const ReportsPage: React.FC = () => {
+  const { selectedContext: context } = useManagement();
   const [startDate, setStartDate] = useState(
     new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
   );

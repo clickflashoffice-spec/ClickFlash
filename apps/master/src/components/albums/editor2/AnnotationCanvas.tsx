@@ -13,7 +13,7 @@ interface AnnotationCanvasProps {
     className?: string;
 }
 
-export const AnnotationCanvas: React.FC<AnnotationCanvasProps> = ({
+export const AnnotationCanvas: React.FC<AnnotationCanvasProps> = React.memo(({
     naturalSize,
     edits,
     isDrawing,
@@ -160,4 +160,4 @@ export const AnnotationCanvas: React.FC<AnnotationCanvasProps> = ({
             onTouchEnd={handleEnd}
         />
     );
-};
+});

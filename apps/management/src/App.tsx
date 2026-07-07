@@ -5,6 +5,7 @@ import { Photographer } from "./types";
 import OfflineScreen from "./components/common/OfflineScreen";
 import { cloudApiService } from "./services/cloudApiService";
 import { StationProvider } from "./context/StationContext";
+import { ManagementProvider } from "./context/ManagementContext";
 
 type AuthState = "unauthenticated" | "authenticated";
 
@@ -62,11 +63,13 @@ const ManagementPortal: React.FC<ManagementPortalProps> = ({ onExit }) => {
   }
 
   return currentUser ? (
-    <StationProvider>
-      <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading Management Portal...</div>}>
-        <ManagementLayout onLogout={handleLogout} currentUser={currentUser} />
-      </Suspense>
-    </StationProvider>
+    <ManagementProvider>
+      <StationProvider>
+        <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading Management Portal...</div>}>
+          <ManagementLayout onLogout={handleLogout} currentUser={currentUser} />
+        </Suspense>
+      </StationProvider>
+    </ManagementProvider>
   ) : null;
 };
 

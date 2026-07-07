@@ -40,6 +40,15 @@ import {
   UnifiedDashboardData,
   StationDashboard,
 } from "../../services/unifiedDashboardService";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 type TimeRange = "today" | "7d" | "30d" | "90d";
 type ViewMode = "aggregated" | "per-station";
@@ -447,8 +456,93 @@ const UnifiedMasterDashboard: React.FC = () => {
           )}
         </section>
 
+        {/* Real-time Revenue Trends Chart */}
+        {expandedSection !== "kpi" && (
+          <section className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden p-6 mt-6 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <Activity className="w-5 h-5 text-emerald-400" />
+                Revenue & Orders Trend
+              </h3>
+            </div>
+            <div className="h-72 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={data?.resortBI?.trends || []}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="date"
+                    stroke="#ffffff40"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    yAxisId="left"
+                    stroke="#ffffff40"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => `€${value / 1000}k`}
+                  />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    stroke="#ffffff40"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                  <RechartsTooltip
+                    contentStyle={{
+                      backgroundColor: "#0f172a",
+                      border: "1px solid #ffffff20",
+                      borderRadius: "12px",
+                      fontSize: "12px",
+                      color: "#fff",
+                    }}
+                    itemStyle={{ fontWeight: "bold" }}
+                  />
+                  <Area
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="income"
+                    name="Revenue (€)"
+                    stroke="#10b981"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorIncome)"
+                  />
+                  <Area
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="orders"
+                    name="Orders"
+                    stroke="#0ea5e9"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorOrders)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+        )}
+
         {/* SaaS Growth & Metrics */}
-        <section className="mt-8 mb-8">
+        <section className="mb-8">
           <h2 className="text-lg font-black text-white uppercase tracking-wider mb-4">
             SaaS Growth
           </h2>

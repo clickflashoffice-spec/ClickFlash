@@ -130,6 +130,8 @@ const startFolderMonitor = (context: FolderMonitorContext): void => {
                   fileHash: processed.fileHash,
                   roomNumber,
                   quality_flags: JSON.stringify(processed.qualityFlags || []),
+                  autoEdits: processed.autoEdits ? JSON.stringify(processed.autoEdits) : undefined,
+                  autoEnhanced: processed.autoEnhanced,
                   sourcePath: itemPath,
                 });
               } catch (err: any) {

@@ -9,6 +9,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logger } from '../../utils/logger';
+import { analytics } from '../../utils/telemetry';
 
 export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 
@@ -50,12 +51,8 @@ export class FeatureErrorBoundary extends Component<Props, State> {
     componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         const { feature, severity = 'medium', onError } = this.props;
 
-        // Log to structured logger
-        logger.error(`[${feature}] Feature error`, error, {
-            componentStack: errorInfo.componentStack,
-            severity,
-            timestamp: new Date().toISOString()
-        });
+        // Log to telemetry analyzer
+        analytics.trackError(error, `FeatureErrorBoundary: ${feature}`);
 
         // Update state with error info
         this.setState({ errorInfo });

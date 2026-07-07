@@ -1,4 +1,4 @@
-import logger from '../utils/logger';
+import { logger } from "../utils/logger";
 
 export class CronService {
     private intervalId?: NodeJS.Timeout;

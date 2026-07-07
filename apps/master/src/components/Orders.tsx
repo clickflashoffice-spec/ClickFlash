@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Order, Photographer } from '../types';
 import OrderEditModal from './modals/OrderEditModal';
 import CreateOrderModal from './modals/CreateOrderModal';
+import { PaymentMethodPromptModal } from './modals/PaymentMethodPromptModal';
 import { useCurrency } from './CurrencyContext';
 
 import { usePermissions } from '../hooks/usePermissions';
@@ -155,6 +155,7 @@ const Orders: React.FC<OrdersProps> = ({ showToast, currentUser, onPrintOrder, o
     // Modal state
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [paymentPromptOrder, setPaymentPromptOrder] = useState<{ id: string, newStatus: Order['status'] } | null>(null);
 
     // Currency and permissions
     const { formatCurrency } = useCurrency();
@@ -343,6 +344,12 @@ const Orders: React.FC<OrdersProps> = ({ showToast, currentUser, onPrintOrder, o
      * Handle status change
      */
     const handleStatusChange = useCallback(async (orderId: string, newStatus: Order['status']) => {
+        const order = allOrders.find(o => o.id === orderId);
+        if ((newStatus === 'Completed' || newStatus === 'Delivered') && order && !order.paymentMethod) {
+            setPaymentPromptOrder({ id: orderId, newStatus });
+            return;
+        }
+
         try {
             logger.info('Changing order status', { orderId, newStatus });
             await updateOrderMutation.mutateAsync({
@@ -356,7 +363,22 @@ const Orders: React.FC<OrdersProps> = ({ showToast, currentUser, onPrintOrder, o
             logger.error('Failed to change order status', err, { orderId, newStatus });
             showToast('Error updating order status.');
         }
-    }, [updateOrderMutation, showToast]);
+    }, [allOrders, updateOrderMutation, showToast]);
+
+    const handleConfirmPaymentMethod = useCallback(async (method: 'Cash' | 'Card') => {
+        if (!paymentPromptOrder) return;
+        try {
+            await updateOrderMutation.mutateAsync({
+                id: paymentPromptOrder.id,
+                data: { status: paymentPromptOrder.newStatus, paymentMethod: method }
+            });
+            showToast(`Order ${paymentPromptOrder.id} marked as ${paymentPromptOrder.newStatus}.`);
+        } catch (error) {
+            showToast('Error updating order status.');
+        } finally {
+            setPaymentPromptOrder(null);
+        }
+    }, [paymentPromptOrder, updateOrderMutation, showToast]);
 
     /**
      * Bulk selection handlers
@@ -758,6 +780,13 @@ const Orders: React.FC<OrdersProps> = ({ showToast, currentUser, onPrintOrder, o
                 currentUser={currentUser}
             />
 
+            <PaymentMethodPromptModal
+                isOpen={!!paymentPromptOrder}
+                onClose={() => setPaymentPromptOrder(null)}
+                onConfirm={handleConfirmPaymentMethod}
+                orderId={paymentPromptOrder?.id}
+            />
+
             {/* Bulk Delete Confirmation Modal */}
             <ConfirmationModal
                 isOpen={showDeleteConfirm}
@@ -783,3 +812,4 @@ const Orders: React.FC<OrdersProps> = ({ showToast, currentUser, onPrintOrder, o
 };
 
 export default Orders;
+

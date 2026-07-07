@@ -208,6 +208,8 @@ const PhotographerDetailModal: React.FC<{
                             src={photographer.avatarUrl || '/default-avatar.png'} 
                             alt={photographer.name}
                             className="w-16 h-16 rounded-2xl object-cover"
+                            loading="lazy"
+                            decoding="async"
                         />
                         <div>
                             <h2 className="text-xl font-bold text-slate-900 dark:text-white">{photographer.name}</h2>
@@ -467,7 +469,7 @@ const Photographers: React.FC<PhotographersProps> = ({ currentUser, photographer
                                 >
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <img src={p.avatarUrl || '/default-avatar.png'} alt={p.name} className="w-10 h-10 rounded-xl object-cover" />
+                                            <img src={p.avatarUrl || '/default-avatar.png'} alt={p.name} className="w-10 h-10 rounded-xl object-cover" loading="lazy" decoding="async" />
                                             <div>
                                                 <p className="font-semibold text-slate-900 dark:text-white">{p.name}</p>
                                                 <p className="text-xs text-slate-500">{p.specialty}</p>

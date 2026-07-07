@@ -1,9 +1,9 @@
-import logger from '../utils/logger';
+import { logger } from "../utils/logger";
 import path from 'path';
 import fs from 'fs/promises';
 import { removeBackground } from '@imgly/background-removal-node';
 import sharp from 'sharp';
-
+import { Buffer } from 'buffer';
 export class ChromaKeyService {
     
     /**

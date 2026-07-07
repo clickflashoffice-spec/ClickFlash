@@ -198,6 +198,8 @@ export interface Photo extends BaseRecord {
   photographerId: string | number; // Mandate: strict
   category?: string;
   manualEdits?: ManualEdits | null;
+  autoEdits?: ManualEdits | null;
+  autoEnhanced?: boolean;
   metadata?: PhotoMetadata;
   originalFilename?: string;
   fileHash?: string;

@@ -17,7 +17,7 @@ export const AssetsPage: React.FC<AssetsPageProps> = ({ context }) => {
       </div>
 
       <div className="pt-4">
-        <WarehousePage context={context} />
+        <WarehousePage />
       </div>
     </div>
   );

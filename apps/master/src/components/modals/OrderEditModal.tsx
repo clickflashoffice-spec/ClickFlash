@@ -61,6 +61,7 @@ interface OrderEditModalProps {
 const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order, onSave, showToast, onPrintOrder, onPrintReceipt }) => {
   const [editedOrder, setEditedOrder] = useState<Order>(JSON.parse(JSON.stringify(order)));
   const [isFinalizing, setIsFinalizing] = useState(false);
+  const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
   const { formatCurrency } = useCurrency();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [itemToUpdate, setItemToUpdate] = useState<string | null>(null);
@@ -150,6 +151,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
    * @returns {void}
    */
   const handleSave = () => {
+    setHasAttemptedSave(true);
     try {
       // Validate order before saving via Zod
       orderEditSchema.parse(editedOrder);
@@ -198,7 +200,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
         deliveryType: item.deliveryType
       })),
       appliedDiscount: discount,
-      paymentMethod: editedOrder.paymentMethod || 'Cash',
+      paymentMethod: editedOrder.paymentMethod,
       // Preserve destinationId if it exists
       destinationId: editedOrder.destinationId,
       rfidTag: editedOrder.rfidTag,
@@ -225,6 +227,13 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
    * - Saves all order data including payment method, items, and totals
    */
   const handleCompleteOrder = async () => {
+    setHasAttemptedSave(true);
+    
+    if (!editedOrder.paymentMethod) {
+      showToast('Please select a payment method before completing the order.');
+      return;
+    }
+
     try {
       // Validate order via Zod
       orderEditSchema.parse(editedOrder);
@@ -247,7 +256,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
       status: 'Completed' as const,
       total: finalTotal,
       // Ensure payment method is set
-      paymentMethod: editedOrder.paymentMethod || 'Cash'
+      paymentMethod: editedOrder.paymentMethod
     };
 
     setEditedOrder(completedOrder);
@@ -473,14 +482,15 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
 
           {/* Payment Method Selector */}
           <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Payment Method</label>
+            <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${hasAttemptedSave && !editedOrder.paymentMethod ? 'text-red-500' : 'text-slate-500 dark:text-slate-400'}`}>Payment Method *</label>
             <select
-              value={editedOrder.paymentMethod || 'Cash'}
-              onChange={(e) => setEditedOrder(prev => ({ ...prev, paymentMethod: e.target.value as 'Cash' | 'Card' }))}
+              value={editedOrder.paymentMethod || ''}
+              onChange={(e) => setEditedOrder(prev => ({ ...prev, paymentMethod: e.target.value as 'Cash' | 'Card' | undefined }))}
               disabled={isCompleted}
-              className={inputStyles + " !py-2 font-medium"}
+              className={`${inputStyles} !py-2 font-medium ${hasAttemptedSave && !editedOrder.paymentMethod ? 'border-red-500 ring-1 ring-red-500' : ''}`}
               title="Payment Method"
             >
+              <option value="" disabled>Select Payment Method</option>
               <option value="Cash">Cash (Physical)</option>
               <option value="Card">Bank Terminal / Card</option>
             </select>

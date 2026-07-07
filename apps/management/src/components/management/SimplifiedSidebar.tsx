@@ -17,6 +17,7 @@ import {
   Users,
   FileText,
   ClipboardList,
+  CreditCard,
 } from "lucide-react";
 
 interface SimplifiedSidebarProps {
@@ -75,6 +76,7 @@ const TABS: TabConfig[] = [
       "staff_management",
       "session_types",
       "reports_insights",
+      "billing_subscription",
     ],
   },
 ];
@@ -109,6 +111,7 @@ const TAB_ITEMS: Record<TabId, TabItemConfig[]> = {
     { view: "staff_management", label: "Staff Management", icon: Users },
     { view: "session_types", label: "Session Types", icon: ClipboardList },
     { view: "reports_insights", label: "Reports & Insights", icon: FileText },
+    { view: "billing_subscription", label: "Billing & Plans", icon: CreditCard },
   ],
 };
 

@@ -13,7 +13,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as crypto from "crypto";
 import { fork, ChildProcess } from "child_process";
-import Database from "better-sqlite3";
+import Database from "better-sqlite3-multiple-ciphers";
 import { initAutoUpdater } from "./autoUpdater";
 
 // Load environment variables

@@ -107,15 +107,64 @@ function getDataDir(): string {
   return path.join(__dirname, "pb_data");
 }
 
-function startBackend(): Promise<boolean> {
+function checkHealthOnce(): Promise<boolean> {
+  return new Promise((resolve) => {
+    const req = http.get(HEALTH_URL, (res) => {
+      res.resume();
+      resolve((res.statusCode ?? 500) < 500);
+    });
+    req.on("error", () => resolve(false));
+    req.setTimeout(500, () => { req.destroy(); resolve(false); });
+  });
+}
+
+function waitForBackendHealth(deadline = Date.now() + HEALTH_TIMEOUT): Promise<boolean> {
+  return new Promise((resolve) => {
+    const attempt = () => {
+      if (Date.now() >= deadline) {
+        console.warn("[Main] Backend health-check timed out — loading UI anyway");
+        return resolve(false);
+      }
+      const req = http.get(HEALTH_URL, (res) => {
+        res.resume();
+        if ((res.statusCode ?? 500) < 500) {
+          console.log("[Main] Backend ready (health check passed)");
+          return resolve(true);
+        }
+        setTimeout(attempt, POLL_INTERVAL);
+      });
+      req.on("error", () => setTimeout(attempt, POLL_INTERVAL));
+      req.setTimeout(300, () => { req.destroy(); setTimeout(attempt, POLL_INTERVAL); });
+    };
+    attempt();
+  });
+}
+
+async function startBackend(): Promise<boolean> {
+  const isAlreadyRunning = await checkHealthOnce();
+  if (isAlreadyRunning) {
+    console.log("[Main] Backend already running on port", BACKEND_PORT);
+    return true;
+  }
+
   return new Promise((resolve, reject) => {
+    let serverPath = getUnpackedPath("backend/server.js");
     if (!app.isPackaged) {
-      console.log("[Main] Dev mode — waiting for dev backend on port", BACKEND_PORT);
-      waitForDevBackend().then(resolve);
-      return;
+      const devCandidates = [
+        path.join(process.cwd(), "dist/backend/server.js"),
+        path.join(__dirname, "backend/server.js"),
+        path.join(app.getAppPath(), "dist/backend/server.js"),
+      ];
+      const found = devCandidates.find((p) => fs.existsSync(p));
+      if (found) {
+        serverPath = found;
+      } else {
+        console.log("[Main] Dev mode — waiting for dev backend on port", BACKEND_PORT);
+        waitForBackendHealth().then(resolve);
+        return;
+      }
     }
 
-    const serverPath = getUnpackedPath("backend/server.js");
     console.log("[Main] Resolved backend path:", serverPath);
     console.log("[Main] __dirname:", __dirname);
     console.log("[Main] process.resourcesPath:", process.resourcesPath);
@@ -146,15 +195,23 @@ function startBackend(): Promise<boolean> {
       env: backendEnv,
       execArgv: ["--max-old-space-size=8192"],
       stdio: ["pipe", "pipe", "pipe", "ipc"],
-      cwd: appDir,
+      cwd: app.isPackaged ? appDir : process.cwd(),
     });
 
     backendProcess.stdout?.on("data", (d: Buffer) => process.stdout.write("[Backend] " + d));
     backendProcess.stderr?.on("data", (d: Buffer) => process.stderr.write("[Backend:ERR] " + d));
 
+    let resolved = false;
+    const finish = (ok: boolean) => {
+      if (!resolved) {
+        resolved = true;
+        resolve(ok);
+      }
+    };
+
     backendProcess.on("error", (err: Error) => {
       console.error("[Main] Backend fork error:", err.message);
-      reject(err);
+      if (!resolved) reject(err);
     });
 
     backendProcess.on("exit", (code: number | null) => {
@@ -168,44 +225,16 @@ function startBackend(): Promise<boolean> {
     backendProcess.on("message", (msg: any) => {
       if (msg && msg.type === "server-ready") {
         console.log("[Main] Received server-ready IPC from backend");
-        resolve(true);
+        finish(true);
       } else if (msg && msg.type === "server-error") {
         console.error("[Main] Backend reported error:", msg.error);
         if (msg.error === "EADDRINUSE") {
-          reject(new Error("EADDRINUSE"));
+          if (!resolved) reject(new Error("EADDRINUSE"));
         }
       }
     });
 
-    // In case the backend crashes before sending ready
-    backendProcess.on("error", (err: Error) => {
-      console.error("[Main] Backend fork error:", err.message);
-      reject(err);
-    });
-
-    // We don't resolve immediately here anymore in production
-  });
-}
-
-function waitForDevBackend(deadline = Date.now() + 15000): Promise<boolean> {
-  return new Promise((resolve) => {
-    const attempt = () => {
-      if (Date.now() >= deadline) {
-        console.warn("[Main] Dev backend health-check timed out — loading UI anyway");
-        return resolve(false);
-      }
-      const req = http.get(HEALTH_URL, (res) => {
-        res.resume();
-        if ((res.statusCode ?? 500) < 500) {
-          console.log("[Main] Dev backend ready");
-          return resolve(true);
-        }
-        setTimeout(attempt, POLL_INTERVAL);
-      });
-      req.on("error", () => setTimeout(attempt, POLL_INTERVAL));
-      req.setTimeout(200, () => { req.destroy(); setTimeout(attempt, POLL_INTERVAL); });
-    };
-    attempt();
+    waitForBackendHealth().then((ok) => finish(ok));
   });
 }
 

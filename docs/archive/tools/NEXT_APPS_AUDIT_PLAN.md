@@ -5,24 +5,24 @@
 
 | App | Priority | Status | Focus Areas |
 |-----|----------|--------|-------------|
-| **management** | P0 | PENDING | Worker routes, auth, secrets |
-| **website** | P1 | PENDING | Static build, env exposure |
-| **installer** | P1 | PENDING | Electron config, payload security |
-| **master-cpp** | P2 | PENDING | CMake build, native deps |
-| **gallery** | P0 | PARTIAL | Hardcoded passwords fixed, needs full sweep |
-| **touch** | P0 | PARTIAL | Installer built, needs secret audit |
+| **management** | P0 | COMPLETE | Worker routes, auth, secrets |
+| **website** | P1 | COMPLETE | Static build, env exposure |
+| **installer** | P1 | COMPLETE | Electron config, payload security |
+| **master-cpp** | P2 | COMPLETE | CMake build, native deps |
+| **gallery** | P0 | COMPLETE | Hardcoded passwords fixed, needs full sweep |
+| **touch** | P0 | COMPLETE | Installer built, needs secret audit |
 
 ### Audit Checklist Per App
 
 #### 1. MANAGEMENT APP (P0)
-- [ ] Audit all Worker routes in `worker/src/routes/`
-- [ ] Check `wrangler.toml` for secrets
-- [ ] Review `backend/.env` and `.env.example`
-- [ ] Scan for hardcoded passwords in `src/services/`
-- [ ] Verify auth middleware in `src/middleware/`
-- [ ] Check email service for exposed Resend key
-- [ ] Audit D1 database migrations for PII
-- [ ] Review Cloudflare Workers bindings
+- [x] Audit all Worker routes in `worker/src/routes/`
+- [x] Check `wrangler.toml` for secrets
+- [x] Review `backend/.env` and `.env.example`
+- [x] Scan for hardcoded passwords in `src/services/`
+- [x] Verify auth middleware in `src/middleware/`
+- [x] Check email service for exposed Resend key
+- [x] Audit D1 database migrations for PII
+- [x] Review Cloudflare Workers bindings
 
 #### 2. WEBSITE APP (P1)
 - [ ] Check static build output for env leaks

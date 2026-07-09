@@ -33,7 +33,7 @@ function generateClientMutationId(): string {
 
 const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDiscount, onBack, onCheckoutSuccess }) => {
     const { formatCurrency } = useCurrency();
-    const [customerDetails, setCustomerDetails] = useState(() => {
+    const [customerDetails, setCustomerDetails] = useState<{ name: string; email: string; roomNumber: string }>(() => {
         try {
             const saved = localStorage.getItem('touch_checkout_details');
             return saved ? JSON.parse(saved) : { name: '', email: '', roomNumber: '' };

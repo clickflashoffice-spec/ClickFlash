@@ -81,6 +81,21 @@ describe('Gallery Checkout Webhook & Sync', () => {
                 paymentIntentId TEXT,
                 created_at DATETIME
             );
+            
+            CREATE TABLE IF NOT EXISTS albums (
+                id TEXT PRIMARY KEY,
+                photographerId TEXT
+            );
+            
+            CREATE TABLE IF NOT EXISTS photographer_ledger (
+                id TEXT PRIMARY KEY,
+                photographer_id TEXT,
+                order_id TEXT,
+                type TEXT,
+                amount REAL,
+                description TEXT,
+                date TEXT
+            );
         `);
 
         // Mock DatabaseManager to use our in-memory DB
@@ -109,6 +124,7 @@ describe('Gallery Checkout Webhook & Sync', () => {
         db.prepare('DELETE FROM gallery_tokens').run();
         db.prepare('DELETE FROM gallery_orders').run();
         db.prepare('DELETE FROM orders').run();
+        db.prepare('DELETE FROM albums').run();
     });
 
     test('should process paid order and sync to master (Law 08)', async () => {
@@ -120,6 +136,7 @@ describe('Gallery Checkout Webhook & Sync', () => {
         const sessionId = 'cs_test_123';
         const paymentIntentId = 'pi_test_123';
 
+        db.prepare(`INSERT INTO albums (id, photographerId) VALUES (?, ?)`).run(albumId, 'photo_123');
         db.prepare(`INSERT INTO gallery_tokens (id, token, albumId, customerEmail) VALUES (?, ?, ?, ?)`).run(tokenId, token, albumId, 'customer@example.com');
 
         db.prepare(`INSERT INTO gallery_orders (id, tokenId, customerEmail, total, stripeSessionId, status, items) VALUES (?, ?, ?, ?, ?, ?, ?)`).run(
@@ -171,6 +188,7 @@ describe('Gallery Checkout Webhook & Sync', () => {
         const orderId = 'GLY_TEST_IDEMPOTENT';
         const sessionId = 'cs_test_idempotent';
 
+        db.prepare(`INSERT INTO albums (id, photographerId) VALUES (?, ?)`).run(albumId, 'photo_123');
         db.prepare(`INSERT INTO gallery_tokens (id, token, albumId, customerEmail) VALUES (?, ?, ?, ?)`).run(tokenId, 'token', albumId, 'test@example.com');
 
         // Order is ALREADY PAID

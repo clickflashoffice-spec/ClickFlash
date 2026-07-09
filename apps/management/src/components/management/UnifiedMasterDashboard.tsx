@@ -11,6 +11,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useManagement } from "../../context/ManagementContext";
 import {Globe,
   Hotel,
   TrendingUp,
@@ -127,12 +128,15 @@ const UnifiedMasterDashboard: React.FC = () => {
   const [selectedStation, setSelectedStation] =
     useState<StationDashboard | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>("kpi");
+  
+  // Get the selected context from ManagementContext
+  const { selectedContext } = useManagement();
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const dashboardData = await unifiedDashboardService.getDashboardData();
+      const dashboardData = await unifiedDashboardService.getDashboardData(selectedContext);
       setData(dashboardData);
       setLastRefresh(new Date().toLocaleTimeString());
     } catch (err) {
@@ -141,7 +145,7 @@ const UnifiedMasterDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedContext]);
 
   useEffect(() => {
     fetchData();

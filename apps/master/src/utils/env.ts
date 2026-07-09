@@ -11,13 +11,18 @@ export const getEnv = () => {
             VITE_APP_TITLE: 'Star Master Photography'
         };
     }
+    // Handle Node.js backend or standard environments
+    const envObj = (typeof import.meta !== 'undefined' && import.meta.env) 
+        ? import.meta.env 
+        : (typeof process !== 'undefined' && process.env) 
+            ? process.env 
+            : {};
 
-    // Browser / Vite: import.meta.env is always available
     return {
-        VITE_LOG_LEVEL: import.meta.env.VITE_LOG_LEVEL || 'INFO',
-        DEV: import.meta.env.DEV,
-        MODE: import.meta.env.MODE,
-        VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8090',
-        VITE_APP_TITLE: import.meta.env.VITE_APP_TITLE || 'Star Master Photography'
+        VITE_LOG_LEVEL: envObj.VITE_LOG_LEVEL || 'INFO',
+        DEV: envObj.DEV || false,
+        MODE: envObj.MODE || 'production',
+        VITE_API_BASE_URL: envObj.VITE_API_BASE_URL || 'http://localhost:8090',
+        VITE_APP_TITLE: envObj.VITE_APP_TITLE || 'Star Master Photography'
     };
 };

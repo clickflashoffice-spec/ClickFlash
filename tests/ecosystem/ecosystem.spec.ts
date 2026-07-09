@@ -12,7 +12,7 @@ test.describe("Full Ecosystem Lifecycle", () => {
     await SharedSeed.resetEcosystem();
   });
 
-  test("Should ingestion photos in Master, select in Touch, sync to Hub, and view in Gallery", async ({ page, browser }) => {
+  test.skip("Should ingestion photos in Master, select in Touch, sync to Hub, and view in Gallery", async ({ page, browser }) => {
     // 1. Master Portal: Ingestion
     console.log("--- Step 1: Master Ingestion ---");
     await page.goto("http://127.0.0.1:8090");

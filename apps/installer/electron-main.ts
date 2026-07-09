@@ -25,6 +25,8 @@ import http from "http";
 import { spawn, exec } from "child_process";
 import crypto from "crypto";
 import dgram from "dgram";
+import si from "systeminformation";
+import { validateLicenseKey } from "./scripts/license-key";
 
 // ─── Protocol Registration ────────────────────────────────────────────────────
 protocol.registerSchemesAsPrivileged([
@@ -185,21 +187,21 @@ function setupIpc(): void {
   ipcMain.handle("installer:validateLicense", async (_e: IpcMainInvokeEvent, key: string) => {
     log("info", "Validating license key (offline)");
     try {
+      const uuidInfo = await si.uuid();
+      const machineId = uuidInfo.os || uuidInfo.hardware || "UNKNOWN_MACHINE";
+
       // Import the offline validator
-      const { validateLicenseKey } = require("../scripts/license-key");
-      const result = validateLicenseKey(key);
+      const result = await validateLicenseKey(key, machineId);
       
       if (result.valid && result.data) {
         return { 
           success: true, 
           data: {
             key: key,
-            tenant_id: result.data.tenant_id,
-            region: result.data.region,
             plan: result.data.plan,
-            features: result.data.features,
-            max_masters: result.data.max_masters,
-            expires_at: result.data.expires_at,
+            max_masters: result.data.maxMasters,
+            expires_at: result.data.expiresAt,
+            machine_id: machineId,
           }
         };
       }

@@ -8,8 +8,6 @@ import '@testing-library/jest-dom';
 import 'whatwg-fetch';
 import { TextEncoder, TextDecoder } from 'util';
 
-// Mock PocketBase globally to prevent import.meta.env parse errors
-jest.mock('@/services/pb');
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {

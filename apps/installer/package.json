@@ -8,7 +8,7 @@
     "dev": "vite",
     "dev:electron": "concurrently \"pnpm run dev\" \"wait-on http://localhost:5175 && electron .\" --names \"renderer,electron\" --prefix-colors \"green,cyan\" --kill-others-on-fail",
     "build": "vite build",
-    "build:electron": "tsc -p tsconfig.electron.json",
+    "build:electron": "tsc -p tsconfig.electron.json && javascript-obfuscator dist/electron/electron-main.js --output dist/electron/electron-main.js --compact true --control-flow-flattening true --dead-code-injection true --string-array true --string-array-encoding base64 --string-array-threshold 1",
     "package": "pnpm run build && pnpm run build:electron && electron-builder build --win --dir",
     "package:installer": "pnpm run build && pnpm run build:electron && electron-builder build --win",
     "lint": "eslint src --ext .ts,.tsx --max-warnings 50",
@@ -22,12 +22,13 @@
     "qrcode": "^1.5.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "tailwind-merge": "^3.4.0"
+    "systeminformation": "^5.30.7",
+    "tailwind-merge": "^3.4.0",
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
-    "eslint": "^9.39.4",
-    "typescript-eslint": "^8.18.2",
+    "@testing-library/react": "^16.2.0",
     "@types/node": "^24.10.2",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19.2.7",
@@ -37,13 +38,15 @@
     "concurrently": "^9.2.1",
     "electron": "^39.8.7",
     "electron-builder": "^26.8.1",
+    "eslint": "^9.39.4",
+    "javascript-obfuscator": "^5.4.3",
     "postcss": "^8.5.6",
     "rimraf": "^6.1.3",
     "tailwindcss": "^3.4.18",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.18.2",
     "vite": "^7.3.2",
     "vitest": "^2.1.8",
-    "@testing-library/react": "^16.2.0",
     "wait-on": "^8.0.3"
   }
 }

@@ -75,6 +75,7 @@ export function sendNotFoundError(
 export function sendDatabaseError(error: Error, operation: string = "") {
   // Sanitize: never leak error internals in production (Task 2.4)
   const isDev = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+  console.error(`[DatabaseError] [${operation}]`, error);
   
   return createErrorResponse(
     500,
@@ -88,6 +89,7 @@ export function sendDatabaseError(error: Error, operation: string = "") {
 export function sendInternalError(error: Error, context: string = "") {
   // Sanitize: never leak error internals in production (Task 2.4)
   const isDev = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+  console.error(`[InternalError] [${context}]`, error);
   
   return createErrorResponse(
     500,

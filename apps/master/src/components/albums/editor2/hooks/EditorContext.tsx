@@ -15,6 +15,7 @@ export interface EditorContextValue {
   activePhoto: Photo | null;
   setPhotos: (photos: Photo[]) => void;
   setActivePhoto: (id: string) => void;
+  updatePhoto: (id: string, updates: Partial<Photo>) => void;
 
   // Edits state
   edits: Record<string, ManualEdits>;
@@ -131,6 +132,7 @@ export function EditorProvider({
       activePhoto: photoState.activePhoto,
       setPhotos: photoActions.setPhotos,
       setActivePhoto: photoActions.setActivePhoto,
+      updatePhoto: photoActions.updatePhoto,
 
       // Edits state
       edits: editsState.edits,
@@ -212,6 +214,7 @@ export function useEditorPhoto() {
       activePhoto: context.activePhoto,
       setPhotos: context.setPhotos,
       setActivePhoto: context.setActivePhoto,
+      updatePhoto: context.updatePhoto,
     }),
     [context],
   );

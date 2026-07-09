@@ -251,7 +251,7 @@ const ImportAlbumModal: React.FC<ImportAlbumModalProps> = ({
       selectedPhotoIds.has(photoPreviews[index]?.id),
     );
 
-    const albumData: Omit<Album, "id" | "photos" | "coverPhotoUrl"> = {
+    const albumData: Omit<Album, "id" | "photos" | "coverPhotoUrl"> & { autoProcess?: boolean } = {
       title: albumTitle,
       date: new Date().toISOString().split("T")[0],
       photographerId: selectedPhotographerId,

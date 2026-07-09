@@ -10,7 +10,7 @@ interface PhotoEditorProps {
   photo: Photo;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (photoId: string, edits: ManualEdits) => Promise<void> | void;
+  onSave: (photoId: string, edits: ManualEdits, autoEnhanced?: boolean) => Promise<void> | void;
 }
 
 export const PhotoEditor: React.FC<PhotoEditorProps> = ({
@@ -64,7 +64,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
     try {
       // If accepted, save the auto-edits as manual edits
       const editsToSave = accepted ? enhancedEdits : defaultEdits;
-      await onSave(photo.id, editsToSave);
+      await onSave(photo.id, editsToSave, accepted);
       onClose();
     } catch (error) {
       logger.error('Failed to save auto-edits', error);
@@ -94,7 +94,7 @@ export const PhotoEditor: React.FC<PhotoEditorProps> = ({
       ctx.drawImage(img, 0, 0);
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const result = await imageProcessingService.autoEnhanceAsync(imageData);
-      setLocalAutoEdits(result.adjustments as ManualEdits);
+      setLocalAutoEdits(result.adjustments as unknown as ManualEdits);
       setAccepted(true);
     } catch (e) {
       logger.error('Failed offline enhance', e);

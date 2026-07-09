@@ -57,7 +57,7 @@ class ImageProcessingService {
         }
     }
 
-    private async dispatchToWorker<T>(type: string, payload: any, transfer?: Transferable[]): Promise<T> {
+    private async dispatchToWorker<T>(type: string, payload: any, transfer?: any[]): Promise<T> {
         if (!this.worker) {
             throw new Error('Worker not available');
         }

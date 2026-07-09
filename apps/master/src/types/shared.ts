@@ -183,6 +183,8 @@ export interface Photo extends BaseRecord {
   overallScore?: number;
   sharpnessScore?: number;
   orientation?: number; // EXIF orientation (1-8) - top level for easy access
+  autoEdits?: ManualEdits | null;
+  autoEnhanced?: boolean;
   _pixelModified?: boolean;
   _metadataModified?: boolean;
 }

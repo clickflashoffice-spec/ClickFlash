@@ -210,6 +210,11 @@ export class BootstrapService {
             return;
         }
 
+        if (process.env.TEST_E2E) {
+            this.logger.info('[Bootstrap] Auto-ZTP aborted: TEST_E2E mode detected.');
+            return;
+        }
+
         const machineId = await HardwareService.getMachineId();
         this.logger.info('[Bootstrap] Initiating resilient Auto-ZTP handshake', { machineId });
 

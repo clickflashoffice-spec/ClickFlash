@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PhotoSchema, AlbumSchema, UserSchema, validateOrThrow, validateOrNull } from './index.js';
+import { PhotoSchema, AlbumSchema, UserSchema, validateOrThrow, validateOrNull, validatePartial, PaginationSchema, SortSchema } from './index.js';
 
 describe('PhotoSchema', () => {
   it('validates a valid photo', () => {
@@ -69,5 +69,49 @@ describe('validateOrNull', () => {
 
   it('returns null for invalid input', () => {
     expect(validateOrNull(PhotoSchema, { url: 'bad' })).toBeNull();
+  });
+});
+
+describe('PaginationSchema', () => {
+  it('uses defaults when empty', () => {
+    expect(validateOrThrow(PaginationSchema, {})).toEqual({ page: 1, limit: 20 });
+  });
+
+  it('validates explicit values', () => {
+    expect(validateOrThrow(PaginationSchema, { page: 2, limit: 50 })).toEqual({ page: 2, limit: 50 });
+  });
+
+  it('rejects invalid limit', () => {
+    expect(() => validateOrThrow(PaginationSchema, { limit: 150 })).toThrow();
+  });
+});
+
+describe('SortSchema', () => {
+  it('uses defaults when empty', () => {
+    expect(validateOrThrow(SortSchema, {})).toEqual({ sortBy: 'createdAt', sortOrder: 'desc' });
+  });
+
+  it('validates explicit values', () => {
+    expect(validateOrThrow(SortSchema, { sortBy: 'name', sortOrder: 'asc' })).toEqual({ sortBy: 'name', sortOrder: 'asc' });
+  });
+
+  it('rejects invalid sortOrder', () => {
+    expect(() => validateOrThrow(SortSchema, { sortOrder: 'random' })).toThrow();
+  });
+});
+
+describe('validatePartial', () => {
+  it('validates partial data correctly', () => {
+    const partialUser = {
+      name: 'Jane Doe'
+    };
+    expect(validatePartial(UserSchema, partialUser)).toEqual({ name: 'Jane Doe' });
+  });
+
+  it('throws on invalid partial data', () => {
+    const partialUser = {
+      email: 'not-an-email'
+    };
+    expect(() => validatePartial(UserSchema, partialUser)).toThrow('Partial validation failed');
   });
 });

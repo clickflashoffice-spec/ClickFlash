@@ -45,9 +45,12 @@ const TAB_LABELS: Record<TabId, string> = {
   settings: "Settings",
 };
 
+import { fleetService, MasterStation } from "../../services/fleetService";
+
 const CommandBar: React.FC<CommandBarProps> = ({ onSelect, isOpen, onClose }) => {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [stationItems, setStationItems] = useState<{id: string, label: string, type: string}[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const flatItems = (Object.keys(TAB_ITEMS) as TabId[]).flatMap(tabId =>
@@ -67,8 +70,23 @@ const CommandBar: React.FC<CommandBarProps> = ({ onSelect, isOpen, onClose }) =>
       inputRef.current?.focus();
       setQuery("");
       setSelectedIndex(0);
+      
+      // Fetch stations
+      fleetService.getStations().then(stations => {
+        setStationItems(stations.map(s => ({
+          id: s.id,
+          label: s.name,
+          type: s.type || "Master"
+        })));
+      }).catch(err => console.error(err));
     }
   }, [isOpen]);
+
+  const filteredStations = stationItems.filter(item => 
+    item.label.toLowerCase().includes(query.toLowerCase())
+  );
+  
+  const totalItems = filteredItems.length + filteredStations.length;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -81,21 +99,26 @@ const CommandBar: React.FC<CommandBarProps> = ({ onSelect, isOpen, onClose }) =>
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedIndex(prev => (prev + 1) % filteredItems.length);
+        setSelectedIndex(prev => totalItems > 0 ? (prev + 1) % totalItems : 0);
       }
       if (e.key === "ArrowUp") {
         e.preventDefault();
-        setSelectedIndex(prev => (prev - 1 + filteredItems.length) % filteredItems.length);
+        setSelectedIndex(prev => totalItems > 0 ? (prev - 1 + totalItems) % totalItems : 0);
       }
-      if (e.key === "Enter" && filteredItems[selectedIndex]) {
-        onSelect(filteredItems[selectedIndex].view);
-        onClose();
+      if (e.key === "Enter") {
+        if (selectedIndex < filteredItems.length && filteredItems[selectedIndex]) {
+          onSelect(filteredItems[selectedIndex].view);
+          onClose();
+        } else if (selectedIndex >= filteredItems.length && filteredStations[selectedIndex - filteredItems.length]) {
+          onSelect("stations_overview");
+          onClose();
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, filteredItems, selectedIndex, onSelect, onClose]);
+  }, [isOpen, filteredItems, filteredStations, selectedIndex, onSelect, onClose, totalItems]);
 
   if (!isOpen) return null;
 
@@ -126,43 +149,89 @@ const CommandBar: React.FC<CommandBarProps> = ({ onSelect, isOpen, onClose }) =>
         </div>
 
         <div className="max-h-[50vh] overflow-y-auto p-3 custom-scrollbar">
-          {filteredItems.length === 0 ? (
+          {filteredItems.length === 0 && stationItems.filter(s => s.label.toLowerCase().includes(query.toLowerCase())).length === 0 ? (
             <div className="p-8 flex flex-col items-center justify-center text-slate-400 gap-2">
               <Search className="w-8 h-8 opacity-20" />
               <p>No results found for "{query}"</p>
             </div>
           ) : (
-            <div className="space-y-1">
-              {filteredItems.map((item, index) => {
-                const isSelected = index === selectedIndex;
-                return (
-                  <button
-                    key={`${item.hubLabel}-${item.view}`}
-                    onClick={() => {
-                      onSelect(item.view);
-                      onClose();
-                    }}
-                    onMouseEnter={() => setSelectedIndex(index)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-200 ${
-                      isSelected 
-                        ? "bg-[#38bdf8]/10 text-blue-700 shadow-sm border border-[#38bdf8]/20" 
-                        : "hover:bg-slate-50 text-slate-600 border border-transparent"
-                    }`}
-                  >
-                    <div className="flex flex-col">
-                      <span className={`text-sm font-bold tracking-tight ${isSelected ? 'text-[#0284c7]' : ''}`}>{item.label}</span>
-                      <span className={`text-[10px] uppercase font-black tracking-widest leading-none mt-1 ${isSelected ? 'text-[#38bdf8]' : 'text-slate-400'}`}>
-                        {item.hubLabel}
-                      </span>
-                    </div>
-                    {isSelected && (
-                      <span className="text-[10px] font-bold text-[#0284c7] flex items-center gap-1 bg-white px-2 py-1 rounded shadow-sm border border-[#38bdf8]/20">
-                        ENTER <span className="opacity-50 font-sans">↵</span>
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+            <div className="space-y-4">
+              {filteredItems.length > 0 && (
+                <div>
+                  <h3 className="px-4 text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Pages & Views</h3>
+                  <div className="space-y-1">
+                    {filteredItems.map((item, index) => {
+                      const isSelected = index === selectedIndex;
+                      return (
+                        <button
+                          key={`${item.hubLabel}-${item.view}`}
+                          onClick={() => {
+                            onSelect(item.view);
+                            onClose();
+                          }}
+                          onMouseEnter={() => setSelectedIndex(index)}
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-200 ${
+                            isSelected 
+                              ? "bg-[#38bdf8]/10 text-blue-700 shadow-sm border border-[#38bdf8]/20" 
+                              : "hover:bg-slate-50 text-slate-600 border border-transparent"
+                          }`}
+                        >
+                          <div className="flex flex-col">
+                            <span className={`text-sm font-bold tracking-tight ${isSelected ? 'text-[#0284c7]' : ''}`}>{item.label}</span>
+                            <span className={`text-[10px] uppercase font-black tracking-widest leading-none mt-1 ${isSelected ? 'text-[#38bdf8]' : 'text-slate-400'}`}>
+                              {item.hubLabel}
+                            </span>
+                          </div>
+                          {isSelected && (
+                            <span className="text-[10px] font-bold text-[#0284c7] flex items-center gap-1 bg-white px-2 py-1 rounded shadow-sm border border-[#38bdf8]/20">
+                              ENTER <span className="opacity-50 font-sans">↵</span>
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {stationItems.filter(s => s.label.toLowerCase().includes(query.toLowerCase())).length > 0 && (
+                <div>
+                  <h3 className="px-4 text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Stations & Actions</h3>
+                  <div className="space-y-1">
+                    {stationItems.filter(s => s.label.toLowerCase().includes(query.toLowerCase())).map((item, index) => {
+                      const absoluteIndex = filteredItems.length + index;
+                      const isSelected = absoluteIndex === selectedIndex;
+                      return (
+                        <button
+                          key={`station-${item.id}`}
+                          onClick={() => {
+                            onSelect("stations_overview");
+                            onClose();
+                          }}
+                          onMouseEnter={() => setSelectedIndex(absoluteIndex)}
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-200 ${
+                            isSelected 
+                              ? "bg-[#38bdf8]/10 text-blue-700 shadow-sm border border-[#38bdf8]/20" 
+                              : "hover:bg-slate-50 text-slate-600 border border-transparent"
+                          }`}
+                        >
+                          <div className="flex flex-col">
+                            <span className={`text-sm font-bold tracking-tight ${isSelected ? 'text-[#0284c7]' : ''}`}>{item.label}</span>
+                            <span className={`text-[10px] uppercase font-black tracking-widest leading-none mt-1 ${isSelected ? 'text-[#38bdf8]' : 'text-slate-400'}`}>
+                              {item.type.toUpperCase()} STATION
+                            </span>
+                          </div>
+                          {isSelected && (
+                            <span className="text-[10px] font-bold text-[#0284c7] flex items-center gap-1 bg-white px-2 py-1 rounded shadow-sm border border-[#38bdf8]/20">
+                              VIEW <span className="opacity-50 font-sans">↵</span>
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

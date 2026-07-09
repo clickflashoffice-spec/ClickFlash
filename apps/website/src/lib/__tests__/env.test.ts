@@ -27,7 +27,7 @@ describe("env", () => {
   });
 
   it("falls back to localhost with a warning in development", () => {
-    expect(getApiBaseUrl()).toBe("http://localhost:8092");
+    expect(getApiBaseUrl()).toBe("http://localhost:8090");
     expect(console.warn).toHaveBeenCalled();
   });
 

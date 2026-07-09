@@ -1433,6 +1433,17 @@ export default function collectionRoutes(context: CollectionsContext): Router {
             }
           }
 
+          if (updates.autoEdits) {
+            try {
+              const parsed = typeof updates.autoEdits === 'string' 
+                ? JSON.parse(updates.autoEdits) 
+                : updates.autoEdits;
+              updates.autoEdits = JSON.stringify(parsed);
+            } catch {
+              // Invalid JSON, skip update
+            }
+          }
+
           const now = new Date().toISOString();
           updates.updated_at = now;
 

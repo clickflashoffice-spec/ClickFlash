@@ -15,7 +15,7 @@ export default function createAutoRegisterRouter(
 ): Router {
     const router = Router();
 
-    router.post("/auto-register", autoRegisterLimiter, async (req, res, next) => {
+    router.post("/auto-register", autoRegisterLimiter as any, async (req, res, next) => {
         try {
             const { kioskId, hostname, ip } = req.body;
 
@@ -26,7 +26,7 @@ export default function createAutoRegisterRouter(
 
             logger.info(`Auto-registration request from Touch kiosk: ${hostname} (${ip})`);
 
-            const db = dbManager.getDB();
+            const db = dbManager.getDb();
             
             // Check if kiosk already exists
             const existingKiosk = db.prepare("SELECT * FROM kiosks WHERE id = ?").get(kioskId);

@@ -120,8 +120,8 @@ try {
   setRateLimiterAuditLogger(auditLogger);
 
   // Database
-  // Run shared migrations first (initial schema), then backend-specific migrations
-  const SHARED_MIGRATIONS_DIR = path.join(__dirname, "shared", "migrations");
+  // Run core migrations first (initial schema), then backend-specific migrations
+  const SHARED_MIGRATIONS_DIR = path.join(__dirname, "database", "migrations");
   const BACKEND_MIGRATIONS_DIR = path.join(__dirname, "migrations");
   dbManager = new DatabaseManager(DB_FILE);
   dbManager.connect(SHARED_MIGRATIONS_DIR);
@@ -364,6 +364,9 @@ const context = {
   resortAnalytics,
   diagnosticSync,
   automatedBackupService,
+  queueProcessor,
+  maintenancePoller,
+  moneyTrashService,
   auditService: null as any, // Will be set after initialization
 };
 

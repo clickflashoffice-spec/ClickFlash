@@ -3,22 +3,13 @@ import { Product, Photo, OrderItem, Order } from '../../types';
 import { cloudApiService } from '../../services/cloudApiService';
 import Modal from '../common/Modal.tsx';
 import { useCurrency } from '../CurrencyContext.tsx';
+import type { CartItem } from '@clickflash/types';
 
 // Local payment form removed in favor of Stripe Checkout redirect
 
-interface ShopCartItem {
-    id: string;
-    name: string;
-    format?: string;
-    photo?: Photo;
-    quantity: number;
-    price: number;
-    deliveryType?: 'digital' | 'print' | 'both';
-}
-
 interface CheckoutModalProps {
     isOpen: boolean;
-    cart: ShopCartItem[];
+    cart: CartItem[];
     total: number;
     onClose: () => void;
     onUpdateQuantity: (itemId: string, newQuantity: number) => void;
@@ -45,7 +36,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, cart, total, onCl
             format: item.format || 'Digital',
             quantity: item.quantity,
             price: item.price,
-            photo: item.photo,
+            photo: item.photo as Photo,
         }));
 
         try {

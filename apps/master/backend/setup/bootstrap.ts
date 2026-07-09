@@ -35,12 +35,12 @@ export async function initializeEcosystem(context: any) {
 
     // 2. Critical: Vector Index
     await vectorIndex.initialize();
-    faceIndexingWorker.start();
+    if (faceIndexingWorker) faceIndexingWorker.start();
     logger.info("[Startup] AI Layer: Vector Index + Face Indexing Worker initialized.");
 
     // 3. Operational: Queue & Sync
-    queueProcessor.start();
-    maintenancePoller.start();
+    if (queueProcessor) queueProcessor.start();
+    if (maintenancePoller) maintenancePoller.start();
     await cloudSyncService.syncRemoteSettings().catch((e: Error) => logger.warn("[Startup] Settings sync failed", { error: e.message }));
     logger.info("[Startup] Core: Queue and Maintenance Poller active.");
 
@@ -59,7 +59,7 @@ export async function initializeEcosystem(context: any) {
     cloudSyncService.start();
     logger.info("[Startup] Cloud Relay: Sync service started.");
 
-    moneyTrashService.start();
+    if (moneyTrashService) moneyTrashService.start();
     logger.info("[Startup] MoneyTrash Integration: Active.");
 
     // 6. Cloudflare Tunnel (if configured)
@@ -77,10 +77,10 @@ export async function initializeEcosystem(context: any) {
       logger.info("[Startup] Cloudflare Tunnel: Not configured (TUNNEL_ID not set).");
     }
 
-    campaignScheduler.start();
+    if (campaignScheduler) campaignScheduler.start();
     logger.info("[Startup] Marketing Layer: Scheduler active.");
 
-    automatedBackupService.start();
+    if (automatedBackupService) automatedBackupService.start();
     logger.info("[Startup] Automated Backup Service: Active.");
 
     // Initialize Audit Service after all services are ready

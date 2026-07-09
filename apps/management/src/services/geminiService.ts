@@ -121,3 +121,42 @@ export async function generateSalesForecast(metrics: Record<string, unknown>): P
     throw new Error("Failed to generate sales forecast.");
   }
 }
+
+/**
+ * Proxies chat to local/workers AI, with a pure local fallback if offline.
+ */
+export async function sendChatMessage(message: string, context: any): Promise<string> {
+  try {
+    const res = await fetch(`${API}/api/ai/chat`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ message, context }),
+    });
+    
+    if (!res.ok) {
+      // Fallback to local rule-based engine if proxy fails
+      return executeLocalChatFallback(message, context);
+    }
+    
+    const data = await res.json() as { response?: string };
+    return data.response ?? "No response from AI service.";
+  } catch (err) {
+    console.warn("AI service unreachable. Falling back to local intelligence.", err);
+    return executeLocalChatFallback(message, context);
+  }
+}
+
+function executeLocalChatFallback(message: string, context: any): string {
+  const msgLower = message.toLowerCase();
+  if (msgLower.includes("revenue") || msgLower.includes("income") || msgLower.includes("money")) {
+    return `Based on local SQLite records, your revenue metrics are actively being tracked. Currently viewing context: ${context.selectedContext || 'global'}.`;
+  }
+  if (msgLower.includes("order") || msgLower.includes("sale")) {
+    return "Orders are processed locally on the Master stations and synced. If you see pending orders, check the network connection to the kiosk.";
+  }
+  if (msgLower.includes("station") || msgLower.includes("kiosk") || msgLower.includes("fleet")) {
+    return "Your fleet status is available in the Operations dashboard. Stations sync via local network (UDP broadcast) to the Master.";
+  }
+  
+  return "I'm currently operating in offline/local mode. I can answer basic questions about revenue, orders, and station status based on local logs.";
+}

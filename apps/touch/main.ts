@@ -296,15 +296,14 @@ class TouchApp {
                 return;
             }
 
-            let baseDir: string;
-            if (app.isPackaged) {
-                baseDir = path.join(__dirname, "dist", this.config.appMode);
-            } else {
-                baseDir = path.join(__dirname, "../../dist", this.config.appMode);
-                if (!fs.existsSync(baseDir)) {
-                    baseDir = path.join(__dirname, "../../");
-                }
-            }
+            const appMode = this.config.appMode;
+            const candidates = [
+                path.join(__dirname, "dist", appMode),
+                path.join(process.cwd(), "resources/app.asar.unpacked/dist", appMode),
+                path.join(path.dirname(process.execPath), "resources/app.asar.unpacked/dist", appMode),
+                path.join(__dirname, "../../dist", appMode)
+            ];
+            const baseDir = candidates.find(c => fs.existsSync(path.join(c, "index.html"))) || candidates[0];
 
             let safePath = path
                 .normalize((req.url ?? "/").split("?")[0])

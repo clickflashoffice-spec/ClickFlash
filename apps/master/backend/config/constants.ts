@@ -34,12 +34,7 @@ export const AUDIT_LOGS_DIR = path.join(DATA_DIR, 'audit_logs');
 function getOrCreateSecret(name: string, envValue: string | undefined): string {
     if (envValue) return envValue;
 
-    // Non-Electron production: hard fail — operator must configure the env
-    if (NODE_ENV === 'production' && !isElectron) {
-        throw new Error(`FATAL: ${name} environment variable is required in production.`);
-    }
-
-    // Electron packaged: persist auto-generated secret so sessions survive restarts
+    // Auto-generate and persist secret to disk so sessions survive restarts
     const secretsFile = path.join(DATA_DIR, 'secrets.json');
     let secrets: Record<string, string> = {};
 

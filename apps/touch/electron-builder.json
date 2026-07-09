@@ -5,6 +5,7 @@
   "electronVersion": "39.8.7",
   "npmRebuild": false,
   "nodeGypRebuild": false,
+  "afterPack": "./scripts/ensure-native-deps.js",
   "asar": true,
   "asarUnpack": [
     "node_modules/better-sqlite3-multiple-ciphers/**/*",

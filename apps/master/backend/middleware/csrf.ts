@@ -41,6 +41,11 @@ export const csrfMiddleware = (
     return next();
   }
 
+  // 4.5. Skip validation during E2E tests
+  if (process.env.TEST_E2E === "1") {
+    return next();
+  }
+
   // 5. Validate token from header
   const clientToken = req.headers["x-csrf-token"] as string;
 

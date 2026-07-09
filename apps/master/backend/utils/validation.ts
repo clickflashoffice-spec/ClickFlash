@@ -179,6 +179,8 @@ export const photoSchema = z.object({
     quality_flags: z.string().optional(),
     metadata: photoMetadataSchema.optional().or(z.null()),
     manualEdits: manualEditsSchema.optional().or(z.null()),
+    autoEdits: manualEditsSchema.optional().or(z.null()),
+    autoEnhanced: z.boolean().or(z.number().min(0).max(1)).optional(),
     ...commonFields
 }).passthrough();
 

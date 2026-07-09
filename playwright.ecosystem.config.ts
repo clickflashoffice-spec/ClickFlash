@@ -26,7 +26,7 @@ export default defineConfig({
 
 
   use: {
-    baseURL: 'http://127.0.0.1:5173',
+    baseURL: 'http://127.0.0.1:8090',
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -40,8 +40,8 @@ export default defineConfig({
   ],
 
   // Port Mapping:
-  // 5173: Master Frontend
-  // 5174: Touch Frontend
+  // 8090: Master Frontend
+  // 8091: Touch Frontend
   // 5175: Management Hub
   // 5176: Gallery
   // 1420: MoneyTrash (Tauri Web)

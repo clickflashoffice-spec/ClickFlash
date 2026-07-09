@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Bot, X, Send, Sparkles } from "lucide-react";
+import { useManagement } from "../../context/ManagementContext";
+import { sendChatMessage } from "../../services/geminiService";
 
 interface Message {
   id: string;
@@ -30,6 +32,8 @@ const AIChatBot: React.FC = () => {
     scrollToBottom();
   }, [messages, isTyping]);
 
+  const { selectedContext } = useManagement();
+
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
@@ -45,24 +49,7 @@ const AIChatBot: React.FC = () => {
     setIsTyping(true);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_BASE_URL ?? "";
-      const token = localStorage.getItem("authToken") ?? "";
-
-      const res = await fetch(`${apiUrl}/api/ai/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          message: `System: You are PixelFounder AI, the governance intelligence for ClickFlash Photography. Help HQ manage a network of photography sites. Focus on yield optimisation, fleet triage, regional training, and B2B growth. Use a professional, authoritative, but helpful tone.\n\nUser: ${inputValue}`,
-          context: "ClickFlash Photography Management",
-        }),
-      });
-
-      if (!res.ok) throw new Error(`AI service error: ${res.status}`);
-      const data = (await res.json()) as { response?: string };
-      const responseText: string = data.response ?? "No response from AI service.";
+      const responseText = await sendChatMessage(inputValue, { selectedContext });
 
       const aiMsg: Message = {
         id: Date.now().toString(),

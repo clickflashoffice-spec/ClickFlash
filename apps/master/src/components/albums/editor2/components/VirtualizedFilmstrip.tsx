@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import { Photo, ManualEdits } from "@/types/shared";
-import { Wand2 } from "lucide-react";
+import { Wand2, Zap } from "lucide-react";
 import { getPhotoStyle, INITIAL_EDITS, isEdited } from "@/utils/styleUtils";
 import { EditorFilters } from "../EditorFilters";
 import { getOrientationTransform } from "@/utils/exifOrientation";
@@ -310,6 +310,15 @@ const VirtualThumbnail: React.FC<VirtualThumbnailProps> = React.memo(
                   aria-label="Has edits"
                 >
                   <Wand2 className="w-2.5 h-2.5" />
+                </div>
+              )}
+              {photo.autoEnhanced && (
+                <div
+                  className="bg-indigo-500 text-white p-0.5 rounded shadow-sm flex items-center justify-center"
+                  title="Auto-Enhanced via Custom Offline Engine"
+                  aria-label="Auto Enhanced"
+                >
+                  <Zap className="w-2.5 h-2.5 text-yellow-300" />
                 </div>
               )}
               {qualityFlags.map((f, idx) => (

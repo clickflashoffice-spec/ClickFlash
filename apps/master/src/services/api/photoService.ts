@@ -118,6 +118,21 @@ function parseManualEdits(p: PocketRecord): ManualEdits | undefined {
     return manualEdits;
 }
 
+function parseEditsField(fieldValue: any, photoId: string, fieldName: string): ManualEdits | undefined {
+    let edits: ManualEdits | undefined = undefined;
+    try {
+        if (typeof fieldValue === 'string' && fieldValue) {
+            const parsed = JSON.parse(fieldValue);
+            edits = (parsed != null && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed as ManualEdits : undefined;
+        } else if (fieldValue != null && typeof fieldValue === 'object' && !Array.isArray(fieldValue)) {
+            edits = fieldValue as ManualEdits;
+        }
+    } catch (parseError) {
+        logger.warn(`Failed to parse ${fieldName} for photo`, { photoId, error: parseError });
+    }
+    return edits;
+}
+
 /**
  * STANDARD ASSET PATH GENERATOR (Rule 12)
  * Follows structure: uploads/<albumId>/<tier>/<filename>
@@ -151,7 +166,8 @@ function transformPhoto(r: PocketRecord, baseUrl: string): Photo {
     const photoUrl = finalUrl.startsWith('http') || finalUrl.startsWith('blob:') || finalUrl.startsWith('data:')
         ? finalUrl
         : `${baseUrl}/api/files/photos/${id}/${finalUrl || (id + '.jpg')}`;
-    const manualEdits = parseManualEdits(r);
+    const manualEdits = parseEditsField(r.manualEdits, id, 'manualEdits');
+    const autoEdits = parseEditsField(r.autoEdits, id, 'autoEdits');
 
     let metadata: PhotoMetadata | undefined = undefined;
     try {
@@ -196,6 +212,8 @@ function transformPhoto(r: PocketRecord, baseUrl: string): Photo {
         photographerId: r.photographerId as string | undefined,
         category: r.category as 'uncategorized' | 'print' | 'digital' | undefined,
         manualEdits: manualEdits,
+        autoEdits: autoEdits,
+        autoEnhanced: r.autoEnhanced === 1 || r.autoEnhanced === true,
         metadata: metadata
     };
 }
@@ -332,6 +350,8 @@ export const photoService = {
             .map(p => ({
                 id: p.id as string,
                 manualEdits: p.manualEdits ? validateManualEdits(p.manualEdits) : undefined,
+                autoEdits: p.autoEdits ? validateManualEdits(p.autoEdits) : undefined,
+                autoEnhanced: p.autoEnhanced,
             }));
 
         const skipped = photos.length - items.length;

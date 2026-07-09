@@ -19,38 +19,6 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
       // --- Phase 75: Ingest Resort-level BI from Master Apps ---
       // --- Phase 75: Retrieve Resort BI for Management UI ---
       // --- Phase 70: Retrieve Location Audits for Management UI ---
-      // --- Phase 30: Operation-Based Sync Endpoint ---
-      if (url.pathname === "/api/cloud/sync/operations") {
-        if (!deskId)
-          return sendAuthError("Desk ID required for operation sync.");
-
-        if (request.method === "POST") {
-          const body = (await request.json()) as { operations: any[] };
-          const processed = await recordService.applyOperations(
-            deskId,
-            body.operations || [],
-          );
-          return Response.json(
-            { success: true, processed },
-            { headers: corsHeaders },
-          );
-        }
-
-        if (request.method === "GET") {
-          const sinceHubIndex = parseInt(
-            url.searchParams.get("since_hub_index") || "0",
-            10,
-          );
-          const operations = await recordService.getRemoteOperations(
-            deskId,
-            sinceHubIndex,
-          );
-          return Response.json(
-            { success: true, operations },
-            { headers: corsHeaders },
-          );
-        }
-      }
 
 
       // --- Phase 35: Fleet Heartbeat Endpoint ---

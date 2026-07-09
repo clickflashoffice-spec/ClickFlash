@@ -51,7 +51,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/gallery/backend
+          workingDirectory: workers/gallery-worker
           command: deploy
 
   deploy-moneytrash:
@@ -80,7 +80,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/moneytrash/cloudflare
+          workingDirectory: workers/moneytrash-worker
           command: deploy
 
   deploy-management:
@@ -109,7 +109,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/management/backend
+          workingDirectory: workers/management-worker
           command: deploy
 
   deploy-website:

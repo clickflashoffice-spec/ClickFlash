@@ -207,9 +207,9 @@ export default function galleryCheckoutRoutes(
 
             dbManager.run(
               `INSERT INTO orders (
-                            id, date, clientName, email, status, total, tip_amount,
+                            id, date, clientName, email, status, total,
                             source, albumId, customerEmail, items, paymentIntentId, created_at
-                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
               [
                 mainOrderId,
                 today,
@@ -217,7 +217,6 @@ export default function galleryCheckoutRoutes(
                 galleryOrder.customerEmail,
                 "Processing", // Show in Lab Bench
                 galleryOrder.total,
-                tipAmount,
                 "gallery",
                 tokenRecord.albumId,
                 galleryOrder.customerEmail,

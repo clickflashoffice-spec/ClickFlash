@@ -28,6 +28,16 @@
   ; Refresh environment
   SendMessage ${HWND_BROADCAST} ${WM_SETTINGCHANGE} 0 "STR:Environment" /TIMEOUT=5000
 
+  ; Install VC++ Redistributable (Silent)
+  DetailPrint "Installing Visual C++ Redistributable..."
+  nsExec::ExecToLog 'powershell -Command "Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vc_redist.x64.exe -OutFile $TEMP\vc_redist.x64.exe"'
+  nsExec::ExecToLog '"$TEMP\vc_redist.x64.exe" /install /quiet /norestart'
+  
+  ; Install Node.js (Silent)
+  DetailPrint "Installing Node.js..."
+  nsExec::ExecToLog 'powershell -Command "Invoke-WebRequest -Uri https://nodejs.org/dist/v20.11.1/node-v20.11.1-x64.msi -OutFile $TEMP\node.msi"'
+  nsExec::ExecToLog 'msiexec.exe /i "$TEMP\node.msi" /qn /norestart'
+
   DetailPrint "ClickFlash Studio configured successfully."
 !macroend
 

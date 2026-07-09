@@ -12,11 +12,13 @@ export interface PhotoState {
 export interface PhotoActions {
   setPhotos: (photos: Photo[]) => void;
   setActivePhoto: (id: string) => void;
+  updatePhoto: (id: string, updates: Partial<Photo>) => void;
 }
 
 type PhotoAction =
   | { type: "SET_PHOTOS"; payload: Photo[] }
-  | { type: "SET_ACTIVE_PHOTO"; payload: string };
+  | { type: "SET_ACTIVE_PHOTO"; payload: string }
+  | { type: "UPDATE_PHOTO"; payload: { id: string; updates: Partial<Photo> } };
 
 // --- Reducer ---
 
@@ -59,6 +61,23 @@ function photoReducer(state: PhotoState, action: PhotoAction): PhotoState {
       };
     }
 
+    case "UPDATE_PHOTO": {
+      const updatedPhotos = state.photos.map((p) =>
+        p.id === action.payload.id ? { ...p, ...action.payload.updates } : p
+      );
+      
+      let newActivePhoto = state.activePhoto;
+      if (state.activePhotoId === action.payload.id && state.activePhoto) {
+        newActivePhoto = { ...state.activePhoto, ...action.payload.updates };
+      }
+
+      return {
+        ...state,
+        photos: updatedPhotos,
+        activePhoto: newActivePhoto,
+      };
+    }
+
     default:
       return state;
   }
@@ -92,12 +111,17 @@ export function usePhotoState(
     dispatch({ type: "SET_ACTIVE_PHOTO", payload: id });
   }, []);
 
+  const updatePhoto = useCallback((id: string, updates: Partial<Photo>) => {
+    dispatch({ type: "UPDATE_PHOTO", payload: { id, updates } });
+  }, []);
+
   const actions = useMemo<PhotoActions>(
     () => ({
       setPhotos,
       setActivePhoto,
+      updatePhoto,
     }),
-    [setPhotos, setActivePhoto],
+    [setPhotos, setActivePhoto, updatePhoto],
   );
 
   // Return state with derived activePhoto attached for convenience

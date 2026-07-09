@@ -27,6 +27,8 @@ asarUnpack:
   - "node_modules/sharp"
   - "node_modules/@img"
   - "node_modules/@napi-rs"
+  - "node_modules/bindings"
+  - "node_modules/file-uri-to-path"
 
 extraResources:
   - from: installer_scripts

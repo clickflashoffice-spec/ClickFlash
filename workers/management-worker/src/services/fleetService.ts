@@ -83,12 +83,13 @@ export class FleetService {
     await this.db.run(
       `
         INSERT INTO destinations (
-          id, name, site_code, type, status, last_seen, version, health_metrics, created_at, updated_at
-        ) VALUES (?, ?, ?, 'Master', 'Online', ?, ?, ?, ?, ?)
+          id, name, country, site_code, type, status, last_seen, version, health_metrics, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, 'Master', 'Online', ?, ?, ?, ?, ?)
       `,
       [
         deskId,
         payload.name,
+        payload.country,
         deskId, // site_code defaults to desk_id
         now,
         payload.version,
@@ -101,10 +102,10 @@ export class FleetService {
     // 3. Insert into fleet_heartbeats table
     await this.db.run(
       `
-        INSERT INTO fleet_heartbeats (desk_id, last_seen, metrics, version, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO fleet_heartbeats (desk_id, last_seen, metrics, updated_at)
+        VALUES (?, ?, ?, ?)
       `,
-      [deskId, now, JSON.stringify({}), payload.version, now, now],
+      [deskId, now, JSON.stringify({}), now],
     );
 
     // 4. Generate JWT
@@ -141,8 +142,8 @@ export class FleetService {
     // Update destinations (canonical fleet registry)
     await this.db.run(
       `
-        INSERT INTO destinations (id, name, site_code, type, status, last_seen, version, health_metrics, updated_at)
-        VALUES (?, ?, ?, 'Master', 'Online', ?, ?, ?, ?)
+        INSERT INTO destinations (id, name, country, site_code, type, status, last_seen, version, health_metrics, updated_at)
+        VALUES (?, ?, 'Unknown', ?, 'Master', 'Online', ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           last_seen = EXCLUDED.last_seen,
           status = EXCLUDED.status,
@@ -169,19 +170,17 @@ export class FleetService {
     // Update fleet_heartbeats (dedicated heartbeat table)
     await this.db.run(
       `
-        INSERT INTO fleet_heartbeats (desk_id, last_seen, metrics, version, updated_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO fleet_heartbeats (desk_id, last_seen, metrics, updated_at)
+        VALUES (?, ?, ?, ?)
         ON CONFLICT(desk_id) DO UPDATE SET
           last_seen = EXCLUDED.last_seen,
           metrics = EXCLUDED.metrics,
-          version = EXCLUDED.version,
           updated_at = EXCLUDED.updated_at
       `,
       [
         deskId,
         now,
         JSON.stringify(payload.metrics),
-        payload.version,
         now,
       ],
     );
@@ -236,10 +235,8 @@ export class FleetService {
       `SELECT * FROM session_types ORDER BY name ASC`,
     );
 
-    // Pricing tiers (global)
-    const pricingTiers = await this.db.query(
-      `SELECT * FROM seasonal_rates WHERE is_active = 1 ORDER BY priority DESC`,
-    );
+    // Pricing tiers (global) - removed because seasonal_rates table does not exist in schema
+    const pricingTiers: any[] = [];
 
     // Global settings
     const settingsRows = await this.db.query(

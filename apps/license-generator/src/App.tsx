@@ -10,13 +10,14 @@ function App() {
   const [generatedKeys, setGeneratedKeys] = useState<LicenseKeyData[]>([]);
   const [notification, setNotification] = useState<string | null>(null);
 
-  const handleGenerate = useCallback(async (plan: string, maxMasters: number, expiresDays: number, count: number) => {
+  const handleGenerate = useCallback(async (plan: string, maxMasters: number, expiresDays: number, count: number, machineId?: string) => {
     try {
       const keys = await generateLicenseKeys({
         plan: plan as any,
         maxMasters,
         expiresDays,
-        count
+        count,
+        machineId
       });
       setGeneratedKeys(keys);
       showNotification(`Generated ${keys.length} license keys`);

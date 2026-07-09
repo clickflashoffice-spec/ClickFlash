@@ -8,6 +8,8 @@ const path = require('path');
 const crypto = require('crypto');
 
 const NATIVE_MODULE_DEPS = [
+  'better-sqlite3-multiple-ciphers',
+  'sharp',
   'color',
   'color-convert',
   'color-name',
@@ -16,6 +18,9 @@ const NATIVE_MODULE_DEPS = [
   'semver',
   'simple-swizzle',
   'is-arrayish',
+  'bindings',
+  'file-uri-to-path',
+  '@napi-rs/canvas-win32-x64-msvc',
 ];
 
 function copyDir(src, dest) {
@@ -29,6 +34,15 @@ function copyDir(src, dest) {
     } else {
       fs.copyFileSync(srcPath, destPath);
     }
+  }
+}
+
+function resolvePackagePath(dep, startDirs) {
+  try {
+    const pkgJsonPath = require.resolve(path.join(dep, 'package.json'), { paths: startDirs });
+    return path.dirname(pkgJsonPath);
+  } catch (e) {
+    return null;
   }
 }
 
@@ -48,18 +62,26 @@ function ensureNativeDeps(appOutDir) {
   for (const dep of NATIVE_MODULE_DEPS) {
     const destDir = path.join(nodeModulesDir, dep);
     
-    // Check if already exists
-    if (fs.existsSync(destDir)) {
+    // Check if already exists and is non-empty
+    if (fs.existsSync(destDir) && fs.readdirSync(destDir).length > 0) {
       console.log(`[ensure-native-deps] ${dep} already exists`);
       continue;
     }
     
-    // Try to find in various locations
+    // 1. Try require.resolve
+    let resolvedSrc = resolvePackagePath(dep, [__dirname, path.join(monorepoRoot, 'apps', 'master'), monorepoRoot]);
+    
+    // 2. Try possiblePaths fallback
     const possiblePaths = [
+      resolvedSrc,
       path.join(monorepoRoot, 'node_modules', dep),
       path.join(monorepoRoot, 'node_modules', '.pnpm', 'node_modules', dep),
       path.join(monorepoRoot, 'apps', 'master', 'node_modules', dep),
-    ];
+      path.join(monorepoRoot, 'node_modules', '.pnpm', 'bindings@1.5.0', 'node_modules', dep),
+      path.join(monorepoRoot, 'node_modules', '.pnpm', 'file-uri-to-path@1.0.0', 'node_modules', dep),
+      path.join(monorepoRoot, 'node_modules', '.pnpm', 'file-uri-to-path@2.0.0', 'node_modules', dep),
+      path.join(monorepoRoot, 'node_modules', '.pnpm', '@napi-rs+canvas-win32-x64-msvc@0.1.92', 'node_modules', dep),
+    ].filter(Boolean);
     
     let found = false;
     for (const src of possiblePaths) {

@@ -12,6 +12,10 @@ describe('Cloud Backup Endpoints', () => {
         put: jest.fn<any>().mockResolvedValue(undefined),
         delete: jest.fn<any>().mockResolvedValue(undefined),
       },
+      BACKUP_BUCKET: {
+        put: jest.fn<any>().mockResolvedValue(undefined),
+        delete: jest.fn<any>().mockResolvedValue(undefined),
+      },
     };
     mockDbManager = {
       run: jest.fn<any>().mockResolvedValue(undefined),
@@ -49,7 +53,7 @@ describe('Cloud Backup Endpoints', () => {
     expect(response!.status).toBe(200);
     expect(json.success).toBe(true);
     expect(json.key).toContain('backups/test-desk/');
-    expect(mockEnv.GALLERY_BUCKET.put).toHaveBeenCalledWith(
+    expect(mockEnv.BACKUP_BUCKET.put).toHaveBeenCalledWith(
       expect.stringContaining('backups/test-desk/'),
       expect.any(ArrayBuffer),
       expect.objectContaining({

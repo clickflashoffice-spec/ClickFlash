@@ -14,7 +14,7 @@ export const MANAGEMENT_API_URL = process.env.MANAGEMENT_API_URL || 'http://loca
 export const isElectron = (process.versions && !!process.versions.electron) || (typeof process !== 'undefined' && process.env && !!process.env.ELECTRON_RUN_AS_NODE);
 
 // --- Directory Configuration ---
-export const DATA_DIR = process.argv[2] || process.env.DATA_DIR || path.join(process.cwd(), 'pb_data');
+export const DATA_DIR = process.env.DATA_DIR || (process.env.NODE_ENV !== 'test' && process.argv[2] && !process.argv[2].startsWith('-') ? process.argv[2] : path.join(process.cwd(), 'pb_data'));
 // Note: __dirname in compiled TS might differ if structure changes, but for now assuming output structure mirrors input or using logical paths
 export const DB_FILE = path.join(DATA_DIR, 'master.db');
 export const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');

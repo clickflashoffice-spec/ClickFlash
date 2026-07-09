@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 interface ValidatorProps {
-  onValidate: (key: string) => Promise<{ valid: boolean; plan?: string; maxMasters?: number; expiresAt?: string; error?: string }>;
+  onValidate: (key: string) => Promise<{ valid: boolean; plan?: string; maxMasters?: number; expiresAt?: string; machineId?: string; error?: string }>;
 }
 
 export function Validator({ onValidate }: ValidatorProps) {
@@ -38,6 +38,7 @@ export function Validator({ onValidate }: ValidatorProps) {
                 <p>Plan: {result.plan}</p>
                 <p>Studios: {result.maxMasters}</p>
                 <p>Expires: {result.expiresAt}</p>
+                {result.machineId && <p>Machine ID: {result.machineId}</p>}
               </div>
             </>
           ) : (

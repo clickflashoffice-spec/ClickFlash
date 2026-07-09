@@ -58,6 +58,7 @@ export interface EditorState {
 type Action =
   | { type: "SET_PHOTOS"; payload: Photo[] }
   | { type: "SET_ACTIVE_PHOTO"; payload: string }
+  | { type: "UPDATE_PHOTO"; payload: { id: string; updates: Partial<Photo> } }
   | { type: "SET_ACTIVE_TOOL"; payload: "adjust" | "crop" | "retouch" }
   | { type: "UPDATE_EDIT"; payload: Partial<ManualEdits> | ((prev: ManualEdits) => Partial<ManualEdits>) }
   | { type: "SET_EDITS"; payload: { photoId: string; edits: ManualEdits } } // For replace/presets
@@ -149,6 +150,18 @@ function editorReducer(state: EditorState, action: Action): EditorState {
         ...state,
         activePhotoId: action.payload,
       };
+
+    case "UPDATE_PHOTO": {
+      const updatedPhotos = state.photos.map((p) =>
+        p.id === action.payload.id ? { ...p, ...action.payload.updates } : p
+      );
+      return {
+        ...state,
+        photos: updatedPhotos,
+        dirtyPhotoIds: new Set(state.dirtyPhotoIds).add(action.payload.id),
+        isDirty: true,
+      };
+    }
 
     case "SET_ACTIVE_TOOL":
       return {
@@ -506,6 +519,10 @@ export function useEditorState(initialPhotos: Photo[] = []) {
     dispatch({ type: "SET_ACTIVE_PHOTO", payload: id });
   }, []);
 
+  const updatePhoto = useCallback((id: string, updates: Partial<Photo>) => {
+    dispatch({ type: "UPDATE_PHOTO", payload: { id, updates } });
+  }, []);
+
   const setZoomState = useCallback((photoId: string, zoom: Pick<ZoomPanState, 'scale' | 'offsetX' | 'offsetY'>) => {
     dispatch({ type: "SET_ZOOM_STATE", payload: { photoId, zoom } });
   }, []);
@@ -564,6 +581,7 @@ export function useEditorState(initialPhotos: Photo[] = []) {
     () => ({
       setPhotos,
       setActivePhoto,
+      updatePhoto,
       setActiveTool,
       updateEdit,
       setEdits,
@@ -585,6 +603,7 @@ export function useEditorState(initialPhotos: Photo[] = []) {
     [
       setPhotos,
       setActivePhoto,
+      updatePhoto,
       setActiveTool,
       updateEdit,
       setEdits,

@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from "react";
 import { cullingService } from "@/services/api/cullingService";
 import { logger } from "@/utils/logger";
 import { ManualEdits, Photo } from "@/types";
-
+import { imageProcessingService } from "@/services/imageProcessingService";
 interface UseAIEditorProps {
   albumId: string;
   refresh: () => Promise<void>;
@@ -63,39 +63,73 @@ export function useAIEditor({
     async (activePhotoOrPhotos: Photo | Photo[] | null) => {
       if (!activePhotoOrPhotos) return;
 
-      const enhanceEdits: Partial<ManualEdits> = {
-        exposure: 10,
-        contrast: 15,
-        highlights: -20,
-        shadows: 20,
-        vibrance: 10,
-        sharpen: 20,
-      };
-
       setIsEnhancing(true);
 
-      // Batch mode: array of photos
-      if (Array.isArray(activePhotoOrPhotos)) {
-        const photos = activePhotoOrPhotos;
-        if (photos.length === 0) { setIsEnhancing(false); return; }
-        showToast("Enhancing photos...");
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        if (batchUpdateEdits) {
-          batchUpdateEdits(photos.map(p => p.id), enhanceEdits);
-        } else {
-          updateEdit(enhanceEdits);
+      try {
+        // Batch mode: array of photos
+        if (Array.isArray(activePhotoOrPhotos)) {
+          const photos = activePhotoOrPhotos;
+          if (photos.length === 0) { setIsEnhancing(false); return; }
+          showToast("Enhancing photos...");
+          
+          const photosToProcess = await Promise.all(photos.map(async (p) => {
+            const img = await imageProcessingService.loadImageFromUrl(p.url);
+            const imageData = imageProcessingService.getImageData(img);
+            return { id: p.id, imageData };
+          }));
+          
+          const results = await imageProcessingService.batchAutoEnhance(photosToProcess);
+          
+          if (batchUpdateEdits) {
+            photos.forEach(p => {
+              const res = results.get(p.id);
+              if (res) {
+                // Ensure values are within UI bounds (-100 to 100 for some sliders, or matching our expected scale)
+                // The service returns values like exposure (-0.5 to 0.5)
+                const enhanceEdits: Partial<ManualEdits> = {
+                  exposure: Math.round(res.adjustments.exposure * 100), // scale up for UI if needed
+                  contrast: Math.round(res.adjustments.contrast * 100),
+                  saturation: Math.round(res.adjustments.saturation * 100),
+                  clarity: Math.round(res.adjustments.clarity * 100),
+                  highlights: Math.round((res.adjustments.highlights || 0) * 100),
+                  shadows: Math.round((res.adjustments.shadows || 0) * 100),
+                  vibrance: Math.round((res.adjustments.vibrance || 0) * 100),
+                  sharpen: Math.round((res.adjustments.sharpen || 0) * 100)
+                };
+                batchUpdateEdits([p.id], enhanceEdits);
+              }
+            });
+          }
+          
+          showToast(`${photos.length} photos enhanced!`);
+          return;
         }
-        setIsEnhancing(false);
-        showToast(`${photos.length} photos enhanced!`);
-        return;
-      }
 
-      // Single photo mode
-      showToast("Enhancing photo...");
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      updateEdit(enhanceEdits);
-      setIsEnhancing(false);
-      showToast("Photo enhanced!");
+        // Single photo mode
+        showToast("Enhancing photo...");
+        const img = await imageProcessingService.loadImageFromUrl(activePhotoOrPhotos.url);
+        const imageData = imageProcessingService.getImageData(img);
+        const result = await imageProcessingService.autoEnhanceAsync(imageData);
+        
+        const enhanceEdits: Partial<ManualEdits> = {
+          exposure: Math.round(result.adjustments.exposure * 100),
+          contrast: Math.round(result.adjustments.contrast * 100),
+          saturation: Math.round(result.adjustments.saturation * 100),
+          clarity: Math.round(result.adjustments.clarity * 100),
+          highlights: Math.round((result.adjustments.highlights || 0) * 100),
+          shadows: Math.round((result.adjustments.shadows || 0) * 100),
+          vibrance: Math.round((result.adjustments.vibrance || 0) * 100),
+          sharpen: Math.round((result.adjustments.sharpen || 0) * 100)
+        };
+        
+        updateEdit(enhanceEdits);
+        showToast("Photo enhanced!");
+      } catch (err) {
+        logger.error("Auto-enhance failed", err);
+        showToast("Failed to enhance photo(s)");
+      } finally {
+        setIsEnhancing(false);
+      }
     },
     [updateEdit, batchUpdateEdits, showToast],
   );

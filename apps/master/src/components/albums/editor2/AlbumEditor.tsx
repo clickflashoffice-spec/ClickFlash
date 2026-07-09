@@ -12,6 +12,7 @@ import { ErrorBoundary } from "../../common/ErrorBoundary";
 import { usePhotoData } from "./hooks/usePhotoData";
 import { usePhotographers } from "../../../hooks/usePhotographers";
 import { useEditorState } from "./hooks/useEditorState";
+import { PhotoEditor } from "../../../components/AutoEditor/PhotoEditor";
 import { EditorLayout } from "./layout/EditorLayout";
 import { SidebarControls, EditorTab } from "./controls/SidebarControls";
 import { EditorCanvas } from "./canvas/EditorCanvas";
@@ -76,7 +77,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   // Before/After toggle: when true, the canvas shows the unedited original.
   const [showOriginal, setShowOriginal] = useState(false);
-  const [_isReviewingAutoEdits, setIsReviewingAutoEdits] = useState(false);
+  const [isReviewingAutoEdits, setIsReviewingAutoEdits] = useState(false);
 
   // 3. Editor UI State
   const [activeTab, setActiveTab] = useState<EditorTab>("adjust");
@@ -289,6 +290,8 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
       .map((p) => ({
         id: p.id,
         manualEdits: state.edits[p.id],
+        autoEnhanced: p.autoEnhanced,
+        autoEdits: p.autoEdits,
       }));
 
     if (dirtyPhotos.length === 0) return;
@@ -986,6 +989,22 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
         onConfirm={kioskHandlers.handleKioskConfirm}
         onCancel={() => setIsKioskModalOpen(false)}
       />
+
+      {/* Review Auto Edits Modal */}
+      {isReviewingAutoEdits && activePhoto && (
+        <PhotoEditor
+          isOpen={isReviewingAutoEdits}
+          photo={activePhoto}
+          onSave={async (id, newEdits, autoEnhanced) => {
+            actions.updateEdit(newEdits);
+            if (autoEnhanced !== undefined) {
+              actions.updatePhoto(id, { autoEnhanced });
+            }
+            setIsReviewingAutoEdits(false);
+          }}
+          onClose={() => setIsReviewingAutoEdits(false)}
+        />
+      )}
     </div>
   );
 };

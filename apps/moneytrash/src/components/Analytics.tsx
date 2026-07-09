@@ -69,7 +69,8 @@ export const Analytics: React.FC = () => {
   }, [startDate, endDate]);
 
   useEffect(() => {
-    loadData();
+    const timer = setTimeout(() => loadData(), 0);
+    return () => clearTimeout(timer);
   }, [loadData]);
 
   const handleExportCSV = () => {

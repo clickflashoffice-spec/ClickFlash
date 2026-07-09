@@ -167,7 +167,8 @@ CREATE TABLE IF NOT EXISTS destinations (
     ip_address TEXT,
     version TEXT,
     studio_id TEXT REFERENCES studios(id),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_destinations_studio ON destinations(studio_id);
 -- Session Types
@@ -463,6 +464,18 @@ CREATE TABLE IF NOT EXISTS fleet_heartbeat_history (
 );
 CREATE INDEX IF NOT EXISTS idx_fleet_heartbeat_desk ON fleet_heartbeat_history(desk_id);
 CREATE INDEX IF NOT EXISTS idx_fleet_heartbeat_time ON fleet_heartbeat_history(timestamp);
+
+-- Master Command Queue
+CREATE TABLE IF NOT EXISTS master_command_queue (
+    id TEXT PRIMARY KEY,
+    desk_id TEXT NOT NULL,
+    command_type TEXT NOT NULL,
+    payload TEXT,
+    status TEXT DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_master_command_queue_desk ON master_command_queue(desk_id, status);
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_photos_fileHash ON photos(fileHash);
 CREATE INDEX IF NOT EXISTS idx_photos_albumId ON photos(albumId);

@@ -13,6 +13,21 @@ jest.mock("@/services/api/cullingService", () => ({
     },
 }));
 
+// Mock imageProcessingService to avoid import.meta.url issues in Jest
+jest.mock("@/services/imageProcessingService", () => ({
+    imageProcessingService: {
+        loadImageFromUrl: jest.fn().mockResolvedValue({}),
+        getImageData: jest.fn().mockReturnValue({}),
+        batchAutoEnhance: jest.fn().mockResolvedValue(new Map([
+            ['photo-1', { adjustments: { exposure: 0.1, contrast: 0.15, highlights: -0.2, shadows: 0.2, vibrance: 0.1, sharpen: 0.2, saturation: 0, clarity: 0 } }],
+            ['photo-2', { adjustments: { exposure: 0.1, contrast: 0.15, highlights: -0.2, shadows: 0.2, vibrance: 0.1, sharpen: 0.2, saturation: 0, clarity: 0 } }]
+        ])),
+        autoEnhanceAsync: jest.fn().mockResolvedValue({
+            adjustments: { exposure: 0.1, contrast: 0.15, highlights: -0.2, shadows: 0.2, vibrance: 0.1, sharpen: 0.2, saturation: 0, clarity: 0 }
+        })
+    }
+}));
+
 // Mock the logger
 jest.mock("@/utils/logger", () => ({
     logger: {
@@ -169,7 +184,18 @@ describe('useAIEditor', () => {
             // Wait for the setTimeout delay (1500ms) + processing
             await waitFor(() => {
                 expect(mockBatchUpdateEdits).toHaveBeenCalledWith(
-                    ['photo-1', 'photo-2'],
+                    ['photo-1'],
+                    expect.objectContaining({
+                        exposure: 10,
+                        contrast: 15,
+                        highlights: -20,
+                        shadows: 20,
+                        vibrance: 10,
+                        sharpen: 20,
+                    })
+                );
+                expect(mockBatchUpdateEdits).toHaveBeenCalledWith(
+                    ['photo-2'],
                     expect.objectContaining({
                         exposure: 10,
                         contrast: 15,
@@ -185,9 +211,7 @@ describe('useAIEditor', () => {
         });
 
         it('should apply enhancement using updateEdit for single photo', async () => {
-            const mockPhotos = [
-                { id: 'photo-1', title: 'Photo 1', url: 'url1' },
-            ] as any[];
+            const mockPhoto = { id: 'photo-1', title: 'Photo 1', url: 'url1' } as any;
 
             const { result } = renderHook(() =>
                 useAIEditor({
@@ -199,7 +223,7 @@ describe('useAIEditor', () => {
             );
 
             await act(async () => {
-                await result.current.handlers.handleAutoEnhance(mockPhotos);
+                await result.current.handlers.handleAutoEnhance(mockPhoto);
             });
 
             await waitFor(() => {
@@ -207,6 +231,10 @@ describe('useAIEditor', () => {
                     expect.objectContaining({
                         exposure: 10,
                         contrast: 15,
+                        highlights: -20,
+                        shadows: 20,
+                        vibrance: 10,
+                        sharpen: 20,
                     })
                 );
             }, { timeout: 3000 });

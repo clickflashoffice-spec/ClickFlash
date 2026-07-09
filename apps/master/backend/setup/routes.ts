@@ -20,6 +20,7 @@ import assistanceRoutes from "../routes/assistance";
 import galleryRoutes from "../routes/gallery";
 import galleryAuthRoutes from "../routes/galleryAuth";
 import galleryCheckoutRoutes from "../routes/galleryCheckout";
+import cartRoutes from "../routes/cart";
 import syncRoutes from "../routes/sync";
 import analyticsRoutes from "../routes/analytics";
 import marketingRoutes from "../routes/marketing";
@@ -67,6 +68,7 @@ export function mountRoutes(app: Application, context: any) {
   app.use("/api/gallery", galleryRoutes(context));
   app.use("/api/gallery-auth", strictRateLimiter, galleryAuthRoutes(context));
   app.use("/api/gallery-checkout", strictRateLimiter, galleryCheckoutRoutes(context));
+  app.use("/api/cart", cartRoutes(context));
   app.use("/api", syncRoutes(context as any));
   app.use("/api/setup", setupRoutes(context));
   app.use("/api/license", licenseRoutes(context));

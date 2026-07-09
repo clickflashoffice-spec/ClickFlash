@@ -29,6 +29,11 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
   const [compareIndex, setCompareIndex] = useState<number | null>(null);
   const [showInfo, setShowInfo] = useState(false);
 
+  // Swipe detection states
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+  const minSwipeDistance = 50;
+
   const dragStart = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const activePhoto = photos[currentIndex];
@@ -93,6 +98,28 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
     e.preventDefault();
     if (e.deltaY < 0) zoomIn();
     else zoomOut();
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEndX(null);
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (touchStartX === null || touchEndX === null) return;
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      handleNext();
+    } else if (isRightSwipe) {
+      handlePrev();
+    }
   };
 
   useEffect(() => {
@@ -179,6 +206,9 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Blur Placeholder */}

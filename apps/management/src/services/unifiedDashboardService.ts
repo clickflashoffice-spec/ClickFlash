@@ -155,11 +155,11 @@ class UnifiedDashboardService {
   /**
    * Fetch unified dashboard data from all stations
    */
-  async getDashboardData(): Promise<UnifiedDashboardData> {
+  async getDashboardData(contextFilter: string = "global"): Promise<UnifiedDashboardData> {
     try {
       const [stations, aggregatedStats] = await Promise.all([
-        this.getStationsWithDashboard(),
-        this.getAggregatedStats(),
+        this.getStationsWithDashboard(contextFilter),
+        this.getAggregatedStats(contextFilter),
       ]);
 
       // Calculate aggregated KPIs from all stations
@@ -197,9 +197,13 @@ class UnifiedDashboardService {
   /**
    * Get all stations with their dashboard data
    */
-  async getStationsWithDashboard(): Promise<StationDashboard[]> {
+  async getStationsWithDashboard(contextFilter: string = "global"): Promise<StationDashboard[]> {
     try {
-      const stations = await fleetService.getStations();
+      let stations = await fleetService.getStations();
+      
+      if (contextFilter !== "global") {
+        stations = stations.filter(s => s.id === contextFilter || s.name.toLowerCase().includes(contextFilter.toLowerCase()) || s.location?.toLowerCase().includes(contextFilter.toLowerCase()));
+      }
 
       // Transform stations to include dashboard data
       // In production, this would fetch additional data per station
@@ -215,9 +219,13 @@ class UnifiedDashboardService {
   /**
    * Get aggregated stats across all stations
    */
-  async getAggregatedStats(): Promise<AggregatedDashboardStats> {
+  async getAggregatedStats(contextFilter: string = "global"): Promise<AggregatedDashboardStats> {
     try {
-      const stations = await fleetService.getStations();
+      let stations = await fleetService.getStations();
+      
+      if (contextFilter !== "global") {
+        stations = stations.filter(s => s.id === contextFilter || s.name.toLowerCase().includes(contextFilter.toLowerCase()) || s.location?.toLowerCase().includes(contextFilter.toLowerCase()));
+      }
 
       const onlineStations = stations.filter(
         (s: MasterStation) => s.status === "online",

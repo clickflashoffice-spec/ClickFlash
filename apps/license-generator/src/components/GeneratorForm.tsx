@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 interface GeneratorFormProps {
-  onGenerate: (plan: string, maxMasters: number, expiresDays: number, count: number) => void;
+  onGenerate: (plan: string, maxMasters: number, expiresDays: number, count: number, machineId?: string) => void;
 }
 
 export function GeneratorForm({ onGenerate }: GeneratorFormProps) {
@@ -9,6 +9,7 @@ export function GeneratorForm({ onGenerate }: GeneratorFormProps) {
   const [maxMasters, setMaxMasters] = useState(5);
   const [expiresDays, setExpiresDays] = useState(365);
   const [count, setCount] = useState(10);
+  const [machineId, setMachineId] = useState('');
 
   const plans = [
     { value: 'trial', label: 'Trial', desc: '1 studio, 14 days', price: 'Free' },
@@ -19,7 +20,7 @@ export function GeneratorForm({ onGenerate }: GeneratorFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onGenerate(plan, maxMasters, expiresDays, count);
+    onGenerate(plan, maxMasters, expiresDays, count, machineId.trim() || undefined);
   };
 
   return (
@@ -66,6 +67,16 @@ export function GeneratorForm({ onGenerate }: GeneratorFormProps) {
             onChange={(e) => setCount(Number(e.target.value))}
             min={1}
             max={100}
+          />
+        </div>
+        
+        <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+          <label>Hardware Binding (Optional Machine ID)</label>
+          <input
+            type="text"
+            placeholder="e.g. 12345678-1234-1234-1234-123456789012"
+            value={machineId}
+            onChange={(e) => setMachineId(e.target.value)}
           />
         </div>
       </div>

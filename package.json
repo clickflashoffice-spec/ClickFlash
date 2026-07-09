@@ -22,7 +22,9 @@
     "test:all": "turbo run test",
     "clean:safe": "bash scripts/safe-cleanup.sh",
     "dev:master": "pnpm --filter clickflash-master run dev:full",
+    "dev:master:electron": "pnpm --filter clickflash-master run dev:electron",
     "dev:touch": "pnpm --filter clickflash-touch run dev:full",
+    "dev:touch:electron": "pnpm --filter clickflash-touch run dev:electron",
     "dev:management": "pnpm --filter star-master-management run dev",
     "dev:gallery": "pnpm --filter star-master-customer run dev",
     "dev:website": "pnpm --filter main-website run dev",
@@ -48,6 +50,8 @@
     "test:e2e": "npx tsx tests/ecosystem/reset.ts && npx playwright test --config=playwright.ecosystem.config.ts",
     "test:e2e:all": "pnpm run test:e2e",
     "test:prod": "npx tsx tests/ecosystem/reset.ts && npx playwright test --config=playwright.prod.config.ts",
+    "test:prod:all": "pnpm run test:prod",
+    "test:report": "npx playwright show-report",
     "lint:all": "pnpm --filter clickflash-master run lint && pnpm --filter clickflash-touch run lint && pnpm --filter star-master-management run lint && pnpm --filter star-master-customer run lint && pnpm --filter main-website run lint && pnpm --filter moneytrash-uploader run lint && pnpm --filter clickflash-installer run lint && pnpm --filter clickflash-license-generator run lint",
     "typecheck:all": "pnpm --filter clickflash-master run typecheck:ci && pnpm --filter clickflash-touch run typecheck && pnpm --filter star-master-management run typecheck && pnpm --filter star-master-customer run typecheck && pnpm --filter main-website run typecheck && pnpm --filter moneytrash-uploader run typecheck && pnpm --filter clickflash-installer run typecheck && pnpm --filter clickflash-license-generator run typecheck",
     "docker:up": "docker-compose -f docker-compose.dev.yml up -d",
@@ -59,6 +63,7 @@
     "clean:all": "pnpm --filter clickflash-master run clean 2>/dev/null; pnpm --filter clickflash-touch run clean 2>/dev/null; rm -rf apps/*/dist apps/*/.next apps/*/node_modules/.cache"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.58.2",
     "better-sqlite3-multiple-ciphers": "^12.8.0",
     "concurrently": "^9.2.1",

@@ -188,6 +188,7 @@ async function startBackend(): Promise<boolean> {
       ...process.env,
       ELECTRON_RUN_AS_NODE: "1",
       DATA_DIR: dataDir,
+      WEB_ROOT: getUnpackedPath("master"),
       NODE_ENV: app.isPackaged ? "production" : (process.env.NODE_ENV ?? "development"),
     };
 

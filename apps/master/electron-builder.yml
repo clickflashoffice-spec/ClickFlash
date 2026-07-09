@@ -22,7 +22,7 @@ files:
 # fork() with ELECTRON_RUN_AS_NODE cannot read asar archives.
 # List EVERY package that ships native binaries - no glob wildcards.
 asarUnpack:
-  - "dist/backend/**/*"
+  - "dist/**/*"
   - "node_modules/better-sqlite3-multiple-ciphers"
   - "node_modules/sharp"
   - "node_modules/@img"

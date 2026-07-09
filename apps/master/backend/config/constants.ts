@@ -108,6 +108,15 @@ const IS_PROD_CHECK = path.basename(path.dirname(path.dirname(__dirname))) === '
 export const IS_PROD = IS_PROD_CHECK;
 
 const resolveWebRoot = () => {
+    // 0. Explicit WEB_ROOT passed from Electron main process
+    if (process.env.WEB_ROOT) {
+        console.log(`[WebRoot] Checking explicit env candidate 0: ${process.env.WEB_ROOT}`);
+        if (fs.existsSync(path.join(process.env.WEB_ROOT, 'index.html'))) {
+            console.log(`[WebRoot] Found candidate 0 (process.env.WEB_ROOT)`);
+            return process.env.WEB_ROOT;
+        }
+    }
+
     // 1. Production Build (node dist/backend/server.js) -> dist/master
     const candidate1 = path.join(__dirname, '../master');
     console.log(`[WebRoot] Checking candidate 1: ${candidate1}`);
@@ -124,18 +133,26 @@ const resolveWebRoot = () => {
         return candidate2;
     }
 
-    // 3. Electron Production (resources/app.asar...) - fallback
-    const candidate3 = path.join(__dirname, '../../dist');
+    // 3. Electron Unpacked ASAR Production fallback
+    const candidate3 = path.join(process.cwd(), 'resources/app.asar.unpacked/dist/master');
     console.log(`[WebRoot] Checking candidate 3: ${candidate3}`);
     if (fs.existsSync(path.join(candidate3, 'index.html'))) {
         console.log(`[WebRoot] Found candidate 3`);
         return candidate3;
     }
 
-    // 4. Fallback for Electron Resources
+    // 4. ExecPath Relative Unpacked ASAR
+    const candidate4 = path.join(path.dirname(process.execPath), 'resources/app.asar.unpacked/dist/master');
+    console.log(`[WebRoot] Checking candidate 4: ${candidate4}`);
+    if (fs.existsSync(path.join(candidate4, 'index.html'))) {
+        console.log(`[WebRoot] Found candidate 4`);
+        return candidate4;
+    }
+
+    // 5. Fallback for Electron Resources
     if (IS_PROD) {
-        console.log(`[WebRoot] Falling back to candidate 3 (Prod)`);
-        return path.join(__dirname, '../../dist');
+        console.log(`[WebRoot] Falling back to candidate 1 (Prod): ${candidate1}`);
+        return candidate1;
     }
 
     console.log(`[WebRoot] Using default fallback: ${path.join(process.cwd(), 'dist/master')}`);

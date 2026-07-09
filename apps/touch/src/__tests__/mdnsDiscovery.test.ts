@@ -22,13 +22,17 @@ const mockFind = vi.fn().mockReturnValue({
 });
 const mockDestroy = vi.fn();
 
-vi.mock('bonjour-service', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    publish: mockPublish,
-    find: mockFind,
-    destroy: mockDestroy,
-  })),
-}));
+vi.mock('bonjour-service', () => {
+  class MockBonjour {
+    publish = mockPublish;
+    find = mockFind;
+    destroy = mockDestroy;
+  }
+  return {
+    Bonjour: MockBonjour,
+    default: MockBonjour,
+  };
+});
 
 // --------------- Logger mock ---------------
 vi.mock('../shared/logger', () => ({
@@ -44,7 +48,7 @@ vi.mock('../shared/logger', () => ({
 // Touch backend lives at apps/touch/backend/services/mdnsDiscovery.ts
 // but vitest for touch includes src/**/*.test.ts
 // We import relative to the test file location
-import { TouchMdnsDiscovery, type DiscoveredMaster } from '../../../backend/services/mdnsDiscovery';
+import { TouchMdnsDiscovery, type DiscoveredMaster } from '../../backend/services/mdnsDiscovery';
 
 // Mock fetch for pingMaster
 const originalFetch = globalThis.fetch;

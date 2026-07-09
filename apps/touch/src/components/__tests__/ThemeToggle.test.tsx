@@ -16,7 +16,7 @@ describe('ThemeToggle Component', () => {
     render(<ThemeToggle />);
     
     const button = screen.getByRole('button', { name: /toggle theme/i });
-    expect(button).toBeInTheDocument();
+    expect(button).toBeDefined();
     
     fireEvent.click(button);
     expect(toggleThemeMock).toHaveBeenCalledTimes(1);

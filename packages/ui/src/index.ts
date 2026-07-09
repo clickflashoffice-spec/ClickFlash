@@ -6,4 +6,6 @@ export { default as PhotoCard } from './components/PhotoCard';
 export { Spinner } from './components/Spinner';
 export { default as Toast } from './components/Toast';
 export { default as Photo } from './components/Photo';
+export { ErrorBoundary } from './components/ErrorBoundary';
+export { OfflineScreen } from './components/OfflineScreen';
 export * from './utils/styleUtils';

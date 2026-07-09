@@ -89,12 +89,8 @@ export function useAIEditor({
                 const enhanceEdits: Partial<ManualEdits> = {
                   exposure: Math.round(res.adjustments.exposure * 100), // scale up for UI if needed
                   contrast: Math.round(res.adjustments.contrast * 100),
-                  saturation: Math.round(res.adjustments.saturation * 100),
-                  clarity: Math.round(res.adjustments.clarity * 100),
-                  highlights: Math.round((res.adjustments.highlights || 0) * 100),
-                  shadows: Math.round((res.adjustments.shadows || 0) * 100),
-                  vibrance: Math.round((res.adjustments.vibrance || 0) * 100),
-                  sharpen: Math.round((res.adjustments.sharpen || 0) * 100)
+                  saturate: Math.round((res.adjustments as any).saturation * 100),
+                  clarity: Math.round(res.adjustments.clarity * 100)
                 };
                 batchUpdateEdits([p.id], enhanceEdits);
               }
@@ -114,12 +110,8 @@ export function useAIEditor({
         const enhanceEdits: Partial<ManualEdits> = {
           exposure: Math.round(result.adjustments.exposure * 100),
           contrast: Math.round(result.adjustments.contrast * 100),
-          saturation: Math.round(result.adjustments.saturation * 100),
-          clarity: Math.round(result.adjustments.clarity * 100),
-          highlights: Math.round((result.adjustments.highlights || 0) * 100),
-          shadows: Math.round((result.adjustments.shadows || 0) * 100),
-          vibrance: Math.round((result.adjustments.vibrance || 0) * 100),
-          sharpen: Math.round((result.adjustments.sharpen || 0) * 100)
+          saturate: Math.round((result.adjustments as any).saturation * 100),
+          clarity: Math.round(result.adjustments.clarity * 100)
         };
         
         updateEdit(enhanceEdits);

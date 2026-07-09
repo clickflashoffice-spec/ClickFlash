@@ -6,6 +6,7 @@ import React, {
   Suspense,
   lazy,
 } from "react";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import Header from "./Header";
 // Import Orders normally to avoid chunk loading issues
@@ -102,7 +103,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   assistanceRequests = [],
   onDismissAssistance,
 }) => {
-  const [currentView, setCurrentView] = useState<View>("Dashboard");
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   // Initialize from localStorage or default to false (expanded)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
@@ -362,7 +364,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const [viewParams, setViewParams] = useState<any>(null);
 
   const handleNavigate = (view: View, params?: any) => {
-    setCurrentView(view);
+    navigate(`/${view.toLowerCase()}`);
     setViewParams(params);
     setLabFolderOrder(null);
   };
@@ -407,7 +409,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           </div>
         }
       >
-        <PageTransition viewKey={currentView}>
+          <PageTransition viewKey={location.pathname}>
           <div className="max-w-[1600px] mx-auto">
             {(() => {
               // Safety check: Ensure user is loaded before permission checks
@@ -419,22 +421,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                 );
               }
 
-              switch (currentView) {
-                case "Dashboard":
-                  if (!can("viewDashboard")) {
-                    logger.warn("Access denied to Dashboard", {
-                      userId: currentUser.id,
-                      role: currentUser.role,
-                    });
-                    return (
+              return (
+                <Routes>
+                  <Route index element={<Navigate to="dashboard" replace />} />
+                  <Route path="dashboard" element={
+                    !can("viewDashboard") ? (
                       <AccessDenied
                         permission="viewDashboard"
                         role={currentUser.role}
                         page="Dashboard"
                       />
-                    );
-                  }
-                  return (
+                    ) : (
                     <DashboardErrorBoundary>
                       <Dashboard
                         localData={
@@ -448,22 +445,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                         onNavigate={handleNavigate}
                       />
                     </DashboardErrorBoundary>
-                  );
-                case "Albums":
-                  if (!can("viewAlbums")) {
-                    logger.warn("Access denied to Albums", {
-                      userId: currentUser.id,
-                      role: currentUser.role,
-                    });
-                    return (
+                    )
+                  } />
+                  <Route path="albums" element={
+                    !can("viewAlbums") ? (
                       <AccessDenied
                         permission="viewAlbums"
                         role={currentUser.role}
                         page="Albums"
                       />
-                    );
-                  }
-                  return (
+                    ) : (
                     <AlbumErrorBoundary>
                       <Albums
                         showToast={showToast}
@@ -472,44 +463,32 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                         refreshTrigger={effectiveRefreshTrigger}
                       />
                     </AlbumErrorBoundary>
-                  );
-                case "Bookings":
-                  if (!can("viewBookings")) {
-                    logger.warn("Access denied to Bookings", {
-                      userId: currentUser.id,
-                      role: currentUser.role,
-                    });
-                    return (
+                    )
+                  } />
+                  <Route path="bookings" element={
+                    !can("viewBookings") ? (
                       <AccessDenied
                         permission="viewBookings"
                         role={currentUser.role}
                         page="Bookings"
                       />
-                    );
-                  }
-                  return (
+                    ) : (
                     <FeatureErrorBoundary feature="Bookings" severity="medium">
                       <Bookings
                         showToast={showToast}
                         refreshTrigger={effectiveRefreshTrigger}
                       />
                     </FeatureErrorBoundary>
-                  );
-                case "Orders":
-                  if (!can("viewOrders")) {
-                    logger.warn("Access denied to Orders", {
-                      userId: currentUser.id,
-                      role: currentUser.role,
-                    });
-                    return (
+                    )
+                  } />
+                  <Route path="orders" element={
+                    !can("viewOrders") ? (
                       <AccessDenied
                         permission="viewOrders"
                         role={currentUser.role}
                         page="Orders"
                       />
-                    );
-                  }
-                  return (
+                    ) : (
                     <OrderErrorBoundary>
                       <Orders
                         showToast={showToast}
@@ -520,63 +499,45 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                         refreshTrigger={effectiveRefreshTrigger}
                       />
                     </OrderErrorBoundary>
-                  );
-                case "PrintQueue":
-                  if (!can("viewOrders")) {
-                    logger.warn("Access denied to PrintQueue", {
-                      userId: currentUser.id,
-                      role: currentUser.role,
-                    });
-                    return (
+                    )
+                  } />
+                  <Route path="printqueue" element={
+                    !can("viewOrders") ? (
                       <AccessDenied
                         permission="viewOrders"
                         role={currentUser.role}
                         page="PrintQueue"
                       />
-                    );
-                  }
-                  return (
+                    ) : (
                     <FeatureErrorBoundary feature="PrintQueue" severity="medium">
                       <PrintQueue />
                     </FeatureErrorBoundary>
-                  );
-                case "Clients":
-                  if (!can("viewClients")) {
-                    logger.warn("Access denied to Clients", {
-                      userId: currentUser.id,
-                      role: currentUser.role,
-                    });
-                    return (
+                    )
+                  } />
+                  <Route path="clients" element={
+                    !can("viewClients") ? (
                       <AccessDenied
                         permission="viewClients"
                         role={currentUser.role}
                         page="Clients"
                       />
-                    );
-                  }
-                  return (
+                    ) : (
                     <FeatureErrorBoundary feature="Clients" severity="medium">
                       <Clients
                         currentUser={currentUser}
                         refreshTrigger={effectiveRefreshTrigger}
                       />
                     </FeatureErrorBoundary>
-                  );
-                case "Photographers":
-                  if (!can("viewPhotographers")) {
-                    logger.warn("Access denied to Photographers", {
-                      userId: currentUser.id,
-                      role: currentUser.role,
-                    });
-                    return (
+                    )
+                  } />
+                  <Route path="photographers" element={
+                    !can("viewPhotographers") ? (
                       <AccessDenied
                         permission="viewPhotographers"
                         role={currentUser.role}
                         page="Photographers"
                       />
-                    );
-                  }
-                  return (
+                    ) : (
                     <FeatureErrorBoundary feature="Photographers" severity="medium">
                       <Photographers
                         currentUser={currentUser}
@@ -585,22 +546,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                         refreshData={refreshData}
                       />
                     </FeatureErrorBoundary>
-                  );
-                case "Settings":
-                  if (!can("viewSettings")) {
-                    logger.warn("Access denied to Settings", {
-                      userId: currentUser.id,
-                      role: currentUser.role,
-                    });
-                    return (
+                    )
+                  } />
+                  <Route path="settings" element={
+                    !can("viewSettings") ? (
                       <AccessDenied
                         permission="viewSettings"
                         role={currentUser.role}
                         page="Settings"
                       />
-                    );
-                  }
-                  return (
+                    ) : (
                     <SettingsErrorBoundary>
                       <SettingsPage
                         currentUser={currentUser}
@@ -610,64 +565,36 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                         initialTab={viewParams?.tab as any}
                       />
                     </SettingsErrorBoundary>
-                  );
-                case "Growth":
-                  if (!can("viewGrowth")) {
-                    logger.warn("Access denied to Growth", {
-                      userId: currentUser.id,
-                      role: currentUser.role,
-                    });
-                    return (
+                    )
+                  } />
+                  <Route path="growth" element={
+                    !can("viewGrowth") ? (
                       <AccessDenied
                         permission="viewGrowth"
                         role={currentUser.role}
                         page="Growth"
                       />
-                    );
-                  }
-                  return (
-                    <FeatureErrorBoundary feature="Growth" severity="low">
-                      <GrowthPage currentUser={currentUser} />
+                    ) : (
+                    <FeatureErrorBoundary feature="Growth" severity="medium">
+                      <GrowthPage />
                     </FeatureErrorBoundary>
-                  );
-
-                case "LocalResortDashboard":
-                  if (!can("viewDashboard")) {
-                    logger.warn("Access denied to Local Resort Dashboard", {
-                      userId: currentUser.id,
-                      role: currentUser.role,
-                    });
-                    return (
+                    )
+                  } />
+                  <Route path="localresortdashboard" element={
+                    !can("viewDashboard") ? (
                       <AccessDenied
                         permission="viewDashboard"
                         role={currentUser.role}
                         page="Local Resort Dashboard"
                       />
-                    );
-                  }
-                  return (
+                    ) : (
                     <DashboardErrorBoundary>
                       <LocalResortDashboard />
                     </DashboardErrorBoundary>
-                  );
-
-                default:
-                  return (
-                    <DashboardErrorBoundary>
-                      <Dashboard
-                        localData={
-                          dashboardData || {
-                            orders: [],
-                            photographers: [],
-                            albums: [],
-                          }
-                        }
-                        currentUser={currentUser}
-                        onNavigate={handleNavigate}
-                      />
-                    </DashboardErrorBoundary>
-                  );
-              }
+                    )
+                  } />
+                </Routes>
+              );
             })()}
           </div>
         </PageTransition>
@@ -733,11 +660,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         className={`fixed inset-y-0 left-0 z-50 transition-all duration-300 transform md:relative md:translate-x-0 ${isSidebarOpen ? "translate-x-0 w-64" : "-translate-x-full"} ${isSidebarCollapsed ? "md:w-20" : "md:w-56 lg:w-64"} md:translate-x-0 no-print`}
       >
         <Sidebar
-          currentView={currentView}
-          setCurrentView={(view: View) => {
-            handleNavigate(view);
-            setIsSidebarOpen(false);
-          }}
+          currentView={location.pathname.replace('/', '') as View || "Dashboard"}
+          setCurrentView={(view) => navigate(`/${view.toLowerCase()}`)}
           onOpenAIIdeas={handleOpenAIIdeas}
           onSwitchUser={onSwitchUser}
           currentUser={currentUser}

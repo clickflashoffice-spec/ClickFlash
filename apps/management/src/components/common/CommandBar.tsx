@@ -76,7 +76,7 @@ const CommandBar: React.FC<CommandBarProps> = ({ onSelect, isOpen, onClose }) =>
         setStationItems(stations.map(s => ({
           id: s.id,
           label: s.name,
-          type: s.type || "Master"
+          type: (s as { type?: string }).type || "Master"
         })));
       }).catch(err => console.error(err));
     }

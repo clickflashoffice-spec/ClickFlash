@@ -8,6 +8,7 @@ import { useInstallerState } from "./hooks/useInstallerState";
 import { STEP_ORDER, STEP_LABELS } from "./types/installer";
 import WizardProgress from "./components/WizardProgress";
 import WelcomeStep from "./components/WelcomeStep";
+import AppSelectionStep from "./components/AppSelectionStep";
 import LicenseStep from "./components/LicenseStep";
 import CloudflareStepOAuth from "./components/CloudflareStepOAuth";
 import DestinationStep from "./components/DestinationStep";
@@ -24,6 +25,7 @@ const App: React.FC = () => {
     goToStep,
     nextStep,
     prevStep,
+    setSelectedApps,
     validateLicense,
     requestDeviceCode,
     pollForToken,
@@ -41,6 +43,16 @@ const App: React.FC = () => {
     switch (state.step) {
       case "welcome":
         return <WelcomeStep onNext={nextStep} />;
+      case "app-selection":
+        return (
+          <AppSelectionStep
+            onNext={(selected) => {
+              setSelectedApps(selected);
+              nextStep();
+            }}
+            onPrev={prevStep}
+          />
+        );
       case "license":
         return (
           <LicenseStep

@@ -49,7 +49,7 @@ class Logger {
     const env = getEnv();
     const envLevel = (env.VITE_LOG_LEVEL || 'INFO').toUpperCase();
     this.level = LogLevel[envLevel as keyof typeof LogLevel] ?? LogLevel.INFO;
-    this.isDevelopment = env.DEV || env.MODE === 'development';
+    this.isDevelopment = Boolean(env.DEV) || env.MODE === 'development';
   }
 
   private shouldLog(level: LogLevel): boolean {

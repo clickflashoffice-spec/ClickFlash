@@ -1,0 +1,187 @@
+import React, { useState } from "react";
+import { Check, Layers, Monitor, Tablet, Cloud, Database, Cpu } from "lucide-react";
+
+export interface AppOption {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  icon: React.ReactNode;
+  required?: boolean;
+  defaultChecked: boolean;
+  port?: number;
+}
+
+interface AppSelectionStepProps {
+  onNext: (selectedApps: string[]) => void;
+  onPrev: () => void;
+}
+
+const APPS: AppOption[] = [
+  {
+    id: "master",
+    title: "Master Portal",
+    subtitle: "Main Studio Station (Electron + React 19)",
+    description: "Primary photography workflow hub. Handles photo tethering, automated/manual photo editing, order management, and thermal receipt printing.",
+    icon: <Monitor className="w-6 h-6 text-blue-400" />,
+    required: true,
+    defaultChecked: true,
+    port: 8090,
+  },
+  {
+    id: "touch",
+    title: "Touch Kiosk",
+    subtitle: "Customer Ordering Terminal (Electron + React 19)",
+    description: "Customer-facing touchscreen ordering terminal with RFID/Face recognition, package selection, and instant print requests.",
+    icon: <Tablet className="w-6 h-6 text-purple-400" />,
+    defaultChecked: true,
+    port: 8091,
+  },
+  {
+    id: "auto-editor",
+    title: "AI & Photo Processing Engine",
+    subtitle: "Offline WASM/Canvas Worker Engine",
+    description: "Custom non-blocking image enhancer, background face detection, auto-exposure correction, and batch ZIP compilation.",
+    icon: <Cpu className="w-6 h-6 text-emerald-400" />,
+    defaultChecked: true,
+  },
+  {
+    id: "sync-service",
+    title: "LAN & Cloud Sync Service",
+    subtitle: "Bi-directional Zero-Latency Tunnel",
+    description: "Real-time WebSocket bridge between Master Portal and Touch Kiosks, plus Cloudflare D1/R2 background sync.",
+    icon: <Database className="w-6 h-6 text-amber-400" />,
+    defaultChecked: true,
+    port: 3001,
+  },
+  {
+    id: "management",
+    title: "Management Hub Connector",
+    subtitle: "Cloud Fleet & Analytics Link",
+    description: "Connects this studio to the multi-destination Management Hub for live revenue dashboards and remote health diagnostics.",
+    icon: <Cloud className="w-6 h-6 text-cyan-400" />,
+    defaultChecked: true,
+  },
+];
+
+export const AppSelectionStep: React.FC<AppSelectionStepProps> = ({
+  onNext,
+  onPrev,
+}) => {
+  const [selectedIds, setSelectedIds] = useState<string[]>(() =>
+    APPS.filter((a) => a.defaultChecked).map((a) => a.id)
+  );
+
+  const toggleApp = (id: string, required?: boolean) => {
+    if (required) return;
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const selectAll = () => {
+    setSelectedIds(APPS.map((a) => a.id));
+  };
+
+  return (
+    <div className="space-y-6 animate-fadeIn">
+      <div className="text-center">
+        <div className="mx-auto w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center mb-3">
+          <Layers className="w-6 h-6 text-blue-400" />
+        </div>
+        <h2 className="text-2xl font-bold text-white">
+          Choose Applications to Install
+        </h2>
+        <p className="text-sm text-slate-400 mt-1 max-w-md mx-auto">
+          Customize your ClickFlash ecosystem deployment. Select components tailored to this workstation.
+        </p>
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          onClick={selectAll}
+          className="text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+        >
+          Select All Full Suite
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 max-h-[380px] overflow-y-auto pr-1">
+        {APPS.map((app) => {
+          const isSelected = selectedIds.includes(app.id);
+          return (
+            <div
+              key={app.id}
+              onClick={() => toggleApp(app.id, app.required)}
+              className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                isSelected
+                  ? "bg-slate-800/80 border-blue-500/50 shadow-lg shadow-blue-500/10"
+                  : "bg-slate-900/40 border-slate-800 hover:border-slate-700 opacity-70"
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-2.5 rounded-xl bg-slate-800/80 border border-white/5 flex-shrink-0">
+                  {app.icon}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      {app.title}
+                      {app.required && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-semibold">
+                          Required
+                        </span>
+                      )}
+                      {app.port && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 font-mono">
+                          Port {app.port}
+                        </span>
+                      )}
+                    </h3>
+                  </div>
+                  <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                    {app.subtitle}
+                  </p>
+                  <p className="text-xs text-slate-400/80 mt-1.5 leading-relaxed">
+                    {app.description}
+                  </p>
+                </div>
+
+                <div className="flex-shrink-0 self-center">
+                  <div
+                    className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${
+                      isSelected
+                        ? "bg-blue-600 border-blue-500 text-white"
+                        : "border-slate-600 bg-slate-800"
+                    }`}
+                  >
+                    {isSelected && <Check className="w-4 h-4" />}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+        <button
+          onClick={onPrev}
+          className="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-sm font-semibold transition-all"
+        >
+          Back
+        </button>
+        <button
+          onClick={() => onNext(selectedIds)}
+          disabled={selectedIds.length === 0}
+          className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-semibold shadow-lg shadow-blue-600/30 transition-all disabled:opacity-50"
+        >
+          Continue with {selectedIds.length} Component{selectedIds.length > 1 ? "s" : ""}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default AppSelectionStep;

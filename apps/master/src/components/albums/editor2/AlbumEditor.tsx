@@ -994,7 +994,7 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
       {isReviewingAutoEdits && activePhoto && (
         <PhotoEditor
           isOpen={isReviewingAutoEdits}
-          photo={activePhoto}
+          photo={activePhoto as any}
           onSave={async (id, newEdits, autoEnhanced) => {
             actions.updateEdit(newEdits);
             if (autoEnhanced !== undefined) {

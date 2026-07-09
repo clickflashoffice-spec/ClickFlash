@@ -7,6 +7,7 @@ import { apiService } from '../../services/apiService.ts';
 import FaceEnrollmentSection from '../settings/FaceEnrollmentSection.tsx';
 import { logger } from '@/utils/logger';
 import { userEditSchema } from './schemas.ts';
+import { z } from 'zod';
 
 interface UserEditModalProps {
     isOpen: boolean;
@@ -162,7 +163,9 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, onDataCh
             logger.error("Failed to save user", err);
             let errorMessage = 'Unknown error';
 
-            if (err instanceof Error) {
+            if (err instanceof z.ZodError) {
+                errorMessage = err.errors[0].message;
+            } else if (err instanceof Error) {
                 errorMessage = err.message;
                 // Check if it's a network error
                 if ((err as any).isNetworkError || err.message.includes('Failed to fetch') || err.message.includes('Cannot connect')) {

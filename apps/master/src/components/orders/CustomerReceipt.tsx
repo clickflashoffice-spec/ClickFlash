@@ -62,14 +62,14 @@ const CustomerReceipt: React.FC<CustomerReceiptProps> = ({ order }) => {
   };
 
   return (
-    <div className="printable-area p-8 bg-white text-black font-sans max-w-2xl mx-auto my-8 border rounded-lg shadow-lg print:p-0 print:border-none print:shadow-none print:my-0 print:w-full print:max-w-none">
+    <div className="printable-area p-8 bg-white text-black font-sans max-w-2xl mx-auto my-8 border rounded-lg shadow-lg print:p-0 print:border-none print:shadow-none print:my-0 print:w-[80mm] print:mx-auto print:text-xs">
       <header className="text-center pb-6 border-b-2 border-dashed">
         <img
           src={settings.logoUrl}
           alt="Company Logo"
           className="w-24 h-24 mx-auto mb-4 rounded-lg object-cover"
         />
-        <h1 className="text-2xl font-bold uppercase tracking-wide">
+        <h1 className="text-2xl print:text-base font-bold uppercase tracking-wide">
           {settings.companyName}
         </h1>
         <p className="text-sm text-gray-600">{settings.addressLine1}</p>
@@ -81,7 +81,7 @@ const CustomerReceipt: React.FC<CustomerReceiptProps> = ({ order }) => {
         )}
 
         <div className="mt-6 pt-4 border-t border-gray-100">
-          <p className="text-xl font-mono font-bold">Order #{order.id}</p>
+          <p className="text-xl print:text-sm font-mono font-bold">Order #{order.id}</p>
           <div className="mt-2 flex justify-center">
             {renderBarcode()}
           </div>
@@ -140,7 +140,7 @@ const CustomerReceipt: React.FC<CustomerReceiptProps> = ({ order }) => {
             </span>
             <span>{formatCurrency(taxAmount)}</span>
           </div>
-          <div className="flex justify-between py-2 text-xl font-bold">
+          <div className="flex justify-between py-2 text-xl print:text-sm font-bold">
             <span>TOTAL:</span>
             <span>{formatCurrency(order.total)}</span>
           </div>
@@ -163,7 +163,7 @@ const CustomerReceipt: React.FC<CustomerReceiptProps> = ({ order }) => {
             </div>
 
             <div className="text-right font-semibold text-gray-600">PIN:</div>
-            <div className="font-bold font-mono text-2xl tracking-widest text-cyan-600">
+            <div className="font-bold font-mono text-2xl print:text-base tracking-widest text-cyan-600 print:text-black">
               {order.access_pin || "----"}
             </div>
 

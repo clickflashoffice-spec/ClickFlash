@@ -42,7 +42,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({ onExit, isLocked }) => {
                 <Route path="/audit" element={
                     user.role === 'Admin' ? <SystemAudit /> : <Navigate to="/" replace />
                 } />
-                <Route path="/" element={
+                <Route path="/*" element={
                     <MainLayout
                         onSwitchUser={logout}
                         currentUser={user}
@@ -53,7 +53,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({ onExit, isLocked }) => {
                         onDismissAssistance={dismissAssistance}
                     />
                 } />
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
         </React.Suspense>
     );

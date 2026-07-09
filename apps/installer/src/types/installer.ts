@@ -4,6 +4,7 @@
 
 export type InstallStep =
   | "welcome"
+  | "app-selection"
   | "license"
   | "cloudflare"
   | "destination"
@@ -94,6 +95,7 @@ export interface InstallerState {
   isLoading: boolean;
   error: string | null;
   logs: string[];
+  selectedApps?: string[];
 
   // Prerequisites
   prerequisites: PrerequisiteResults | null;
@@ -138,6 +140,7 @@ export interface InstallerState {
 
 export const STEP_ORDER: InstallStep[] = [
   "welcome",
+  "app-selection",
   "license",
   "cloudflare",
   "destination",
@@ -150,6 +153,7 @@ export const STEP_ORDER: InstallStep[] = [
 
 export const STEP_LABELS: Record<InstallStep, string> = {
   welcome: "Welcome",
+  "app-selection": "Components",
   license: "License Key",
   cloudflare: "Cloud Account",
   destination: "Destination",

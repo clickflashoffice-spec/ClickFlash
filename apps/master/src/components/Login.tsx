@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Photographer } from "../types";
 import { logger } from "../utils/logger";
 import { safeStorage } from "../utils/safeStorage";
+import { z } from "zod";
+import { LoginSchema } from "@clickflash/validation";
 
 import { apiService } from "../services/apiService"; // Import apiService
 import FaceScanModal from "./modals/FaceScanModal"; // Import Modal
@@ -147,8 +149,11 @@ const Login: React.FC<LoginProps> = ({
     setError("");
 
     try {
+      // Validate inputs using Zod
+      const validated = LoginSchema.parse({ email, password });
+
       // Use the API login endpoint which handles bcrypt password verification
-      const result = await authService.loginUser(email, password);
+      const result = await authService.loginUser(validated.email, validated.password);
 
       if (result && result.user) {
         const user = result.user;
@@ -189,6 +194,10 @@ const Login: React.FC<LoginProps> = ({
         err instanceof Error
           ? err.message
           : "System Error: Unable to authenticate.";
+
+      if (err instanceof z.ZodError) {
+        errorMessage = err.errors[0].message;
+      }
 
       // Enhance backend connection error messages with helpful instructions
       if (

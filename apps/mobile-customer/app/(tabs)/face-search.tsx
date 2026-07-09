@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { Camera, CameraType } from 'expo-camera';
+import { CameraView, Camera } from 'expo-camera';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-react-native';
 
@@ -8,7 +8,7 @@ export default function FaceSearchScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isTfReady, setIsTfReady] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const cameraRef = useRef<Camera>(null);
+  const cameraRef = useRef<CameraView>(null);
 
   useEffect(() => {
     (async () => {
@@ -59,7 +59,7 @@ export default function FaceSearchScreen() {
 
   return (
     <View style={styles.container}>
-      <Camera style={styles.camera} type={CameraType.front} ref={cameraRef}>
+      <CameraView style={styles.camera} facing="front" ref={cameraRef}>
         <View style={styles.overlay}>
           <View style={styles.faceMask} />
           <Text style={styles.instructions}>
@@ -79,7 +79,7 @@ export default function FaceSearchScreen() {
             )}
           </TouchableOpacity>
         </View>
-      </Camera>
+      </CameraView>
     </View>
   );
 }

@@ -124,6 +124,7 @@ const initialState: InstallerState = {
   desk: null,
   pairings: [],
   firstSync: null,
+  selectedApps: ["master", "touch", "auto-editor", "sync-service", "management"],
 };
 
 export function useInstallerState() {
@@ -159,6 +160,10 @@ export function useInstallerState() {
       const prev = Math.max(s.stepIndex - 1, 0);
       return { ...s, step: STEP_ORDER[prev], stepIndex: prev, error: null };
     });
+  }, []);
+
+  const setSelectedApps = useCallback((apps: string[]) => {
+    setState((s) => ({ ...s, selectedApps: apps }));
   }, []);
 
   // ─── Step 1: Prerequisites ───────────────────────────────────────────────────
@@ -523,6 +528,7 @@ export function useInstallerState() {
     goToStep,
     nextStep,
     prevStep,
+    setSelectedApps,
     setError,
     addLog,
     runPrerequisites,

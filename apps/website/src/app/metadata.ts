@@ -81,6 +81,32 @@ export const baseMetadata: Metadata = {
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
   },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    alternateLocale: ["fr_FR", "de_DE", "es_ES", "ar_SA", "el_GR"],
+    siteName: BRAND.name,
+    url: BRAND.url,
+    title: BRAND.name,
+    description: BRAND.description,
+    images: [
+      {
+        url: BRAND.ogImage,
+        width: 1200,
+        height: 630,
+        alt: `${BRAND.name} - ${BRAND.tagline}`,
+        type: "image/jpeg",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@clickflash",
+    creator: "@clickflash",
+    title: BRAND.name,
+    description: BRAND.description,
+    images: [BRAND.ogImage],
+  },
 };
 
 // OpenGraph Template

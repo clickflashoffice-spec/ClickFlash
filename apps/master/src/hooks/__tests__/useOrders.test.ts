@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { useOrders, useOrder, useCreateOrder, useUpdateOrder, useDeleteOrder, orderKeys } from '../useOrders';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
 // Mock dependencies

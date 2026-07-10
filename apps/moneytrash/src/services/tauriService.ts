@@ -3,8 +3,16 @@
  * Provides safe access to Tauri APIs with initialization checks
  */
 
+import { logger } from '@/utils/logger';
+
 let isTauriReady = false;
 let invokeFn: typeof import('@tauri-apps/api/core').invoke | null = null;
+
+export interface DualChecksumResult {
+  sha256: string;
+  crc32: string;
+  bytes_processed: number;
+}
 
 export const initTauriApi = async (): Promise<boolean> => {
   if (isTauriReady && invokeFn) {
@@ -12,7 +20,7 @@ export const initTauriApi = async (): Promise<boolean> => {
   }
 
   if (typeof window === 'undefined' || !('__TAURI__' in window)) {
-    console.warn('[TauriService] Not running in Tauri context');
+    logger.warn('[TauriService] Not running in Tauri context');
     return false;
   }
 
@@ -20,10 +28,10 @@ export const initTauriApi = async (): Promise<boolean> => {
     const { invoke } = await import('@tauri-apps/api/core');
     invokeFn = invoke;
     isTauriReady = true;
-    console.log('[TauriService] Tauri API ready');
+    logger.info('[TauriService] Tauri API ready');
     return true;
   } catch (e) {
-    console.error('[TauriService] Failed to initialize Tauri API:', e);
+    logger.error('[TauriService] Failed to initialize Tauri API:', e instanceof Error ? e : new Error(String(e)));
     return false;
   }
 };
@@ -54,7 +62,11 @@ export const tauriCommand = async <T = unknown>(
   try {
     return await invoke<T>(cmd, args);
   } catch (e) {
-    console.error(`[TauriService] Command '${cmd}' failed:`, e);
+    logger.error(`[TauriService] Command '${cmd}' failed:`, e instanceof Error ? e : new Error(String(e)));
     throw e;
   }
+};
+
+export const calculateFileChecksums = async (path: string): Promise<DualChecksumResult> => {
+  return await invoke<DualChecksumResult>('calculate_file_checksums', { path });
 };

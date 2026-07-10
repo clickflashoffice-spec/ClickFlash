@@ -105,11 +105,11 @@ function createWindow(): void {
 
   // Load wizard
   if (app.isPackaged) {
-    mainWindow.loadFile(path.join(__dirname, "../renderer/index.html")).catch((err) => {
+    Promise.resolve(mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"))).catch((err) => {
       log("error", "Failed to load renderer", { error: err.message });
     });
   } else {
-    mainWindow.loadURL(WIZARD_URL).catch((err) => {
+    Promise.resolve(mainWindow.loadURL(WIZARD_URL)).catch((err) => {
       log("error", "Failed to load dev server", { error: err.message });
     });
   }
@@ -939,27 +939,30 @@ if (!gotLock) {
   });
 }
 
-app.whenReady().then(() => {
-  setupIpc();
-  createWindow();
+const readyPromise = app.whenReady();
+if (readyPromise && typeof readyPromise.then === "function") {
+  readyPromise.then(() => {
+    setupIpc();
+    createWindow();
 
-  // Handle OAuth callback protocol
-  protocol.handle("clickflash-installer", (request) => {
-    const url = new URL(request.url);
-    if (url.pathname === "/callback") {
-      const token = url.searchParams.get("token");
-      if (token && mainWindow) {
-        mainWindow.webContents.send("installer:oauth-callback", { token });
+    // Handle OAuth callback protocol
+    protocol.handle("clickflash-installer", (request) => {
+      const url = new URL(request.url);
+      if (url.pathname === "/callback") {
+        const token = url.searchParams.get("token");
+        if (token && mainWindow) {
+          mainWindow.webContents.send("installer:oauth-callback", { token });
+        }
       }
-    }
-    return new Response("<html><body>You can close this window.</body></html>", {
-      headers: { "Content-Type": "text/html" },
+      return new Response("<html><body>You can close this window.</body></html>", {
+        headers: { "Content-Type": "text/html" },
+      });
     });
+  }).catch((err) => {
+    log("error", "Fatal startup error", { error: err.message });
+    app.quit();
   });
-}).catch((err) => {
-  log("error", "Fatal startup error", { error: err.message });
-  app.quit();
-});
+}
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();

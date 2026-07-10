@@ -16,29 +16,30 @@ const config: Config = {
         '**/src/**/*.test.tsx',
       ],
       moduleNameMapper: {
+        '^(\\.{1,2}/.*)\\.js$': '$1',
         '^@/(.*)$': '<rootDir>/src/$1',
         '^@components/(.*)$': '<rootDir>/src/components/$1',
         '^@services/(.*)$': '<rootDir>/src/services/$1',
         '^@hooks/(.*)$': '<rootDir>/src/hooks/$1',
         '^@utils/(.*)$': '<rootDir>/src/utils/$1',
         '^@types/(.*)$': '<rootDir>/src/types/$1',
+        '^@clickflash/(.*)$': '<rootDir>/../../packages/$1/src/index.ts',
         '^uuid$': '<rootDir>/__mocks__/uuid.ts',
       },
       transform: {
-        '^.+\\.tsx?$': [
+        '^.+\\.[tj]sx?$': [
           'ts-jest',
           {
-            useESM: true,
             tsconfig: {
               jsx: 'react-jsx',
-              module: 'ESNext',
-              moduleResolution: 'Node',
+              module: 'CommonJS',
+              esModuleInterop: true,
             },
           },
         ],
       },
       transformIgnorePatterns: [
-        'node_modules/(?!(lucide-react|framer-motion|uuid|@uuid)/)',
+        'node_modules/(?!(lucide-react|framer-motion|uuid|@uuid|@clickflash)/)',
       ],
       setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
     },
@@ -51,23 +52,27 @@ const config: Config = {
         '**/backend/**/*.test.tsx',
       ],
       moduleNameMapper: {
+        '^(\\.{1,2}/.*)\\.js$': '$1',
         '^@/(.*)$': '<rootDir>/src/$1',
         '^@services/(.*)$': '<rootDir>/src/services/$1',
         '^@utils/(.*)$': '<rootDir>/src/utils/$1',
+        '^@clickflash/(.*)$': '<rootDir>/../../packages/$1/src/index.ts',
         '^uuid$': '<rootDir>/__mocks__/uuid.ts',
       },
       transform: {
-        '^.+\\.tsx?$': [
+        '^.+\\.[tj]sx?$': [
           'ts-jest',
           {
-            useESM: true,
             tsconfig: {
-              module: 'ESNext',
-              moduleResolution: 'Node',
+              module: 'CommonJS',
+              esModuleInterop: true,
             },
           },
         ],
       },
+      transformIgnorePatterns: [
+        'node_modules/(?!(lucide-react|framer-motion|uuid|@uuid|@clickflash)/)',
+      ],
     },
   ],
   // Global settings (apply to all projects)

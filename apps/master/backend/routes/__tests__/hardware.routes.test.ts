@@ -1,9 +1,9 @@
 import request from 'supertest';
 import express from 'express';
 import { createHardwareRouter } from '../hardware.routes';
-import { hardwareTriggerService } from '../../../src/services/hardwareTriggerService';
+import { hardwareTriggerService } from '../../services/hardwareTriggerService';
 
-jest.mock('../../../src/services/hardwareTriggerService', () => ({
+jest.mock('../../services/hardwareTriggerService', () => ({
     hardwareTriggerService: {
         handleTrigger: jest.fn()
     }

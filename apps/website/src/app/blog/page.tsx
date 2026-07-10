@@ -2,19 +2,15 @@ import React from "react";
 import Link from "next/link";
 import NextImage from "next/image";
 import type { Metadata } from "next";
+import { createPageMetadata } from "../metadata";
 import { blogPosts, categories } from "@/data/blogPosts";
 import { InstagramFeed } from "@/components/sections/InstagramFeed";
 
-export const metadata: Metadata = {
-    title: "Photography Blog | ClickFlash - Wedding & Portrait Tips",
-    description: "Expert photography tips, wedding planning guides, and destination wedding advice from ClickFlash professional photographers in Tunisia.",
-    keywords: ["photography blog", "wedding photography tips", "Tunisia photography", "destination wedding guide", "photo tips"],
-    openGraph: {
-        title: "ClickFlash Photography Blog",
-        description: "Expert photography tips, wedding planning guides, and destination wedding advice from professional photographers in Tunisia.",
-        type: "website",
-    },
-};
+export const metadata: Metadata = createPageMetadata({
+  title: "Photography Blog - Wedding & Portrait Tips",
+  description: "Expert photography tips, wedding planning guides, and destination wedding advice from ClickFlash professional photographers.",
+  path: "/blog",
+});
 
 function getTimeAgo(dateString: string): string {
     const date = new Date(dateString);

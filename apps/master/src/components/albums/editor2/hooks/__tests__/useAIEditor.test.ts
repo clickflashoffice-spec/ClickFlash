@@ -188,10 +188,8 @@ describe('useAIEditor', () => {
                     expect.objectContaining({
                         exposure: 10,
                         contrast: 15,
-                        highlights: -20,
-                        shadows: 20,
-                        vibrance: 10,
-                        sharpen: 20,
+                        saturate: 0,
+                        clarity: 0,
                     })
                 );
                 expect(mockBatchUpdateEdits).toHaveBeenCalledWith(
@@ -199,10 +197,8 @@ describe('useAIEditor', () => {
                     expect.objectContaining({
                         exposure: 10,
                         contrast: 15,
-                        highlights: -20,
-                        shadows: 20,
-                        vibrance: 10,
-                        sharpen: 20,
+                        saturate: 0,
+                        clarity: 0,
                     })
                 );
             }, { timeout: 3000 });
@@ -231,10 +227,8 @@ describe('useAIEditor', () => {
                     expect.objectContaining({
                         exposure: 10,
                         contrast: 15,
-                        highlights: -20,
-                        shadows: 20,
-                        vibrance: 10,
-                        sharpen: 20,
+                        saturate: 0,
+                        clarity: 0,
                     })
                 );
             }, { timeout: 3000 });

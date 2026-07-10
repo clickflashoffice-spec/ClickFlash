@@ -35,6 +35,7 @@ const CapitalPage = lazy(() => import("./CapitalPage.tsx"));
 const SyncLogsPage = lazy(() => import("./SyncLogsPage.tsx"));
 const UnifiedMasterDashboard = lazy(() => import("./UnifiedMasterDashboard.tsx"));
 const Orders = lazy(() => import("../Orders.tsx"));
+const LicenseManagementPage = lazy(() => import("./LicenseManagementPage.tsx"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-64">
@@ -213,6 +214,13 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
           return (
             <Suspense fallback={<PageLoader />}>
               <BillingPage currentUser={currentUser} />
+            </Suspense>
+          );
+
+        case "license_management":
+          return (
+            <Suspense fallback={<PageLoader />}>
+              <LicenseManagementPage />
             </Suspense>
           );
 

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { APIClient } from '../../utils/api-client';
+import { APIClient } from '../utils/api-client';
 
 /**
  * Security E2E Tests
@@ -23,44 +23,46 @@ test.describe('Security - XSS Prevention', () => {
     '<object data="javascript:alert(1)">'
   ];
 
-  test.each(xssPayloads)('rejects XSS payload in album name: %s', async (payload) => {
-    api.setAuthToken(api.getTestToken());
-    
-    const response = await api.post('/albums', {
-      name: payload,
-      description: 'Test'
+  xssPayloads.forEach((payload, idx) => {
+    test(`rejects XSS payload in album name [#${idx}]: ${payload}`, async () => {
+      api.setAuthToken(api.getTestToken());
+      
+      const response = await api.post('/albums', {
+        name: payload,
+        description: 'Test'
+      });
+      
+      expect(response.status).toBe(400);
+      if (response.body) {
+        expect(response.body.name).not.toContain('<script>');
+      }
     });
-    
-    expect(response.status).toBe(400);
-    if (response.body) {
-      expect(response.body.name).not.toContain('<script>');
-    }
-  });
 
-  test.each(xssPayloads)('rejects XSS payload in product name: %s', async (payload) => {
-    api.setAuthToken(api.getTestToken());
-    
-    const response = await api.post('/products', {
-      name: payload,
-      price: 10.99,
-      category: 'prints',
-      sku: 'XSS-001'
+    test(`rejects XSS payload in product name [#${idx}]: ${payload}`, async () => {
+      api.setAuthToken(api.getTestToken());
+      
+      const response = await api.post('/products', {
+        name: payload,
+        price: 10.99,
+        category: 'prints',
+        sku: 'XSS-001'
+      });
+      
+      expect(response.status).toBe(400);
     });
-    
-    expect(response.status).toBe(400);
-  });
 
-  test.each(xssPayloads)('rejects XSS payload in customer name: %s', async (payload) => {
-    api.setAuthToken(api.getTestToken());
-    
-    const response = await api.post('/orders', {
-      customerName: payload,
-      customerEmail: 'test@test.com',
-      items: [{ productId: 'photo-1', quantity: 1, price: 10.00 }],
-      total: 10.00
+    test(`rejects XSS payload in customer name [#${idx}]: ${payload}`, async () => {
+      api.setAuthToken(api.getTestToken());
+      
+      const response = await api.post('/orders', {
+        customerName: payload,
+        customerEmail: 'test@test.com',
+        items: [{ productId: 'photo-1', quantity: 1, price: 10.00 }],
+        total: 10.00
+      });
+      
+      expect(response.status).toBe(400);
     });
-    
-    expect(response.status).toBe(400);
   });
 });
 
@@ -78,32 +80,34 @@ test.describe('Security - SQL Injection Prevention', () => {
     "1' AND '1'='1"
   ];
 
-  test.each(sqliPayloads)('rejects SQLi in album ID: %s', async (payload) => {
-    api.setAuthToken(api.getTestToken());
-    
-    const response = await api.get(`/albums/${encodeURIComponent(payload)}`);
-    expect(response.status).toBe(400);
-  });
+  sqliPayloads.forEach((payload, idx) => {
+    test(`rejects SQLi in album ID [#${idx}]: ${payload}`, async () => {
+      api.setAuthToken(api.getTestToken());
+      
+      const response = await api.get(`/albums/${encodeURIComponent(payload)}`);
+      expect(response.status).toBe(400);
+    });
 
-  test.each(sqliPayloads)('rejects SQLi in product ID: %s', async (payload) => {
-    api.setAuthToken(api.getTestToken());
-    
-    const response = await api.get(`/products/${encodeURIComponent(payload)}`);
-    expect(response.status).toBe(400);
-  });
+    test(`rejects SQLi in product ID [#${idx}]: ${payload}`, async () => {
+      api.setAuthToken(api.getTestToken());
+      
+      const response = await api.get(`/products/${encodeURIComponent(payload)}`);
+      expect(response.status).toBe(400);
+    });
 
-  test.each(sqliPayloads)('rejects SQLi in order ID: %s', async (payload) => {
-    api.setAuthToken(api.getTestToken());
-    
-    const response = await api.get(`/orders/${encodeURIComponent(payload)}`);
-    expect(response.status).toBe(400);
-  });
+    test(`rejects SQLi in order ID [#${idx}]: ${payload}`, async () => {
+      api.setAuthToken(api.getTestToken());
+      
+      const response = await api.get(`/orders/${encodeURIComponent(payload)}`);
+      expect(response.status).toBe(400);
+    });
 
-  test.each(sqliPayloads)('rejects SQLi in search query: %s', async (payload) => {
-    api.setAuthToken(api.getTestToken());
-    
-    const response = await api.get(`/products?search=${encodeURIComponent(payload)}`);
-    expect(response.status).toBe(400);
+    test(`rejects SQLi in search query [#${idx}]: ${payload}`, async () => {
+      api.setAuthToken(api.getTestToken());
+      
+      const response = await api.get(`/products?search=${encodeURIComponent(payload)}`);
+      expect(response.status).toBe(400);
+    });
   });
 });
 

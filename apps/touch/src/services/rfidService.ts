@@ -204,13 +204,16 @@ class RFIDService {
     /**
      * Handle RFID scan event
      */
-    private handleRFIDScan(rfidUid: string) {
+    private async handleRFIDScan(rfidUid: string) {
         const normalizedUid = rfidUid.toUpperCase().trim();
 
         logger.info("[RFIDService] RFID detected", { rfidUid: normalizedUid });
 
         // Get room number from mapping
-        const roomNumber = this.getRoomFromRFID(normalizedUid);
+        let roomNumber = this.getRoomFromRFID(normalizedUid);
+        if (!roomNumber) {
+            roomNumber = await this.lookupRoomFromDatabase(normalizedUid);
+        }
 
         if (roomNumber && this.onRFIDDetectedCallback) {
             this.onRFIDDetectedCallback(roomNumber, normalizedUid);

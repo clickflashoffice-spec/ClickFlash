@@ -19,6 +19,7 @@ const VIEW_META: Record<ManagementView, { tab: string; page: string }> = {
   general_settings:    { tab: "Settings", page: "General Settings" },
   billing_subscription:{ tab: "Settings", page: "Billing & Subscription" },
   staff_management:    { tab: "Settings", page: "Staff Management" },
+  license_management:  { tab: "Settings", page: "License Fleet & Generator" },
   session_types:       { tab: "Settings", page: "Session Types" },
   reports_insights:    { tab: "Settings", page: "Reports & Insights" },
 };

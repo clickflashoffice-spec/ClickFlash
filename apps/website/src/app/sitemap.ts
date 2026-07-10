@@ -1,8 +1,6 @@
 import type { MetadataRoute } from "next";
 import { fetchPortfolioItems } from "@/lib/settings";
 
-export const dynamic = "force-static";
-
 // Base URL configuration
 const baseUrl = "https://clickflash.com";
 

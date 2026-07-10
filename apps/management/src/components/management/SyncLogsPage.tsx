@@ -16,6 +16,9 @@ import {RefreshCw,
     Search} from 'lucide-react';
 import { fleetService, SyncOperation } from '../../services/fleetService';
 import Spinner from '../common/Spinner.tsx';
+import { useManagement } from '../../context/ManagementContext';
+import { matchesHotelContext } from '../../utils/contextMatcher';
+import { logger } from '../../utils/logger';
 
 type SyncStatus = 'success' | 'error' | 'pending' | 'retrying';
 type OperationType = 'photo' | 'order' | 'payroll' | 'expense' | 'inventory' | 'heartbeat' | 'config';
@@ -87,6 +90,7 @@ const formatDuration = (ms: number) => {
 };
 
 export const SyncLogsPage: React.FC = () => {
+    const { selectedContext } = useManagement();
     const [operations, setOperations] = useState<SyncOperation[]>(MOCK_OPERATIONS);
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
     const [filterStatus, setFilterStatus] = useState<SyncStatus | 'all'>('all');
@@ -108,7 +112,7 @@ export const SyncLogsPage: React.FC = () => {
             // setOperations(data.operations);
             setLoading(false);
         } catch (err) {
-            console.error('Failed to fetch operations:', err);
+            logger.error('Failed to fetch operations:', { error: err });
             setLoading(false);
         }
     }, []);
@@ -121,6 +125,7 @@ export const SyncLogsPage: React.FC = () => {
     }, [fetchOperations]);
 
     const filteredOperations = operations.filter(op => {
+        if (!matchesHotelContext(selectedContext, op)) return false;
         if (filterStatus !== 'all' && op.status !== filterStatus) return false;
         if (filterType !== 'all' && op.type !== filterType) return false;
         if (filterDesk !== 'all' && op.deskId !== filterDesk) return false;
@@ -144,7 +149,7 @@ export const SyncLogsPage: React.FC = () => {
                 op.id === id ? { ...op, status: 'retrying', retryCount: op.retryCount + 1 } : op
             ));
         } catch (err) {
-            console.error('Failed to retry operation:', err);
+            logger.error('Failed to retry operation:', { error: err });
         } finally {
             setRetryingId(null);
         }

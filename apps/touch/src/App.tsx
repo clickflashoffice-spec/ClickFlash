@@ -276,6 +276,8 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
                                         showToast={showToast}
                                         isConfigRequired={isConfigRequired}
                                         features={globalFeatures}
+                                        cartCount={cart.reduce((sum, i) => sum + i.quantity, 0)}
+                                        onResumeOrder={() => setTouchView('order-config')}
                                     />
                                 </Suspense>
                             </ErrorBoundary>

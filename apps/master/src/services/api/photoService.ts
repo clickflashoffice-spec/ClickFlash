@@ -102,7 +102,7 @@ export function getPhotoUrl(photo: PocketRecord | Photo, baseUrl?: string): stri
 /**
  * Helper function to parse manualEdits safely
  */
-function parseManualEdits(p: PocketRecord): ManualEdits | undefined {
+export function parseManualEdits(p: PocketRecord): ManualEdits | undefined {
     let manualEdits: ManualEdits | undefined = undefined;
     try {
         if (typeof p.manualEdits === 'string' && p.manualEdits) {

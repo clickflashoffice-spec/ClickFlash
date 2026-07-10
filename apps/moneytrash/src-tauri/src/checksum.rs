@@ -19,6 +19,8 @@ pub enum ChecksumAlgorithm {
     SHA512,
     /// MD5 (for legacy compatibility)
     MD5,
+    /// CRC32 (fast integrity check for SD card RAW files)
+    CRC32,
 }
 
 /// Checksum verification result
@@ -73,10 +75,15 @@ pub async fn calculate_checksum(
             hex::encode(result)
         }
         ChecksumAlgorithm::MD5 => {
-            let mut hasher = md5::Md5::new();
-            hasher.update(&file_data);
-            let result = hasher.finalize();
+            let mut hasher = md5::Context::new();
+            hasher.consume(&file_data);
+            let result = hasher.compute();
             format!("{:x}", result)
+        }
+        ChecksumAlgorithm::CRC32 => {
+            let mut hasher = crc32fast::Hasher::new();
+            hasher.update(&file_data);
+            format!("{:08x}", hasher.finalize())
         }
     };
 
@@ -105,9 +112,14 @@ pub fn calculate_checksum_from_bytes(
             hex::encode(hasher.finalize())
         }
         ChecksumAlgorithm::MD5 => {
-            let mut hasher = md5::Md5::new();
+            let mut hasher = md5::Context::new();
+            hasher.consume(data);
+            format!("{:x}", hasher.compute())
+        }
+        ChecksumAlgorithm::CRC32 => {
+            let mut hasher = crc32fast::Hasher::new();
             hasher.update(data);
-            format!("{:x}", hasher.finalize())
+            format!("{:08x}", hasher.finalize())
         }
     }
 }
@@ -158,7 +170,7 @@ impl StreamingChecksum {
     }
 
     /// Finalize and get the checksum
-    pub fn finalize(self) -> String {
+    pub fn finalize(&self) -> String {
         // Use the top-level digest function from sha2 crate
         let hash = Sha256::digest(&self.data);
         hex::encode(hash)
@@ -207,6 +219,38 @@ pub async fn calculate_checksum_streaming(
 
     let checksum = hex::encode(hasher.finalize());
     Ok((checksum, bytes_read))
+}
+
+/// Calculate both CRC32 and SHA-256 checksums in a single streaming pass for SD card RAW files
+pub async fn calculate_dual_checksum_streaming(
+    file_path: &Path,
+) -> AppResult<(String, String, u64)> {
+    use tokio::io::AsyncReadExt;
+
+    let mut file = tokio::fs::File::open(file_path).await
+        .map_err(|e| AppError::Io(format!("Failed to open file: {}", e)))?;
+
+    let mut sha256_hasher = Sha256::new();
+    let mut crc32_hasher = crc32fast::Hasher::new();
+    let mut buffer = vec![0u8; 65536]; // 64KB buffer for high-throughput SD card dump
+    let mut bytes_read: u64 = 0;
+
+    loop {
+        let n = file.read(&mut buffer).await
+            .map_err(|e| AppError::Io(format!("Failed to read file: {}", e)))?;
+        
+        if n == 0 {
+            break;
+        }
+        
+        sha256_hasher.update(&buffer[..n]);
+        crc32_hasher.update(&buffer[..n]);
+        bytes_read += n as u64;
+    }
+
+    let sha256 = hex::encode(sha256_hasher.finalize());
+    let crc32 = format!("{:08x}", crc32_hasher.finalize());
+    Ok((sha256, crc32, bytes_read))
 }
 
 /// Store file checksum metadata
@@ -311,5 +355,28 @@ mod tests {
         
         assert_eq!(result, "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
         assert_eq!(hasher.bytes_processed(), 11);
+    }
+
+    #[test]
+    fn test_crc32_checksum_from_bytes() {
+        let data = b"hello world";
+        let crc32 = calculate_checksum_from_bytes(data, ChecksumAlgorithm::CRC32);
+        assert_eq!(crc32.len(), 8);
+        assert_eq!(crc32, "0d4a1185");
+    }
+
+    #[tokio::test]
+    async fn test_calculate_dual_checksum_streaming() {
+        use std::io::Write;
+        let file_path = std::env::temp_dir().join("dual_test.raw");
+        let mut file = std::fs::File::create(&file_path).unwrap();
+        file.write_all(b"hello world").unwrap();
+        drop(file);
+
+        let result = calculate_dual_checksum_streaming(&file_path).await.unwrap();
+        let _ = std::fs::remove_file(&file_path);
+        assert_eq!(result.1, "0d4a1185"); // crc32
+        assert_eq!(result.0, "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"); // sha256
+        assert_eq!(result.2, 11); // bytes_processed
     }
 }

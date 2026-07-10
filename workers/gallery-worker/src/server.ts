@@ -5,6 +5,7 @@ import { verifyPassword } from "./auth.js";
 import { createToken, verifyToken, extractTokenFromHeader } from "./jwt.js";
 import { checkLoginRateLimit, recordLoginAttempt } from "./loginRateLimiter.js";
 import { handleRest } from "./routes/rest.js";
+import { R2SignedUrlService } from "./services/r2SignedUrlService.js";
 
 export interface Env {
   GALLERY_DB: any; // D1 binding
@@ -109,6 +110,32 @@ const galleryHandler = {
               headers: { "Content-Type": "application/json" },
             },
           );
+        }
+
+        // Public: Signed R2 High-Res URLs (/v1/<storageKey>?e=...&s=...)
+        if (pathName.startsWith("/v1/")) {
+          const signedUrlService = new R2SignedUrlService({
+            secret: env.JWT_SECRET || "gallery-secret-key",
+            defaultTtlSeconds: 900,
+          });
+          const validation = await signedUrlService.validateSignedUrl(request.url);
+          if (!validation.valid || !validation.path) {
+            return new Response(
+              JSON.stringify({ error: validation.error || "Invalid or expired signed URL" }),
+              { status: 403, headers: { "Content-Type": "application/json" } },
+            );
+          }
+          const object = await env.GALLERY_BUCKET.get(validation.path);
+          if (!object) {
+            return new Response(
+              JSON.stringify({ error: "File not found in storage" }),
+              { status: 404, headers: { "Content-Type": "application/json" } },
+            );
+          }
+          const headers = new Headers();
+          object.writeHttpMetadata(headers);
+          headers.set("Cache-Control", "private, max-age=900");
+          return new Response(object.body, { headers });
         }
 
         // Public: Stripe Checkout (no auth required for customers)
@@ -747,6 +774,38 @@ const galleryHandler = {
           
           // Attach user context for use in route handlers
           const userContext = { user: payload };
+
+          // Short-lived (15-min) Signed High-Res Download URL
+          const downloadMatch = pathName.match(/^\/api\/photos\/([^/]+)\/download-url$/);
+          if (downloadMatch && request.method === "GET") {
+            const photoId = downloadMatch[1];
+            const photos = await dbManager.query("SELECT * FROM photos WHERE id = ?", [photoId]);
+            if (photos.length === 0) {
+              return new Response(JSON.stringify({ error: "Photo not found" }), {
+                status: 404,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+            const photo = photos[0];
+            const signedUrlService = new R2SignedUrlService({
+              secret: env.JWT_SECRET || "gallery-secret-key",
+              defaultTtlSeconds: 900,
+            });
+            const storageKey = photo.url || photo.storagePath || `${photoId}.jpg`;
+            const signedPath = await signedUrlService.generateSignedUrl(storageKey, 900);
+            const downloadUrl = `https://${url.host}${signedPath}`;
+            return new Response(
+              JSON.stringify({
+                success: true,
+                downloadUrl,
+                expiresInSeconds: 900,
+              }),
+              {
+                status: 200,
+                headers: { "Content-Type": "application/json" },
+              },
+            );
+          }
 
           // Modern REST endpoints
           const restResponse = await handleRest(request, url, pathName, dbManager, payload);

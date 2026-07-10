@@ -253,6 +253,7 @@ export const COLUMN_MAP: Record<string, Record<string, string>> = {
         'category': 'category',
         'manualEdits': 'manualEdits',
         'autoEdits': 'autoEdits',
+        'editMetadata': 'editMetadata',
         'autoEnhanced': 'autoEnhanced',
         'metadata': 'metadata',
         'originalFilename': 'originalFilename',

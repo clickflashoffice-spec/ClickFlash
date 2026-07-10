@@ -14,11 +14,12 @@ interface CustomerLoginProps {
       email: string,
     ) => Promise<Order | null>;
     getOrderByRoomNumber: (roomNumber: string) => Promise<Order | null>;
+    getOrderByToken?: (token: string) => Promise<Order | null>;
   };
   onBack?: () => void;
 }
 
-type LoginMode = "gallery" | "order";
+type LoginMode = "gallery" | "order" | "magic";
 
 const CustomerLogin: React.FC<CustomerLoginProps> = ({
   onLoginSuccess,
@@ -70,6 +71,23 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
           onLoginSuccess(order);
         } else {
           setError("Digital order not found or not yet validated.");
+        }
+      } else if (mode === "magic") {
+        const trimmedInput = accessPin.trim();
+        if (!trimmedInput) {
+          setError("Please enter your Room Number or Magic Token.");
+          setLoading(false);
+          return;
+        }
+
+        let order = await authService.getOrderByRoomNumber(trimmedInput);
+        if (!order && authService.getOrderByToken) {
+          order = await authService.getOrderByToken(trimmedInput);
+        }
+        if (order) {
+          onLoginSuccess(order);
+        } else {
+          setError("No order found for this Room Number or Token.");
         }
       }
     } catch (err) {
@@ -135,7 +153,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
                 setMode("gallery");
                 setError("");
               }}
-              className={`flex-1 py-3.5 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all ${
+              className={`flex-1 py-3.5 text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all ${
                 mode === "gallery"
                   ? "bg-white text-cyan-600 shadow-sm border border-slate-200"
                   : "text-slate-500 hover:text-slate-700"
@@ -149,13 +167,27 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
                 setMode("order");
                 setError("");
               }}
-              className={`flex-1 py-3.5 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all ${
+              className={`flex-1 py-3.5 text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all ${
                 mode === "order"
                   ? "bg-white text-cyan-600 shadow-sm border border-slate-200"
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              My Downloads
+              PIN / Email
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("magic");
+                setError("");
+              }}
+              className={`flex-1 py-3.5 text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all ${
+                mode === "magic"
+                  ? "bg-white text-cyan-600 shadow-sm border border-slate-200"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Room / Token
             </button>
           </div>
 
@@ -225,6 +257,28 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
               </div>
             )}
 
+            {mode === "magic" && (
+              <div className="group">
+                <label
+                  htmlFor="accessPin"
+                  className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-600 transition-colors"
+                >
+                  Room Number or Magic Token
+                </label>
+                <input
+                  type="text"
+                  id="accessPin"
+                  name="accessPin"
+                  value={accessPin}
+                  onChange={(e) => setAccessPin(e.target.value)}
+                  placeholder="e.g. 402 or CF-TOKEN-XYZ"
+                  required
+                  autoComplete="off"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4.5 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all font-bold text-sm group-hover:border-slate-300"
+                />
+              </div>
+            )}
+
             {error && (
               <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-xs text-center font-bold animate-shake">
                 {error}
@@ -241,7 +295,9 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
                   ? "Authenticating..."
                   : mode === "gallery"
                     ? "Enter Gallery"
-                    : "Access My Order"}
+                    : mode === "order"
+                      ? "Access My Order"
+                      : "Access Room / Token"}
               </span>
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </button>

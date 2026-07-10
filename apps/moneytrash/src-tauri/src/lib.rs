@@ -4,6 +4,7 @@
 //! Tauri application. It handles file operations, upload management,
 //! and system integration.
 
+pub mod checksum;
 pub mod commands;
 pub mod errors;
 pub mod state;

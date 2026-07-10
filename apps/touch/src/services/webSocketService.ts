@@ -167,14 +167,32 @@ class WebSocketService {
             return;
         }
 
-        const delay = Math.min(1000 * Math.pow(1.5, this.reconnectAttempts), 30000); // Max 30s
-        logger.info(`[WebSocketService] Scheduling reconnect in ${delay}ms (Attempt ${this.reconnectAttempts + 1})`);
+        const baseDelay = Math.min(1000 * Math.pow(1.5, this.reconnectAttempts), 30000); // Max 30s
+        const jitter = Math.floor(Math.random() * 800); // Prevent thundering herd across kiosks
+        const delay = baseDelay + jitter;
+        logger.info(`[WebSocketService] Scheduling jittered reconnect in ${delay}ms (Attempt ${this.reconnectAttempts + 1})`);
 
         this.reconnectTimeout = window.setTimeout(() => {
             this.reconnectTimeout = null;
             this.reconnectAttempts++;
             this.initiateConnection();
         }, delay);
+    }
+
+    /**
+     * Force immediate reconnection (useful on LAN IP change or network restore)
+     */
+    public forceReconnect(wsUrl?: string): void {
+        if (wsUrl) {
+            this.wsUrl = wsUrl;
+        }
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
+        this.reconnectAttempts = 0;
+        logger.info('[WebSocketService] Forcing immediate WebSocket reconnection', { url: this.wsUrl });
+        this.initiateConnection();
     }
 
     private setStatus(newStatus: 'Connected' | 'Disconnected') {

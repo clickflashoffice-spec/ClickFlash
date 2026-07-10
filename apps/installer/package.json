@@ -48,5 +48,20 @@
     "vite": "^7.3.2",
     "vitest": "^2.1.8",
     "wait-on": "^8.0.3"
+  },
+  "build": {
+    "appId": "com.clickflash.installer",
+    "productName": "ClickFlash Installer",
+    "npmRebuild": false,
+    "directories": {
+      "output": "../../ClickFlash_Release_v2.0/03_Production_Builds"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    }
   }
 }

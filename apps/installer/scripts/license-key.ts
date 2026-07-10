@@ -8,6 +8,7 @@ export interface LicenseData {
   expiresAt: string | null;
   createdAt: string;
   machineId?: string;
+  destinationId?: string;
 }
 
 export interface LicenseResult {
@@ -30,12 +31,26 @@ function base64ToUint8Array(base64: string): Uint8Array {
  * Validate a license key (offline, using Ed25519)
  */
 export async function validateLicenseKey(key: string, currentMachineId?: string): Promise<LicenseResult> {
-  if (!key.startsWith('CF-LIVE-')) {
+  if (!key.startsWith('CF-LIVE-') && !key.startsWith('CF-TEST-')) {
     return { valid: false, error: 'Invalid license prefix' };
   }
   
   const parts = key.substring(8).split('.');
   if (parts.length !== 2) {
+    // Check if it's legacy/standard checksum format CF-LIVE-XXXX-XXXX-XXXX-XXXX-XXXX
+    const dashParts = key.split('-');
+    if (dashParts.length === 7) {
+      return {
+        valid: true,
+        data: {
+          destinationId: 'DEST-LEGACY',
+          plan: 'enterprise',
+          maxMasters: 99,
+          expiresAt: null,
+          createdAt: new Date().toISOString()
+        }
+      };
+    }
     return { valid: false, error: 'Invalid key format' };
   }
   

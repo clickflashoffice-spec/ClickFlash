@@ -82,8 +82,6 @@ export class AnalyticsService {
       params.push(deskId);
     }
 
-    const summary = await this.db.get(sql, params);
-
     // Daily breakdown for charts
     let dailySql = `
         SELECT
@@ -101,9 +99,13 @@ export class AnalyticsService {
       dailySql += ` AND desk_id = ?`;
       dailyParams.push(deskId);
     }
-    
+
     dailySql += ` GROUP BY SUBSTR(date, 1, 10) ORDER BY SUBSTR(date, 1, 10) ASC`;
-    const dailyTrend = await this.db.query(dailySql, dailyParams);
+
+    const [summary, dailyTrend] = await Promise.all([
+      this.db.get(sql, params),
+      this.db.query(dailySql, dailyParams),
+    ]);
 
     return {
         summary: summary ?? { totalOrders: 0, totalRevenue: 0, averageOrderValue: 0, gallerySales: 0, inPersonSales: 0 },

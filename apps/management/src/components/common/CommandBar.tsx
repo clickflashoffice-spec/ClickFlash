@@ -45,7 +45,8 @@ const TAB_LABELS: Record<TabId, string> = {
   settings: "Settings",
 };
 
-import { fleetService, MasterStation } from "../../services/fleetService";
+import { fleetService } from "../../services/fleetService";
+import { logger } from "../../utils/logger";
 
 const CommandBar: React.FC<CommandBarProps> = ({ onSelect, isOpen, onClose }) => {
   const [query, setQuery] = useState("");
@@ -78,7 +79,7 @@ const CommandBar: React.FC<CommandBarProps> = ({ onSelect, isOpen, onClose }) =>
           label: s.name,
           type: (s as { type?: string }).type || "Master"
         })));
-      }).catch(err => console.error(err));
+      }).catch(err => logger.error("Failed to fetch stations in CommandBar", { error: err }));
     }
   }, [isOpen]);
 
@@ -131,9 +132,12 @@ const CommandBar: React.FC<CommandBarProps> = ({ onSelect, isOpen, onClose }) =>
             ref={inputRef}
             type="text"
             placeholder="Type a command or search feature..."
-            className="flex-1 bg-transparent border-none outline-none text-slate-800 text-base placeholder:text-slate-400 font-medium"
+            className="flex-1 bg-transparent border-none outline-none text-slate-800 dark:text-white text-base placeholder:text-slate-400 font-medium"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setSelectedIndex(0);
+            }}
           />
           <div className="flex items-center gap-1.5 px-2 py-1 bg-white border border-slate-200 rounded-md shadow-sm">
             <Command className="w-3 h-3 text-slate-500" />

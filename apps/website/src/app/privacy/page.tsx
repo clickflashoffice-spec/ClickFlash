@@ -1,9 +1,11 @@
 import { Metadata } from "next";
+import { createPageMetadata } from "../metadata";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy - ClickFlash Photography",
-  description: "Our commitment to protecting your privacy and personal information.",
-};
+export const metadata: Metadata = createPageMetadata({
+  title: "Privacy Policy",
+  description: "Our commitment to protecting your privacy and personal information at ClickFlash Photography.",
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (

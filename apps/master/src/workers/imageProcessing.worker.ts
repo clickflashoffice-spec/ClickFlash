@@ -33,7 +33,18 @@ interface CropRegion {
     height: number;
 }
 
-type WorkerMessageType = 'analyzeHistogram' | 'autoEnhance' | 'faceRetouch' | 'smartCrop';
+export interface EditMetadata {
+    exposure: number;
+    contrast: number;
+    saturation: number;
+    clarity: number;
+    noiseReductionApplied: boolean;
+    crop?: CropRegion;
+    processedAt: number;
+    engine: string;
+}
+
+type WorkerMessageType = 'analyzeHistogram' | 'autoEnhance' | 'faceRetouch' | 'smartCrop' | 'noiseReduction' | 'applyCrop' | 'autoEditFull';
 
 interface WorkerMessage {
     id: string;
@@ -283,6 +294,82 @@ function faceRetouch(imageData: ImageData, faces: Face[]): ImageData {
     return output;
 }
 
+/**
+ * Fast 3x3 Denoise filter with edge preservation
+ */
+function noiseReduction(imageData: ImageData, strength = 0.5): ImageData {
+    const { data, width, height } = imageData;
+    const output = new ImageData(new Uint8ClampedArray(data), width, height);
+
+    for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+            const idx = (y * width + x) * 4;
+            let sumR = 0, sumG = 0, sumB = 0;
+            let count = 0;
+
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    const nIdx = ((y + dy) * width + (x + dx)) * 4;
+                    sumR += data[nIdx];
+                    sumG += data[nIdx + 1];
+                    sumB += data[nIdx + 2];
+                    count++;
+                }
+            }
+
+            const avgR = sumR / count;
+            const avgG = sumG / count;
+            const avgB = sumB / count;
+
+            output.data[idx] = Math.round(data[idx] * (1 - strength) + avgR * strength);
+            output.data[idx + 1] = Math.round(data[idx + 1] * (1 - strength) + avgG * strength);
+            output.data[idx + 2] = Math.round(data[idx + 2] * (1 - strength) + avgB * strength);
+        }
+    }
+
+    return output;
+}
+
+/**
+ * Apply crop region to ImageData buffer
+ */
+function applyCrop(imageData: ImageData, crop: CropRegion): ImageData {
+    const x = Math.max(0, Math.min(imageData.width - 1, crop.x));
+    const y = Math.max(0, Math.min(imageData.height - 1, crop.y));
+    const width = Math.max(1, Math.min(imageData.width - x, crop.width));
+    const height = Math.max(1, Math.min(imageData.height - y, crop.height));
+
+    const output = new ImageData(width, height);
+    for (let row = 0; row < height; row++) {
+        const srcOffset = ((y + row) * imageData.width + x) * 4;
+        const dstOffset = (row * width) * 4;
+        output.data.set(imageData.data.subarray(srcOffset, srcOffset + width * 4), dstOffset);
+    }
+    return output;
+}
+
+/**
+ * Complete custom auto editor pipeline: auto-exposure, color correction, noise reduction, and smart crop calculation
+ */
+function autoEditFull(imageData: ImageData, faces: Face[] = []): { imageData: ImageData; editMetadata: EditMetadata } {
+    const { adjustments, imageData: enhanced } = autoEnhance(imageData);
+    const denoised = noiseReduction(enhanced, 0.35);
+    const crop = smartCrop(denoised.width, denoised.height, faces);
+
+    const editMetadata: EditMetadata = {
+        exposure: adjustments.exposure,
+        contrast: adjustments.contrast,
+        saturation: adjustments.saturation,
+        clarity: adjustments.clarity,
+        noiseReductionApplied: true,
+        crop,
+        processedAt: Date.now(),
+        engine: 'clickflash-canvas-engine-v2'
+    };
+
+    return { imageData: denoised, editMetadata };
+}
+
 // Worker message event listener
 self.onmessage = (e: MessageEvent<WorkerMessage>) => {
     const { id, type, payload } = e.data;
@@ -310,6 +397,24 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
                 const { imageData, faces } = payload;
                 const retouched = faceRetouch(imageData, faces);
                 (self as any).postMessage({ id, result: retouched }, [retouched.data.buffer]);
+                break;
+            }
+            case 'noiseReduction': {
+                const { imageData, strength } = payload;
+                const denoised = noiseReduction(imageData, strength);
+                (self as any).postMessage({ id, result: denoised }, [denoised.data.buffer]);
+                break;
+            }
+            case 'applyCrop': {
+                const { imageData, crop } = payload;
+                const cropped = applyCrop(imageData, crop);
+                (self as any).postMessage({ id, result: cropped }, [cropped.data.buffer]);
+                break;
+            }
+            case 'autoEditFull': {
+                const { imageData, faces } = payload;
+                const { imageData: processed, editMetadata } = autoEditFull(imageData, faces || []);
+                (self as any).postMessage({ id, result: { imageData: processed, editMetadata } }, [processed.data.buffer]);
                 break;
             }
             default:

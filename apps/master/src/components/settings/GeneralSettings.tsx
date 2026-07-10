@@ -191,7 +191,8 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
 
         setIsCreatingDestLoading(true);
         try {
-            const licenseKey = 'CF-LIVE-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-XXXX';
+            const randSeg = () => Math.random().toString(36).substring(2, 6).toUpperCase().padEnd(4, 'X');
+            const licenseKey = `CF-LIVE-${randSeg()}-${randSeg()}-${randSeg()}-${randSeg()}-ST01`;
             const created = await apiService.createDestination({
                 name: newDestData.name.trim(),
                 country: newDestData.country.trim(),

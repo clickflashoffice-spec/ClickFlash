@@ -399,6 +399,37 @@ pub async fn get_app_directory() -> CommandResult<String> {
     }
 }
 
+/// Dual checksum information returned for SD Card RAW file integrity verification
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DualChecksumInfo {
+    pub sha256: String,
+    pub crc32: String,
+    pub bytes_processed: u64,
+}
+
+/// Calculate both SHA-256 and CRC32 checksums for a file path (used during SD card RAW read dumps)
+#[tauri::command]
+pub async fn calculate_file_checksums(path: String) -> CommandResult<DualChecksumInfo> {
+    let file_path = match validate_path(&path) {
+        Ok(p) => p,
+        Err(e) => return CommandResult::error(e),
+    };
+
+    match crate::checksum::calculate_dual_checksum_streaming(file_path).await {
+        Ok((sha256, crc32, bytes_processed)) => {
+            CommandResult::success(DualChecksumInfo {
+                sha256,
+                crc32,
+                bytes_processed,
+            })
+        }
+        Err(e) => {
+            log::error!("Checksum calculation error for {}: {:?}", path, e);
+            CommandResult::error(e)
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

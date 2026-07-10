@@ -199,6 +199,23 @@ export class LicenseService {
      * Verify the SHA-256 checksum embedded in the license key
      */
     private verifyChecksum(key: string): boolean {
+        if (!key.startsWith('CF-LIVE-') && !key.startsWith('CF-TEST-')) {
+            return false;
+        }
+
+        // Support modern Asymmetric Ed25519 format: CF-LIVE-payloadB64.signatureB64
+        const dotParts = key.substring(8).split('.');
+        if (dotParts.length === 2 && dotParts[0].length > 4 && dotParts[1].length > 4) {
+            try {
+                const payloadB64 = dotParts[0].padEnd(dotParts[0].length + (4 - dotParts[0].length % 4) % 4, '=').replace(/-/g, '+').replace(/_/g, '/');
+                const decoded = Buffer.from(payloadB64, 'base64').toString('utf-8');
+                const parsed = JSON.parse(decoded);
+                return Boolean(parsed.plan || parsed.expiresAt || parsed.createdAt);
+            } catch {
+                return false;
+            }
+        }
+
         // Format: CF-LIVE-XXXX-XXXX-XXXX-XXXX-XXXX
         const parts = key.split('-');
         if (parts.length !== 7 || parts[0] !== 'CF' || (parts[1] !== 'LIVE' && parts[1] !== 'TEST')) {

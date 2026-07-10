@@ -79,6 +79,7 @@ export type ManagementView =
   // Settings Tab
   | "general_settings"
   | "staff_management"
+  | "license_management"
   | "session_types"
   | "reports_insights"
   | "billing_subscription";

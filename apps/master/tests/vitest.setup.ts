@@ -2,6 +2,8 @@ import { vi, Mock } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import { db } from './mocks/database';
 
+(globalThis as any).jest = vi;
+
 let server: { listen: (opts: { onUnhandledRequest: string }) => void; resetHandlers: () => void; close: () => Promise<void> } | null = null;
 let mockLogger: { debug: Mock; info: Mock; warn: Mock; error: Mock };
 

@@ -61,4 +61,31 @@ describe('License Key Generator & Validator', () => {
     expect(validation.valid).toBe(false);
     expect(validation.error).toBe('Invalid key format');
   });
+
+  it('should reject a key when machine ID does not match expected machine ID', async () => {
+    const keys = await generateLicenseKeys({
+      plan: 'pro',
+      maxMasters: 5,
+      expiresDays: 30,
+      count: 1,
+      machineId: 'hw-machine-id-123'
+    });
+
+    const validation = await validateLicenseKey(keys[0].key, { expectedMachineId: 'hw-machine-id-DIFFERENT' });
+    expect(validation.valid).toBe(false);
+    expect(validation.error).toBe('Machine ID mismatch - license bound to different hardware');
+  });
+
+  it('should reject an expired license key', async () => {
+    const keys = await generateLicenseKeys({
+      plan: 'starter',
+      maxMasters: 1,
+      expiresDays: -1, // expired yesterday
+      count: 1
+    });
+
+    const validation = await validateLicenseKey(keys[0].key);
+    expect(validation.valid).toBe(false);
+    expect(validation.error).toBe('License key has expired');
+  });
 });

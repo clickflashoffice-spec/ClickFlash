@@ -3,6 +3,7 @@ import { Search, Command, Shield } from "lucide-react";
 import { useGlobalSearch } from "../../context/GlobalSearchContext";
 import NetworkStatusIndicator from "./NetworkStatusIndicator";
 import ThermalMonitor from "./ThermalMonitor";
+import StudioResourceHealthHUD from "./StudioResourceHealthHUD";
 import { CloudStatusIndicator } from "./CloudStatusIndicator";
 import { Photographer } from "../../types";
 import { pb } from "../../services/pb";
@@ -43,6 +44,8 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({ currentUser }) => 
           <div className="h-4 w-px bg-slate-200 dark:bg-zinc-800" />
           {/* @ts-ignore */}
 <ThermalMonitor compact />
+          <div className="h-4 w-px bg-slate-200 dark:bg-zinc-800" />
+          <StudioResourceHealthHUD compact />
           <div className="h-4 w-px bg-slate-200 dark:bg-zinc-800" />
           <CloudStatusIndicator size="small" />
         </div>

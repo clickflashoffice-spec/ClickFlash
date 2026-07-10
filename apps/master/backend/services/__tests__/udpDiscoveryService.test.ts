@@ -9,42 +9,45 @@
  *  - Error handling (socket errors)
  */
 
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+// Jest globals
 
 // --------------- dgram mock ---------------
-const mockSocketOn = vi.fn();
-const mockSocketBind = vi.fn();
-const mockSocketClose = vi.fn();
-const mockSocketSend = vi.fn((_msg, _offset, _len, _port, _address, cb) => {
+const mockSocketOn = jest.fn();
+const mockSocketBind = jest.fn();
+const mockSocketClose = jest.fn();
+const mockSocketSend = jest.fn((_msg, _offset, _len, _port, _address, cb) => {
   if (cb) cb(null);
 });
-const mockSocketSetBroadcast = vi.fn();
-const mockSocketAddress = vi.fn().mockReturnValue({ port: 41234 });
+const mockSocketSetBroadcast = jest.fn();
+const mockSocketAddress = jest.fn().mockReturnValue({ port: 41234 });
 
-vi.mock('dgram', () => ({
-  default: {
-    createSocket: vi.fn(() => ({
-      on: mockSocketOn,
-      bind: mockSocketBind,
-      close: mockSocketClose,
-      send: mockSocketSend,
-      setBroadcast: mockSocketSetBroadcast,
-      address: mockSocketAddress,
-    })),
-  },
-}));
+jest.mock('dgram', () => {
+  const socketMock = () => ({
+    on: mockSocketOn,
+    bind: mockSocketBind,
+    close: mockSocketClose,
+    send: mockSocketSend,
+    setBroadcast: mockSocketSetBroadcast,
+    address: mockSocketAddress,
+  });
+  return {
+    __esModule: true,
+    default: { createSocket: jest.fn(socketMock) },
+    createSocket: jest.fn(socketMock),
+  };
+});
 
-vi.mock('../networkDetection', () => ({
-  getLocalNetworkIPs: vi.fn(() => ['192.168.1.100']),
+jest.mock('../networkDetection', () => ({
+  getLocalNetworkIPs: jest.fn(() => ['192.168.1.100']),
 }));
 
 // Logger is instantiated inside the module, so we mock the Logger class
-vi.mock('../../utils/logger', () => ({
-  Logger: vi.fn().mockImplementation(() => ({
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
+jest.mock('../../utils/logger', () => ({
+  Logger: jest.fn().mockImplementation(() => ({
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
   })),
 }));
 
@@ -53,8 +56,8 @@ describe('UDPDiscoveryService', () => {
   let service: InstanceType<typeof UDPDiscoveryService>;
 
   beforeEach(async () => {
-    vi.clearAllMocks();
-    vi.useFakeTimers();
+    jest.clearAllMocks();
+    jest.useFakeTimers();
     // Dynamic import to ensure mocks take effect
     const mod = await import('../udpDiscoveryService');
     UDPDiscoveryService = mod.UDPDiscoveryService;
@@ -63,7 +66,7 @@ describe('UDPDiscoveryService', () => {
 
   afterEach(() => {
     service.stop();
-    vi.useRealTimers();
+    jest.useRealTimers();
   });
 
   // ----------------------------------------------------------------
@@ -100,7 +103,7 @@ describe('UDPDiscoveryService', () => {
       listeningHandler!();
 
       // Advance 3 seconds for first broadcast
-      vi.advanceTimersByTime(3001);
+      jest.advanceTimersByTime(3001);
 
       expect(mockSocketSend).toHaveBeenCalled();
       const sentPayload = JSON.parse(mockSocketSend.mock.calls[0][0].toString());

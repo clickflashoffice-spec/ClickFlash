@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Bot, X, Send, Sparkles } from "lucide-react";
 import { useManagement } from "../../context/ManagementContext";
 import { sendChatMessage } from "../../services/geminiService";
+import { logger } from "../../utils/logger";
 
 interface Message {
   id: string;
@@ -9,6 +10,12 @@ interface Message {
   sender: "ai" | "user";
   timestamp: string;
 }
+
+const QUICK_PROMPTS = [
+  "Analyze revenue today",
+  "Check fleet sync latency",
+  "Summarize hotel context",
+];
 
 const AIChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,22 +41,23 @@ const AIChatBot: React.FC = () => {
 
   const { selectedContext } = useManagement();
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+  const handleSendMessage = async (textToSend?: string | React.MouseEvent) => {
+    const prompt = typeof textToSend === "string" ? textToSend : inputValue;
+    if (!prompt.trim()) return;
 
     const userMsg: Message = {
       id: Date.now().toString(),
-      text: inputValue,
+      text: prompt,
       sender: "user",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
     setMessages((prev) => [...prev, userMsg]);
-    setInputValue("");
+    if (typeof textToSend !== "string") setInputValue("");
     setIsTyping(true);
 
     try {
-      const responseText = await sendChatMessage(inputValue, { selectedContext });
+      const responseText = await sendChatMessage(prompt, { selectedContext });
 
       const aiMsg: Message = {
         id: Date.now().toString(),
@@ -59,7 +67,7 @@ const AIChatBot: React.FC = () => {
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch (error: unknown) {
-      console.error("AI PixelFounder Error:", error);
+      logger.error("AI PixelFounder Error", { error });
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         text: `Analysis error: ${error instanceof Error ? error.message : "Failed to reach intelligence layer. Check API key permissions or model availability."}`,
@@ -113,7 +121,19 @@ const AIChatBot: React.FC = () => {
           </div>
 
           {/* Chat History */}
-          <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4 bg-gradient-to-b from-slate-50/50 to-white/50 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4 bg-gradient-to-b from-slate-50/50 to-white/50 dark:from-slate-900 dark:to-slate-900/90 custom-scrollbar">
+            <div className="flex flex-wrap gap-1.5 pb-2 border-b border-slate-200/50 dark:border-white/10">
+              {QUICK_PROMPTS.map((prompt) => (
+                <button
+                  key={prompt}
+                  onClick={() => handleSendMessage(prompt)}
+                  disabled={isTyping}
+                  className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-all disabled:opacity-50"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
             {messages.map((msg) => (
               <div
                 key={msg.id}

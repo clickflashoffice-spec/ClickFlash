@@ -247,5 +247,53 @@ export default function photosRoutes(context: any): Router {
     }
   });
 
+  // POST Auto-edits completion hook
+  router.post("/:id/auto-edits", async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id;
+      const { autoEdits, editMetadata, width, height } = req.body;
+      const existing = dbManager.get(`SELECT * FROM ${table} WHERE id = ?`, [id]);
+      if (!existing) {
+        return res.status(404).json({ error: "NOT_FOUND", message: `${table} record not found` });
+      }
+
+      const now = new Date().toISOString();
+      const autoEditsStr = typeof autoEdits === "string" ? autoEdits : JSON.stringify(autoEdits || { applied: true, enhanced: true });
+      const editMetadataStr = typeof editMetadata === "string" ? editMetadata : (editMetadata ? JSON.stringify(editMetadata) : null);
+
+      let sql = `UPDATE ${table} SET autoEdits = ?, autoEnhanced = 1, updated_at = ?`;
+      const params: any[] = [autoEditsStr, now];
+
+      if (editMetadataStr !== null) {
+        sql += `, editMetadata = ?`;
+        params.push(editMetadataStr);
+      }
+      if (typeof width === "number") {
+        sql += `, width = ?`;
+        params.push(width);
+      }
+      if (typeof height === "number") {
+        sql += `, height = ?`;
+        params.push(height);
+      }
+
+      sql += ` WHERE id = ?`;
+      params.push(id);
+
+      dbManager.run(sql, params);
+      const updated = dbManager.get(`SELECT * FROM ${table} WHERE id = ?`, [id]);
+
+      if (realtimeService && updated) {
+        realtimeService.broadcast({ collection: table, action: "update", record: updated });
+      }
+
+      logger.info(`[AutoEdits] Recorded auto edits & metadata for photo ${id}`);
+      res.json(updated);
+    } catch (err: any) {
+      logger.error("Failed to record auto edits", err);
+      res.status(500).json({ error: "INTERNAL_ERROR", message: err.message });
+    }
+  });
+
   return router;
 }

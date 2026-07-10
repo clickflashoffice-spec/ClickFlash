@@ -79,7 +79,14 @@ export async function generateLicenseKeys(options: GenerateOptions): Promise<Lic
   return keys;
 }
 
-export async function validateLicenseKey(key: string): Promise<{ valid: boolean; plan?: string; maxMasters?: number; expiresAt?: string; machineId?: string; error?: string }> {
+export interface ValidateOptions {
+  expectedMachineId?: string;
+}
+
+export async function validateLicenseKey(
+  key: string,
+  options?: ValidateOptions
+): Promise<{ valid: boolean; plan?: string; maxMasters?: number; expiresAt?: string; machineId?: string; error?: string }> {
   if (!key.startsWith('CF-LIVE-')) {
     return { valid: false, error: 'Invalid key prefix' };
   }
@@ -104,6 +111,21 @@ export async function validateLicenseKey(key: string): Promise<{ valid: boolean;
     }
     
     const payload = JSON.parse(new TextDecoder().decode(payloadBytes));
+
+    // Expiration check
+    if (payload.expiresAt) {
+      const expirationDate = new Date(payload.expiresAt);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      if (expirationDate < now) {
+        return { valid: false, error: 'License key has expired' };
+      }
+    }
+
+    // Hardware machine-binding check
+    if (payload.machineId && options?.expectedMachineId && payload.machineId !== options.expectedMachineId) {
+      return { valid: false, error: 'Machine ID mismatch - license bound to different hardware' };
+    }
     
     return {
       valid: true,

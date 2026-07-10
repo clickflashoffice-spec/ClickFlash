@@ -3,6 +3,7 @@ import Link from "next/link";
 import NextImage from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { createPageMetadata } from "../../metadata";
 import { blogPosts, getPostBySlug, getRelatedPosts } from "@/data/blogPosts";
 
 interface Props {
@@ -20,12 +21,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const post = getPostBySlug(slug);
     if (!post) return { title: "Post Not Found" };
 
+    const base = createPageMetadata({
+      title: post.title,
+      description: post.metaDescription,
+      path: `/blog/${slug}`,
+      type: "article",
+    });
+
     return {
-        title: `${post.title} | ClickFlash Blog`,
-        description: post.metaDescription,
+        ...base,
         keywords: post.keywords,
         authors: [{ name: post.author }],
         openGraph: {
+            ...base.openGraph,
             title: post.title,
             description: post.metaDescription,
             type: "article",

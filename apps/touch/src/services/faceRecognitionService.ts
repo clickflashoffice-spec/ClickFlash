@@ -91,7 +91,7 @@ export const faceRecognitionService = {
       const formData = new FormData();
       formData.append("image", imageBlob, "face-search.jpg");
 
-      const response = await fetch("/api/faces/search", {
+      const response = await fetch(`${pb.baseUrl}/api/faces/search`, {
         method: "POST",
         body: formData,
       });
@@ -132,7 +132,7 @@ export const faceRecognitionService = {
       const formData = new FormData();
       formData.append("image", imageBlob, "face-search.jpg");
 
-      const response = await fetch("/api/faces/search-by-face", {
+      const response = await fetch(`${pb.baseUrl}/api/faces/search-by-face`, {
         method: "POST",
         body: formData,
       });

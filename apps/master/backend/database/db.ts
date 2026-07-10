@@ -197,16 +197,45 @@ export class DatabaseManager {
     return this.db.prepare(sql);
   }
 
+  private walInterval: NodeJS.Timeout | null = null;
+
   public getDb(): DatabaseType {
     if (!this.db) throw new Error("Database not connected");
     return this.db;
   }
 
   public close(): void {
+    if (this.walInterval) {
+      clearInterval(this.walInterval);
+      this.walInterval = null;
+    }
     if (this.db) {
       this.db.close();
       this.db = null;
       logger.info("[Database] Connection closed");
+    }
+  }
+
+  public walCheckpoint(mode: 'PASSIVE' | 'FULL' | 'RESTART' | 'TRUNCATE' = 'TRUNCATE'): void {
+    if (!this.db) return;
+    try {
+      this.db.pragma(`wal_checkpoint(${mode})`);
+      logger.info(`[Database] WAL checkpoint (${mode}) executed successfully.`);
+    } catch (err) {
+      logger.warn(`[Database] WAL checkpoint (${mode}) non-fatal warning:`, err);
+    }
+  }
+
+  public startIdleWalCheckpointScheduler(intervalMs: number = 30 * 60 * 1000): void {
+    if (this.walInterval) {
+      clearInterval(this.walInterval);
+    }
+    logger.info(`[Database] Starting automated periodic WAL checkpoint scheduler (every ${Math.round(intervalMs / 60000)} minutes).`);
+    this.walInterval = setInterval(() => {
+      this.walCheckpoint('TRUNCATE');
+    }, intervalMs);
+    if (this.walInterval.unref) {
+      this.walInterval.unref();
     }
   }
 
@@ -216,7 +245,7 @@ export class DatabaseManager {
       logger.info(
         "[Database] Starting maintenance (VACUUM + Checkpoint + Analyze)...",
       );
-      this.db.pragma("wal_checkpoint(RESTART)");
+      this.db.pragma("wal_checkpoint(TRUNCATE)");
       this.db.exec("VACUUM");
       this.db.exec("ANALYZE"); // Crucial for high-volume query planning
       logger.info("[Database] Maintenance complete.");

@@ -426,16 +426,13 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: isDev
-          ? [
-              "'self'",
-              "'unsafe-inline'",
-              "'unsafe-eval'",
-              "http://localhost:*",
-              "http://127.0.0.1:*",
-            ]
-          // Vite production build emits fully-bundled JS — no inline scripts needed.
-          : ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
+          "http://localhost:*",
+          "http://127.0.0.1:*",
+        ],
         styleSrc: ["'self'", "'unsafe-inline'"], // Tailwind/React runtime styles require unsafe-inline
         fontSrc: ["'self'", "data:"],
         connectSrc: isDev
@@ -462,6 +459,7 @@ app.use(
         baseUri: ["'self'"],
         formAction: ["'self'"], // Prevent form submissions to external domains
         frameAncestors: ["'self'"],
+        upgradeInsecureRequests: null,
       },
     },
     hsts: isDev

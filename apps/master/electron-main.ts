@@ -728,11 +728,11 @@ app.whenReady().then(async () => {
   // Set Content-Security-Policy via webRequest headers (typed API)
   const CSP_POLICY = [
     "default-src 'self'",
-    "script-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: clickflash://",
-    "font-src 'self' data:",
-    "connect-src 'self' http://localhost:*",
+    "img-src 'self' data: blob: clickflash:// https: http:",
+    "font-src 'self' data: https: http:",
+    "connect-src 'self' http://localhost:* http://127.0.0.1:* https: wss: ws:",
     "frame-src 'none'",
     "object-src 'none'",
     "base-uri 'self'",

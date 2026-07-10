@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
-import DOMPurify from 'dompurify';
-import { JSDOM } from 'jsdom';
 import { pagesStore } from '@/lib/cmsStore';
+
+export const runtime = 'edge';
+
+function sanitizeHtml(html: string): string {
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/\s+on[a-z]+=(["'])(.*?)\1/gi, '')
+    .replace(/javascript:/gi, '');
+}
 
 export async function POST(request: Request) {
   try {
@@ -12,15 +19,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Set up JSDOM for DOMPurify to work in Node environment
-    const window = new JSDOM('').window;
-    const purify = DOMPurify(window as any);
-    
-    // Sanitize the content to prevent XSS
-    const sanitizedContent = purify.sanitize(data.content, {
-      ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'br', 'span', 'div', 'img', 'blockquote'],
-      ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'id', 'target']
-    });
+    const sanitizedContent = sanitizeHtml(data.content);
 
     const page = {
       title: data.title,

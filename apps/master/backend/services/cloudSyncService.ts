@@ -211,6 +211,13 @@ export class CloudSyncService {
   }
 
   private get cloudGalleryUrl(): string {
+    try {
+      const row = this.dbManager.get<{ value: string }>(
+        "SELECT value FROM settings WHERE key = 'cloud_gallery_url' OR key = 'cloud_url'",
+      );
+      if (row && row.value) return row.value;
+    } catch (e) {}
+
     return (
       process.env.CLOUD_GALLERY_URL ||
       "https://gallery-backend.clickflash-office.workers.dev"

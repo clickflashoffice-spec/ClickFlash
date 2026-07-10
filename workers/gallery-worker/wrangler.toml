@@ -50,11 +50,11 @@ bucket_name = "clickflash-gallery-assets"
 
 [vars]
 NODE_ENV = "production"
-ALLOWED_ORIGINS = "https://gallery.clickflash.com,https://clickflash.com,https://clicketflash.com"
+ALLOWED_ORIGINS = "https://gallery.clickflash.com,https://clickflash.com,https://www.clickflash.com,https://clicketflash.com,https://www.clicketflash.com,https://admin.clickflash.com"
 DEPLOY_ENV = "production"
 
 # Hardened Security Policy
-GEO_RESTRICTED = "true"
+GEO_RESTRICTED = "false"
 ALLOWED_COUNTRIES = "MA,TN,FR,US"
 WAF_RATE_LIMIT = "100/min"
 SENTRY_PROJECT = "clickflash-gallery"

@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
+import { createPageMetadata } from "../metadata";
 import { InstagramFeed } from "@/components/sections/InstagramFeed";
+
+export const metadata: Metadata = createPageMetadata({
+  title: "Careers & Photographer Jobs",
+  description: "Join ClickFlash Photography's global team of resort and event photographers across premier destinations.",
+  path: "/careers",
+});
 
 export default function CareersPage() {
     return (

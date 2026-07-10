@@ -125,6 +125,7 @@ try {
   const BACKEND_MIGRATIONS_DIR = path.join(__dirname, "migrations");
   dbManager = new DatabaseManager(DB_FILE);
   dbManager.connect(SHARED_MIGRATIONS_DIR);
+  dbManager.startIdleWalCheckpointScheduler(30 * 60 * 1000); // Checkpoint WAL every 30 minutes
   
   // Initialize CSRF token store with database (persists tokens across restarts)
   initCsrfTokenStore(dbManager);

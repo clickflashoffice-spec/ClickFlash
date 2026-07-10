@@ -4,7 +4,7 @@
  * When triggered, it instantly instructs the connected DSLR array to fire.
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 import { z } from 'zod';
 import { randomUUID } from 'crypto';
 

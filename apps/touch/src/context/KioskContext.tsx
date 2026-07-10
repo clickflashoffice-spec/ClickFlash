@@ -30,6 +30,7 @@ interface KioskContextType {
     packs: Pack[];
     refreshProductData: () => Promise<void>;
     resetIdleTimer: () => void;
+    forceLANReconnect: () => void;
     isConfigRequired: boolean;
     showToast: (msg: string) => void;
 }
@@ -724,10 +725,15 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
         };
     }, []);
 
+    const forceLANReconnect = useCallback(() => {
+        logger.info('[KioskContext] Manual LAN reconnect requested');
+        webSocketService.forceReconnect();
+    }, []);
+
     const value = {
         kioskId, isIdle, idleTimeoutMs, kioskConnectionStatus, globalFeatures, kioskAlbums,
         products, packs, refreshProductData,
-        resetIdleTimer, isConfigRequired, showToast
+        resetIdleTimer, forceLANReconnect, isConfigRequired, showToast
     };
 
     return (

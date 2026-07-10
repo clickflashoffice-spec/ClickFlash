@@ -183,6 +183,48 @@ export default defineConfig({
         baseURL: process.env.INSTALLER_URL || 'http://localhost:3002',
       },
     },
+
+    // ==================== 9-LAYER QA GAUNTLET ====================
+    {
+      name: 'ecosystem',
+      testDir: './tests/ecosystem',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.MASTER_URL || 'http://localhost:8090',
+      },
+    },
+    {
+      name: 'security',
+      testDir: './test-suite/security',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.MASTER_URL || 'http://localhost:8090',
+      },
+    },
+    {
+      name: 'accessibility',
+      testDir: './test-suite/accessibility',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.WEBSITE_URL || 'https://clickflash-website.pages.dev',
+      },
+    },
+    {
+      name: 'visual',
+      testDir: './test-suite/visual',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.MASTER_URL || 'http://localhost:8090',
+      },
+    },
+    {
+      name: 'smoke',
+      testDir: './test-suite/smoke',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.MASTER_URL || 'http://localhost:8090',
+      },
+    },
   ],
 
   // Run local dev server before starting tests

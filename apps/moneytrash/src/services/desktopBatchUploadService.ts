@@ -3,7 +3,8 @@
  * Handles high-volume concurrent uploads with native file system access
  */
 
-import { invoke, isTauri } from './tauriService';
+import { invoke, isTauri, calculateFileChecksums } from './tauriService';
+import { logger } from '@/utils/logger';
 
 interface UploadJob {
   id: string;
@@ -42,12 +43,58 @@ interface UploadProgress {
   status: UploadJob['status'];
 }
 
+const STORAGE_KEY = 'cf_moneytrash_upload_jobs';
+
 class DesktopBatchUploadService {
   private jobs: Map<string, UploadJob> = new Map();
   private activeJobs: Set<string> = new Set();
   private maxConcurrentJobs: number = 3;
   private maxConcurrentFiles: number = 5;
   private subscribers: Array<(progress: UploadProgress) => void> = [];
+
+  constructor() {
+    this.loadJobsFromStorage();
+  }
+
+  private loadJobsFromStorage(): void {
+    try {
+      if (typeof window === 'undefined') return;
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const parsed: any[] = JSON.parse(raw);
+      parsed.forEach((j) => {
+        // Only load summary/meta since File objects cannot be stored in localStorage directly
+        this.jobs.set(j.id, {
+          ...j,
+          files: [],
+          createdAt: new Date(j.createdAt),
+          startedAt: j.startedAt ? new Date(j.startedAt) : undefined,
+          completedAt: j.completedAt ? new Date(j.completedAt) : undefined,
+        });
+      });
+    } catch (err) {
+      console.warn('Failed to restore upload jobs from storage:', err);
+    }
+  }
+
+  private saveJobsToStorage(): void {
+    try {
+      if (typeof window === 'undefined') return;
+      const toSave = Array.from(this.jobs.values()).map((job) => ({
+        id: job.id,
+        metadata: job.metadata,
+        status: job.status,
+        progress: job.progress,
+        createdAt: job.createdAt.toISOString(),
+        startedAt: job.startedAt?.toISOString(),
+        completedAt: job.completedAt?.toISOString(),
+        errors: job.errors,
+      }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave.slice(0, 50)));
+    } catch (err) {
+      console.warn('Failed to save upload jobs to storage:', err);
+    }
+  }
 
   /**
    * Create a new batch upload job
@@ -69,6 +116,7 @@ class DesktopBatchUploadService {
     };
 
     this.jobs.set(jobId, job);
+    this.saveJobsToStorage();
     this.processQueue();
 
     return jobId;
@@ -173,7 +221,19 @@ class DesktopBatchUploadService {
       job.progress.currentFile = file.name;
       this.notifySubscribers(job.id);
 
+      let sha256Checksum: string | undefined;
+      let crc32Checksum: string | undefined;
+
       if (nativePath) {
+        try {
+          const checksums = await calculateFileChecksums(nativePath);
+          sha256Checksum = checksums.sha256;
+          crc32Checksum = checksums.crc32;
+          logger.info(`[Checksum Verified] ${file.name}: CRC32=${crc32Checksum}, SHA256=${sha256Checksum}`);
+        } catch (checksumErr) {
+          logger.warn(`[Checksum Warning] Could not calculate native checksums for ${file.name}:`, { error: checksumErr instanceof Error ? checksumErr.message : String(checksumErr) });
+        }
+
         for (let i = 0; i < totalChunks; i++) {
           const start = i * CHUNK_SIZE;
           const end = Math.min(start + CHUNK_SIZE, file.size);
@@ -195,7 +255,9 @@ class DesktopBatchUploadService {
               eventName: job.metadata.eventName,
               accessCode: job.metadata.accessCode,
               mode: job.metadata.mode,
-              mimeType: file.type
+              mimeType: file.type,
+              sha256Checksum,
+              crc32Checksum
             }
           });
         }
@@ -303,6 +365,7 @@ class DesktopBatchUploadService {
    * Notify all subscribers
    */
   private notifySubscribers(jobId: string): void {
+    this.saveJobsToStorage();
     const progress = this.getProgress(jobId);
     if (progress) {
       this.subscribers.forEach(callback => callback(progress));

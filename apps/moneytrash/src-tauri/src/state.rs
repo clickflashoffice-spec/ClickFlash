@@ -278,7 +278,7 @@ mod tests {
     fn test_app_config_default() {
         let config = AppConfig::default();
         assert_eq!(config.max_concurrent_uploads, 3);
-        assert_eq!(config.chunk_size, 1024 * 1024);
+        assert_eq!(config.chunk_size, 5 * 1024 * 1024);
         assert!(config.enable_notifications);
         assert!(config.auto_retry);
     }

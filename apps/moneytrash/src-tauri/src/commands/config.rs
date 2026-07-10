@@ -363,6 +363,7 @@ mod tests {
             full_gallery_price: Some("100.00".to_string()),
             api_url: Some("http://localhost:8090".to_string()),
             desk_id: Some("DESK-01".to_string()),
+            api_key: None,
             s3_access_key: None,
             s3_secret_key: None,
             s3_region: None,

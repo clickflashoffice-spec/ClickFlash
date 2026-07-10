@@ -18,6 +18,7 @@ playwright-report/
 test-results/
 release/
 release_v2/
+ClickFlash_Release_*/
 **/target/
 **/dist/
 **/build/

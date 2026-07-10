@@ -449,11 +449,11 @@ pub async fn cancel_upload(
     let mut sessions = state.sessions.lock().await;
     
     if let Some(_session) = sessions.remove(&session_id) {
-        // Clean up temp files
-        let temp_dir = std::env::temp_dir()
+        // Clean up temp file
+        let file_path = std::env::temp_dir()
             .join("moneytrash-uploads")
-            .join(&session_id);
-        let _ = tokio::fs::remove_dir_all(&temp_dir).await;
+            .join(format!("{}.tmp", session_id));
+        let _ = tokio::fs::remove_file(&file_path).await;
         
         Ok(true)
     } else {

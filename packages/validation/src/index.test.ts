@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import {
-  PhotoSchema, AlbumSchema, UserSchema, OrderSchema, CartItemSchema,
+  PhotoSchema, AlbumSchema, UserSchema, CartItemSchema,
   BookingSchema, ClientSchema, ProductSchema, SessionTypeSchema,
-  DestinationSchema, LicenseKeySchema, ManualEditsSchema,
-  PhotoCreateSchema, OrderCreateSchema, BookingCreateSchema,
-  UserCreateSchema, LoginSchema, MagicLinkSchema, PinLoginSchema,
+  DestinationSchema, LicenseKeySchema,
+  PhotoCreateSchema, OrderCreateSchema,
+  UserCreateSchema, LoginSchema, MagicLinkSchema,
   validateOrThrow, validateOrNull, validatePartial, validateSafe,
   sanitizeHtml, sanitizeObject, generateCsrfToken, validateCsrfToken,
   PaginationSchema, SortSchema,

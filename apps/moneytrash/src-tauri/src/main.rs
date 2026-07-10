@@ -3,6 +3,7 @@
 
 use tauri::{Manager, WindowEvent};
 
+mod checksum;
 mod commands;
 mod errors;
 mod state;
@@ -36,6 +37,7 @@ fn main() {
             commands::file::create_directory,
             commands::file::file_exists,
             commands::file::get_app_directory,
+            commands::file::calculate_file_checksums,
             
             // Upload operations
             commands::upload::upload_file_chunk,

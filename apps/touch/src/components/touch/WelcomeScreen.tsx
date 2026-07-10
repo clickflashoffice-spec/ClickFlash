@@ -16,6 +16,8 @@ interface WelcomeScreenProps {
   isConfigRequired?: boolean;
   showToast: (message: string) => void;
   features?: DestinationFeatures;
+  cartCount?: number;
+  onResumeOrder?: () => void;
 }
 
 const WelcomeButton: React.FC<{
@@ -33,29 +35,23 @@ const WelcomeButton: React.FC<{
   icon,
   onClick,
   gradient,
-  highlight,
+  highlight = false,
   delay = 0,
   testId,
 }) => (
   <button
-    onClick={onClick}
     data-testid={testId}
-    className={`relative w-full h-auto min-h-[220px] max-h-[280px] ${gradient} rounded-3xl flex flex-col items-center justify-center text-center p-5 cursor-pointer transition-all duration-500 hover:scale-[1.03] active:scale-95 shadow-xl hover:shadow-2xl border border-white/10 group overflow-hidden animate-fadeInUp`}
+    onClick={onClick}
     style={{ animationDelay: `${delay}ms` }}
+    className={`group relative overflow-hidden rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl active:translate-y-0 active:scale-95 touch-manipulation min-h-[160px] sm:min-h-[180px] border-4 ${
+      highlight
+        ? "border-amber-400 shadow-amber-500/30"
+        : "border-white/20 dark:border-white/10 shadow-xl"
+    } ${gradient}`}
   >
-    {/* Background Decorator */}
-    <div className="absolute top-0 left-0 w-full h-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-    <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-
-    {highlight && (
-      <div className="absolute inset-0 ring-4 ring-white/30 rounded-3xl animate-pulse z-0"></div>
-    )}
-
-    <div className="relative z-10 text-white mb-3 p-4 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors backdrop-blur-md shadow-lg">
-      {React.cloneElement(icon as React.ReactElement<{ className?: string }>, {
-        className:
-          "w-10 h-10 transform group-hover:rotate-6 transition-transform duration-300",
-      })}
+    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+    <div className="relative z-10 mb-3 p-4 rounded-2xl bg-white/20 backdrop-blur-md shadow-inner text-white group-hover:scale-110 transition-transform duration-300">
+      {icon}
     </div>
     <h2 className="relative z-10 text-xl font-bold text-white mb-2 drop-shadow-md whitespace-nowrap">
       {title}
@@ -73,6 +69,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   isConfigRequired,
   showToast,
   features = { ai: true, face: true, watermark: true },
+  cartCount = 0,
+  onResumeOrder,
 }) => {
   const [isPasswordModalOpen, setPasswordModalOpen] = useState(false);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
@@ -704,6 +702,30 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             Touch an option below to begin
           </p>
         </div>
+
+        {cartCount > 0 && onResumeOrder && (
+          <div className="mb-10 w-full max-w-xl mx-auto px-6 animate-bounce">
+            <button
+              onClick={onResumeOrder}
+              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-xl py-5 px-8 rounded-2xl shadow-xl hover:shadow-2xl flex items-center justify-between border-4 border-emerald-300/30 transition-all transform hover:scale-105 active:scale-95 touch-manipulation"
+            >
+              <div className="flex items-center space-x-4">
+                <span className="p-3 bg-white/20 rounded-xl">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </span>
+                <div className="text-left">
+                  <div className="text-sm uppercase tracking-wider text-emerald-100 font-bold">Unfinished Order</div>
+                  <div className="text-2xl font-black">Resume Your Order ({cartCount} items)</div>
+                </div>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         <div className="w-full px-6 sm:px-12">
           <div

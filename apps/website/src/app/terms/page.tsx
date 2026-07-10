@@ -1,9 +1,11 @@
 import { Metadata } from "next";
+import { createPageMetadata } from "../metadata";
 
-export const metadata: Metadata = {
-  title: "Terms of Service - ClickFlash Photography",
-  description: "Terms and conditions for using ClickFlash Photography services.",
-};
+export const metadata: Metadata = createPageMetadata({
+  title: "Terms of Service",
+  description: "Terms and conditions for using ClickFlash Photography services and booking sessions.",
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (

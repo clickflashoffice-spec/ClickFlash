@@ -258,18 +258,19 @@ const UnifiedMasterDashboard: React.FC = () => {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <span className="px-2 py-0.5 bg-sky-500/10 border border-sky-500/20 text-sky-400 text-[10px] font-black uppercase rounded tracking-widest">
-                  Global Oversight
+                  {selectedContext && selectedContext !== "Global / Enterprise" ? `Hotel Context: ${selectedContext}` : "Global Oversight"}
                 </span>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
                   Master Station Dashboard
                 </span>
               </div>
               <h1 className="text-3xl font-black text-white">
-                Unified Dashboard
+                {selectedContext && selectedContext !== "Global / Enterprise" ? `${selectedContext} Dashboard` : "Unified Dashboard"}
               </h1>
               <p className="text-sm text-slate-400 mt-1">
-                Aggregated view across {aggregated.totalStations} Master
-                stations worldwide
+                {selectedContext && selectedContext !== "Global / Enterprise"
+                  ? `Filtered view for resort destination: ${selectedContext}`
+                  : `Aggregated view across ${aggregated.totalStations} Master stations worldwide`}
               </p>
             </div>
 

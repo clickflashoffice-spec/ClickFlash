@@ -18,8 +18,9 @@ const AddDestinationModal: React.FC<AddDestinationModalProps> = ({ isOpen, onClo
             if (destinationToEdit) {
                 setDestination(destinationToEdit);
             } else {
-                // Generate a random license key for new destinations
-                const randomKey = 'SM-' + Math.random().toString(36).substr(2, 9).toUpperCase() + '-' + new Date().getFullYear();
+                // Generate a standard ClickFlash license key for new destinations
+                const randSeg = () => Math.random().toString(36).substring(2, 6).toUpperCase().padEnd(4, 'X');
+                const randomKey = `CF-LIVE-${randSeg()}-${randSeg()}-${randSeg()}-${randSeg()}-${new Date().getFullYear()}`;
                 setDestination({ name: '', country: '', type: 'Resort', licenseKey: randomKey });
             }
         }

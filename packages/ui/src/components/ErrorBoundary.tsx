@@ -1,4 +1,7 @@
-import React, { Component, type ReactNode, type ErrorInfo } from 'react';
+import { Component, type ReactNode, type ErrorInfo } from 'react';
+import { BrowserLogger } from '@clickflash/logger';
+
+const logger = new BrowserLogger('clickflash-ui');
 
 /**
  * Shared Error Boundary for all ClickFlash apps.
@@ -54,9 +57,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     const { onError, componentName } = this.props;
 
-    // Log the error (use structured logger when available)
-    const context = componentName ? `[${componentName}]` : '';
-    console.error(`[ErrorBoundary]${context} Caught error:`, error, errorInfo.componentStack);
+    // Log the error using structured logger
+    const context = componentName ? `[${componentName}] ` : '';
+    logger.error(`${context}Caught error: ${error.message}`, error, {
+      componentStack: errorInfo.componentStack
+    });
 
     // Call optional error callback
     if (onError) {

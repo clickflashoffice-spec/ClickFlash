@@ -164,7 +164,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, onDataCh
             let errorMessage = 'Unknown error';
 
             if (err instanceof z.ZodError) {
-                errorMessage = err.errors[0].message;
+                errorMessage = err.issues[0]?.message || err.message;
             } else if (err instanceof Error) {
                 errorMessage = err.message;
                 // Check if it's a network error

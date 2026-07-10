@@ -1,5 +1,5 @@
 import express, { Request, Response, Router } from "express";
-import { hardwareTriggerService } from "../../src/services/hardwareTriggerService";
+import { hardwareTriggerService } from "../services/hardwareTriggerService";
 
 export function createHardwareRouter(): Router {
     const router = express.Router();

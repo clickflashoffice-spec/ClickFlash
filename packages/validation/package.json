@@ -2,6 +2,7 @@
   "name": "@clickflash/validation",
   "version": "0.0.0",
   "description": "Shared validation schemas and utilities for the ClickFlash monorepo",
+  "type": "module",
   "private": true,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

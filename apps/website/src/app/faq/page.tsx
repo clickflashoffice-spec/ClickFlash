@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { createPageMetadata } from "../metadata";
 
-export const metadata: Metadata = {
-    title: "FAQ",
-    description: "Frequently asked questions about ClickFlash photography services, booking, pricing, and more.",
-};
+export const metadata: Metadata = createPageMetadata({
+  title: "Frequently Asked Questions",
+  description: "Frequently asked questions about ClickFlash photography services, booking, pricing, delivery times, and resort sessions.",
+  path: "/faq",
+});
 
 const faqCategories = [
     {

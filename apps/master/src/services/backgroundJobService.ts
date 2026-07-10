@@ -86,13 +86,18 @@ class BackgroundJobService {
                             img.onerror = () => reject(new Error('Failed to load image for auto_edit'));
                             img.src = payload.url;
                         });
-                        const processed = await imageProcessingService.autoEnhanceAsync(
+                        const processed = await imageProcessingService.autoEditFullAsync(
                             (() => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const ctx = c.getContext('2d')!; ctx.drawImage(img, 0, 0); return ctx.getImageData(0, 0, c.width, c.height); })()
                         );
                         if (payload.photoId) {
                             await pb.request(`/api/photos/${payload.photoId}/auto-edits`, {
                                 method: 'POST',
-                                body: JSON.stringify({ autoEdits: { applied: true, enhanced: true }, width: processed.imageData.width, height: processed.imageData.height })
+                                body: JSON.stringify({
+                                    autoEdits: { applied: true, enhanced: true },
+                                    editMetadata: processed.editMetadata,
+                                    width: processed.imageData.width,
+                                    height: processed.imageData.height
+                                })
                             }).catch(() => {});
                         }
                     }
@@ -110,12 +115,17 @@ class BackgroundJobService {
                                     img.onerror = () => reject(new Error('Failed to load image in batch'));
                                     img.src = photo.url;
                                 });
-                                await imageProcessingService.autoEnhanceAsync(
+                                const processed = await imageProcessingService.autoEditFullAsync(
                                     (() => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const ctx = c.getContext('2d')!; ctx.drawImage(img, 0, 0); return ctx.getImageData(0, 0, c.width, c.height); })()
                                 );
                                 await pb.request(`/api/photos/${photo.id}/auto-edits`, {
                                     method: 'POST',
-                                    body: JSON.stringify({ autoEdits: { applied: true, enhanced: true } })
+                                    body: JSON.stringify({
+                                        autoEdits: { applied: true, enhanced: true },
+                                        editMetadata: processed.editMetadata,
+                                        width: processed.imageData.width,
+                                        height: processed.imageData.height
+                                    })
                                 }).catch(() => {});
                             } catch (e) {
                                 logger.warn(`[BackgroundJobService] Failed single photo in batch_enhance`, { photoId: photo.id });

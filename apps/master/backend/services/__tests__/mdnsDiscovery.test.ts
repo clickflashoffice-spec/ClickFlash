@@ -9,32 +9,37 @@
  *  - getTouchDevices returns immutable copy
  */
 
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+// Jest globals
 
 // --------------- Bonjour mock ---------------
-const mockPublish = vi.fn().mockReturnValue({ stop: vi.fn() });
-const mockBrowserOn = vi.fn();
-const mockBrowserStop = vi.fn();
-const mockFind = vi.fn().mockReturnValue({
+const mockPublish = jest.fn().mockReturnValue({ stop: jest.fn() });
+const mockBrowserOn = jest.fn();
+const mockBrowserStop = jest.fn();
+const mockFind = jest.fn().mockReturnValue({
   on: mockBrowserOn,
   stop: mockBrowserStop,
 });
-const mockDestroy = vi.fn();
+const mockDestroy = jest.fn();
 
-vi.mock('bonjour-service', () => ({
-  default: vi.fn().mockImplementation(() => ({
+jest.mock('bonjour-service', () => {
+  const MockBonjour = jest.fn().mockImplementation(() => ({
     publish: mockPublish,
     find: mockFind,
     destroy: mockDestroy,
-  })),
-}));
+  }));
+  return Object.assign(MockBonjour, {
+    __esModule: true,
+    default: MockBonjour,
+    Bonjour: MockBonjour,
+  });
+});
 
 // --------------- Logger mock ---------------
 const mockLogger = {
-  info: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-  debug: vi.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  debug: jest.fn(),
 };
 
 import { MasterMdnsDiscovery, DiscoveredDevice } from '../mdnsDiscovery';
@@ -43,7 +48,7 @@ describe('MasterMdnsDiscovery', () => {
   let discovery: MasterMdnsDiscovery;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     discovery = new MasterMdnsDiscovery(mockLogger as any);
   });
 
@@ -83,14 +88,14 @@ describe('MasterMdnsDiscovery', () => {
   // ----------------------------------------------------------------
   describe('browseForTouches()', () => {
     it('should browse for clickflash-touch services', () => {
-      const callback = vi.fn();
+      const callback = jest.fn();
       discovery.browseForTouches(callback);
 
       expect(mockFind).toHaveBeenCalledWith({ type: 'clickflash-touch' });
     });
 
     it('should emit discovered device on "up" event', () => {
-      const callback = vi.fn();
+      const callback = jest.fn();
       discovery.browseForTouches(callback);
 
       // Simulate 'up' event
@@ -122,7 +127,7 @@ describe('MasterMdnsDiscovery', () => {
     });
 
     it('should remove device on "down" event', () => {
-      const callback = vi.fn();
+      const callback = jest.fn();
       discovery.browseForTouches(callback);
 
       const upHandler = mockBrowserOn.mock.calls.find((c) => c[0] === 'up')?.[1];
@@ -168,7 +173,7 @@ describe('MasterMdnsDiscovery', () => {
   describe('stop()', () => {
     it('should stop service, browser, and destroy bonjour', () => {
       discovery.advertise('desk-1', '1.0.0', 'Test');
-      discovery.browseForTouches(vi.fn());
+      discovery.browseForTouches(jest.fn());
 
       discovery.stop();
 

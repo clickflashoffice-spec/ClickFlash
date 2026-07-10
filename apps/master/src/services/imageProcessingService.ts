@@ -319,6 +319,72 @@ class ImageProcessingService {
     }
 
     /**
+     * Noise Reduction
+     */
+    async noiseReductionAsync(imageData: ImageData, strength = 0.5): Promise<ImageData> {
+        if (this.worker) {
+            try {
+                const copy = new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);
+                return await this.dispatchToWorker<ImageData>('noiseReduction', { imageData: copy, strength }, [copy.data.buffer]);
+            } catch (err) {
+                logger.warn('Worker noiseReduction failed, falling back to main thread', err);
+            }
+        }
+        return this.noiseReduction(imageData, strength);
+    }
+
+    noiseReduction(imageData: ImageData, strength = 0.5): ImageData {
+        const { data, width, height } = imageData;
+        const output = new ImageData(new Uint8ClampedArray(data), width, height);
+        for (let y = 1; y < height - 1; y++) {
+            for (let x = 1; x < width - 1; x++) {
+                const idx = (y * width + x) * 4;
+                let sumR = 0, sumG = 0, sumB = 0;
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        const nIdx = ((y + dy) * width + (x + dx)) * 4;
+                        sumR += data[nIdx];
+                        sumG += data[nIdx + 1];
+                        sumB += data[nIdx + 2];
+                    }
+                }
+                output.data[idx] = Math.round(data[idx] * (1 - strength) + (sumR / 9) * strength);
+                output.data[idx + 1] = Math.round(data[idx + 1] * (1 - strength) + (sumG / 9) * strength);
+                output.data[idx + 2] = Math.round(data[idx + 2] * (1 - strength) + (sumB / 9) * strength);
+            }
+        }
+        return output;
+    }
+
+    /**
+     * Full Custom Auto Editor Pipeline: Exposure, Color, Denoise, Crop
+     */
+    async autoEditFullAsync(imageData: ImageData, faces: Face[] = []): Promise<{ imageData: ImageData; editMetadata: EditMetadata }> {
+        if (this.worker) {
+            try {
+                const copy = new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);
+                return await this.dispatchToWorker<{ imageData: ImageData; editMetadata: EditMetadata }>('autoEditFull', { imageData: copy, faces }, [copy.data.buffer]);
+            } catch (err) {
+                logger.warn('Worker autoEditFull failed, falling back to main thread', err);
+            }
+        }
+        const { adjustments, imageData: enhanced } = await this.autoEnhanceAsync(imageData);
+        const denoised = this.noiseReduction(enhanced, 0.35);
+        return {
+            imageData: denoised,
+            editMetadata: {
+                exposure: adjustments.exposure,
+                contrast: adjustments.contrast,
+                saturation: adjustments.saturation,
+                clarity: adjustments.clarity,
+                noiseReductionApplied: true,
+                processedAt: Date.now(),
+                engine: 'clickflash-canvas-engine-v2'
+            }
+        };
+    }
+
+    /**
      * Batch process multiple images for auto enhancement without blocking
      */
     async batchAutoEnhance(images: { id: string; imageData: ImageData }[]): Promise<Map<string, { adjustments: ColorAdjustments; imageData: ImageData }>> {
@@ -333,6 +399,17 @@ class ImageProcessingService {
         }
         return results;
     }
+}
+
+export interface EditMetadata {
+    exposure: number;
+    contrast: number;
+    saturation: number;
+    clarity: number;
+    noiseReductionApplied: boolean;
+    crop?: CropRegion;
+    processedAt: number;
+    engine: string;
 }
 
 export const imageProcessingService = new ImageProcessingService();

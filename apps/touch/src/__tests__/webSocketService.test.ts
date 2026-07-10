@@ -257,11 +257,18 @@ describe('Touch WebSocketService', () => {
 
       expect(service.status).toBe('Disconnected');
 
-      // First reconnect delay = min(1000 * 1.5^0, 30000) = 1000 ms
-      vi.advanceTimersByTime(1001);
+      // First reconnect delay = 1000ms + up to 800ms jitter
+      vi.advanceTimersByTime(1805);
 
       // A new WebSocket should have been created
       expect(wsInstances.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('should immediately connect on forceReconnect', () => {
+      connectService();
+      expect(wsInstances.length).toBe(1);
+      service.forceReconnect();
+      expect(wsInstances.length).toBe(2);
     });
 
     it('should stop reconnecting after MAX_RECONNECT_ATTEMPTS', () => {

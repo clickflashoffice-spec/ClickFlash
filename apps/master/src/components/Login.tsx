@@ -196,7 +196,7 @@ const Login: React.FC<LoginProps> = ({
           : "System Error: Unable to authenticate.";
 
       if (err instanceof z.ZodError) {
-        errorMessage = err.errors[0].message;
+        errorMessage = err.issues[0]?.message || err.message;
       }
 
       // Enhance backend connection error messages with helpful instructions

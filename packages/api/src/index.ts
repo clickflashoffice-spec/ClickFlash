@@ -1,3 +1,7 @@
+import { BrowserLogger, LogMeta } from "@clickflash/logger";
+
+const logger = new BrowserLogger("clickflash-api");
+
 export class ConnectionManager {
   private baseUrl: string;
   private authToken: string | null = null;
@@ -38,14 +42,14 @@ export class ConnectionManager {
       if (!response.ok) {
         // Auto-retry on 503 Service Unavailable or 429 Too Many Requests
         if ((response.status === 503 || response.status === 429) && retries > 0) {
-          console.warn(`[API] Connection to ${endpoint} failed (${response.status}), retrying...`);
+          logger.warn(`Connection to ${endpoint} failed (${response.status}), retrying...`);
           await new Promise((res) => setTimeout(res, 1000 * (4 - retries)));
           return this.request<T>(endpoint, options, retries - 1);
         }
 
         if (response.status === 401) {
           // TODO: Implement token refresh logic or callback here
-          console.warn(`[API] 401 Unauthorized for ${endpoint}`);
+          logger.warn(`401 Unauthorized for ${endpoint}`);
         }
 
         throw new Error(`API Error ${response.status}: ${await response.text()}`);
@@ -55,7 +59,7 @@ export class ConnectionManager {
     } catch (err: any) {
       if (err.name === "TypeError" && err.message === "Failed to fetch" && retries > 0) {
         // Network error (offline), retry with backoff
-        console.warn(`[API] Network error connecting to ${endpoint}, retrying...`);
+        logger.warn(`Network error connecting to ${endpoint}, retrying...`);
         await new Promise((res) => setTimeout(res, 2000 * (4 - retries)));
         return this.request<T>(endpoint, options, retries - 1);
       }
@@ -109,12 +113,12 @@ export class SSEManager {
     this.eventSource = new EventSource(this.url);
 
     this.eventSource.onopen = () => {
-      console.log(`[SSE] Connected to ${this.url}`);
+      logger.info(`SSE Connected to ${this.url}`);
       this.reconnectAttempts = 0;
     };
 
     this.eventSource.onerror = (error) => {
-      console.error(`[SSE] Connection error on ${this.url}`, error);
+      logger.error(`SSE Connection error on ${this.url}`, error as LogMeta);
       this.disconnect();
       this.reconnect();
     };
@@ -125,7 +129,7 @@ export class SSEManager {
         const type = data.type || 'message';
         this.notifyListeners(type, data.payload);
       } catch (e) {
-        console.error('[SSE] Failed to parse message', e);
+        logger.error('SSE Failed to parse message', e instanceof Error ? e : undefined);
       }
     };
   }
@@ -139,13 +143,13 @@ export class SSEManager {
 
   private reconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error(`[SSE] Max reconnect attempts reached for ${this.url}`);
+      logger.error(`SSE Max reconnect attempts reached for ${this.url}`);
       return;
     }
     
     this.reconnectAttempts++;
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-    console.log(`[SSE] Reconnecting in ${delay}ms (Attempt ${this.reconnectAttempts})`);
+    logger.info(`SSE Reconnecting in ${delay}ms (Attempt ${this.reconnectAttempts})`);
     setTimeout(() => this.connect(), delay);
   }
 

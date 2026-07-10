@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { useAlbums, useAlbum, useCreateAlbum, useUpdateAlbum, useDeleteAlbum, albumKeys } from '../useAlbums';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 
 // Mock dependencies
 jest.mock('@tanstack/react-query', () => ({

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { createPageMetadata } from "../metadata";
 
-export const metadata: Metadata = {
-    title: "Testimonials",
-    description: "Read what our clients say about ClickFlash photography services. Real reviews from weddings, events, and portrait sessions.",
-};
+export const metadata: Metadata = createPageMetadata({
+  title: "Client Testimonials & Reviews",
+  description: "Read what our clients say about ClickFlash photography services. Real reviews from weddings, resorts, events, and portrait sessions.",
+  path: "/testimonials",
+});
 
 const testimonials = [
     {

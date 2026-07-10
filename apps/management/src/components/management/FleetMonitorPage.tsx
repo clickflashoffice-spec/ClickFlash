@@ -26,7 +26,10 @@ import {
   MasterStation,
 } from "../../services/fleetService";
 import { orchestrationService } from "../../services/orchestrationService";
-import Spinner from "../common/Spinner.tsx";
+import { useManagement } from "../../context/ManagementContext";
+import { matchesHotelContext } from "../../utils/contextMatcher";
+import { logger } from "../../utils/logger";
+import Spinner from "../common/Spinner";
 
 // ─── Status Badge ────────────────────────────────────────────────────────────
 const StatusBadge: React.FC<{ status: MasterStation["status"] }> = ({ status }) => {
@@ -78,7 +81,10 @@ const StationCard: React.FC<{
   onSelect: () => void;
   isSelected: boolean;
   onForceSync: (e: React.MouseEvent) => void;
-}> = ({ station, onSelect, isSelected, onForceSync }) => {
+  onPing: (e: React.MouseEvent) => void;
+  isPinging?: boolean;
+  pingLatency?: number;
+}> = ({ station, onSelect, isSelected, onForceSync, onPing, isPinging, pingLatency }) => {
   const accentColor = station.status === "online"
     ? "border-l-emerald-500"
     : station.status === "offline"
@@ -164,13 +170,21 @@ const StationCard: React.FC<{
       </div>
 
       {station.status !== "offline" && (
-        <div className="mt-4 pt-3 border-t border-white/5">
+        <div className="mt-4 pt-3 border-t border-white/5 flex items-center gap-2">
+          <button
+            onClick={onPing}
+            disabled={isPinging}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl hover:bg-emerald-500/20 transition-all text-[10px] font-black uppercase tracking-[0.08em] disabled:opacity-50"
+          >
+            <Activity className={`w-3 h-3 ${isPinging ? "animate-spin" : ""}`} />
+            {isPinging ? "Pinging..." : pingLatency !== undefined ? `${pingLatency}ms` : "Ping"}
+          </button>
           <button
             onClick={onForceSync}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl hover:bg-blue-500/20 transition-all text-[10px] font-black uppercase tracking-[0.1em]"
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl hover:bg-blue-500/20 transition-all text-[10px] font-black uppercase tracking-[0.08em]"
           >
             <RefreshCw className="w-3 h-3" />
-            Force Node Sync
+            Force Sync
           </button>
         </div>
       )}
@@ -358,6 +372,7 @@ const StationDetails: React.FC<{
 export const FleetMonitorPage: React.FC<{
   onNavigateToStation?: (id: string) => void;
 }> = ({ onNavigateToStation }) => {
+  const { selectedContext } = useManagement();
   const [stations, setStations] = useState<MasterStation[]>([]);
   const [selectedStation, setSelectedStation] = useState<MasterStation | null>(null);
   const [filter, setFilter] = useState<"all" | "online" | "offline" | "warning">("all");
@@ -366,6 +381,8 @@ export const FleetMonitorPage: React.FC<{
   const [commandLoading, setCommandLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [_syncingStation, setSyncingStation] = useState<string | null>(null);
+  const [pingingStation, setPingingStation] = useState<string | null>(null);
+  const [pingLatency, setPingLatency] = useState<Record<string, number>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
@@ -402,9 +419,25 @@ export const FleetMonitorPage: React.FC<{
       await fleetService.forceSync(deskId);
       await fetchStations();
     } catch (err) {
-      console.error("Failed to force sync:", err);
+      logger.error("Failed to force sync:", { error: err });
     } finally {
       setSyncingStation(null);
+    }
+  };
+
+  const handlePingStation = async (e: React.MouseEvent, deskId: string) => {
+    e.stopPropagation();
+    setPingingStation(deskId);
+    const start = performance.now();
+    try {
+      await fleetService.sendHeartbeat(deskId);
+      const rtt = Math.round(performance.now() - start);
+      setPingLatency((prev) => ({ ...prev, [deskId]: rtt }));
+      logger.info(`Ping to ${deskId} successful (${rtt}ms)`);
+    } catch (err) {
+      logger.error(`Ping to ${deskId} failed`, { error: err });
+    } finally {
+      setPingingStation(null);
     }
   };
 
@@ -434,6 +467,7 @@ export const FleetMonitorPage: React.FC<{
   };
 
   const filteredStations = stations.filter((s) => {
+    if (!matchesHotelContext(selectedContext, s)) return false;
     if (filter !== "all" && s.status !== filter) return false;
     if (
       search &&
@@ -561,6 +595,9 @@ export const FleetMonitorPage: React.FC<{
                 onSelect={() => setSelectedStation(station)}
                 isSelected={selectedStation?.id === station.id}
                 onForceSync={(e) => handleForceSync(e, station.id)}
+                onPing={(e) => handlePingStation(e, station.id)}
+                isPinging={pingingStation === station.id}
+                pingLatency={pingLatency[station.id]}
               />
             ))}
           </div>

@@ -154,6 +154,7 @@ export function VirtualList<T>({
             <List<object>
                 rowComponent={Row as (props: { ariaAttributes: { "aria-posinset": number; "aria-setsize": number; role: "listitem" }; index: number; style: React.CSSProperties }) => React.ReactElement | null}
                 rowProps={{}}
+                itemData={{}}
                 rowCount={cleanProps.itemCount}
                 rowHeight={cleanProps.itemSize}
                 overscanCount={cleanProps.overscanCount}

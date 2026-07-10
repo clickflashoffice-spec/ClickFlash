@@ -294,6 +294,7 @@ function VirtualGridInner<T>({
                 <Grid<object>
                     cellComponent={Cell as (props: { ariaAttributes: { "aria-colindex": number; role: "gridcell" }; columnIndex: number; rowIndex: number; style: React.CSSProperties }) => React.ReactElement | null}
                     cellProps={{}}
+                    itemData={{}}
                     columnCount={finalColumnCount}
                     columnWidth={finalColumnWidth}
                     rowCount={finalRowCount}

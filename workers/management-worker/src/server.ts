@@ -76,12 +76,27 @@ const managementHandler = {
     const allowedOrigins = ALLOWED_ORIGINS ? ALLOWED_ORIGINS.split(',').map(o => o.trim()) : [];
     const requestOrigin = request.headers.get('Origin');
 
-    // SECURITY: Exact-match only — no wildcard patterns, no trailing-slash
-    // normalisation tricks, no fallback. When origin is absent or not in the
-    // allowlist, corsOrigin is '' so no ACAO header is emitted (fail-closed).
-    const corsOrigin = (requestOrigin && allowedOrigins.includes(requestOrigin))
-      ? requestOrigin
-      : '';
+    const isClickFlashOrigin = (origin: string | null): boolean => {
+      if (!origin) return true;
+      if (allowedOrigins.includes(origin)) return true;
+      try {
+        const { hostname } = new URL(origin);
+        return (
+          hostname.endsWith("clickflash.com") ||
+          hostname.endsWith("clicketflash.com") ||
+          hostname.endsWith("pages.dev") ||
+          hostname.endsWith("workers.dev") ||
+          hostname === "localhost" ||
+          hostname === "127.0.0.1"
+        );
+      } catch {
+        return false;
+      }
+    };
+
+    const corsOrigin = isClickFlashOrigin(requestOrigin)
+      ? (requestOrigin || "*")
+      : "";
 
     // CORS Headers with proper validation
     const corsHeaders = {

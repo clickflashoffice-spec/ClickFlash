@@ -634,33 +634,83 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
           // Build scoped R2 key — desk_id namespace prevents any cross-master collision
           const r2Key = `${deskId}/${albumId}/${originalName}`;
 
-          if (totalChunks === 1 || chunkIndex === totalChunks - 1) {
-            // Single chunk or final chunk — simple put
+          let finalBuffer: ArrayBuffer;
+          if (totalChunks > 1 && chunkIndex === totalChunks - 1) {
+            // Reassemble chunks 0 to totalChunks - 2 + final chunk
+            const chunkBuffers: Uint8Array[] = [];
+            let totalSize = 0;
+            for (let i = 0; i < totalChunks - 1; i++) {
+              const partKey = `chunks/${r2Key}.chunk${i}`;
+              const obj = await env.GALLERY_BUCKET.get(partKey);
+              if (!obj) {
+                return createErrorResponse(400, "Bad Request", `Missing chunk ${i}`);
+              }
+              const buf = new Uint8Array(await obj.arrayBuffer());
+              chunkBuffers.push(buf);
+              totalSize += buf.byteLength;
+            }
+            const lastBuf = new Uint8Array(await file.arrayBuffer());
+            chunkBuffers.push(lastBuf);
+            totalSize += lastBuf.byteLength;
+
+            const merged = new Uint8Array(totalSize);
+            let offset = 0;
+            for (const b of chunkBuffers) {
+              merged.set(b, offset);
+              offset += b.byteLength;
+            }
+            finalBuffer = merged.buffer;
+
+            // Cleanup temp chunks
+            for (let i = 0; i < totalChunks - 1; i++) {
+              const partKey = `chunks/${r2Key}.chunk${i}`;
+              await env.GALLERY_BUCKET.delete(partKey).catch(() => {});
+            }
+          } else if (totalChunks <= 1) {
+            finalBuffer = await file.arrayBuffer();
+          } else {
+            // Multi-chunk intermediate: store chunk temporarily with index suffix
+            const chunkKey = `chunks/${r2Key}.chunk${chunkIndex}`;
             const buf = await file.arrayBuffer();
-            await env.GALLERY_BUCKET.put(r2Key, buf, {
-              httpMetadata: { contentType: file.type || "image/webp" },
-              customMetadata: {
-                deskId,
-                albumId,
-                photoId,
-                orderId: orderId || "",
-              },
-            });
-            console.log(
-              `[R2 Upload] Stored: ${r2Key} (${buf.byteLength} bytes)`,
-            );
+            await env.GALLERY_BUCKET.put(chunkKey, buf);
             return Response.json(
-              { success: true, key: r2Key },
+              { success: true, chunkKey, completed: false },
               { headers: corsHeaders },
             );
           }
 
-          // Multi-chunk: store chunk temporarily with index suffix
-          const chunkKey = `chunks/${r2Key}.chunk${chunkIndex}`;
-          const buf = await file.arrayBuffer();
-          await env.GALLERY_BUCKET.put(chunkKey, buf);
+          await env.GALLERY_BUCKET.put(r2Key, finalBuffer, {
+            httpMetadata: { contentType: file.type || "image/webp" },
+            customMetadata: {
+              deskId,
+              albumId,
+              photoId,
+              orderId: orderId || "",
+            },
+          });
+
+          // Also insert/update D1 photos table
+          try {
+            await env.DB.prepare(
+              `INSERT INTO photos (id, albumId, url, status, desk_id, created_at)
+               VALUES (?, ?, ?, 'available', ?, CURRENT_TIMESTAMP)
+               ON CONFLICT(id) DO UPDATE SET
+                 url = EXCLUDED.url,
+                 status = EXCLUDED.status,
+                 desk_id = EXCLUDED.desk_id,
+                 updated_at = CURRENT_TIMESTAMP`,
+            )
+              .bind(photoId || r2Key, albumId, r2Key, deskId)
+              .run();
+          } catch (dbErr) {
+            console.error("[Management Cloud Upload] D1 insert warning:", dbErr);
+          }
+
+          console.log(
+            `[R2 Upload] Stored & Synced: ${r2Key} (${finalBuffer.byteLength} bytes)`,
+          );
           return Response.json(
-            { success: true, chunkKey },
+            { success: true, key: r2Key, completed: true },
             { headers: corsHeaders },
           );
         } catch (e: any) {

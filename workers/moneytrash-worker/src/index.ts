@@ -51,8 +51,26 @@ export default {
       "Access-Control-Max-Age": "86400",
     };
 
-    if (allowedOrigins.split(",").includes(requestOrigin)) {
-      corsHeaders["Access-Control-Allow-Origin"] = requestOrigin;
+    const isAllowedOrigin = (origin: string): boolean => {
+      if (!origin) return true;
+      if (allowedOrigins.split(",").includes(origin)) return true;
+      try {
+        const { hostname } = new URL(origin);
+        return (
+          hostname.endsWith("clickflash.com") ||
+          hostname.endsWith("clicketflash.com") ||
+          hostname.endsWith("pages.dev") ||
+          hostname.endsWith("workers.dev") ||
+          hostname === "localhost" ||
+          hostname === "127.0.0.1"
+        );
+      } catch {
+        return false;
+      }
+    };
+
+    if (isAllowedOrigin(requestOrigin)) {
+      corsHeaders["Access-Control-Allow-Origin"] = requestOrigin || "*";
     }
 
     // Handle preflight

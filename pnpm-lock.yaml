@@ -1715,7 +1715,11 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@24.10.13)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.14.6(@types/node@24.10.13)(typescript@5.9.3))(terser@5.46.0)
 
-  workers/gallery-worker: {}
+  workers/gallery-worker:
+    dependencies:
+      jose:
+        specifier: ^6.2.3
+        version: 6.2.3
 
   workers/management-worker:
     dependencies:

@@ -48,9 +48,9 @@ export async function handleUploadFinalize(request: Request, env: Env): Promise<
     // Create gallery or order record in D1
     let result;
     if (session.metadata.mode === 'moneytrash') {
-      result = await createGalleryRecord(env.DB, session, assembledKey);
+      result = await createGalleryRecord(env.DB, session, assembledKey, env);
     } else {
-      result = await createOrderBackupRecord(env.DB, session, assembledKey);
+      result = await createOrderBackupRecord(env.DB, session, assembledKey, env);
     }
     
     // Update session status
@@ -109,7 +109,8 @@ async function assembleChunks(env: Env, session: UploadSession): Promise<string>
 async function createGalleryRecord(
   db: D1Database,
   session: UploadSession,
-  r2Key: string
+  r2Key: string,
+  env: Env
 ): Promise<{ galleryUrl: string; assetId: string }> {
   const assetId = crypto.randomUUID();
   const galleryId = crypto.randomUUID();
@@ -152,8 +153,27 @@ async function createGalleryRecord(
     ).run();
   }
   
+  // Also insert into photos table so customer gallery-worker can display it immediately
+  try {
+    await db.prepare(
+      `INSERT INTO photos (id, album_id, access_code, title, url, storage_key, price, originalPrice, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
+    ).bind(
+      assetId,
+      galleryId,
+      session.metadata.access_code,
+      session.fileName,
+      `/v1/${r2Key}`,
+      r2Key,
+      session.metadata.single_photo_price ? parseFloat(session.metadata.single_photo_price) : 15,
+      30
+    ).run();
+  } catch (err) {
+    console.warn("[UploadFinalize] Note: photos table insert fallback:", err);
+  }
+
   return {
-    galleryUrl: `${process.env.GALLERY_APP_URL}/gallery/${session.metadata.access_code}`,
+    galleryUrl: `${env.GALLERY_APP_URL || 'https://gallery.clickflash.com'}/gallery/${session.metadata.access_code}`,
     assetId,
   };
 }
@@ -161,7 +181,8 @@ async function createGalleryRecord(
 async function createOrderBackupRecord(
   db: D1Database,
   session: UploadSession,
-  r2Key: string
+  r2Key: string,
+  env: Env
 ): Promise<{ galleryUrl: string; assetId: string }> {
   const assetId = crypto.randomUUID();
   
@@ -190,9 +211,27 @@ async function createOrderBackupRecord(
     session.fileSize,
     r2Key
   ).run();
+
+  try {
+    await db.prepare(
+      `INSERT INTO photos (id, album_id, access_code, title, url, storage_key, price, originalPrice, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
+    ).bind(
+      assetId,
+      orderId,
+      session.metadata.access_code,
+      session.fileName,
+      `/v1/${r2Key}`,
+      r2Key,
+      15,
+      30
+    ).run();
+  } catch (err) {
+    console.warn("[UploadFinalize] Note: photos table insert fallback:", err);
+  }
   
   return {
-    galleryUrl: `${process.env.GALLERY_APP_URL}/order/${session.metadata.access_code}`,
+    galleryUrl: `${env.GALLERY_APP_URL || 'https://gallery.clickflash.com'}/order/${session.metadata.access_code}`,
     assetId,
   };
 }

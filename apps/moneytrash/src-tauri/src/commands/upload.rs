@@ -253,7 +253,9 @@ async fn internal_finalize_upload(
     }
     
     // Upload to API using streaming
-    let api_base_url = api_url.unwrap_or("http://localhost:8090");
+    let api_base_url = api_url
+        .filter(|u| !u.trim().is_empty())
+        .unwrap_or("https://moneytrash-api.clickflash-office.workers.dev");
     let result = upload_to_api(api_base_url, session_id, &file_path, session, _metadata).await;
     
     // Clean up temp file regardless of result

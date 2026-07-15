@@ -29,7 +29,7 @@
 - pnpm workspaces; run scripts with `npm --prefix apps/<app> run <script>` from root
 - All `tsx` in npm scripts must use `npx tsx` (bare `tsx` fails on Windows with `--prefix`)
 
-**Apps**: `master` (Electron :8090), `touch` (Electron :8091), `gallery` (CF Worker PWA), `management` (CF Worker), `website` (Next.js), `moneytrash` (Tauri)
+**Apps**: `master` (Electron :8090), `touch` (Electron :8091), `gallery` (CF Pages), `management` (CF Pages), `cloud-backend` (CF Worker), `website` (Next.js), `moneytrash` (Tauri)
 **Packages**: `@clickflash/types`, `ui`
 
 **React** (all apps: 19.2.0)
@@ -37,7 +37,7 @@
 - Server data → `@tanstack/react-query` (with `staleTime`, `gcTime`, `retry:1`, `refetchOnWindowFocus:false`)
 - Complex local state → `zustand`; offline cache → `dexie`; nav/UI state → Context API
 
-**Cloudflare Workers** (gallery, management)
+**Cloudflare Workers** (cloud-backend)
 - `compatibility_flags = ["nodejs_compat"]` and `[observability] enabled = true` required
 - Use `@sentry/cloudflare` (NOT `@sentry/node`); wrap with `Sentry.withSentry(env, handler)`
 - Never import Node-only modules (`setInterval`, `http.IncomingMessage`) in Worker code

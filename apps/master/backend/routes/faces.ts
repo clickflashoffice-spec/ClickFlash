@@ -329,6 +329,47 @@ export default function faceRoutes(context: FacesContext): Router {
   });
 
   /**
+   * @route POST /search-vector
+   * @description Search for photos using a pre-computed 128D face descriptor (Edge AI optimized)
+   * @access Staff Only
+   */
+  router.post("/search-vector", requirePermission(PERMISSIONS.PHOTO_VIEW), strictRateLimiter, express.json(), (req: Request, res: Response) => {
+    try {
+      const { descriptor } = req.body;
+      
+      if (!descriptor || !Array.isArray(descriptor) || descriptor.length !== 128) {
+        return sendInvalidInputError(res, "Invalid or missing 128D face descriptor");
+      }
+
+      // Search using Vector Index
+      const matchedPhotoIds = vectorIndex.search(descriptor, 50);
+
+      if (!matchedPhotoIds || matchedPhotoIds.length === 0) {
+        return res.json({ matches: [] });
+      }
+
+      // Fetch Photo Details
+      const photos: any[] = [];
+      const chunkSize = 500;
+      for (let i = 0; i < matchedPhotoIds.length; i += chunkSize) {
+        const chunk = matchedPhotoIds.slice(i, i + chunkSize);
+        const placeholders = chunk.map(() => "?").join(",");
+        photos.push(
+          ...dbManager.query(
+            `SELECT * FROM photos WHERE id IN (${placeholders})`,
+            chunk
+          )
+        );
+      }
+
+      res.json({ matches: photos });
+    } catch (error: any) {
+      logger.error("Face vector search error", error);
+      sendInternalError(res, error.message);
+    }
+  });
+
+  /**
    * @route POST /consumer-search
    * @description Public FaceFind search for customers
    * @access Public

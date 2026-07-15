@@ -106,6 +106,104 @@ export default function orderRoutes(context: OrdersContext): Router {
   });
 
   /**
+   * @route POST /
+   * @description Create a new order (Standard/General)
+   */
+  router.post("/", strictRateLimiter, async (req: Request, res: Response) => {
+    try {
+      const parsed = customRoutesSchemas.kioskOrder.safeParse(req.body);
+      if (!parsed.success) {
+        return sendInvalidInputError(res, "Invalid order format", parsed.error.issues);
+      }
+      
+      const {
+        clientMutationId,
+        clientDeviceId,
+        items,
+        clientName,
+        email,
+        total,
+        status,
+        date,
+        destinationId,
+        photographerId,
+        roomNumber,
+        appliedDiscount,
+        tipAmount,
+      } = parsed.data;
+
+      // Deduplication check
+      const existing = dbManager.get<{ id: string }>(
+        `SELECT id FROM orders WHERE client_mutation_id = ?`,
+        [clientMutationId]
+      );
+
+      if (existing) {
+        logger.info(`[Orders] Order deduplicated by clientMutationId`, {
+          clientMutationId,
+          existingId: existing.id,
+        });
+        return res.status(208).json({
+          success: true,
+          id: existing.id,
+          deduplicated: true,
+        });
+      }
+
+      const now = new Date().toISOString();
+      const id = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+
+      // Calculate total server-side
+      const safeDiscount = Math.max(0, Math.min(100, appliedDiscount || 0));
+      const calculatedTotal = (items || []).reduce((sum: number, item: any) => {
+        return sum + (Number(item.price) || 0) * (Number(item.quantity) || 1);
+      }, 0) * (1 - safeDiscount / 100);
+
+      dbManager.run(
+        `INSERT INTO orders (
+          id, clientName, email, total, status, items, date,
+          destinationId, photographerId, roomNumber, appliedDiscount, tip_amount,
+          client_mutation_id, client_device_id, mutation_timestamp, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          clientName || "",
+          email || "",
+          calculatedTotal,
+          status || "Pending",
+          JSON.stringify(items || []),
+          date || now.split("T")[0],
+          destinationId || "",
+          photographerId || 0,
+          roomNumber || "",
+          appliedDiscount || 0,
+          tipAmount || 0,
+          clientMutationId,
+          clientDeviceId || "",
+          Date.now(),
+          now,
+          now,
+        ]
+      );
+
+      // Broadcast
+      if (syncManager) {
+        syncManager.broadcastOrderStatus(id, status || "Pending", {
+          clientName,
+          email,
+          total: calculatedTotal,
+        });
+      }
+
+      logger.info(`[Orders] Order created via POST /api/orders`, { id, clientMutationId });
+      res.status(201).json({ success: true, id });
+    } catch (error: any) {
+      logger.error("[Orders] Order creation failed", { error: error.message });
+      sendError(res, 500, "Order Error", error.message, ERROR_CODES.INTERNAL_ERROR);
+    }
+  });
+
+  /**
    * @route GET /by-credentials
    * @description Direct lookup for Gallery login (Pin/Email)
    */

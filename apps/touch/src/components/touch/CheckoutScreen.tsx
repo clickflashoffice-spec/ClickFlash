@@ -109,83 +109,46 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
                 analytics.trackError(offlineError, "Checkout_OfflineSave");
             }
 
-            // 2. Try to save to Local Database Engine (PocketBase) if available
+            // 2. Try to send to Master API (Zero-Config)
             let createdOrderId: string | null = null;
             try {
-                const createdOrder = await pb.collection('orders').create({
+                createdOrderId = await orderService.createOrder({
                     clientName: customerDetails.name,
                     email: customerDetails.email,
                     total: total + tipAmount,
-                    status: 'Pending',
                     items: orderItems,
-                    date: orderDate,
                     destinationId: 'dest1',
                     photographerId: cart[0]?.photo.photographerId ?? 0,
                     roomNumber: customerDetails.roomNumber,
                     appliedDiscount: appliedDiscount,
-                    clientMutationId,
-                    tipAmount: tipAmount,
                 });
-                createdOrderId = createdOrder.id;
-                logger.info("Order also saved to local DB successfully", { orderId: tempId, dbId: createdOrderId });
+                
+                logger.info("Order successfully sent to Master API", { orderId: tempId, dbId: createdOrderId });
 
-                // Trigger immediate sync to push order to Master
-                syncService.sync().catch(err => logger.warn("Failed to trigger immediate sync", { error: err }));
-            } catch (dbError) {
-                const error = dbError instanceof Error ? dbError : new Error(String(dbError));
-                logger.warn("Could not save to local DB (offline mode). Order is safely stored in cache", { orderId: tempId, error: dbError });
-                analytics.trackError(error, "Checkout_LocalDBSave");
-            }
-
-            // 3. Export order to Master's orders folder (if database save succeeded)
-            if (createdOrderId) {
-                try {
-                    const exportResponse = await fetch(`${pb.baseUrl}/api/orders/${createdOrderId}/export-to-master`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-
-                    if (exportResponse.ok) {
-                        const exportResult = await exportResponse.json();
-                        analytics.trackUserFlow('KIOSK_SESSION', 'CHECKOUT_SUCCESS');
-                        localStorage.removeItem('touch_checkout_details');
-                        logger.info("Order exported to Master successfully", {
+                analytics.trackUserFlow('KIOSK_SESSION', 'CHECKOUT_SUCCESS');
+                localStorage.removeItem('touch_checkout_details');
+                
+                const hasPrints = cart.some(item => 
+                    item.deliveryType === 'print' || 
+                    item.deliveryType === 'both' || 
+                    item.size !== 'Digital'
+                );
+                
+                if (hasPrints && createdOrderId) {
+                    webSocketService.sendMessage({
+                        type: 'PRINT_REQUESTED',
+                        payload: { 
                             orderId: createdOrderId,
-                            folderName: exportResult.folderName,
-                            photosCopied: exportResult.photosCopied
-                        });
-                        
-                        const hasPrints = cart.some(item => 
-                            item.deliveryType === 'print' || 
-                            item.deliveryType === 'both' || 
-                            item.size !== 'Digital'
-                        );
-                        
-                        if (hasPrints) {
-                            webSocketService.sendMessage({
-                                type: 'PRINT_REQUESTED',
-                                payload: { 
-                                    orderId: createdOrderId,
-                                    kioskId: localStorage.getItem('kioskId') || 'unknown',
-                                    customerName: customerDetails.name,
-                                    items: orderItems
-                                }
-                            });
+                            kioskId: localStorage.getItem('kioskId') || 'unknown',
+                            customerName: customerDetails.name,
+                            items: orderItems
                         }
-                    } else {
-                        logger.warn("Failed to export order to Master", {
-                            orderId: createdOrderId,
-                            status: exportResponse.status
-                        });
-                    }
-                } catch (exportError) {
-                    logger.warn("Could not export order to Master", {
-                        orderId: createdOrderId,
-                        error: exportError instanceof Error ? exportError.message : String(exportError)
                     });
                 }
+            } catch (apiError) {
+                const error = apiError instanceof Error ? apiError : new Error(String(apiError));
+                logger.warn("Could not send to Master API. Order is safely stored in cache", { orderId: tempId, error: apiError });
+                analytics.trackError(error, "Checkout_MasterAPISave");
             }
 
             setOrderId(tempId);

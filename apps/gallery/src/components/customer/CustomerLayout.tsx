@@ -152,14 +152,37 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
   };
 
   const handleUpdateProofingStatus = useCallback(
-    (photoId: string, status: "approved" | "rejected" | "pending") => {
+    async (photoId: string, status: "approved" | "rejected" | "pending") => {
+      // Find old status for rollback
+      const photoToUpdate = photosWithProofing.find((p) => p.id === photoId);
+      const oldStatus = photoToUpdate?.proofingStatus;
+
+      // 1. Optimistic Update
       setPhotosWithProofing((prev) =>
         prev.map((photo) =>
           photo.id === photoId ? { ...photo, proofingStatus: status } : photo,
         ),
       );
+
+      // 2. Persist to Backend
+      if (order?.id) {
+        try {
+          await cloudApiService.updateProofingStatus(order.id, photoId, status);
+        } catch (error) {
+          logger.error("Failed to update proofing status", error);
+          // 3. Rollback on failure
+          setPhotosWithProofing((prev) =>
+            prev.map((photo) =>
+              photo.id === photoId
+                ? { ...photo, proofingStatus: oldStatus }
+                : photo,
+            ),
+          );
+          // TODO: Ideally trigger a toast notification here
+        }
+      }
     },
-    [],
+    [photosWithProofing, order?.id],
   );
 
   const handleBulkShare = useCallback((photoIds: string[]) => {

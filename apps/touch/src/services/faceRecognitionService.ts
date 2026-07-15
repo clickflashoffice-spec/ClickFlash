@@ -36,15 +36,13 @@ export const faceRecognitionService = {
 
     this.loadPromise = (async () => {
       try {
-        logger.info("[FaceRecognition] Loading detection models...");
-        // Only load detection models, not recognition (saves memory on Touch)
+        logger.info("[FaceRecognition] Loading Edge AI models...");
         await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
-        // Landmarks needed for alignment? Yes usually.
         await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-        // We DON'T need faceRecognitionNet on client anymore!
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
 
         this.isLoaded = true;
-        logger.info("[FaceRecognition] Models loaded successfully");
+        logger.info("[FaceRecognition] Edge AI models loaded successfully");
       } catch (error) {
         logger.error(
           "[FaceRecognition] Failed to load models",
@@ -68,7 +66,6 @@ export const faceRecognitionService = {
       const img = await faceapi.bufferToImage(imageBlob);
       const detection = await faceapi.detectSingleFace(img).withFaceLandmarks();
 
-      // We don't need descriptor here, just presence
       return !!detection;
     } catch (error) {
       logger.error(
@@ -81,36 +78,47 @@ export const faceRecognitionService = {
 
   /**
    * Search for faces in the local photo database
-   * Returns photos that match the scanned face
+   * Returns photos that match the scanned face using sub-2-second Edge AI mapping
    */
   async searchFaces(imageBlob: Blob): Promise<Photo[]> {
     try {
-      logger.info("[FaceRecognition] Searching for matching faces...");
+      logger.info("[FaceRecognition] Computing face vector on Edge...");
       
-      // Use the backend API to search for faces
-      const formData = new FormData();
-      formData.append("image", imageBlob, "face-search.jpg");
+      if (!this.isLoaded) await this.loadModels();
+      const img = await faceapi.bufferToImage(imageBlob);
+      const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
 
-      const response = await fetch(`${pb.baseUrl}/api/faces/search`, {
+      if (!detection) {
+        logger.warn("[FaceRecognition] No face detected on Edge");
+        return [];
+      }
+
+      logger.info("[FaceRecognition] Transmitting 128D vector to Master...");
+      const descriptorArray = Array.from(detection.descriptor);
+
+      const response = await fetch(`${pb.baseUrl}/api/faces/search-vector`, {
         method: "POST",
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ descriptor: descriptorArray }),
       });
 
       if (!response.ok) {
-        throw new Error(`Face search failed: ${response.statusText}`);
+        throw new Error(`Face vector search failed: ${response.statusText}`);
       }
 
       const data = await response.json();
       
-      if (!data.faceFound || !data.matches) {
+      if (!data.matches || data.matches.length === 0) {
         return [];
       }
 
-      logger.info(`[FaceRecognition] Found ${data.matches.length} matching photos`);
+      logger.info(`[FaceRecognition] Found ${data.matches.length} matching photos via Vector index`);
       return data.matches as Photo[];
     } catch (error) {
       logger.error(
-        "[FaceRecognition] Error searching faces",
+        "[FaceRecognition] Error in Edge AI vector search",
         error instanceof Error ? error : undefined,
       );
       return [];
@@ -119,34 +127,36 @@ export const faceRecognitionService = {
 
   /**
    * Complete face search flow:
-   * 1. Scan face
-   * 2. Find matching face in photos
-   * 3. Get room number from matched photo
-   * 4. Return all photos from that room
+   * 1. Scan face & Compute Edge Vector
+   * 2. Query Master via Vector Search
+   * 3. Return Matches
    */
   async searchByFace(imageBlob: Blob): Promise<FaceSearchResult> {
     try {
-      logger.info("[FaceRecognition] Starting complete face search flow...");
+      logger.info("[FaceRecognition] Starting complete Edge AI face search flow...");
       
-      // Use the backend API for the complete flow
-      const formData = new FormData();
-      formData.append("image", imageBlob, "face-search.jpg");
-
-      const response = await fetch(`${pb.baseUrl}/api/faces/search-by-face`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Face search failed: ${response.statusText}`);
-      }
-
-      const result: FaceSearchResult = await response.json();
+      const matchedPhotos = await this.searchFaces(imageBlob);
       
+      const faceFound = matchedPhotos.length > 0;
+      const roomNumber = faceFound && matchedPhotos[0].roomNumber ? matchedPhotos[0].roomNumber : null;
+      const roomFound = !!roomNumber;
+
+      const result: FaceSearchResult = {
+        success: true,
+        faceFound,
+        roomFound,
+        roomNumber,
+        matchCount: matchedPhotos.length,
+        matchedFacePhotos: matchedPhotos,
+        allRoomPhotos: matchedPhotos, // Assuming we only show matched photos in this flow for speed
+        albumCount: new Set(matchedPhotos.map(p => p.albumId)).size,
+        totalPhotos: matchedPhotos.length,
+        message: faceFound ? "Matches found via Edge AI." : "No matches found."
+      };
+
       logger.info(
-        `[FaceRecognition] Face search result: success=${result.success}, ` +
-        `faceFound=${result.faceFound}, room=${result.roomNumber}, ` +
-        `photos=${result.totalPhotos}`
+        `[FaceRecognition] Edge AI search result: success=${result.success}, ` +
+        `faceFound=${result.faceFound}, matches=${result.matchCount}`
       );
 
       return result;

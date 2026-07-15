@@ -96,10 +96,16 @@ export const AttractScreensaver: React.FC<Props> = memo(({
 
         {/* Call to Action Pulse */}
         <div className="flex flex-col items-center space-y-6 pb-12">
-          <div className="px-10 py-6 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl animate-bounce">
-            <span className="text-3xl md:text-4xl font-extrabold text-white tracking-wide">
+          <div className="px-10 py-6 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl animate-bounce flex flex-col items-center space-y-2">
+            <span className="text-3xl md:text-4xl font-extrabold text-white tracking-wide text-center">
               TOUCH ANYWHERE TO START
             </span>
+            <div className="flex items-center space-x-2 text-amber-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-xl font-bold">Find Photos Instantly with Face Search</span>
+            </div>
           </div>
           <p className="text-lg text-white/70 font-medium">
             Browse • Select Packages • Print Instantly

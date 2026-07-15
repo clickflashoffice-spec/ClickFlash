@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * AssemblyScript High-Performance Photo Manipulation Engine (WASM)
  * 

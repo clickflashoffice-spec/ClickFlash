@@ -68,6 +68,7 @@ export type ManagementView =
   // Operations Tab
   | "stations_overview"
   | "orders_sales"
+  | "volume_exports"
   | "assets_inventory"
   | "sync_logs"
 

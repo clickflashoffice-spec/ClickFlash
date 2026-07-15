@@ -59,11 +59,18 @@ export async function initializeEcosystem(context: any) {
     cloudSyncService.start();
     logger.info("[Startup] Cloud Relay: Sync service started.");
 
+    // Start MoneyTrash Service
     if (moneyTrashService) moneyTrashService.start();
-    logger.info("[Startup] MoneyTrash Integration: Active.");
 
-    // 6. Cloudflare Tunnel (if configured)
-    if (process.env.TUNNEL_ID) {
+    // Start Camera UDP Trigger Service
+    import('../services/cameraTriggerService').then(m => {
+        m.cameraTriggerService.start();
+    }).catch(err => {
+        logger.error('Failed to start cameraTriggerService', err);
+    });
+
+    // Handle initial tunnel setup if enabled
+    if (process.env.CF_TUNNEL_TOKEN) {
       tunnelService.start().then((started) => {
         if (started) {
           logger.info("[Startup] Cloudflare Tunnel: Connected and routing traffic.");

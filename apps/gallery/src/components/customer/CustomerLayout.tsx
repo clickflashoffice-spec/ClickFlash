@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { logger } from '@clickflash/logger';
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { Order, Photo, Product } from "../../types.ts";

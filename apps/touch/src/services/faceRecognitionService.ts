@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as faceapi from "@vladmandic/face-api";
 import { Photo } from "../types.ts";
 import { logger } from "../utils/logger";

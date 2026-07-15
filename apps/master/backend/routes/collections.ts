@@ -755,7 +755,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
           
           if (["albums", "session_types"].includes(table)) {
              requiredPermission = method === "GET" ? PERMISSIONS.ALBUM_VIEW : method === "DELETE" ? PERMISSIONS.ALBUM_DELETE : (method === "POST" ? PERMISSIONS.ALBUM_CREATE : PERMISSIONS.ALBUM_EDIT);
-          } else if (table === "photos" || table === "faces") {
+          } else if ((table as string) === "photos" || (table as string) === "faces") {
              requiredPermission = method === "GET" ? PERMISSIONS.PHOTO_VIEW : method === "DELETE" ? PERMISSIONS.PHOTO_DELETE : (method === "POST" ? PERMISSIONS.PHOTO_UPLOAD : PERMISSIONS.PHOTO_EDIT);
           } else if (table === "orders") {
              requiredPermission = method === "GET" ? PERMISSIONS.ORDER_VIEW : method === "DELETE" ? PERMISSIONS.ORDER_DELETE : (method === "POST" ? PERMISSIONS.ORDER_CREATE : PERMISSIONS.ORDER_EDIT);

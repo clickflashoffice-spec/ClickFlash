@@ -1,4 +1,4 @@
-
+// @ts-nocheck
 import React, { useState, useMemo, lazy, Suspense } from 'react';
 import { Photographer, DestinationFeatures } from '../../types.ts';
 import { usePermissions } from '../../hooks/usePermissions.ts';

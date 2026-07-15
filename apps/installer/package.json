@@ -55,7 +55,7 @@
     "productName": "ClickFlash Installer",
     "npmRebuild": false,
     "directories": {
-      "output": "../../ClickFlash_Release_v2.0/03_Production_Builds"
+      "output": "../../ClickFlash_Release_v3.0/03_Production_Builds"
     },
     "files": [
       "dist/**/*",

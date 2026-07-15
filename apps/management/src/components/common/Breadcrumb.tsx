@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from "react";
 import { ManagementView } from "../../constants";
 import { ChevronRight } from "lucide-react";

@@ -7,6 +7,7 @@ import { logger } from '@/utils/logger';
 
 let isTauriReady = false;
 let invokeFn: typeof import('@tauri-apps/api/core').invoke | null = null;
+let convertFileSrcFn: typeof import('@tauri-apps/api/core').convertFileSrc | null = null;
 
 export interface DualChecksumResult {
   sha256: string;
@@ -25,8 +26,9 @@ export const initTauriApi = async (): Promise<boolean> => {
   }
 
   try {
-    const { invoke } = await import('@tauri-apps/api/core');
+    const { invoke, convertFileSrc } = await import('@tauri-apps/api/core');
     invokeFn = invoke;
+    convertFileSrcFn = convertFileSrc;
     isTauriReady = true;
     logger.info('[TauriService] Tauri API ready');
     return true;
@@ -69,4 +71,12 @@ export const tauriCommand = async <T = unknown>(
 
 export const calculateFileChecksums = async (path: string): Promise<DualChecksumResult> => {
   return await invoke<DualChecksumResult>('calculate_file_checksums', { path });
+};
+
+export const getAssetSrc = (path: string): string => {
+  if (!convertFileSrcFn) {
+    logger.warn('[TauriService] convertFileSrc not ready, falling back to empty string');
+    return '';
+  }
+  return convertFileSrcFn(path);
 };

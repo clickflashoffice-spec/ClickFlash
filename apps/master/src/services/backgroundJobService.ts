@@ -28,17 +28,24 @@ class BackgroundJobService {
     }
 
     /**
-     * Get the next pending job based on priority and createdAt
+     * Get the next pending jobs based on priority and createdAt
      */
-    async getNextJob(): Promise<BackgroundJob | undefined> {
+    async getNextJobs(limit = 1): Promise<BackgroundJob[]> {
         return await db.backgroundJobs
             .where('status')
             .equals('pending')
-            .sortBy('priority')
+            .limit(100)
+            .toArray()
             .then(jobs => {
                 // Return the highest priority (lowest number) first, then oldest
-                return jobs[0];
+                jobs.sort((a, b) => a.priority - b.priority || a.createdAt - b.createdAt);
+                return jobs.slice(0, limit);
             });
+    }
+
+    async getNextJob(): Promise<BackgroundJob | undefined> {
+        const jobs = await this.getNextJobs(1);
+        return jobs[0];
     }
 
     /**
@@ -55,8 +62,15 @@ class BackgroundJobService {
      * Process the next job in the queue
      * This is a simple runner for now, will be replaced by Web Worker
      */
-    async processNext(): Promise<boolean> {
-        const job = await this.getNextJob();
+    async processNext(concurrency = 3): Promise<boolean> {
+        const jobs = await this.getNextJobs(concurrency);
+        if (jobs.length === 0) return false;
+
+        const results = await Promise.allSettled(jobs.map(job => this.processSingleJob(job)));
+        return results.some(r => r.status === 'fulfilled' && r.value === true);
+    }
+
+    private async processSingleJob(job: BackgroundJob): Promise<boolean> {
         if (!job || !job.id) return false;
 
         try {
@@ -86,9 +100,22 @@ class BackgroundJobService {
                             img.onerror = () => reject(new Error('Failed to load image for auto_edit'));
                             img.src = payload.url;
                         });
-                        const processed = await imageProcessingService.autoEditFullAsync(
-                            (() => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const ctx = c.getContext('2d')!; ctx.drawImage(img, 0, 0); return ctx.getImageData(0, 0, c.width, c.height); })()
-                        );
+                        
+                        let imgData: ImageData;
+                        const c = document.createElement('canvas');
+                        try {
+                            c.width = img.width; 
+                            c.height = img.height; 
+                            const ctx = c.getContext('2d')!; 
+                            ctx.drawImage(img, 0, 0); 
+                            imgData = ctx.getImageData(0, 0, c.width, c.height);
+                        } finally {
+                            c.width = 0; 
+                            c.height = 0; // Release memory aggressively
+                        }
+
+                        const processed = await imageProcessingService.autoEditFullAsync(imgData);
+                        
                         if (payload.photoId) {
                             await pb.request(`/api/photos/${payload.photoId}/auto-edits`, {
                                 method: 'POST',
@@ -115,9 +142,22 @@ class BackgroundJobService {
                                     img.onerror = () => reject(new Error('Failed to load image in batch'));
                                     img.src = photo.url;
                                 });
-                                const processed = await imageProcessingService.autoEditFullAsync(
-                                    (() => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const ctx = c.getContext('2d')!; ctx.drawImage(img, 0, 0); return ctx.getImageData(0, 0, c.width, c.height); })()
-                                );
+                                
+                                let imgData: ImageData;
+                                const c = document.createElement('canvas');
+                                try {
+                                    c.width = img.width; 
+                                    c.height = img.height; 
+                                    const ctx = c.getContext('2d')!; 
+                                    ctx.drawImage(img, 0, 0); 
+                                    imgData = ctx.getImageData(0, 0, c.width, c.height);
+                                } finally {
+                                    c.width = 0; 
+                                    c.height = 0; // Release memory aggressively
+                                }
+
+                                const processed = await imageProcessingService.autoEditFullAsync(imgData);
+                                
                                 await pb.request(`/api/photos/${photo.id}/auto-edits`, {
                                     method: 'POST',
                                     body: JSON.stringify({

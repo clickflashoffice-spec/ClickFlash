@@ -103,11 +103,13 @@ export async function handleOAuth(
       payload: { client_id: body.client_id, user_code: userCode, device_code: deviceCode.slice(0, 8) + "..." },
     });
 
+    const frontendUrl = env.FRONTEND_URL || "https://hub.clickflash.app";
+
     return Response.json({
       device_code: deviceCode,
       user_code: userCode,
-      verification_uri: "https://hub.clickflash.app/activate",
-      verification_uri_complete: `https://hub.clickflash.app/activate?code=${userCode}`,
+      verification_uri: `${frontendUrl}/activate`,
+      verification_uri_complete: `${frontendUrl}/activate?code=${userCode}`,
       expires_in: DEVICE_CODE_TTL_SEC,
       interval: 5,
     }, { headers: corsHeaders });

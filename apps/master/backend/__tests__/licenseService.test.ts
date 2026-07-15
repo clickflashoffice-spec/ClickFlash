@@ -48,33 +48,33 @@ describe('LicenseService (Master OS)', () => {
     });
 
     describe('getLocalLicenseStatus', () => {
-        it('should return unlicensed when no key is found', () => {
+        it('should return unlicensed when no key is found', async () => {
             mockDb.get.mockReturnValue(null);
             
-            const status = licenseService.getLocalLicenseStatus();
+            const status = await licenseService.getLocalLicenseStatus();
             expect(status.isValid).toBe(false);
             expect(status.status).toBe('unlicensed');
         });
 
-        it('should return invalid when checksum is bad', () => {
+        it('should return invalid when checksum is bad', async () => {
             mockDb.get.mockImplementation((query: string) => {
                 if (query.includes('license_key')) return { value: JSON.stringify('CF-LIVE-1234-5678-9012-3456-BADX') };
                 return null;
             });
             
-            const status = licenseService.getLocalLicenseStatus();
+            const status = await licenseService.getLocalLicenseStatus();
             expect(status.isValid).toBe(false);
             expect(status.status).toBe('invalid');
         });
 
-        it('should start grace period when key exists but never checked', () => {
+        it('should start grace period when key exists but never checked', async () => {
             mockDb.get.mockImplementation((query: string) => {
                 if (query.includes('license_key')) return { value: JSON.stringify(validKey) };
                 if (query.includes('license_status')) return { value: JSON.stringify('active') };
                 return null;
             });
             
-            const status = licenseService.getLocalLicenseStatus();
+            const status = await licenseService.getLocalLicenseStatus();
             expect(status.isValid).toBe(true);
             expect(status.status).toBe('active');
             expect(status.lastChecked).not.toBeNull();
@@ -84,7 +84,7 @@ describe('LicenseService (Master OS)', () => {
             );
         });
 
-        it('should return expired if timeSinceLastCheck > 7 days', () => {
+        it('should return expired if timeSinceLastCheck > 7 days', async () => {
             const eightDaysAgo = Date.now() - (8 * 24 * 60 * 60 * 1000);
             
             mockDb.get.mockImplementation((query: string) => {
@@ -94,12 +94,12 @@ describe('LicenseService (Master OS)', () => {
                 return null;
             });
             
-            const status = licenseService.getLocalLicenseStatus();
+            const status = await licenseService.getLocalLicenseStatus();
             expect(status.isValid).toBe(false);
             expect(status.status).toBe('expired');
         });
 
-        it('should return grace_period if approaching expiration (> 80% of 7 days)', () => {
+        it('should return grace_period if approaching expiration (> 80% of 7 days)', async () => {
             const sixDaysAgo = Date.now() - (6 * 24 * 60 * 60 * 1000);
             
             mockDb.get.mockImplementation((query: string) => {
@@ -109,12 +109,12 @@ describe('LicenseService (Master OS)', () => {
                 return null;
             });
             
-            const status = licenseService.getLocalLicenseStatus();
+            const status = await licenseService.getLocalLicenseStatus();
             expect(status.isValid).toBe(true);
             expect(status.status).toBe('grace_period');
         });
 
-        it('should return invalid if explicitly marked invalid by hub', () => {
+        it('should return invalid if explicitly marked invalid by hub', async () => {
             mockDb.get.mockImplementation((query: string) => {
                 if (query.includes('license_key')) return { value: JSON.stringify(validKey) };
                 if (query.includes('license_last_checked')) return { value: JSON.stringify(Date.now() - 1000) };
@@ -122,7 +122,7 @@ describe('LicenseService (Master OS)', () => {
                 return null;
             });
             
-            const status = licenseService.getLocalLicenseStatus();
+            const status = await licenseService.getLocalLicenseStatus();
             expect(status.isValid).toBe(false);
             expect(status.status).toBe('invalid');
         });

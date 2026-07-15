@@ -15,6 +15,7 @@ import * as crypto from "crypto";
 import { fork, ChildProcess } from "child_process";
 import Database from "better-sqlite3-multiple-ciphers";
 import { initAutoUpdater } from "./autoUpdater";
+import { HardwareScannerService } from "./HardwareScannerService";
 
 // Load environment variables
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -48,6 +49,7 @@ class TouchApp {
     private serverPort: number | null;
     private useViteDevServer: boolean;
     private powerSaveId: number | null;
+    private scannerService: HardwareScannerService | null;
 
     constructor() {
         this.config = {
@@ -65,6 +67,7 @@ class TouchApp {
         this.serverPort = null;
         this.useViteDevServer = false;
         this.powerSaveId = null;
+        this.scannerService = null;
 
         this.init();
     }
@@ -524,7 +527,20 @@ class TouchApp {
             }, 1000);
         });
 
-        this.mainWindow.on("closed", () => { this.mainWindow = null; });
+        this.mainWindow.on("closed", () => { 
+            this.mainWindow = null; 
+            if (this.scannerService) {
+                this.scannerService.close();
+                this.scannerService = null;
+            }
+        });
+
+        // Initialize Hardware Scanner Service
+        this.scannerService = new HardwareScannerService(this.mainWindow);
+        this.scannerService.initialize().catch((err: unknown) => {
+            const e = err instanceof Error ? err : new Error(String(err));
+            console.error("[HardwareScanner] Failed to initialize:", e.message);
+        });
     }
 
     private setupIpcHandlers(): void {

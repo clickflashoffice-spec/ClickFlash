@@ -14,7 +14,7 @@ interface InstagramFeedProps {
 export function InstagramFeed({
   title = (
     <>
-      Gallery of <span className="text-cyan-500">Memories</span>
+      Gallery of <span className="text-cyan-700">Memories</span>
     </>
   ),
   subtitle = "Our Portfolio",
@@ -33,7 +33,7 @@ export function InstagramFeed({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <span className="mb-4 block text-[12px] font-black tracking-[0.4em] text-cyan-500 uppercase">
+          <span className="mb-4 block text-[12px] font-black tracking-[0.4em] text-cyan-700 uppercase">
             {subtitle}
           </span>
           <h2 className="mb-10 text-5xl font-black tracking-tighter text-slate-800 md:text-7xl">
@@ -60,7 +60,7 @@ export function InstagramFeed({
           href={socialInstagram}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-3 rounded-full bg-[#06b6d4] px-10 py-5 font-bold text-white shadow-xl shadow-cyan-500/20 transition-all transition-transform duration-500 hover:bg-slate-900 active:scale-95"
+          className="flex items-center gap-3 rounded-full bg-cyan-700 px-10 py-5 font-bold text-white shadow-xl shadow-cyan-500/20 transition-all transition-transform duration-500 hover:bg-slate-900 active:scale-95"
         >
           <Instagram className="h-6 w-6" />
           <span className="text-xs tracking-widest uppercase">Follow us on Instagram</span>

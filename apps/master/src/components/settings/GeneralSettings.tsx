@@ -89,10 +89,11 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
     const { can } = usePermissions(currentUser);
     const [hasChanges, setHasChanges] = useState(false);
 
-    const [newDestData, setNewDestData] = useState<{ name: string; country: string; type: 'Resort' | 'City' }>({ 
+    const [newDestData, setNewDestData] = useState<{ name: string; country: string; type: 'Resort' | 'City'; licenseKey: string }>({ 
         name: '', 
         country: '', 
-        type: 'Resort' 
+        type: 'Resort',
+        licenseKey: ''
     });
     const [isCreatingDest, setIsCreatingDest] = useState(false);
     const [isCreatingDestLoading, setIsCreatingDestLoading] = useState(false);
@@ -184,20 +185,18 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
 
     const handleCreateDestination = async () => {
         if (isCreatingDestLoading) return;
-        if (!newDestData.name || !newDestData.country) {
-            showToast("Please fill in all fields");
+        if (!newDestData.name || !newDestData.country || !newDestData.licenseKey) {
+            showToast("Please fill in all fields including the License Key");
             return;
         }
 
         setIsCreatingDestLoading(true);
         try {
-            const randSeg = () => Math.random().toString(36).substring(2, 6).toUpperCase().padEnd(4, 'X');
-            const licenseKey = `CF-LIVE-${randSeg()}-${randSeg()}-${randSeg()}-${randSeg()}-ST01`;
             const created = await apiService.createDestination({
                 name: newDestData.name.trim(),
                 country: newDestData.country.trim(),
                 type: newDestData.type,
-                licenseKey
+                licenseKey: newDestData.licenseKey.trim()
             });
 
             await apiService.updateUser(currentUser.id, { destinationId: created.id });
@@ -206,7 +205,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
             showToast("Destination created!");
             onCurrentUserUpdate();
             setIsCreatingDest(false);
-            setNewDestData({ name: '', country: '', type: 'Resort' });
+            setNewDestData({ name: '', country: '', type: 'Resort', licenseKey: '' });
         } catch (error) {
             logger.error('Failed to create destination', error);
             showToast(`Error: ${error instanceof Error ? error.message : 'Failed to create'}`);
@@ -246,7 +245,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
         }
     };
 
-    const isKeyValid = destination?.licenseKey?.startsWith('CF-LIVE-') && destination.licenseKey.length >= 24;
+    const isKeyValid = destination?.licenseKey?.startsWith('CF-LIVE-') && destination.licenseKey.length >= 50;
 
     if (loading) {
         return (
@@ -523,6 +522,13 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
                                     onChange={e => setNewDestData({ ...newDestData, country: e.target.value })}
                                     className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg"
                                     placeholder="Country"
+                                />
+                                <input
+                                    type="text"
+                                    value={newDestData.licenseKey}
+                                    onChange={e => setNewDestData({ ...newDestData, licenseKey: e.target.value })}
+                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-mono text-sm"
+                                    placeholder="Ed25519 License Key (from Generator or Hub)"
                                 />
                                 <div className="flex gap-2">
                                     <button

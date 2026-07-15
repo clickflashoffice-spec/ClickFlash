@@ -3,6 +3,7 @@ import { createToken, verifyToken, extractTokenFromHeader } from "../jwt.js";
 import { verifyPassword, hashPassword } from "../auth.js";
 import { checkLoginRateLimit, recordLoginAttempt } from "../loginRateLimiter.js";
 import { validateLogin } from "../validation.js";
+import { logger } from "@clickflash/logger";
 
 export const handleAuth = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, geminiService: any, payload: any) => {
 
@@ -182,9 +183,7 @@ export const handleAuth = async (request: Request, url: URL, env: any, dbManager
           "1y"
         );
 
-        console.log(
-          `[Register Desk] New station registered: ${deskId} (${deskName}) machine: ${machine_id} at ${deskLocation || "unknown location"}`,
-        );
+        logger.info(String(`[Register Desk] New station registered: ${deskId} (${deskName}) machine: ${machine_id} at ${deskLocation || "unknown location"}`));
 
         return Response.json(
           {
@@ -245,7 +244,7 @@ export const handleAuth = async (request: Request, url: URL, env: any, dbManager
             email,
           ]);
         } catch (dbe) {
-          console.error("DB GET ERROR on LOGIN:", dbe);
+          logger.error("DB GET ERROR on LOGIN:", { args: [dbe] });
           throw dbe;
         }
 

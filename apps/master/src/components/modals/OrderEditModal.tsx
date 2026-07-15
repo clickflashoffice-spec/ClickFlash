@@ -367,12 +367,8 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
     try {
       const photoToUpdate = editingPhotoItem.photo;
       if (photoToUpdate && photoToUpdate.id && !photoToUpdate.id.startsWith('upload-')) {
-        const currentMetadata = photoToUpdate.metadata || {};
         await apiService.updatePhoto(photoToUpdate.id, {
-          metadata: {
-            ...currentMetadata,
-            manualEdits: edits
-          }
+          manualEdits: edits
         });
         showToast('Photo edits saved to gallery.');
       }

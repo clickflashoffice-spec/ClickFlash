@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 /**
  * Cloudflare Cloud API Service for MoneyTrash
  * Handles communication with the Cloudflare Worker API
@@ -262,7 +263,7 @@ class CloudApiService {
       this.config = config;
       return config;
     } catch (e) {
-      console.log('No cloud config found');
+      logger.info('No cloud config found');
       return null;
     }
   }

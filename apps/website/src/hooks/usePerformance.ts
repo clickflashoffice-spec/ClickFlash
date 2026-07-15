@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { logger } from "@clickflash/logger";
 
 // ─── Browser API extensions used in this file ────────────────────────────────
 
@@ -136,7 +137,7 @@ export function usePerformance(options: {
 
     // Send to console in development
     if (process.env.NODE_ENV === "development") {
-      console.log(`[Web Vitals] ${metric.name}:`, metric.value, metric.rating);
+      logger.info(`[Web Vitals] ${metric.name}:`, { value: metric.value, rating: metric.rating });
     }
   }, [reportToAnalytics]);
 
@@ -162,11 +163,9 @@ export function usePerformance(options: {
     if (typeof window === "undefined" || !("PerformanceObserver" in window)) return;
 
     let lcpValue = 0;
-    let lcpEntries: PerformanceEntry[] = [];
 
     const observer = new PerformanceObserver((list) => {
       const entries = list.getEntries();
-      lcpEntries = entries;
       
       const lastEntry = entries[entries.length - 1] as PerformanceEntry & { startTime: number };
       lcpValue = lastEntry.startTime;
@@ -183,7 +182,7 @@ export function usePerformance(options: {
 
     try {
       observer.observe({ entryTypes: ["largest-contentful-paint"] });
-    } catch (e) {
+    } catch (_e) {
       // LCP not supported
     }
 
@@ -237,7 +236,7 @@ export function usePerformance(options: {
 
     try {
       observer.observe({ entryTypes: ["layout-shift"] });
-    } catch (e) {
+    } catch (_e) {
       // CLS not supported
     }
 
@@ -267,7 +266,7 @@ export function usePerformance(options: {
 
     try {
       observer.observe({ type: "paint", buffered: true } as PerformanceObserverInit);
-    } catch (e) {
+    } catch (_e) {
       // FCP not supported
     }
 
@@ -318,7 +317,7 @@ export function usePerformance(options: {
 
     try {
       observer.observe({ type: "first-input", buffered: true } as PerformanceObserverInit);
-    } catch (e) {
+    } catch (_e) {
       // FID not supported
     }
 
@@ -354,7 +353,7 @@ export function usePerformance(options: {
 
     try {
       observer.observe({ type: "event", buffered: true, durationThreshold: 40 } as PerformanceObserverInit);
-    } catch (e) {
+    } catch (_e) {
       // INP not supported
     }
 

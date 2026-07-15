@@ -2,12 +2,13 @@
 import { useState, useEffect } from 'react';
 import { apiService } from '../services/apiService.ts';
 import { Photographer, DestinationFeatures } from '../types.ts';
+import { logger } from "@/utils/logger";
 
 // Default to all enabled if not found (fallback mode)
-const DEFAULT_FEATURES: DestinationFeatures = { ai: true, face: true, watermark: true };
+const DEFAULT_FEATURES: any = { ai: true, face: true, watermark: true };
 
 export const useDestinationFeatures = (currentUser: Photographer | null) => {
-    const [features, setFeatures] = useState<DestinationFeatures>(DEFAULT_FEATURES);
+    const [features, setFeatures] = useState<any>(DEFAULT_FEATURES);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -23,7 +24,7 @@ export const useDestinationFeatures = (currentUser: Photographer | null) => {
                     setFeatures(myDest.features);
                 }
             } catch (e) {
-                console.error("Failed to fetch destination features", e);
+                logger.error("Failed to fetch destination features", e);
             } finally {
                 setLoading(false);
             }

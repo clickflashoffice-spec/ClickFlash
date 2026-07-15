@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 /**
  * Edge-Optimized Stripe Checkout Service
  * 
@@ -17,7 +18,7 @@ const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ''
 let stripePromise: Promise<Stripe | null> = Promise.resolve(null);
 
 if (!STRIPE_PUBLISHABLE_KEY) {
-    console.error('[StripeService] Missing VITE_STRIPE_PUBLISHABLE_KEY');
+    logger.error('[StripeService] Missing VITE_STRIPE_PUBLISHABLE_KEY');
 } else {
     stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
 }
@@ -111,7 +112,7 @@ class StripeEdgeService {
             }
             return !!this.stripe;
         } catch (error) {
-            console.error('[StripeService] Failed to initialize Stripe:', error);
+            logger.error('[StripeService] Failed to initialize Stripe:', error);
             return false;
         }
     }
@@ -154,7 +155,7 @@ class StripeEdgeService {
 
             return await response.json();
         } catch (error) {
-            console.error('[StripeService] createPaymentIntent failed:', error);
+            logger.error('[StripeService] createPaymentIntent failed:', error);
             return { 
                 clientSecret: '', 
                 paymentIntentId: '',
@@ -199,7 +200,7 @@ class StripeEdgeService {
                 paymentIntentId: session.paymentIntentId,
             };
         } catch (error) {
-            console.error('[StripeService] createCheckoutSession failed:', error);
+            logger.error('[StripeService] createCheckoutSession failed:', error);
             return { 
                 id: '', 
                 url: '',
@@ -390,7 +391,7 @@ class StripeEdgeService {
             const data = await response.json();
             return data.paymentMethods || [];
         } catch (error) {
-            console.error('[StripeService] getSavedPaymentMethods failed:', error);
+            logger.error('[StripeService] getSavedPaymentMethods failed:', error);
             return [];
         }
     }

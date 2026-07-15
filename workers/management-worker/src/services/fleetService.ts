@@ -10,10 +10,12 @@ export interface RegistrationPayload {
   name: string;
   location: string;
   country: string;
+  site_code?: string;
   timezone: string;
   currency: string;
   hardware_fingerprint: string;
   version: string;
+  license_key?: string;
 }
 
 export interface RegistrationResult {
@@ -34,6 +36,10 @@ export interface RegistrationResult {
     global_settings: Record<string, string>;
   };
   r2Prefix?: string;
+  routingHints?: {
+    uploadRegion: string;
+    cdnDomain: string;
+  };
   syncEndpoint?: string;
   galleryEndpoint?: string;
   error?: string;
@@ -78,6 +84,7 @@ export class FleetService {
     }
 
     const now = new Date().toISOString();
+    const siteCode = payload.site_code || deskId;
 
     // 2. Insert into destinations table (multi-tenant isolation via desk_id)
     await this.db.run(
@@ -90,7 +97,7 @@ export class FleetService {
         deskId,
         payload.name,
         payload.country,
-        deskId, // site_code defaults to desk_id
+        siteCode,
         now,
         payload.version,
         JSON.stringify({ hardware_fingerprint: payload.hardware_fingerprint }),
@@ -117,13 +124,20 @@ export class FleetService {
     // 6. Fetch peers
     const peers = await this.getPeers(deskId);
 
+    // 7. Geo-distributed routing hints
+    const routingHints = {
+      uploadRegion: payload.country === "AU" || payload.country === "ID" ? "apac" : "weur",
+      cdnDomain: "https://cdn.clickflash.app",
+    };
+
     return {
       success: true,
       deskId,
       jwtToken,
       peers,
       sharedConfig,
-      r2Prefix: `studios/${deskId}/`,
+      r2Prefix: `${siteCode}/masters/${deskId}/`,
+      routingHints,
       syncEndpoint: `/api/sync/${deskId}`,
       galleryEndpoint: `/api/gallery/${deskId}`,
     };

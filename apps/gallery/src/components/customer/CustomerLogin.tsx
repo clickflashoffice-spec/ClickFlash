@@ -19,7 +19,7 @@ interface CustomerLoginProps {
   onBack?: () => void;
 }
 
-type LoginMode = "gallery" | "order" | "magic";
+type LoginMode = "gallery" | "order" | "magic" | "face";
 
 const CustomerLogin: React.FC<CustomerLoginProps> = ({
   onLoginSuccess,
@@ -31,11 +31,71 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [faceFile, setFaceFile] = useState<File | null>(null);
+
+  const getMasterBaseUrl = () => {
+    try {
+      const settings = localStorage.getItem('connectionSettings');
+      if (settings) {
+        const parsed = JSON.parse(settings);
+        if (parsed.masterUrl) return parsed.masterUrl;
+        if (parsed.manualIp) return `http://${parsed.manualIp}:8090`;
+      }
+    } catch {}
+    return typeof window !== 'undefined' ? window.location.origin : 'http://127.0.0.1:8090';
+  };
+
+  const handleFaceFind = async () => {
+    if (!faceFile) {
+      setError("Please select or take a photo first.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const baseUrl = getMasterBaseUrl();
+      const formData = new FormData();
+      formData.append('image', faceFile);
+
+      const response = await fetch(`${baseUrl}/api/faces/consumer-search`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Search failed.");
+      }
+
+      const data = await response.json();
+      if (!data.matches || data.matches.length === 0) {
+        setError("No photos found matching your face.");
+      } else {
+        const syntheticOrder = {
+          id: "facefind-" + Date.now(),
+          customerName: "FaceFind User",
+          photos: data.matches,
+          digitalPrice: 15.00,
+          status: "Pending",
+        } as unknown as Order;
+        onLoginSuccess(syntheticOrder);
+      }
+    } catch (err) {
+      console.error("FaceFind error:", err);
+      setError("An error occurred during FaceFind search.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    if (mode === "face") {
+      await handleFaceFind();
+      return;
+    }
 
     try {
       if (mode === "gallery") {
@@ -146,14 +206,14 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
 
         <div className="bg-white p-8 rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-100">
           {/* Tabs */}
-          <div className="flex bg-slate-100 rounded-2xl p-1.5 mb-10 border border-slate-200">
+          <div className="flex bg-slate-100 rounded-2xl p-1.5 mb-10 border border-slate-200 flex-wrap gap-1">
             <button
               type="button"
               onClick={() => {
                 setMode("gallery");
                 setError("");
               }}
-              className={`flex-1 py-3.5 text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all ${
+              className={`flex-1 py-3.5 px-2 text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all ${
                 mode === "gallery"
                   ? "bg-white text-cyan-600 shadow-sm border border-slate-200"
                   : "text-slate-500 hover:text-slate-700"
@@ -167,7 +227,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
                 setMode("order");
                 setError("");
               }}
-              className={`flex-1 py-3.5 text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all ${
+              className={`flex-1 py-3.5 px-2 text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all ${
                 mode === "order"
                   ? "bg-white text-cyan-600 shadow-sm border border-slate-200"
                   : "text-slate-500 hover:text-slate-700"
@@ -181,13 +241,27 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
                 setMode("magic");
                 setError("");
               }}
-              className={`flex-1 py-3.5 text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all ${
+              className={`flex-1 py-3.5 px-2 text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all ${
                 mode === "magic"
                   ? "bg-white text-cyan-600 shadow-sm border border-slate-200"
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
               Room / Token
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("face");
+                setError("");
+              }}
+              className={`w-full mt-1 py-3.5 px-2 text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all ${
+                mode === "face"
+                  ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md border border-cyan-500/50"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              ✨ FaceFind Selfie
             </button>
           </div>
 
@@ -279,6 +353,26 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
               </div>
             )}
 
+            {mode === "face" && (
+              <div className="group">
+                <label
+                  htmlFor="faceFile"
+                  className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-600 transition-colors"
+                >
+                  Upload or Snap a Selfie
+                </label>
+                <input
+                  type="file"
+                  id="faceFile"
+                  name="faceFile"
+                  accept="image/*"
+                  capture="user"
+                  onChange={(e) => setFaceFile(e.target.files?.[0] || null)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4.5 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all font-bold text-sm group-hover:border-slate-300"
+                />
+              </div>
+            )}
+
             {error && (
               <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-xs text-center font-bold animate-shake">
                 {error}
@@ -297,7 +391,9 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
                     ? "Enter Gallery"
                     : mode === "order"
                       ? "Access My Order"
-                      : "Access Room / Token"}
+                      : mode === "face"
+                        ? "Scan My Face"
+                        : "Access Room / Token"}
               </span>
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </button>

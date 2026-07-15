@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 import { contextBridge, ipcRenderer } from 'electron';
 
 export interface SecurityConfig {
@@ -59,7 +60,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   on: (channel: string, callback: (...args: unknown[]) => void): (() => void) => {
     if (!validateOnChannel(channel)) {
-      console.warn(`Invalid IPC on channel: ${channel}`);
+      logger.warn(`Invalid IPC on channel: ${channel}`);
       return () => {};
     }
     
@@ -73,7 +74,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
             try {
               cb(...args);
             } catch (err) {
-              console.error(`Error in IPC listener for ${channel}:`, err);
+              logger.error(`Error in IPC listener for ${channel}:`, err);
             }
           });
         }
@@ -107,4 +108,4 @@ contextBridge.exposeInMainWorld('electronAPI', {
   }),
 });
 
-console.log('[Preload] Security-hardened Electron API exposed');
+logger.info('[Preload] Security-hardened Electron API exposed');

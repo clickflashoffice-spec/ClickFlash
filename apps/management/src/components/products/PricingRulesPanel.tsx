@@ -4,6 +4,7 @@ import { useCurrency } from "../CurrencyContext.tsx";
 import Card from "../common/Card.tsx";
 import Spinner from "../common/Spinner.tsx";
 import { HOTELS } from "../../constants.ts";
+import { logger } from "@/utils/logger";
 
 interface PricingOverride {
   id: string;
@@ -66,7 +67,7 @@ const PricingRulesPanel: React.FC = () => {
       setOverrides((overridesData?.items || []) as unknown as PricingOverride[]);
       setSeasonalRates((ratesData?.items || []) as unknown as SeasonalRate[]);
     } catch (e) {
-      console.error("Failed to load pricing data", e);
+      logger.error("Failed to load pricing data", e);
     } finally {
       setLoading(false);
     }
@@ -90,7 +91,7 @@ const PricingRulesPanel: React.FC = () => {
       setOverridePrice("");
       fetchData();
     } catch (e) {
-      console.error("Failed to save override", e);
+      logger.error("Failed to save override", e);
     }
   };
 
@@ -99,7 +100,7 @@ const PricingRulesPanel: React.FC = () => {
       await apiService.deleteRecord("pricing_overrides", id);
       fetchData();
     } catch (e) {
-      console.error("Failed to delete override", e);
+      logger.error("Failed to delete override", e);
     }
   };
 
@@ -124,7 +125,7 @@ const PricingRulesPanel: React.FC = () => {
       setRatePriority("0");
       fetchData();
     } catch (e) {
-      console.error("Failed to save seasonal rate", e);
+      logger.error("Failed to save seasonal rate", e);
     }
   };
 
@@ -135,7 +136,7 @@ const PricingRulesPanel: React.FC = () => {
       });
       fetchData();
     } catch (e) {
-      console.error("Failed to toggle rate", e);
+      logger.error("Failed to toggle rate", e);
     }
   };
 
@@ -144,7 +145,7 @@ const PricingRulesPanel: React.FC = () => {
       await apiService.deleteRecord("seasonal_rates", id);
       fetchData();
     } catch (e) {
-      console.error("Failed to delete rate", e);
+      logger.error("Failed to delete rate", e);
     }
   };
 

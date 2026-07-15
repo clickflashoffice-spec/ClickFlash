@@ -347,18 +347,35 @@ export class SyncManager {
     }
 
     private broadcastUpdate(payload: SyncPayload, sourceClientId: string) {
-        const message = JSON.stringify({
+        const message = {
             type: 'STATE_UPDATE',
             entity: payload.entity,
             action: payload.action,
             data: payload.data,
             source: sourceClientId,
             timestamp: Date.now()
-        });
+        };
+
+        let specificType = '';
+        if (payload.entity === 'albums') specificType = 'ALBUM_UPDATED';
+        if (payload.entity === 'orders') specificType = 'ORDER_UPDATED';
+        if (payload.entity === 'photos') specificType = 'PHOTO_UPDATED';
+
+        const jsonMessage = JSON.stringify(message);
+        let specificMessage = null;
+        if (specificType) {
+            specificMessage = JSON.stringify({
+                ...message,
+                type: specificType
+            });
+        }
 
         this.clients.forEach((client) => {
             if (client.clientId !== sourceClientId && client.ws.readyState === WebSocket.OPEN) {
-                client.ws.send(message);
+                client.ws.send(jsonMessage);
+                if (specificMessage) {
+                    client.ws.send(specificMessage);
+                }
             }
         });
     }

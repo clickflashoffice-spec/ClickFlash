@@ -104,8 +104,8 @@ export default function PortfolioGrid({ items }: PortfolioGridProps) {
                         key={category}
                         onClick={() => setActiveCategory(category)}
                         className={`px-8 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all duration-300 ${activeCategory === category
-                            ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20"
-                            : "bg-slate-50 text-slate-400 hover:bg-slate-100"
+                            ? "bg-cyan-700 text-white shadow-lg shadow-cyan-500/20"
+                            : "bg-slate-50 text-slate-600 hover:bg-slate-100"
                             }`}
                     >
                         {category}
@@ -142,7 +142,7 @@ export default function PortfolioGrid({ items }: PortfolioGridProps) {
 
                                     {/* Content Overlay */}
                                     <div className="absolute inset-0 p-8 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
-                                        <span className="text-cyan-400 text-[10px] font-black uppercase tracking-widest mb-2 px-3 py-1 rounded-full bg-cyan-500/10 backdrop-blur-md self-start border border-cyan-500/20">
+                                        <span className="text-cyan-400 text-[10px] font-black uppercase tracking-widest mb-2 px-3 py-1 rounded-full bg-cyan-700/10 backdrop-blur-md self-start border border-cyan-500/20">
                                             {item.category}
                                         </span>
                                         <h3 className="text-white text-2xl font-black tracking-tight mb-2 uppercase italic">
@@ -158,7 +158,7 @@ export default function PortfolioGrid({ items }: PortfolioGridProps) {
                     </AnimatePresence>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                <div className="flex flex-col items-center justify-center py-20 text-slate-600">
                     <ImageIcon className="w-16 h-16 mb-4 opacity-20" />
                     <p className="text-lg font-bold text-slate-900">Portfolio Gallery Coming Soon</p>
                     <p className="text-sm">We are currently curating our best shots.</p>

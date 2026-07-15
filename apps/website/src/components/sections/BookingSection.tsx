@@ -150,7 +150,7 @@ export function BookingSection() {
                 <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
                 <h3 className="text-3xl font-serif text-white mb-4">Booking Request Submitted!</h3>
                 {bookingId && (
-                  <p className="text-cyan-500 text-lg mb-4">Reference: {bookingId}</p>
+                  <p className="text-cyan-700 text-lg mb-4">Reference: {bookingId}</p>
                 )}
                 <p className="text-zinc-400 max-w-md mx-auto mb-8">{submitMessage}</p>
                 <Button
@@ -171,7 +171,7 @@ export function BookingSection() {
                     {/* Personal Information */}
                     <div className="space-y-6">
                       <h3 className="text-lg font-serif text-white mb-6 flex items-center gap-2">
-                        <span className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-500 text-sm">1</span>
+                        <span className="w-8 h-8 rounded-full bg-cyan-700/20 flex items-center justify-center text-cyan-700 text-sm">1</span>
                         Personal Information
                       </h3>
 
@@ -218,7 +218,7 @@ export function BookingSection() {
                     {/* Event Details */}
                     <div className="space-y-6 pt-6 border-t border-white/10">
                       <h3 className="text-lg font-serif text-white mb-6 flex items-center gap-2">
-                        <span className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-500 text-sm">2</span>
+                        <span className="w-8 h-8 rounded-full bg-cyan-700/20 flex items-center justify-center text-cyan-700 text-sm">2</span>
                         Event Details
                       </h3>
 
@@ -290,7 +290,7 @@ export function BookingSection() {
                     {/* Service Selection */}
                     <div className="space-y-6 pt-6 border-t border-white/10">
                       <h3 className="text-lg font-serif text-white mb-6 flex items-center gap-2">
-                        <span className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-500 text-sm">3</span>
+                        <span className="w-8 h-8 rounded-full bg-cyan-700/20 flex items-center justify-center text-cyan-700 text-sm">3</span>
                         Service Selection
                       </h3>
 

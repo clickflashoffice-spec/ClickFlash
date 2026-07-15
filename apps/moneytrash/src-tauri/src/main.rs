@@ -46,6 +46,7 @@ fn main() {
             commands::upload::cancel_upload,
             commands::upload::get_active_uploads,
             commands::upload::validate_files,
+            commands::upload::start_native_upload,
             
             // Configuration
             commands::config::save_upload_config,

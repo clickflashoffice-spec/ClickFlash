@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { getApiBaseUrl, validateWebsiteEnv } from "../env";
+import { logger } from "@clickflash/logger";
 
 describe("env", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.stubEnv("NEXT_PUBLIC_API_URL", undefined);
     vi.stubEnv("NODE_ENV", "development");
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(logger, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -28,7 +29,7 @@ describe("env", () => {
 
   it("falls back to localhost with a warning in development", () => {
     expect(getApiBaseUrl()).toBe("http://localhost:8090");
-    expect(console.warn).toHaveBeenCalled();
+    expect(logger.warn).toHaveBeenCalled();
   });
 
   it("validateWebsiteEnv runs without throwing when env is set", () => {

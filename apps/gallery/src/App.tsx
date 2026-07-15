@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 import React, { useState, useEffect } from "react";
 import CustomerLogin from "./components/customer/CustomerLogin";
 import CustomerLayout from "./components/customer/CustomerLayout";
@@ -52,7 +53,7 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ onExit }) => {
             return;
           }
         } catch (e) {
-          console.warn("Magic Link auto-login failed", e);
+          logger.warn("Magic Link auto-login failed", e);
         }
       }
 
@@ -97,7 +98,7 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ onExit }) => {
             }
           }
         } catch (e) {
-          console.warn("QR auto-login failed", e);
+          logger.warn("QR auto-login failed", e);
         }
       }
 
@@ -120,7 +121,7 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ onExit }) => {
             return;
           }
         } catch (e) {
-          console.warn("Auto-login failed", e);
+          logger.warn("Auto-login failed", e);
         }
       }
       setAuthState("unauthenticated");

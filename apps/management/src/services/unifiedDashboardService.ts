@@ -7,6 +7,7 @@
 
 import { cloudApiService } from "./cloudApiService";
 import { fleetService, MasterStation } from "./fleetService";
+import { logger } from "@/utils/logger";
 
 export interface TrendPoint {
   date: string;
@@ -189,7 +190,7 @@ class UnifiedDashboardService {
         marketing,
       };
     } catch (error) {
-      console.warn("Failed to fetch unified dashboard data, using fallback:", error);
+      logger.warn("Failed to fetch unified dashboard data, using fallback:", error);
       const stations = await this.getStationsWithDashboard("global");
       const aggregated = await this.getAggregatedStats("global");
       const kpi = this.calculateAggregatedKPI(stations);
@@ -239,7 +240,7 @@ class UnifiedDashboardService {
         this.transformToStationDashboard(station),
       );
     } catch (error) {
-      console.warn("Failed to fetch stations in dashboard service:", error);
+      logger.warn("Failed to fetch stations in dashboard service:", error);
       return [];
     }
   }
@@ -295,7 +296,7 @@ class UnifiedDashboardService {
         topAlbums,
       };
     } catch (error) {
-      console.warn("Failed to fetch aggregated stats, returning fallback:", error);
+      logger.warn("Failed to fetch aggregated stats, returning fallback:", error);
       return {
         totalStations: 0,
         onlineStations: 0,
@@ -349,7 +350,7 @@ class UnifiedDashboardService {
         },
       };
     } catch (error) {
-      console.warn("Failed to fetch marketing data, using defaults:", error);
+      logger.warn("Failed to fetch marketing data, using defaults:", error);
       // Return default/empty data on error
       return {
         campaigns: [],
@@ -535,7 +536,7 @@ class UnifiedDashboardService {
       const station = await fleetService.getStationDetails(deskId);
       return this.transformToStationDashboard(station);
     } catch (error) {
-      console.error(`Failed to fetch station details for ${deskId}:`, error);
+      logger.error(`Failed to fetch station details for ${deskId}:`, error);
       return null;
     }
   }

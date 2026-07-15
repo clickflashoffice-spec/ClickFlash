@@ -9,7 +9,11 @@ export async function handleOnboarding(
   dbManager: any,
   corsHeaders: any
 ): Promise<Response | null> {
-  const licenseService = new LicenseService(dbManager || env.DB);
+  const licenseService = new LicenseService(
+    dbManager || env.DB,
+    env.LICENSE_PRIVATE_KEY,
+    env.LICENSE_PUBLIC_KEY
+  );
 
   // --- POST /api/v1/license/validate ---
   if (url.pathname === "/api/v1/license/validate" && request.method === "POST") {

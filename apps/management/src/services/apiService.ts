@@ -63,6 +63,7 @@ import { portfolioApi } from './api/portfolioApi';
 import { inventoryStockApi } from './api/inventoryStockApi';
 import { massDeploymentCeoScaleApi } from './api/massDeploymentCeoScaleApi';
 import { governanceSyncApi } from './api/governanceSyncApi';
+import { webhooksApi } from './api/webhooksApi';
 
 export const apiService = {
   ...genericCrudApi,
@@ -88,6 +89,7 @@ export const apiService = {
   ...inventoryStockApi,
   ...massDeploymentCeoScaleApi,
   ...governanceSyncApi,
+  ...webhooksApi,
 };
 
 export * from './api/genericCrudApi';
@@ -113,3 +115,4 @@ export * from './api/portfolioApi';
 export * from './api/inventoryStockApi';
 export * from './api/massDeploymentCeoScaleApi';
 export * from './api/governanceSyncApi';
+export * from './api/webhooksApi';

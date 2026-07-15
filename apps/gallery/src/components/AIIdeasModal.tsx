@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 import React, { useState } from 'react';
 import Modal from './common/Modal';
 import { generateShootIdeas } from '../services/geminiService.ts';
@@ -21,7 +22,7 @@ const AIIdeasModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOp
             setIdeas(result);
         } catch (err) {
             setError('Failed to generate ideas. Please check the console for details.');
-            console.error(err);
+            logger.error('AI idea generation failed', err instanceof Error ? err : new Error(String(err)));
         }
         setLoading(false);
     };

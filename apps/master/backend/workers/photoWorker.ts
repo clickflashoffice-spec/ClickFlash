@@ -8,6 +8,7 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
+import exifr from "exifr";
 
 import { validateImageMagicNumber } from '../services/validateImage';
 import { logger } from '../utils/logger';
@@ -125,6 +126,22 @@ async function handleProcessJob(job: WorkerJob) {
     const metadata = await imageInstance.metadata();
     const orientation = metadata.orientation || 1;
 
+    let entaggedBarcode: string | null = null;
+    try {
+        const exifData = await (exifr.parse as any)(filepath, { userComment: true, ImageDescription: true });
+        if (exifData) {
+            const possibleTags = [exifData.ImageDescription, exifData.UserComment, exifData.DocumentName];
+            for (const tag of possibleTags) {
+                if (typeof tag === 'string' && tag.trim().length > 0) {
+                    entaggedBarcode = tag.trim();
+                    break;
+                }
+            }
+        }
+    } catch (e) {
+        logger.warn(`[PhotoWorker] Failed to parse EXIF for ${photoId}`);
+    }
+
     // AI-Enhanced Analytics: Local Heuristic Image Auditing
     const quality_flags: string[] = [];
     let imageStats: ImageStats | null = null;
@@ -211,6 +228,7 @@ async function handleProcessJob(job: WorkerJob) {
       success: true,
       photoId,
       hash: fileHash,
+      entaggedBarcode,
       metadata: {
         width: metadata.width,
         height: metadata.height,

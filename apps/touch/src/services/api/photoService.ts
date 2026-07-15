@@ -1,9 +1,9 @@
 import { pb } from './core';
-import { Album, Photo } from '../../types';
+import { Album, Photo, AlbumStatus } from '../../types';
 import { PocketRecord } from '../../services/pbTypes';
 import { logger } from '../../utils/logger';
 
-function resolvePhotoUrl(record: any, baseUrl: string, manualEdits: any): string {
+export function resolvePhotoUrl(record: any, baseUrl: string, manualEdits: any): string {
     let photoUrl = record.url || '';
     if (!photoUrl) return '';
     if (photoUrl.startsWith('http') || photoUrl.startsWith('blob:') || photoUrl.startsWith('data:')) {
@@ -28,7 +28,16 @@ function resolvePhotoUrl(record: any, baseUrl: string, manualEdits: any): string
     return `${baseUrl}/api/files/photos/${record.id}/${photoUrl}`;
 }
 
+export function getHighResPhotoUrl(record: any, baseUrl: string, manualEdits?: any): string {
+    const url = resolvePhotoUrl(record, baseUrl, manualEdits);
+    if (!url || url.startsWith('blob:') || url.startsWith('data:')) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}variant=highres`;
+}
+
 export const photoService = {
+    resolvePhotoUrl,
+    getHighResPhotoUrl,
     // --- Albums ---
     async getAlbums(): Promise<Album[]> {
         try {
@@ -112,7 +121,7 @@ export const photoService = {
                         coverPhotoUrl: (coverPhotoUrl as string),
                         source: (r.source as string) || '',
                         roomNumber: (r.roomNumber as string) || '',
-                        status: (r.status as string) || '',
+                        status: (r.status as AlbumStatus) || undefined,
                         categories: categories,
                         photos: photos
                     };
@@ -245,7 +254,7 @@ export const photoService = {
                 coverPhotoUrl: coverPhotoUrl as string,
                 source: albumSource as string,
                 roomNumber: roomNumber as string,
-                status: albumStatus as string,
+                status: (albumStatus as AlbumStatus) || undefined,
                 categories: categories,
                 photos: photos
             };

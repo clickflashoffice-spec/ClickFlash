@@ -1,4 +1,5 @@
 import { ShootIdea, PhotoCategory } from "../types.ts";
+import { logger } from "@/utils/logger";
 
 // All Gemini calls are proxied through the management backend worker.
 // The GOOGLE_API_KEY lives as a wrangler secret — never in the browser bundle.
@@ -28,7 +29,7 @@ export async function generateShootIdeas(
     const data = (await res.json()) as { ideas?: ShootIdea[] };
     return data.ideas ?? [];
   } catch (error) {
-    console.error("Error generating shoot ideas:", error);
+    logger.error("Error generating shoot ideas:", error);
     return [];
   }
 }
@@ -86,7 +87,7 @@ export async function generateAlbumSuggestions(
       coverPhotoIndex: d.coverPhotoIndex ?? defaults.coverPhotoIndex,
     };
   } catch (error) {
-    console.error("Error generating album suggestions:", error);
+    logger.error("Error generating album suggestions:", error);
     throw new Error("Failed to generate album suggestions.");
   }
 }
@@ -117,7 +118,7 @@ export async function generateSalesForecast(metrics: Record<string, unknown>): P
       insights: d.insights ?? ["Not enough data."],
     };
   } catch (error) {
-    console.error("Error generating sales forecast:", error);
+    logger.error("Error generating sales forecast:", error);
     throw new Error("Failed to generate sales forecast.");
   }
 }
@@ -141,7 +142,7 @@ export async function sendChatMessage(message: string, context: any): Promise<st
     const data = await res.json() as { response?: string };
     return data.response ?? "No response from AI service.";
   } catch (err) {
-    console.warn("AI service unreachable. Falling back to local intelligence.", err);
+    logger.warn("AI service unreachable. Falling back to local intelligence.", err);
     return executeLocalChatFallback(message, context);
   }
 }

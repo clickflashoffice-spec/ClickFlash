@@ -5,6 +5,7 @@
 
 import { Env } from '../../index';
 import { UploadSession } from './init';
+import { logger } from "@clickflash/logger";
 
 export async function handleUploadCancel(request: Request, env: Env): Promise<Response> {
   try {
@@ -44,7 +45,7 @@ export async function handleUploadCancel(request: Request, env: Env): Promise<Re
     });
     
   } catch (error) {
-    console.error('Cancel upload error:', error);
+    logger.error('Cancel upload error:', { args: [error] });
     return Response.json(
       { error: 'Failed to cancel upload' },
       { status: 500 }
@@ -58,7 +59,7 @@ async function cleanupChunks(env: Env, session: UploadSession): Promise<void> {
     try {
       await env.UPLOADS_BUCKET.delete(chunkKey);
     } catch (e) {
-      console.error(`Failed to delete chunk ${chunkIndex}:`, e);
+      logger.error(String(`Failed to delete chunk ${chunkIndex}:`) + ' ' + String(e));
     }
   });
   
@@ -83,6 +84,6 @@ async function logCancellation(
       session.metadata.mode
     ).run();
   } catch (e) {
-    console.error('Failed to log cancellation:', e);
+    logger.error('Failed to log cancellation:', { args: [e] });
   }
 }

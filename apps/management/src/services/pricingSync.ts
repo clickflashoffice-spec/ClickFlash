@@ -8,7 +8,7 @@ export const syncPricingToSupabase = async (
 ) => {
   try {
     if (!supabase) {
-      console.warn(
+      logger.warn(
         "[PricingSync] Supabase not configured. Skipping pricing sync.",
       );
       return;
@@ -37,12 +37,12 @@ export const syncPricingToSupabase = async (
     );
 
     if (error) {
-      console.error(`Error syncing pricing [${syncKey}] to Supabase:`, error);
+      logger.error(`Error syncing pricing [${syncKey}] to Supabase:`, error);
       throw error;
     }
 
     logger.info(`Pricing [${syncKey}] synced successfully.`);
   } catch (err) {
-    console.error("Failed to sync pricing:", err);
+    logger.error("Failed to sync pricing:", err);
   }
 };

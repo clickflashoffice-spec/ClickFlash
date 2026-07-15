@@ -41,6 +41,19 @@ export const csrfMiddleware = (
     return next();
   }
 
+  // 4.1. Skip validation for pairing requests and initial kiosk registration (no signature yet)
+  const path = req.originalUrl || req.url || "";
+  if (
+    path.startsWith("/api/pairing") ||
+    path.startsWith("/pairing") ||
+    path.startsWith("/api/v1/pairing") ||
+    path.startsWith("/v1/pairing") ||
+    path.startsWith("/api/v1/kiosks") ||
+    path.startsWith("/v1/kiosks")
+  ) {
+    return next();
+  }
+
   // 4.5. Skip validation during E2E tests
   if (process.env.TEST_E2E === "1") {
     return next();
@@ -50,7 +63,7 @@ export const csrfMiddleware = (
   const clientToken = req.headers["x-csrf-token"] as string;
 
   if (!clientToken || !validateToken(clientToken, session.user?.id || null)) {
-    logger.warn(`[CSRF] Validation failed for ${req.method} ${req.url}.`);
+    logger.warn(`[CSRF] Validation failed for ${req.method} ${req.url} (originalUrl: ${req.originalUrl}). clientToken: ${clientToken}`);
     return sendAuthorizationError(res, "Invalid or missing CSRF token");
   }
 

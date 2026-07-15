@@ -1,4 +1,5 @@
 import { sendAuthError, sendNotFoundError, sendInternalError, createErrorResponse, sendDatabaseError } from "../errorHandler.js";
+import { logger } from "@clickflash/logger";
 
 export const handleCloud = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, geminiService: any, payload: any) => {
   const deskId = payload?.desk_id || "UNKNOWN";
@@ -33,7 +34,7 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
           await recordService.updateFleetHeartbeat(deskId, body);
           return Response.json({ success: true }, { headers: corsHeaders });
         } catch (hbErr: any) {
-          console.error("[Heartbeat] Error:", hbErr.message);
+          logger.error("[Heartbeat] Error:", { args: [hbErr.message] });
           return sendInternalError(hbErr, "Heartbeat Processing");
         }
       }
@@ -197,7 +198,7 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
             );
             processed.push(op.id);
           } catch (err) {
-            console.error(`[SyncOps] Failed to store op ${op.id}:`, err);
+            logger.error(String(`[SyncOps] Failed to store op ${op.id}:`) + ' ' + String(err));
           }
         }
 
@@ -352,7 +353,7 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
             { headers: corsHeaders },
           );
         } catch (e: any) {
-          console.error(`[SyncOrder] Failed to sync order:`, e);
+          logger.error(`[SyncOrder] Failed to sync order:`, { args: [e] });
           return sendDatabaseError(e);
         }
       }
@@ -404,7 +405,7 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
             );
             count++;
           } catch (e) {
-            console.error(`[SyncBatch] Failed to upsert into ${table}:`, e);
+            logger.error(String(`[SyncBatch] Failed to upsert into ${table}:`) + ' ' + String(e));
           }
         }
         return Response.json(
@@ -461,7 +462,7 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
             { headers: corsHeaders },
           );
         } catch (e: any) {
-          console.error("[SyncSettings] Error:", e);
+          logger.error("[SyncSettings] Error:", { args: [e] });
           return sendInternalError(e, "Settings Sync");
         }
       }
@@ -494,10 +495,7 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
             }
           }
         } catch (err) {
-          console.error(
-            `[Heartbeat] Failed to read pending commands for ${deskId}:`,
-            err,
-          );
+          logger.error(String(`[Heartbeat] Failed to read pending commands for ${deskId}:`) + ' ' + String(err));
         }
 
         await dbManager.run(
@@ -589,7 +587,7 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
                 photoId: photo.id,
               },
             });
-            console.log(`[SyncPhoto] Stored in R2: ${r2Key} (${buf.byteLength} bytes)`);
+            logger.info(String(`[SyncPhoto] Stored in R2: ${r2Key} (${buf.byteLength} bytes)`));
           }
           
           return Response.json(
@@ -597,7 +595,7 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
             { headers: corsHeaders }
           );
         } catch (e: any) {
-          console.error("[SyncPhoto] Error:", e);
+          logger.error("[SyncPhoto] Error:", { args: [e] });
           return createErrorResponse(500, "Sync Error", e.message);
         }
       }
@@ -703,18 +701,16 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
               .bind(photoId || r2Key, albumId, r2Key, deskId)
               .run();
           } catch (dbErr) {
-            console.error("[Management Cloud Upload] D1 insert warning:", dbErr);
+            logger.error("[Management Cloud Upload] D1 insert warning:", { args: [dbErr] });
           }
 
-          console.log(
-            `[R2 Upload] Stored & Synced: ${r2Key} (${finalBuffer.byteLength} bytes)`,
-          );
+          logger.info(String(`[R2 Upload] Stored & Synced: ${r2Key} (${finalBuffer.byteLength} bytes)`));
           return Response.json(
             { success: true, key: r2Key, completed: true },
             { headers: corsHeaders },
           );
         } catch (e: any) {
-          console.error("[R2 Upload] Error:", e);
+          logger.error("[R2 Upload] Error:", { args: [e] });
           return createErrorResponse(500, "Upload Error", e.message);
         }
       }
@@ -803,16 +799,16 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
               }
             }
           } catch (retentionErr) {
-            console.warn("[Backup Retention] Cleanup non-fatal error:", retentionErr);
+            logger.warn("[Backup Retention] Cleanup non-fatal error:", { args: [retentionErr] });
           }
 
-          console.log(`[Backup Ingestion] Stored ${type} backup for desk ${deskId}: ${r2Key} (${buf.byteLength} bytes)`);
+          logger.info(String(`[Backup Ingestion] Stored ${type} backup for desk ${deskId}: ${r2Key} (${buf.byteLength} bytes)`));
           return Response.json(
             { success: true, backupId, key: r2Key, checksum, sizeBytes: buf.byteLength },
             { headers: corsHeaders },
           );
         } catch (e: any) {
-          console.error("[Backup Ingestion] Error:", e);
+          logger.error("[Backup Ingestion] Error:", { args: [e] });
           return createErrorResponse(500, "Backup Error", e.message);
         }
       }
@@ -838,7 +834,7 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
             { headers: corsHeaders },
           );
         } catch (e: any) {
-          console.error("[Backup List] Error:", e);
+          logger.error("[Backup List] Error:", { args: [e] });
           return createErrorResponse(500, "Database Error", e.message);
         }
       }
@@ -961,9 +957,7 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
             [key, String(value)],
           );
 
-          console.log(
-            `[GlobalConfig] Set ${key} by desk ${(payload as any).desk_id || "admin"}`,
-          );
+          logger.info(String(`[GlobalConfig] Set ${key} by desk ${(payload as any).desk_id || "admin"}`));
           return Response.json(
             { success: true, key, value },
             { headers: corsHeaders },

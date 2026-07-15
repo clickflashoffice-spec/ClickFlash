@@ -489,6 +489,8 @@ const PUBLIC_API_PREFIXES = [
   '/gallery-checkout',  // Stripe / payment webhook (no user context)
   '/gallery',           // watermarked image serving (uses gallery JWT)
   '/pairing',           // kiosk initial pairing handshake
+  '/v1/pairing',        // v1 kiosk pairing handshake
+  '/v1/kiosks',         // auto-register kiosks
   '/assistance',        // kiosk → master assistance calls
   '/notification',      // kiosk → master notification push
 ];

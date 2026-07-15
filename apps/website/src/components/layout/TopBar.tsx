@@ -15,7 +15,7 @@ export function TopBar() {
     ];
 
     return (
-        <div className="bg-cyan-500 text-white py-2 px-4 text-xs font-medium hidden md:block">
+        <div className="bg-cyan-700 text-white py-2 px-4 text-xs font-medium hidden md:block">
             <div className="container mx-auto flex justify-between items-center">
                 <div className="flex items-center gap-6">
                     <a href="mailto:info@clicketflash.com" className="flex items-center gap-2 hover:text-cyan-100 transition-colors">

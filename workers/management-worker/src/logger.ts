@@ -1,3 +1,5 @@
+import { logger } from "@clickflash/logger";
+
 type LogLevel = "ERROR" | "WARN" | "INFO" | "DEBUG";
 
 const LOG_LEVELS: Record<LogLevel, number> = {
@@ -25,20 +27,11 @@ export class Logger {
     };
 
     if (level === "ERROR") {
-      console.error(
-        `[${level}] ${message}`,
-        Object.keys(meta).length ? meta : "",
-      );
+      logger.error(String(`[${level}] ${message}`) + ' ' + String(Object.keys(meta).length ? meta : ""));
     } else if (level === "WARN") {
-      console.warn(
-        `[${level}] ${message}`,
-        Object.keys(meta).length ? meta : "",
-      );
+      logger.warn(String(`[${level}] ${message}`) + ' ' + String(Object.keys(meta).length ? meta : ""));
     } else {
-      console.log(
-        `[${level}] ${message}`,
-        Object.keys(meta).length ? meta : "",
-      );
+      logger.info(String(`[${level}] ${message}`) + ' ' + String(Object.keys(meta).length ? meta : ""));
     }
   }
 

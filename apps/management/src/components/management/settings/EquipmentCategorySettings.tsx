@@ -3,6 +3,7 @@ import { EquipmentCategory } from "../../../types";
 import { apiService } from "../../../services/apiService";
 import Spinner from "../../common/Spinner";
 import EquipmentCategoryEditModal from "../modals/EquipmentCategoryEditModal";
+import { logger } from "@/utils/logger";
 
 const EquipmentCategorySettings: React.FC = () => {
   const [categories, setCategories] = useState<EquipmentCategory[]>([]);
@@ -17,7 +18,7 @@ const EquipmentCategorySettings: React.FC = () => {
       const data = await apiService.getEquipmentCategories();
       setCategories(data);
     } catch (error) {
-      console.error("Failed to load equipment categories", error);
+      logger.error("Failed to load equipment categories", error);
     } finally {
       setLoading(false);
     }

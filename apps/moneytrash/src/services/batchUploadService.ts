@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 /**
  * Batch Upload Service for Money Trash
  * Handles high-volume concurrent uploads with queue management
@@ -130,7 +131,7 @@ class BatchUploadService {
     } catch (error) {
       job.status = 'failed';
       job.completedAt = new Date();
-      console.error(`Batch upload job ${jobId} failed:`, error);
+      logger.error(`Batch upload job ${jobId} failed:`, error);
     } finally {
       this.activeJobs.delete(jobId);
       this.processQueue(); // Process next jobs in queue
@@ -224,7 +225,7 @@ class BatchUploadService {
         file: file.name,
         error: error instanceof Error ? error.message : 'Unknown error'
       });
-      console.error(`Failed to upload ${file.name}:`, error);
+      logger.error(`Failed to upload ${file.name}:`, error);
     } finally {
       this.notifySubscribers(job.id);
     }

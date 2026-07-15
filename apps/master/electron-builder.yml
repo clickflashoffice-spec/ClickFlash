@@ -49,17 +49,21 @@ win:
   forceCodeSigning: false
   signAndEditExecutable: false
 
-compression: normal
+compression: maximum
 
 nsis:
-  oneClick: true
+  oneClick: false
+  allowToChangeInstallationDirectory: true
   perMachine: true
   include: build/installer.nsh
   deleteAppDataOnUninstall: true
-  
   createDesktopShortcut: false
   runAfterFinish: false
   shortcutName: ClickFlash Master OS
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  uninstallDisplayName: ClickFlash Master OS
+  warningsAsErrors: false
 
 electronVersion: "39.8.7"
 npmRebuild: false

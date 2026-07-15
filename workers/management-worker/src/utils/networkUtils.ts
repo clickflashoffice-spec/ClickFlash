@@ -1,3 +1,5 @@
+import { logger } from "@clickflash/logger";
+
 // apps/management/backend/src/utils/networkUtils.ts
 
 export interface RetryOptions {
@@ -50,9 +52,9 @@ export async function executeWithRetry<T>(
         onRetry(error, attempt);
       }
 
-      console.warn(`[Retry] Attempt ${attempt} failed. Retrying in ${Math.round(delay)}ms...`, {
-        error: error.message,
-      });
+      logger.warn(String(`[Retry] Attempt ${attempt} failed. Retrying in ${Math.round(delay)}ms...`) + ' ' + String({
+                error: error.message,
+              }));
 
       await new Promise((resolve) => setTimeout(resolve, delay));
     }

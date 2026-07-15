@@ -128,7 +128,7 @@ const startFolderMonitor = (context: FolderMonitorContext): void => {
                   width: processed.width,
                   height: processed.height,
                   fileHash: processed.fileHash,
-                  roomNumber,
+                  roomNumber: processed.entaggedBarcode || roomNumber,
                   quality_flags: JSON.stringify(processed.qualityFlags || []),
                   autoEdits: processed.autoEdits ? JSON.stringify(processed.autoEdits) : undefined,
                   autoEnhanced: processed.autoEnhanced,

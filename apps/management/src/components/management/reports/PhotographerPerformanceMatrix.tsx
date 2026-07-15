@@ -23,11 +23,11 @@ export const PhotographerPerformanceMatrix: React.FC<
 
         // Outcome (Expenses) assigned to this photographer
         const pExpenses = expenses.filter((e) =>
-          e.photographerIds?.some((id) => String(id) === String(p.id)),
+          (e.photographerId as any)?.some((id: any) => String(id) === String(p.id)),
         );
         const outcome = pExpenses.reduce((sum, e) => {
           // If shared, divide cost by number of photographers
-          const divisor = e.photographerIds?.length || 1;
+          const divisor = (e.photographerId as any)?.length || 1;
           return sum + e.cost / divisor;
         }, 0);
 

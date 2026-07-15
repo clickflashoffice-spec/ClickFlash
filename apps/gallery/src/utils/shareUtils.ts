@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 /**
  * Share Utilities
  * 
@@ -82,7 +83,7 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
             return success;
         }
     } catch (error) {
-        console.error('Failed to copy to clipboard:', error);
+        logger.error('Failed to copy to clipboard:', error);
         return false;
     }
 };
@@ -118,7 +119,7 @@ export const sharePhoto = (photoUrl: string, photoTitle: string, galleryUrl: str
             text: `Check out this photo: ${photoTitle}`,
             url: galleryUrl,
         }).catch((error) => {
-            console.log('Error sharing:', error);
+            logger.info('Error sharing:', error);
         });
     } else {
         // Fallback: show share options

@@ -219,3 +219,4 @@ body,
 [style*="--bg-width"] {
   width: var(--bg-width);
 }
+@keyframes shimmer { 100% { transform: translateX(100%); } }

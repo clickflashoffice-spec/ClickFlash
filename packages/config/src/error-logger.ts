@@ -1,3 +1,5 @@
+import { logger } from "@clickflash/logger";
+
 /**
  * Simple Error Logger - Free alternative to Sentry
  * Logs errors to console and local storage for debugging
@@ -32,7 +34,7 @@ class SimpleErrorLogger {
     }
 
     // Log to console
-    console.error('[ErrorLogger]', errorEntry);
+    logger.error('[ErrorLogger]', { args: [errorEntry] });
 
     // Store in localStorage for persistence
     try {
@@ -74,5 +76,5 @@ export function initErrorLogger(): void {
     });
   });
 
-  console.info('[ErrorLogger] Initialized - free error tracking active');
+  logger.info(String('[ErrorLogger] Initialized - free error tracking active'));
 }

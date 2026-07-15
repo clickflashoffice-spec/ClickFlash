@@ -16,7 +16,7 @@ interface BookingEditModalProps {
 const BookingEditModal: React.FC<BookingEditModalProps> = ({ isOpen, onClose, onSave, bookingToEdit, photographers, sessionTypes }) => {
     const isNew = !bookingToEdit;
     const [booking, setBooking] = useState<Partial<Booking>>(
-        bookingToEdit || { status: 'Pending' } as Partial<Booking>
+        bookingToEdit || { status: 'pending' } as Partial<Booking>
     );
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -25,7 +25,7 @@ const BookingEditModal: React.FC<BookingEditModalProps> = ({ isOpen, onClose, on
 
 
     useEffect(() => {
-        setBooking(bookingToEdit || { status: 'Pending' } as Partial<Booking>);
+        setBooking(bookingToEdit || { status: 'pending' } as Partial<Booking>);
         setErrors({});
     }, [bookingToEdit, isOpen]);
 
@@ -106,10 +106,10 @@ const BookingEditModal: React.FC<BookingEditModalProps> = ({ isOpen, onClose, on
                         {errors.photographerId && <p className={errorStyles}>{errors.photographerId}</p>}
                     </div>
                     <div>
-                        <select name="status" value={booking.status || 'Pending'} onChange={handleChange} required className={`${inputStyles} ${errors.status ? 'border-red-500' : ''}`} aria-label="Booking Status">
-                            <option value="Pending">Pending</option>
-                            <option value="Confirmed">Confirmed</option>
-                            <option value="Cancelled">Cancelled</option>
+                        <select name="status" value={booking.status || 'pending'} onChange={handleChange} required className={`${inputStyles} ${errors.status ? 'border-red-500' : ''}`} aria-label="Booking Status">
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="cancelled">Cancelled</option>
                         </select>
                         {errors.status && <p className={errorStyles}>{errors.status}</p>}
                     </div>

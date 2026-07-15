@@ -7,6 +7,7 @@ import {
   Zap,
 } from "lucide-react";
 import { cloudApiService } from "../../services/cloudApiService";
+import { logger } from "@/utils/logger";
 
 interface FleetStation {
   id: string;
@@ -41,7 +42,7 @@ const ResortIntelligence: React.FC = () => {
           setFleet(res.data.fleet);
         }
       } catch (err) {
-        console.error("Failed to fetch fleet status:", err);
+        logger.error("Failed to fetch fleet status:", err);
       } finally {
         setLoading(false);
       }

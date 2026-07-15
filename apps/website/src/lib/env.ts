@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 function isValidUrl(value: unknown): value is string {
   if (typeof value !== "string" || value.trim().length === 0) return false;
   try {
@@ -31,7 +32,7 @@ export function getApiBaseUrl(): string {
 
   // Fallback for local development / offline prerender only.
   const fallback = "http://localhost:8090";
-  console.warn(
+  logger.warn(
     `[website/env] NEXT_PUBLIC_API_URL is not set or invalid. Using fallback ${fallback}. Set NEXT_PUBLIC_API_URL for real API calls.`,
   );
   return fallback;

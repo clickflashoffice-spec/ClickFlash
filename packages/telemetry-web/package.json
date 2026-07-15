@@ -1,6 +1,6 @@
 {
   "name": "@clickflash/telemetry-web",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Unified frontend telemetry, web vitals, and error tracking",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,6 +9,7 @@
     "dev": "tsc -w"
   },
   "dependencies": {
+    "@clickflash/logger": "workspace:*",
     "web-vitals": "^3.5.0"
   },
   "devDependencies": {

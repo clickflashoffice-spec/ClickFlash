@@ -1,3 +1,4 @@
+import { logger as sharedLogger } from '@clickflash/logger';
 /**
  * Structured Logger for MoneyTrash Uploader
  * 
@@ -13,8 +14,8 @@ interface LogEntry {
   timestamp: string;
   level: LogLevel;
   message: string;
-  context?: Record<string, unknown>;
-  error?: Error;
+  context?: any;
+  error?: any;
 }
 
 /** Logger configuration */
@@ -88,8 +89,8 @@ class Logger {
   private createEntry(
     level: LogLevel,
     message: string,
-    context?: Record<string, unknown>,
-    error?: Error
+    context?: any,
+    error?: any
   ): LogEntry {
     return {
       timestamp: new Date().toISOString(),
@@ -135,16 +136,16 @@ class Logger {
 
     switch (entry.level) {
       case 'debug':
-        console.debug(`%c${prefix}`, styles[entry.level], entry.message, entry.context || '');
+        logger.debug(String(`%c${prefix}`) + ' ' + String(styles[entry.level]) + ' ' + String(entry.message) + ' ' + String(entry.context || ''));
         break;
       case 'info':
-        console.info(`%c${prefix}`, styles[entry.level], entry.message, entry.context || '');
+        logger.info(String(`%c${prefix}`) + ' ' + String(styles[entry.level]) + ' ' + String(entry.message) + ' ' + String(entry.context || ''));
         break;
       case 'warn':
-        console.warn(`%c${prefix}`, styles[entry.level], entry.message, entry.context || '');
+        sharedLogger.warn(entry.message, entry.context as any);
         break;
       case 'error':
-        console.error(`%c${prefix}`, styles[entry.level], entry.message, entry.error || '', entry.context || '');
+        sharedLogger.error(entry.message, entry.error as any, entry.context as any);
         break;
     }
   }
@@ -178,7 +179,7 @@ class Logger {
         this.storedEntries = JSON.parse(stored);
       }
     } catch (e) {
-      console.warn('Failed to load stored logs:', e);
+      sharedLogger.warn('Failed to load stored logs:', e as any);
     }
   }
 
@@ -198,28 +199,28 @@ class Logger {
   /**
    * Log a debug message
    */
-  debug(message: string, context?: Record<string, unknown>): void {
+  debug(message: string, context?: any): void {
     this.log(this.createEntry('debug', message, context));
   }
 
   /**
    * Log an info message
    */
-  info(message: string, context?: Record<string, unknown>): void {
+  info(message: string, context?: any): void {
     this.log(this.createEntry('info', message, context));
   }
 
   /**
    * Log a warning message
    */
-  warn(message: string, context?: Record<string, unknown>): void {
+  warn(message: string, context?: any): void {
     this.log(this.createEntry('warn', message, context));
   }
 
   /**
    * Log an error message
    */
-  error(message: string, error?: Error, context?: Record<string, unknown>): void {
+  error(message: string, error?: any, context?: any): void {
     this.log(this.createEntry('error', message, context, error));
   }
 
@@ -282,14 +283,14 @@ export const logger = new Logger();
 export { Logger };
 
 // Convenience exports for common usage patterns
-export const debug = (message: string, context?: Record<string, unknown>) => 
+export const debug = (message: string, context?: any) => 
   logger.debug(message, context);
 
-export const info = (message: string, context?: Record<string, unknown>) => 
+export const info = (message: string, context?: any) => 
   logger.info(message, context);
 
-export const warn = (message: string, context?: Record<string, unknown>) => 
+export const warn = (message: string, context?: any) => 
   logger.warn(message, context);
 
-export const error = (message: string, err?: Error, context?: Record<string, unknown>) => 
+export const error = (message: string, err?: Error, context?: any) => 
   logger.error(message, err, context);

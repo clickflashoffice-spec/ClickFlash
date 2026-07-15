@@ -3,6 +3,7 @@ import { useCurrency } from "../../CurrencyContext.tsx";
 import { apiService } from "../../../services/apiService.ts";
 import { Currency } from "../../../types.ts";
 import Spinner from "../../common/Spinner.tsx";
+import { logger } from "@/utils/logger";
 
 const CurrencySettings: React.FC = () => {
   const { baseCurrency } = useCurrency();
@@ -35,7 +36,7 @@ const CurrencySettings: React.FC = () => {
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (error) {
-      console.error("Failed to save currency settings", error);
+      logger.error("Failed to save currency settings", error);
       setSaveStatus("error");
       setTimeout(() => setSaveStatus("idle"), 3000);
     }

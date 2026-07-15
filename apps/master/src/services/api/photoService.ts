@@ -209,7 +209,7 @@ function transformPhoto(r: PocketRecord, baseUrl: string): Photo {
         url: photoUrl,
         thumbnailUrl: thumbPath.startsWith('http') ? thumbPath : `${baseUrl}/api/files/photos/${id}/${stripStructure(thumbPath)}`,
         previewUrl: previewPath.startsWith('http') ? previewPath : `${baseUrl}/api/files/photos/${id}/${stripStructure(previewPath)}`,
-        photographerId: r.photographerId as string | undefined,
+        photographerId: (r.photographerId as string | number) || '',
         category: r.category as 'uncategorized' | 'print' | 'digital' | undefined,
         manualEdits: manualEdits,
         autoEdits: autoEdits,

@@ -6,7 +6,7 @@ import {
   AlbumStatus,
 } from "../../types";
 import { PocketRecord } from "../pbTypes";
-import { logger } from "../../utils/logger";
+import { logger as appLogger } from "@/utils/logger";
 
 /**
  * API Service - Wrapper around pb adapter for convenient data operations
@@ -30,13 +30,13 @@ export const albumsApi = {
 
       // Ensure records is an array before processing
       if (!Array.isArray(records)) {
-        console.warn("getAlbums: records is not an array", records);
+        appLogger.warn("getAlbums: records is not an array", records);
         return [];
       }
 
       // Ensure records is not null/undefined
       if (records == null) {
-        console.warn("getAlbums: records is null or undefined");
+        appLogger.warn("getAlbums: records is null or undefined");
         return [];
       }
 
@@ -95,7 +95,7 @@ export const albumsApi = {
                         manualEdits = p.manualEdits;
                       }
                     } catch (parseError) {
-                      console.warn(
+                      appLogger.warn(
                         "Failed to parse manualEdits for photo",
                         p.id,
                         parseError,
@@ -120,7 +120,7 @@ export const albumsApi = {
                 coverPhotoUrl = photos[0].url as string;
               }
             } catch (photoError) {
-              console.warn(
+              appLogger.warn(
                 "Failed to fetch photos for album",
                 r.id,
                 photoError,
@@ -138,7 +138,7 @@ export const albumsApi = {
                 categories = r.categories;
               }
             } catch (parseError) {
-              console.warn(
+              appLogger.warn(
                 "Failed to parse categories for album",
                 r.id,
                 parseError,
@@ -164,7 +164,7 @@ export const albumsApi = {
 
       // Ensure result is an array
       if (!Array.isArray(albumsWithPhotos)) {
-        console.warn(
+        appLogger.warn(
           "getAlbums: albumsWithPhotos is not an array",
           albumsWithPhotos,
         );
@@ -173,7 +173,7 @@ export const albumsApi = {
 
       return albumsWithPhotos;
     } catch (error) {
-      console.error("getAlbums: Error fetching albums", error);
+      appLogger.error("getAlbums: Error fetching albums", error);
       // Return empty array on any error to prevent crashes
       return [];
     }
@@ -188,7 +188,7 @@ export const albumsApi = {
 
       // Explicit null check - return early if record is null/undefined
       if (!record || typeof record !== "object") {
-        console.warn("Album not found or invalid record returned", {
+        appLogger.warn("Album not found or invalid record returned", {
           albumId: id,
         });
         return null;
@@ -243,7 +243,7 @@ export const albumsApi = {
               };
             });
         } else {
-          console.warn(
+          appLogger.warn(
             "getAlbum: photosList is not an array for album",
             id,
             photosList,
@@ -251,7 +251,7 @@ export const albumsApi = {
           photos = [];
         }
       } catch (photoError) {
-        console.warn("Failed to fetch photos for album", photoError);
+        appLogger.warn("Failed to fetch photos for album", photoError);
         // Try to get photos from expand if available
         if (
           record &&
@@ -293,7 +293,7 @@ export const albumsApi = {
                     manualEdits = p.manualEdits;
                   }
                 } catch (parseError) {
-                  console.warn(
+                  appLogger.warn(
                     "Failed to parse manualEdits for photo",
                     p.id,
                     parseError,
@@ -327,7 +327,7 @@ export const albumsApi = {
           }
         }
       } catch (parseError) {
-        console.warn(
+        appLogger.warn(
           "Failed to parse categories for album",
           record?.id || "unknown",
           parseError,
@@ -362,7 +362,7 @@ export const albumsApi = {
         photos: photos,
       };
     } catch (error) {
-      console.error("Failed to fetch album", error);
+      appLogger.error("Failed to fetch album", error);
 
       // Provide more specific error information
       if (error instanceof Error) {
@@ -427,7 +427,7 @@ export const albumsApi = {
 
       // Don't retry on conflict errors
       if (isConflict) {
-        logger.warn("Album update conflict detected", {
+        appLogger.warn("Album update conflict detected", {
           albumId: id,
           error: errorMessage,
         });
@@ -436,7 +436,7 @@ export const albumsApi = {
 
       // Retry on network errors
       if (retryCount < MAX_RETRIES && isNetworkError) {
-        logger.info(
+        appLogger.info(
           `Retrying album update (attempt ${retryCount + 1}/${MAX_RETRIES})`,
           { albumId: id },
         );
@@ -446,7 +446,7 @@ export const albumsApi = {
         return apiService.updateAlbum(id, data, retryCount + 1);
       }
 
-      logger.error(
+      appLogger.error(
         "Failed to update album",
         error instanceof Error ? error : undefined,
         { albumId: id, retryCount },

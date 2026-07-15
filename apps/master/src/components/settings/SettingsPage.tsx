@@ -38,8 +38,6 @@ import {
 // Lazy load settings components
 const GeneralSettings = lazy(() => import('./GeneralSettings'));
 const SystemStatusSettings = lazy(() => import('./SystemStatusSettings'));
-const SetupGuide = lazy(() => import('./SetupGuide'));
-const DocumentationPage = lazy(() => import('./DocumentationPage'));
 const DatabaseManagement = lazy(() => import('./DatabaseManagement'));
 const CloudSettings = lazy(() => import('./CloudSettings'));
 const BackupSettings = lazy(() => import('./BackupSettings'));
@@ -75,9 +73,7 @@ export type SettingsTab =
     | 'watermark'
     | 'receipts'
     | 'users'
-    | 'permissions'
-    | 'guide'
-    | 'docs';
+    | 'permissions';
 
 interface SettingsPageProps {
     currentUser: Photographer;
@@ -277,30 +273,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             description: 'System health, diagnostics, and logs',
             keywords: ['health', 'status', 'diagnostics', 'logs', 'performance']
         },
-        guide: {
-            label: 'Setup Guide',
-            icon: BookOpen,
-            component: (
-                <Suspense fallback={<SettingsTabLoader />}>
-                    <SetupGuide />
-                </Suspense>
-            ),
-            permission: true,
-            description: 'Step-by-step setup instructions',
-            keywords: ['setup', 'guide', 'tutorial', 'help', 'getting started']
-        },
-        docs: {
-            label: 'Documentation',
-            icon: FileText,
-            component: (
-                <Suspense fallback={<SettingsTabLoader />}>
-                    <DocumentationPage />
-                </Suspense>
-            ),
-            permission: true,
-            description: 'Complete system documentation',
-            keywords: ['docs', 'documentation', 'manual', 'help', 'reference']
-        },
         database: {
             label: 'Database',
             icon: Database,
@@ -495,7 +467,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             id: 'system',
             title: 'System',
             icon: Server,
-            items: ['general', 'system', 'guide', 'docs'] as SettingsTab[]
+            items: ['general', 'system'] as SettingsTab[]
         },
         {
             id: 'data',

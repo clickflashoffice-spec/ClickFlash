@@ -1,3 +1,5 @@
+import { logger } from "@clickflash/logger";
+
 // apps/management/backend/src/services/auditService.ts
 /**
  * Audit Service for Management Cloud
@@ -34,9 +36,9 @@ export class ManagementAuditService {
     // Console output for Cloudflare Workers
     const logLine = JSON.stringify(entry);
     if (level === 'ERROR') {
-      console.error(`[AUDIT] ${logLine}`);
+      logger.error(String(`[AUDIT] ${logLine}`));
     } else {
-      console.log(`[AUDIT] ${logLine}`);
+      logger.info(String(`[AUDIT] ${logLine}`));
     }
     
     // Also store in memory for potential retrieval

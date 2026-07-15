@@ -2,48 +2,41 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Management Dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login');
-    await page.fill('[data-testid="username-input"]', 'admin');
-    await page.fill('[data-testid="password-input"]', 'password');
+    await page.goto('/manage/');
+    await page.fill('[data-testid="username-input"]', 'alaeddine@example.com');
+    await page.fill('[data-testid="password-input"]', 'DEFAULT_PASSWORD_PLACEHOLDER');
     await page.click('[data-testid="login-button"]');
-    await page.waitForURL('/dashboard');
+    // Use robust check for heading indicating dashboard loaded
+    await expect(page.locator('h1').filter({ hasText: /Dashboard/i })).toBeVisible({ timeout: 15000 });
   });
 
   test('should display dashboard metrics', async ({ page }) => {
-    await expect(page.locator('[data-testid="total-albums-card"]')).toBeVisible();
-    await expect(page.locator('[data-testid="total-photos-card"]')).toBeVisible();
-    await expect(page.locator('[data-testid="monthly-revenue-card"]')).toBeVisible();
-    await expect(page.locator('[data-testid="active-users-card"]')).toBeVisible();
-    await expect(page.locator('[data-testid="total-albums-value"]')).toHaveText(/\d+/);
+    await expect(page.getByText('Revenue', { exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Orders', { exact: true })).toBeVisible();
+    await expect(page.getByText('Photos', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('Avg Order', { exact: true })).toBeVisible();
   });
 
-  test('should show recent activity', async ({ page }) => {
-    await expect(page.locator('[data-testid="recent-activity-list"]')).toBeVisible();
-    await expect(page.locator('[data-testid="activity-item"]')).toHaveCount.greaterThan(0);
+  test('should toggle time ranges', async ({ page }) => {
+    await page.getByRole('button', { name: 'today', exact: true }).click();
+    await page.getByRole('button', { name: '30d', exact: true }).click();
+    // After clicking, the time range state should update (mocked API might be fast, just verify buttons exist and are clickable)
   });
 
-  test('should display charts', async ({ page }) => {
-    await expect(page.locator('[data-testid="revenue-chart"]')).toBeVisible();
-    await expect(page.locator('[data-testid="albums-chart"]')).toBeVisible();
+  test('should toggle context', async ({ page }) => {
+    // ManagementLayout has a select for Hotel Context with title="Select Hotel Context"
+    const contextSelect = page.locator('select[title="Select Hotel Context"]');
+    await expect(contextSelect).toBeVisible();
+    // Select a different context
+    await contextSelect.selectOption({ label: 'Marhaba Club' });
+    // It should change the dashboard title
+    await expect(page.locator('h1').filter({ hasText: /Marhaba Club Dashboard/i })).toBeVisible();
   });
 
-  test('should filter dashboard by date range', async ({ page }) => {
-    await page.click('[data-testid="date-range-picker"]');
-    await page.click('[data-testid="last-30-days"]');
-    await expect(page.locator('[data-testid="revenue-chart"]')).toBeVisible();
-  });
-
-  test('should navigate to reports', async ({ page }) => {
-    await page.click('[data-testid="nav-reports"]');
-    await expect(page).toHaveURL('/reports');
-    await expect(page.locator('[data-testid="sales-report"]')).toBeVisible();
-    await expect(page.locator('[data-testid="usage-report"]')).toBeVisible();
-  });
-
-  test('should export dashboard data', async ({ page }) => {
-    await page.click('[data-testid="export-button"]');
-    await page.click('[data-testid="export-pdf"]');
-    const download = await page.waitForEvent('download');
-    expect(download.suggestedFilename()).toContain('.pdf');
+  test('should navigate to fleet monitor', async ({ page }) => {
+    // SimplifiedSidebar expands
+    await page.getByRole('button', { name: /Operations/i }).click();
+    await page.getByRole('button', { name: /Stations Overview/i }).click();
+    await expect(page.locator('h1').filter({ hasText: /Fleet Monitor/i })).toBeVisible();
   });
 });

@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 /**
  * AWS S3 Cloud Storage Integration
  * Provides scalable cloud storage for Money Trash uploads
@@ -123,7 +124,7 @@ class S3StorageService {
         size: fileSize,
       };
     } catch (error) {
-      console.error("S3 upload failed:", error);
+      logger.error("S3 upload failed:", error);
       return {
         success: false,
         key,
@@ -201,7 +202,7 @@ class S3StorageService {
         size: totalSize,
       };
     } catch (error) {
-      console.error("S3 upload with progress failed:", error);
+      logger.error("S3 upload with progress failed:", error);
       return {
         success: false,
         key,
@@ -238,7 +239,7 @@ class S3StorageService {
       }
       return Buffer.concat(chunks);
     } catch (error) {
-      console.error("S3 download failed:", error);
+      logger.error("S3 download failed:", error);
       return null;
     }
   }
@@ -260,7 +261,7 @@ class S3StorageService {
       );
       return true;
     } catch (error) {
-      console.error("S3 delete failed:", error);
+      logger.error("S3 delete failed:", error);
       return false;
     }
   }
@@ -322,7 +323,7 @@ class S3StorageService {
         bucketSize: totalSize,
       };
     } catch (error) {
-      console.error("Failed to get storage stats:", error);
+      logger.error("Failed to get storage stats:", error);
       return { totalSize: 0, totalObjects: 0, bucketSize: 0 };
     }
   }
@@ -346,7 +347,7 @@ class S3StorageService {
 
       return result.Contents?.map((obj) => obj.Key || "") || [];
     } catch (error) {
-      console.error("Failed to list files:", error);
+      logger.error("Failed to list files:", error);
       return [];
     }
   }
@@ -369,7 +370,7 @@ class S3StorageService {
         { expiresIn: expiresInSeconds },
       );
     } catch (error) {
-      console.error("Failed to generate signed URL:", error);
+      logger.error("Failed to generate signed URL:", error);
       return null;
     }
   }

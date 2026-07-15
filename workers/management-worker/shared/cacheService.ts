@@ -1,3 +1,5 @@
+import { logger } from "@clickflash/logger";
+
 /**
  * Cache Service for Management Hub
  * Simple in-memory cache with TTL support
@@ -107,7 +109,7 @@ export class CacheService<T = any> {
 
     this.stats.size = this.cache.size;
     if (cleaned > 0) {
-      console.log(`[Cache] Cleaned up ${cleaned} expired entries`);
+      logger.info(String(`[Cache] Cleaned up ${cleaned} expired entries`));
     }
   }
 }

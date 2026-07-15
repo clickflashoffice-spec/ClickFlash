@@ -28,12 +28,14 @@ import {
 import DatabaseManager from '../database/db';
 import { Logger } from '../utils/logger';
 import AuditLogger from '../utils/auditLogger';
+import { PERMISSIONS, hasPermission } from '../middleware/permissions';
 import { PhotoProcessor } from '../services/photoProcessor';
 import { AICullingService } from '../services/aiCullingService';
 import RealtimeService from "../services/realtimeService";
 import { OrderValidationService } from "../services/OrderValidationService";
 
 import { DbWriteQueue } from "../services/DbWriteQueue";
+import { LicenseService } from "../services/license-service";
 
 // Define context interface
 interface CollectionsContext {
@@ -651,6 +653,18 @@ export default function collectionRoutes(context: CollectionsContext): Router {
         }
       }
 
+      // Rule: Apply License Key from Destinations
+      if (table === "destinations" && responseData.licenseKey) {
+        try {
+          const cloudApiUrl = (dbManager.get<{value: string}>("SELECT value FROM settings WHERE key = 'cloud_url'"))?.value || process.env.CLOUD_URL || 'http://localhost:8080';
+          const licenseService = new LicenseService(dbManager, logger, cloudApiUrl);
+          await licenseService.setLicenseKey(responseData.licenseKey);
+          logger.info(`[License] Applied license key from destination update`);
+        } catch (err: any) {
+          logger.error(`[License] Failed to apply license key from destination: ${err.message}`);
+        }
+      }
+
       if (!res.headersSent) {
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(responseData));
@@ -701,9 +715,9 @@ export default function collectionRoutes(context: CollectionsContext): Router {
 
   // --- Middleware to validate table name (Security Whitelist) ---
   router.all(
-    "/:collection/records",
+    ["/:collection/records", "/:collection/records/:id", "/:collection/records/batch", "/photos/records/batch"],
     (req: Request, res: Response, next: NextFunction) => {
-      const collection = req.params.collection;
+      const collection = req.params.collection || (req.path.includes("/photos/") ? "photos" : "");
       const table = TABLE_MAP[collection as keyof typeof TABLE_MAP];
 
       if (!table || !ALLOWED_COLUMNS[table]) {
@@ -720,18 +734,38 @@ export default function collectionRoutes(context: CollectionsContext): Router {
 
         // --- SECURITY HARDENING: Role-Based Access Control ---
         const user = (req as any).session?.user || (req as any).user;
-        const isAdmin = user?.role === "Admin" || user?.role === "CEO" || user?.role === "Manager";
+        const userRole = user?.role || "Photographer";
 
         // 1. Sensitive Table Protection
         const ADMIN_ONLY_TABLES = ["settings", "revenue", "audit_logs", "payroll_ledger", "role_permissions"];
         const AUTH_REQUIRED_TABLES = ["users", "kiosks", "destinations", "expenses", "daily_objectives", "pairing_requests"];
 
-        if (ADMIN_ONLY_TABLES.includes(table) && !isAdmin) {
+        if (ADMIN_ONLY_TABLES.includes(table) && !hasPermission(userRole, PERMISSIONS.SYSTEM_ADMIN)) {
           return sendError(res, 403, "Forbidden", "Insufficient permissions for administrative data.", ERROR_CODES.AUTHORIZATION_ERROR);
         }
 
         if (AUTH_REQUIRED_TABLES.includes(table) && !user) {
           return sendError(res, 401, "Unauthorized", "Authentication required for this collection.", ERROR_CODES.AUTHENTICATION_ERROR);
+        }
+
+        // Apply strict table-based permissions for mapped tables if user is present
+        if (user) {
+          const method = req.method;
+          let requiredPermission: string | null = null;
+          
+          if (["albums", "session_types"].includes(table)) {
+             requiredPermission = method === "GET" ? PERMISSIONS.ALBUM_VIEW : method === "DELETE" ? PERMISSIONS.ALBUM_DELETE : (method === "POST" ? PERMISSIONS.ALBUM_CREATE : PERMISSIONS.ALBUM_EDIT);
+          } else if (table === "photos" || table === "faces") {
+             requiredPermission = method === "GET" ? PERMISSIONS.PHOTO_VIEW : method === "DELETE" ? PERMISSIONS.PHOTO_DELETE : (method === "POST" ? PERMISSIONS.PHOTO_UPLOAD : PERMISSIONS.PHOTO_EDIT);
+          } else if (table === "orders") {
+             requiredPermission = method === "GET" ? PERMISSIONS.ORDER_VIEW : method === "DELETE" ? PERMISSIONS.ORDER_DELETE : (method === "POST" ? PERMISSIONS.ORDER_CREATE : PERMISSIONS.ORDER_EDIT);
+          } else if (table === "users") {
+             requiredPermission = method === "GET" ? PERMISSIONS.USER_VIEW : method === "DELETE" ? PERMISSIONS.USER_DELETE : (method === "POST" ? PERMISSIONS.USER_CREATE : PERMISSIONS.USER_EDIT);
+          }
+          
+          if (requiredPermission && !hasPermission(userRole, requiredPermission as any)) {
+            return sendError(res, 403, "Forbidden", `Insufficient permission: ${requiredPermission}`, ERROR_CODES.AUTHORIZATION_ERROR);
+          }
         }
 
         // 2. Guest/Kiosk Restrictions (Rule 02/08 Compliance)
@@ -1230,12 +1264,16 @@ export default function collectionRoutes(context: CollectionsContext): Router {
       let existingIds = new Set<string>();
       
       if (validItemIds.length > 0) {
-          const placeholders = validItemIds.map(() => '?').join(',');
-          const existingPhotos = dbManager.query<{id: string}>(
-              `SELECT id FROM photos WHERE id IN (${placeholders})`,
-              validItemIds
-          );
-          existingIds = new Set(existingPhotos.map(p => p.id));
+          const chunkSize = 500;
+          for (let i = 0; i < validItemIds.length; i += chunkSize) {
+              const chunk = validItemIds.slice(i, i + chunkSize);
+              const placeholders = chunk.map(() => '?').join(',');
+              const existingPhotos = dbManager.query<{id: string}>(
+                  `SELECT id FROM photos WHERE id IN (${placeholders})`,
+                  chunk
+              );
+              existingPhotos.forEach(p => existingIds.add(p.id));
+          }
       }
 
       dbManager.transaction(() => {
@@ -1391,7 +1429,24 @@ export default function collectionRoutes(context: CollectionsContext): Router {
     let failureCount = 0;
 
     try {
-      // Run all updates in a single transaction
+      // Pre-fetch all existing records for optimistic locking check
+      const itemIds = items.map((i: any) => i.id).filter(Boolean);
+      const existingRecords = new Map<string, any>();
+      if (itemIds.length > 0) {
+        const chunkSize = 500;
+        for (let i = 0; i < itemIds.length; i += chunkSize) {
+          const chunk = itemIds.slice(i, i + chunkSize);
+          const placeholders = chunk.map(() => "?").join(",");
+          const records = dbManager.query(
+            `SELECT id, updated_at FROM ${table} WHERE id IN (${placeholders})`,
+            chunk
+          );
+          for (const record of records) {
+            existingRecords.set(record.id, record);
+          }
+        }
+      }
+
       dbManager.run("BEGIN TRANSACTION");
 
       for (const item of items) {
@@ -1405,10 +1460,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
 
           // P1-A5 Fix: Optimistic locking - check updatedAt if provided
           if (updatedAt) {
-            const existing = dbManager.get<{ updated_at: string }>(
-              `SELECT updated_at FROM ${table} WHERE id = ?`,
-              [id]
-            );
+            const existing = existingRecords.get(id);
             if (existing && existing.updated_at !== updatedAt) {
               failureCount++;
               results.push({ 
@@ -1466,17 +1518,8 @@ export default function collectionRoutes(context: CollectionsContext): Router {
 
           if (result.changes > 0) {
             successCount++;
-            const updated = dbManager.get(`SELECT * FROM ${table} WHERE id = ?`, [id]);
-            results.push({ id, success: true, updatedAt: updated?.updated_at });
-            
-            // Notify realtime
-            if (context.realtimeService) {
-              context.realtimeService.broadcast({
-                collection: collection,
-                action: "update",
-                record: updated,
-              });
-            }
+            // We'll fetch the updated records afterwards to avoid N+1 queries
+            results.push({ id, success: true });
           } else {
             failureCount++;
             results.push({ id, error: "Record not found or no changes" });
@@ -1484,11 +1527,50 @@ export default function collectionRoutes(context: CollectionsContext): Router {
         } catch (err) {
           failureCount++;
           const error = err instanceof Error ? err : new Error(String(err));
-          results.push({ error: error.message });
+          results.push({ id: item.id, error: error.message });
         }
       }
 
       dbManager.run("COMMIT");
+
+      // Post-fetch all successfully updated records to broadcast real-time events
+      const successfulIds = results.filter((r) => r.success).map((r) => r.id);
+      if (successfulIds.length > 0) {
+        const updatedRecords: any[] = [];
+        const chunkSize = 500;
+        for (let i = 0; i < successfulIds.length; i += chunkSize) {
+          const chunk = successfulIds.slice(i, i + chunkSize);
+          const placeholders = chunk.map(() => "?").join(",");
+          updatedRecords.push(
+            ...dbManager.query(
+              `SELECT * FROM ${table} WHERE id IN (${placeholders})`,
+              chunk
+            )
+          );
+        }
+        const recordsMap = new Map<string, any>();
+        for (const record of updatedRecords) {
+          recordsMap.set(record.id, record);
+        }
+
+        // Add updatedAt to results and broadcast updates
+        for (const result of results) {
+          if (result.success && result.id) {
+            const updated = recordsMap.get(result.id);
+            if (updated) {
+              result.updatedAt = updated.updated_at;
+              // Notify realtime
+              if (context.realtimeService) {
+                context.realtimeService.broadcast({
+                  collection: collection,
+                  action: "update",
+                  record: updated,
+                });
+              }
+            }
+          }
+        }
+      }
 
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ items: results, successCount, failureCount }));

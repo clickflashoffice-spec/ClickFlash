@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { cloudApiService } from "../../../services/cloudApiService";
 import { useSystemSetting } from "../../../hooks/useSystemSetting";
+import { logger } from "@/utils/logger";
 
 interface ChatMessage {
   id: string;
@@ -103,7 +104,7 @@ export const EcosystemAiChat: React.FC = () => {
 
       setMessages((prev) => [...prev, aiMsg]);
     } catch (error) {
-      console.error("AI Chat Error:", error);
+      logger.error("AI Chat Error:", error);
       const errorMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "ai",

@@ -1,17 +1,10 @@
+import { logger } from '@clickflash/logger';
 import React, { useState } from 'react';
 import Modal from './common/Modal';
 import { PHOTO_THEMES } from '../constants.ts';
-import { ShootIdea } from '../types.ts';
-import { logger } from '@/utils/logger';
+import { geminiAgentService, ShootIdea } from '../services/geminiAgentService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wand2, Sparkles, MapPin, Palette, Award, Camera, Settings2 } from 'lucide-react';
-
-// Stub function - geminiService removed
-const generateShootIdeas = async (_location: string, _theme: string, _expertise: string): Promise<ShootIdea[]> => {
-    // Simulating API delay for the animation
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    throw new Error('AI Ideas feature is currently disabled. Please configure Gemini API to enable this feature.');
-};
 
 const AIIdeasModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
     const [location, setLocation] = useState('Beach resort');
@@ -26,12 +19,12 @@ const AIIdeasModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOp
         setError(null);
         setIdeas([]);
         try {
-            const result = await generateShootIdeas(location, theme, expertise);
+            const result = await geminiAgentService.generateShootIdeas(location, theme, expertise);
             setIdeas(result);
         } catch (err: any) {
             const message = err instanceof Error ? err.message : "Failed to generate ideas";
             setError(message);
-            console.error(message);
+            logger.error(message);
             logger.error(message, { error: err });
         }
         setLoading(false);

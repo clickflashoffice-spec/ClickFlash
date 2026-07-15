@@ -4,6 +4,8 @@ import os from "os";
 import { ExportService } from "../services/ExportService";
 import { Logger } from '../utils/logger';
 import { strictRateLimiter } from '../middleware/rateLimiter';
+import { requirePermission, PERMISSIONS } from "../middleware/permissions";
+import AuditLogger from "../utils/auditLogger";
 import {
   sendInvalidInputError,
   sendInternalError,
@@ -55,11 +57,12 @@ function validateExportPath(targetDir: string): { ok: true } | { ok: false; reas
 interface ExportContext {
   logger: Logger;
   exportService: ExportService;
+  auditLogger?: AuditLogger;
 }
 
 
 export default function exportRoutes(context: ExportContext): Router {
-  const { logger, exportService } = context;
+  const { logger, exportService, auditLogger } = context;
   const router = express.Router();
 
   /**
@@ -68,7 +71,7 @@ export default function exportRoutes(context: ExportContext): Router {
    * P0-S3 Fix: Server-side path validation to prevent traversal attacks
    * P0-S4 Fix: Rate limiting and in-progress export guard
    */
-  router.post("/batch", strictRateLimiter, async (req: Request, res: Response) => {
+  router.post("/batch", strictRateLimiter, requirePermission(PERMISSIONS.PHOTO_EDIT, auditLogger), async (req: Request, res: Response) => {
     try {
       const { items, targetDir, options, albumId } = req.body;
 

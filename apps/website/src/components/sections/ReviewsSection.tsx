@@ -45,7 +45,7 @@ export function ReviewsSection() {
                     <h2 className="text-4xl md:text-5xl font-sans font-bold text-slate-800 mb-6">
                         Words from Our <br /> Happy Clients
                     </h2>
-                    <p className="text-slate-500 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed">
                         At ClickFlash, our clients&apos; satisfaction is our top priority. Hear what
                         they have to say about their experiences with our photography services.
                     </p>
@@ -54,9 +54,9 @@ export function ReviewsSection() {
                 {/* Filter Tabs */}
                 <div className="flex justify-center flex-wrap gap-6 mb-12 border-b border-slate-200 pb-4 max-w-2xl mx-auto">
                     <button className="font-bold text-slate-800 border-b-2 border-slate-800 pb-4 -mb-4.5">All reviews</button>
-                    <button className="font-medium text-slate-500 hover:text-slate-800 flex items-center gap-2"><span className="text-blue-500 font-bold">G</span> Google</button>
-                    <button className="font-medium text-slate-500 hover:text-slate-800 flex items-center gap-2"><span className="text-blue-600 font-bold">f</span> Facebook</button>
-                    <button className="font-medium text-slate-500 hover:text-slate-800 flex items-center gap-2"><span className="text-orange-500 font-bold">G</span> Getyourguide</button>
+                    <button className="font-medium text-slate-600 hover:text-slate-800 flex items-center gap-2"><span className="text-blue-500 font-bold">G</span> Google</button>
+                    <button className="font-medium text-slate-600 hover:text-slate-800 flex items-center gap-2"><span className="text-blue-600 font-bold">f</span> Facebook</button>
+                    <button className="font-medium text-slate-600 hover:text-slate-800 flex items-center gap-2"><span className="text-orange-500 font-bold">G</span> Getyourguide</button>
                 </div>
 
                 {/* Rating Summary */}
@@ -71,7 +71,7 @@ export function ReviewsSection() {
                             <Star className="w-5 h-5 fill-current" />
                         </div>
                         <span className="font-bold text-slate-800">4.9</span>
-                        <span className="text-slate-400">|</span>
+                        <span className="text-slate-600">|</span>
                         <span className="text-slate-600 font-medium">2097 reviews</span>
                     </div>
                     <button className="px-6 py-2 border border-slate-300 rounded-lg font-bold text-slate-700 hover:bg-slate-50 transition-colors mt-4 md:mt-0">
@@ -98,7 +98,7 @@ export function ReviewsSection() {
                                     </div>
                                     <div>
                                         <h4 className="font-bold text-slate-900 text-sm">{review.name}</h4>
-                                        <span className="text-xs text-slate-400">{review.date}</span>
+                                        <span className="text-xs text-slate-600">{review.date}</span>
                                     </div>
                                 </div>
                                 <span className="text-blue-500 font-bold">G</span>
@@ -115,7 +115,7 @@ export function ReviewsSection() {
                                 {review.text}
                             </p>
                             {review.subtext && (
-                                <p className="text-xs text-slate-400 italic mt-auto">{review.subtext}</p>
+                                <p className="text-xs text-slate-600 italic mt-auto">{review.subtext}</p>
                             )}
                         </motion.div>
                     ))}

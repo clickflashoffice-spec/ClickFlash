@@ -174,3 +174,5 @@ export class SSEManager {
     callbacks.forEach(cb => cb(data));
   }
 }
+
+export * from './middleware';

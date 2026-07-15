@@ -1,9 +1,10 @@
+
 /**
  * Desktop Batch Upload Service for Tauri
  * Handles high-volume concurrent uploads with native file system access
  */
 
-import { invoke, isTauri, calculateFileChecksums } from './tauriService';
+import { invoke, isTauri } from './tauriService';
 import { logger } from '@/utils/logger';
 
 interface UploadJob {
@@ -73,7 +74,7 @@ class DesktopBatchUploadService {
         });
       });
     } catch (err) {
-      console.warn('Failed to restore upload jobs from storage:', err);
+      logger.warn('Failed to restore upload jobs from storage:', err);
     }
   }
 
@@ -92,7 +93,7 @@ class DesktopBatchUploadService {
       }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave.slice(0, 50)));
     } catch (err) {
-      console.warn('Failed to save upload jobs to storage:', err);
+      logger.warn('Failed to save upload jobs to storage:', err);
     }
   }
 
@@ -179,7 +180,7 @@ class DesktopBatchUploadService {
     } catch (error) {
       job.status = 'failed';
       job.completedAt = new Date();
-      console.error(`Batch upload job ${jobId} failed:`, error);
+      logger.error(`Batch upload job ${jobId} failed:`, error);
     } finally {
       this.activeJobs.delete(jobId);
       this.processQueue(); // Process next jobs in queue
@@ -208,103 +209,43 @@ class DesktopBatchUploadService {
         file: file.name,
         error: 'Tauri desktop app required for native file uploads'
       });
-      console.error(`Cannot upload ${file.name}: Not running in Tauri context`);
+      logger.error(`Cannot upload ${file.name}: Not running in Tauri context`);
       this.notifySubscribers(job.id);
       return;
     }
-
-    const sessionId = crypto.randomUUID();
-    const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks for high-volume uploads
-    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
     try {
       job.progress.currentFile = file.name;
       this.notifySubscribers(job.id);
 
-      let sha256Checksum: string | undefined;
-      let crc32Checksum: string | undefined;
-
       if (nativePath) {
-        try {
-          const checksums = await calculateFileChecksums(nativePath);
-          sha256Checksum = checksums.sha256;
-          crc32Checksum = checksums.crc32;
-          logger.info(`[Checksum Verified] ${file.name}: CRC32=${crc32Checksum}, SHA256=${sha256Checksum}`);
-        } catch (checksumErr) {
-          logger.warn(`[Checksum Warning] Could not calculate native checksums for ${file.name}:`, { error: checksumErr instanceof Error ? checksumErr.message : String(checksumErr) });
-        }
-
-        for (let i = 0; i < totalChunks; i++) {
-          const start = i * CHUNK_SIZE;
-          const end = Math.min(start + CHUNK_SIZE, file.size);
-          
-          const chunkData = await invoke<number[]>('read_file_chunk', { 
-            path: nativePath, 
-            offset: start, 
-            length: end - start 
-          });
-
-          await invoke('upload_file_chunk', {
-            sessionId,
-            chunkIndex: i,
-            totalChunks,
-            chunkData,
-            fileName: file.name,
-            fileSize: file.size,
-            metadata: {
-              eventName: job.metadata.eventName,
-              accessCode: job.metadata.accessCode,
-              mode: job.metadata.mode,
-              mimeType: file.type,
-              sha256Checksum,
-              crc32Checksum
-            }
-          });
-        }
+        logger.info(`Starting native upload for ${file.name} at ${nativePath}`);
+        
+        await invoke('start_native_upload', {
+          filePath: nativePath,
+          apiUrl: job.metadata.apiUrl,
+          metadata: {
+            event_name: job.metadata.eventName,
+            access_code: job.metadata.accessCode,
+            mode: job.metadata.mode,
+            mime_type: file.type,
+            customer_email: job.metadata.customerEmail,
+            single_photo_price: job.metadata.singlePhotoPrice,
+            full_gallery_price: job.metadata.fullGalleryPrice
+          }
+        });
       } else {
-        for (let i = 0; i < totalChunks; i++) {
-          const start = i * CHUNK_SIZE;
-          const end = Math.min(start + CHUNK_SIZE, file.size);
-          const chunkBlob = file.slice(start, end);
-          const chunkArrayBuffer = await chunkBlob.arrayBuffer();
-          const chunkData = Array.from(new Uint8Array(chunkArrayBuffer));
-
-          await invoke('upload_file_chunk', {
-            sessionId,
-            chunkIndex: i,
-            totalChunks,
-            chunkData,
-            fileName: file.name,
-            fileSize: file.size,
-            metadata: {
-              eventName: job.metadata.eventName,
-              accessCode: job.metadata.accessCode,
-              mode: job.metadata.mode,
-              mimeType: file.type
-            }
-          });
-        }
+        throw new Error("Native path is required for MoneyTrash uploads to avoid JS memory overhead.");
       }
-
-      await invoke('finalize_upload', {
-        sessionId,
-        api_base_url: job.metadata.apiUrl,
-        metadata: {
-          eventName: job.metadata.eventName,
-          accessCode: job.metadata.accessCode,
-          mode: job.metadata.mode,
-          mimeType: file.type
-        }
-      });
 
       job.progress.completed++;
     } catch (error) {
       job.progress.failed++;
       job.errors.push({
         file: file.name,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : String(error)
       });
-      console.error(`Failed to upload ${file.name}:`, error);
+      logger.error(`Failed to upload ${file.name}:`, error);
     } finally {
       this.notifySubscribers(job.id);
     }

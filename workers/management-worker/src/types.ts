@@ -3,6 +3,8 @@ export interface Env {
     STRIPE_SECRET_KEY?: string;
     STRIPE_WEBHOOK_SECRET?: string;
     DB: D1Database;
+    LICENSE_PRIVATE_KEY?: string;
+    LICENSE_PUBLIC_KEY?: string;
 }
 
 export interface User {

@@ -3,6 +3,7 @@ import {
   Photographer,
 } from "../../types";
 import { PocketRecord } from "../pbTypes";
+import { logger } from "@/utils/logger";
 
 /**
  * API Service - Wrapper around pb adapter for convenient data operations
@@ -38,7 +39,7 @@ export const usersPhotographersApi = {
         workingHours: r.workingHours,
       }));
     } catch (error) {
-      console.warn("Failed to fetch users from PocketBase, returning mock staff fallback:", error);
+      logger.warn("Failed to fetch users from PocketBase, returning mock staff fallback:", error);
       return [
         {
           id: "1",

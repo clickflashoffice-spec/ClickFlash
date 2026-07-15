@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { logger } from "@/utils/logger";
 
 interface Station {
   id: string;
@@ -47,7 +48,7 @@ export const StationProvider: React.FC<{ children: React.ReactNode }> = ({
           );
         }
       } catch (error) {
-        console.error("Failed to fetch stations:", error);
+        logger.error("Failed to fetch stations:", error);
       } finally {
         setLoading(false);
       }

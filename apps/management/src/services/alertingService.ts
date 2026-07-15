@@ -253,7 +253,7 @@ class AlertingService extends EventEmitter {
         await this.sendToChannel(channel, alert, rule);
         alert.channelsSent.push(channel);
       } catch (error) {
-        console.error(`Failed to send alert to ${channel}:`, error);
+        logger.error(`Failed to send alert to ${channel}:`, error);
       }
     }
   }

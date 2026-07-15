@@ -5,6 +5,7 @@
 
 import { Env } from '../../index';
 import { UploadSession } from './init';
+import { logger } from "@clickflash/logger";
 
 export async function handleUploadFinalize(request: Request, env: Env): Promise<Response> {
   try {
@@ -73,7 +74,7 @@ export async function handleUploadFinalize(request: Request, env: Env): Promise<
     });
     
   } catch (error) {
-    console.error('Finalize error:', error);
+    logger.error('Finalize error:', { args: [error] });
     return Response.json(
       { error: 'Failed to finalize upload' },
       { status: 500 }
@@ -169,7 +170,7 @@ async function createGalleryRecord(
       30
     ).run();
   } catch (err) {
-    console.warn("[UploadFinalize] Note: photos table insert fallback:", err);
+    logger.warn("[UploadFinalize] Note: photos table insert fallback:", { args: [err] });
   }
 
   return {
@@ -227,7 +228,7 @@ async function createOrderBackupRecord(
       30
     ).run();
   } catch (err) {
-    console.warn("[UploadFinalize] Note: photos table insert fallback:", err);
+    logger.warn("[UploadFinalize] Note: photos table insert fallback:", { args: [err] });
   }
   
   return {

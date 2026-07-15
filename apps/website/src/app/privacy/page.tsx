@@ -12,10 +12,10 @@ export default function PrivacyPage() {
     <main className="min-h-screen bg-white pt-32 pb-24">
       <div className="container mx-auto px-6 max-w-4xl">
         <h1 className="text-6xl md:text-7xl font-serif text-slate-900 mb-12 uppercase tracking-tighter">
-          Privacy <span className="text-cyan-500">Policy</span>
+          Privacy <span className="text-cyan-700">Policy</span>
         </h1>
-        <div className="prose prose-slate max-w-none prose-headings:font-serif prose-headings:uppercase prose-headings:tracking-tight prose-a:text-cyan-500 prose-a:no-underline hover:prose-a:underline">
-          <p className="text-slate-400 mb-12 font-bold uppercase tracking-widest text-[10px] pb-8 border-b border-slate-50">Last updated: February 1, 2026</p>
+        <div className="prose prose-slate max-w-none prose-headings:font-serif prose-headings:uppercase prose-headings:tracking-tight prose-a:text-cyan-700 prose-a:no-underline hover:prose-a:underline">
+          <p className="text-slate-600 mb-12 font-bold uppercase tracking-widest text-[10px] pb-8 border-b border-slate-50">Last updated: February 1, 2026</p>
 
           <section className="mb-12">
             <h2 className="text-3xl text-slate-900 mb-6">1. Introduction</h2>
@@ -53,7 +53,7 @@ export default function PrivacyPage() {
             <p className="text-slate-600 font-medium">
               If you have any questions about this Privacy Policy, please contact our legal team at:
               <br />
-              <a href="mailto:privacy@clickflash.photography" className="inline-block mt-4 text-cyan-600 font-bold">
+              <a href="mailto:privacy@clickflash.photography" className="inline-block mt-4 text-cyan-700 font-bold">
                 privacy@clickflash.photography
               </a>
             </p>

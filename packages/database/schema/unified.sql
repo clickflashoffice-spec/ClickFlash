@@ -34,3 +34,46 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
 );
 
 -- Add app-specific tables below after schema reconciliation
+
+CREATE TABLE IF NOT EXISTS kiosks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hardware_id TEXT UNIQUE NOT NULL,
+  name TEXT,
+  status TEXT DEFAULT 'offline',
+  last_ping DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS albums (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  destination_id INTEGER NOT NULL,
+  session_type_id INTEGER NOT NULL,
+  photographer_id INTEGER,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(destination_id) REFERENCES destinations(id),
+  FOREIGN KEY(session_type_id) REFERENCES session_types(id),
+  FOREIGN KEY(photographer_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS photos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  album_id INTEGER NOT NULL,
+  filename TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  status TEXT DEFAULT 'pending',
+  sync_status TEXT DEFAULT 'local',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(album_id) REFERENCES albums(id)
+);
+
+CREATE TABLE IF NOT EXISTS kiosk_transfer_queue (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  photo_id INTEGER NOT NULL,
+  kiosk_id INTEGER NOT NULL,
+  status TEXT DEFAULT 'pending',
+  attempts INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(photo_id) REFERENCES photos(id),
+  FOREIGN KEY(kiosk_id) REFERENCES kiosks(id)
+);

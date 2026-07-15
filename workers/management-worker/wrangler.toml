@@ -53,6 +53,7 @@ bucket_name = "clickflash-backups"
 ALLOWED_ORIGINS = "https://admin.clickflash.com,https://www.clickflash.com,https://clickflash.com,https://clicketflash.com,https://www.clicketflash.com,https://gallery.clickflash.com"
 FROM_EMAIL = "support@clickflash.com"
 DEPLOY_ENV = "production"
+FRONTEND_URL = "https://admin.clickflash.com/manage"
 
 # Hardened WAF Rate Limiting vars
 MAX_REQS_PER_MINUTE = 60

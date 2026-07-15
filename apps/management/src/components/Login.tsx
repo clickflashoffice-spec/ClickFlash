@@ -123,7 +123,7 @@ const Login: React.FC<LoginProps> = ({
         <div className="bg-white/70 backdrop-blur-2xl rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 border border-white relative overflow-hidden group">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent"></div>
 
-          <form onSubmit={handleLogin} className="space-y-8 relative z-10">
+          <form onSubmit={handleLogin} className="space-y-8 relative z-10" data-testid="login-form">
             <div className="space-y-3">
               <label htmlFor="email" className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] ml-1">
                 Access Identifier
@@ -131,6 +131,7 @@ const Login: React.FC<LoginProps> = ({
               <input
                 id="email"
                 type="email"
+                data-testid="username-input"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -146,6 +147,7 @@ const Login: React.FC<LoginProps> = ({
               <input
                 id="password"
                 type="password"
+                data-testid="password-input"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -165,6 +167,7 @@ const Login: React.FC<LoginProps> = ({
             <button
               type="submit"
               disabled={loading}
+              data-testid="login-button"
               className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black py-5 rounded-2xl shadow-xl shadow-cyan-200 transition-all transform active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.3em] text-[11px] flex items-center justify-center group"
             >
               {loading ? (

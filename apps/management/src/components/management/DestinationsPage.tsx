@@ -8,6 +8,7 @@ import AddDestinationModal from "./modals/AddDestinationModal.tsx";
 import { useDebounce } from "../../hooks/useDebounce.ts";
 
 import StatCard from "../common/StatCard.tsx";
+import { logger } from "@/utils/logger";
 
 const DestinationsPage: React.FC = () => {
   const [destinations, setDestinations] = useState<Destination[]>([]);
@@ -46,7 +47,7 @@ const DestinationsPage: React.FC = () => {
       setOrders(orderData);
       setExpenses(expenseData);
     } catch (error) {
-      console.error("Failed to load destinations data", error);
+      logger.error("Failed to load destinations data", error);
       setError("Failed to load destinations. Please try again.");
     } finally {
       setLoading(false);
@@ -199,7 +200,7 @@ const DestinationsPage: React.FC = () => {
         await apiService.deleteDestination(id);
         fetchData();
       } catch (error) {
-        console.error("Failed to delete destination", error);
+        logger.error("Failed to delete destination", error);
         alert("Failed to delete destination. Please try again.");
       }
     }
@@ -211,7 +212,7 @@ const DestinationsPage: React.FC = () => {
       setCopiedKey(key);
       setTimeout(() => setCopiedKey(null), 2000);
     } catch (error) {
-      console.error("Failed to copy key", error);
+      logger.error("Failed to copy key", error);
     }
   };
 

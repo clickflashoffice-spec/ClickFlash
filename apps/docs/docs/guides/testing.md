@@ -1,4 +1,4 @@
-﻿---
+---
 id: testing
 title: "Testing Guide"
 ---
@@ -508,7 +508,7 @@ npx tsc --noEmit
 - [Jest Documentation](https://jestjs.io/)
 - [Playwright Documentation](https://playwright.dev/)
 - [React Testing Library](https://testing-library.com/react)
-- [Testing Patterns Skill](.agent/skills/testing-patterns/SKILL.md)
+- [Testing Patterns Skill](https://github.com/alaeddinekhemiri/ClickFlash/tree/main/.agents/skills/testing-patterns/SKILL.md)
 
 ---
 

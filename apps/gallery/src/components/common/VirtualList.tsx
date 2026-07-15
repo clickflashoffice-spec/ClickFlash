@@ -1,5 +1,13 @@
 import React from 'react';
-import { List } from 'react-window';
+import * as ReactWindowModule from "react-window";
+import { logger } from "../../utils/logger";
+
+const ReactWindowAny = ReactWindowModule as any;
+const FixedSizeList =
+  ReactWindowAny.FixedSizeList ||
+  ReactWindowAny.List ||
+  ReactWindowAny.default?.FixedSizeList ||
+  ReactWindowAny.default?.List;
 
 interface VirtualListProps<T> {
     items: T[];
@@ -130,7 +138,7 @@ export function VirtualList<T>({
                 </div>
             );
         } catch (error) {
-            console.error('Error rendering item in VirtualList:', error);
+            logger.error('Error rendering item in VirtualList:', error);
             return <div style={safeStyle} />;
         }
     }, [items, renderItem]);
@@ -147,22 +155,20 @@ export function VirtualList<T>({
 
     // Wrap in try-catch to handle any react-window internal errors
     try {
-        // Explicitly pass props to avoid any spread operator issues
-        // React-window internally calls Object.values() on props, so we must ensure
-        // the props object itself is never undefined/null
+        // React-window FixedSizeList expects height, itemCount, itemSize, width, and children
         return (
-            <List<object>
-                rowComponent={Row as (props: { ariaAttributes: { "aria-posinset": number; "aria-setsize": number; role: "listitem" }; index: number; style: React.CSSProperties }) => React.ReactElement | null}
-                rowProps={{}}
-                itemData={{}}
-                rowCount={cleanProps.itemCount}
-                rowHeight={cleanProps.itemSize}
+            <FixedSizeList
+                height={cleanProps.height}
+                itemCount={cleanProps.itemCount}
+                itemSize={cleanProps.itemSize}
+                width={cleanProps.width}
                 overscanCount={cleanProps.overscanCount}
-                style={{ height: cleanProps.height, width: cleanProps.width }}
-            />
+            >
+                {Row}
+            </FixedSizeList>
         );
     } catch (error) {
-        console.error('Error rendering react-window List:', error);
+        logger.error('Error rendering react-window List:', error);
         return null;
     }
 }

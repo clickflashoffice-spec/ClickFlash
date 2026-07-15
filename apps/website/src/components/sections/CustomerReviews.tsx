@@ -48,12 +48,12 @@ export function CustomerReviews({ settings = {} }: CustomerReviewsProps) {
           viewport={{ once: true }}
           className="mb-16 text-center"
         >
-          <span className="mb-4 block text-[13px] font-bold tracking-[0.4em] text-cyan-500 uppercase">
+          <span className="mb-4 block text-[13px] font-bold tracking-[0.4em] text-cyan-700 uppercase">
             Customer Experience
           </span>
           <h2 className="mb-8 text-4xl leading-tight font-black tracking-tighter text-slate-900 md:text-6xl">
-            Loved by <span className="text-cyan-500">{manualReviewCount}+</span> customers with a{" "}
-            <span className="text-cyan-500">{manualReviewRating}</span> rating
+            Loved by <span className="text-cyan-700">{manualReviewCount}+</span> customers with a{" "}
+            <span className="text-cyan-700">{manualReviewRating}</span> rating
           </h2>
         </motion.div>
 

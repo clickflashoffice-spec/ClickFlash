@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 /**
  * Persistent Cart Service
  * Manages shopping cart with localStorage persistence and cross-tab sync
@@ -82,7 +83,7 @@ class PersistentCartService extends EventEmitter {
         }
       }
     } catch (error) {
-      console.error('Failed to load cart:', error);
+      logger.error('Failed to load cart:', error);
     }
   }
 
@@ -104,7 +105,7 @@ class PersistentCartService extends EventEmitter {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         this.emit('cart:saved', this.items);
       } catch (error) {
-        console.error('Failed to save cart:', error);
+        logger.error('Failed to save cart:', error);
       }
     }, 300); // Debounce 300ms
   }
@@ -123,7 +124,7 @@ class PersistentCartService extends EventEmitter {
             this.emit('cart:sync', this.items);
           }
         } catch (error) {
-          console.error('Failed to sync cart:', error);
+          logger.error('Failed to sync cart:', error);
         }
       }
     };
@@ -395,7 +396,7 @@ class PersistentCartService extends EventEmitter {
         return true;
       }
     } catch (error) {
-      console.error('Failed to import cart:', error);
+      logger.error('Failed to import cart:', error);
     }
     return false;
   }

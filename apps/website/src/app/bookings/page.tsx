@@ -91,9 +91,9 @@ export default function BookingsPage() {
             {/* Hero Section */}
             <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
                 <h1 className="text-4xl md:text-6xl font-black text-slate-800 mb-6 uppercase tracking-tighter">
-                    Book Your <span className="text-cyan-500">Session</span>
+                    Book Your <span className="text-cyan-700">Session</span>
                 </h1>
-                <p className="text-xl text-slate-500 font-medium tracking-tight">
+                <p className="text-xl text-slate-600 font-medium tracking-tight">
                     Let&apos;s capture your moments. Choose your session type and preferred date.
                 </p>
             </section>
@@ -111,7 +111,7 @@ export default function BookingsPage() {
                         </p>
                         <button
                             onClick={() => setIsSuccess(false)}
-                            className="mt-8 text-cyan-600 hover:text-cyan-700 font-black uppercase tracking-widest text-sm"
+                            className="mt-8 text-cyan-700 hover:text-cyan-700 font-black uppercase tracking-widest text-sm"
                         >
                             Request another booking
                         </button>
@@ -123,7 +123,7 @@ export default function BookingsPage() {
                 <>
                     {/* Session Types */}
                     <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-                        <h2 className="text-xl font-black text-slate-500 mb-8 text-center uppercase tracking-widest">
+                        <h2 className="text-xl font-black text-slate-600 mb-8 text-center uppercase tracking-widest">
                             Select Session Type
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -143,10 +143,10 @@ export default function BookingsPage() {
                                     <div className="absolute inset-0 rounded-3xl border-2 border-transparent peer-checked:border-cyan-500 pointer-events-none transition-all"></div>
                                     <div className="text-5xl mr-6 group-hover:scale-110 transition-transform duration-300">{session.icon}</div>
                                     <div className="flex-1">
-                                        <h3 className="text-xl font-black text-slate-800 group-hover:text-cyan-500 transition-colors uppercase tracking-tight">
+                                        <h3 className="text-xl font-black text-slate-800 group-hover:text-cyan-700 transition-colors uppercase tracking-tight">
                                             {session.name}
                                         </h3>
-                                        <p className="text-slate-500 text-sm mt-1 leading-relaxed">{session.description}</p>
+                                        <p className="text-slate-600 text-sm mt-1 leading-relaxed">{session.description}</p>
                                     </div>
                                 </label>
                             ))}
@@ -171,7 +171,7 @@ export default function BookingsPage() {
                             <form onSubmit={handleSubmit} className="space-y-8">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="md:col-span-2">
-                                        <label htmlFor="name" className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 ml-1">
+                                        <label htmlFor="name" className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 ml-1">
                                             Full Name *
                                         </label>
                                         <input
@@ -189,7 +189,7 @@ export default function BookingsPage() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div>
-                                        <label htmlFor="email" className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 ml-1">
+                                        <label htmlFor="email" className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 ml-1">
                                             Email Address *
                                         </label>
                                         <input
@@ -205,7 +205,7 @@ export default function BookingsPage() {
                                     </div>
 
                                     <div>
-                                        <label htmlFor="phone" className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 ml-1">
+                                        <label htmlFor="phone" className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 ml-1">
                                             Phone Number
                                         </label>
                                         <input
@@ -222,7 +222,7 @@ export default function BookingsPage() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div>
-                                        <label htmlFor="event_date" className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 ml-1">
+                                        <label htmlFor="event_date" className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 ml-1">
                                             Preferred Date *
                                         </label>
                                         <input
@@ -236,7 +236,7 @@ export default function BookingsPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="time" className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 ml-1">
+                                        <label htmlFor="time" className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 ml-1">
                                             Preferred Time
                                         </label>
                                         <select
@@ -255,7 +255,7 @@ export default function BookingsPage() {
                                 </div>
 
                                 <div>
-                                    <label htmlFor="event_location" className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 ml-1">
+                                    <label htmlFor="event_location" className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 ml-1">
                                         Event Location
                                     </label>
                                     <input
@@ -270,7 +270,7 @@ export default function BookingsPage() {
                                 </div>
 
                                 <div>
-                                    <label htmlFor="message" className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 ml-1">
+                                    <label htmlFor="message" className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 ml-1">
                                         Additional Details
                                     </label>
                                     <textarea
@@ -288,11 +288,11 @@ export default function BookingsPage() {
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className={`w-full bg-cyan-500 text-white font-black uppercase tracking-widest py-5 px-8 rounded-2xl hover:bg-slate-900 transition-all text-xl shadow-2xl shadow-cyan-500/20 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`w-full bg-cyan-700 text-white font-black uppercase tracking-widest py-5 px-8 rounded-2xl hover:bg-slate-900 transition-all text-xl shadow-2xl shadow-cyan-500/20 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
                                         {isSubmitting ? 'Processing...' : 'Request Booking'}
                                     </button>
-                                    <p className="text-center text-slate-400 text-[10px] font-black uppercase tracking-widest mt-6">
+                                    <p className="text-center text-slate-600 text-[10px] font-black uppercase tracking-widest mt-6">
                                         We&apos;ll get back to you within 24 hours to confirm availability.
                                     </p>
                                 </div>

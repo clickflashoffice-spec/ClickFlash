@@ -34,6 +34,7 @@ import fs from "fs";
 import http from "http";
 import crypto from "crypto";
 import { fork, spawn, ChildProcess } from "child_process";
+import { logger } from "@clickflash/logger";
 
 // ─── Auto-Updater (production only) ──────────────────────────────────────────
 // initAutoUpdater is compiled from src/main/autoUpdater.ts — not available pre-build.
@@ -42,7 +43,7 @@ try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   initAutoUpdater = require("./dist/main/autoUpdater.js").initAutoUpdater as (win: BrowserWindow) => void;
 } catch (_) {
-  console.warn("[Main] autoUpdater module not available (run `npm run build:backend` first)");
+  logger.warn(String("[Main] autoUpdater module not available (run `npm run build:backend` first)"));
 }
 
 // ─── Protocol Registration ────────────────────────────────────────────────────
@@ -122,13 +123,13 @@ function waitForBackendHealth(deadline = Date.now() + HEALTH_TIMEOUT): Promise<b
   return new Promise((resolve) => {
     const attempt = () => {
       if (Date.now() >= deadline) {
-        console.warn("[Main] Backend health-check timed out — loading UI anyway");
+        logger.warn(String("[Main] Backend health-check timed out — loading UI anyway"));
         return resolve(false);
       }
       const req = http.get(HEALTH_URL, (res) => {
         res.resume();
         if ((res.statusCode ?? 500) < 500) {
-          console.log("[Main] Backend ready (health check passed)");
+          logger.info(String("[Main] Backend ready (health check passed)"));
           return resolve(true);
         }
         setTimeout(attempt, POLL_INTERVAL);
@@ -143,7 +144,7 @@ function waitForBackendHealth(deadline = Date.now() + HEALTH_TIMEOUT): Promise<b
 async function startBackend(): Promise<boolean> {
   const isAlreadyRunning = await checkHealthOnce();
   if (isAlreadyRunning) {
-    console.log("[Main] Backend already running on port", BACKEND_PORT);
+    logger.info("[Main] Backend already running on port", { args: [BACKEND_PORT] });
     return true;
   }
 
@@ -159,17 +160,17 @@ async function startBackend(): Promise<boolean> {
       if (found) {
         serverPath = found;
       } else {
-        console.log("[Main] Dev mode — waiting for dev backend on port", BACKEND_PORT);
+        logger.info("[Main] Dev mode — waiting for dev backend on port", { args: [BACKEND_PORT] });
         waitForBackendHealth().then(resolve);
         return;
       }
     }
 
-    console.log("[Main] Resolved backend path:", serverPath);
-    console.log("[Main] __dirname:", __dirname);
-    console.log("[Main] process.resourcesPath:", process.resourcesPath);
+    logger.info("[Main] Resolved backend path:", { args: [serverPath] });
+    logger.info("[Main] __dirname:", { args: [__dirname] });
+    logger.info("[Main] process.resourcesPath:", { args: [process.resourcesPath] });
     if (!fs.existsSync(serverPath)) {
-      console.error("[Main] Backend bundle not found:", serverPath);
+      logger.error("[Main] Backend bundle not found:", { args: [serverPath] });
       reject(new Error("Backend bundle not found: " + serverPath));
       return;
     }
@@ -180,9 +181,9 @@ async function startBackend(): Promise<boolean> {
     }
 
     const appDir = path.dirname(app.getPath("exe"));
-    console.log("[Main] Forking backend:", serverPath);
-    console.log("[Main] DATA_DIR:", dataDir);
-    console.log("[Main] Working dir:", appDir);
+    logger.info("[Main] Forking backend:", { args: [serverPath] });
+    logger.info("[Main] DATA_DIR:", { args: [dataDir] });
+    logger.info("[Main] Working dir:", { args: [appDir] });
 
     const backendEnv: NodeJS.ProcessEnv = {
       ...process.env,
@@ -211,24 +212,24 @@ async function startBackend(): Promise<boolean> {
     };
 
     backendProcess.on("error", (err: Error) => {
-      console.error("[Main] Backend fork error:", err.message);
+      logger.error("[Main] Backend fork error:", { args: [err.message] });
       if (!resolved) reject(err);
     });
 
     backendProcess.on("exit", (code: number | null) => {
-      console.warn("[Main] Backend exited (code", code, ")");
+      logger.warn("[Main] Backend exited (code", { args: [code, ")"] });
       if (!isQuitting) {
-        console.log("[Main] Respawning backend in 3 s...");
+        logger.info(String("[Main] Respawning backend in 3 s..."));
         setTimeout(() => startBackend().catch(console.error), 3000);
       }
     });
 
     backendProcess.on("message", (msg: any) => {
       if (msg && msg.type === "server-ready") {
-        console.log("[Main] Received server-ready IPC from backend");
+        logger.info(String("[Main] Received server-ready IPC from backend"));
         finish(true);
       } else if (msg && msg.type === "server-error") {
-        console.error("[Main] Backend reported error:", msg.error);
+        logger.error("[Main] Backend reported error:", { args: [msg.error] });
         if (msg.error === "EADDRINUSE") {
           if (!resolved) reject(new Error("EADDRINUSE"));
         }
@@ -250,13 +251,13 @@ function getPreloadPath(): string {
   for (const p of candidates) {
     if (fs.existsSync(p)) return p;
   }
-  console.error("[Main] preload.js not found — IPC unavailable");
+  logger.error(String("[Main] preload.js not found — IPC unavailable"));
   return candidates[0];
 }
 
 async function createWindow(): Promise<void> {
   const preload = getPreloadPath();
-  console.log("[Main] Preload:", preload);
+  logger.info("[Main] Preload:", { args: [preload] });
 
   mainWindow = new BrowserWindow({
     width: 1920,
@@ -330,11 +331,11 @@ async function createWindow(): Promise<void> {
       return;
     }
 
-    console.log("[Main] Loading app via Express:", APP_URL);
+    logger.info("[Main] Loading app via Express:", { args: [APP_URL] });
     await mainWindow.loadURL(APP_URL);
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error("[Main] Failed to load renderer:", error.message);
+    logger.error("[Main] Failed to load renderer:", { args: [error.message] });
     if (mainWindow && !mainWindow.isDestroyed()) {
       const safeMsg = error.message.replace(/[<>&"']/g, "");
       let title = "Failed to Load Application";
@@ -372,15 +373,15 @@ async function createWindow(): Promise<void> {
 
   if (app.isPackaged && initAutoUpdater && mainWindow && !mainWindow.isDestroyed()) {
     initAutoUpdater(mainWindow);
-    console.log("[Main] Auto-updater initialized");
+    logger.info(String("[Main] Auto-updater initialized"));
   }
 
   if (powerSaveId === null) {
     powerSaveId = powerSaveBlocker.start("prevent-display-sleep");
-    console.log("[Main] Power save blocker started (id:", powerSaveId, ")");
+    logger.info("[Main] Power save blocker started (id:", { args: [powerSaveId, ")"] });
   }
 
-  console.log("[Main] Window ready");
+  logger.info(String("[Main] Window ready"));
 }
 
 // ─── Security ─────────────────────────────────────────────────────────────────
@@ -398,20 +399,20 @@ function setupSecurity(win: BrowserWindow): void {
 
   wc.on("will-navigate", (event, url) => {
     if (!isAllowedUrl(url)) {
-      console.warn("[Security] Blocked navigation:", url);
+      logger.warn("[Security] Blocked navigation:", { args: [url] });
       event.preventDefault();
     }
   });
 
   wc.on("will-redirect", (event, url) => {
     if (!isAllowedUrl(url)) {
-      console.warn("[Security] Blocked redirect:", url);
+      logger.warn("[Security] Blocked redirect:", { args: [url] });
       event.preventDefault();
     }
   });
 
   wc.setWindowOpenHandler(({ url }) => {
-    console.warn("[Security] Blocked new window:", url);
+    logger.warn("[Security] Blocked new window:", { args: [url] });
     return { action: "deny" };
   });
 
@@ -433,7 +434,7 @@ function setupWindowEvents(win: BrowserWindow): void {
   const CRASH_WINDOW = 60_000;
 
   win.webContents.on("render-process-gone", (_e, details) => {
-    console.error("[Main] Renderer crashed:", details.reason);
+    logger.error("[Main] Renderer crashed:", { args: [details.reason] });
 
     const now = Date.now();
     if (now - crashTracker.windowStart > CRASH_WINDOW) {
@@ -443,7 +444,7 @@ function setupWindowEvents(win: BrowserWindow): void {
     crashTracker.count += 1;
 
     if (crashTracker.count > MAX_CRASHES) {
-      console.error(`[Main] Renderer crashed ${crashTracker.count} times — stopping auto-reload`);
+      logger.error(String(`[Main] Renderer crashed ${crashTracker.count} times — stopping auto-reload`));
       if (!win.isDestroyed()) {
         win.loadURL("data:text/html,<h2 style='font-family:sans-serif;padding:2rem'>ClickFlash encountered a fatal error.<br>Please restart the application.</h2>").catch(() => {});
       }
@@ -455,13 +456,13 @@ function setupWindowEvents(win: BrowserWindow): void {
       if (app.isPackaged && !win.isKiosk()) {
         win.setKiosk(true); win.setFullScreen(true); win.setAlwaysOnTop(true);
       }
-      console.log(`[Main] Reloading renderer (attempt ${crashTracker.count}/${MAX_CRASHES})`);
+      logger.info(String(`[Main] Reloading renderer (attempt ${crashTracker.count}/${MAX_CRASHES})`));
       win.reload();
     }, 2000);
   });
 
   win.webContents.on("did-fail-load", (_e, code, desc) => {
-    console.error("[Main] did-fail-load:", code, desc);
+    logger.error("[Main] did-fail-load:", { args: [code, desc] });
   });
 
   win.on("closed", () => { mainWindow = null; });
@@ -480,7 +481,7 @@ function spawnGuardian(): void {
   const hashPath = path.join(process.resourcesPath, "helper_scripts", "KioskGuardian.exe.sha256");
 
   if (!fs.existsSync(gPath)) {
-    console.warn("[Main] KioskGuardian.exe not found — OS shortcuts unblocked");
+    logger.warn(String("[Main] KioskGuardian.exe not found — OS shortcuts unblocked"));
     return;
   }
 
@@ -489,27 +490,27 @@ function spawnGuardian(): void {
     const actualHash   = sha256OfFile(gPath);
     if (actualHash !== expectedHash) {
       const msg = `[Main] SECURITY: KioskGuardian.exe hash mismatch!\n  expected: ${expectedHash}\n  actual:   ${actualHash}`;
-      console.error(msg);
+      logger.error(String(msg));
       dialog.showErrorBox(
         "Security Alert",
         "KioskGuardian.exe has been tampered with. The application will not enter kiosk mode.\nPlease reinstall ClickFlash Master.",
       );
       return;
     }
-    console.log("[Main] KioskGuardian.exe integrity verified ✓");
+    logger.info(String("[Main] KioskGuardian.exe integrity verified ✓"));
   } else {
-    console.warn("[Main] KioskGuardian.exe.sha256 not found — skipping integrity check (reinstall recommended)");
+    logger.warn(String("[Main] KioskGuardian.exe.sha256 not found — skipping integrity check (reinstall recommended)"));
   }
 
   guardianProcess = spawn(gPath, [], { detached: false });
-  guardianProcess.on("error", (err: Error) => console.error("[Main] Guardian error:", err.message));
+  guardianProcess.on("error", (err: Error) => logger.error("[Main] Guardian error:", { args: [err.message] }));
   guardianProcess.on("exit", () => {
     if (!isQuitting && mainWindow && !mainWindow.isDestroyed() && mainWindow.isKiosk()) {
-      console.warn("[Main] Guardian exited — respawning in 1 s");
+      logger.warn(String("[Main] Guardian exited — respawning in 1 s"));
       setTimeout(spawnGuardian, 1000);
     }
   });
-  console.log("[Main] KioskGuardian spawned");
+  logger.info(String("[Main] KioskGuardian spawned"));
 }
 
 function killGuardian(): void {
@@ -526,14 +527,14 @@ function setupIpc(): void {
     const expected = ADMIN_PIN ?? (!app.isPackaged ? "000000" : null);
 
     if (!expected) {
-      console.error("[IPC] kiosk:unlock — ADMIN_PIN env not set; cannot unlock in production");
+      logger.error(String("[IPC] kiosk:unlock — ADMIN_PIN env not set; cannot unlock in production"));
       return { success: false, error: "Kiosk unlock not configured — set ADMIN_PIN" };
     }
 
     const now = Date.now();
     if (pinAttempts.lockedUntil > now) {
       const secsLeft = Math.ceil((pinAttempts.lockedUntil - now) / 1000);
-      console.warn(`[IPC] kiosk:unlock — locked out for ${secsLeft}s`);
+      logger.warn(String(`[IPC] kiosk:unlock — locked out for ${secsLeft}s`));
       return { success: false, error: `Too many attempts. Try again in ${secsLeft}s` };
     }
 
@@ -553,7 +554,7 @@ function setupIpc(): void {
 
     if (!isValid) {
       pinAttempts.count += 1;
-      console.warn(`[IPC] kiosk:unlock — wrong PIN (attempt ${pinAttempts.count}/${PIN_MAX_ATTEMPTS})`);
+      logger.warn(String(`[IPC] kiosk:unlock — wrong PIN (attempt ${pinAttempts.count}/${PIN_MAX_ATTEMPTS})`));
       if (pinAttempts.count >= PIN_MAX_ATTEMPTS) {
         pinAttempts.lockedUntil = now + PIN_LOCKOUT_MS;
         pinAttempts.count = 0;
@@ -621,7 +622,7 @@ function setupIpc(): void {
 
 function setupShortcuts(): void {
   globalShortcut.register(ADMIN_SHORTCUT, () => {
-    console.log("[Main] Admin shortcut — requesting PIN");
+    logger.info(String("[Main] Admin shortcut — requesting PIN"));
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send("kiosk:show-unlock-dialog");
     }
@@ -675,10 +676,10 @@ function createTray(): void {
     tray.setToolTip("ClickFlash Master OS");
     tray.setContextMenu(contextMenu);
     tray.on("double-click", () => { if (mainWindow) { mainWindow.show(); mainWindow.focus(); } });
-    console.log("[Main] System tray created");
+    logger.info(String("[Main] System tray created"));
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.warn("[Main] Failed to create system tray:", error.message);
+    logger.warn("[Main] Failed to create system tray:", { args: [error.message] });
   }
 }
 
@@ -694,11 +695,11 @@ function scheduleBackups(): void {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { BackupService } = require(backupServicePath) as { BackupService: { runDailyBackup(dir: string): Promise<void> } };
       BackupService.runDailyBackup(getDataDir()).catch((err: Error) => {
-        console.error("[Backup] Backup failed:", err);
+        logger.error("[Backup] Backup failed:", { args: [err] });
       });
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
-      console.warn("[Backup] backupService not available:", error.message);
+      logger.warn("[Backup] backupService not available:", { args: [error.message] });
     }
   }
 
@@ -748,6 +749,60 @@ app.whenReady().then(async () => {
     });
   });
 
+  // --- RSA-4096 LICENSING CHECK ---
+  try {
+    const { verifyLicense, getMachineFingerprint } = require('@clickflash/licensing');
+    const os = require('os');
+    // License should reside securely in the user's home directory
+    const clickflashDir = path.join(os.homedir(), '.clickflash');
+    const licensePath = path.join(clickflashDir, 'license.json');
+    
+    // In production, we embed the public key during CI/CD. 
+    // In dev, we fallback to the local generated key or env var.
+    let PUBLIC_KEY = process.env.CLICKFLASH_PUB_KEY || ''; 
+    const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';
+
+    // Allow a specific local override for rapid development without a license
+    const isBypassEnabled = isDev && process.env.BYPASS_LICENSE_CHECK === 'true';
+
+    if (!isBypassEnabled) {
+      if (!PUBLIC_KEY) {
+        // Fallback for local development testing of the license check
+        const pubKeyPath = path.join(__dirname, '../../packages/licensing/out/public.pem');
+        if (fs.existsSync(pubKeyPath)) {
+          PUBLIC_KEY = fs.readFileSync(pubKeyPath, 'utf8');
+        }
+      }
+
+      if (!fs.existsSync(licensePath)) {
+        logger.error(`[Licensing] No license found at ${licensePath}`);
+        dialog.showErrorBox("License Error", "No valid ClickFlash license found on this machine.");
+        app.quit();
+        return;
+      }
+
+      const licenseData = JSON.parse(fs.readFileSync(licensePath, 'utf8'));
+      const fingerprint = await getMachineFingerprint();
+      
+      const isValid = verifyLicense(licenseData, PUBLIC_KEY, fingerprint);
+      if (!isValid) {
+        logger.error(`[Licensing] Invalid license or hardware mismatch. Expected Fingerprint: ${fingerprint}`);
+        dialog.showErrorBox("Hardware Binding Error", "This license is bound to another machine or has expired. Please contact ClickFlash support.");
+        app.quit();
+        return;
+      }
+      logger.info("[Licensing] Valid RSA-4096 hardware-bound license detected.");
+    } else {
+      logger.warn("[Licensing] BYPASS_LICENSE_CHECK is enabled. Running in development mode.");
+    }
+  } catch (err: unknown) {
+    logger.error("[Licensing] Fatal error during license verification:", { args: [err] });
+    dialog.showErrorBox("License Error", "A fatal error occurred verifying your license.");
+    app.quit();
+    return;
+  }
+  // --------------------------------
+
   protocol.handle("clickflash", (request) => {
     try {
       const url          = new URL(request.url);
@@ -756,7 +811,7 @@ app.whenReady().then(async () => {
       const fullPath     = path.normalize(path.join(dataDir, relativePath));
 
       if (!fullPath.startsWith(dataDir)) {
-        console.error("[Security] clickflash:// Directory traversal attempt:", fullPath);
+        logger.error("[Security] clickflash:// Directory traversal attempt:", { args: [fullPath] });
         return new Response("Access Denied", { status: 403 });
       }
       if (!fs.existsSync(fullPath)) {
@@ -764,7 +819,7 @@ app.whenReady().then(async () => {
       }
       return net.fetch("file://" + fullPath);
     } catch (err: unknown) {
-      console.error("[Protocol] clickflash:// error:", err);
+      logger.error("[Protocol] clickflash:// error:", { args: [err] });
       return new Response("Internal Error", { status: 500 });
     }
   });
@@ -773,17 +828,17 @@ app.whenReady().then(async () => {
   setupIpc();
 
   try {
-    console.log("[Main] Starting backend process...");
+    logger.info(String("[Main] Starting backend process..."));
     const backendReady = await startBackend();
     
     if (app.isPackaged && !backendReady) {
-      console.warn("[Main] Backend did not report ready, proceeding anyway...");
+      logger.warn(String("[Main] Backend did not report ready, proceeding anyway..."));
     } else {
-      console.log("[Main] Backend is fully ready");
+      logger.info(String("[Main] Backend is fully ready"));
     }
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error("[Main] Failed to start backend:", error.message);
+    logger.error("[Main] Failed to start backend:", { args: [error.message] });
     if (error.message === "EADDRINUSE") {
       (global as any).backendError = "EADDRINUSE";
     } else {
@@ -791,11 +846,36 @@ app.whenReady().then(async () => {
     }
   }
 
+  // --- LICENSING CHECK ---
+  try {
+    const { verifyLicense, getMachineFingerprint } = require('@clickflash/licensing');
+    const licensePath = path.join(getDataDir(), 'license.key');
+    if (fs.existsSync(licensePath)) {
+      const licenseData = JSON.parse(fs.readFileSync(licensePath, 'utf8'));
+      const fingerprint = await getMachineFingerprint();
+      const PUBLIC_KEY = process.env.CLICKFLASH_PUB_KEY || ''; // In prod, embed this during build
+      
+      if (PUBLIC_KEY) {
+        const isValid = verifyLicense(licenseData, PUBLIC_KEY, fingerprint);
+        if (!isValid) {
+          dialog.showErrorBox("License Error", "Invalid or expired license for this machine.");
+          app.quit();
+          return;
+        }
+      }
+    } else if (app.isPackaged) {
+      logger.warn("[Licensing] No license.key found, running in unactivated mode.");
+    }
+  } catch (err: unknown) {
+    logger.error("[Licensing] Error verifying license:", { args: [err] });
+  }
+  // -----------------------
+
   createWindow();
   createTray();
   scheduleBackups();
 }).catch((err: unknown) => {
-  console.error("[Main] Fatal startup error:", err);
+  logger.error("[Main] Fatal startup error:", { args: [err] });
   dialog.showErrorBox("Startup Error", String(err));
   app.quit();
 });
@@ -811,10 +891,10 @@ app.on("activate", () => {
 });
 
 process.on("uncaughtException", (err: Error) => {
-  console.error("[Main] Uncaught exception:", err);
+  logger.error("[Main] Uncaught exception:", { args: [err] });
   shutdown();
 });
 
 process.on("unhandledRejection", (reason: unknown) => {
-  console.error("[Main] Unhandled promise rejection:", reason);
+  logger.error("[Main] Unhandled promise rejection:", { args: [reason] });
 });

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import * as tf from '@tensorflow/tfjs';
 import * as handPoseDetection from '@tensorflow-models/hand-pose-detection';
 
@@ -17,7 +18,7 @@ export class GestureCaptureService {
      * Initializes the local webcam feed and loads the lightweight hand-tracking model.
      */
     async initialize(): Promise<void> {
-        console.log('[GestureCapture] Initializing lightweight hand-tracking model...');
+        logger.info('[GestureCapture] Initializing lightweight hand-tracking model...');
         try {
             await tf.ready();
             
@@ -29,9 +30,9 @@ export class GestureCaptureService {
             };
             this.detector = await handPoseDetection.createDetector(model, detectorConfig);
             
-            console.log('[GestureCapture] Model loaded. Detector ready.');
+            logger.info('[GestureCapture] Model loaded. Detector ready.');
         } catch (error) {
-            console.error('[GestureCapture] Failed to initialize model:', error);
+            logger.error('[GestureCapture] Failed to initialize model:', error);
         }
     }
 
@@ -41,14 +42,14 @@ export class GestureCaptureService {
      */
     async startTracking(onCaptureTriggered: () => void) {
         if (!this.detector) {
-            console.error('[GestureCapture] Detector not initialized! Attempting initialization...');
+            logger.error('[GestureCapture] Detector not initialized! Attempting initialization...');
             await this.initialize();
             if (!this.detector) return;
         }
 
         this.isTracking = true;
         this.captureCallback = onCaptureTriggered;
-        console.log('[GestureCapture] Tracking started. Waiting for peace sign...');
+        logger.info('[GestureCapture] Tracking started. Waiting for peace sign...');
         
         if (!this.videoElement) {
             this.videoElement = document.createElement('video');
@@ -65,14 +66,14 @@ export class GestureCaptureService {
                 this.detectionLoop();
             };
         } catch (error) {
-            console.error('[GestureCapture] Failed to access webcam for gesture tracking:', error);
+            logger.error('[GestureCapture] Failed to access webcam for gesture tracking:', error);
             this.isTracking = false;
         }
     }
 
     stopTracking() {
         this.isTracking = false;
-        console.log('[GestureCapture] Tracking stopped.');
+        logger.info('[GestureCapture] Tracking stopped.');
         if (this.videoElement && this.videoElement.srcObject) {
             const stream = this.videoElement.srcObject as MediaStream;
             stream.getTracks().forEach(track => track.stop());
@@ -89,7 +90,7 @@ export class GestureCaptureService {
                 const detectedGesture = this.analyzeHands(hands);
 
                 if (detectedGesture === 'PEACE_SIGN') {
-                    console.log('[GestureCapture] ✌️ Peace Sign detected! Initiating countdown...');
+                    logger.info('[GestureCapture] ✌️ Peace Sign detected! Initiating countdown...');
                     if (this.captureCallback) {
                         this.captureCallback();
                     }
@@ -97,7 +98,7 @@ export class GestureCaptureService {
                     return;
                 }
             } catch (err) {
-                console.error('[GestureCapture] Error during prediction', err);
+                logger.error('[GestureCapture] Error during prediction', err);
             }
         }
 

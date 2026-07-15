@@ -1,3 +1,5 @@
+import { logger } from "@clickflash/logger";
+
 export class AuditLogger {
   constructor(dataDir?: string) {}
 
@@ -9,9 +11,9 @@ export class AuditLogger {
       ...details,
     };
     if (level === "ERROR") {
-      console.error(`[AUDIT] ${level} ${event}`, details);
+      logger.error(String(`[AUDIT] ${level} ${event}`) + ' ' + String(details));
     } else {
-      console.log(`[AUDIT] ${level} ${event}`, details);
+      logger.info(String(`[AUDIT] ${level} ${event}`) + ' ' + String(details));
     }
   }
 

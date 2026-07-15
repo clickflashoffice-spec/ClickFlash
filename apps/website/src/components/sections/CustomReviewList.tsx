@@ -102,7 +102,7 @@ export function CustomReviewList({ source }: CustomReviewListProps) {
 
             {/* Mobile Interaction Hint */}
             <div className="flex lg:hidden justify-center gap-2 mt-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-cyan-700 animate-pulse" />
                 <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
                 <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
             </div>

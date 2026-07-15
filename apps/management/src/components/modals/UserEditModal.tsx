@@ -3,6 +3,7 @@ import Modal from "../common/Modal.tsx";
 import { Photographer } from "../../types.ts";
 import { useCurrency } from "../CurrencyContext.tsx";
 import { apiService } from "../../services/apiService.ts";
+import { logger } from "@/utils/logger";
 
 interface UserEditModalProps {
   isOpen: boolean;
@@ -162,7 +163,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
       onDataChange();
       onClose();
     } catch (err) {
-      console.error("Failed to save user", err);
+      logger.error("Failed to save user", err);
       let errorMessage = "Unknown error";
 
       if (err instanceof Error) {
@@ -185,7 +186,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
       }
 
       // Log full error for debugging
-      console.error("Full error object:", err);
+      logger.error("Full error object:", err);
       alert(`Failed to save user details: ${errorMessage}`);
     } finally {
       setIsSaving(false);

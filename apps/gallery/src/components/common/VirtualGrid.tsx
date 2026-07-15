@@ -1,5 +1,11 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { Grid } from 'react-window';
+import * as ReactWindowModule from "react-window";
+const ReactWindowAny = ReactWindowModule as any;
+const FixedSizeGrid =
+  ReactWindowAny.FixedSizeGrid ||
+  ReactWindowAny.Grid ||
+  ReactWindowAny.default?.FixedSizeGrid ||
+  ReactWindowAny.default?.Grid;
 import { logger } from '../../utils/logger';
 
 export interface VirtualGridProps<T> {
@@ -118,7 +124,7 @@ function VirtualGridInner<T>({
     }, [items.length, validItemWidth, validItemHeight, validGap, actualWidth, minColumns, maxColumns]);
 
     // Ensure Grid component is available
-    if (!Grid || typeof Grid !== 'function') {
+    if (!FixedSizeGrid) {
         return null;
     }
 
@@ -291,17 +297,18 @@ function VirtualGridInner<T>({
         
         return (
             <div ref={containerRef} style={{ width: containerWidth, height: containerHeight }}>
-                <Grid<object>
-                    cellComponent={Cell as (props: { ariaAttributes: { "aria-colindex": number; role: "gridcell" }; columnIndex: number; rowIndex: number; style: React.CSSProperties }) => React.ReactElement | null}
-                    cellProps={{}}
-                    itemData={{}}
+                <FixedSizeGrid
                     columnCount={finalColumnCount}
                     columnWidth={finalColumnWidth}
                     rowCount={finalRowCount}
                     rowHeight={finalRowHeight}
-                    overscanCount={Math.max(finalOverscanRowCount, finalOverscanColumnCount)}
-                    style={{ height: finalHeight, width: finalWidth }}
-                />
+                    height={finalHeight}
+                    width={finalWidth}
+                    overscanRowCount={finalOverscanRowCount}
+                    overscanColumnCount={finalOverscanColumnCount}
+                >
+                    {Cell}
+                </FixedSizeGrid>
             </div>
         );
                     } catch (error) {

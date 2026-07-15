@@ -6,6 +6,7 @@ import { MOCK_PRINT_SIZES } from '../../constants.ts';
 import { useCurrency } from '../CurrencyContext.tsx';
 import { useKiosk } from '../../context/KioskContext.tsx';
 import useLocalStorage from '../../hooks/useLocalStorage.ts';
+import { AutoEditorCanvas, AutoEditorCanvasRef } from './AutoEditorCanvas.tsx';
 interface WatermarkSettingsType {
     enabled: boolean;
     imageUrl: string;
@@ -48,6 +49,8 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
     const [isDragging, setIsDragging] = useState(false);
     const dragStart = useRef({ x: 0, y: 0 });
     const imageContainerRef = useRef<HTMLDivElement>(null);
+    const editorRef = useRef<AutoEditorCanvasRef>(null);
+    const [autoEnhance, setAutoEnhance] = useState(false);
 
     const [watermarkSettings] = useLocalStorage<WatermarkSettingsType>('watermarkSettings', {
         enabled: false,
@@ -68,6 +71,7 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
         }
         setZoomLevel(1);
         setPan({ x: 0, y: 0 });
+        setAutoEnhance(false);
     }, [photo, products, selectedSize]);
 
     // Handle initial selection if not set
@@ -220,17 +224,36 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
                             )}
 
                             {/* The Photo */}
-                            <motion.img
-                                layoutId={`photo-img-${photo.id}`}
-                                src={displayUrl}
-                                alt={photo.title}
-                                className="max-w-full max-h-full object-contain shadow-2xl transition-transform duration-100 select-none"
-                                style={{
-                                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoomLevel})`,
-                                    cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
-                                }}
-                                draggable={false}
-                            />
+                            {!autoEnhance ? (
+                                <motion.img
+                                    layoutId={`photo-img-${photo.id}`}
+                                    src={displayUrl}
+                                    alt={photo.title}
+                                    className="max-w-full max-h-full object-contain shadow-2xl transition-transform duration-100 select-none"
+                                    style={{
+                                        transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoomLevel})`,
+                                        cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
+                                    }}
+                                    draggable={false}
+                                />
+                            ) : (
+                                <motion.div
+                                    layoutId={`photo-img-${photo.id}`}
+                                    className="max-w-full max-h-full shadow-2xl transition-transform duration-100 select-none flex items-center justify-center"
+                                    style={{
+                                        transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoomLevel})`,
+                                        cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
+                                        width: '100%',
+                                        height: '100%'
+                                    }}
+                                >
+                                    <AutoEditorCanvas
+                                        ref={editorRef}
+                                        imageUrl={displayUrl}
+                                        options={{ autoEnhance }}
+                                    />
+                                </motion.div>
+                            )}
                         </div>
 
                         {/* Zoom Controls - Enhanced Visibility */}
@@ -284,6 +307,19 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
                         <h3 className="text-2xl font-bold mb-6">Order Options</h3>
 
                         <div className="space-y-6 flex-grow overflow-y-auto">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">Enhancements</label>
+                                <button
+                                    onClick={() => setAutoEnhance(!autoEnhance)}
+                                    className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all ${autoEnhance ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-500 ring-1 ring-purple-500 shadow-md text-purple-700 dark:text-purple-300' : 'bg-slate-50 dark:bg-slate-800 border-transparent hover:border-slate-300 dark:hover:border-slate-600'}`}
+                                >
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-bold">✨ Magic Auto-Enhance</span>
+                                        <span className="font-bold text-xs uppercase bg-purple-100 dark:bg-purple-800 px-2 py-1 rounded-md">Offline</span>
+                                    </div>
+                                </button>
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">Format</label>
                                 <div className="grid gap-3">

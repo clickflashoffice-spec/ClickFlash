@@ -4,6 +4,7 @@ import {
   Destination,
   Currency,
 } from "../../types";
+import { logger } from "@/utils/logger";
 
 /**
  * API Service - Wrapper around pb adapter for convenient data operations
@@ -50,7 +51,7 @@ export const initializationApi = {
           password: "admin",
           role: "Admin",
         });
-        console.log("[apiService] Created default admin user");
+        logger.info("[apiService] Created default admin user");
       }
     } catch (e) {
       // Only log non-network errors
@@ -62,7 +63,7 @@ export const initializationApi = {
         errorMessage.includes("Cannot connect to backend");
 
       if (!isNetworkError) {
-        console.warn("[apiService] initDb failed:", e);
+        logger.warn("[apiService] initDb failed:", e);
       }
     }
   },

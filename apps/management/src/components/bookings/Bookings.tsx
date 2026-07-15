@@ -17,6 +17,7 @@ interface BookingsProps {
 }
 
 import StatCard from "../common/StatCard.tsx";
+import { logger } from "@/utils/logger";
 
 const Bookings: React.FC<BookingsProps> = ({ showToast }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -48,7 +49,7 @@ const Bookings: React.FC<BookingsProps> = ({ showToast }) => {
         setPhotographers(photographersData);
         setSessionTypes(sessionsData);
       } catch (error) {
-        console.error("Failed to fetch booking data", error);
+        logger.error("Failed to fetch booking data", error);
         setError("Failed to load bookings. Please try again.");
       } finally {
         setLoading(false);

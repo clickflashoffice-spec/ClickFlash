@@ -60,9 +60,9 @@ export function PortfolioClient() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                     >
-                        <span className="text-cyan-500 font-black uppercase tracking-[0.3em] text-[12px] mb-4 block">Our Portfolio</span>
+                        <span className="text-cyan-700 font-black uppercase tracking-[0.3em] text-[12px] mb-4 block">Our Portfolio</span>
                         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 mb-6 md:mb-8 leading-tight tracking-tighter">
-                            Gallery of <span className="text-cyan-500">Memories</span>
+                            Gallery of <span className="text-cyan-700">Memories</span>
                         </h1>
                         <p className="text-slate-600 text-base md:text-lg lg:text-xl leading-relaxed max-w-3xl mx-auto px-2">
                             Browse through our curated collection of captured moments from weddings, 
@@ -124,7 +124,7 @@ export function PortfolioClient() {
             <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-16 md:mt-24 lg:mt-32">
                 <div className="bg-slate-50 rounded-2xl md:rounded-3xl p-8 md:p-12 lg:p-16 text-center">
                     <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 mb-4 md:mb-6 tracking-tighter">
-                        Create Your Own <span className="text-cyan-500">Memories</span>
+                        Create Your Own <span className="text-cyan-700">Memories</span>
                     </h2>
                     <p className="text-slate-600 text-base md:text-lg mb-6 md:mb-8 max-w-2xl mx-auto px-2">
                         Let us capture your special moments with our professional photography services. 
@@ -132,7 +132,7 @@ export function PortfolioClient() {
                     </p>
                     <Link 
                         href="/contact" 
-                        className="inline-block px-8 md:px-10 py-3 md:py-4 bg-cyan-500 text-white font-black uppercase tracking-widest text-[11px] md:text-[12px] rounded-full hover:bg-slate-900 transition-all"
+                        className="inline-block px-8 md:px-10 py-3 md:py-4 bg-cyan-700 text-white font-black uppercase tracking-widest text-[11px] md:text-[12px] rounded-full hover:bg-slate-900 transition-all"
                     >
                         Book Now
                     </Link>

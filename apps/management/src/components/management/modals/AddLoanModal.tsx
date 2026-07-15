@@ -40,7 +40,7 @@ const AddLoanModal: React.FC<AddLoanModalProps> = ({
       status: "Active",
       destinationId,
       payments: [],
-    };
+    } as any;
 
     onSave(newLoan);
     onClose();

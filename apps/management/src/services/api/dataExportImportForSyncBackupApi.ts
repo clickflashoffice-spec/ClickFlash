@@ -1,6 +1,6 @@
 import { apiService } from '../apiService';
 import { pb } from "../pb";
-
+import { logger } from "@/utils/logger";
 
 /**
  * API Service - Wrapper around pb adapter for convenient data operations
@@ -26,7 +26,7 @@ export const dataExportImportForSyncBackupApi = {
         try {
           return await fetchFn();
         } catch (err) {
-          console.warn("Failed to fetch data for export:", err);
+          logger.warn("Failed to fetch data for export:", err);
           return defaultValue;
         }
       };
@@ -106,7 +106,7 @@ export const dataExportImportForSyncBackupApi = {
         return { summary };
       }
     } catch (error) {
-      console.error("Failed to export data for sync:", error);
+      logger.error("Failed to export data for sync:", error);
       throw new Error(
         `Failed to gather data from database: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -129,7 +129,7 @@ export const dataExportImportForSyncBackupApi = {
             try {
               await apiService.createUser(user);
             } catch (err) {
-              console.warn("Failed to import user:", user.id, err);
+              logger.warn("Failed to import user:", user.id, err);
             }
           }
         }
@@ -144,7 +144,7 @@ export const dataExportImportForSyncBackupApi = {
             try {
               await apiService.createProduct(product);
             } catch (err) {
-              console.warn("Failed to import product:", product.id, err);
+              logger.warn("Failed to import product:", product.id, err);
             }
           }
         }
@@ -159,7 +159,7 @@ export const dataExportImportForSyncBackupApi = {
             try {
               await apiService.createPack(pack);
             } catch (err) {
-              console.warn("Failed to import pack:", pack.id, err);
+              logger.warn("Failed to import pack:", pack.id, err);
             }
           }
         }
@@ -174,7 +174,7 @@ export const dataExportImportForSyncBackupApi = {
             try {
               await apiService.createDestination(destination);
             } catch (err) {
-              console.warn(
+              logger.warn(
                 "Failed to import destination:",
                 destination.id,
                 err,
@@ -193,7 +193,7 @@ export const dataExportImportForSyncBackupApi = {
             try {
               await apiService.createAlbum(album);
             } catch (err) {
-              console.warn("Failed to import album:", album.id, err);
+              logger.warn("Failed to import album:", album.id, err);
             }
           }
         }
@@ -210,7 +210,7 @@ export const dataExportImportForSyncBackupApi = {
           try {
             await apiService.createPhoto(photo);
           } catch (err) {
-            console.warn("Failed to import photo:", photo.id, err);
+            logger.warn("Failed to import photo:", photo.id, err);
           }
         }
       }
@@ -224,7 +224,7 @@ export const dataExportImportForSyncBackupApi = {
             try {
               await apiService.createOrder(order);
             } catch (err) {
-              console.warn("Failed to import order:", order.id, err);
+              logger.warn("Failed to import order:", order.id, err);
             }
           }
         }
@@ -239,7 +239,7 @@ export const dataExportImportForSyncBackupApi = {
             try {
               await apiService.createBooking(booking);
             } catch (err) {
-              console.warn("Failed to import booking:", booking.id, err);
+              logger.warn("Failed to import booking:", booking.id, err);
             }
           }
         }
@@ -254,7 +254,7 @@ export const dataExportImportForSyncBackupApi = {
             try {
               await apiService.createExpense(expense);
             } catch (err) {
-              console.warn("Failed to import expense:", expense.id, err);
+              logger.warn("Failed to import expense:", expense.id, err);
             }
           }
         }
@@ -269,7 +269,7 @@ export const dataExportImportForSyncBackupApi = {
             try {
               await apiService.createAdjustment(adjustment);
             } catch (err) {
-              console.warn("Failed to import adjustment:", adjustment.id, err);
+              logger.warn("Failed to import adjustment:", adjustment.id, err);
             }
           }
         }
@@ -284,7 +284,7 @@ export const dataExportImportForSyncBackupApi = {
             try {
               await apiService.createLoan(loan);
             } catch (err) {
-              console.warn("Failed to import loan:", loan.id, err);
+              logger.warn("Failed to import loan:", loan.id, err);
             }
           }
         }
@@ -299,7 +299,7 @@ export const dataExportImportForSyncBackupApi = {
             try {
               await apiService.createEquipment(item);
             } catch (err) {
-              console.warn("Failed to import equipment:", item.id, err);
+              logger.warn("Failed to import equipment:", item.id, err);
             }
           }
         }
@@ -314,7 +314,7 @@ export const dataExportImportForSyncBackupApi = {
             try {
               await apiService.createSessionType(sessionType);
             } catch (err) {
-              console.warn(
+              logger.warn(
                 "Failed to import session type:",
                 sessionType.id,
                 err,
@@ -333,7 +333,7 @@ export const dataExportImportForSyncBackupApi = {
             try {
               await apiService.createExpenseCategory(category);
             } catch (err) {
-              console.warn(
+              logger.warn(
                 "Failed to import expense category:",
                 category.id,
                 err,
@@ -343,9 +343,9 @@ export const dataExportImportForSyncBackupApi = {
         }
       }
 
-      console.log("[apiService] Backup import completed");
+      logger.info("[apiService] Backup import completed");
     } catch (error) {
-      console.error("Failed to import backup data:", error);
+      logger.error("Failed to import backup data:", error);
       throw new Error(
         `Failed to import backup: ${error instanceof Error ? error.message : String(error)}`,
       );

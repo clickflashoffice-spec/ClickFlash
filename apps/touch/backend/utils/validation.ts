@@ -1,6 +1,6 @@
 // backend/shared/validation.ts
 import { z } from 'zod';
-import { logger } from '../shared/logger';
+import { appLogger as logger } from '../shared/logger';
 
 // Login validation schema
 const loginSchema = z.object({

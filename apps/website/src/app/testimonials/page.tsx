@@ -95,9 +95,9 @@ export default function TestimonialsPage() {
             {/* Hero Section */}
             <section className="max-w-5xl mx-auto px-6 text-center mb-24">
                 <h1 className="text-6xl md:text-8xl font-serif text-slate-900 mb-8 uppercase tracking-tighter">
-                    Clie<span className="text-cyan-500">nt</span> <span className="text-cyan-500 italic">Stories</span>
+                    Clie<span className="text-cyan-700">nt</span> <span className="text-cyan-700 italic">Stories</span>
                 </h1>
-                <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto">
+                <p className="text-xl text-slate-600 font-medium max-w-2xl mx-auto">
                     Real reviews from real clients. Discover the ClickFlash experience through the eyes of our amazing community.
                 </p>
             </section>
@@ -107,8 +107,8 @@ export default function TestimonialsPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                     {stats.map((stat, idx) => (
                         <div key={idx} className="text-center p-10 bg-slate-50 rounded-[2.5rem] border border-slate-100 shadow-sm transition-all hover:bg-white hover:shadow-xl hover:shadow-slate-200/50">
-                            <div className="text-4xl md:text-5xl font-serif text-cyan-500 font-bold mb-3 tracking-tighter">{stat.value}</div>
-                            <div className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">{stat.label}</div>
+                            <div className="text-4xl md:text-5xl font-serif text-cyan-700 font-bold mb-3 tracking-tighter">{stat.value}</div>
+                            <div className="text-slate-600 text-[10px] font-black uppercase tracking-[0.2em]">{stat.label}</div>
                         </div>
                     ))}
                 </div>
@@ -124,15 +124,15 @@ export default function TestimonialsPage() {
                         >
                             <div className="mb-6 flex justify-between items-start">
                                 <StarRating rating={testimonial.rating} />
-                                <div className="text-cyan-500/20 text-6xl font-serif leading-none transition-colors group-hover:text-cyan-500/40">“</div>
+                                <div className="text-cyan-700/20 text-6xl font-serif leading-none transition-colors group-hover:text-cyan-700/40">“</div>
                             </div>
                             <blockquote className="text-slate-600 mb-8 flex-grow leading-relaxed font-medium">
                                 &ldquo;{testimonial.quote}&rdquo;
                             </blockquote>
                             <div className="pt-8 border-t border-slate-50">
                                 <div className="font-serif text-2xl text-slate-900 mb-1 tracking-tight">{testimonial.name}</div>
-                                <div className="text-cyan-500 text-[10px] font-black uppercase tracking-widest mb-3">{testimonial.event}</div>
-                                <div className="text-slate-400 text-xs font-medium">{testimonial.location} • {testimonial.date}</div>
+                                <div className="text-cyan-700 text-[10px] font-black uppercase tracking-widest mb-3">{testimonial.event}</div>
+                                <div className="text-slate-600 text-xs font-medium">{testimonial.location} • {testimonial.date}</div>
                             </div>
                         </div>
                     ))}
@@ -143,18 +143,18 @@ export default function TestimonialsPage() {
             <section className="max-w-7xl mx-auto px-6">
                 <div className="bg-slate-50 border border-slate-100 rounded-[4rem] p-16 md:p-24 text-center relative overflow-hidden shadow-sm">
                     {/* Decorative Background */}
-                    <div className="absolute top-0 right-0 w-[60%] h-[60%] bg-cyan-500/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute top-0 right-0 w-[60%] h-[60%] bg-cyan-700/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
 
                     <h2 className="text-4xl md:text-7xl font-black text-slate-900 mb-8 uppercase tracking-tighter relative z-10">
-                        Ready to Create <br /> <span className="text-cyan-500 italic">Your Story?</span>
+                        Ready to Create <br /> <span className="text-cyan-700 italic">Your Story?</span>
                     </h2>
-                    <p className="text-slate-500 mb-12 max-w-xl mx-auto text-lg font-medium relative z-10">
+                    <p className="text-slate-600 mb-12 max-w-xl mx-auto text-lg font-medium relative z-10">
                         Join hundreds of satisfied clients who trusted us to capture their most precious moments with cinematic precision.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-6 justify-center relative z-10">
                         <Link
                             href="/bookings"
-                            className="bg-slate-900 text-white font-black uppercase py-6 px-14 rounded-full hover:bg-cyan-500 transition-all shadow-xl text-[11px] tracking-widest"
+                            className="bg-slate-900 text-white font-black uppercase py-6 px-14 rounded-full hover:bg-cyan-700 transition-all shadow-xl text-[11px] tracking-widest"
                         >
                             Book Your Session
                         </Link>

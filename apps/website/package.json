@@ -1,6 +1,6 @@
 {
   "name": "main-website",
-  "version": "4.2.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -33,7 +33,8 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwind-merge": "^3.4.0",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "@clickflash/logger": "workspace:*"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",

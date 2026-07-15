@@ -18,6 +18,7 @@ import { VectorIndexService } from "../services/VectorIndexService";
 import jwt from "jsonwebtoken";
 import AuditLogger from '../utils/auditLogger';
 import { authMiddleware } from "../middleware/auth";
+import { requirePermission, PERMISSIONS } from "../middleware/permissions";
 import { strictRateLimiter } from '../middleware/rateLimiter';
 
 interface FacesContext {
@@ -195,7 +196,7 @@ export default function faceRoutes(context: FacesContext): Router {
    * @route POST /register
    * @description Register face for current user or a targeted user (Admin/Team Leader only)
    */
-  router.post("/register", strictRateLimiter, (req: Request, res: Response) => {
+  router.post("/register", strictRateLimiter, requirePermission(PERMISSIONS.PHOTO_VIEW), (req: Request, res: Response) => {
     const sessionUser = (req as any).session ? (req as any).session.user : null;
     if (!sessionUser) return sendAuthError(res, "Not authenticated");
 
@@ -259,7 +260,7 @@ export default function faceRoutes(context: FacesContext): Router {
    * @description Search for photos matching the uploaded face
    * @access Staff Only
    */
-  router.post("/search", auth, strictRateLimiter, (req: Request, res: Response) => {
+  router.post("/search", requirePermission(PERMISSIONS.PHOTO_VIEW), strictRateLimiter, (req: Request, res: Response) => {
     const form = formidable({
       uploadDir: path.join(UPLOAD_DIR, "temp"),
       keepExtensions: true,
@@ -297,11 +298,18 @@ export default function faceRoutes(context: FacesContext): Router {
         }
 
         // 3. Fetch Photo Details
-        const placeholders = matchedPhotoIds.map(() => "?").join(",");
-        const photos = dbManager.query(
-          `SELECT * FROM photos WHERE id IN (${placeholders})`,
-          matchedPhotoIds,
-        );
+        const photos: any[] = [];
+        const chunkSize = 500;
+        for (let i = 0; i < matchedPhotoIds.length; i += chunkSize) {
+          const chunk = matchedPhotoIds.slice(i, i + chunkSize);
+          const placeholders = chunk.map(() => "?").join(",");
+          photos.push(
+            ...dbManager.query(
+              `SELECT * FROM photos WHERE id IN (${placeholders})`,
+              chunk
+            )
+          );
+        }
 
         res.json({ matches: photos });
       } catch (error: any) {
@@ -321,11 +329,83 @@ export default function faceRoutes(context: FacesContext): Router {
   });
 
   /**
+   * @route POST /consumer-search
+   * @description Public FaceFind search for customers
+   * @access Public
+   */
+  router.post("/consumer-search", strictRateLimiter, (req: Request, res: Response) => {
+    const form = formidable({
+      uploadDir: path.join(UPLOAD_DIR, "temp"),
+      keepExtensions: true,
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+    });
+
+    // Ensure temp dir exists
+    const tempDir = path.join(UPLOAD_DIR, "temp");
+    if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+
+    form.parse(req, async (err, _fields, files) => {
+      if (err) {
+        return sendInternalError(res, `Upload failed: ${err.message}`);
+      }
+
+      const file = Array.isArray(files.image) ? files.image[0] : files.image;
+      if (!file) {
+        return sendInvalidInputError(res, "No image file uploaded");
+      }
+
+      try {
+        // 1. Get descriptor for probe image
+        const probeDescriptor = await faceService.getDescriptor(file.filepath);
+
+        if (!probeDescriptor) {
+          return sendValidationError(res, "No face detected in the image");
+        }
+
+        // 2. Search using Vector Index
+        const descriptorArray = Array.from(probeDescriptor);
+        const matchedPhotoIds = vectorIndex.search(descriptorArray, 100, 0.6); // more lenient for consumer?
+
+        if (!matchedPhotoIds || matchedPhotoIds.length === 0) {
+          return res.json({ matches: [] });
+        }
+
+        // 3. Fetch Photo Details
+        const photos: any[] = [];
+        const chunkSize = 500;
+        for (let i = 0; i < matchedPhotoIds.length; i += chunkSize) {
+          const chunk = matchedPhotoIds.slice(i, i + chunkSize);
+          const placeholders = chunk.map(() => "?").join(",");
+          photos.push(
+            ...dbManager.query(
+              `SELECT id, url, originalFilename, albumId, roomNumber, createdAt, width, height, tier FROM photos WHERE id IN (${placeholders}) AND status = 'active'`,
+              chunk
+            )
+          );
+        }
+
+        res.json({ matches: photos });
+      } catch (error: any) {
+        logger.error("Face consumer-search error", error);
+        sendInternalError(res, error.message);
+      } finally {
+        try {
+          fs.unlinkSync(file.filepath);
+        } catch (e: any) {
+          logger.warn(`Failed to cleanup temp file ${file.filepath}:`, {
+            error: e.message,
+          });
+        }
+      }
+    });
+  });
+
+  /**
    * @route POST /reindex
    * @description Re-scan all photos for faces (Admin)
    * @access Staff/Admin Only
    */
-  router.post("/reindex", auth, strictRateLimiter, async (_req: Request, res: Response) => {
+  router.post("/reindex", requirePermission(PERMISSIONS.SYSTEM_ADMIN), strictRateLimiter, async (_req: Request, res: Response) => {
     try {
       dbManager.run(`
                 INSERT INTO face_indexing_queue (photoId, status)

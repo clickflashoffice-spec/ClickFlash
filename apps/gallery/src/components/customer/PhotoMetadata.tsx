@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 import React, { useState, useEffect } from 'react';
 import { Photo } from '../../types';
 import { extractMetadata, getImageFileSize, formatMetadataForDisplay } from '../../utils/metadataUtils';
@@ -26,7 +27,7 @@ const PhotoMetadata: React.FC<PhotoMetadataProps> = ({ photo }) => {
                         });
                     }
                 } catch (error) {
-                    console.error('Error loading metadata:', error);
+                    logger.error('Error loading metadata:', error);
                 } finally {
                     setLoading(false);
                 }

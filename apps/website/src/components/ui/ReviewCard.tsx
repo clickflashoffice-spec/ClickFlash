@@ -51,7 +51,7 @@ export function ReviewCard({ name, text, rating, date, source }: ReviewCardProps
                     <h4 className="font-black text-slate-900 text-sm mb-0.5">
                         {name}
                     </h4>
-                    <span className="text-[11px] text-slate-400 font-medium tracking-wider">
+                    <span className="text-[11px] text-slate-600 font-medium tracking-wider">
                         {date}
                     </span>
                 </div>

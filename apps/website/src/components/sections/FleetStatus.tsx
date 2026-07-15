@@ -28,7 +28,7 @@ function MetricCard({ label, value, icon: Icon, trend, color }: MetricProps) {
                 )}
             </div>
             <div className="space-y-1">
-                <h4 className="text-slate-500 text-[10px] uppercase tracking-widest font-bold">
+                <h4 className="text-slate-600 text-[10px] uppercase tracking-widest font-bold">
                     {label}
                 </h4>
                 <div className="text-3xl font-serif font-medium text-slate-900 tabular-nums">
@@ -92,12 +92,12 @@ export function FleetStatus() {
                     <GlassPanel className="lg:col-span-2 p-8 flex flex-col justify-between overflow-hidden relative">
                         <div className="relative z-10">
                             <h3 className="text-xl font-serif font-medium text-slate-900 mb-2">Regional Ingestion</h3>
-                            <p className="text-slate-500 text-sm max-w-xs">High-volume data streams currently active across 12 resort zones.</p>
+                            <p className="text-slate-600 text-sm max-w-xs">High-volume data streams currently active across 12 resort zones.</p>
                         </div>
 
                         {/* World Map Mockup */}
                         <div className="absolute right-0 bottom-0 opacity-20 pointer-events-none">
-                            <Globe className="w-64 h-64 text-cyan-500" />
+                            <Globe className="w-64 h-64 text-cyan-700" />
                         </div>
 
                         <div className="mt-8 flex gap-4 relative z-10">
@@ -105,7 +105,7 @@ export function FleetStatus() {
                                 <div key={i} className="flex flex-col gap-1">
                                     <div className="h-12 w-1.5 bg-zinc-800 rounded-full overflow-hidden">
                                         <motion.div
-                                            className="w-full bg-cyan-500"
+                                            className="w-full bg-cyan-700"
                                             animate={{ height: ["40%", "80%", "50%", "90%", "60%"] }}
                                             transition={{ duration: 2, repeat: Infinity, delay: i * 0.2 }}
                                         />
@@ -119,13 +119,13 @@ export function FleetStatus() {
                     <div className="lg:col-span-2 bg-zinc-900/40 rounded-2xl border border-white/5 p-8 flex items-center justify-between group overflow-hidden">
                         <div className="space-y-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-3 h-3 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
-                                <span className="text-sm font-bold uppercase tracking-widest text-cyan-500">Live Infrastructure</span>
+                                <div className="w-3 h-3 bg-cyan-700 rounded-full animate-pulse shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
+                                <span className="text-sm font-bold uppercase tracking-widest text-cyan-700">Live Infrastructure</span>
                             </div>
                             <h3 className="text-2xl font-serif font-medium text-slate-900">Zero-Latency <br />Protocol</h3>
-                            <p className="text-slate-500 text-sm max-w-xs">Proprietary offline-first sync engine designed for multi-TB libraries.</p>
+                            <p className="text-slate-600 text-sm max-w-xs">Proprietary offline-first sync engine designed for multi-TB libraries.</p>
                         </div>
-                        <Zap className="w-24 h-24 text-white/5 -rotate-12 group-hover:rotate-0 group-hover:text-cyan-500/20 transition-all duration-700" />
+                        <Zap className="w-24 h-24 text-white/5 -rotate-12 group-hover:rotate-0 group-hover:text-cyan-700/20 transition-all duration-700" />
                     </div>
                 </div>
             </div>

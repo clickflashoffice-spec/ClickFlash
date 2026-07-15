@@ -10,6 +10,7 @@ import { useDebounce } from "../hooks/useDebounce.ts";
 import { syncPricingToSupabase } from "../services/pricingSync.ts";
 import { HOTELS } from "../constants.ts";
 import PricingRulesPanel from "./products/PricingRulesPanel.tsx";
+import { logger } from "@/utils/logger";
 
 /**
  * ProductsPage Component
@@ -52,7 +53,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ context: context }) => {
       setProducts(productsData);
       setPacks(packsData);
     } catch (e) {
-      console.error("Failed to load products/packs", e);
+      logger.error("Failed to load products/packs", e);
       setError("Failed to load products and packs. Please try again.");
     } finally {
       setLoading(false);
@@ -109,7 +110,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ context: context }) => {
         setProducts(updatedProducts);
         await syncPricingToSupabase(updatedProducts, syncTarget);
       } catch (e) {
-        console.error("Failed to delete product", e);
+        logger.error("Failed to delete product", e);
         alert("Failed to delete product. Please try again.");
       }
     }
@@ -135,7 +136,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ context: context }) => {
         await apiService.deletePack(id);
         fetchData();
       } catch (e) {
-        console.error("Failed to delete pack", e);
+        logger.error("Failed to delete pack", e);
         alert("Failed to delete pack. Please try again.");
       }
     }

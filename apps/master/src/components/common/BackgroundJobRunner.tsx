@@ -20,9 +20,11 @@ export const BackgroundJobRunner: React.FC = () => {
     const runLoop = async () => {
       if (!isMountedRef.current || isProcessingRef.current) return;
 
+      let processedJobs = false;
       try {
         isProcessingRef.current = true;
-        await backgroundJobService.processNext();
+        // backgroundJobService.processNext() returns true if any jobs were processed
+        processedJobs = await backgroundJobService.processNext(4); // limit concurrency to 4
       } catch (error) {
         logger.error(
           "[BackgroundJobRunner] Loop error",
@@ -31,7 +33,9 @@ export const BackgroundJobRunner: React.FC = () => {
       } finally {
         isProcessingRef.current = false;
         if (isMountedRef.current) {
-          timer = setTimeout(runLoop, 10000); // Check every 10 seconds
+          // Poll much faster if we are actively working on a queue
+          const delay = processedJobs ? 500 : 5000;
+          timer = setTimeout(runLoop, delay);
         }
       }
     };

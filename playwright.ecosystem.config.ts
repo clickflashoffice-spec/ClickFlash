@@ -47,4 +47,55 @@ export default defineConfig({
   // 1420: MoneyTrash (Tauri Web)
   // 3000: Website (Next.js)
 
-  });
+  webServer: [
+    {
+      command: 'npm run dev:master',
+      url: 'http://127.0.0.1:8090/api/health',
+      timeout: 120000,
+      reuseExistingServer: !process.env.CI,
+      env: {
+        TEST_E2E: '1'
+      },
+      stdout: 'pipe',
+      stderr: 'pipe'
+    },
+    {
+      command: 'npm run dev:touch',
+      url: 'http://127.0.0.1:5174', // Touch Vite port or whatever Touch expects
+      timeout: 120000,
+      reuseExistingServer: !process.env.CI,
+      env: {
+        TEST_E2E: '1'
+      },
+      stdout: 'pipe',
+      stderr: 'pipe'
+    },
+    {
+      command: 'npm run dev:management',
+      url: 'http://localhost:5175/manage/',
+      timeout: 120000,
+      reuseExistingServer: !process.env.CI,
+      env: { TEST_E2E: '1' },
+      stdout: 'pipe',
+      stderr: 'pipe'
+    },
+    {
+      command: 'npm run dev:gallery',
+      url: 'http://localhost:5176/gallery/',
+      timeout: 120000,
+      reuseExistingServer: !process.env.CI,
+      env: { TEST_E2E: '1' },
+      stdout: 'pipe',
+      stderr: 'pipe'
+    },
+    {
+      command: 'pnpm --filter moneytrash-uploader run dev',
+      url: 'http://localhost:1420/',
+      timeout: 120000,
+      reuseExistingServer: !process.env.CI,
+      env: { TEST_E2E: '1' },
+      stdout: 'pipe',
+      stderr: 'pipe'
+    }
+  ]
+});

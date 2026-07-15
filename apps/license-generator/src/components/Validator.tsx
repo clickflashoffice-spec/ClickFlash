@@ -20,7 +20,7 @@ export function Validator({ onValidate }: ValidatorProps) {
           type="text"
           value={key}
           onChange={(e) => setKey(e.target.value)}
-          placeholder="CF-LIVE-XXXX-XXXX-XXXX-XXXX"
+          placeholder="Enter Ed25519 License Key..."
           className="key-input"
         />
         <button onClick={handleValidate} className="validate-btn">

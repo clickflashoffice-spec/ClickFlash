@@ -1,4 +1,5 @@
 'use client';
+import { logger } from '@clickflash/logger';
 
 import Link from 'next/link';
 import { useEffect } from 'react';
@@ -16,7 +17,7 @@ interface GlobalErrorProps {
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') {
-      console.error('[Global Error Boundary]', error);
+      logger.error('[Global Error Boundary]', error);
     }
   }, [error]);
 

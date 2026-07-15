@@ -126,9 +126,9 @@ export default function createPairingRouter(context: PairingContext): Router {
 
       const masterPort = port || 8090;
       const protocol = req.secure ? "https" : "http";
-      const confirmUrl = `${protocol}://${masterIp}:${masterPort}/api/pairing/confirm`;
+      const confirmUrl = `${protocol}://${masterIp}:${masterPort}/api/pairing/validate`;
 
-      // Send pairingToken to Master /api/pairing/confirm
+      // Send pairingToken to Master /api/pairing/validate
       logger.info("[Pairing] Completing with Master", { masterIp, port: masterPort });
 
       const controller = new AbortController();
@@ -139,6 +139,7 @@ export default function createPairingRouter(context: PairingContext): Router {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pairingToken,
+          timestamp: Date.now(),
           kioskId: kioskId || `TOUCH_${crypto.randomBytes(4).toString("hex").toUpperCase()}`,
           kioskName: kioskName || "Touch Kiosk",
         }),
@@ -157,7 +158,16 @@ export default function createPairingRouter(context: PairingContext): Router {
       }
 
       const confirmData = await response.json();
-      const { kioskId: resolvedKioskId, hmacSecret } = confirmData;
+      
+      if (!confirmData.valid) {
+        return res.status(400).json({
+          success: false,
+          message: confirmData.message || "Master rejected pairing token",
+        });
+      }
+
+      const hmacSecret = confirmData.signingSecret;
+      const resolvedKioskId = confirmData.kioskInfo?.id || kioskId;
 
       if (!hmacSecret) {
         return res.status(500).json({

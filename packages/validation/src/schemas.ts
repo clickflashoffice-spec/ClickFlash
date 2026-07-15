@@ -98,6 +98,11 @@ export const ManualEditsSchema = z.object({
     width: z.number().positive(),
     height: z.number().positive(),
   }).optional(),
+  zoomLevel: z.number().optional(),
+  centerX: z.number().optional(),
+  centerY: z.number().optional(),
+  retouchActions: z.array(z.any()).optional(),
+  annotations: z.array(z.any()).optional(),
 });
 
 export const PhotoSchema = z.object({
@@ -286,7 +291,7 @@ export const CurrencySchema = z.object({
 // BOOKINGS
 // =============================================================================
 
-export const BookingStatusSchema = z.enum(['confirmed', 'pending', 'cancelled', 'completed', 'no-show']);
+export const BookingStatusSchema = z.enum(['confirmed', 'pending', 'cancelled', 'completed', 'no-show', 'Confirmed', 'Pending', 'Cancelled', 'Completed', 'No-show']);
 
 export const BookingSchema = z.object({
   id: z.string(),
@@ -337,6 +342,7 @@ export const DestinationSchema = z.object({
   name: z.string().min(1).max(255),
   country: z.string().min(1).max(100),
   type: DestinationTypeSchema,
+  siteCode: z.string().optional(),
   licenseKey: z.string().optional(),
   status: DestinationStatusSchema.optional(),
   lastSeen: z.string().optional(),
@@ -398,9 +404,33 @@ export const LicenseKeySchema = z.object({
 });
 
 // =============================================================================
+// RBAC & ADVANCED AUTH
+// =============================================================================
+
+export const PermissionStringSchema = z.string().regex(/^can\((view|edit|delete|manage):[a-zA-Z0-9_*]+\)$/, "Invalid permission format. Expected can(action:resource)");
+
+export const RolePermissionsSchema = z.object({
+  role: UserRoleSchema,
+  permissions: z.array(PermissionStringSchema),
+});
+
+export const RfidAuthSchema = z.object({
+  rfidTag: z.string().regex(/^[A-F0-9]{8,32}$/i, "Invalid RFID tag format"),
+  stationId: z.string().optional(),
+});
+
+export const PosOrderCreateSchema = OrderCreateSchema.extend({
+  source: z.literal('kiosk').default('kiosk'),
+  paymentMethod: PaymentMethodSchema,
+  amountPaid: z.number().nonnegative(),
+  changeDue: z.number().nonnegative().optional(),
+});
+
+// =============================================================================
 // INFERRED TYPES
 // =============================================================================
 
+export type UserRole = z.infer<typeof UserRoleSchema>;
 export type Photo = z.infer<typeof PhotoSchema>;
 export type PhotoCreate = z.infer<typeof PhotoCreateSchema>;
 export type Album = z.infer<typeof AlbumSchema>;
@@ -425,3 +455,7 @@ export type LicenseKey = z.infer<typeof LicenseKeySchema>;
 export type Pagination = z.infer<typeof PaginationSchema>;
 export type Sort = z.infer<typeof SortSchema>;
 export type ManualEdits = z.infer<typeof ManualEditsSchema>;
+export type PermissionString = z.infer<typeof PermissionStringSchema>;
+export type RolePermissions = z.infer<typeof RolePermissionsSchema>;
+export type RfidAuth = z.infer<typeof RfidAuthSchema>;
+export type PosOrderCreate = z.infer<typeof PosOrderCreateSchema>;

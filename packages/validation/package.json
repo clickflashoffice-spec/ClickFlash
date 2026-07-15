@@ -1,6 +1,6 @@
 {
   "name": "@clickflash/validation",
-  "version": "0.0.0",
+  "version": "2.0.0",
   "description": "Shared validation schemas and utilities for the ClickFlash monorepo",
   "type": "module",
   "private": true,
@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@vitest/coverage-v8": "^2.1.9",
     "eslint": "^9.0.0",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.62.0",

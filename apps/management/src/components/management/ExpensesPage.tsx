@@ -13,6 +13,7 @@ import Spinner from "../common/Spinner.tsx";
 import ExpensePieChart from "./reports/ExpensePieChart.tsx";
 
 import StatCard from "../common/StatCard.tsx";
+import { logger } from "@/utils/logger";
 
 interface ExpensesPageProps {
   context?: string;
@@ -57,7 +58,7 @@ const ExpensesPage: React.FC<ExpensesPageProps> = ({ context }) => {
         setPhotographers(photographerData);
         setExpenseCategories(catData);
       } catch (error) {
-        console.error("Failed to load expense data", error);
+        logger.error("Failed to load expense data", error);
       } finally {
         setLoading(false);
       }
@@ -78,8 +79,10 @@ const ExpensesPage: React.FC<ExpensesPageProps> = ({ context }) => {
         return false;
       if (
         selectedPhotographer !== "All" &&
-        (!exp.photographerIds ||
-          !exp.photographerIds.includes(selectedPhotographer))
+        (!exp.photographerId ||
+          (Array.isArray(exp.photographerId) 
+            ? !exp.photographerId.includes(selectedPhotographer)
+            : exp.photographerId !== selectedPhotographer))
       )
         return false;
       return true;
@@ -269,9 +272,9 @@ const ExpensesPage: React.FC<ExpensesPageProps> = ({ context }) => {
             </thead>
             <tbody>
               {filteredExpenses.map((exp) => {
-                const assignedPhotographers = exp.photographerIds
+                const assignedPhotographers = exp.photographerId
                   ? photographers
-                      .filter((p) => exp.photographerIds?.includes(p.id))
+                      .filter((p) => exp.photographerId === p.id)
                       .map((p) => p.name)
                       .join(", ")
                   : "-";
@@ -290,7 +293,7 @@ const ExpensesPage: React.FC<ExpensesPageProps> = ({ context }) => {
                     <td className="p-4 text-xs">
                       {assignedPhotographers !== "-" ? (
                         <div className="flex flex-wrap gap-1">
-                          {exp.photographerIds?.map((pid) => {
+                          {(Array.isArray(exp.photographerId) ? exp.photographerId : exp.photographerId ? [exp.photographerId] : []).map((pid: string) => {
                             const pName = photographers.find(
                               (p) => p.id === pid,
                             )?.name;

@@ -3,9 +3,12 @@ import { strictRateLimiter } from "../middleware/rateLimiter";
 import { sendNotFoundError } from "../utils/errorHandler";
 import { createResortAnalyticsRoutes } from "../routes/resortAnalytics";
 
-// Routes
 import authRoutes from "../routes/auth";
 import collectionRoutes from "../routes/collections";
+import albumsRoutes from "../routes/albums.routes";
+import photosRoutes from "../routes/photos.routes";
+import usersRoutes from "../routes/users.routes";
+import ordersCollectionRoutes from "../routes/orders_collection.routes";
 import systemRoutes from "../routes/system";
 import fileRoutes from "../routes/files";
 import realtimeRoutes from "../routes/realtime";
@@ -33,11 +36,18 @@ import telemetryRoutes from "../routes/system/telemetry";
 import licenseRoutes from "../routes/license";
 import { createHardwareRouter } from "../routes/hardware.routes";
 import createAutoRegisterRouter from "../routes/autoRegister";
+import reelRoutes from "../routes/reels.routes";
+import createEntaggedRouter from "../routes/entagged.routes";
 
 export function mountRoutes(app: Application, context: any) {
   // Specific API routes
+  app.use("/api/entagged", createEntaggedRouter(context));
   app.use("/api/hardware", createHardwareRouter());
   app.use("/api/auth", strictRateLimiter, authRoutes(context));
+  app.use("/api/collections/albums/records", albumsRoutes(context));
+  app.use("/api/collections/photos/records", photosRoutes(context));
+  app.use("/api/collections/users/records", usersRoutes(context));
+  app.use("/api/collections/orders/records", ordersCollectionRoutes(context));
   app.use("/api/collections", collectionRoutes(context));
   app.use("/api/cloud", cloudRoutes(context));
   app.use("/api/session-types", sessionTypeRoutes(context));
@@ -72,6 +82,7 @@ export function mountRoutes(app: Application, context: any) {
   app.use("/api", syncRoutes(context as any));
   app.use("/api/setup", setupRoutes(context));
   app.use("/api/license", licenseRoutes(context));
+  app.use("/api/reels", reelRoutes(context));
   app.use("/api/v1/kiosks", createAutoRegisterRouter(context.dbManager, context.logger));
 
   // Fallback for unhandled API routes

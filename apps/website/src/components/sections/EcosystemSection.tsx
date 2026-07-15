@@ -75,15 +75,15 @@ export function EcosystemSection() {
 
                                 <div className="flex-grow">
                                     <h3 className="text-xl md:text-2xl font-serif font-medium text-slate-900 mb-2">{app.title}</h3>
-                                    <p className="text-cyan-500 text-xs uppercase tracking-widest font-bold mb-4">{app.subtitle}</p>
-                                    <p className="text-slate-500 text-sm leading-relaxed mb-6">
+                                    <p className="text-cyan-700 text-xs uppercase tracking-widest font-bold mb-4">{app.subtitle}</p>
+                                    <p className="text-slate-600 text-sm leading-relaxed mb-6">
                                         {app.description}
                                     </p>
 
                                     <ul className="space-y-3 mb-8">
                                         {app.features.map(feature => (
-                                            <li key={feature} className="flex items-center gap-2 text-xs text-slate-500">
-                                                <div className="w-1 h-1 bg-cyan-500 rounded-full" />
+                                            <li key={feature} className="flex items-center gap-2 text-xs text-slate-600">
+                                                <div className="w-1 h-1 bg-cyan-700 rounded-full" />
                                                 {feature}
                                             </li>
                                         ))}
@@ -107,10 +107,10 @@ export function EcosystemSection() {
                         viewport={{ once: true }}
                         transition={{ delay: 5 * 0.1 }}
                     >
-                        <div className="h-full bg-cyan-500 rounded-2xl p-6 md:p-8 flex flex-col justify-center items-center text-center group cursor-pointer hover:bg-slate-800 transition-all duration-500 hover:scale-105 active:scale-95 shadow-xl shadow-cyan-500/20">
-                            <h3 className="text-2xl md:text-3xl font-serif font-medium text-white mb-4 transition-transform group-hover:text-cyan-500">Ready to Scale?</h3>
+                        <div className="h-full bg-cyan-700 rounded-2xl p-6 md:p-8 flex flex-col justify-center items-center text-center group cursor-pointer hover:bg-slate-800 transition-all duration-500 hover:scale-105 active:scale-95 shadow-xl shadow-cyan-500/20">
+                            <h3 className="text-2xl md:text-3xl font-serif font-medium text-white mb-4 transition-transform group-hover:text-cyan-700">Ready to Scale?</h3>
                             <p className="text-white/60 text-sm mb-8">Deploy the complete ClickFlash ecosystem to your business today.</p>
-                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-cyan-500 group-hover:scale-110 transition-transform">
+                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-cyan-700 group-hover:scale-110 transition-transform">
                                 <ArrowRight className="w-8 h-8" />
                             </div>
                         </div>

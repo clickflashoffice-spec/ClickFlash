@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Order, OrderItem } from '../../types.ts';
 import { apiService } from '../../services/apiService.ts';
+import { logger } from "@/utils/logger";
 
 interface LabPrintFolderProps {
     order: Order;
@@ -19,7 +20,7 @@ const LabPrintFolder: React.FC<LabPrintFolderProps> = ({ order, onBack, onUpdate
             const updatedOrder = await apiService.updateOrder(order.id, { status: newStatus });
             onUpdateOrder(updatedOrder);
         } catch (error) {
-            console.error("Failed to update order status", error);
+            logger.error("Failed to update order status", error);
             alert("Failed to update order status");
         } finally {
             setIsUpdating(false);

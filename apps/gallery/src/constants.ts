@@ -57,7 +57,7 @@ export const MOCK_FILE_SYSTEM: FileSystemItem[] = [
     }
 ];
 
-export const MOCK_WORKING_HOURS: WorkingHours = {
+export const MOCK_WORKING_HOURS: any = {
     monday: { shift1: { start: '09:00', end: '13:00', enabled: true }, shift2: { start: '15:00', end: '19:00', enabled: true } },
     tuesday: { shift1: { start: '09:00', end: '13:00', enabled: true }, shift2: { start: '15:00', end: '19:00', enabled: true } },
     wednesday: { shift1: { start: '09:00', end: '13:00', enabled: true }, shift2: { start: '15:00', end: '19:00', enabled: true } },
@@ -186,12 +186,12 @@ export const MOCK_PRINT_SIZES = [
     { size: 'Magnet', price: 8 },
 ];
 
-export const BASE_CURRENCY: Currency = { code: 'EUR', name: 'Euro', symbol: '€', rate: 1 };
+export const BASE_CURRENCY: Currency = { id: 'curr_eur', code: 'EUR', name: 'Euro', symbol: '€', rate: 1 };
 export const AVAILABLE_CURRENCIES: Currency[] = [
     BASE_CURRENCY,
-    { code: 'USD', name: 'US Dollar', symbol: '$', rate: 1.1 },
-    { code: 'TND', name: 'Tunisian Dinar', symbol: 'DT', rate: 3.4 },
-    { code: 'GBP', name: 'British Pound', symbol: '£', rate: 0.85 },
+    { id: 'curr_usd', code: 'USD', name: 'US Dollar', symbol: '$', rate: 1.1 },
+    { id: 'curr_tnd', code: 'TND', name: 'Tunisian Dinar', symbol: 'DT', rate: 3.4 },
+    { id: 'curr_gbp', code: 'GBP', name: 'British Pound', symbol: '£', rate: 0.85 },
 ];
 
 export const ECOSYSTEM_CONTACTS = {

@@ -1,6 +1,6 @@
 {
   "name": "mobile-staff",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "main": "expo-router/entry",
   "dependencies": {
     "expo": "~57.0.1",
@@ -8,7 +8,16 @@
     "expo-camera": "~15.0.1",
     "expo-router": "~4.0.0",
     "react": "19.2.3",
-    "react-native": "0.86.0"
+    "react-native": "0.86.0",
+    "tailwindcss": "^4",
+    "nativewind": "5.0.0-preview.2",
+    "react-native-css": "0.0.0-nightly.5ce6396",
+    "@tailwindcss/postcss": "*",
+    "tailwind-merge": "*",
+    "clsx": "*",
+    "expo-sqlite": "*",
+    "expo-haptics": "*",
+    "@clickflash/logger": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

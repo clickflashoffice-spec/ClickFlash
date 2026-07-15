@@ -153,13 +153,13 @@ export const MOCK_ORDERS: Order[] = [
 ];
 
 export const MOCK_OBJECTIVES: DailyObjective[] = [
-    { id: 'obj1', photographerId: 1, date: '2025-10-24', photoTarget: 500, status: 'Pending' },
-    { id: 'obj2', photographerId: 1, date: '2025-10-23', photoTarget: 500, status: 'Completed' },
+    { id: 'obj1', photographer_id: '1', date: '2025-10-24', target: 500, status: 'Pending' },
+    { id: 'obj2', photographer_id: '1', date: '2025-10-23', target: 500, status: 'Completed' },
 ];
 
 export const MOCK_LOGIN_HISTORY: LoginHistory[] = [
-    { id: 'log1', photographerId: 1, date: '2025-10-24 09:05:12', ip: '192.168.1.10' },
-    { id: 'log2', photographerId: 1, date: '2025-10-23 08:55:00', ip: '192.168.1.10' },
+    { id: 'log1', photographerId: '1', date: '2025-10-24 09:05:12', ip: '192.168.1.10' },
+    { id: 'log2', photographerId: '1', date: '2025-10-23 08:55:00', ip: '192.168.1.10' },
 ];
 
 export const MOCK_KIOSKS: TouchKiosk[] = [
@@ -196,12 +196,12 @@ export const MOCK_PRINT_SIZES = [
     { size: 'Magnet', price: 8, productId: 'prod4' },
 ];
 
-export const BASE_CURRENCY: Currency = { code: 'EUR', name: 'Euro', symbol: '€', rate: 1 };
+export const BASE_CURRENCY: Currency = { id: 'EUR', code: 'EUR', name: 'Euro', symbol: '€', rate: 1 };
 export const AVAILABLE_CURRENCIES: Currency[] = [
     BASE_CURRENCY,
-    { code: 'USD', name: 'US Dollar', symbol: '$', rate: 1.1 },
-    { code: 'TND', name: 'Tunisian Dinar', symbol: 'DT', rate: 3.4 },
-    { code: 'GBP', name: 'British Pound', symbol: '£', rate: 0.85 },
+    { id: 'USD', code: 'USD', name: 'US Dollar', symbol: '$', rate: 1.1 },
+    { id: 'TND', code: 'TND', name: 'Tunisian Dinar', symbol: 'DT', rate: 3.4 },
+    { id: 'GBP', code: 'GBP', name: 'British Pound', symbol: '£', rate: 0.85 },
 ];
 
 // --- New Mock Data for Management Portal ---
@@ -217,7 +217,7 @@ export const MOCK_EQUIPMENT_CATEGORIES: EquipmentCategory[] = [
     { id: 'CAMERA', label: 'Camera' }, { id: 'LENS', label: 'Lens' }, { id: 'LIGHTING', label: 'Lighting' }, { id: 'IT', label: 'IT Infrastructure' }
 ];
 export const MOCK_EXPENSES: Expense[] = [
-    { id: 'exp1', date: '2025-10-10', description: 'New Lens Canon RF 50mm', category: 'EQUIPMENT', cost: 1200, destinationId: 'dest1', photographerId: 4 },
+    { id: 'exp1', date: '2025-10-10', description: 'New Lens Canon RF 50mm', category: 'EQUIPMENT', cost: 1200, destinationId: 'dest1', photographerId: '4' },
     { id: 'exp2', date: '2025-10-12', description: 'Facebook Ads Q4', category: 'MARKETING', cost: 500, destinationId: 'dest1' },
     { id: 'exp3', date: '2025-10-15', description: 'Taxi to Airport', category: 'TRAVEL', cost: 45, destinationId: 'dest2' },
 ];
@@ -226,11 +226,11 @@ export const MOCK_LOANS: Loan[] = [
     { id: 'loan2', date: '2024-06-01', source: 'Investor X', amount: 20000, interestRate: 0.0, status: 'Paid Off', payments: [{ id: 'pay1', loanId: 'loan2', date: '2024-12-01', amount: 20000 }] }
 ];
 export const MOCK_ADJUSTMENTS: Adjustment[] = [
-    { id: 'adj1', date: '2025-10-01', photographerId: 2, amount: 250, description: 'Top performer bonus', type: 'Bonus', status: 'Unpaid' },
-    { id: 'adj2', date: '2025-10-05', photographerId: 3, amount: 50, description: 'Late arrival fine', type: 'Deduction', status: 'Unpaid' }
+    { id: 'adj1', date: '2025-10-01', photographerId: '2', amount: 250, description: 'Top performer bonus', type: 'Bonus', status: 'Unpaid' },
+    { id: 'adj2', date: '2025-10-05', photographerId: '3', amount: 50, description: 'Late arrival fine', type: 'Deduction', status: 'Unpaid' }
 ];
 export const MOCK_EQUIPMENT: Equipment[] = [
-    { id: 'eq1', name: 'Canon R5 #1', type: 'CAMERA', status: 'In Use', assignedToPhotographerId: 4, destinationId: 'dest1' },
+    { id: 'eq1', name: 'Canon R5 #1', type: 'CAMERA', status: 'In Use', assignedToPhotographerId: '4', destinationId: 'dest1' },
     { id: 'eq2', name: 'Canon R6 #2', type: 'CAMERA', status: 'Available', destinationId: 'dest1' },
     { id: 'eq3', name: 'Profoto B10', type: 'LIGHTING', status: 'Needs Repair', destinationId: 'dest1' },
 ];

@@ -5,7 +5,7 @@ import { InstallerState, ISO_COUNTRIES, generateDeskId, getDefaultTimezone, CURR
 interface DestinationStepProps {
   state: InstallerState;
   onCheckDeskId: (deskId: string) => Promise<{ success: boolean; data?: { available: boolean; suggestions?: string[] }; error?: string }>;
-  onSetDestination: (profile: { proposed_id: string; name: string; location: string; country: string; timezone: string; currency: string }) => void;
+  onSetDestination: (profile: { proposed_id: string; site_code: string; name: string; location: string; country: string; timezone: string; currency: string }) => void;
   onNext: () => void;
   onPrev: () => void;
 }
@@ -19,6 +19,7 @@ const DestinationStep: React.FC<DestinationStepProps> = ({
 }) => {
   const initial = state.desk || {
     proposed_id: generateDeskId(state.studioProfile.location || undefined),
+    site_code: "SITE_01",
     name: state.studioProfile.studioName || "",
     location: state.studioProfile.location || "",
     country: "US",
@@ -27,6 +28,7 @@ const DestinationStep: React.FC<DestinationStepProps> = ({
   };
 
   const [proposedId, setProposedId] = useState(initial.proposed_id);
+  const [siteCode, setSiteCode] = useState(initial.site_code);
   const [name, setName] = useState(initial.name);
   const [location, setLocation] = useState(initial.location);
   const [country, setCountry] = useState(initial.country);
@@ -34,6 +36,7 @@ const DestinationStep: React.FC<DestinationStepProps> = ({
   const [currency, setCurrency] = useState(initial.currency);
   const [checkState, setCheckState] = useState<"idle" | "checking" | "available" | "taken">("idle");
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isLocating, setIsLocating] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const runCheck = useCallback(async (id: string) => {
@@ -59,10 +62,27 @@ const DestinationStep: React.FC<DestinationStepProps> = ({
     };
   }, [proposedId, runCheck]);
 
-  const isValid = checkState === "available" && name.trim() && location.trim();
+  useEffect(() => {
+    // Fetch geolocation once on mount to pre-fill regions near you
+    if (!state.desk && !location) {
+      setIsLocating(true);
+      (window as unknown as { installerApi: { getGeolocation: () => Promise<{ success: boolean; data?: { city: string; regionName: string; countryCode?: string; country?: string; timezone: string; currency?: string } }> } }).installerApi.getGeolocation().then((res) => {
+        if (res.success && res.data) {
+          setLocation(`${res.data.city}, ${res.data.regionName}`);
+          setCountry(res.data.countryCode || res.data.country || "US");
+          setTimezone(res.data.timezone);
+          if (res.data.currency) setCurrency(res.data.currency);
+        }
+      }).finally(() => {
+        setIsLocating(false);
+      });
+    }
+  }, []);
+
+  const isValid = checkState === "available" && name.trim() && location.trim() && siteCode.trim();
 
   const handleNext = () => {
-    onSetDestination({ proposed_id: proposedId, name, location, country, timezone, currency });
+    onSetDestination({ proposed_id: proposedId, site_code: siteCode, name, location, country, timezone, currency });
     onNext();
   };
 
@@ -120,25 +140,41 @@ const DestinationStep: React.FC<DestinationStepProps> = ({
           )}
         </div>
 
-        {/* Studio name */}
-        <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">
-            Studio Name
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Bali Photo Studio"
-            className="input-field"
-          />
+        {/* Studio name and Site Code */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">
+              Studio Name
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Bali Photo Studio"
+              className="input-field"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">
+              Site Code
+            </label>
+            <input
+              type="text"
+              value={siteCode}
+              onChange={(e) => setSiteCode(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ""))}
+              placeholder="BALI_HQ"
+              className="input-field font-mono"
+            />
+          </div>
         </div>
 
         {/* Location + Country */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">
-              <MapPin className="w-3.5 h-3.5 inline mr-1" />Location
+            <label className="flex items-center text-sm font-medium text-slate-300 mb-1.5">
+              <MapPin className="w-3.5 h-3.5 mr-1" />
+              Location
+              {isLocating && <RefreshCw className="w-3 h-3 ml-2 text-slate-400 animate-spin" />}
             </label>
             <input
               type="text"

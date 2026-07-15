@@ -1,6 +1,6 @@
 {
   "name": "clickflash-license-generator",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "ClickFlash License Key Generator Desktop App",
   "main": "dist/main.js",
   "scripts": {
@@ -20,7 +20,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "systeminformation": "^5.31.15",
-    "tweetnacl": "^1.0.3"
+    "@clickflash/logger": "workspace:*",
+    "@clickflash/licensing": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

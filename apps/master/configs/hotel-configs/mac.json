@@ -1,0 +1,28 @@
+{
+  "hotel": {
+    "id": "mac",
+    "name": "Marhaba Club Sousse",
+    "shortName": "MAC",
+    "deskPrefix": "MAC_"
+  },
+  "cloud": {
+    "databaseName": "mac-db",
+    "bucketName": "mac-gallery-assets",
+    "managementHubUrl": "https://management.feethub.com",
+    "galleryUrl": "https://gallery.feethub.com"
+  },
+  "app": {
+    "appId": "com.clickflash.master.mac",
+    "productName": "ClickFlash MAC",
+    "copyright": "© 2026 Marhaba Club Sousse"
+  },
+  "sync": {
+    "enabled": true,
+    "intervalSeconds": 60,
+    "retryAttempts": 3
+  },
+  "kiosk": {
+    "defaultPort": 8091,
+    "discoveryTimeout": 30000
+  }
+}

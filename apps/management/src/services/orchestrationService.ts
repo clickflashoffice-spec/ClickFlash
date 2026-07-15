@@ -97,7 +97,7 @@ class GlobalOrchestrationService extends EventEmitter {
   ): boolean {
     const master = this.masters.get(masterId);
     if (!master) {
-      console.warn(
+      logger.warn(
         `[Orchestration] Heartbeat from unknown master: ${masterId}`,
       );
       return false;
@@ -134,7 +134,7 @@ class GlobalOrchestrationService extends EventEmitter {
         if (master.status === "online") {
           master.status = "offline";
           this.emit("master:offline", master);
-          console.warn(
+          logger.warn(
             `[Orchestration] Master offline (timeout): ${master.name}`,
           );
         }
@@ -366,7 +366,7 @@ class GlobalOrchestrationService extends EventEmitter {
           failed++;
         }
       } catch (error) {
-        console.error(
+        logger.error(
           `[Orchestration] Failed to broadcast to ${master.name}:`,
           error,
         );
@@ -398,7 +398,7 @@ class GlobalOrchestrationService extends EventEmitter {
 
       return response.ok;
     } catch (error) {
-      console.error(
+      logger.error(
         `[Orchestration] Command failed for ${master.name}:`,
         error,
       );

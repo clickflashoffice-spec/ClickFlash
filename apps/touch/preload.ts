@@ -33,6 +33,8 @@ const ON_CHANNELS: string[] = [
     "updater:progress",
     "updater:downloaded",
     "updater:error",
+    "scanner:data",
+    "scanner:status",
 ];
 
 type AnyCallback = (...args: unknown[]) => void;

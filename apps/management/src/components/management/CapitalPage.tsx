@@ -8,6 +8,7 @@ import Spinner from "../common/Spinner.tsx";
 import StatCard from "../common/StatCard.tsx";
 import { DollarSign, AlertCircle, CreditCard, Plus } from "lucide-react";
 import { useManagement } from "../../context/ManagementContext.tsx";
+import { logger } from "@/utils/logger";
 
 interface CapitalPageProps {
   context?: string;
@@ -38,7 +39,7 @@ const CapitalPage: React.FC = () => {
         ),
       );
     } catch (error) {
-      console.error("Failed to load capital data", error);
+      logger.error("Failed to load capital data", error);
     } finally {
       setLoading(false);
     }

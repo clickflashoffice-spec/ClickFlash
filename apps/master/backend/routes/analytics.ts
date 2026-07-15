@@ -5,6 +5,7 @@ import { Logger } from '../utils/logger';
 import { sendError, ERROR_CODES } from "../utils/errorHandler";
 import { strictRateLimiter } from '../middleware/rateLimiter';
 import { customRoutesSchemas } from '../utils/validation';
+import { requirePermission, PERMISSIONS } from '../middleware/permissions';
 
 interface AnalyticsContext {
   dbManager: DatabaseManager;
@@ -19,7 +20,7 @@ export default function analyticsRoutes(context: AnalyticsContext): Router {
    * GET /api/analytics/summary
    * High-level KPIs for the last 30 days
    */
-  router.get("/summary", (req: Request, res: Response) => {
+  router.get("/summary", requirePermission(PERMISSIONS.ANALYTICS_VIEW), (req: Request, res: Response) => {
     try {
       const days = parseInt(req.query.days as string) || 30;
 
@@ -73,7 +74,7 @@ export default function analyticsRoutes(context: AnalyticsContext): Router {
    * GET /api/analytics/hourly
    * Revenue trends for the last 24 hours or a specific date
    */
-  router.get("/hourly", (req: Request, res: Response) => {
+  router.get("/hourly", requirePermission(PERMISSIONS.ANALYTICS_VIEW), (req: Request, res: Response) => {
     try {
       const date =
         (req.query.date as string) || new Date().toISOString().split("T")[0];
@@ -110,7 +111,7 @@ export default function analyticsRoutes(context: AnalyticsContext): Router {
    * GET /api/analytics/photographers
    * Performance ranking
    */
-  router.get("/photographers", (req: Request, res: Response) => {
+  router.get("/photographers", requirePermission(PERMISSIONS.ANALYTICS_VIEW), (req: Request, res: Response) => {
     try {
       const days = parseInt(req.query.days as string) || 30;
 
@@ -148,7 +149,7 @@ export default function analyticsRoutes(context: AnalyticsContext): Router {
    * GET /api/analytics/albums/:id
    * Detailed performance for a specific album (Optimized with CTEs)
    */
-  router.get("/albums/:id", (req: Request, res: Response) => {
+  router.get("/albums/:id", requirePermission(PERMISSIONS.ANALYTICS_VIEW), (req: Request, res: Response) => {
     const albumId = req.params.id;
     try {
       const stats = dbManager.get(
@@ -218,7 +219,7 @@ export default function analyticsRoutes(context: AnalyticsContext): Router {
    * POST /api/analytics/track
    * Report photo engagement (view/selection) from Kiosks
    */
-  router.post("/track", strictRateLimiter, (req: Request, res: Response) => {
+  router.post("/track", requirePermission(PERMISSIONS.PHOTO_VIEW), strictRateLimiter, (req: Request, res: Response) => {
     const parsed = customRoutesSchemas.analyticsTrack.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ error: "Invalid tracking data" });
@@ -243,7 +244,7 @@ export default function analyticsRoutes(context: AnalyticsContext): Router {
    * GET /api/analytics/photos/:id
    * Detailed performance for a specific photo
    */
-  router.get("/photos/:id", (req: Request, res: Response) => {
+  router.get("/photos/:id", requirePermission(PERMISSIONS.ANALYTICS_VIEW), (req: Request, res: Response) => {
     const photoId = req.params.id;
     try {
       const stats = dbManager.get(

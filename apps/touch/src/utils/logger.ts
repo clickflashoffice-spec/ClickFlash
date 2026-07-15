@@ -1,3 +1,4 @@
+import { logger as globalLogger } from '@clickflash/logger';
 /**
  * Structured logging utility for frontend
  *
@@ -73,10 +74,11 @@ class Logger {
     const entry = this.formatMessage(levelName, message, data, error);
     if (this.isDevelopment) {
       const style = this.getConsoleStyle(level);
-      console.log(`%c[${entry.timestamp}] ${entry.level}: ${entry.message}`, style, data || error || '');
-      if (entry.stack) console.log('%cStack:', 'color: #999; font-size: 11px;', entry.stack);
+      const meta = data || error || {};
+      globalLogger.info(`%c[${entry.timestamp}] ${entry.level}: ${entry.message}`, { style, ...meta as any });
+      if (entry.stack) globalLogger.info('%cStack:', { style: 'color: #999; font-size: 11px;', stack: entry.stack });
     } else {
-      console.log(JSON.stringify(entry));
+      globalLogger.info(JSON.stringify(entry));
     }
   }
 

@@ -1,6 +1,7 @@
 import { pb } from "../pb";
 
 import { orchestrationService } from "../orchestrationService";
+import { logger } from "@/utils/logger";
 
 /**
  * API Service - Wrapper around pb adapter for convenient data operations
@@ -20,7 +21,7 @@ export const massDeploymentCeoScaleApi = {
     destinationIds: string[],
     configurationPayload: any,
   ): Promise<{ success: boolean; queued: number }> {
-    console.log(
+    logger.info(
       `[apiService] Dispatching mass deployment for ${destinationIds.length} stations:`,
       configurationPayload,
     );
@@ -38,7 +39,7 @@ export const massDeploymentCeoScaleApi = {
     successCount = broadcastResult.success;
 
     // Log the broadcast attempt in sync_logs (simulated through console for now)
-    console.log(
+    logger.info(
       `[apiService] Mass deployment broadcast completed. Success: ${successCount}, Failed: ${broadcastResult.failed}`,
     );
 

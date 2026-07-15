@@ -13,9 +13,9 @@ import { test, expect, Page } from '@playwright/test';
 const BASE_URLS = {
     master: 'http://127.0.0.1:8090',
     touch: 'http://127.0.0.1:8091',
-    gallery: 'http://127.0.0.1:3001',
-    management: 'http://127.0.0.1:5173',
-    moneytrash: 'http://127.0.0.1:3002',
+    gallery: 'http://localhost:5176',
+    management: 'http://localhost:5175',
+    moneytrash: 'http://localhost:1420',
 };
 
 test.describe('Cross-App Workflow: Master → Touch → Gallery', () => {
@@ -169,10 +169,7 @@ test.describe('Cross-App Workflow: Management Fleet Monitor', () => {
         await page.goto(BASE_URLS.management);
         
         // Should show dashboard or login
-        const isDashboard = await page.locator('[data-testid="dashboard"]').isVisible().catch(() => false);
-        const isLogin = await page.locator('[data-testid="login-form"]').isVisible().catch(() => false);
-        
-        expect(isDashboard || isLogin).toBeTruthy();
+        await expect(page.locator('[data-testid="dashboard"], [data-testid="login-form"]')).toBeVisible({ timeout: 10000 });
     });
 
     test('Fleet status monitoring', async ({ page }) => {

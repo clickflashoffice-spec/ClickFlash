@@ -22,11 +22,22 @@ test.describe("Touch Kiosk Sync Suite", () => {
 
   test("should synchronize new photos seamlessly", async ({ page }) => {
     await page.getByTestId("welcome-find-room-button").click();
-    await page.getByRole("button", { name: "1" }).click();
-    await page.getByRole("button", { name: "0" }).click();
-    await page.getByRole("button", { name: "1" }).click();
-    await page.getByRole("button", { name: "Search" }).click();
     
+    // Wait for modal
+    await expect(page.getByRole("heading", { name: "Enter Your Room Number" })).toBeVisible();
+    
+    // Switch to numeric keyboard
+    const numButton = page.getByRole("button", { name: "123" }).first();
+    if (await numButton.isVisible()) {
+      await numButton.click();
+    }
+
+    await page.getByRole("button", { name: "1", exact: true }).first().click();
+    await page.getByRole("button", { name: "0", exact: true }).first().click();
+    await page.getByRole("button", { name: "1", exact: true }).first().click();
+    await page.getByTestId("room-number-confirm-button").click();
+    
+    await expect(page.getByRole("heading", { name: "Room 101" })).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole("heading", { name: "Sunset Couples" })).toBeVisible();
     
     // Simulate real-time sync event via page evaluate if needed or just wait

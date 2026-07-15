@@ -258,10 +258,17 @@ function ensureNativeDeps(appOutDir) {
   for (const dep of NATIVE_MODULE_DEPS) {
     const destDir = path.join(nodeModulesDir, dep);
     
-    // Check if already exists and is non-empty
-    if (fs.existsSync(destDir) && fs.readdirSync(destDir).length > 0) {
-      console.log(`[ensure-native-deps] ${dep} already exists`);
-      continue;
+    try {
+      const stats = fs.lstatSync(destDir);
+      if (stats.isSymbolicLink()) {
+        console.log(`[ensure-native-deps] ${dep} is a symlink, removing...`);
+        fs.unlinkSync(destDir);
+      } else if (stats.isDirectory() && fs.readdirSync(destDir).length > 0) {
+        console.log(`[ensure-native-deps] ${dep} already exists as real directory`);
+        continue;
+      }
+    } catch (e) {
+      // Doesn't exist
     }
     
     // 1. Try require.resolve

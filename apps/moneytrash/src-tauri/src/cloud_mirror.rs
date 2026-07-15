@@ -1,12 +1,19 @@
 //! Multi-Cloud Mirroring Module
 //!
 //! Provides S3 + R2 dual upload for redundancy and data durability.
-//! Files are uploaded in parallel to both providers.
+//! Files are uploaded in parallel to both providers using AWS SDK chunked streaming.
 
 use crate::errors::{AppError, AppResult};
 use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Sha512, Digest};
 use std::path::Path;
+use tokio::fs::File;
+use tokio::io::AsyncReadExt;
+
+use aws_config::BehaviorVersion;
+use aws_credential_types::Credentials;
+use aws_sdk_s3::primitives::ByteStream;
+use aws_sdk_s3::types::{CompletedMultipartUpload, CompletedPart};
+use aws_sdk_s3::Client;
 
 /// Cloud provider configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -70,25 +77,21 @@ impl CloudMirror {
         let primary = self.primary.as_ref().unwrap();
         let mirror = self.mirror.as_ref().unwrap();
 
-        // Upload to both providers in parallel using tokio::spawn
         let primary_path = remote_path.to_string();
         let mirror_path = remote_path.to_string();
         let primary_config = primary.clone();
         let mirror_config = mirror.clone();
-        let file_pathOwned = file_path.to_path_buf();
-        let file_pathOwned2 = file_pathOwned.clone();
+        let file_path_owned1 = file_path.to_path_buf();
+        let file_path_owned2 = file_path.to_path_buf();
 
         let primary_handle = tokio::spawn(async move {
-            Self::upload_to_provider(&primary_config, &file_pathOwned, &primary_path)
-                .await
+            Self::upload_chunked(&primary_config, &file_path_owned1, &primary_path).await
         });
 
         let mirror_handle = tokio::spawn(async move {
-            Self::upload_to_provider(&mirror_config, &file_pathOwned2, &mirror_path)
-                .await
+            Self::upload_chunked(&mirror_config, &file_path_owned2, &mirror_path).await
         });
 
-        // Wait for both uploads to complete
         let primary_result = primary_handle.await
             .map_err(|e| AppError::Io(format!("Primary upload task failed: {}", e)))?;
         let mirror_result = mirror_handle.await
@@ -114,133 +117,107 @@ impl CloudMirror {
         })
     }
 
-    /// Upload file to a specific cloud provider
-    async fn upload_to_provider(
+    /// Upload file using AWS SDK multipart chunked streaming
+    async fn upload_chunked(
         config: &CloudProviderConfig,
         file_path: &Path,
         remote_path: &str,
     ) -> AppResult<String> {
-        match config.provider.as_str() {
-            "s3" => Self::upload_to_s3(config, file_path, remote_path).await,
-            "r2" => Self::upload_to_r2(config, file_path, remote_path).await,
-            _ => Err(AppError::Config(format!("Unknown provider: {}", config.provider))),
-        }
-    }
-
-    /// Upload to AWS S3
-    async fn upload_to_s3(
-        config: &CloudProviderConfig,
-        file_path: &Path,
-        remote_path: &str,
-    ) -> AppResult<String> {
-        // Read file data
-        let file_data = tokio::fs::read(file_path).await
-            .map_err(|e| AppError::Io(format!("Failed to read file: {}", e)))?;
-
-        // Production-grade AWS SDK S3 Upload Scaffold
-        // Requires: aws-config and aws-sdk-s3 in Cargo.toml
-        /*
-        let credentials = aws_config::Credentials::new(
+        // Setup credentials and client
+        let credentials = Credentials::new(
             &config.access_key,
             &config.secret_key,
             None,
             None,
             "manual",
         );
-        let s3_config = aws_config::Config::builder()
-            .region(aws_config::Region::new(config.region.clone()))
-            .credentials_provider(credentials)
-            .build();
-        let client = aws_sdk_s3::Client::from_conf(s3_config);
         
-        let _result = client.put_object()
+        let aws_config = aws_config::SdkConfig::builder()
+            .credentials_provider(credentials)
+            .region(aws_config::Region::new(config.region.clone()))
+            .endpoint_url(&config.endpoint)
+            .behavior_version(BehaviorVersion::latest())
+            .build();
+            
+        let client = Client::new(&aws_config);
+        
+        // Initiate multipart upload
+        let multipart_upload = client
+            .create_multipart_upload()
             .bucket(&config.bucket)
             .key(remote_path)
-            .body(aws_sdk_s3::primitives::ByteStream::from(file_data.clone()))
             .send()
             .await
-            .map_err(|e| AppError::Network(format!("S3 SDK upload failed: {}", e)))?;
-        */
-
-        // Fallback to presigned URL PUT for current Rust Tauri context
-        let presigned_url = Self::generate_presigned_url(config, remote_path, "PUT").await?;
-        let client = reqwest::Client::new();
-        let response = client
-            .put(&presigned_url)
-            .header("Content-Type", "application/octet-stream")
-            .body(file_data)
-            .send()
-            .await
-            .map_err(|e| AppError::Network(format!("S3 upload failed: {}", e)))?;
-
-        if response.status().is_success() {
-            Ok(format!("s3://{}/{}", config.bucket, remote_path))
-        } else {
-            Err(AppError::Upload(format!("S3 returned status: {}", response.status())))
+            .map_err(|e| AppError::Network(format!("Failed to create multipart upload: {}", e)))?;
+            
+        let upload_id = multipart_upload.upload_id().ok_or_else(|| {
+            AppError::Network("Missing upload_id".to_string())
+        })?;
+        
+        let mut file = File::open(file_path).await
+            .map_err(|e| AppError::Io(format!("Failed to open file: {}", e)))?;
+            
+        // 5MB chunk size (minimum for S3/R2 multipart uploads)
+        let chunk_size = 5 * 1024 * 1024;
+        let mut buffer = vec![0; chunk_size];
+        let mut completed_parts = Vec::new();
+        let mut part_number = 1;
+        
+        loop {
+            let mut chunk = Vec::new();
+            let mut current_read = 0;
+            
+            while current_read < chunk_size {
+                let n = file.read(&mut buffer).await
+                    .map_err(|e| AppError::Io(format!("Failed to read file: {}", e)))?;
+                if n == 0 {
+                    break;
+                }
+                chunk.extend_from_slice(&buffer[..n]);
+                current_read += n;
+            }
+            
+            if chunk.is_empty() {
+                break;
+            }
+            
+            let byte_stream = ByteStream::from(chunk);
+            let upload_part_res = client
+                .upload_part()
+                .bucket(&config.bucket)
+                .key(remote_path)
+                .upload_id(upload_id)
+                .part_number(part_number)
+                .body(byte_stream)
+                .send()
+                .await
+                .map_err(|e| AppError::Network(format!("Failed to upload part {}: {}", part_number, e)))?;
+                
+            let completed_part = CompletedPart::builder()
+                .part_number(part_number)
+                .e_tag(upload_part_res.e_tag().unwrap_or_default())
+                .build();
+                
+            completed_parts.push(completed_part);
+            part_number += 1;
         }
-    }
-
-    /// Upload to Cloudflare R2
-    async fn upload_to_r2(
-        config: &CloudProviderConfig,
-        file_path: &Path,
-        remote_path: &str,
-    ) -> AppResult<String> {
-        // R2 uses S3-compatible API
-        let file_data = tokio::fs::read(file_path).await
-            .map_err(|e| AppError::Io(format!("Failed to read file: {}", e)))?;
-
-        // Build presigned URL for R2 upload
-        let presigned_url = Self::generate_presigned_url(config, remote_path, "PUT")
-            .await?;
-
-        // Upload using HTTP PUT
-        let client = reqwest::Client::new();
-        let response = client
-            .put(&presigned_url)
-            .header("Content-Type", "application/octet-stream")
-            .body(file_data)
+        
+        // Complete the multipart upload
+        let completed_multipart_upload = CompletedMultipartUpload::builder()
+            .set_parts(Some(completed_parts))
+            .build();
+            
+        client
+            .complete_multipart_upload()
+            .bucket(&config.bucket)
+            .key(remote_path)
+            .upload_id(upload_id)
+            .multipart_upload(completed_multipart_upload)
             .send()
             .await
-            .map_err(|e| AppError::Network(format!("R2 upload failed: {}", e)))?;
+            .map_err(|e| AppError::Network(format!("Failed to complete multipart upload: {}", e)))?;
 
-        if response.status().is_success() {
-            Ok(format!("r2://{}/{}", config.bucket, remote_path))
-        } else {
-            Err(AppError::Upload(format!("R2 returned status: {}", response.status())))
-        }
-    }
-
-    /// Generate a presigned URL for upload
-    async fn generate_presigned_url(
-        config: &CloudProviderConfig,
-        remote_path: &str,
-        _method: &str,
-    ) -> AppResult<String> {
-        use std::time::Duration;
-        
-        // For presigned URLs, we need AWS Signature Version 4
-        // This is a simplified implementation
-        // In production, use the AWS SDK's presigning capabilities
-        
-        let expiration = chrono::Utc::now()
-            .checked_add_signed(chrono::Duration::hours(1))
-            .ok_or_else(|| AppError::Config("Time calculation error".to_string()))?;
-        
-        let expiration_epoch = expiration.timestamp();
-
-        // Build the presigned URL
-        // Note: This is a placeholder - actual implementation requires
-        // AWS SigV4 signing which is complex
-        let presigned_url = format!(
-            "{}/{}/{}?X-Amz-Expires=3600&X-Amz-Date={}",
-            config.endpoint.trim_end_matches('/'),
-            config.bucket,
-            remote_path,
-            expiration_epoch
-        );
-
-        Ok(presigned_url)
+        Ok(format!("{}://{}/{}", config.provider, config.bucket, remote_path))
     }
 }
 

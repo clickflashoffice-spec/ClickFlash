@@ -56,7 +56,7 @@ export default defineConfig({
           ],
         },
       },
-      testMatch: /.*\.electron\.spec\.ts/,
+      testMatch: /.*electron\.spec\.ts/,
     },
     {
       name: "cloud-integration",

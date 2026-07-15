@@ -28,6 +28,8 @@ class WebSocketService {
     private readonly SUPPRESS_ERRORS_AFTER_ATTEMPTS = 5; // Suppress error logs after 5 attempts
     private reconnectTimeout: number | null = null;
     private isIntentionallyDisconnected = false;
+    private pendingMessages: unknown[] = [];
+    private readonly MAX_QUEUE_SIZE = 50;
 
     private heartbeatInterval: number | null = null;
     private lastConnectionTime: Date | null = null;
@@ -105,6 +107,18 @@ class WebSocketService {
                         payload: this.clientInfo
                     });
                 }
+
+                // Drain pending messages
+                const activeWs = this.ws;
+                if (activeWs) {
+                    const pending = this.pendingMessages.splice(0);
+                    for (const msg of pending) {
+                        activeWs.send(JSON.stringify(msg));
+                    }
+                    if (pending.length > 0) {
+                        logger.info(`[WebSocketService] Drained ${pending.length} queued message(s)`);
+                    }
+                }
             };
 
             this.ws.onmessage = (event) => {
@@ -152,11 +166,13 @@ class WebSocketService {
     private scheduleReconnect() {
         if (this.reconnectTimeout) return;
 
-        const delay = Math.min(1000 * Math.pow(1.5, this.reconnectAttempts), 30000); // Max 30s
+        const baseDelay = Math.min(1000 * Math.pow(1.5, this.reconnectAttempts), 30000); // Max 30s
+        const jitter = Math.floor(Math.random() * 800); // Prevent thundering herd across kiosks
+        const delay = baseDelay + jitter;
 
         // Only log reconnection attempts in dev mode or for first few attempts
         if (import.meta.env.DEV || this.reconnectAttempts < this.SUPPRESS_ERRORS_AFTER_ATTEMPTS) {
-            logger.info(`[WebSocketService] Scheduling reconnect in ${delay}ms (Attempt ${this.reconnectAttempts + 1})`);
+            logger.info(`[WebSocketService] Scheduling jittered reconnect in ${delay}ms (Attempt ${this.reconnectAttempts + 1})`);
         } else if (this.reconnectAttempts === this.SUPPRESS_ERRORS_AFTER_ATTEMPTS) {
             // Log once when we start suppressing
             logger.info('[WebSocketService] WebSocket server not available (optional feature). Continuing without real-time updates.');
@@ -167,6 +183,22 @@ class WebSocketService {
             this.reconnectAttempts++;
             this.initiateConnection();
         }, delay);
+    }
+
+    /**
+     * Force immediate reconnection (useful on network recovery or URL change)
+     */
+    public forceReconnect(wsUrl?: string): void {
+        if (wsUrl) {
+            this.wsUrl = wsUrl;
+        }
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
+        this.reconnectAttempts = 0;
+        logger.info('[WebSocketService] Forcing immediate WebSocket reconnection', { url: this.wsUrl });
+        this.initiateConnection();
     }
 
     private setStatus(newStatus: 'Connected' | 'Disconnected') {
@@ -274,6 +306,9 @@ class WebSocketService {
 
     public disconnect(intentional = true) {
         this.isIntentionallyDisconnected = intentional;
+        if (intentional) {
+            this.pendingMessages = [];
+        }
         this.stopHeartbeat();
         if (this.reconnectTimeout) {
             clearTimeout(this.reconnectTimeout);
@@ -291,7 +326,11 @@ class WebSocketService {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify(message));
         } else {
-            logger.warn('[WebSocketService] Cannot send message, not connected');
+            if (this.pendingMessages.length < this.MAX_QUEUE_SIZE) {
+                this.pendingMessages.push(message);
+            } else {
+                logger.warn('[WebSocketService] Message queue full, dropping message');
+            }
         }
     }
 
@@ -354,7 +393,9 @@ class WebSocketService {
             status: this.status,
             lastConnectionTime: this.lastConnectionTime,
             reconnectAttempts: this.reconnectAttempts,
-            retryCount: this.reconnectAttempts
+            retryCount: this.reconnectAttempts,
+            wsUrl: this.wsUrl,
+            queuedMessages: this.pendingMessages.length
         };
     }
 }

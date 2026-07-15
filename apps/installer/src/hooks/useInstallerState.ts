@@ -44,6 +44,8 @@ declare const window: Window & {
       success: boolean;
       error?: string;
     }>;
+    writeEnvConfig: (params: { targetDir: string; envData: Record<string, string> }) => Promise<{ success: boolean; error?: string }>;
+    getGeolocation: () => Promise<{ success: boolean; data?: { city: string; regionName: string; countryCode?: string; country?: string; timezone: string; currency?: string }; error?: string }>;
     launchApps: (paths: { master?: string; touch?: string }) => Promise<{ master: boolean; touch: boolean }>;
     selectDirectory: () => Promise<string | null>;
     getLogs: () => Promise<string[]>;
@@ -302,7 +304,7 @@ export function useInstallerState() {
     return await api.checkDeskId(deskId);
   }, []);
 
-  const setDestination = useCallback((profile: { proposed_id: string; name: string; location: string; country: string; timezone: string; currency: string }) => {
+  const setDestination = useCallback((profile: { proposed_id: string; site_code: string; name: string; location: string; country: string; timezone: string; currency: string }) => {
     setState((s) => ({
       ...s,
       desk: { ...profile, confirmed_id: profile.proposed_id },
@@ -410,6 +412,7 @@ export function useInstallerState() {
     try {
       const regRes = await api.registerWithHub({
         desk_id: state.deskId,
+        site_code: state.desk?.site_code,
         name: state.desk?.name,
         location: state.desk?.location,
         country: state.desk?.country,
@@ -502,6 +505,21 @@ export function useInstallerState() {
         version: "5.0.0",
         installedAt: new Date().toISOString(),
       });
+
+      // Write .env for Master and Touch apps if installPath is available
+      if (state.installPath) {
+        const envData = {
+          VITE_HUB_BASE: "https://hub.clickflash.app",
+          DESK_ID: state.deskId || "",
+          SITE_CODE: state.desk?.site_code || "",
+          TENANT_ID: state.hub?.tenant_id || "",
+          TIMEZONE: state.desk?.timezone || "UTC",
+          LOCATION_NAME: state.desk?.location || "",
+          CURRENCY: state.desk?.currency || "USD",
+        };
+        await api.writeEnvConfig({ targetDir: state.installPath, envData });
+      }
+
       if (state.launchOnComplete) {
         await api.launchApps({
           master: state.installPath ? `${state.installPath}/ClickFlash Master.exe` : undefined,

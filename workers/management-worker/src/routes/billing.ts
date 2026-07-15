@@ -1,6 +1,8 @@
 import { Env } from '../types';
 import { createCheckoutSession, handleWebhookEvent } from '../services/stripeService';
 import { createErrorResponse } from '../errorHandler';
+import { logger } from "@clickflash/logger";
+import { LicenseService } from "../services/licenseService";
 
 export async function handleBilling(
   request: Request,
@@ -42,7 +44,7 @@ export async function handleBilling(
 
       return Response.json({ url: session.url }, { headers: corsHeaders });
     } catch (error: any) {
-      console.error('Checkout error:', error);
+      logger.error('Checkout error:', { args: [error] });
       return createErrorResponse(500, "Internal Server Error", "Failed to create checkout session", undefined, undefined, corsHeaders);
     }
   }
@@ -61,7 +63,7 @@ export async function handleBilling(
       const payload = await request.text();
       event = await handleWebhookEvent(env, payload, signature);
     } catch (err: any) {
-      console.error('Webhook signature verification error:', err);
+      logger.error('Webhook signature verification error:', { args: [err] });
       return new Response(`Webhook Error: ${err.message}`, { status: 400, headers: corsHeaders });
     }
 
@@ -97,7 +99,16 @@ export async function handleBilling(
 
           // Generate a license key for their first destination automatically
           const destinationId = crypto.randomUUID();
-          const licenseKey = 'CF-LIVE-' + crypto.randomUUID().split('-').join('').toUpperCase();
+          
+          const licenseService = new LicenseService(env.DB, env.LICENSE_PRIVATE_KEY, env.LICENSE_PUBLIC_KEY);
+          const keys = await licenseService.generateLicenseKeys({
+            deskId: studioId,
+            plan: 'pro',
+            maxMasters: 5,
+            expiresDays: 365,
+            count: 1
+          });
+          const licenseKey = keys[0].key;
           
           await env.DB.prepare(`
             INSERT INTO destinations (id, name, country, site_code, type, licenseKey, studio_id)
@@ -125,7 +136,7 @@ export async function handleBilling(
       
       return Response.json({ received: true }, { headers: corsHeaders });
     } catch (error) {
-      console.error('Webhook processing error:', error);
+      logger.error('Webhook processing error:', { args: [error] });
       return createErrorResponse(500, "Internal Server Error", "Failed to process webhook", undefined, undefined, corsHeaders);
     }
   }

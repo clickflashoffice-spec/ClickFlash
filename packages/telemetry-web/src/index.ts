@@ -1,3 +1,5 @@
+import { logger } from "@clickflash/logger";
+
 export enum LogLevel {
   DEBUG = 0,
   INFO = 1,
@@ -82,10 +84,10 @@ export class WebLogger {
     // Also log to console in development
     if (process.env.NODE_ENV !== 'production') {
       const consoleMsg = `[${this.config.serviceName}] ${message}`;
-      if (levelValue === LogLevel.ERROR || levelValue === LogLevel.FATAL) console.error(consoleMsg, data);
-      else if (levelValue === LogLevel.WARN) console.warn(consoleMsg, data);
-      else if (levelValue === LogLevel.INFO) console.info(consoleMsg, data);
-      else console.debug(consoleMsg, data);
+      if (levelValue === LogLevel.ERROR || levelValue === LogLevel.FATAL) logger.error(String(consoleMsg) + ' ' + String(data));
+      else if (levelValue === LogLevel.WARN) logger.warn(String(consoleMsg) + ' ' + String(data));
+      else if (levelValue === LogLevel.INFO) logger.info(String(consoleMsg) + ' ' + String(data));
+      else logger.debug(String(consoleMsg) + ' ' + String(data));
     }
 
     if (this.queue.length >= 50) {

@@ -8,6 +8,7 @@ import { apiService as localApiService } from "./apiService.ts";
 import { Order, User } from "../types.ts";
 import { pb } from "./pb.ts";
 import type { PocketRecord } from "./pbTypes.ts";
+import { logger } from "@/utils/logger";
 
 export const cloudApiService = {
   /**
@@ -65,7 +66,7 @@ export const cloudApiService = {
       }
     } catch (err) {
       // 404 is expected if not found, other errors might be network related
-      console.warn(
+      logger.warn(
         "[Cloud API] Order not found in DB or DB offline, trying local fallback...",
         err,
       );
@@ -80,7 +81,7 @@ export const cloudApiService = {
       !hostname.startsWith("192.168.");
 
     if (isCloudMode) {
-      console.warn(
+      logger.warn(
         "[Cloud API] Order not found in Cloud DB. Local (Demo) fallback disabled in Cloud Mode.",
       );
       return null;
@@ -95,7 +96,7 @@ export const cloudApiService = {
       );
       return order || null;
     } catch (err) {
-      console.warn("[Cloud API] Local fallback failed", err);
+      logger.warn("[Cloud API] Local fallback failed", err);
       return null;
     }
   },

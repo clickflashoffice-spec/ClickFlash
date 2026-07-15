@@ -61,7 +61,7 @@ const MoneyTrashPhotoCard: React.FC<{
 
         <img
           src={photo.url}
-          alt={photo.title}
+          alt={photo.title || 'Untitled'}
           className="w-full h-full object-cover max-h-full origin-center transition-transform duration-700 group-hover:scale-110 [filter:var(--photo-filter)] [transform:var(--photo-transform)]"
           loading="lazy"
           style={{
@@ -150,7 +150,7 @@ export const MoneyTrashGallery: React.FC<MoneyTrashGalleryProps> = ({
       if (sortBy === 'expiring-soon') return a.daysUntilDeletion - b.daysUntilDeletion;
       if (sortBy === 'discount-high') return b.discountPercentage - a.discountPercentage;
       if (sortBy === 'date-desc') return new Date(b.archivedAt).getTime() - new Date(a.archivedAt).getTime();
-      if (sortBy === 'title-asc') return a.title.localeCompare(b.title);
+      if (sortBy === 'title-asc') return (a.title || "").localeCompare(b.title || "");
       return 0;
     });
     return result;

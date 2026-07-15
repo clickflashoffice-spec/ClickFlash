@@ -12,6 +12,7 @@ import AppSelectionStep from "./components/AppSelectionStep";
 import LicenseStep from "./components/LicenseStep";
 import CloudflareStepOAuth from "./components/CloudflareStepOAuth";
 import DestinationStep from "./components/DestinationStep";
+import FleetOverviewStep from "./components/FleetOverviewStep";
 import StudioProfileStep from "./components/StudioProfileStep";
 import TouchPairingStep from "./components/TouchPairingStep";
 import FirstSyncStep from "./components/FirstSyncStep";
@@ -78,6 +79,14 @@ const App: React.FC = () => {
             state={state}
             onCheckDeskId={checkDeskId}
             onSetDestination={setDestination}
+            onNext={nextStep}
+            onPrev={prevStep}
+          />
+        );
+      case "fleet-overview":
+        return (
+          <FleetOverviewStep
+            state={state}
             onNext={nextStep}
             onPrev={prevStep}
           />

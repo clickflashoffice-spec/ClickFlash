@@ -58,10 +58,10 @@ export default async function BlogPostPage({ params }: Props) {
         <article className="min-h-screen bg-white pt-24 md:pt-28 lg:pt-32 pb-16 md:pb-24">
             {/* Breadcrumb & Back Link */}
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-                <nav className="flex items-center gap-2 text-sm text-slate-400">
-                    <Link href="/" className="hover:text-cyan-600 transition-colors">Home</Link>
+                <nav className="flex items-center gap-2 text-sm text-slate-600">
+                    <Link href="/" className="hover:text-cyan-700 transition-colors">Home</Link>
                     <span>/</span>
-                    <Link href="/blog" className="hover:text-cyan-600 transition-colors">Blog</Link>
+                    <Link href="/blog" className="hover:text-cyan-700 transition-colors">Blog</Link>
                     <span>/</span>
                     <span className="text-slate-600">{post.category}</span>
                 </nav>
@@ -72,19 +72,19 @@ export default async function BlogPostPage({ params }: Props) {
                 <div className="flex items-center gap-3 mb-6">
                     <Link
                         href={`/blog/category/${post.category.toLowerCase().replace(/\s+/g, "-")}`}
-                        className="text-xs font-semibold uppercase tracking-wider text-cyan-600 hover:text-cyan-700 transition-colors"
+                        className="text-xs font-semibold uppercase tracking-wider text-cyan-700 hover:text-cyan-700 transition-colors"
                     >
                         {post.category}
                     </Link>
                     <span className="w-1 h-1 bg-slate-300 rounded-full" />
-                    <span className="text-xs text-slate-400">{post.readTime}</span>
+                    <span className="text-xs text-slate-600">{post.readTime}</span>
                 </div>
 
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-slate-900 mb-6 md:mb-8 tracking-tight leading-tight">
                     {post.title}
                 </h1>
 
-                <div className="flex items-center gap-4 text-sm text-slate-500">
+                <div className="flex items-center gap-4 text-sm text-slate-600">
                     <div className="flex items-center gap-2">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-medium">
                             {post.author.split(' ').map(n => n[0]).join('')}
@@ -119,7 +119,7 @@ export default async function BlogPostPage({ params }: Props) {
                     prose-headings:text-slate-900 prose-headings:font-light prose-headings:tracking-tight
                     prose-p:text-slate-600 prose-p:leading-relaxed
                     prose-strong:text-slate-900 prose-strong:font-medium
-                    prose-a:text-cyan-600 prose-a:no-underline hover:prose-a:underline
+                    prose-a:text-cyan-700 prose-a:no-underline hover:prose-a:underline
                     prose-img:rounded-lg prose-img:shadow-lg
                     prose-h2:text-xl md:prose-h2:text-2xl prose-h2:mt-10 md:prose-h2:mt-12 prose-h2:mb-4 md:prose-h2:mb-6 prose-h2:pb-3 prose-h2:border-b prose-h2:border-slate-100
                     prose-h3:text-lg md:prose-h3:text-xl prose-h3:mt-8 md:prose-h3:mt-10 prose-h3:mb-3 md:prose-h3:mb-4
@@ -137,11 +137,11 @@ export default async function BlogPostPage({ params }: Props) {
                 {/* Tags */}
                 <div className="mt-10 pt-6 border-t border-slate-100">
                     <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm text-slate-500 mr-2">Tags:</span>
+                        <span className="text-sm text-slate-600 mr-2">Tags:</span>
                         {post.tags.map(tag => (
                             <span 
                                 key={tag} 
-                                className="px-3 py-1.5 bg-slate-50 text-slate-600 text-xs font-medium rounded-full hover:bg-cyan-50 hover:text-cyan-600 transition-colors cursor-pointer"
+                                className="px-3 py-1.5 bg-slate-50 text-slate-600 text-xs font-medium rounded-full hover:bg-cyan-50 hover:text-cyan-700 transition-colors cursor-pointer"
                             >
                                 {tag}
                             </span>
@@ -153,12 +153,12 @@ export default async function BlogPostPage({ params }: Props) {
                 <div className="mt-8 pt-6 border-t border-slate-100">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                         <div className="flex items-center gap-3">
-                            <span className="text-sm text-slate-500">Share:</span>
+                            <span className="text-sm text-slate-600">Share:</span>
                             <a 
                                 href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(`https://clickflash.app/blog/${post.slug}`)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-cyan-50 hover:text-cyan-600 transition-all"
+                                className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-all"
                             >
                                 <span className="sr-only">Share on Twitter</span>
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
@@ -167,7 +167,7 @@ export default async function BlogPostPage({ params }: Props) {
                                 href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://clickflash.app/blog/${post.slug}`)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-all"
+                                className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-all"
                             >
                                 <span className="sr-only">Share on Facebook</span>
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
@@ -176,7 +176,7 @@ export default async function BlogPostPage({ params }: Props) {
                                 href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://clickflash.app/blog/${post.slug}`)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-700 transition-all"
+                                className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-700 transition-all"
                             >
                                 <span className="sr-only">Share on LinkedIn</span>
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
@@ -184,7 +184,7 @@ export default async function BlogPostPage({ params }: Props) {
                         </div>
                         <Link
                             href="/contact"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-white font-medium rounded-full hover:bg-slate-900 transition-all"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-700 text-white font-medium rounded-full hover:bg-slate-900 transition-all"
                         >
                             Book a Session
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -202,11 +202,11 @@ export default async function BlogPostPage({ params }: Props) {
                         </div>
                         <div>
                             <h3 className="font-medium text-slate-900 mb-1">About {post.author}</h3>
-                            <p className="text-sm text-slate-500 mb-3">
+                            <p className="text-sm text-slate-600 mb-3">
                                 Professional photographer at ClickFlash specializing in {post.category.toLowerCase()} in Tunisia. 
                                 Passionate about capturing authentic moments and creating lasting memories.
                             </p>
-                            <Link href="/contact" className="text-sm text-cyan-600 hover:underline font-medium">
+                            <Link href="/contact" className="text-sm text-cyan-700 hover:underline font-medium">
                                 Get in touch →
                             </Link>
                         </div>
@@ -235,10 +235,10 @@ export default async function BlogPostPage({ params }: Props) {
                                         className="object-cover transition-transform duration-700 group-hover:scale-105"
                                     />
                                 </div>
-                                <span className="text-xs font-semibold uppercase tracking-wider text-cyan-600 mb-2">
+                                <span className="text-xs font-semibold uppercase tracking-wider text-cyan-700 mb-2">
                                     {relatedPost.category}
                                 </span>
-                                <h3 className="text-lg font-medium text-slate-900 group-hover:text-cyan-600 transition-colors leading-snug">
+                                <h3 className="text-lg font-medium text-slate-900 group-hover:text-cyan-700 transition-colors leading-snug">
                                     {relatedPost.title}
                                 </h3>
                             </Link>
@@ -259,7 +259,7 @@ export default async function BlogPostPage({ params }: Props) {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
                             href="/contact"
-                            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-cyan-500 text-white font-medium rounded-full hover:bg-cyan-600 transition-all"
+                            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-cyan-700 text-white font-medium rounded-full hover:bg-cyan-600 transition-all"
                         >
                             Book a Session
                         </Link>

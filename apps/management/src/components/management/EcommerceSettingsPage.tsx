@@ -12,6 +12,7 @@ import { AVAILABLE_EXTENSIONS } from "../../utils/ExtensionRegistry.ts";
 import useSystemSetting from "../../hooks/useSystemSetting.ts";
 
 import StatCard from "../common/StatCard.tsx";
+import { logger } from "@/utils/logger";
 
 const EcommerceSettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
@@ -58,7 +59,7 @@ const EcommerceSettingsPage: React.FC = () => {
       setProducts(productsData);
       setPacks(packsData);
     } catch (error) {
-      console.error("Failed to load e-commerce data", error);
+      logger.error("Failed to load e-commerce data", error);
     } finally {
       setLoading(false);
     }

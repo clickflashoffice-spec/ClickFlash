@@ -4,6 +4,7 @@
  */
 
 import { Env } from '../../index';
+import { logger } from "@clickflash/logger";
 
 export interface UploadInitRequest {
   fileName: string;
@@ -108,7 +109,7 @@ export async function handleUploadInit(request: Request, env: Env): Promise<Resp
     });
     
   } catch (error) {
-    console.error('Upload init error:', error);
+    logger.error('Upload init error:', { args: [error] });
     return Response.json(
       { error: 'Failed to initialize upload' },
       { status: 500 }
@@ -142,6 +143,6 @@ async function logUploadEvent(
       event.mode
     ).run();
   } catch (e) {
-    console.error('Failed to log upload event:', e);
+    logger.error('Failed to log upload event:', { args: [e] });
   }
 }

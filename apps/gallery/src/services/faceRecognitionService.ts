@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 /**
  * Face Recognition Service — Gallery
  *
@@ -51,7 +52,7 @@ export const faceRecognitionService = {
   async identifyUser(imageBlob: Blob): Promise<IdentifiedUser | null> {
     // Face login is restricted to staff via master's /api/faces/login
     // Gallery customers should use room number search instead
-    console.warn('[FaceRecognition] User identification is restricted to staff.');
+    logger.warn('[FaceRecognition] User identification is restricted to staff.');
     return null;
   },
 
@@ -67,7 +68,7 @@ export const faceRecognitionService = {
       });
 
       if (!response.ok) {
-        console.error(`[FaceRecognition] Search failed: ${response.status}`);
+        logger.error(`[FaceRecognition] Search failed: ${response.status}`);
         return [];
       }
 
@@ -87,7 +88,7 @@ export const faceRecognitionService = {
       // Otherwise return the server results directly
       return data.matches as Photo[];
     } catch (error) {
-      console.error('[FaceRecognition] Error searching faces:', error);
+      logger.error('[FaceRecognition] Error searching faces:', error);
       return [];
     }
   },

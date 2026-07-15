@@ -9,6 +9,7 @@ interface ImportProgressModalProps {
   successCount: number;
   failCount: number;
   isComplete: boolean;
+  statusText?: string;
   onClose?: () => void;
 }
 
@@ -20,6 +21,7 @@ const ImportProgressModal: React.FC<ImportProgressModalProps> = ({
   successCount,
   failCount,
   isComplete,
+  statusText,
   onClose
 }) => {
   const progress = totalFiles > 0 ? Math.round((currentIndex / totalFiles) * 100) : 0;
@@ -67,7 +69,7 @@ const ImportProgressModal: React.FC<ImportProgressModalProps> = ({
             {/* Current File Progress */}
             <div className="w-full">
               <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 mb-2">
-                <span className="truncate flex-1 mr-2">Current: {currentFile}</span>
+                <span className="truncate flex-1 mr-2">{statusText ? statusText : `Current: ${currentFile}`}</span>
                 <span>{currentIndex}/{totalFiles}</span>
               </div>
               <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">

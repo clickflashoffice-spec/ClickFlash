@@ -33,49 +33,49 @@ export function Footer({ settings = {} }: FooterProps) {
             </div>
             <a
               href={`mailto:${contactEmail}`}
-              className="mb-4 flex items-center gap-2 text-slate-600 transition-colors hover:text-cyan-500"
+              className="mb-4 flex items-center gap-2 text-slate-600 transition-colors hover:text-cyan-700"
             >
-              <Mail className="h-5 w-5 text-cyan-500" />
+              <Mail className="h-5 w-5 text-cyan-700" />
               <span>{contactEmail}</span>
             </a>
-            <p className="max-w-sm text-sm leading-relaxed text-slate-500">
+            <p className="max-w-sm text-sm leading-relaxed text-slate-600">
               {settings.aboutTitle || getTranslation(language, "footer_tagline")}
             </p>
           </div>
 
           {/* Site Links */}
           <div>
-            <h4 className="mb-6 text-lg font-bold text-slate-900">
+            <h3 className="mb-6 text-lg font-bold text-slate-900">
               {getTranslation(language, "footer_links_title")}
-            </h4>
-            <ul className="space-y-3 text-sm text-slate-500">
+            </h3>
+            <ul className="space-y-3 text-sm text-slate-600">
               <li>
-                <Link href="/about" className="transition-colors hover:text-cyan-500">
+                <Link href="/about" className="transition-colors hover:text-cyan-700">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="transition-colors hover:text-cyan-500">
+                <Link href="/contact" className="transition-colors hover:text-cyan-700">
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="transition-colors hover:text-cyan-500">
+                <Link href="/careers" className="transition-colors hover:text-cyan-700">
                   Careers
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="transition-colors hover:text-cyan-500">
+                <Link href="/blog" className="transition-colors hover:text-cyan-700">
                   Blog
                 </Link>
               </li>
               <li>
-                <Link href="/gallery" className="transition-colors hover:text-cyan-500">
+                <Link href="/gallery" className="transition-colors hover:text-cyan-700">
                   Gallery
                 </Link>
               </li>
               <li>
-                <Link href="/manage" className="transition-colors hover:text-cyan-500">
+                <Link href="/manage" className="transition-colors hover:text-cyan-700">
                   Admins
                 </Link>
               </li>
@@ -84,27 +84,27 @@ export function Footer({ settings = {} }: FooterProps) {
 
           {/* Services */}
           <div>
-            <h4 className="mb-6 text-lg font-bold text-slate-900">
+            <h3 className="mb-6 text-lg font-bold text-slate-900">
               {getTranslation(language, "footer_services_title")}
-            </h4>
-            <ul className="space-y-3 text-sm text-slate-500">
+            </h3>
+            <ul className="space-y-3 text-sm text-slate-600">
               <li>
-                <Link href="/services" className="transition-colors hover:text-cyan-500">
+                <Link href="/services" className="transition-colors hover:text-cyan-700">
                   Luxury Resorts
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="transition-colors hover:text-cyan-500">
+                <Link href="/services" className="transition-colors hover:text-cyan-700">
                   Water Parks
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="transition-colors hover:text-cyan-500">
+                <Link href="/services" className="transition-colors hover:text-cyan-700">
                   Attractions & Zoo
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="transition-colors hover:text-cyan-500">
+                <Link href="/services" className="transition-colors hover:text-cyan-700">
                   Weddings
                 </Link>
               </li>
@@ -117,46 +117,46 @@ export function Footer({ settings = {} }: FooterProps) {
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50">
                 <Globe className="h-5 w-5 text-cyan-400" />
               </div>
-              <span className="text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">
+              <span className="text-xs font-semibold tracking-[0.2em] text-slate-600 uppercase">
                 Pixel Groupe
               </span>
             </div>
             <div className="space-y-5">
               <div>
-                <p className="mb-0.5 text-[10px] font-bold tracking-[0.18em] text-cyan-500 uppercase">
+                <p className="mb-0.5 text-[10px] font-bold tracking-[0.18em] text-cyan-700 uppercase">
                   Resorts &amp; Travel Europe
                 </p>
                 <a
                   href="https://www.pixelholiday.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-bold text-slate-800 transition-colors hover:text-cyan-500"
+                  className="text-sm font-bold text-slate-800 transition-colors hover:text-cyan-700"
                 >
                   www.pixelholiday.com
                 </a>
               </div>
               <div>
-                <p className="mb-0.5 text-[10px] font-bold tracking-[0.18em] text-cyan-500 uppercase">
+                <p className="mb-0.5 text-[10px] font-bold tracking-[0.18em] text-cyan-700 uppercase">
                   Global Attractions
                 </p>
                 <a
                   href="https://www.pixelattractions.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-bold text-slate-800 transition-colors hover:text-cyan-500"
+                  className="text-sm font-bold text-slate-800 transition-colors hover:text-cyan-700"
                 >
                   www.pixelattractions.com
                 </a>
               </div>
               <div>
-                <p className="mb-0.5 text-[10px] font-bold tracking-[0.18em] text-cyan-500 uppercase">
+                <p className="mb-0.5 text-[10px] font-bold tracking-[0.18em] text-cyan-700 uppercase">
                   Resorts &amp; Travel Magrab
                 </p>
                 <a
                   href="https://www.clicketflash.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-bold text-slate-800 transition-colors hover:text-cyan-500"
+                  className="text-sm font-bold text-slate-800 transition-colors hover:text-cyan-700"
                 >
                   www.clicketflash.com
                 </a>
@@ -165,9 +165,9 @@ export function Footer({ settings = {} }: FooterProps) {
           </div>
 
           <div>
-            <h4 className="mb-4 text-lg font-bold text-slate-900">
+            <h3 className="mb-4 text-lg font-bold text-slate-900">
               {getTranslation(language, "footer_social_title")}
-            </h4>
+            </h3>
             <div className="flex flex-wrap gap-3">
               {socialInstagram && (
                 <a
@@ -175,7 +175,7 @@ export function Footer({ settings = {} }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Instagram"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-cyan-500 hover:text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-cyan-700 hover:text-white"
                 >
                   <Instagram className="h-4 w-4" />
                 </a>
@@ -199,7 +199,7 @@ export function Footer({ settings = {} }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Facebook"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-cyan-500 hover:text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-cyan-700 hover:text-white"
                 >
                   <Facebook className="h-4 w-4" />
                 </a>
@@ -210,7 +210,7 @@ export function Footer({ settings = {} }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   title="LinkedIn"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-cyan-500 hover:text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-cyan-700 hover:text-white"
                 >
                   <Linkedin className="h-4 w-4" />
                 </a>
@@ -219,9 +219,9 @@ export function Footer({ settings = {} }: FooterProps) {
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-100 pt-8 text-xs font-medium text-slate-500 md:flex-row">
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-100 pt-8 text-xs font-medium text-slate-600 md:flex-row">
           <p>{footerCopyright}</p>
-          <p className="tracking-[0.25em] text-slate-400 uppercase">Member of Pixel Groupe.</p>
+          <p className="tracking-[0.25em] text-slate-600 uppercase">Member of Pixel Groupe.</p>
         </div>
       </div>
     </footer>

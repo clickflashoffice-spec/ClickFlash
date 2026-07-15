@@ -248,7 +248,7 @@ pub async fn load_upload_config() -> CommandResult<Option<UploadConfig>> {
     }
 }
 
-async fn internal_load_config() -> AppResult<Option<UploadConfig>> {
+pub(crate) async fn internal_load_config() -> AppResult<Option<UploadConfig>> {
     let config_path = get_config_path()?;
     
     if !config_path.exists() {

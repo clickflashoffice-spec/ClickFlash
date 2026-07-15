@@ -53,9 +53,9 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({ bookings, photographe
 
     const getStatusColor = (status: BookingStatus) => {
         switch (status) {
-            case 'Confirmed': return 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 border-l-4 border-green-500';
-            case 'Pending': return 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300 border-l-4 border-yellow-500';
-            case 'Cancelled': return 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300 border-l-4 border-red-500';
+            case 'confirmed': return 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 border-l-4 border-green-500';
+            case 'pending': return 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300 border-l-4 border-yellow-500';
+            case 'cancelled': return 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300 border-l-4 border-red-500';
             default: return 'bg-slate-100 dark:bg-slate-700/50';
         }
     };

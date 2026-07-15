@@ -1,5 +1,6 @@
 import React from "react";
 import Gauge from "../common/Gauge";
+import MarketingWebhooksWidget from "./widgets/MarketingWebhooksWidget";
 
 interface MasterOverviewKpis {
   currentIncome: number;
@@ -157,6 +158,19 @@ const MasterOverview: React.FC<MasterOverviewProps> = ({ stats: stats, kpis }) =
               </p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Tertiary Metrics & Webhooks Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-96">
+        <div className="lg:col-span-2">
+           {/* Placeholder for future wide widgets */}
+           <div className="glass-panel rounded-3xl p-6 border-slate-800/30 bg-slate-900 shadow-xl flex items-center justify-center h-full opacity-50">
+             <p className="text-slate-500 uppercase tracking-widest text-[10px] font-bold">Activity Graph (Coming Soon)</p>
+           </div>
+        </div>
+        <div className="lg:col-span-1 h-full">
+          <MarketingWebhooksWidget />
         </div>
       </div>
     </div>

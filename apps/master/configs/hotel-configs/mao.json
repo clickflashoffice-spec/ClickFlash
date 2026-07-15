@@ -1,0 +1,28 @@
+{
+  "hotel": {
+    "id": "mao",
+    "name": "Marhaba Occidental Sousse",
+    "shortName": "MAO",
+    "deskPrefix": "MAO_"
+  },
+  "cloud": {
+    "databaseName": "mao-db",
+    "bucketName": "mao-gallery-assets",
+    "managementHubUrl": "https://management.feethub.com",
+    "galleryUrl": "https://gallery.feethub.com"
+  },
+  "app": {
+    "appId": "com.clickflash.master.mao",
+    "productName": "ClickFlash MAO",
+    "copyright": "© 2026 Marhaba Occidental Sousse"
+  },
+  "sync": {
+    "enabled": true,
+    "intervalSeconds": 60,
+    "retryAttempts": 3
+  },
+  "kiosk": {
+    "defaultPort": 8091,
+    "discoveryTimeout": 30000
+  }
+}

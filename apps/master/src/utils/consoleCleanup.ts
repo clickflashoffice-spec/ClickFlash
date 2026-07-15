@@ -4,6 +4,7 @@
  * Replaces console.* calls with structured logger in development.
  * In production, suppresses console output entirely.
  */
+/* eslint-disable no-console */
 
 import { logger } from './logger';
 

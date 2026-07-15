@@ -1,15 +1,18 @@
 import { jest } from '@jest/globals';
 import { LicenseService } from '../services/licenseService.js';
 
+const MOCK_PRIVATE_KEY = "EQdSP71FUDU55wNFrjIfVQUpYBme6kBsYhD1ecjmvAg9TlyEi1GiO7PcemwH8fQttWH/4Fh4EUzizyC/GYS+pQ==";
+const MOCK_PUBLIC_KEY = "PU5chItRojuz3HpsB/H0LbVh/+BYeBFM4s8gvxmEvqU=";
+
 describe('LicenseService', () => {
   let service: LicenseService;
 
   beforeEach(() => {
-    service = new LicenseService();
+    service = new LicenseService(undefined, MOCK_PRIVATE_KEY, MOCK_PUBLIC_KEY);
   });
 
   describe('generateLicenseKeys', () => {
-    it('should generate valid CF-LIVE- keys with correct format and checksum', async () => {
+    it('should generate valid CF-LIVE- keys with correct format', async () => {
       const keys = await service.generateLicenseKeys({
         deskId: 'TEST_DESK_01',
         plan: 'pro',
@@ -21,10 +24,6 @@ describe('LicenseService', () => {
       const keyStr = keys[0].key;
       expect(keyStr.startsWith('CF-LIVE-')).toBe(true);
       
-      const parts = keyStr.split('-');
-      expect(parts).toHaveLength(7);
-      expect(parts[6]).toHaveLength(4); // Checksum segment (2 hex bytes = 4 chars)
-
       // Validate the generated key
       const validation = await service.validateLicenseKey(keyStr);
       expect(validation.valid).toBe(true);
@@ -35,30 +34,33 @@ describe('LicenseService', () => {
     it('should reject keys without CF-LIVE- prefix', async () => {
       const res = await service.validateLicenseKey('INVALID-KEY-FORMAT-1234');
       expect(res.valid).toBe(false);
-      expect(res.error).toBe('Invalid key prefix');
+      expect(res.error).toBe('Invalid license prefix');
     });
 
-    it('should reject keys with invalid segment counts', async () => {
+    it('should reject keys with invalid format/segments', async () => {
       const res = await service.validateLicenseKey('CF-LIVE-ABCD-EFGH-IJKL');
       expect(res.valid).toBe(false);
       expect(res.error).toBe('Invalid key format');
     });
 
-    it('should reject keys with tampered checksums', async () => {
+    it('should reject keys with tampered checksums/signatures', async () => {
       const keys = await service.generateLicenseKeys({
         deskId: 'TEST_DESK_01',
         plan: 'pro',
         maxMasters: 5
       });
       const originalKey = keys[0].key;
-      // Change last character of key segment before checksum
-      const parts = originalKey.split('-');
-      parts[2] = 'ZZZZ';
-      const tamperedKey = parts.join('-');
+      const parts = originalKey.split('.');
+      if (parts.length > 1) {
+        parts[1] = 'TAMPEREDSIGNATURE' + parts[1].substring(17);
+      } else {
+        parts[0] = originalKey + 'TAMPERED';
+      }
+      const tamperedKey = parts.join('.');
 
       const res = await service.validateLicenseKey(tamperedKey);
       expect(res.valid).toBe(false);
-      expect(res.error).toContain('checksum');
+      expect(res.error).toContain('Invalid signature');
     });
 
     it('should validate against db records when database is provided', async () => {
@@ -66,7 +68,7 @@ describe('LicenseService', () => {
         prepare: jest.fn<any>().mockReturnValue({
           bind: jest.fn<any>().mockReturnValue({
             first: jest.fn<any>().mockResolvedValue({
-              key: 'CF-LIVE-AAAA-BBBB-CCCC-DDDD-1234',
+              key: 'CF-LIVE-AAAA.BBBB',
               desk_id: 'DESK_01',
               plan: 'enterprise',
               max_masters: 10,
@@ -78,7 +80,7 @@ describe('LicenseService', () => {
         })
       };
 
-      const dbService = new LicenseService(mockDb);
+      const dbService = new LicenseService(mockDb, MOCK_PRIVATE_KEY, MOCK_PUBLIC_KEY);
       const keys = await dbService.generateLicenseKeys({ deskId: 'DESK_01', plan: 'enterprise', maxMasters: 10 });
       const validKey = keys[0].key;
 
@@ -93,7 +95,7 @@ describe('LicenseService', () => {
         prepare: jest.fn<any>().mockReturnValue({
           bind: jest.fn<any>().mockReturnValue({
             first: jest.fn<any>().mockResolvedValue({
-              key: 'CF-LIVE-AAAA-BBBB-CCCC-DDDD-1234',
+              key: 'CF-LIVE-AAAA.BBBB',
               desk_id: 'DESK_01',
               plan: 'pro',
               max_masters: 5,
@@ -105,7 +107,7 @@ describe('LicenseService', () => {
         })
       };
 
-      const dbService = new LicenseService(mockDb);
+      const dbService = new LicenseService(mockDb, MOCK_PRIVATE_KEY, MOCK_PUBLIC_KEY);
       const keys = await dbService.generateLicenseKeys({ deskId: 'DESK_01', plan: 'pro', maxMasters: 5 });
       const validKey = keys[0].key;
 

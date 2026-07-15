@@ -11,6 +11,7 @@ import {Monitor,
     Database,
     Clock} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { logger } from "@/utils/logger";
 
 export const FleetMonitor: React.FC = () => {
     const [masters, setMasters] = useState<Destination[]>([]);
@@ -21,7 +22,7 @@ export const FleetMonitor: React.FC = () => {
             const data = await apiService.getMastersStatus();
             setMasters(data);
         } catch (error) {
-            console.error('Failed to fetch fleet status:', error);
+            logger.error('Failed to fetch fleet status:', error);
         } finally {
             setIsLoading(false);
         }

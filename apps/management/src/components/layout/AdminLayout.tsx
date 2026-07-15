@@ -4,6 +4,7 @@ import React, { memo, Component, ReactNode } from 'react';
 import {Outlet} from 'react-router-dom';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { logger } from "@/utils/logger";
 
 interface ErrorBoundaryProps {
   children?: ReactNode;
@@ -27,7 +28,7 @@ class FeatureErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    console.error('[ErrorBoundary]', error, errorInfo);
+    logger.error('[ErrorBoundary]', error, errorInfo);
     this.props.onError?.(error, errorInfo);
   }
 

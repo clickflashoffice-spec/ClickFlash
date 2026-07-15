@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 /**
  * Money Trash Service for Customer Gallery
  * Enables customers to browse and purchase archived/unsold photos at discount
@@ -54,7 +55,7 @@ class MoneyTrashService {
       const data = await response.json();
       return this.transformTrashGallery(data);
     } catch (error) {
-      console.error("MoneyTrash fetch error:", error);
+      logger.error("MoneyTrash fetch error:", error);
       return null;
     }
   }
@@ -125,7 +126,7 @@ class MoneyTrashService {
 
       return response.ok;
     } catch (error) {
-      console.error("Photo recovery failed:", error);
+      logger.error("Photo recovery failed:", error);
       return false;
     }
   }
@@ -150,7 +151,7 @@ class MoneyTrashService {
       if (!response.ok) return null;
       return await response.json();
     } catch (error) {
-      console.error("Failed to fetch trash stats:", error);
+      logger.error("Failed to fetch trash stats:", error);
       return null;
     }
   }

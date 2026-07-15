@@ -4,6 +4,7 @@ import { apiService } from "../../../services/apiService";
 import Spinner from "../../common/Spinner";
 import { useCurrency } from "../../CurrencyContext";
 import SessionTypeEditModal from "../modals/SessionTypeEditModal";
+import { logger } from "@/utils/logger";
 
 interface SessionTypesSettingsProps {
   context?: string;
@@ -24,7 +25,7 @@ const SessionTypesSettings: React.FC<SessionTypesSettingsProps> = ({
       const data = await apiService.getSessionTypes();
       setSessionTypes(data);
     } catch (error) {
-      console.error("Failed to load session types", error);
+      logger.error("Failed to load session types", error);
     } finally {
       setLoading(false);
     }
@@ -59,7 +60,7 @@ const SessionTypesSettings: React.FC<SessionTypesSettingsProps> = ({
       setSessionToEdit(null);
       fetchData();
     } catch (error) {
-      console.error("Failed to save session type", error);
+      logger.error("Failed to save session type", error);
       alert(
         `Failed to save session type: ${error instanceof Error ? error.message : "Unknown error"}`,
       );

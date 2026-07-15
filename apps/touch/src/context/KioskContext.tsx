@@ -11,6 +11,7 @@ import { LEGACY_KIOSK_ID } from '../constants';
 import { PocketRecord } from '../services/pbTypes';
 import { kioskConfig } from '../config/kioskConfig';
 import { storageMonitor } from '../services/storageMonitor';
+import { connectivityService } from '../services/connectivityService';
 
 // Extend Window interface
 declare global {
@@ -110,7 +111,7 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
 
         let coverPhotoUrl = album.coverPhotoUrl;
         const hydratedPhotos = album.photos
-            .map(p => {
+            .map((p: any) => {
                 if (!p || !p.id) {
                     // logger.warn("[Kiosk] Invalid photo in album", { albumId: album.id, photo: p });
                     return null;
@@ -148,7 +149,7 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
                 }
                 return null;
             })
-            .filter((p): p is Photo => p !== null);
+            .filter((p: any): p is Photo => p !== null);
 
         if (hydratedPhotos.length > 0) {
             if (!coverPhotoUrl || (!coverPhotoUrl.startsWith('http') && !coverPhotoUrl.startsWith('blob:') && !coverPhotoUrl.startsWith('data:'))) {
@@ -177,6 +178,7 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
     useEffect(() => {
         let isSubscribed = true;
         let healthInterval: number;
+        let unsubscribeUrl: (() => void) | undefined;
 
         const setupKiosk = async () => {
             const params = new URLSearchParams(window.location.search);
@@ -420,7 +422,7 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
                             };
                         })
                     }));
-                    mappedAlbums.forEach(a => { if (a.photos.length > 0) a.coverPhotoUrl = a.photos[0].url; });
+                    mappedAlbums.forEach(a => { if ((a.photos || []).length > 0) a.coverPhotoUrl = a.photos![0].url; });
 
                     setKioskAlbums(mappedAlbums);
                     offlineStorage.saveAlbums(mappedAlbums);
@@ -490,7 +492,7 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
                                     };
                                 })
                             };
-                            if (newAlbum.photos.length > 0) newAlbum.coverPhotoUrl = newAlbum.photos[0].url;
+                            if ((newAlbum.photos || []).length > 0) newAlbum.coverPhotoUrl = newAlbum.photos![0].url;
 
                             if (isSubscribed) {
                                 syncService.markAlbumReceivedViaRealtime(newAlbum.id);
@@ -513,124 +515,170 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
                 logger.error("[Kiosk] Failed to setup realtime listeners", err instanceof Error ? err : undefined);
             }
 
-            // Connect to Master's WebSocket server
-            // FORCE PORT 8090 + /ws path
-            let masterWsUrl = 'ws://localhost:8090/ws';
-            if (savedSettings?.serverUrl) {
+            // Extract WebSocket connection logic so it can be called on Master URL discovery
+            const connectWebSocket = async (baseUrl: string) => {
+                let masterWsUrl = baseUrl.replace(/^http/, 'ws') + `/ws?kioskId=${currentKioskId}`;
+                
                 try {
-                    const serverUrl = new URL(savedSettings.serverUrl);
-                    masterWsUrl = `ws://${serverUrl.hostname}:8090/ws`;
-                } catch (urlError) { }
-            }
-
-            logger.info(`[KioskSetup] Connecting to Master WebSocket at: ${masterWsUrl}`, {
-                savedSettingsUrl: savedSettings?.serverUrl,
-                finalUrl: masterWsUrl
-            });
-
-            // Fetch local paths
-            let ordersFolderPath = '';
-            try {
-                // Try grabbing from local DB settings via PB
-                // We initialized 'touchOrdersFolder' in server.ts
-                logger.info("[KioskSetup] Attempting to fetch touchOrdersFolder from Local Backend", { url: pb.baseUrl });
-
-                const setting = await pb.collection('settings').getFirstListItem('key="touchOrdersFolder"').catch((err) => {
-                    logger.warn("[KioskSetup] Failed to fetch touchOrdersFolder setting", { error: err.message });
-                    return null;
-                });
-
-                if (setting && setting.value) {
-                    try {
-                        const parsed = JSON.parse(setting.value);
-                        ordersFolderPath = parsed.path || '';
-                        logger.info("[KioskSetup] Successfully loaded ordersFolderPath", { path: ordersFolderPath });
-                    } catch (parseErr) {
-                        logger.warn("[KioskSetup] Failed to parse touchOrdersFolder value", { value: setting.value });
-                        ordersFolderPath = setting.value; // Fallback to raw string
-                    }
-                } else {
-                    logger.warn("[KioskSetup] touchOrdersFolder setting not found or empty");
-                }
-            } catch (e: any) {
-                logger.error("[KioskSetup] Critical error fetching ordersFolderPath", { error: e.message });
-            }
-
-            webSocketService.connect(
-                { type: 'kiosk', kioskId: currentKioskId, ordersFolderPath },
-                (data: unknown) => {
-                    if (!isSubscribed) return;
-                    try {
-                        const message = data as { type?: string; payload?: unknown; collection?: string };
-                        if (message.type === 'NEW_ALBUM_FOR_KIOSK' && isSubscribed) {
-                            const albumPayload = message.payload as Album;
-                            if (!albumPayload || !albumPayload.id) return;
-
+                    const pairingSetting = await pb.collection('settings').getFirstListItem('key="pairing_config"').catch(() => null);
+                    if (pairingSetting && pairingSetting.value) {
+                        const parsed = typeof pairingSetting.value === 'string' ? JSON.parse(pairingSetting.value) : pairingSetting.value;
+                        if (parsed.hmacSecret) {
                             try {
-                                const hydratedAlbum = hydrateKioskAlbum(albumPayload);
-                                syncService.markAlbumReceivedViaRealtime(hydratedAlbum.id);
-
-                                setKioskAlbums(prevAlbums => {
-                                    const exists = prevAlbums.find(a => a.id === hydratedAlbum.id);
-                                    let newAlbums;
-                                    if (exists) newAlbums = prevAlbums.map(a => a.id === hydratedAlbum.id ? hydratedAlbum : a);
-                                    else newAlbums = [hydratedAlbum, ...prevAlbums];
-                                    offlineStorage.saveAlbums(newAlbums);
-                                    return newAlbums;
-                                });
-                                showToast("New photos have arrived!");
-                            } catch (e) { }
-                        }
-
-                        // BROADCAST_DATA_REFRESH support for Products & Packs
-                        if (message.type === 'BROADCAST_DATA_REFRESH') {
-                            const collection = message.collection;
-                            if (collection === 'products' || collection === 'packs') {
-                                logger.info(`[Kiosk] Received broadcast refresh for ${collection}`);
-                                refreshProductData();
+                                const timestamp = Date.now().toString();
+                                const payload = `${currentKioskId}:${timestamp}`;
+                                const encoder = new TextEncoder();
+                                const keyData = encoder.encode(parsed.hmacSecret);
+                                const cryptoKey = await window.crypto.subtle.importKey(
+                                    'raw',
+                                    keyData,
+                                    { name: 'HMAC', hash: 'SHA-256' },
+                                    false,
+                                    ['sign']
+                                );
+                                const signatureBuffer = await window.crypto.subtle.sign(
+                                    'HMAC',
+                                    cryptoKey,
+                                    encoder.encode(payload)
+                                );
+                                const hashArray = Array.from(new Uint8Array(signatureBuffer));
+                                const signatureHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                                
+                                masterWsUrl += `&signature=sha256=${signatureHex}&timestamp=${timestamp}`;
+                            } catch (cryptoErr: any) {
+                                logger.error("[KioskSetup] Failed to generate HMAC signature for WebSocket", { error: cryptoErr.message });
                             }
                         }
-                    } catch (e) { }
-                },
-                async (status) => {
-                    if (!isSubscribed) return;
+                    }
+                } catch (err) {
+                    logger.warn("[KioskSetup] Could not load pairing config for WebSocket", { error: err instanceof Error ? err.message : String(err) });
+                }
 
-                    // UPDATE MASTER STATUS STATE
-                    setMasterStatus(status);
+                logger.info(`[KioskSetup] Connecting to Master WebSocket at: ${masterWsUrl}`);
 
-                    // Kiosk SessionHeartbeat Logic
-                    if (status === 'Connected') {
+                // Fetch local paths
+                let ordersFolderPath = '';
+                try {
+                    logger.info("[KioskSetup] Attempting to fetch touchOrdersFolder from Local Backend", { url: pb.baseUrl });
+                    const setting = await pb.collection('settings').getFirstListItem('key="touchOrdersFolder"').catch((err) => {
+                        logger.warn("[KioskSetup] Failed to fetch touchOrdersFolder setting", { error: err.message });
+                        return null;
+                    });
+                    if (setting && setting.value) {
                         try {
-                            const kId = localStorage.getItem('kioskId');
-                            if (kId) {
-                                try {
-                                    const existing = await pb.collection('kiosk_sessions').getFirstListItem(`kioskId="${kId}"`);
-                                    await pb.collection('kiosk_sessions').update(existing.id, { lastSeen: new Date().toISOString() });
-                                } catch {
-                                    await pb.collection('kiosk_sessions').create({ kioskId: kId, lastSeen: new Date().toISOString() });
-                                }
+                            const parsed = JSON.parse(setting.value);
+                            ordersFolderPath = parsed.path || '';
+                            logger.info("[KioskSetup] Successfully loaded ordersFolderPath", { path: ordersFolderPath });
+                        } catch (parseErr) {
+                            logger.warn("[KioskSetup] Failed to parse touchOrdersFolder value", { value: setting.value });
+                            ordersFolderPath = setting.value;
+                        }
+                    } else {
+                        logger.warn("[KioskSetup] touchOrdersFolder setting not found or empty");
+                    }
+                } catch (e: any) {
+                    logger.error("[KioskSetup] Critical error fetching ordersFolderPath", { error: e.message });
+                }
 
-                                const interval = setInterval(async () => {
+                webSocketService.connect(
+                    { type: 'kiosk', kioskId: currentKioskId, ordersFolderPath },
+                    (data: unknown) => {
+                        if (!isSubscribed) return;
+                        try {
+                            const message = data as { type?: string; payload?: unknown; collection?: string; data?: unknown; entity?: string };
+                            
+                            // Legacy NEW_ALBUM_FOR_KIOSK or SyncManager ALBUM_UPDATED
+                            const isAlbumUpdate = message.type === 'NEW_ALBUM_FOR_KIOSK' || 
+                                                  message.type === 'ALBUM_UPDATED' || 
+                                                  (message.type === 'STATE_UPDATE' && message.entity === 'albums');
+                                                  
+                            if (isAlbumUpdate && isSubscribed) {
+                                const albumPayload = (message.data || message.payload) as Album;
+                                if (!albumPayload || !albumPayload.id) return;
+
+                                try {
+                                    const hydratedAlbum = hydrateKioskAlbum(albumPayload);
+                                    syncService.markAlbumReceivedViaRealtime(hydratedAlbum.id);
+
+                                    setKioskAlbums(prevAlbums => {
+                                        const exists = prevAlbums.find(a => a.id === hydratedAlbum.id);
+                                        let newAlbums;
+                                        if (exists) newAlbums = prevAlbums.map(a => a.id === hydratedAlbum.id ? hydratedAlbum : a);
+                                        else newAlbums = [hydratedAlbum, ...prevAlbums];
+                                        offlineStorage.saveAlbums(newAlbums);
+                                        return newAlbums;
+                                    });
+                                    showToast("New photos have arrived!");
+                                } catch (e) { }
+                            }
+
+                            // BROADCAST_DATA_REFRESH support for Products & Packs
+                            if (message.type === 'BROADCAST_DATA_REFRESH') {
+                                const collection = message.collection;
+                                if (collection === 'products' || collection === 'packs') {
+                                    logger.info(`[Kiosk] Received broadcast refresh for ${collection}`);
+                                    refreshProductData();
+                                }
+                            }
+                        } catch (e) { }
+                    },
+                    async (status) => {
+                        if (!isSubscribed) return;
+                        
+                        setMasterStatus(status);
+
+                        // Kiosk SessionHeartbeat Logic
+                        if (status === 'Connected') {
+                            try {
+                                const kId = localStorage.getItem('kioskId');
+                                if (kId) {
                                     try {
                                         const existing = await pb.collection('kiosk_sessions').getFirstListItem(`kioskId="${kId}"`);
                                         await pb.collection('kiosk_sessions').update(existing.id, { lastSeen: new Date().toISOString() });
-                                    } catch (err: any) {
-                                        // Silent fail is acceptable for heartbeat, but good to debug
-                                        // logger.debug("Heartbeat update failed (minor)", err); 
+                                    } catch {
+                                        await pb.collection('kiosk_sessions').create({ kioskId: kId, lastSeen: new Date().toISOString() });
                                     }
-                                }, TIMEOUTS.HEARTBEAT_INTERVAL);
-                                window.__kioskSessionHeartbeat = interval;
+
+                                    const interval = setInterval(async () => {
+                                        try {
+                                            const existing = await pb.collection('kiosk_sessions').getFirstListItem(`kioskId="${kId}"`);
+                                            await pb.collection('kiosk_sessions').update(existing.id, { lastSeen: new Date().toISOString() });
+                                        } catch (err: any) {
+                                        }
+                                    }, TIMEOUTS.HEARTBEAT_INTERVAL);
+                                    window.__kioskSessionHeartbeat = interval;
+                                }
+                            } catch (err) { logger.error("Heartbeat setup error", err instanceof Error ? err : undefined); }
+                        } else {
+                            if (window.__kioskSessionHeartbeat) {
+                                clearInterval(window.__kioskSessionHeartbeat);
+                                window.__kioskSessionHeartbeat = null;
                             }
-                        } catch (err) { logger.error("Heartbeat setup error", err instanceof Error ? err : undefined); }
-                    } else {
-                        if (window.__kioskSessionHeartbeat) {
-                            clearInterval(window.__kioskSessionHeartbeat);
-                            window.__kioskSessionHeartbeat = null;
                         }
+                    },
+                    undefined, undefined, masterWsUrl
+                );
+            };
+
+            // Start connectivityService and subscribe to masterUrl changes
+            connectivityService.start();
+            let hasConnected = false;
+            
+            unsubscribeUrl = connectivityService.subscribeUrl((url) => {
+                if (!isSubscribed) return;
+                try {
+                    const parsedUrl = new URL(url);
+                    syncService.updateMasterIp(parsedUrl.hostname);
+                    syncService.sync();
+                    
+                    if (!hasConnected || webSocketService.status !== 'Connected') {
+                        hasConnected = true;
+                        connectWebSocket(url);
                     }
-                },
-                undefined, undefined, masterWsUrl
-            );
+                } catch (e) {
+                    logger.error("[KioskSetup] Error in connectivityService url subscriber", e instanceof Error ? e : undefined);
+                }
+            });
 
             // Initial Product Fetch
             refreshProductData();
@@ -664,6 +712,8 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
         return () => {
             clearInterval(healthInterval);
             isSubscribed = false;
+            unsubscribeUrl?.();
+            connectivityService.stop();
             pb.collection('albums').unsubscribe('*');
             if (webSocketService.status === 'Connected') webSocketService.disconnect();
             syncService.stopSyncLoop();

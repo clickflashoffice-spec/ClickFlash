@@ -1,37 +1,14 @@
+import { logger as coreLogger } from '@clickflash/logger';
 /// <reference types="vite/client" />
 import { getEnv } from './env';
-/**
- * Structured logging utility for frontend
- *
- * Provides log levels, structured data, and console formatting.
- * Supports both development (formatted) and production (JSON) logging.
- *
- * Log Levels:
- * - DEBUG: Detailed information for debugging
- * - INFO: General informational messages
- * - WARN: Warning messages for potential issues
- * - ERROR: Error messages for failures
- *
- * Configuration:
- * - Set log level via VITE_LOG_LEVEL environment variable
- * - Defaults to INFO level
- * - Development mode uses formatted console output
- * - Production mode uses structured JSON logging
- */
 
-/** Log level enumeration */
 export enum LogLevel {
-  /** Detailed debugging information */
   DEBUG = 0,
-  /** General informational messages */
   INFO = 1,
-  /** Warning messages */
   WARN = 2,
-  /** Error messages */
   ERROR = 3,
 }
 
-/** Log entry structure */
 interface LogEntry {
   timestamp: string;
   level: string;
@@ -40,7 +17,6 @@ interface LogEntry {
   stack?: string;
 }
 
-/** Logger Class */
 class Logger {
   private level: LogLevel;
   private isDevelopment: boolean;
@@ -75,10 +51,10 @@ class Logger {
     const entry = this.formatMessage(levelName, message, data, error);
     if (this.isDevelopment) {
       const style = this.getConsoleStyle(level);
-      console.log(`%c[${entry.timestamp}] ${entry.level}: ${entry.message}`, style, data || error || '');
-      if (entry.stack) console.log('%cStack:', 'color: #999; font-size: 11px;', entry.stack);
+      coreLogger.info(`[${entry.timestamp}] ${entry.level}: ${entry.message}`, { style, data: data || error });
+      if (entry.stack) coreLogger.info('Stack:', { stack: entry.stack });
     } else {
-      console.log(JSON.stringify(entry));
+      coreLogger.info(entry.message, { data: entry });
     }
   }
 
@@ -101,5 +77,4 @@ class Logger {
   }
 }
 
-/** Default logger instance */
 export const logger = new Logger();

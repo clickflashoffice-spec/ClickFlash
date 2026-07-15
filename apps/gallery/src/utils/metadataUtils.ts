@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 /**
  * Metadata Utilities
  * 
@@ -33,7 +34,7 @@ export const extractMetadata = async (imageUrl: string): Promise<PhotoMetadata |
             img.src = imageUrl;
         });
     } catch (error) {
-        console.error('Error extracting metadata:', error);
+        logger.error('Error extracting metadata:', error);
         return null;
     }
 };
@@ -80,7 +81,7 @@ export const getImageFileSize = async (imageUrl: string): Promise<number | null>
         const contentLength = response.headers.get('content-length');
         return contentLength ? parseInt(contentLength, 10) : null;
     } catch (error) {
-        console.error('Error getting file size:', error);
+        logger.error('Error getting file size:', error);
         return null;
     }
 };

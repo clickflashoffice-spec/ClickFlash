@@ -1,4 +1,5 @@
 import { createErrorResponse } from "../errorHandler.js";
+import { logger } from "@clickflash/logger";
 
 export const handleTelemetry = async (request: Request, url: URL, corsHeaders: any) => {
   if (url.pathname === "/api/telemetry/ingest" && request.method === "POST") {
@@ -16,15 +17,15 @@ export const handleTelemetry = async (request: Request, url: URL, corsHeaders: a
       logs.forEach(log => {
         const level = (log.level || 'INFO').toUpperCase();
         const msg = `[TELEMETRY] [${log.service}] [${log.url}] [${level}] ${log.message}`;
-        if (level === 'ERROR' || level === 'FATAL') console.error(msg, log.data);
-        else if (level === 'WARN') console.warn(msg, log.data);
-        else if (level === 'DEBUG') console.debug(msg, log.data);
-        else console.info(msg, log.data);
+        if (level === 'ERROR' || level === 'FATAL') logger.error(String(msg) + ' ' + String(log.data));
+        else if (level === 'WARN') logger.warn(String(msg) + ' ' + String(log.data));
+        else if (level === 'DEBUG') logger.debug(String(msg) + ' ' + String(log.data));
+        else logger.info(String(msg) + ' ' + String(log.data));
       });
 
       return Response.json({ success: true, count: logs.length }, { headers: corsHeaders });
     } catch (error) {
-      console.error("[TELEMETRY] Failed to ingest telemetry payload", error);
+      logger.error("[TELEMETRY] Failed to ingest telemetry payload", { args: [error] });
       return createErrorResponse(500, "Internal Server Error", "Failed to process telemetry");
     }
   }

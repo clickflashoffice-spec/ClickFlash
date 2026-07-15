@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 import { getApiBaseUrl } from './env';
 
 const API_BASE_URL = getApiBaseUrl();
@@ -50,7 +51,7 @@ export async function fetchPortfolioItems(category?: string, featured?: boolean)
         if (!response.ok) throw new Error('Failed to fetch portfolio items');
         return response.json();
     } catch (error) {
-        console.warn('Portfolio fetch failed (likely build-time offline):', error);
+        logger.warn('Portfolio fetch failed (likely build-time offline):', { error: error instanceof Error ? error.message : String(error) });
         return { success: true, items: [] };
     }
 }

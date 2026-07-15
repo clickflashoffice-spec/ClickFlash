@@ -17,6 +17,7 @@ import {
   Filter,
 } from "lucide-react";
 import { useManagement } from "../../context/ManagementContext.tsx";
+import { logger } from "@/utils/logger";
 
 const ReportsPage: React.FC = () => {
   const { selectedContext: context } = useManagement();
@@ -49,7 +50,7 @@ const ReportsPage: React.FC = () => {
           ]);
         setData({ orders, expenses, photographers, destinations });
       } catch (error) {
-        console.error("Failed to load report data", error);
+        logger.error("Failed to load report data", error);
       } finally {
         setLoading(false);
       }

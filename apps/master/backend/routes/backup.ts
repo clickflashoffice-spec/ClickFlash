@@ -17,23 +17,26 @@ import { BackupService } from "../services/BackupService";
 import { Logger } from '../utils/logger';
 import { DatabaseManager } from '../database/db';
 import { DB_FILE, UPLOAD_DIR } from "../config/constants";
+import { requirePermission, PERMISSIONS } from "../middleware/permissions";
+import AuditLogger from "../utils/auditLogger";
 
 export interface BackupRouteContext {
   dbManager: DatabaseManager;
   logger: Logger;
+  auditLogger?: AuditLogger;
 }
 
 export default function backupRoutes(context: BackupRouteContext): Router {
-  const { logger } = context;
+  const { logger, auditLogger } = context;
   const router = express.Router();
   const backupService = new BackupService(DB_FILE, UPLOAD_DIR, logger);
 
   /**
    * GET /api/backup/export
    * Streams a complete backup archive as a downloadable file.
-   * Auth enforced by authMiddleware mounted upstream in server.ts.
+   * Auth enforced by authMiddleware mounted upstream in server.ts + SYSTEM_ADMIN RBAC.
    */
-  router.get("/export", async (req: Request, res: Response) => {
+  router.get("/export", requirePermission(PERMISSIONS.SYSTEM_ADMIN, auditLogger), async (req: Request, res: Response) => {
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
       const filename = `clickflash-backup-${timestamp}.clickflash-backup`;
@@ -62,6 +65,7 @@ export default function backupRoutes(context: BackupRouteContext): Router {
    */
   router.post(
     "/restore",
+    requirePermission(PERMISSIONS.SYSTEM_ADMIN, auditLogger),
     express.raw({ type: "*/*", limit: "200mb" }),
     async (req: Request, res: Response) => {
       try {

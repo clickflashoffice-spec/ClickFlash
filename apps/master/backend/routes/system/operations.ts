@@ -9,6 +9,7 @@ import { sendInternalError, sendInvalidInputError } from '../../utils/errorHandl
 import { TransferService } from "../../services/TransferService";
 import { strictRateLimiter } from '../../middleware/rateLimiter';
 import { customRoutesSchemas } from '../../utils/validation';
+import { requirePermission, PERMISSIONS } from '../../middleware/permissions';
 
 interface OperationsContext {
   dbManager: DatabaseManager;
@@ -131,7 +132,7 @@ export default function operationsRoutes(context: OperationsContext): Router {
   /**
    * @route POST /settings/:namespace
    */
-  router.post("/settings/:namespace", strictRateLimiter, (req: Request, res: Response) => {
+  router.post("/settings/:namespace", strictRateLimiter, requirePermission(PERMISSIONS.SETTINGS_EDIT, context.auditLogger), (req: Request, res: Response) => {
     const { namespace } = req.params;
     const parsed = customRoutesSchemas.operationsSettingsNamespace.safeParse(req.body);
     const valueStr = JSON.stringify(parsed.success ? parsed.data : {});
@@ -168,7 +169,7 @@ export default function operationsRoutes(context: OperationsContext): Router {
   /**
    * @route POST /migrate-storage
    */
-  router.post("/migrate-storage", strictRateLimiter, async (_req: Request, res: Response) => {
+  router.post("/migrate-storage", strictRateLimiter, requirePermission(PERMISSIONS.SYSTEM_ADMIN, context.auditLogger), async (_req: Request, res: Response) => {
     try {
       if (!context.photoProcessor) throw new Error("Photo processor not available");
       const photos = dbManager.query<any>("SELECT * FROM photos");
@@ -195,7 +196,7 @@ export default function operationsRoutes(context: OperationsContext): Router {
   /**
    * @route POST /config/import
    */
-  router.post("/config/import", strictRateLimiter, (req: Request, res: Response) => {
+  router.post("/config/import", strictRateLimiter, requirePermission(PERMISSIONS.SETTINGS_EDIT, context.auditLogger), (req: Request, res: Response) => {
     try {
       const parsed = customRoutesSchemas.operationsConfigImport.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: "Invalid config", details: parsed.error.issues });
@@ -243,7 +244,7 @@ export default function operationsRoutes(context: OperationsContext): Router {
    *        Deletes all personal data for a customer email from the source-of-truth DB.
    *        Requires authentication (enforced by global auth middleware).
    */
-  router.post("/erase-customer-data", strictRateLimiter, async (req: Request, res: Response) => {
+  router.post("/erase-customer-data", strictRateLimiter, requirePermission(PERMISSIONS.SYSTEM_ADMIN, context.auditLogger), async (req: Request, res: Response) => {
     try {
       const parsed = customRoutesSchemas.operationsEraseCustomerData.safeParse(req.body);
       if (!parsed.success) {

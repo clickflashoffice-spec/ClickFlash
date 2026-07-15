@@ -6,6 +6,8 @@ import OfflineScreen from "./components/common/OfflineScreen";
 import { cloudApiService } from "./services/cloudApiService";
 import { StationProvider } from "./context/StationContext";
 import { ManagementProvider } from "./context/ManagementContext";
+import { useLocation } from "react-router-dom";
+import { ActivateDevicePage } from "./components/management/ActivateDevicePage";
 
 type AuthState = "unauthenticated" | "authenticated";
 
@@ -17,6 +19,7 @@ const ManagementPortal: React.FC<ManagementPortalProps> = ({ onExit }) => {
   const [authState, setAuthState] = useState<AuthState>("unauthenticated");
   const [currentUser, setCurrentUser] = useState<Photographer | null>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const location = useLocation();
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -60,6 +63,10 @@ const ManagementPortal: React.FC<ManagementPortalProps> = ({ onExit }) => {
         onBack={handleBackToLauncher}
       />
     );
+  }
+
+  if (currentUser && location.pathname === "/activate") {
+    return <ActivateDevicePage currentUser={currentUser} />;
   }
 
   return currentUser ? (

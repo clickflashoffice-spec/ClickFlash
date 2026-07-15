@@ -21,7 +21,7 @@ export function StatsSection({ stats = DEFAULT_STATS }: StatsSectionProps) {
           <div className="text-left md:w-1/4">
             <h2 className="mb-2 font-sans text-4xl font-bold text-slate-900 md:text-5xl">
               A Unique Story in <br />
-              <span className="border-b-4 border-cyan-200 text-cyan-500">Every Number</span>
+              <span className="border-b-4 border-cyan-200 text-cyan-700">Every Number</span>
             </h2>
           </div>
 
@@ -36,7 +36,7 @@ export function StatsSection({ stats = DEFAULT_STATS }: StatsSectionProps) {
                 className="flex max-w-[200px] flex-col items-center"
               >
                 <span className="mb-2 text-5xl font-bold text-slate-800">{stat.value}</span>
-                <p className="text-sm leading-relaxed font-medium text-slate-500">{stat.label}</p>
+                <p className="text-sm leading-relaxed font-medium text-slate-600">{stat.label}</p>
               </motion.div>
             ))}
           </div>

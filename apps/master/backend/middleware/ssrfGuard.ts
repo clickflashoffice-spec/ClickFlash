@@ -93,7 +93,21 @@ function isIpForbidden(ip: string, opts: SsrfGuardOptions): boolean {
         // ::ffff:0:0/96 — IPv4-mapped — check the embedded IPv4
         if (lower.startsWith("::ffff:")) {
             const v4 = lower.slice(7);
-            return isIpForbidden(v4, opts);
+            if (v4.includes(".")) {
+                return isIpForbidden(v4, opts);
+            }
+            if (v4.includes(":")) {
+                const parts = v4.split(":");
+                if (parts.length === 2) {
+                    const w0 = parseInt(parts[0], 16);
+                    const w1 = parseInt(parts[1], 16);
+                    if (!isNaN(w0) && !isNaN(w1)) {
+                        const dotted = `${(w0 >> 8) & 0xff}.${w0 & 0xff}.${(w1 >> 8) & 0xff}.${w1 & 0xff}`;
+                        return isIpForbidden(dotted, opts);
+                    }
+                }
+            }
+            return true; // malformed IPv4-mapped address — fail closed
         }
         // fc00::/7 — ULA (private)
         if (/^f[cd][0-9a-f]{2}:/i.test(lower)) return !opts.allowPrivate;
@@ -179,11 +193,21 @@ export function checkUrlStatic(rawUrl: string, opts: SsrfGuardOptions = {}): Ssr
     }
 
     // 5. If hostname is an IP literal, check it directly
-    if (/^[\d.:a-fA-F]+$/.test(hostname)) {
-        if (isIpForbidden(hostname, opts)) {
+    const cleanHostname = hostname.startsWith("[") && hostname.endsWith("]")
+        ? hostname.slice(1, -1)
+        : hostname;
+
+    if (/^[\d.:a-fA-F]+$/.test(cleanHostname)) {
+        if (isIpForbidden(cleanHostname, opts)) {
             return { safe: false, reason: `Forbidden IP literal: ${hostname}` };
         }
-        return { safe: true, ip: hostname };
+        return { safe: true, ip: cleanHostname };
+    }
+
+    // 6. Check common loopback names statically
+    const lowerHost = cleanHostname.toLowerCase();
+    if (!opts.allowLoopback && (lowerHost === "localhost" || lowerHost.endsWith(".localhost"))) {
+        return { safe: false, reason: "Loopback hostname forbidden" };
     }
 
     // Hostname is a DNS name — caller should also do dynamic check
@@ -200,9 +224,12 @@ export async function checkUrl(rawUrl: string, opts: SsrfGuardOptions = {}): Pro
     if (!staticCheck.safe) return staticCheck;
 
     const hostname = new URL(rawUrl).hostname;
+    const cleanHostname = hostname.startsWith("[") && hostname.endsWith("]")
+        ? hostname.slice(1, -1)
+        : hostname;
 
     // If hostname is an IP literal, we already checked it statically
-    if (/^[\d.:a-fA-F]+$/.test(hostname)) {
+    if (/^[\d.:a-fA-F]+$/.test(cleanHostname)) {
         return staticCheck;
     }
 

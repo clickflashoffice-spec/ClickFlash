@@ -15,9 +15,9 @@ export default function AboutPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                     >
-                        <span className="text-cyan-500 font-black uppercase tracking-[0.3em] text-[12px] mb-4 block">About Us</span>
+                        <span className="text-cyan-700 font-black uppercase tracking-[0.3em] text-[12px] mb-4 block">About Us</span>
                         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 mb-6 md:mb-8 leading-tight tracking-tighter">
-                            Creating Smiles and Memories <span className="text-cyan-500">Since 2008</span>
+                            Creating Smiles and Memories <span className="text-cyan-700">Since 2008</span>
                         </h1>
                         <p className="text-slate-600 text-base md:text-lg lg:text-xl leading-relaxed max-w-3xl mx-auto px-2">
                             ClickFlash, established in 2008, specializes in resort and wedding photography. 
@@ -58,10 +58,10 @@ export default function AboutPage() {
                             className="text-center p-6 md:p-8"
                         >
                             <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-cyan-50 flex items-center justify-center mx-auto mb-4 md:mb-6">
-                                <feature.icon className="w-7 h-7 md:w-8 md:h-8 text-cyan-500" />
+                                <feature.icon className="w-7 h-7 md:w-8 md:h-8 text-cyan-700" />
                             </div>
                             <h3 className="text-lg md:text-xl font-black text-slate-900 mb-3 md:mb-4">{feature.title}</h3>
-                            <p className="text-slate-500 text-sm md:text-base leading-relaxed">{feature.desc}</p>
+                            <p className="text-slate-600 text-sm md:text-base leading-relaxed">{feature.desc}</p>
                         </motion.div>
                     ))}
                 </div>
@@ -88,7 +88,7 @@ export default function AboutPage() {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                     >
-                        <span className="text-cyan-500 font-black uppercase tracking-[0.3em] text-[11px] md:text-[12px] mb-4 block">Our Story</span>
+                        <span className="text-cyan-700 font-black uppercase tracking-[0.3em] text-[11px] md:text-[12px] mb-4 block">Our Story</span>
                         <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 mb-6 md:mb-8 tracking-tighter">
                             A Journey of Passion and Excellence
                         </h2>
@@ -111,7 +111,7 @@ export default function AboutPage() {
                                 "Coverage across Tunisia and international destinations"
                             ].map((item, i) => (
                                 <li key={i} className="flex items-center gap-3 text-slate-800 font-bold">
-                                    <CheckCircle2 className="text-cyan-500 w-5 h-5" />
+                                    <CheckCircle2 className="text-cyan-700 w-5 h-5" />
                                     {item}
                                 </li>
                             ))}
@@ -124,7 +124,7 @@ export default function AboutPage() {
             <section className="py-16 md:py-24 lg:py-32 bg-slate-50">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto text-center px-2">
-                        <span className="text-cyan-500 font-black uppercase tracking-[0.3em] text-[11px] md:text-[12px] mb-4 block">Our Creativity</span>
+                        <span className="text-cyan-700 font-black uppercase tracking-[0.3em] text-[11px] md:text-[12px] mb-4 block">Our Creativity</span>
                         <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 mb-6 md:mb-8 tracking-tighter">
                             Immortalizing Memories
                         </h2>
@@ -141,8 +141,8 @@ export default function AboutPage() {
                                 { number: "30+", label: "Destinations" }
                             ].map((stat, i) => (
                                 <div key={i} className="text-center">
-                                    <div className="text-3xl sm:text-4xl md:text-5xl font-black text-cyan-500 mb-2">{stat.number}</div>
-                                    <div className="text-slate-500 text-xs md:text-sm font-bold uppercase tracking-wider">{stat.label}</div>
+                                    <div className="text-3xl sm:text-4xl md:text-5xl font-black text-cyan-700 mb-2">{stat.number}</div>
+                                    <div className="text-slate-600 text-xs md:text-sm font-bold uppercase tracking-wider">{stat.label}</div>
                                 </div>
                             ))}
                         </div>
@@ -153,7 +153,7 @@ export default function AboutPage() {
             {/* TEAM SECTION */}
             <section className="py-16 md:py-24 lg:py-32 container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12 md:mb-16 lg:mb-20">
-                    <span className="text-cyan-500 font-black uppercase tracking-[0.3em] text-[11px] md:text-[12px] mb-4 block">Our Team</span>
+                    <span className="text-cyan-700 font-black uppercase tracking-[0.3em] text-[11px] md:text-[12px] mb-4 block">Our Team</span>
                     <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">
                         Meet Our Expert Photographers
                     </h2>
@@ -174,11 +174,11 @@ export default function AboutPage() {
                                 transition={{ delay: i * 0.1 }}
                                 className="text-center"
                             >
-                                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 mx-auto mb-4 md:mb-6 rounded-full bg-cyan-500 flex items-center justify-center">
+                                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 mx-auto mb-4 md:mb-6 rounded-full bg-cyan-700 flex items-center justify-center">
                                     <span className="text-white font-black text-3xl sm:text-4xl md:text-5xl tracking-tight">{initials}</span>
                                 </div>
                                 <h3 className="text-lg md:text-xl font-black text-slate-900 mb-1 md:mb-2">{member.name}</h3>
-                                <p className="text-slate-500 text-sm md:text-base">{member.role}</p>
+                                <p className="text-slate-600 text-sm md:text-base">{member.role}</p>
                             </motion.div>
                         );
                     })}

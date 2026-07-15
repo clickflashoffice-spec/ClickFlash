@@ -5,6 +5,7 @@
 
 import { Env } from '../../index';
 import { createJWT } from '../../utils/jwt';
+import { logger } from "@clickflash/logger";
 
 export interface OfficeVerifyRequest {
   deskId: string;
@@ -69,7 +70,7 @@ export async function handleOfficeVerify(request: Request, env: Env): Promise<Re
     });
     
   } catch (error) {
-    console.error('Office verification error:', error);
+    logger.error('Office verification error:', { args: [error] });
     return Response.json(
       { error: 'Failed to verify office' },
       { status: 500 }

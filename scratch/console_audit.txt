@@ -1,0 +1,718 @@
+apps/gallery/src/components/__tests__/common/ErrorBoundary.test.tsx:25:        // Suppress console.error for error boundary tests
+apps/gallery/src/main.tsx:24:const originalWarn = console.warn;
+apps/gallery/src/main.tsx:25:console.warn = (...args: any[]) => {
+apps/gallery/src/services/performanceMonitor.ts:350:      console.table(
+apps/gallery/src/setupTests.tsx:450:const originalConsoleError = console.error;
+apps/gallery/src/setupTests.tsx:451:const originalConsoleWarn = console.warn;
+apps/gallery/src/setupTests.tsx:455:  console.error = (...args: any[]) => {
+apps/gallery/src/setupTests.tsx:467:  console.warn = (...args: any[]) => {
+apps/gallery/src/setupTests.tsx:480:  console.error = originalConsoleError;
+apps/gallery/src/setupTests.tsx:481:  console.warn = originalConsoleWarn;
+apps/gallery/src/vitest.setup.tsx:328:const originalConsoleError = console.error;
+apps/gallery/src/vitest.setup.tsx:329:const originalConsoleWarn = console.warn;
+apps/gallery/src/vitest.setup.tsx:333:  console.error = (...args: unknown[]) => {
+apps/gallery/src/vitest.setup.tsx:345:  console.warn = (...args: unknown[]) => {
+apps/gallery/src/vitest.setup.tsx:358:  console.error = originalConsoleError;
+apps/gallery/src/vitest.setup.tsx:359:  console.warn = originalConsoleWarn;
+apps/installer/electron-main.ts:61:  console.log(entry.trim());
+apps/installer/scripts/copy-payloads.ts:16:    console.warn(`[copy-payloads] Source not found: ${src}`);
+apps/installer/scripts/copy-payloads.ts:36:console.log("[copy-payloads] Payloads staged successfully.");
+apps/installer/scripts/license-key.ts:105:      console.error("Usage: npx tsx license-key.ts validate <key>");
+apps/installer/scripts/license-key.ts:109:    console.log("\n🔍 Validating license key...\n");
+apps/installer/scripts/license-key.ts:112:        console.log("✅ VALID LICENSE\n");
+apps/installer/scripts/license-key.ts:113:        console.log(`Plan:    ${result.data?.plan}`);
+apps/installer/scripts/license-key.ts:114:        console.log(`Masters: ${result.data?.maxMasters}`);
+apps/installer/scripts/license-key.ts:115:        console.log(`Expires: ${result.data?.expiresAt || "never"}`);
+apps/installer/scripts/license-key.ts:117:           console.log(`Machine: ${result.data.machineId}`);
+apps/installer/scripts/license-key.ts:120:        console.log("❌ INVALID LICENSE\n");
+apps/installer/scripts/license-key.ts:121:        console.log(`Error: ${result.error}`);
+apps/installer/scripts/license-key.ts:125:    console.log(`
+apps/management/src/components/__tests__/common/ErrorBoundary.test.tsx:25:        // Suppress console.error for error boundary tests
+apps/management/src/components/error-boundaries/__tests__/FeatureErrorBoundary.test.tsx:22:    // Suppress console.error for expected errors
+apps/management/src/components/error-boundaries/__tests__/FeatureErrorBoundary.test.tsx:23:    const originalConsoleError = console.error;
+apps/management/src/components/error-boundaries/__tests__/FeatureErrorBoundary.test.tsx:25:        console.error = jest.fn();
+apps/management/src/components/error-boundaries/__tests__/FeatureErrorBoundary.test.tsx:29:        console.error = originalConsoleError;
+apps/management/src/components/error-boundaries/__tests__/FeatureErrorBoundary.test.tsx:101:    const originalConsoleError = console.error;
+apps/management/src/components/error-boundaries/__tests__/FeatureErrorBoundary.test.tsx:103:        console.error = jest.fn();
+apps/management/src/components/error-boundaries/__tests__/FeatureErrorBoundary.test.tsx:107:        console.error = originalConsoleError;
+apps/management/src/main.tsx:12:const originalWarn = console.warn;
+apps/management/src/main.tsx:13:console.warn = (...args: unknown[]) => {
+apps/management/src/setupTests.ts:114:const originalError = console.error;
+apps/management/src/setupTests.ts:116:    console.error = (...args: unknown[]) => {
+apps/management/src/setupTests.ts:126:    console.error = originalError;
+apps/management/src/utils/__tests__/logger.test.ts:16:        // Mock console.log to capture calls
+apps/management/src/vitest.setup.ts:93:const originalError = console.error;
+apps/management/src/vitest.setup.ts:95:    console.error = (...args: unknown[]) => {
+apps/management/src/vitest.setup.ts:105:    console.error = originalError;
+apps/master/backend/config/constants.ts:45:            console.warn(`[Security] Could not parse ${secretsFile}; regenerating secrets`);
+apps/master/backend/config/constants.ts:55:                console.log(`[Security] Generated persistent ${name} → ${secretsFile}`);
+apps/master/backend/config/constants.ts:57:                console.warn(`[Security] Using temporary ${name}. Set it in .env for stability.`);
+apps/master/backend/config/constants.ts:60:            console.warn(`[Security] Could not persist ${name} to disk:`, e);
+apps/master/backend/config/constants.ts:108:        console.log(`[WebRoot] Checking explicit env candidate 0: ${process.env.WEB_ROOT}`);
+apps/master/backend/config/constants.ts:110:            console.log(`[WebRoot] Found candidate 0 (process.env.WEB_ROOT)`);
+apps/master/backend/config/constants.ts:117:    console.log(`[WebRoot] Checking candidate 1: ${candidate1}`);
+apps/master/backend/config/constants.ts:119:        console.log(`[WebRoot] Found candidate 1`);
+apps/master/backend/config/constants.ts:125:    console.log(`[WebRoot] Checking candidate 2: ${candidate2}`);
+apps/master/backend/config/constants.ts:127:        console.log(`[WebRoot] Found candidate 2`);
+apps/master/backend/config/constants.ts:133:    console.log(`[WebRoot] Checking candidate 3: ${candidate3}`);
+apps/master/backend/config/constants.ts:135:        console.log(`[WebRoot] Found candidate 3`);
+apps/master/backend/config/constants.ts:141:    console.log(`[WebRoot] Checking candidate 4: ${candidate4}`);
+apps/master/backend/config/constants.ts:143:        console.log(`[WebRoot] Found candidate 4`);
+apps/master/backend/config/constants.ts:149:        console.log(`[WebRoot] Falling back to candidate 1 (Prod): ${candidate1}`);
+apps/master/backend/config/constants.ts:153:    console.log(`[WebRoot] Using default fallback: ${path.join(process.cwd(), 'dist/master')}`);
+apps/master/backend/config/constants.ts:158:console.log(`[WebRoot] Resolved WEB_ROOT: ${WEB_ROOT}`);
+apps/master/backend/middleware/session.ts:22:        const db = new Database(dbPath/*, { verbose: console.log } */);
+apps/master/backend/scripts/ReorganizeStorage.ts:89:run().catch(console.error);
+apps/master/backend/scripts/cleanup_processing.ts:43:    cleanupProcessing().catch(console.error);
+apps/master/backend/server.ts:32:console.log(`[Environment] Running in ${isElectron ? "Electron" : "Web"} mode`);
+apps/master/backend/server.ts:144:  console.error("[Fatal] Bootstrap Error:", err);
+apps/master/backend/server.ts:158:    console.log("[Security] Loaded SERVICE_SECRET from database");
+apps/master/backend/server.ts:167:      console.log("[Security] Generated and stored persistent SERVICE_SECRET");
+apps/master/backend/server.ts:169:      console.log("[Security] Generated temporary SERVICE_SECRET (DB not ready)");
+apps/master/backend/server.ts:182:  console.log("[Security] Loaded SERVICE_SECRET from environment");
+apps/master/backend/server.ts:263:  console.error("[Fatal] Service Initialization Error:", err);
+apps/master/backend/server.ts:709:        console.error(`[FATAL] Port ${PORT} is already in use.`);
+apps/master/backend/server.ts:712:        console.error("[FATAL] Server error:", e);
+apps/master/backend/server.ts:720:    console.error("[FATAL] Uncaught Exception:", err.message, err.stack);
+apps/master/backend/server.ts:738:  console.error("[FATAL] Unhandled Promise Rejection:", message);
+apps/master/backend/setup/check_retention.ts:30:check().catch(console.error);
+apps/master/backend/tests/manual_test_transfer.ts:15:const mockLogger = { info: console.log, warn: console.warn, error: console.error, debug: console.log } as any;
+apps/master/backend/tests/manual_test_transfer.ts:17:// We will just spy with console.log instead of jest.fn
+apps/master/backend/tools/benchmarkVectorIndex.ts:21:  console.time("Generation");
+apps/master/backend/tools/benchmarkVectorIndex.ts:32:  console.timeEnd("Generation");
+apps/master/backend/tools/benchmarkVectorIndex.ts:35:  console.time("Build Tree");
+apps/master/backend/tools/benchmarkVectorIndex.ts:40:  console.timeEnd("Build Tree");
+apps/master/backend/tools/benchmarkVectorIndex.ts:43:  console.time("Persistence (Save Binary)");
+apps/master/backend/tools/benchmarkVectorIndex.ts:45:  console.timeEnd("Persistence (Save Binary)");
+apps/master/backend/tools/benchmarkVectorIndex.ts:56:  console.time("Persistence (Load Binary)");
+apps/master/backend/tools/benchmarkVectorIndex.ts:59:  console.timeEnd("Persistence (Load Binary)");
+apps/master/backend/tools/benchmarkVectorIndex.ts:64:  console.time("Search (Limit 20)");
+apps/master/backend/tools/benchmarkVectorIndex.ts:66:  console.timeEnd("Search (Limit 20)");
+apps/master/backend/tools/benchmarkVectorIndex.ts:83:main().catch(console.error);
+apps/master/backend/utils/logger.ts:55:      console.error("[Logger] Failed to clean up old logs:", e);
+apps/master/backend/utils/logger.ts:109:          console.error("[Logger] Failed to write log:", retryError.message);
+apps/master/backend/utils/logger.ts:110:          console.log(logEntry.trim());
+apps/master/backend/utils/logger.ts:113:        console.error("[Logger] Failed to write log:", error.message);
+apps/master/backend/utils/logger.ts:114:        console.log(logEntry.trim());
+apps/master/backend/utils/logger.ts:121:        ? console.error
+apps/master/backend/utils/logger.ts:123:          ? console.warn
+apps/master/backend/utils/logger.ts:125:            ? console.log
+apps/master/electron-main.ts:45:  console.warn("[Main] autoUpdater module not available (run `npm run build:backend` first)");
+apps/master/electron-main.ts:125:        console.warn("[Main] Backend health-check timed out — loading UI anyway");
+apps/master/electron-main.ts:131:          console.log("[Main] Backend ready (health check passed)");
+apps/master/electron-main.ts:146:    console.log("[Main] Backend already running on port", BACKEND_PORT);
+apps/master/electron-main.ts:162:        console.log("[Main] Dev mode — waiting for dev backend on port", BACKEND_PORT);
+apps/master/electron-main.ts:168:    console.log("[Main] Resolved backend path:", serverPath);
+apps/master/electron-main.ts:169:    console.log("[Main] __dirname:", __dirname);
+apps/master/electron-main.ts:170:    console.log("[Main] process.resourcesPath:", process.resourcesPath);
+apps/master/electron-main.ts:172:      console.error("[Main] Backend bundle not found:", serverPath);
+apps/master/electron-main.ts:183:    console.log("[Main] Forking backend:", serverPath);
+apps/master/electron-main.ts:184:    console.log("[Main] DATA_DIR:", dataDir);
+apps/master/electron-main.ts:185:    console.log("[Main] Working dir:", appDir);
+apps/master/electron-main.ts:214:      console.error("[Main] Backend fork error:", err.message);
+apps/master/electron-main.ts:219:      console.warn("[Main] Backend exited (code", code, ")");
+apps/master/electron-main.ts:221:        console.log("[Main] Respawning backend in 3 s...");
+apps/master/electron-main.ts:222:        setTimeout(() => startBackend().catch(console.error), 3000);
+apps/master/electron-main.ts:228:        console.log("[Main] Received server-ready IPC from backend");
+apps/master/electron-main.ts:231:        console.error("[Main] Backend reported error:", msg.error);
+apps/master/electron-main.ts:253:  console.error("[Main] preload.js not found — IPC unavailable");
+apps/master/electron-main.ts:259:  console.log("[Main] Preload:", preload);
+apps/master/electron-main.ts:333:    console.log("[Main] Loading app via Express:", APP_URL);
+apps/master/electron-main.ts:337:    console.error("[Main] Failed to load renderer:", error.message);
+apps/master/electron-main.ts:375:    console.log("[Main] Auto-updater initialized");
+apps/master/electron-main.ts:380:    console.log("[Main] Power save blocker started (id:", powerSaveId, ")");
+apps/master/electron-main.ts:383:  console.log("[Main] Window ready");
+apps/master/electron-main.ts:401:      console.warn("[Security] Blocked navigation:", url);
+apps/master/electron-main.ts:408:      console.warn("[Security] Blocked redirect:", url);
+apps/master/electron-main.ts:414:    console.warn("[Security] Blocked new window:", url);
+apps/master/electron-main.ts:436:    console.error("[Main] Renderer crashed:", details.reason);
+apps/master/electron-main.ts:446:      console.error(`[Main] Renderer crashed ${crashTracker.count} times — stopping auto-reload`);
+apps/master/electron-main.ts:458:      console.log(`[Main] Reloading renderer (attempt ${crashTracker.count}/${MAX_CRASHES})`);
+apps/master/electron-main.ts:464:    console.error("[Main] did-fail-load:", code, desc);
+apps/master/electron-main.ts:483:    console.warn("[Main] KioskGuardian.exe not found — OS shortcuts unblocked");
+apps/master/electron-main.ts:492:      console.error(msg);
+apps/master/electron-main.ts:499:    console.log("[Main] KioskGuardian.exe integrity verified ✓");
+apps/master/electron-main.ts:501:    console.warn("[Main] KioskGuardian.exe.sha256 not found — skipping integrity check (reinstall recommended)");
+apps/master/electron-main.ts:505:  guardianProcess.on("error", (err: Error) => console.error("[Main] Guardian error:", err.message));
+apps/master/electron-main.ts:508:      console.warn("[Main] Guardian exited — respawning in 1 s");
+apps/master/electron-main.ts:512:  console.log("[Main] KioskGuardian spawned");
+apps/master/electron-main.ts:529:      console.error("[IPC] kiosk:unlock — ADMIN_PIN env not set; cannot unlock in production");
+apps/master/electron-main.ts:536:      console.warn(`[IPC] kiosk:unlock — locked out for ${secsLeft}s`);
+apps/master/electron-main.ts:556:      console.warn(`[IPC] kiosk:unlock — wrong PIN (attempt ${pinAttempts.count}/${PIN_MAX_ATTEMPTS})`);
+apps/master/electron-main.ts:624:    console.log("[Main] Admin shortcut — requesting PIN");
+apps/master/electron-main.ts:678:    console.log("[Main] System tray created");
+apps/master/electron-main.ts:681:    console.warn("[Main] Failed to create system tray:", error.message);
+apps/master/electron-main.ts:697:        console.error("[Backup] Backup failed:", err);
+apps/master/electron-main.ts:701:      console.warn("[Backup] backupService not available:", error.message);
+apps/master/electron-main.ts:759:        console.error("[Security] clickflash:// Directory traversal attempt:", fullPath);
+apps/master/electron-main.ts:767:      console.error("[Protocol] clickflash:// error:", err);
+apps/master/electron-main.ts:776:    console.log("[Main] Starting backend process...");
+apps/master/electron-main.ts:780:      console.warn("[Main] Backend did not report ready, proceeding anyway...");
+apps/master/electron-main.ts:782:      console.log("[Main] Backend is fully ready");
+apps/master/electron-main.ts:786:    console.error("[Main] Failed to start backend:", error.message);
+apps/master/electron-main.ts:798:  console.error("[Main] Fatal startup error:", err);
+apps/master/electron-main.ts:814:  console.error("[Main] Uncaught exception:", err);
+apps/master/electron-main.ts:819:  console.error("[Main] Unhandled promise rejection:", reason);
+apps/master/electron-new/tests/e2e/accessibility.spec.ts:21:        console.log('Accessibility violations:', JSON.stringify(criticalViolations, null, 2));
+apps/master/electron-new/tests/e2e/global-setup.ts:11:    console.warn('[E2E Setup] dist/main/index.js not found. Building...');
+apps/master/electron-new/tests/e2e/global-setup.ts:19:  console.log('[E2E Setup] Waiting for backend health check...');
+apps/master/electron-new/tests/e2e/global-setup.ts:27:        console.log('[E2E Setup] Backend is healthy');
+apps/master/electron-new/tests/e2e/global-setup.ts:36:  console.log('[E2E Setup] Global setup complete');
+apps/master/electron-new/tests/e2e/global-teardown.ts:2:  console.log('[E2E Teardown] Cleaning up...');
+apps/master/scripts/benchmark_load.ts:46:                console.error(`[${kioskId}] Failed: ${res.statusCode}`);
+apps/master/scripts/benchmark_load.ts:57:            console.error(`[${kioskId}] Error: ${e.message}`);
+apps/master/scripts/benchmark_load.ts:70:    console.log(`[Client ${id}] Starting...`);
+apps/master/scripts/benchmark_load.ts:76:    console.log(`[Client ${id}] Finished.`);
+apps/master/scripts/benchmark_load.ts:80:    console.log(`Starting Benchmark: ${NUM_CLIENTS} clients, ${DURATION_MS / 1000}s duration...`);
+apps/master/scripts/benchmark_load.ts:89:    console.log('\n=== Benchmark Results ===');
+apps/master/scripts/benchmark_load.ts:90:    console.log(`Total Requests: ${stats.totalRequests}`);
+apps/master/scripts/benchmark_load.ts:91:    console.log(`Success: ${stats.success}`);
+apps/master/scripts/benchmark_load.ts:92:    console.log(`Failed: ${stats.failed}`);
+apps/master/scripts/benchmark_load.ts:93:    console.log(`Avg Latency: ${(stats.totalLatency / stats.totalRequests).toFixed(2)}ms`);
+apps/master/scripts/benchmark_load.ts:94:    console.log(`Requests/Sec: ${(stats.totalRequests / (DURATION_MS / 1000)).toFixed(2)}`);
+apps/master/scripts/benchmark_load.ts:97:main().catch(console.error);
+apps/master/scripts/check_kiosk_schema.ts:9:    console.log('Checking database:', DB_FILE);
+apps/master/scripts/check_kiosk_schema.ts:15:        console.log('Columns in kiosks table:', columns.map((c: any) => c.name));
+apps/master/scripts/check_kiosk_schema.ts:20:        console.log('Has uploadFolderPath:', hasUpload);
+apps/master/scripts/check_kiosk_schema.ts:21:        console.log('Has ordersFolderPath:', hasOrders);
+apps/master/scripts/check_kiosk_schema.ts:24:        console.error('Error:', e);
+apps/master/scripts/copy-assets.ts:22:    console.log('[Assets] Copying static assets for Master...');
+apps/master/scripts/copy-assets.ts:23:    console.log('[Assets] ROOT_DIR:', ROOT_DIR);
+apps/master/scripts/copy-assets.ts:24:    console.log('[Assets] MONOREPO_ROOT:', MONOREPO_ROOT);
+apps/master/scripts/copy-assets.ts:32:        console.log(`[Assets] Copied migrations to ${destMigrations}`);
+apps/master/scripts/copy-assets.ts:34:        console.warn('[Assets] Warning: No migrations directory found.');
+apps/master/scripts/copy-assets.ts:43:        console.log(`[Assets] Copied backend migrations to ${destBackendMigrations}`);
+apps/master/scripts/copy-assets.ts:58:            console.log(`[Assets] Copied ${dep} to local node_modules`);
+apps/master/scripts/copy-assets.ts:60:            console.warn(`[Assets] Warning: ${dep} not found in pnpm store`);
+apps/master/scripts/copy-assets.ts:77:            console.log(`[Assets] Copied ${trieFile} to dist/backend/`);
+apps/master/scripts/copy-assets.ts:79:            console.warn(`[Assets] Warning: ${trieFile} not found`);
+apps/master/scripts/copy-assets.ts:83:    console.log('[Assets] Done.');
+apps/master/scripts/copy-assets.ts:87:    console.error('[Assets] Error copying assets:', err);
+apps/master/scripts/generate-bootstrap.ts:45:      console.error(`ERROR: Environment variable ${envMatch[1]} is not set`);
+apps/master/scripts/generate-bootstrap.ts:46:      console.error(`       Set it with: export ${envMatch[1]}=your_value`);
+apps/master/scripts/generate-bootstrap.ts:96:      console.error(`Unknown option: ${arg}`);
+apps/master/scripts/generate-bootstrap.ts:117:    console.error('ERROR: Destination name must be at least 2 characters');
+apps/master/scripts/generate-bootstrap.ts:128:    console.error('ERROR: Password must be at least 8 characters');
+apps/master/scripts/generate-bootstrap.ts:148:      console.warn('WARNING: Cloudflare Account ID or Zone ID not set. Cloudflare provisioning will be skipped.');
+apps/master/scripts/generate-bootstrap.ts:165:  console.log('🚀 ClickFlash Bootstrap Generator\n');
+apps/master/scripts/generate-bootstrap.ts:172:    console.error('ERROR: --destination is required');
+apps/master/scripts/generate-bootstrap.ts:173:    console.log('\nUsage:');
+apps/master/scripts/generate-bootstrap.ts:174:    console.log('  npm run bootstrap -- --destination "Paradise Resort"');
+apps/master/scripts/generate-bootstrap.ts:175:    console.log('  npm run bootstrap -- -d "Ocean Hotel" -e admin@ocean.com');
+apps/master/scripts/generate-bootstrap.ts:176:    console.log('\nEnvironment Variables (for secrets):');
+apps/master/scripts/generate-bootstrap.ts:177:    console.log('  export ADMIN_PASSWORD=my_secret_password');
+apps/master/scripts/generate-bootstrap.ts:178:    console.log('  export CLOUDFLARE_API_TOKEN=your_token');
+apps/master/scripts/generate-bootstrap.ts:196:  console.log('📋 Generated Configuration:');
+apps/master/scripts/generate-bootstrap.ts:197:  console.log(`   Location:     ${config.locationName}`);
+apps/master/scripts/generate-bootstrap.ts:198:  console.log(`   Admin Email:  ${config.adminEmail}`);
+apps/master/scripts/generate-bootstrap.ts:199:  console.log(`   Password:      ${config.adminPassword.substring(0, 3)}***`);
+apps/master/scripts/generate-bootstrap.ts:200:  console.log(`   Hub URL:      ${config.hubUrl}`);
+apps/master/scripts/generate-bootstrap.ts:202:    console.log(`   Cloudflare:   ✓ Configured`);
+apps/master/scripts/generate-bootstrap.ts:204:    console.log(`   Cloudflare:   ✗ Not configured (will use defaults)`);
+apps/master/scripts/generate-bootstrap.ts:206:  console.log(`   Output:       ${bootstrapPath}`);
+apps/master/scripts/generate-bootstrap.ts:209:    console.log('\n🔍 Dry run - not writing file');
+apps/master/scripts/generate-bootstrap.ts:210:    console.log('\nbootstrap.json would contain:');
+apps/master/scripts/generate-bootstrap.ts:211:    console.log(bootstrapJson);
+apps/master/scripts/generate-bootstrap.ts:217:    console.log(`\n📁 Creating data directory: ${dataDir}`);
+apps/master/scripts/generate-bootstrap.ts:222:  console.log(`\n✅ bootstrap.json created successfully!`);
+apps/master/scripts/generate-bootstrap.ts:223:  console.log(`\nNext steps:`);
+apps/master/scripts/generate-bootstrap.ts:224:  console.log(`  1. Review: cat ${bootstrapPath}`);
+apps/master/scripts/generate-bootstrap.ts:225:  console.log(`  2. Start Master: npm run dev:full`);
+apps/master/scripts/generate-bootstrap.ts:226:  console.log(`  3. System will auto-provision on first run`);
+apps/master/scripts/generate-bootstrap.ts:227:  console.log(`\n💡 To regenerate, run: npm run bootstrap -- --destination "${destination}"`);
+apps/master/scripts/generate-bootstrap.ts:231:  console.error('Fatal error:', error);
+apps/master/scripts/generate-stress-data.ts:14:    console.log(`🚀 Generating Stress Data (${TARGET_PHOTOS} photos)...`);
+apps/master/scripts/generate-stress-data.ts:20:    console.log(`Creating ${ALBUMS_COUNT} albums...`);
+apps/master/scripts/generate-stress-data.ts:42:    console.log(`Inserting ${TARGET_PHOTOS} photo records...`);
+apps/master/scripts/generate-stress-data.ts:64:                console.log(`  Processed ${i} photos...`);
+apps/master/scripts/generate-stress-data.ts:70:    console.log(`✅ Seeding complete in ${(endTime - startTime) / 1000}s`);
+apps/master/scripts/generate-stress-data.ts:73:    console.log("\n📊 Running Performance Benchmarks...");
+apps/master/scripts/generate-stress-data.ts:77:    console.log(`- Total Photos: ${count?.count}`);
+apps/master/scripts/generate-stress-data.ts:78:    console.log(`- Count Query Time: ${Date.now() - startQuery}ms`);
+apps/master/scripts/generate-stress-data.ts:83:    console.log(`- Fetch 100 Photos from Album Time: ${Date.now() - startAlbum}ms`);
+apps/master/scripts/generate-stress-data.ts:86:    console.log("\n✨ Stress Test Data Generation Complete.");
+apps/master/scripts/generate-stress-data.ts:90:    console.error("Stress test generation failed:", err);
+apps/master/scripts/install-cli.ts:52:  console.log(`[${new Date().toISOString()}] ${prefix} ${message}`, ...args);
+apps/master/scripts/install-cli.ts:871:    console.log(`
+apps/master/scripts/install-cli.ts:949:    console.error('Configuration errors:');
+apps/master/scripts/install-cli.ts:950:    errors.forEach(e => console.error(`  - ${e}`));
+apps/master/scripts/install-cli.ts:958:    (step, message, progress) => console.log(`[${progress}%] ${step}: ${message}`)
+apps/master/scripts/stress-test.ts:14:console.log(`\n🚀 ClickFlash Stress Test: Targeting ${TARGET_SIZE_GB}GB`);
+apps/master/scripts/stress-test.ts:15:console.log(`📂 Upload Directory: ${UPLOAD_DIR}`);
+apps/master/scripts/stress-test.ts:16:console.log(`📄 Files to Generate: ${TOTAL_FILES} (~${FILE_SIZE_MB}MB each)\n`);
+apps/master/scripts/stress-test.ts:49:  console.log("\n\n✅ Asset generation complete.");
+apps/master/scripts/stress-test.ts:53:  console.log("🗄️ Seeding metadata into database...");
+apps/master/scripts/stress-test.ts:56:  console.log("✓ Metadata seeding logic initiated.");
+apps/master/scripts/stress-test.ts:63:    console.log(
+apps/master/scripts/stress-test.ts:78:    console.log("\n=============================================");
+apps/master/scripts/stress-test.ts:79:    console.log("STRESS TEST DATA READY");
+apps/master/scripts/stress-test.ts:80:    console.log("=============================================");
+apps/master/scripts/stress-test.ts:81:    console.log("You can now start the Master App to test sync.");
+apps/master/scripts/stress-test.ts:82:    console.log("=============================================\n");
+apps/master/scripts/stress-test.ts:84:    console.error("\n❌ Stress test failed:", error);
+apps/master/scripts/test-cloudflare-mock.ts:14:  info: (message: string, ...args: unknown[]) => console.log(`[INFO] ${message}`, ...args),
+apps/master/scripts/test-cloudflare-mock.ts:15:  warn: (message: string, ...args: unknown[]) => console.log(`[WARN] ${message}`, ...args),
+apps/master/scripts/test-cloudflare-mock.ts:16:  error: (message: string, error?: Error, ...args: unknown[]) => console.error(`[ERROR] ${message}`, error, ...args),
+apps/master/scripts/test-cloudflare-mock.ts:17:  debug: (message: string, ...args: unknown[]) => console.log(`[DEBUG] ${message}`, ...args),
+apps/master/scripts/test-cloudflare-mock.ts:85:  console.log('\n=== Test: Credential Validation ===');
+apps/master/scripts/test-cloudflare-mock.ts:91:  console.log(`Credential validation result: ${valid ? '✅ PASS' : '❌ FAIL'}`);
+apps/master/scripts/test-cloudflare-mock.ts:98:  console.log('\n=== Test: Tunnel Creation ===');
+apps/master/scripts/test-cloudflare-mock.ts:115:    console.log(`Tunnel creation: ✅ PASS (ID: ${result.tunnel.tunnelId})`);
+apps/master/scripts/test-cloudflare-mock.ts:118:    console.log(`Tunnel creation: ❌ FAIL (got: ${JSON.stringify(result.tunnel)})`);
+apps/master/scripts/test-cloudflare-mock.ts:124:  console.log('\n=== Test: DNS Configuration ===');
+apps/master/scripts/test-cloudflare-mock.ts:141:    console.log(`DNS configuration: ✅ PASS (${result.dnsRecords.length} records)`);
+apps/master/scripts/test-cloudflare-mock.ts:144:    console.log(`DNS configuration: ❌ FAIL (expected 3+ records, got ${result.dnsRecords?.length || 0})`);
+apps/master/scripts/test-cloudflare-mock.ts:150:  console.log('\n=== Test: Gallery App Registration ===');
+apps/master/scripts/test-cloudflare-mock.ts:173:    console.log(`Gallery app registration: ✅ PASS (ID: ${result.app.id})`);
+apps/master/scripts/test-cloudflare-mock.ts:176:    console.log(`Gallery app registration: ❌ FAIL (got: ${JSON.stringify(result.app)})`);
+apps/master/scripts/test-cloudflare-mock.ts:182:  console.log('\n=== Test: Management App Registration ===');
+apps/master/scripts/test-cloudflare-mock.ts:205:    console.log(`Management app registration: ✅ PASS (ID: ${result.app.id})`);
+apps/master/scripts/test-cloudflare-mock.ts:208:    console.log(`Management app registration: ❌ FAIL (got: ${JSON.stringify(result.app)})`);
+apps/master/scripts/test-cloudflare-mock.ts:214:  console.log('\n=== Test: Workers Script Creation ===');
+apps/master/scripts/test-cloudflare-mock.ts:231:    console.log(`Workers script creation: ✅ PASS (ID: ${result.scriptId})`);
+apps/master/scripts/test-cloudflare-mock.ts:234:    console.log(`Workers script creation: ❌ FAIL (got: ${JSON.stringify(result.scriptId)})`);
+apps/master/scripts/test-cloudflare-mock.ts:240:  console.log('╔════════════════════════════════════════════════════════════╗');
+apps/master/scripts/test-cloudflare-mock.ts:241:  console.log('║     ClickFlash Cloudflare Provisioning - Mock Tests        ║');
+apps/master/scripts/test-cloudflare-mock.ts:242:  console.log('╚════════════════════════════════════════════════════════════╝');
+apps/master/scripts/test-cloudflare-mock.ts:258:      console.log(`  ${name}: ❌ ERROR - ${e.message}`);
+apps/master/scripts/test-cloudflare-mock.ts:263:  console.log('\n╔════════════════════════════════════════════════════════════╗');
+apps/master/scripts/test-cloudflare-mock.ts:264:  console.log('║                    TEST RESULTS SUMMARY                    ║');
+apps/master/scripts/test-cloudflare-mock.ts:265:  console.log('╚════════════════════════════════════════════════════════════╝');
+apps/master/scripts/test-cloudflare-mock.ts:271:    console.log(`  ${test}: ${status}`);
+apps/master/scripts/test-cloudflare-mock.ts:274:  console.log('');
+apps/master/scripts/test-cloudflare-mock.ts:275:  console.log(`Overall: ${allPassed ? '✅ ALL TESTS PASSED' : '❌ SOME TESTS FAILED'}`);
+apps/master/scripts/test-cloudflare-mock.ts:276:  console.log('');
+apps/master/scripts/test-cloudflare-mock.ts:281:runAllTests().catch(console.error);
+apps/master/scripts/test-r2-upload.ts:17:    console.log("🛠️ Testing R2 Cloud Upload Pipeline...");
+apps/master/scripts/test-r2-upload.ts:46:    console.log(`- Test File Created: ${absolutePath}`);
+apps/master/scripts/test-r2-upload.ts:49:        console.log("- Attempting Upload via CloudSyncService...");
+apps/master/scripts/test-r2-upload.ts:55:        console.log("✅ R2 Upload Triggered Successfully!");
+apps/master/scripts/test-r2-upload.ts:56:        console.log("- Audit: Item should be Landing in Cloud R2 bucket under desk_id prefix.");
+apps/master/scripts/test-r2-upload.ts:60:            console.log("⚠️ TEST SKIPPED (MOCKED): Cloud credentials not found in .env.");
+apps/master/scripts/test-r2-upload.ts:61:            console.log("   Logic verification: Service correctly identified missing credentials.");
+apps/master/scripts/test-r2-upload.ts:63:             console.log("⚠️ AUTH FAILED: Cloud Hub rejected credentials (Expected if testing without live hub).");
+apps/master/scripts/test-r2-upload.ts:65:            console.error("❌ R2 Upload Failed:", err.message);
+apps/master/scripts/test-r2-upload.ts:73:    console.error("Fatal test error:", err);
+apps/master/scripts/test_db_direct.ts:9:    console.log('Testing Direct DB operations on:', DB_FILE);
+apps/master/scripts/test_db_direct.ts:15:    console.log('Creating ID:', id);
+apps/master/scripts/test_db_direct.ts:20:    console.log('Created Record:', record);
+apps/master/scripts/test_db_direct.ts:23:    console.log('Starting Transaction...');
+apps/master/scripts/test_db_direct.ts:27:        console.log(`Executing: ${sql} with [${path}, ${id}]`);
+apps/master/scripts/test_db_direct.ts:29:        console.log('Update Changes:', info.changes);
+apps/master/scripts/test_db_direct.ts:33:        console.log('Inside Transaction Path:', inside.ordersFolderPath);
+apps/master/scripts/test_db_direct.ts:35:    console.log('Transaction Committed.');
+apps/master/scripts/test_db_direct.ts:39:    console.log('Final Record Path:', record.ordersFolderPath);
+apps/master/scripts/test_db_direct.ts:42:        console.log('SUCCESS: DB persistence works.');
+apps/master/scripts/test_db_direct.ts:44:        console.error('FAILURE: DB persistence broken.');
+apps/master/scripts/test_kiosk_update.ts:6:const PASSWORD = process.env.TEST_PASSWORD || (() => { console.error('Set TEST_PASSWORD env var'); process.exit(1); return ''; })();
+apps/master/scripts/test_kiosk_update.ts:9:    console.log('--- Testing Kiosk API Persistence ---');
+apps/master/scripts/test_kiosk_update.ts:19:        console.error('Login failed:', await loginRes.text());
+apps/master/scripts/test_kiosk_update.ts:24:    console.log('Login successful. User:', loginData.user.email);
+apps/master/scripts/test_kiosk_update.ts:42:        console.error('Create failed:', await createRes.text());
+apps/master/scripts/test_kiosk_update.ts:46:    console.log('Created Kiosk ID:', kiosk.id);
+apps/master/scripts/test_kiosk_update.ts:50:    console.log(`Updating kiosk with ordersFolderPath: ${testPath}`);
+apps/master/scripts/test_kiosk_update.ts:60:        console.error('Update failed:', await updateRes.text());
+apps/master/scripts/test_kiosk_update.ts:64:    console.log('Update response ordersFolderPath:', updatedKiosk.ordersFolderPath);
+apps/master/scripts/test_kiosk_update.ts:68:        console.log('SUCCESS: API returned the updated path.');
+apps/master/scripts/test_kiosk_update.ts:70:        console.error('FAILURE: API did not return the updated path.');
+apps/master/scripts/test_kiosk_update.ts:76:    console.log('Fetching from:', fetchUrl);
+apps/master/scripts/test_kiosk_update.ts:80:        console.error('Fetch Failed:', fetchRes.status, await fetchRes.text());
+apps/master/scripts/test_kiosk_update.ts:88:        console.error('Kiosk not found in list response');
+apps/master/scripts/test_kiosk_update.ts:92:    console.log('Refetched Full Object:', JSON.stringify(fetchedKiosk, null, 2));
+apps/master/scripts/test_kiosk_update.ts:93:    console.log('Refetched ordersFolderPath:', fetchedKiosk.ordersFolderPath);
+apps/master/scripts/test_kiosk_update.ts:96:        console.log('SUCCESS: Persistence confirmed.');
+apps/master/scripts/test_kiosk_update.ts:98:        console.error('FAILURE: Persistence Check Failed.');
+apps/master/scripts/test_kiosk_update.ts:102:run().catch(console.error);
+apps/master/scripts/verify-system-integration.ts:8:const USER_PASSWORD = process.env.TEST_PASSWORD || (() => { console.error('Set TEST_PASSWORD env var'); process.exit(1); return ''; })();
+apps/master/scripts/verify-system-integration.ts:15:    console.log('🚀 Starting System Integration Verification...');
+apps/master/scripts/verify-system-integration.ts:25:        console.log('📡 Pinging server...');
+apps/master/scripts/verify-system-integration.ts:30:        console.log('✅ Server is online');
+apps/master/scripts/verify-system-integration.ts:32:        console.error(`❌ Server check failed: ${e.message}`);
+apps/master/scripts/verify-system-integration.ts:33:        if (e.name === 'AbortError') console.error('   (Request timed out)');
+apps/master/scripts/verify-system-integration.ts:34:        console.error('   Please ensure backend is running via "npm run dev:backend"');
+apps/master/scripts/verify-system-integration.ts:40:        console.log('🔑 Authenticating...');
+apps/master/scripts/verify-system-integration.ts:55:            console.log('✅ Authenticated successfully');
+apps/master/scripts/verify-system-integration.ts:57:            console.warn('⚠️ No Set-Cookie header received. Proceeding, but subsequent requests might fail.');
+apps/master/scripts/verify-system-integration.ts:61:        console.error(`❌ Authentication Error: ${e.message}`);
+apps/master/scripts/verify-system-integration.ts:67:        console.log('📁 Creating Test Album...');
+apps/master/scripts/verify-system-integration.ts:84:        console.log(`✅ Album created: ${albumId}`);
+apps/master/scripts/verify-system-integration.ts:87:        console.error(`❌ Album Creation Error: ${e.message}`);
+apps/master/scripts/verify-system-integration.ts:93:        console.log('📤 Uploading 5 photos concurrently...');
+apps/master/scripts/verify-system-integration.ts:124:        console.log(`✅ Uploads complete in ${duration}ms (Avg ${duration / 5}ms/req)`);
+apps/master/scripts/verify-system-integration.ts:127:        console.error(`❌ Upload Error: ${e.message}`);
+apps/master/scripts/verify-system-integration.ts:134:        console.log('🔍 Verifying Data Consistency...');
+apps/master/scripts/verify-system-integration.ts:146:            console.log(`✅ Verification Passed: 5/5 photos found in DB.`);
+apps/master/scripts/verify-system-integration.ts:152:        console.error(`❌ Verification Error: ${e.message}`);
+apps/master/scripts/verify-system-integration.ts:159:    console.log('🎉 System Integration Verification Passed!');
+apps/master/scripts/verify-system-integration.ts:165:        console.log('🧹 Cleaning up...');
+apps/master/scripts/verify-system-integration.ts:171:        console.warn('Cleanup warning:', e);
+apps/master/scripts/verify_import_fix.ts:7:    console.log('--- Phase 34: Verification of Import Fixes ---');
+apps/master/scripts/verify_import_fix.ts:13:        console.log('1. Testing Database Connection & Timeout...');
+apps/master/scripts/verify_import_fix.ts:18:            console.log('[PASS] DatabaseManager.checkpoint exists');
+apps/master/scripts/verify_import_fix.ts:24:        console.log('2. Testing Album Creation visibility...');
+apps/master/scripts/verify_import_fix.ts:37:            console.log('[PASS] Album visible immediately after checkpoint');
+apps/master/scripts/verify_import_fix.ts:42:        console.log('3. Testing Photo Creation & Face Indexing Queue Order...');
+apps/master/scripts/verify_import_fix.ts:61:            console.log('[PASS] Face indexing queue entry created successfully (FK check passed)');
+apps/master/scripts/verify_import_fix.ts:66:        console.log('4. Testing PhotoProcessor Retry Logic (Simulated EBUSY)...');
+apps/master/scripts/verify_import_fix.ts:70:            console.log('[PASS] PhotoProcessor.retryRename exists');
+apps/master/scripts/verify_import_fix.ts:75:        console.log('--- ALL BACKEND STABILITY CHECKS PASSED ---');
+apps/master/scripts/verify_import_fix.ts:78:        console.error('--- VERIFICATION FAILED ---');
+apps/master/scripts/verify_import_fix.ts:79:        console.error(err);
+apps/master/scripts/verify_import_light.ts:6:    console.log('--- Phase 34: Lightweight Verification of Import Fixes ---');
+apps/master/scripts/verify_import_light.ts:13:        console.log('1. Testing Database Connection & WAL Checkpoint...');
+apps/master/scripts/verify_import_light.ts:17:            console.log('[PASS] DatabaseManager.checkpoint exists');
+apps/master/scripts/verify_import_light.ts:23:        console.log('2. Testing Album Visibility Race Condition...');
+apps/master/scripts/verify_import_light.ts:36:            console.log('[PASS] Album found immediately after WAL checkpoint (Fix Root Cause 1)');
+apps/master/scripts/verify_import_light.ts:41:        console.log('3. Testing Face Indexing Queue Order (FK Safety)...');
+apps/master/scripts/verify_import_light.ts:60:            console.log('[PASS] Face indexing queue entry created successfully AFTER photo insertion (Fix Root Cause 2)');
+apps/master/scripts/verify_import_light.ts:65:        console.log('--- LIGHTWEIGHT STABILITY CHECKS PASSED ---');
+apps/master/scripts/verify_import_light.ts:69:        console.error('--- VERIFICATION FAILED ---');
+apps/master/scripts/verify_import_light.ts:70:        console.error(err);
+apps/master/src/components/SystemAudit.tsx:69:                .catch(console.error);
+apps/master/src/components/albums/editor2/hooks/__tests__/usePhotoData.test.ts:26:  const originalError = console.error;
+apps/master/src/components/albums/editor2/hooks/__tests__/usePhotoData.test.ts:29:    console.error = (...args: unknown[]) => {
+apps/master/src/components/albums/editor2/hooks/__tests__/usePhotoData.test.ts:41:    console.error = originalError;
+apps/master/src/main.tsx:16:const originalWarn = console.warn;
+apps/master/src/main.tsx:17:console.warn = (...args: any[]) => {
+apps/master/src/utils/consoleCleanup.ts:4: * Replaces console.* calls with structured logger in development.
+apps/master/src/utils/consoleCleanup.ts:23:        console.log = () => {};
+apps/master/src/utils/consoleCleanup.ts:24:        console.warn = () => {};
+apps/master/src/utils/consoleCleanup.ts:25:        console.info = () => {};
+apps/master/src/utils/consoleCleanup.ts:26:        console.debug = () => {};
+apps/master/src/utils/consoleCleanup.ts:28:        console.error = (...args: unknown[]) => {
+apps/master/src/utils/consoleCleanup.ts:37:    console.log = (...args: unknown[]) => {
+apps/master/src/utils/consoleCleanup.ts:43:    console.warn = (...args: unknown[]) => {
+apps/master/src/utils/consoleCleanup.ts:49:    console.error = (...args: unknown[]) => {
+apps/master/src/utils/consoleCleanup.ts:56:    console.info = (...args: unknown[]) => {
+apps/master/src/utils/consoleCleanup.ts:62:    console.debug = (...args: unknown[]) => {
+apps/master/tests/e2e/auth.spec.ts:15:        console.log(`BROWSER ERROR: ${msg.text()}`);
+apps/master/tests/e2e/auth.spec.ts:19:      console.log(`PAGE ERROR: ${err.message}`);
+apps/master/tests/e2e/debug.spec.ts:10:  console.log("Response status:", response?.status());
+apps/master/tests/e2e/debug.spec.ts:11:  console.log("Response URL:", response?.url());
+apps/master/tests/e2e/debug.spec.ts:24:  console.log("Page content length:", content.length);
+apps/master/tests/e2e/debug.spec.ts:25:  console.log("Page content snippet:", content.substring(0, 1000));
+apps/master/tests/e2e/debug.spec.ts:29:  console.log("Page title:", title);
+apps/master/tests/e2e/global-setup.ts:71:    console.log("[E2E Seed] Skipping global setup (SKIP_GLOBAL_SETUP=true)");
+apps/master/tests/e2e/global-setup.ts:74:  console.log("[E2E Seed] Starting global setup...");
+apps/master/tests/e2e/global-setup.ts:77:  console.log("[E2E Seed] Establishing session...");
+apps/master/tests/e2e/global-setup.ts:90:    console.warn(`[E2E Seed] Health check failed (${healthRes?.status || "ECONNREFUSED"}) — seeding skipped`);
+apps/master/tests/e2e/global-setup.ts:95:  console.log(`[E2E Seed] Session established, XSRF token: ${xsrf ? "OK" : "MISSING"}`);
+apps/master/tests/e2e/global-setup.ts:98:  console.log("[E2E Seed] Authenticating...");
+apps/master/tests/e2e/global-setup.ts:114:    console.warn(`[E2E Seed] Login failed (${loginRes.status}): ${body} — seeding skipped`);
+apps/master/tests/e2e/global-setup.ts:125:  console.log(`[E2E Seed] Login successful, JWT: ${token ? "OK" : "MISSING"}`);
+apps/master/tests/e2e/global-setup.ts:137:  console.log("[E2E Seed] Creating test album...");
+apps/master/tests/e2e/global-setup.ts:144:    console.log("[E2E Seed] Album created");
+apps/master/tests/e2e/global-setup.ts:146:    console.log("[E2E Seed] Album already exists");
+apps/master/tests/e2e/global-setup.ts:149:    console.warn(`[E2E Seed] Album creation returned ${albumRes.status}: ${body}`);
+apps/master/tests/e2e/global-setup.ts:154:    console.log(`[E2E Seed] Creating photo ${photo.id}...`);
+apps/master/tests/e2e/global-setup.ts:161:      console.log(`[E2E Seed] Photo ${photo.id} created`);
+apps/master/tests/e2e/global-setup.ts:163:      console.log(`[E2E Seed] Photo ${photo.id} already exists`);
+apps/master/tests/e2e/global-setup.ts:166:      console.warn(`[E2E Seed] Photo ${photo.id} returned ${photoRes.status}: ${body}`);
+apps/master/tests/e2e/global-setup.ts:170:  console.log("[E2E Seed] Global setup complete");
+apps/master/tests/e2e/global-teardown.ts:14:    console.log("[E2E Teardown] Skipping global teardown (SKIP_GLOBAL_SETUP=true)");
+apps/master/tests/e2e/global-teardown.ts:17:  console.log("[E2E Teardown] Starting cleanup...");
+apps/master/tests/e2e/global-teardown.ts:30:    console.warn(`[E2E Teardown] Login failed (${loginRes.status}) — cleanup skipped`);
+apps/master/tests/e2e/global-teardown.ts:37:    console.warn("[E2E Teardown] No token in login response — cleanup skipped");
+apps/master/tests/e2e/global-teardown.ts:53:      console.log(`[E2E Teardown] Deleted photo ${photoId}`);
+apps/master/tests/e2e/global-teardown.ts:55:      console.log(`[E2E Teardown] Photo ${photoId} already gone`);
+apps/master/tests/e2e/global-teardown.ts:57:      console.warn(`[E2E Teardown] Photo ${photoId} delete returned ${res.status}`);
+apps/master/tests/e2e/global-teardown.ts:67:    console.log(`[E2E Teardown] Deleted album ${ALBUM_ID}`);
+apps/master/tests/e2e/global-teardown.ts:69:    console.log(`[E2E Teardown] Album ${ALBUM_ID} already gone`);
+apps/master/tests/e2e/global-teardown.ts:71:    console.warn(`[E2E Teardown] Album delete returned ${albumRes.status}`);
+apps/master/tests/e2e/global-teardown.ts:74:  console.log("[E2E Teardown] Global teardown complete");
+apps/master/tests/e2e/memory-leak.spec.ts:36:      console.warn('Memory API not accessible.');
+apps/master/tests/e2e/memory-leak.spec.ts:52:      console.log(`Memory Difference after 10 iterations: ${differenceMB.toFixed(2)} MB`);
+apps/master/tests/e2e/preview-verification.spec.ts:9:    console.log("[Test] Navigating to login page...");
+apps/master/tests/e2e/preview-verification.spec.ts:20:    console.log("[Test] Login page inputs are visible.");
+apps/master/tests/e2e/preview-verification.spec.ts:25:    console.log(`[Test] Saved login screenshot to: ${loginScreenshotPath}`);
+apps/master/tests/e2e/preview-verification.spec.ts:28:    console.log("[Test] Submitting credentials...");
+apps/master/tests/e2e/preview-verification.spec.ts:34:    console.log("[Test] Waiting for redirection...");
+apps/master/tests/e2e/preview-verification.spec.ts:39:    console.log(`[Test] Redirected URL: ${currentUrl}`);
+apps/master/tests/e2e/preview-verification.spec.ts:45:    console.log(`[Test] Saved dashboard screenshot to: ${dashboardScreenshotPath}`);
+apps/master/tests/e2e/preview-verification.spec.ts:50:    console.log("[Test] Sidebar and dashboard elements loaded.");
+apps/master/tests/e2e/preview-verification.spec.ts:53:    console.log("[Test] Attempting logout...");
+apps/master/tests/e2e/preview-verification.spec.ts:60:        console.log("[Test] Successfully logged out and returned to login page.");
+apps/master/tests/e2e/preview-verification.spec.ts:64:        console.log(`[Test] After logout URL: ${afterUrl} — logout triggered a state change.`);
+apps/master/tests/e2e/preview-verification.spec.ts:67:      console.log("[WARNING] Logout/Switch User button not found. Skipping logout check.");
+apps/master/tests/e2e/production-integration.spec.ts:69:            console.error(`Failed to acquire auth token for Cloudflare tests. Status: ${loginRes.status()}, Body: ${body}`);
+apps/master/tests/e2e/production-integration.spec.ts:90:            console.error(`Heartbeat failed: ${errBody}`);
+apps/master/tests/global-setup.ts:4:  console.log('[Global Setup] Starting test environment...');
+apps/master/tests/global-setup.ts:9:  console.log('[Global Setup] Test environment initialized');
+apps/master/tests/global-teardown.ts:2:  console.log('[Global Teardown] Cleaning up test environment...');
+apps/master/tests/global-teardown.ts:6:  console.log('[Global Teardown] Test environment cleaned up');
+apps/master/tests/setup.ts:61:  console.error('[Test] Unhandled Rejection:', reason);
+apps/master/tests/unit/errorHandling.spec.ts:34:      console.error('Test error from Playwright');
+apps/master/tests/unit/exceptionHandling.spec.ts:77:      console.error('Client error for testing');
+apps/master/tests/vitest.setup.ts:72:  console.error('[Test] Unhandled Rejection:', reason);
+apps/mobile-staff/app/scanner.tsx:71:      console.error("Scan error:", e);
+apps/moneytrash/scripts/test-r2-upload.ts:60:    console.log(`\n🧪 R2 Upload E2E Tests - Site: ${this.siteId}\n`);
+apps/moneytrash/scripts/test-r2-upload.ts:61:    console.log("=".repeat(60));
+apps/moneytrash/scripts/test-r2-upload.ts:65:      console.error("❌ R2 credentials not configured. Set environment variables:");
+apps/moneytrash/scripts/test-r2-upload.ts:66:      console.error("   R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ENDPOINT, R2_BUCKET");
+apps/moneytrash/scripts/test-r2-upload.ts:125:      console.log("✅ Configuration");
+apps/moneytrash/scripts/test-r2-upload.ts:134:      console.log("❌ Configuration");
+apps/moneytrash/scripts/test-r2-upload.ts:170:      console.log("✅ Upload to Site Folder");
+apps/moneytrash/scripts/test-r2-upload.ts:179:      console.log("❌ Upload to Site Folder");
+apps/moneytrash/scripts/test-r2-upload.ts:180:      console.error(`   Error: ${error instanceof Error ? error.message : String(error)}`);
+apps/moneytrash/scripts/test-r2-upload.ts:218:      console.log("✅ Upload with Metadata");
+apps/moneytrash/scripts/test-r2-upload.ts:227:      console.log("❌ Upload with Metadata");
+apps/moneytrash/scripts/test-r2-upload.ts:265:      console.log("✅ File Exists Check");
+apps/moneytrash/scripts/test-r2-upload.ts:274:      console.log("❌ File Exists Check");
+apps/moneytrash/scripts/test-r2-upload.ts:303:      console.log(files.length > 0 ? "✅ List Files" : "⚠️  List Files (no files found)");
+apps/moneytrash/scripts/test-r2-upload.ts:312:      console.log("❌ List Files");
+apps/moneytrash/scripts/test-r2-upload.ts:351:      console.log(signedUrl ? "✅ Signed URL" : "❌ Signed URL");
+apps/moneytrash/scripts/test-r2-upload.ts:360:      console.log("❌ Signed URL");
+apps/moneytrash/scripts/test-r2-upload.ts:400:      console.log("✅ Storage Stats");
+apps/moneytrash/scripts/test-r2-upload.ts:409:      console.log("❌ Storage Stats");
+apps/moneytrash/scripts/test-r2-upload.ts:447:      console.log("✅ Delete File");
+apps/moneytrash/scripts/test-r2-upload.ts:456:      console.log("❌ Delete File");
+apps/moneytrash/scripts/test-r2-upload.ts:461:    console.log("\n" + "=".repeat(60));
+apps/moneytrash/scripts/test-r2-upload.ts:462:    console.log("📊 TEST RESULTS\n");
+apps/moneytrash/scripts/test-r2-upload.ts:469:      console.log(`${icon} ${result.operation}`);
+apps/moneytrash/scripts/test-r2-upload.ts:470:      console.log(`   ${result.details}`);
+apps/moneytrash/scripts/test-r2-upload.ts:472:        console.log(`   Duration: ${result.duration}ms`);
+apps/moneytrash/scripts/test-r2-upload.ts:475:        console.log(`   Error: ${result.error}`);
+apps/moneytrash/scripts/test-r2-upload.ts:477:      console.log();
+apps/moneytrash/scripts/test-r2-upload.ts:480:    console.log("=".repeat(60));
+apps/moneytrash/scripts/test-r2-upload.ts:481:    console.log(`Total: ${this.results.length} | ✅ Passed: ${passed} | ❌ Failed: ${failed}`);
+apps/moneytrash/scripts/test-r2-upload.ts:482:    console.log("=".repeat(60) + "\n");
+apps/moneytrash/scripts/test-r2-upload.ts:494:  console.error("Test suite failed:", error);
+apps/moneytrash/src/App.tsx:430:            }).catch(console.error);
+apps/moneytrash/src/App.tsx:448:              invoke('save_upload_history', { history: updatedHistory }).catch(console.error);
+apps/moneytrash/src/main.tsx:20:initTauri().catch(console.error);
+apps/moneytrash/src/services/resumableUploadService.ts:438:      }).catch(console.error);
+apps/moneytrash/src/utils/logger.ts:139:        console.debug(`%c${prefix}`, styles[entry.level], entry.message, entry.context || '');
+apps/moneytrash/src/utils/logger.ts:142:        console.info(`%c${prefix}`, styles[entry.level], entry.message, entry.context || '');
+apps/touch/backend/shared/logger.ts:52:            console.error('[Logger] Failed to clean up old logs:', e);
+apps/touch/backend/shared/logger.ts:95:                    console.error('[Logger] Failed to write log:', retryError.message);
+apps/touch/backend/shared/logger.ts:96:                    console.log(logEntry.trim());
+apps/touch/backend/shared/logger.ts:99:                console.error('[Logger] Failed to write log:', error.message);
+apps/touch/backend/shared/logger.ts:100:                console.log(logEntry.trim());
+apps/touch/backend/shared/logger.ts:105:        const consoleMethod = level === 'ERROR' ? console.error :
+apps/touch/backend/shared/logger.ts:106:            level === 'WARN' ? console.warn :
+apps/touch/backend/shared/logger.ts:107:            level === 'INFO' ? console.log : null;
+apps/touch/main.ts:95:            console.error("[Touch] app.whenReady failed:", e.message);
+apps/touch/main.ts:154:                    console.warn(`[Security] Blocked external request in Touch App: ${details.url}`);
+apps/touch/main.ts:161:                    console.warn(`[Security] Blocked request to unauthorized port ${port}: ${details.url}`);
+apps/touch/main.ts:168:                console.warn(`[Security] Blocked malformed URL: ${details.url}`);
+apps/touch/main.ts:389:                console.log("[Touch] Dev mode — backend started externally on port", this.config.backendPort);
+apps/touch/main.ts:393:            console.log(`[Touch] Starting backend from: ${serverScript}`);
+apps/touch/main.ts:394:            console.log(`[Touch] Data directory: ${dataDir}`);
+apps/touch/main.ts:403:                console.error("[Touch] Backend process error:", err);
+apps/touch/main.ts:407:                console.log(`[Touch] Backend exited with code ${code} (signal: ${signal})`);
+apps/touch/main.ts:410:            console.error(`[Touch] Backend script not found at: ${serverScript}`);
+apps/touch/main.ts:411:            console.error("[Touch] Backend will not start — kiosk may not function properly");
+apps/touch/main.ts:461:                    console.error("[Electron] Server did not respond, loading anyway.");
+apps/touch/main.ts:471:                            console.log(`[Electron] Backend ready after ${elapsed}ms. Loading UI...`);
+apps/touch/main.ts:511:            console.warn("[Touch] Global shortcut registration failed:", e.message);
+apps/touch/main.ts:518:            console.error(`[Kiosk] Renderer crashed: ${details.reason}. Recovering...`);
+apps/touch/main.ts:554:                console.error("[Electron] Failed to read password from DB:", e.message);
+apps/touch/main.ts:562:                console.error("[Electron] Kiosk exit password not configured. Set KIOSK_PASSWORD env var or 'password' setting in DB.");
+apps/touch/scripts/copy-assets.ts:15:    console.log('[Assets] Copying static assets...');
+apps/touch/scripts/copy-assets.ts:23:        console.log(`[Assets] Copied migrations to ${destMigrations}`);
+apps/touch/scripts/copy-assets.ts:25:        console.warn('[Assets] Warning: No migrations directory found.');
+apps/touch/scripts/copy-assets.ts:30:    console.log('[Assets] Done.');
+apps/touch/scripts/copy-assets.ts:34:    console.error('[Assets] Error copying assets:', err);
+apps/touch/src/hooks/__tests__/useLocalStorage.test.ts:97:    // Suppress console.warn for this test
+apps/touch/src/main.tsx:28:const originalWarn = console.warn;
+apps/touch/src/main.tsx:29:console.warn = (...args: any[]) => {
+apps/touch/src/services/performanceMonitor.ts:385:        console.group('[PerformanceMonitor] Report');
+apps/touch/src/services/performanceMonitor.ts:386:        console.table(summary);
+apps/touch/src/services/performanceMonitor.ts:388:        console.groupEnd();
+apps/touch/src/setupTests.ts:382:const originalConsoleError = console.error;
+apps/touch/src/setupTests.ts:385:    console.error = jest.fn((...args: unknown[]) => {
+apps/touch/src/setupTests.ts:400:  console.error = originalConsoleError;
+apps/touch/src/vitest.setup.ts:383:const originalConsoleError = console.error;
+apps/touch/src/vitest.setup.ts:386:    console.error = vi.fn((...args: unknown[]) => {
+apps/touch/src/vitest.setup.ts:401:  console.error = originalConsoleError;
+apps/touch/tests/e2e/debug-state.spec.ts:4:  page.on("console", (msg) => console.log("[CONSOLE]", msg.type(), msg.text()));
+apps/touch/tests/e2e/debug-state.spec.ts:5:  page.on("pageerror", (err) => console.log("[PAGEERROR]", err.message));
+apps/touch/tests/e2e/debug-state.spec.ts:8:      console.log("[REQUEST]", req.method(), req.url());
+apps/touch/tests/e2e/debug-state.spec.ts:13:      console.log("[RESPONSE]", res.status(), res.url());
+apps/website/src/hooks/usePerformance.ts:102: *     onMetric: (metric) => console.log(metric),
+apps/website/src/lib/logger.ts:6:      console.info(...args);
+apps/website/src/lib/logger.ts:19:      console.debug(...args);
+packages/config/src/error-logger.ts:35:    console.error('[ErrorLogger]', errorEntry);
+packages/config/src/error-logger.ts:77:  console.info('[ErrorLogger] Initialized - free error tracking active');
+packages/database/src/migrate.ts:48:    console.log('Applied migration:', m.id);
+packages/database/src/migrate.ts:59:    console.log('Rolled back migration:', m.id);
+packages/database/src/seed.ts:11:  console.log(`Seeded ${environment} data`);
+packages/logger/src/index.ts:175:      console.log(`%c[${this.service}] DEBUG`, 'color: #888; font-size: 11px;', message, meta || '');
+packages/logger/src/index.ts:181:      console.log(`%c[${this.service}] INFO`, 'color: #2196F3; font-size: 11px; font-weight: bold;', message, meta || '');
+packages/logger/src/index.ts:183:      console.log(JSON.stringify({ timestamp: new Date().toISOString(), level: 'INFO', service: this.service, message, meta }));
+packages/logger/src/index.ts:188:    console.warn(`[${this.service}] WARN: ${message}`, meta || '');
+packages/logger/src/index.ts:193:      console.error(`[${this.service}] ERROR: ${message}`, errorOrMeta, meta || '');
+packages/logger/src/index.ts:195:      console.error(`[${this.service}] ERROR: ${message}`, errorOrMeta || '');
+packages/telemetry-web/src/index.ts:85:      if (levelValue === LogLevel.ERROR || levelValue === LogLevel.FATAL) console.error(consoleMsg, data);
+packages/telemetry-web/src/index.ts:86:      else if (levelValue === LogLevel.WARN) console.warn(consoleMsg, data);
+packages/telemetry-web/src/index.ts:87:      else if (levelValue === LogLevel.INFO) console.info(consoleMsg, data);
+packages/telemetry-web/src/index.ts:88:      else console.debug(consoleMsg, data);
+workers/gallery-worker/src/auth.ts:22:        console.error('[Auth] Password hashing error:', error.message);
+workers/gallery-worker/src/auth.ts:44:        console.error('[Auth] Password verification error:', error.message);
+workers/gallery-worker/src/routes/public.ts:192:            console.error("[Checkout] Error:", e);
+workers/gallery-worker/src/routes/public.ts:247:                console.info(`[Webhook] Duplicate event ${event.id} ignored (already processed)`);
+workers/gallery-worker/src/routes/public.ts:267:                console.info(`[Webhook] Order already exists for session ${session.id} (dedup)`);
+workers/gallery-worker/src/routes/public.ts:464:            console.error("[CartSnapshot] Error:", e);
+workers/gallery-worker/src/routes/public.ts:554:            console.error("[Pricing] Error:", e);
+workers/gallery-worker/src/routes/public.ts:627:            console.error("[Upload] Error:", err.message);
+workers/gallery-worker/src/server.ts:326:            console.error("[Checkout] Error:", e);
+workers/gallery-worker/src/server.ts:380:                console.info(`[Webhook] Duplicate event ${event.id} ignored (already processed)`);
+workers/gallery-worker/src/server.ts:400:                console.info(`[Webhook] Order already exists for session ${session.id} (dedup)`);
+workers/gallery-worker/src/server.ts:444:            console.warn("[MoneyTrashGallery] D1 query note:", err);
+workers/gallery-worker/src/server.ts:538:            console.warn("[OrderLogin] D1 query note:", err);
+workers/gallery-worker/src/server.ts:785:            console.error("[CartSnapshot] Error:", e);
+workers/gallery-worker/src/server.ts:873:            console.error("[Pricing] Error:", e);
+workers/gallery-worker/src/server.ts:1248:            console.error("[Upload] Error:", err.message);
+workers/gallery-worker/src/server.ts:1418:    console.log("[MoneyTrash] GALLERY_BUCKET not bound — skipping R2 purge");
+workers/gallery-worker/src/server.ts:1444:  console.log(`[MoneyTrash] Purging ${candidates.results.length} expired photo(s)`);
+workers/gallery-worker/src/server.ts:1503:      console.log(`[MoneyTrash] Purged ${photo.id} (${r2Keys.length} R2 objects)`);
+workers/gallery-worker/src/server.ts:1510:      console.error(`[MoneyTrash] Failed to purge ${photo.id}:`, errMsg);
+workers/gallery-worker/src/server.ts:1525:    console.error(`[Cron] MoneyTrash purge failed:`, e);
+workers/gallery-worker/src/server.ts:1529:    console.log("[Cron] RESEND_API_KEY not set — skipping abandoned cart emails");
+workers/gallery-worker/src/server.ts:1597:      console.error(`[Cron] Failed to send recovery email to ${cart.email}:`, e);
+workers/management-worker/init-default-user.ts:28:        console.log('[Init] Checking for default user...');
+workers/management-worker/init-default-user.ts:34:        console.log('[Init] Checking for default user...');
+workers/management-worker/init-default-user.ts:35:        console.log(`[Init] Database: ${dbPath}`);
+workers/management-worker/init-default-user.ts:38:            console.warn(`[Init] Database file not found: ${dbPath}`);
+workers/management-worker/init-default-user.ts:39:            console.warn('[Init] Will create default user when database is initialized.');
+workers/management-worker/init-default-user.ts:45:        console.log('[Init] Database connected');
+workers/management-worker/init-default-user.ts:54:        console.log(`[Init] Found ${userCount} existing user(s)`);
+workers/management-worker/init-default-user.ts:60:            console.log(`[Init] Creating default admin user: ${DEFAULT_USER.email}`);
+workers/management-worker/init-default-user.ts:77:            console.log(`[Init] ✓ Default user created successfully`);
+workers/management-worker/init-default-user.ts:78:            console.log(`[Init] Email: ${DEFAULT_USER.email}`);
+workers/management-worker/init-default-user.ts:79:            console.log(`[Init] Password: ${DEFAULT_USER.password}`);
+workers/management-worker/init-default-user.ts:80:            console.log(`[Init] Role: ${DEFAULT_USER.role}`);
+workers/management-worker/init-default-user.ts:81:            console.log(`[Init] Desk ID: ${DEFAULT_USER.desk_id}`);
+workers/management-worker/init-default-user.ts:83:            console.log(`[Init] Default user already exists: ${DEFAULT_USER.email}`);
+workers/management-worker/init-default-user.ts:84:            console.log(`[Init] Role: ${defaultUser.role}`);
+workers/management-worker/init-default-user.ts:88:                console.log(`[Init] Patching missing desk_id for: ${DEFAULT_USER.email}`);
+workers/management-worker/init-default-user.ts:93:        console.error('[Init] ERROR:', error.message);
+workers/management-worker/init-default-user.ts:102:            console.log('[Init] Initialization complete');
+workers/management-worker/init-default-user.ts:106:            console.error('[Init] Fatal error:', error);
+workers/management-worker/services/analyticsService.ts:35:            console.error('AnalyticsService.getDashboardStats error:', error);
+workers/management-worker/services/analyticsService.ts:57:            console.error('AnalyticsService.getRevenueTrend error:', error);
+workers/management-worker/services/analyticsService.ts:104:            console.error('AnalyticsService.getTopAlbums error:', error);
+workers/management-worker/services/analyticsService.ts:129:            console.error('AnalyticsService.getTopPhotographers error:', error);
+workers/management-worker/services/analyticsService.ts:151:            console.error('AnalyticsService.incrementAlbumView error:', error);
+workers/management-worker/services/analyticsService.ts:247:            console.error('AnalyticsService.getDailyIntelligence error:', error);
+workers/management-worker/shared/cacheService.ts:110:      console.log(`[Cache] Cleaned up ${cleaned} expired entries`);
+workers/management-worker/src/auditLogger.ts:12:      console.error(`[AUDIT] ${level} ${event}`, details);
+workers/management-worker/src/auditLogger.ts:14:      console.log(`[AUDIT] ${level} ${event}`, details);
+workers/management-worker/src/auth.ts:22:        console.error('[Auth] Password hashing error:', error.message);
+workers/management-worker/src/auth.ts:49:                console.warn('[Auth] bcrypt compare failed:', compareError.message);
+workers/management-worker/src/auth.ts:61:        console.error('[Auth] Password verification error:', error.message);
+workers/management-worker/src/errorHandler.ts:78:  console.error(`[DatabaseError] [${operation}]`, error);
+workers/management-worker/src/errorHandler.ts:92:  console.error(`[InternalError] [${context}]`, error);
+workers/management-worker/src/healthCheck.ts:11:    console.log(`STATUS: ${res.statusCode}`);
+workers/management-worker/src/healthCheck.ts:14:        console.log(`BODY: ${chunk}`);
+workers/management-worker/src/healthCheck.ts:19:    console.error(`problem with request: ${e.message}`);
+workers/management-worker/src/initDefaultUser.ts:26:            console.warn(`[Init] Database file not found at ${dbPath}. Will initialize on first server connection.`);
+workers/management-worker/src/initDefaultUser.ts:41:            console.log(`[Init] Creating default admin user: ${DEFAULT_USER.email}`);
+workers/management-worker/src/initDefaultUser.ts:49:            console.log(`[Init] ✓ Default user created successfully`);
+workers/management-worker/src/initDefaultUser.ts:51:            console.log(`[Init] Default user already exists: ${DEFAULT_USER.email}`);
+workers/management-worker/src/initDefaultUser.ts:55:                console.log(`[Init] Patching missing desk_id for: ${DEFAULT_USER.email}`);
+workers/management-worker/src/initDefaultUser.ts:60:        console.error('[Init] Error initializing default user:', error.message);
+workers/management-worker/src/logger.ts:28:      console.error(
+workers/management-worker/src/logger.ts:33:      console.warn(
+workers/management-worker/src/logger.ts:38:      console.log(
+workers/management-worker/src/migrate-multimaster.ts:13:console.log(`Applying TS migration to: ${dbPath}`);
+workers/management-worker/src/migrate-multimaster.ts:24:    console.log('✅ MultiMaster Compatibility Migration applied successfully.');
+workers/management-worker/src/migrate-multimaster.ts:27:        console.log('ℹ️ Columns already exist.');
+workers/management-worker/src/migrate-multimaster.ts:29:        console.error('❌ Migration failed:', err.message);
+workers/management-worker/src/routes/analytics.ts:54:          console.error("[Financial Analytics Error]", error);
+workers/management-worker/src/routes/analytics.ts:134:                console.error("AI Audit generation failed:", e);
+workers/management-worker/src/routes/analytics.ts:171:          console.error("[Daily Audit Ingest Error]", error);
+workers/management-worker/src/routes/analytics.ts:189:          console.error("[Resort BI Ingest Error]", error);
+workers/management-worker/src/routes/analytics.ts:218:          console.error("[Resort BI Retrieval Error]", error);
+workers/management-worker/src/routes/analytics.ts:303:          console.error("[Location Audits Retrieval Error]", error);
+workers/management-worker/src/routes/analytics.ts:335:          console.error("[Forecast Error]", err);
+workers/management-worker/src/routes/auth.ts:185:        console.log(
+workers/management-worker/src/routes/auth.ts:248:          console.error("DB GET ERROR on LOGIN:", dbe);
+workers/management-worker/src/routes/billing.ts:45:      console.error('Checkout error:', error);
+workers/management-worker/src/routes/billing.ts:64:      console.error('Webhook signature verification error:', err);
+workers/management-worker/src/routes/billing.ts:128:      console.error('Webhook processing error:', error);
+workers/management-worker/src/routes/cloud.ts:36:          console.error("[Heartbeat] Error:", hbErr.message);
+workers/management-worker/src/routes/cloud.ts:200:            console.error(`[SyncOps] Failed to store op ${op.id}:`, err);
+workers/management-worker/src/routes/cloud.ts:355:          console.error(`[SyncOrder] Failed to sync order:`, e);
+workers/management-worker/src/routes/cloud.ts:407:            console.error(`[SyncBatch] Failed to upsert into ${table}:`, e);
+workers/management-worker/src/routes/cloud.ts:464:          console.error("[SyncSettings] Error:", e);
+workers/management-worker/src/routes/cloud.ts:497:          console.error(
+workers/management-worker/src/routes/cloud.ts:592:            console.log(`[SyncPhoto] Stored in R2: ${r2Key} (${buf.byteLength} bytes)`);
+workers/management-worker/src/routes/cloud.ts:600:          console.error("[SyncPhoto] Error:", e);
+workers/management-worker/src/routes/cloud.ts:706:            console.error("[Management Cloud Upload] D1 insert warning:", dbErr);
+workers/management-worker/src/routes/cloud.ts:709:          console.log(
+workers/management-worker/src/routes/cloud.ts:717:          console.error("[R2 Upload] Error:", e);
+workers/management-worker/src/routes/cloud.ts:806:            console.warn("[Backup Retention] Cleanup non-fatal error:", retentionErr);
+workers/management-worker/src/routes/cloud.ts:809:          console.log(`[Backup Ingestion] Stored ${type} backup for desk ${deskId}: ${r2Key} (${buf.byteLength} bytes)`);
+workers/management-worker/src/routes/cloud.ts:815:          console.error("[Backup Ingestion] Error:", e);
+workers/management-worker/src/routes/cloud.ts:841:          console.error("[Backup List] Error:", e);
+workers/management-worker/src/routes/cloud.ts:964:          console.log(
+workers/management-worker/src/routes/email.ts:240:          console.log(
+workers/management-worker/src/routes/gallery.ts:103:      console.error('Gallery Checkout error:', error);
+workers/management-worker/src/routes/oauth.ts:417:    console.warn("[audit] failed to log event:", err?.message ?? err);
+workers/management-worker/src/routes/orders.ts:150:      console.log(
+workers/management-worker/src/routes/sync.ts:53:        console.error(`[SyncOps] Failed to store op ${op.id}:`, err);
+workers/management-worker/src/routes/sync.ts:148:        console.error(`[SyncBatch] Failed:`, e);
+workers/management-worker/src/routes/telemetry.ts:14:      // or tail it using standard `console.log`. Since CF workers don't have local disk,
+workers/management-worker/src/routes/telemetry.ts:15:      // we will just use console.log which gets picked up by Wrangler or CF log push.
+workers/management-worker/src/routes/telemetry.ts:19:        if (level === 'ERROR' || level === 'FATAL') console.error(msg, log.data);
+workers/management-worker/src/routes/telemetry.ts:20:        else if (level === 'WARN') console.warn(msg, log.data);
+workers/management-worker/src/routes/telemetry.ts:21:        else if (level === 'DEBUG') console.debug(msg, log.data);
+workers/management-worker/src/routes/telemetry.ts:22:        else console.info(msg, log.data);
+workers/management-worker/src/routes/telemetry.ts:27:      console.error("[TELEMETRY] Failed to ingest telemetry payload", error);
+workers/management-worker/src/routes/website.ts:57:      console.error('Booking submission error:', error);
+workers/management-worker/src/routes/website.ts:98:      console.error('Contact submission error:', error);
+workers/management-worker/src/routes/website.ts:126:      console.error('Portfolio fetch error:', error);
+workers/management-worker/src/routes/website.ts:163:      console.error('Access code error:', error);
+workers/management-worker/src/server.ts:206:        console.error("Worker Error:", e);
+workers/management-worker/src/server.ts:254:      console.log("[Cron] Running Scheduled Maintenance tasks...");
+workers/management-worker/src/server.ts:262:        console.log(`[DLQ] Processing ${queueName} event...`);
+workers/management-worker/src/server.ts:267:      console.log(`[DLQ] Processed: ${dlqResult.processed}, Failed: ${dlqResult.failed}`);
+workers/management-worker/src/server.ts:293:      console.log(
+workers/management-worker/src/server.ts:353:            console.error(
+workers/management-worker/src/server.ts:361:      console.error("[Cron] Uncaught error during scheduled execution:", err);
+workers/management-worker/src/services/auditService.ts:37:      console.error(`[AUDIT] ${logLine}`);
+workers/management-worker/src/services/auditService.ts:39:      console.log(`[AUDIT] ${logLine}`);
+workers/management-worker/src/services/geminiService.ts:85:      console.error("Error generating sales forecast with Gemini:", error);
+workers/management-worker/src/services/geminiService.ts:126:      console.error("Error generating shoot ideas with Gemini:", error);
+workers/management-worker/src/services/geminiService.ts:170:      console.error("Error generating album suggestions with Gemini:", error);
+workers/management-worker/src/services/geminiService.ts:214:      console.error("Gemini Chat Error:", error);
+workers/management-worker/src/startupGuard.ts:13:        console.log(`[StartupGuard] Verifying context for ${this.appType}`);
+workers/management-worker/src/startupGuard.ts:28:        console.log(`[StartupGuard] ✅ Identity Checked. Running as ${this.appType}`);
+workers/management-worker/src/utils/logger.ts:28:        console.log(JSON.stringify(logEntry));
+workers/management-worker/src/utils/networkUtils.ts:53:      console.warn(`[Retry] Attempt ${attempt} failed. Retrying in ${Math.round(delay)}ms...`, {
+workers/management-worker/worker-configuration.d.ts:112:     * The **`console.clear()`** static method clears the console if possible.
+workers/management-worker/worker-configuration.d.ts:118:     * The **`console.count()`** static method logs the number of times that this particular call to `count()` has been called.
+workers/management-worker/worker-configuration.d.ts:124:     * The **`console.countReset()`** static method resets counter used with console/count_static.
+workers/management-worker/worker-configuration.d.ts:130:     * The **`console.debug()`** static method outputs a message to the console at the 'debug' log level.
+workers/management-worker/worker-configuration.d.ts:136:     * The **`console.dir()`** static method displays a list of the properties of the specified JavaScript object.
+workers/management-worker/worker-configuration.d.ts:142:     * The **`console.dirxml()`** static method displays an interactive tree of the descendant elements of the specified XML/HTML element.
+workers/management-worker/worker-configuration.d.ts:148:     * The **`console.error()`** static method outputs a message to the console at the 'error' log level.
+workers/management-worker/worker-configuration.d.ts:154:     * The **`console.group()`** static method creates a new inline group in the Web console log, causing any subsequent console messages to be indented by an additional level, until console/groupEnd_static is called.
+workers/management-worker/worker-configuration.d.ts:160:     * The **`console.groupCollapsed()`** static method creates a new inline group in the console.
+workers/management-worker/worker-configuration.d.ts:166:     * The **`console.groupEnd()`** static method exits the current inline group in the console.
+workers/management-worker/worker-configuration.d.ts:172:     * The **`console.info()`** static method outputs a message to the console at the 'info' log level.
+workers/management-worker/worker-configuration.d.ts:178:     * The **`console.log()`** static method outputs a message to the console.
+workers/management-worker/worker-configuration.d.ts:184:     * The **`console.table()`** static method displays tabular data as a table.
+workers/management-worker/worker-configuration.d.ts:190:     * The **`console.time()`** static method starts a timer you can use to track how long an operation takes.
+workers/management-worker/worker-configuration.d.ts:196:     * The **`console.timeEnd()`** static method stops a timer that was previously started by calling console/time_static.
+workers/management-worker/worker-configuration.d.ts:202:     * The **`console.timeLog()`** static method logs the current value of a timer that was previously started by calling console/time_static.
+workers/management-worker/worker-configuration.d.ts:209:     * The **`console.trace()`** static method outputs a stack trace to the console.
+workers/management-worker/worker-configuration.d.ts:215:     * The **`console.warn()`** static method outputs a warning message to the console at the 'warning' log level.
+workers/moneytrash-worker/src/handlers/gallery/create.ts:100:    console.error('Gallery creation error:', error);
+workers/moneytrash-worker/src/handlers/gallery/get.ts:76:    console.error('Gallery get error:', error);
+workers/moneytrash-worker/src/handlers/office/register.ts:145:    console.error('Office registration error:', error);
+workers/moneytrash-worker/src/handlers/office/verify.ts:72:    console.error('Office verification error:', error);
+workers/moneytrash-worker/src/handlers/upload/cancel.ts:47:    console.error('Cancel upload error:', error);
+workers/moneytrash-worker/src/handlers/upload/cancel.ts:61:      console.error(`Failed to delete chunk ${chunkIndex}:`, e);
+workers/moneytrash-worker/src/handlers/upload/cancel.ts:86:    console.error('Failed to log cancellation:', e);
+workers/moneytrash-worker/src/handlers/upload/chunk.ts:82:    console.error('Chunk upload error:', error);
+workers/moneytrash-worker/src/handlers/upload/finalize.ts:76:    console.error('Finalize error:', error);
+workers/moneytrash-worker/src/handlers/upload/finalize.ts:172:    console.warn("[UploadFinalize] Note: photos table insert fallback:", err);
+workers/moneytrash-worker/src/handlers/upload/finalize.ts:230:    console.warn("[UploadFinalize] Note: photos table insert fallback:", err);
+workers/moneytrash-worker/src/handlers/upload/init.ts:111:    console.error('Upload init error:', error);
+workers/moneytrash-worker/src/handlers/upload/init.ts:145:    console.error('Failed to log upload event:', e);
+workers/moneytrash-worker/src/handlers/webhook.ts:46:    console.error('Webhook error:', error);
+workers/moneytrash-worker/src/handlers/webhook.ts:82:    console.error('[Webhook] Signature verification error:', error);
+workers/moneytrash-worker/src/index.ts:129:      console.error("API Error:", error);
+workers/moneytrash-worker/src/middleware/auth.ts:53:    console.error('JWT verification failed:', error);

@@ -37,6 +37,7 @@ const UnifiedMasterDashboard = lazy(() => import("./UnifiedMasterDashboard.tsx")
 const Orders = lazy(() => import("../Orders.tsx"));
 const LicenseManagementPage = lazy(() => import("./LicenseManagementPage.tsx"));
 const EmailCampaigns = lazy(() => import("./EmailCampaigns.tsx"));
+const VolumeExports = lazy(() => import("./VolumeExports.tsx"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-64">
@@ -166,6 +167,13 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
                 onPrintReceipt={() => {}}
                 onOpenLabFolder={() => {}}
               />
+            </Suspense>
+          );
+
+        case "volume_exports":
+          return (
+            <Suspense fallback={<PageLoader />}>
+              <VolumeExports />
             </Suspense>
           );
 

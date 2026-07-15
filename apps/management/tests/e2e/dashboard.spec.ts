@@ -2,7 +2,12 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Management Dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/manage/');
+    // Abort backend API calls to force the app to fallback to local mock data instantly
+    // This prevents TCP timeouts on browsers when the backend is offline
+    await page.route('http://127.0.0.1:8092/api/**', route => route.abort());
+    await page.route('http://localhost:8092/api/**', route => route.abort());
+
+    await page.goto('/manage/', { waitUntil: 'domcontentloaded' });
     await page.fill('[data-testid="username-input"]', 'alaeddine@example.com');
     await page.fill('[data-testid="password-input"]', 'DEFAULT_PASSWORD_PLACEHOLDER');
     await page.click('[data-testid="login-button"]');
@@ -11,10 +16,10 @@ test.describe('Management Dashboard', () => {
   });
 
   test('should display dashboard metrics', async ({ page }) => {
-    await expect(page.getByText('Revenue', { exact: true })).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText('Orders', { exact: true })).toBeVisible();
+    await expect(page.getByText('Revenue', { exact: true }).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Orders', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Photos', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('Avg Order', { exact: true })).toBeVisible();
+    await expect(page.getByText('Avg Order', { exact: true }).first()).toBeVisible();
   });
 
   test('should toggle time ranges', async ({ page }) => {

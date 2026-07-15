@@ -22,6 +22,7 @@ const VIEW_META: Record<ManagementView, { tab: string; page: string }> = {
   license_management:  { tab: "Settings", page: "License Fleet & Generator" },
   session_types:       { tab: "Settings", page: "Session Types" },
   reports_insights:    { tab: "Settings", page: "Reports & Insights" },
+  email_campaigns:     { tab: "Marketing", page: "Email Campaigns" },
 };
 
 interface BreadcrumbProps {

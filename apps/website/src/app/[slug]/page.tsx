@@ -7,6 +7,9 @@ export function generateStaticParams() {
   return Array.from(pagesStore.keys()).map((slug) => ({ slug }));
 }
 
+export const dynamicParams = false;
+export const dynamic = 'force-static';
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const page = pagesStore.get(slug);

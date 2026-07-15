@@ -12,6 +12,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useManagement } from "../../context/ManagementContext";
+import { HOTELS } from "../../constants";
 import {Globe,
   Hotel,
   TrendingUp,
@@ -131,6 +132,7 @@ const UnifiedMasterDashboard: React.FC = () => {
   
   // Get the selected context from ManagementContext
   const { selectedContext } = useManagement();
+  const contextName = HOTELS.find(h => h.id === selectedContext)?.name || selectedContext;
 
   const fetchData = useCallback(async () => {
     try {
@@ -258,18 +260,18 @@ const UnifiedMasterDashboard: React.FC = () => {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <span className="px-2 py-0.5 bg-sky-500/10 border border-sky-500/20 text-sky-400 text-[10px] font-black uppercase rounded tracking-widest">
-                  {selectedContext && selectedContext !== "Global / Enterprise" ? `Hotel Context: ${selectedContext}` : "Global Oversight"}
+                  {selectedContext && selectedContext !== "Global / Enterprise" ? `Hotel Context: ${contextName}` : "Global Oversight"}
                 </span>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
                   Master Station Dashboard
                 </span>
               </div>
               <h1 className="text-3xl font-black text-white">
-                {selectedContext && selectedContext !== "Global / Enterprise" ? `${selectedContext} Dashboard` : "Unified Dashboard"}
+                {selectedContext && selectedContext !== "Global / Enterprise" ? `${contextName} Dashboard` : "Unified Dashboard"}
               </h1>
               <p className="text-sm text-slate-400 mt-1">
                 {selectedContext && selectedContext !== "Global / Enterprise"
-                  ? `Filtered view for resort destination: ${selectedContext}`
+                  ? `Filtered view for resort destination: ${contextName}`
                   : `Aggregated view across ${aggregated.totalStations} Master stations worldwide`}
               </p>
             </div>
@@ -391,7 +393,7 @@ const UnifiedMasterDashboard: React.FC = () => {
             </button>
           </div>
 
-          {expandedSection !== "kpi" && (
+          {expandedSection === "kpi" && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard
                 title="Revenue"
@@ -462,7 +464,7 @@ const UnifiedMasterDashboard: React.FC = () => {
         </section>
 
         {/* Real-time Revenue Trends Chart */}
-        {expandedSection !== "kpi" && (
+        {expandedSection === "kpi" && (
           <section className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden p-6 mt-6 mb-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-black text-white uppercase tracking-wider flex items-center gap-2">

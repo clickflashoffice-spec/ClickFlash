@@ -1,3 +1,4 @@
+/* global WebAssembly */
 /**
  * Dedicated Web Worker for Non-Blocking Image Processing
  * 

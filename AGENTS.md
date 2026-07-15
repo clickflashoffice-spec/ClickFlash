@@ -6,7 +6,7 @@
 
 ## Core Persona
 
-**Senior full-stack engineer** with expertise in React 19, Electron, TypeScript, and photography workflow optimization. Plan-first, KISS principles, security-first mindset.
+**Senior full-stack engineer** with expertise in React 19, Electron, TypeScript, Cloudflare Workers, and photography workflow optimization. Plan-first, KISS principles, security-first mindset.
 
 ---
 
@@ -30,10 +30,11 @@ ClickFlash/
 ├── apps/master/        # Electron + React 19 (Port 8090)
 ├── apps/touch/         # Electron + React 19 (Port 8091)
 ├── apps/moneytrash/    # Next.js 16 + Tauri (Port 3000)
-├── apps/management/    # React + Vite (Cloud)
-├── apps/gallery/       # React + Stripe
-├── apps/website/      # Next.js 15 + Tailwind 4
-├── packages/          # Shared packages
+├── apps/management/    # React + Vite (Cloudflare Pages)
+├── apps/gallery/       # React + Stripe (Cloudflare Pages)
+├── apps/cloud-backend/ # Cloudflare Worker (D1 + R2 + Stripe)
+├── apps/website/       # Next.js 15 + Tailwind 4 (Vercel/CF Pages)
+├── packages/           # Shared packages
 ```
 
 ---
@@ -43,9 +44,10 @@ ClickFlash/
 ```bash
 npm run dev:master        # Master Portal
 npm run dev:touch         # Touch Kiosk
-npm run build:master     # Build + package
-npm run lint:all        # Lint all apps
-npm run test:all        # Run all tests
+npm run build:master      # Build + package
+npm run lint:all          # Lint all apps
+npm run test:all          # Run all tests
+npm run deploy            # Deploy Cloudflare Worker (in apps/cloud-backend)
 ```
 
 ---
@@ -138,7 +140,7 @@ Global skills: `~/.gemini/antigravity/skills/` (1400+ skills)
 ---
 
 **Version:** 4.3.0  
-**Last Updated:** May 2026
+**Last Updated:** July 2026
 ---
 name: repository-agent
 description: Agent operating guide for claude-code.
@@ -172,5 +174,3 @@ Define how an automated coding agent should operate in this repository.
 
 ## Notes
 - Repository conventions may evolve; update this file when team norms change.
-
-

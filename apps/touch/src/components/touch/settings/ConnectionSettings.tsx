@@ -9,7 +9,6 @@ interface ConnectionSettingsProps {
     connectionType: 'local' | 'cloud';
     setConnectionType: (type: 'local' | 'cloud') => void;
     connectionTestStatus: 'idle' | 'testing' | 'success' | 'error';
-    onLaunchWizard: () => void;
     onTestConnection: () => void;
     kioskConnectionStatus: 'Connected' | 'Disconnected';
     handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
@@ -22,7 +21,6 @@ export const ConnectionSettings: React.FC<ConnectionSettingsProps> = ({
     connectionType,
     setConnectionType,
     connectionTestStatus,
-    onLaunchWizard,
     onTestConnection,
     kioskConnectionStatus,
     handleChange,
@@ -54,15 +52,6 @@ export const ConnectionSettings: React.FC<ConnectionSettingsProps> = ({
         <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-bold">Connection</h3>
-                {connectionType === 'local' && (
-                    <button
-                        onClick={onLaunchWizard}
-                        className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 px-3 py-1.5 rounded-full font-bold flex items-center gap-1 transition-colors"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                        Launch Wizard
-                    </button>
-                )}
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-4">
@@ -145,29 +134,6 @@ export const ConnectionSettings: React.FC<ConnectionSettingsProps> = ({
                     <p className="text-xs text-slate-400 mt-1">
                         Local path where this Kiosk should look for new photos (e.g. mapped network drive).
                         {settings.sharedFolderPath?.startsWith('C:\\ClickFlash') || settings.sharedFolderPath?.startsWith('/ClickFlash') ? (
-                            <span className="text-green-600 dark:text-green-400 font-medium"> Auto-configured via pairing.</span>
-                        ) : null}
-                    </p>
-                </div>
-                <div>
-                    <label htmlFor="orders-folder-path-input" className="block text-sm font-medium text-slate-500 dark:text-slate-300 mb-1">
-                        Orders Hot Folder
-                        {settings.touchOrdersFolder?.startsWith('C:\\ClickFlash') || settings.touchOrdersFolder?.startsWith('/ClickFlash') ? (
-                            <span className="ml-2 text-[10px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 px-1.5 py-0.5 rounded-full font-bold">AUTO</span>
-                        ) : null}
-                    </label>
-                    <input
-                        id="orders-folder-path-input"
-                        type="text"
-                        name="touchOrdersFolder"
-                        value={settings.touchOrdersFolder || ''}
-                        onChange={handleChange}
-                        placeholder="e.g., C:\\Orders or /home/user/orders"
-                        className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md px-3 py-2 font-mono text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    />
-                    <p className="text-xs text-slate-400 mt-1">
-                        Local path where JSON order files will be created for fulfillment.
-                        {settings.touchOrdersFolder?.startsWith('C:\\ClickFlash') || settings.touchOrdersFolder?.startsWith('/ClickFlash') ? (
                             <span className="text-green-600 dark:text-green-400 font-medium"> Auto-configured via pairing.</span>
                         ) : null}
                     </p>

@@ -2,7 +2,7 @@
 
 import express, { Request, Response } from 'express';
 import Stripe from 'stripe';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
 // Configure Stripe (fallback to dummy key for typechecking if env is missing)
 const stripeKey = process.env.STRIPE_SECRET_KEY || 'sk_test_123';
@@ -10,9 +10,16 @@ const stripe = new Stripe(stripeKey, {
   apiVersion: '2026-06-24.dahlia',
 });
 
-// Configure Resend for emails
-const resendKey = process.env.RESEND_API_KEY || 're_123';
-const resend = new Resend(resendKey);
+// Configure Nodemailer for custom SMTP emails (100% custom, no SaaS subscriptions)
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.example.com',
+  port: parseInt(process.env.SMTP_PORT || '587', 10),
+  secure: process.env.SMTP_SECURE === 'true',
+  auth: {
+    user: process.env.SMTP_USER || 'orders@clickflash.app',
+    pass: process.env.SMTP_PASS || 'secret',
+  },
+});
 
 const router = express.Router();
 
@@ -51,13 +58,13 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
         
         if (customerEmail) {
           try {
-            await resend.emails.send({
-              from: 'orders@clickflash.app',
+            await transporter.sendMail({
+              from: process.env.SMTP_FROM || '"ClickFlash Orders" <orders@clickflash.app>',
               to: customerEmail,
               subject: 'Your ClickFlash Order is Confirmed!',
               html: '<p>Thank you for your purchase. Your gallery access has been granted.</p>'
             });
-            console.log(`Confirmation email sent to ${customerEmail}`);
+            console.log(`Confirmation email sent to ${customerEmail} via Nodemailer`);
           } catch (emailErr) {
             console.error('Failed to send email:', emailErr);
           }

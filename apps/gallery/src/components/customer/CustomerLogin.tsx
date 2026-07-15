@@ -33,6 +33,11 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
   const [loading, setLoading] = useState(false);
   const [faceFile, setFaceFile] = useState<File | null>(null);
 
+  // Magic Link Request State
+  const [magicEmailMode, setMagicEmailMode] = useState(false);
+  const [magicEmail, setMagicEmail] = useState("");
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+
   const getMasterBaseUrl = () => {
     try {
       const settings = localStorage.getItem('connectionSettings');
@@ -140,6 +145,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
           return;
         }
 
+        // If it's an email, we could auto-detect, but we have a dedicated button
         let order = await authService.getOrderByRoomNumber(trimmedInput);
         if (!order && authService.getOrderByToken) {
           order = await authService.getOrderByToken(trimmedInput);
@@ -153,6 +159,41 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
     } catch (err) {
       console.error("Login error:", err);
       setError("An error occurred during login. Check your connection.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRequestMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    
+    const trimmedEmail = magicEmail.trim().toLowerCase();
+    if (!trimmedEmail) {
+      setError("Please enter your email address.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const baseUrl = getMasterBaseUrl();
+      const response = await fetch(`${baseUrl}/api/auth/magic-link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmedEmail }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to request magic link");
+      }
+      
+      setMagicLinkSent(true);
+      setError("");
+    } catch (err) {
+      console.error("Magic link error:", err);
+      // Fail silently to avoid email enumeration, or show generic message
+      setMagicLinkSent(true); 
     } finally {
       setLoading(false);
     }
@@ -331,25 +372,86 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
               </div>
             )}
 
-            {mode === "magic" && (
-              <div className="group">
-                <label
-                  htmlFor="accessPin"
-                  className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-600 transition-colors"
+            {mode === "magic" && !magicEmailMode && (
+              <div className="space-y-4">
+                <div className="group">
+                  <label
+                    htmlFor="accessPin"
+                    className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-600 transition-colors"
+                  >
+                    Room Number or Magic Token
+                  </label>
+                  <input
+                    type="text"
+                    id="accessPin"
+                    name="accessPin"
+                    value={accessPin}
+                    onChange={(e) => setAccessPin(e.target.value)}
+                    placeholder="e.g. 402 or CF-TOKEN-XYZ"
+                    required
+                    autoComplete="off"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4.5 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all font-bold text-sm group-hover:border-slate-300"
+                  />
+                </div>
+                <div className="text-center">
+                  <button 
+                    type="button" 
+                    onClick={() => { setMagicEmailMode(true); setError(""); }}
+                    className="text-[10px] font-black text-cyan-600 uppercase tracking-widest hover:text-cyan-700 transition-colors"
+                  >
+                    Email me a Magic Link instead
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {mode === "magic" && magicEmailMode && !magicLinkSent && (
+              <div className="space-y-4 animate-fade-in-down">
+                <div className="group">
+                  <label
+                    htmlFor="magicEmail"
+                    className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-600 transition-colors"
+                  >
+                    Email Address for Magic Link
+                  </label>
+                  <input
+                    type="email"
+                    id="magicEmail"
+                    name="magicEmail"
+                    value={magicEmail}
+                    onChange={(e) => setMagicEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    required
+                    autoComplete="email"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4.5 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all font-bold text-sm group-hover:border-slate-300"
+                  />
+                </div>
+                <div className="text-center">
+                  <button 
+                    type="button" 
+                    onClick={() => { setMagicEmailMode(false); setError(""); }}
+                    className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors"
+                  >
+                    Back to Token / Room Login
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {mode === "magic" && magicEmailMode && magicLinkSent && (
+              <div className="p-6 bg-cyan-50 border border-cyan-200 rounded-2xl text-center space-y-3 animate-fade-in-down">
+                <div className="w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-2 text-cyan-600">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                </div>
+                <h4 className="text-sm font-black text-cyan-900 uppercase tracking-widest">Check Your Inbox</h4>
+                <p className="text-xs text-cyan-700 font-medium">If an order exists for <span className="font-bold">{magicEmail}</span>, a magic link has been sent.</p>
+                <button 
+                  type="button" 
+                  onClick={() => { setMagicEmailMode(false); setMagicLinkSent(false); }}
+                  className="mt-4 text-[10px] font-black text-cyan-600 uppercase tracking-widest hover:text-cyan-800 transition-colors"
                 >
-                  Room Number or Magic Token
-                </label>
-                <input
-                  type="text"
-                  id="accessPin"
-                  name="accessPin"
-                  value={accessPin}
-                  onChange={(e) => setAccessPin(e.target.value)}
-                  placeholder="e.g. 402 or CF-TOKEN-XYZ"
-                  required
-                  autoComplete="off"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4.5 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all font-bold text-sm group-hover:border-slate-300"
-                />
+                  Return to Login
+                </button>
               </div>
             )}
 
@@ -379,24 +481,29 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black py-4.5 rounded-2xl shadow-xl shadow-cyan-500/10 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-[0.1em] text-sm border-t border-white/20 relative overflow-hidden group"
-            >
-              <span className="relative z-10">
-                {loading
-                  ? "Authenticating..."
-                  : mode === "gallery"
-                    ? "Enter Gallery"
-                    : mode === "order"
-                      ? "Access My Order"
-                      : mode === "face"
-                        ? "Scan My Face"
-                        : "Access Room / Token"}
-              </span>
-              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            </button>
+            {!(mode === "magic" && magicEmailMode && magicLinkSent) && (
+              <button
+                type={mode === "magic" && magicEmailMode ? "button" : "submit"}
+                onClick={mode === "magic" && magicEmailMode ? handleRequestMagicLink : undefined}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black py-4.5 rounded-2xl shadow-xl shadow-cyan-500/10 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-[0.1em] text-sm border-t border-white/20 relative overflow-hidden group"
+              >
+                <span className="relative z-10">
+                  {loading
+                    ? "Processing..."
+                    : mode === "gallery"
+                      ? "Enter Gallery"
+                      : mode === "order"
+                        ? "Access My Order"
+                        : mode === "face"
+                          ? "Scan My Face"
+                          : mode === "magic" && magicEmailMode
+                            ? "Send Magic Link"
+                            : "Access Room / Token"}
+                </span>
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </button>
+            )}
           </form>
         </div>
 

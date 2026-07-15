@@ -59,6 +59,7 @@ const TABS: TabConfig[] = [
     views: [
       "stations_overview",
       "orders_sales",
+      "volume_exports",
       "assets_inventory",
       "sync_logs",
     ],
@@ -102,6 +103,7 @@ const TAB_ITEMS: Record<TabId, TabItemConfig[]> = {
   operations: [
     { view: "stations_overview", label: "Stations Overview", icon: Server },
     { view: "orders_sales", label: "Orders & Sales", icon: ShoppingCart },
+    { view: "volume_exports", label: "Volume Exports", icon: Package },
     { view: "assets_inventory", label: "Assets & Inventory", icon: Package },
     { view: "sync_logs", label: "Sync & Logs", icon: RefreshCw },
   ],

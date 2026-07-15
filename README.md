@@ -5,12 +5,12 @@
 [![CI](https://github.com/alaeddinekhemiri/ClickFlash/actions/workflows/ci.yml/badge.svg)](https://github.com/alaeddinekhemiri/ClickFlash/actions/workflows/ci.yml)
 [![CD](https://github.com/alaeddinekhemiri/ClickFlash/actions/workflows/cd.yml/badge.svg)](https://github.com/alaeddinekhemiri/ClickFlash/actions/workflows/cd.yml)
 
-[![Master Portal](https://img.shields.io/badge/Master%20Portal-v4.2.0-blue)](./apps/master/)
-[![Touch Kiosk](https://img.shields.io/badge/Touch%20Kiosk-v4.2.0-green)](./apps/touch/)
-[![Money Trash](https://img.shields.io/badge/Money%20Trash-v4.2.0-yellow)](./apps/moneytrash/)
-[![Management](https://img.shields.io/badge/Management-v4.2.0-purple)](./apps/management/)
-[![Gallery](https://img.shields.io/badge/Gallery-v4.2.0-pink)](./apps/gallery/)
-[![Website](https://img.shields.io/badge/Website-v4.2.0-orange)](./apps/website/)
+[![Master Portal](https://img.shields.io/badge/Master%20Portal-v4.3.0-blue)](./apps/master/)
+[![Touch Kiosk](https://img.shields.io/badge/Touch%20Kiosk-v4.3.0-green)](./apps/touch/)
+[![Money Trash](https://img.shields.io/badge/Money%20Trash-v4.3.0-yellow)](./apps/moneytrash/)
+[![Management](https://img.shields.io/badge/Management-v4.3.0-purple)](./apps/management/)
+[![Gallery](https://img.shields.io/badge/Gallery-v4.3.0-pink)](./apps/gallery/)
+[![Website](https://img.shields.io/badge/Website-v4.3.0-orange)](./apps/website/)
 
 [![Node.js](https://img.shields.io/badge/Node.js-20.x-green.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
@@ -34,15 +34,15 @@
 │                          │                                                   │
 │                          ▼                                                   │
 │                   ┌─────────────┐                                            │
-│                   │ Cloud Sync  │                                            │
+│                   │ cloud-backend(Cloudflare Worker)                         │
 │                   └──────┬──────┘                                            │
 │                          │                                                   │
 │  ┌───────────────────────┼───────────────────────────────────────────────┐  │
 │  │                       │              WEB APPS                         │  │
 │  │  ┌────────────────────▼──────────────────────────────────────────┐   │  │
 │  │  │  💰 Money Trash Uploader (apps/moneytrash/) - Next.js 16      │   │  │
-│  │  │  📊 Management Hub (apps/management/) - React + Vite          │   │  │
-│  │  │  🛍️ Customer Gallery (apps/gallery/) - React + Vite          │   │  │
+│  │  │  📊 Management Hub (apps/management/) - React/Vite (CF Pages) │   │  │
+│  │  │  🛍️ Customer Gallery (apps/gallery/) - React/Vite (CF Pages) │   │  │
 │  │  │  🌐 Main Website (apps/website/) - Next.js 15               │   │  │
 │  │  └───────────────────────────────────────────────────────────────┘   │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
@@ -56,13 +56,14 @@
 
 ```bash
 E:\ClickFlash\
-├── 📂 apps/                    # All 6 applications
+├── 📂 apps/                    # All applications
 │   ├── 📂 master/              # 🎛️ Master Portal (Electron + React 19)
 │   ├── 📂 touch/               # 📱 Touch Kiosk (Electron + React 19)
 │   ├── 📂 moneytrash/          # 💰 Money Trash Uploader (Next.js 16)
 │   ├── 📂 management/          # 📊 Management Hub (React + Vite)
 │   ├── 📂 gallery/             # 🛍️ Customer Gallery (React + Vite)
-│   └── 📂 website/             # 🌐 Main Website (Next.js 15)
+│   ├── 📂 website/             # 🌐 Main Website (Next.js 15)
+│   └── 📂 cloud-backend/       # ☁️ Cloudflare Worker (D1 + R2 API)
 │
 ├── 📂 packages/                # Shared packages
 │   ├── 📂 types/               # @clickflash/types — shared TypeScript types
@@ -146,18 +147,17 @@ npm run dev:moneytrash    # Port 3000
 ### 4. 📊 Management Hub (100% Online)
 
 **Location:** `apps/management/`  
-**Type:** React 19 + Vite + CF Worker + D1 (Cloud App)
+**Type:** React 19 + Vite (Cloudflare Pages)
 
-Fully online business management dashboard deployed as a Cloudflare Worker with D1 database.
+Fully online business management dashboard communicating with `apps/cloud-backend`.
 
 - **Features:** Advanced analytics, 12+ management pages, payroll, reports, settings
-- **Stack:** React 19 + Vite + Cloudflare Worker + D1 + Tailwind CSS
-- **Deployment:** Cloudflare Workers
+- **Stack:** React 19 + Vite + Tailwind CSS
+- **Deployment:** Cloudflare Pages
 - **Status:** ✅ Complete
 
 ```bash
 npm run dev               # Frontend (Vite dev server)
-npm run dev:backend       # Backend (wrangler dev)
 ```
 
 ---
@@ -165,18 +165,17 @@ npm run dev:backend       # Backend (wrangler dev)
 ### 5. 🛍️ Customer Gallery (100% Online)
 
 **Location:** `apps/gallery/`  
-**Type:** React 19 + Vite + CF Worker + D1 + R2 (Cloud App)
+**Type:** React 19 + Vite (Cloudflare Pages)
 
-Fully online customer portal deployed as a Cloudflare Worker with D1 database, R2 photo storage, and Stripe payments.
+Fully online customer portal communicating with `apps/cloud-backend`.
 
 - **Features:** Photo browsing, lightbox, favorites, shopping cart, Stripe payments, downloads
-- **Stack:** React 19 + Vite + Cloudflare Worker + D1 + R2 + Stripe
-- **Deployment:** Cloudflare Workers
+- **Stack:** React 19 + Vite + Stripe
+- **Deployment:** Cloudflare Pages
 - **Status:** ✅ Complete
 
 ```bash
 npm run dev               # Frontend (Vite dev server)
-npm run dev:backend       # Backend (wrangler dev)
 ```
 
 ---
@@ -262,9 +261,10 @@ For automated local setup and deployment, the following scripts are available in
 ### Web Apps (100% Online)
 
 - **Money Trash Uploader** - Tauri desktop app (local upload gateway)
-- **Management Hub** - CF Worker + D1 (cloud-deployed)
-- **Customer Gallery** - CF Worker + D1 + R2 + Stripe (cloud-deployed)
+- **Management Hub** - CF Pages talking to CF Worker (`apps/cloud-backend`)
+- **Customer Gallery** - CF Pages talking to CF Worker (`apps/cloud-backend`)
 - **Main Website** - Next.js 15 marketing site
+- **Cloud Backend** - Cloudflare Worker + D1 Database + R2 Object Storage + Stripe
 
 ---
 
@@ -312,8 +312,9 @@ E2E Tests: 68 passing
 | **Master Portal**    | ✅ Complete | 8090 | Electron + React 19      |
 | **Touch Kiosk**      | ✅ Complete | 8091 | Electron + React 19      |
 | **Money Trash**      | ✅ Complete | --   | Tauri + React 19         |
-| **Management Hub**   | ✅ Complete | --   | CF Worker + D1           |
-| **Customer Gallery** | ✅ Complete | --   | CF Worker + D1 + R2      |
+| **Management Hub**   | ✅ Complete | --   | CF Pages                 |
+| **Customer Gallery** | ✅ Complete | --   | CF Pages                 |
+| **Cloud Backend**    | ✅ Complete | --   | CF Worker + D1 + R2      |
 | **Website**          | ✅ Active   | 3001 | Next.js 15               |
 
 **Overall: 6/6 Apps Complete (100%)**
@@ -357,5 +358,5 @@ Private - ClickFlash Photography Solutions
 
 ---
 
-**Last Updated:** May 2026  
-**Version:** 4.2.0
+**Last Updated:** July 2026  
+**Version:** 4.3.0

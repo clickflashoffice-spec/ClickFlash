@@ -92,3 +92,5 @@ export const EmailCampaigns: React.FC = () => {
     </div>
   );
 };
+
+export default EmailCampaigns;

@@ -8,7 +8,6 @@ import { useCurrency } from "../CurrencyContext.tsx";
 import { configureConnection } from "../../services/pb.ts";
 import { apiService } from "../../services/apiService";
 
-import TouchConnectionSetup from "./TouchConnectionSetup";
 import { logger } from "../../utils/logger";
 import { DEFAULT_MASTER_PORT, LEGACY_KIOSK_ID } from "../../constants";
 import { ConnectionSettings } from "./settings/ConnectionSettings";
@@ -30,7 +29,7 @@ interface KioskSettingsModalProps {
 
 type ConnectionTestStatus = "idle" | "testing" | "success" | "error";
 type ConnectionType = "local" | "cloud";
-type ViewState = "settings" | "connectionWizard";
+type ViewState = "settings";
 
 const KioskSettingsModal: React.FC<KioskSettingsModalProps> = ({
   isOpen,
@@ -230,15 +229,6 @@ const KioskSettingsModal: React.FC<KioskSettingsModalProps> = ({
     performConnectionTest(settings.serverUrl || window.location.origin);
   };
 
-  const handleWizardComplete = (ip?: string) => {
-    if (ip) {
-      const newUrl = `http://${ip}:${DEFAULT_MASTER_PORT}`;
-      setSettings((prev) => ({ ...prev, serverUrl: newUrl }));
-      setConnectionTestStatus("success");
-    }
-    setView("settings");
-  };
-
   const handleCopyKioskId = async () => {
     try {
       await navigator.clipboard.writeText(settings.kioskId);
@@ -315,18 +305,6 @@ const KioskSettingsModal: React.FC<KioskSettingsModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Kiosk Settings">
 
-      {view === "connectionWizard" ? (
-        <div className="py-4">
-          <h3 className="text-lg font-bold mb-4 text-center">
-            Find Master Station
-          </h3>
-          <TouchConnectionSetup
-            variant="embedded"
-            onConnected={handleWizardComplete}
-            onCancel={() => setView("settings")}
-          />
-        </div>
-      ) : (
         <div className="space-y-6 no-print">
           <ConnectionSettings
             settings={settings}
@@ -334,7 +312,6 @@ const KioskSettingsModal: React.FC<KioskSettingsModalProps> = ({
             connectionType={connectionType}
             setConnectionType={startConnectionTypeChange}
             connectionTestStatus={connectionTestStatus}
-            onLaunchWizard={() => setView("connectionWizard")}
             onTestConnection={handleTestConnection}
             kioskConnectionStatus={kioskConnectionStatus}
             handleChange={handleChange}
@@ -439,7 +416,6 @@ const KioskSettingsModal: React.FC<KioskSettingsModalProps> = ({
             </div>
           </div>
         </div>
-      )}
 
       <div className="pt-6 border-t border-slate-200 dark:border-slate-700 mt-6">
         <div className="flex justify-end space-x-3">

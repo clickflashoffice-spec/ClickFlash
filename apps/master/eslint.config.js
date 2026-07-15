@@ -349,6 +349,7 @@ export default [
       "**/*.test.ts",
       "**/*.test.tsx",
       "**/*.spec.ts",
+      "src/wasm/**",
     ],
   },
 ];

@@ -283,5 +283,82 @@ export async function handleMasters(
     }
   }
 
+  // --- AUTHENTICATED: Deregister a master ---
+  if (url.pathname === "/api/masters/deregister" && request.method === "POST") {
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return sendAuthError("Missing or invalid Authorization header");
+    }
+
+    const token = extractTokenFromHeader(authHeader);
+    const payload = token ? await verifyToken(token, JWT_SECRET) : null;
+    if (!payload) return sendAuthError("Invalid JWT token");
+
+    const body = (await request.json()) as { desk_id: string };
+    if (payload.role !== "admin" && payload.desk_id !== body.desk_id) {
+      return createErrorResponse(403, "Forbidden", "Can only deregister own desk");
+    }
+
+    try {
+      await dbManager.run("DELETE FROM destinations WHERE id = ? AND type = 'Master'", [body.desk_id]);
+      await dbManager.run("DELETE FROM fleet_heartbeats WHERE desk_id = ?", [body.desk_id]);
+      return Response.json({ success: true, message: "Deregistered successfully" }, { headers: corsHeaders });
+    } catch (err: any) {
+      return sendInternalError(err, "deregister");
+    }
+  }
+
+  // --- AUTHENTICATED: Transfer a master to another site_code/hub ---
+  if (url.pathname === "/api/masters/transfer" && request.method === "POST") {
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return sendAuthError("Missing or invalid Authorization header");
+    }
+
+    const token = extractTokenFromHeader(authHeader);
+    const payload = token ? await verifyToken(token, JWT_SECRET) : null;
+    if (!payload || payload.role !== "admin") return sendAuthError("Admin role required");
+
+    const body = (await request.json()) as { desk_id: string; target_site_code: string };
+    if (!body.desk_id || !body.target_site_code) {
+      return createErrorResponse(400, "Bad Request", "desk_id and target_site_code required");
+    }
+
+    try {
+      await dbManager.run(
+        "UPDATE destinations SET site_code = ?, updated_at = ? WHERE id = ?",
+        [body.target_site_code, new Date().toISOString(), body.desk_id]
+      );
+      return Response.json({ success: true, message: "Transferred successfully" }, { headers: corsHeaders });
+    } catch (err: any) {
+      return sendInternalError(err, "transfer");
+    }
+  }
+
+  // --- AUTHENTICATED: Config Push to a specific desk ---
+  const pushMatch = url.pathname.match(/\/api\/masters\/config-push\/([^/]+)$/);
+  if (pushMatch && request.method === "GET") {
+    const targetDeskId = pushMatch[1];
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return sendAuthError("Missing or invalid Authorization header");
+    }
+
+    const token = extractTokenFromHeader(authHeader);
+    const payload = token ? await verifyToken(token, JWT_SECRET) : null;
+    if (!payload) return sendAuthError("Invalid JWT token");
+
+    if (payload.role !== "admin" && payload.desk_id !== targetDeskId) {
+      return createErrorResponse(403, "Forbidden", "Can only pull config for own desk");
+    }
+
+    try {
+      const sharedConfig = await fleetService.getSharedConfig(targetDeskId);
+      return Response.json({ success: true, shared_config: sharedConfig }, { headers: corsHeaders });
+    } catch (err: any) {
+      return sendInternalError(err, "config-push");
+    }
+  }
+
   return null;
 }

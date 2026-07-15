@@ -53,12 +53,12 @@ export function GoogleReviews() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                 >
-                    <span className="text-cyan-500 font-bold uppercase tracking-[0.4em] text-[13px] mb-4 block">Customer Reviews</span>
+                    <span className="text-cyan-700 font-bold uppercase tracking-[0.4em] text-[13px] mb-4 block">Customer Reviews</span>
                     <h2 className="text-5xl md:text-8xl font-black mb-8 tracking-tighter leading-tight text-slate-900">
-                        Words from Our <span className="text-cyan-500">Clients</span>
+                        Words from Our <span className="text-cyan-700">Clients</span>
                     </h2>
 
-                    <p className="text-slate-500 max-w-2xl mx-auto mb-16 font-medium leading-relaxed">
+                    <p className="text-slate-600 max-w-2xl mx-auto mb-16 font-medium leading-relaxed">
                         At ClickFlash, our clients&apos; satisfaction is our top priority. Hear what
                         they have to say about their unforgettable photography experiences.
                     </p>
@@ -74,9 +74,9 @@ export function GoogleReviews() {
                         </div>
                         <span className="font-black text-slate-800 text-2xl">4.9</span>
                         <span className="text-slate-200">|</span>
-                        <span className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">2097 reviews</span>
+                        <span className="text-slate-600 font-bold uppercase tracking-widest text-[11px]">2097 reviews</span>
                     </div>
-                    <button className="mt-4 md:mt-0 px-8 py-3 bg-slate-900 text-white rounded-xl font-black uppercase tracking-widest text-[11px] hover:bg-cyan-500 transition-all">
+                    <button className="mt-4 md:mt-0 px-8 py-3 bg-slate-900 text-white rounded-xl font-black uppercase tracking-widest text-[11px] hover:bg-cyan-700 transition-all">
                         Write a review
                     </button>
                 </div>
@@ -111,7 +111,7 @@ export function GoogleReviews() {
                                         <h4 className="font-black text-slate-900 uppercase tracking-tight text-[15px] mb-0.5">
                                             {review.name}
                                         </h4>
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                        <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">
                                             {review.date} via Google
                                         </span>
                                     </div>
@@ -127,14 +127,14 @@ export function GoogleReviews() {
                 {/* Slider Controls */}
                 <button
                     onClick={() => scroll('left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full shadow-2xl border border-slate-100 flex items-center justify-center text-slate-400 hover:text-cyan-500 transition-all opacity-0 group-hover:opacity-100 z-30"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full shadow-2xl border border-slate-100 flex items-center justify-center text-slate-600 hover:text-cyan-700 transition-all opacity-0 group-hover:opacity-100 z-30"
                     aria-label="Previous review"
                 >
                     <ChevronLeft className="w-6 h-6" />
                 </button>
                 <button
                     onClick={() => scroll('right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-14 h-14 bg-white rounded-full shadow-2xl border border-slate-100 flex items-center justify-center text-slate-400 hover:text-cyan-500 transition-all opacity-0 group-hover:opacity-100 z-30"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-14 h-14 bg-white rounded-full shadow-2xl border border-slate-100 flex items-center justify-center text-slate-600 hover:text-cyan-700 transition-all opacity-0 group-hover:opacity-100 z-30"
                     aria-label="Next review"
                 >
                     <ChevronRight className="w-6 h-6" />

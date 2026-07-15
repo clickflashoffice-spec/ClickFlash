@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 /**
  * Resumable Upload Service with Chunked Uploads and Resume Support
  * Handles network interruptions and app crashes gracefully
@@ -67,7 +68,7 @@ class ResumableUploadService {
         });
       }
     } catch (error) {
-      console.error('Failed to load upload sessions:', error);
+      logger.error('Failed to load upload sessions:', error);
     }
   }
 
@@ -79,7 +80,7 @@ class ResumableUploadService {
       const sessions = Array.from(this.sessions.values());
       localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
     } catch (error) {
-      console.error('Failed to save upload sessions:', error);
+      logger.error('Failed to save upload sessions:', error);
     }
   }
 
@@ -94,7 +95,7 @@ class ResumableUploadService {
         session.error = 'Upload interrupted';
         session.updatedAt = Date.now();
         this.saveSessions();
-        console.log(`Recovered interrupted upload: ${session.fileName}`);
+        logger.info(`Recovered interrupted upload: ${session.fileName}`);
       }
     }
   }

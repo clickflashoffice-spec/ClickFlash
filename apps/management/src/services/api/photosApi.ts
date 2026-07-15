@@ -3,6 +3,7 @@ import {
   Photo,
 } from "../../types";
 import { PocketRecord } from "../pbTypes";
+import { logger } from "@/utils/logger";
 
 /**
  * API Service - Wrapper around pb adapter for convenient data operations
@@ -90,7 +91,7 @@ export const photosApi = {
           }
         }
       } catch (error) {
-        console.warn(`Failed to fetch blob for photo ${photoId}:`, error);
+        logger.warn(`Failed to fetch blob for photo ${photoId}:`, error);
       }
     }
 

@@ -4,6 +4,7 @@
  */
 
 import { EventEmitter } from "../utils/EventEmitter";
+import { logger } from "@/utils/logger";
 
 interface MoneyTrashConfig {
   enabled: boolean;
@@ -103,7 +104,7 @@ class MoneyTrashSyncService extends EventEmitter {
         return true;
       }
     } catch (error) {
-      console.error("Failed to sync from Management:", error);
+      logger.error("Failed to sync from Management:", error);
     }
     return false;
   }
@@ -135,7 +136,7 @@ class MoneyTrashSyncService extends EventEmitter {
         return true;
       }
     } catch (error) {
-      console.error("Failed to push to Master:", error);
+      logger.error("Failed to push to Master:", error);
     }
     return false;
   }
@@ -174,7 +175,7 @@ class MoneyTrashSyncService extends EventEmitter {
 
       return config;
     } catch (error) {
-      console.error("Failed to fetch from Master:", error);
+      logger.error("Failed to fetch from Master:", error);
       return null;
     }
   }
@@ -192,7 +193,7 @@ class MoneyTrashSyncService extends EventEmitter {
 
       return response.ok;
     } catch (error) {
-      console.error("Failed to sync to Gallery:", error);
+      logger.error("Failed to sync to Gallery:", error);
       return false;
     }
   }
@@ -248,7 +249,7 @@ class MoneyTrashSyncService extends EventEmitter {
     // Validate configuration before saving
     const validation = this.validateConfig(newConfig);
     if (!validation.valid) {
-      console.error("[MoneyTrashSync] Validation failed:", validation.errors);
+      logger.error("[MoneyTrashSync] Validation failed:", validation.errors);
       this.emit("config:validationFailed", validation.errors);
       return false;
     }

@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 import { getApiBaseUrl } from "./env";
 
 const API_BASE_URL = getApiBaseUrl();
@@ -150,7 +151,7 @@ export async function fetchWebsiteSettings(): Promise<WebsiteSettings> {
     });
 
     if (!response.ok) {
-      console.warn("Failed to fetch settings, using defaults");
+      logger.warn("Failed to fetch settings, using defaults");
       return {};
     }
 
@@ -193,9 +194,9 @@ export async function fetchWebsiteSettings(): Promise<WebsiteSettings> {
       error instanceof Error &&
       (error.message.includes("fetch failed") || error.message.includes("ECONNREFUSED"));
     if (isConnRefused) {
-      console.warn("API Offline: Using default website settings during build/prerender.");
+      logger.warn("API Offline: Using default website settings during build/prerender.");
     } else {
-      console.error("Error fetching website settings:", error);
+      logger.error("Error fetching website settings:", error instanceof Error ? error : undefined);
     }
     return {};
   }
@@ -221,7 +222,7 @@ export async function fetchPortfolioItems(): Promise<PortfolioItem[]> {
     );
 
     if (!response.ok) {
-      console.warn("Failed to fetch portfolio items");
+      logger.warn("Failed to fetch portfolio items");
       return [];
     }
 
@@ -257,9 +258,9 @@ export async function fetchPortfolioItems(): Promise<PortfolioItem[]> {
       error instanceof Error &&
       (error.message.includes("fetch failed") || error.message.includes("ECONNREFUSED"));
     if (isConnRefused) {
-      console.warn("API Offline: Skipping portfolio items during build/prerender.");
+      logger.warn("API Offline: Skipping portfolio items during build/prerender.");
     } else {
-      console.error("Error fetching portfolio items:", error);
+      logger.error("Error fetching portfolio items:", error instanceof Error ? error : undefined);
     }
     return [];
   }

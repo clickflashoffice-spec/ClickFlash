@@ -5,6 +5,7 @@
 
 import { Env } from '../../index';
 import { UploadSession } from './init';
+import { logger } from "@clickflash/logger";
 
 export async function handleUploadChunk(request: Request, env: Env): Promise<Response> {
   try {
@@ -79,7 +80,7 @@ export async function handleUploadChunk(request: Request, env: Env): Promise<Res
     });
     
   } catch (error) {
-    console.error('Chunk upload error:', error);
+    logger.error('Chunk upload error:', { args: [error] });
     return Response.json(
       { error: 'Failed to upload chunk' },
       { status: 500 }

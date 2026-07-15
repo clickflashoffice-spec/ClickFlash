@@ -15,6 +15,7 @@ import { handleOfficeVerify } from "./handlers/office/verify";
 import { handleGalleryCreate } from "./handlers/gallery/create";
 import { handleGalleryGet } from "./handlers/gallery/get";
 import { handleWebhook } from "./handlers/webhook";
+import { logger } from "@clickflash/logger";
 
 export interface Env {
   DB: D1Database;
@@ -126,7 +127,7 @@ export default {
         headers: newHeaders,
       });
     } catch (error) {
-      console.error("API Error:", error);
+      logger.error("API Error:", { args: [error] });
 
       const errorHeaders = new Headers();
       Object.entries(corsHeaders).forEach(([key, value]) => {

@@ -1,6 +1,8 @@
 import crypto from "crypto";
 import { Logger } from "../utils/logger";
 import { DatabaseManager } from "../database/db";
+import { verifyEd25519License } from "@clickflash/licensing";
+import si from "systeminformation";
 
 export interface LicenseStatus {
     isValid: boolean;
@@ -24,7 +26,7 @@ export class LicenseService {
      * Set a new license key in the system
      */
     public async setLicenseKey(key: string): Promise<boolean> {
-        if (!this.verifyChecksum(key)) {
+        if (!await this.verifyChecksum(key)) {
             this.logger.warn(`[LicenseService] Invalid checksum for key: ${key}`);
             return false;
         }
@@ -52,7 +54,7 @@ export class LicenseService {
     /**
      * Validates the license locally (offline) and calculates grace period
      */
-    public getLocalLicenseStatus(): LicenseStatus {
+    public async getLocalLicenseStatus(): Promise<LicenseStatus> {
         const keyRecord = this.db.get<{ value: string }>("SELECT value FROM settings WHERE key = 'license_key'");
         const lastCheckedRecord = this.db.get<{ value: string }>("SELECT value FROM settings WHERE key = 'license_last_checked'");
         const statusRecord = this.db.get<{ value: string }>("SELECT value FROM settings WHERE key = 'license_status'");
@@ -72,7 +74,7 @@ export class LicenseService {
         const recordedStatus = statusRecord ? JSON.parse(statusRecord.value) : 'active';
 
         // Check format and checksum
-        if (!this.verifyChecksum(licenseKey)) {
+        if (!await this.verifyChecksum(licenseKey)) {
             return {
                 isValid: false,
                 licenseKey,
@@ -140,7 +142,7 @@ export class LicenseService {
      * Performs an online check with the Management Hub
      */
     public async verifyWithHub(stationId: string): Promise<boolean> {
-        const status = this.getLocalLicenseStatus();
+        const status = await this.getLocalLicenseStatus();
         if (!status.licenseKey) {
             return false;
         }
@@ -195,28 +197,32 @@ export class LicenseService {
         }
     }
 
-    /**
-     * Verify the SHA-256 checksum embedded in the license key
-     */
-    private verifyChecksum(key: string): boolean {
+    private async verifyChecksum(key: string): Promise<boolean> {
+        // Try Ed25519 verification first
+        // The public key must match the one used by the Management Worker & License Generator
+        const PUBLIC_KEY_B64 = "PU5chItRojuz3HpsB/H0LbVh/+BYeBFM4s8gvxmEvqU=";
+        
+        try {
+            // Get local machine ID to enforce hardware binding
+            const uuidInfo = await si.uuid();
+            const machineId = uuidInfo.os || uuidInfo.hardware || "UNKNOWN_MACHINE";
+
+            const result = verifyEd25519License(key, PUBLIC_KEY_B64, { expectedMachineId: machineId });
+            if (result.valid) {
+                return true;
+            } else if (result.error && result.error.includes('Machine ID mismatch')) {
+                this.logger.warn(`[LicenseService] Hardware binding failed: License bound to different hardware.`);
+                return false;
+            }
+        } catch (e) {
+            // Ignore error, fallback to legacy
+        }
+
+        // Legacy SHA-256 fallback format: CF-LIVE-XXXX-XXXX-XXXX-XXXX-XXXX
         if (!key.startsWith('CF-LIVE-') && !key.startsWith('CF-TEST-')) {
             return false;
         }
 
-        // Support modern Asymmetric Ed25519 format: CF-LIVE-payloadB64.signatureB64
-        const dotParts = key.substring(8).split('.');
-        if (dotParts.length === 2 && dotParts[0].length > 4 && dotParts[1].length > 4) {
-            try {
-                const payloadB64 = dotParts[0].padEnd(dotParts[0].length + (4 - dotParts[0].length % 4) % 4, '=').replace(/-/g, '+').replace(/_/g, '/');
-                const decoded = Buffer.from(payloadB64, 'base64').toString('utf-8');
-                const parsed = JSON.parse(decoded);
-                return Boolean(parsed.plan || parsed.expiresAt || parsed.createdAt);
-            } catch {
-                return false;
-            }
-        }
-
-        // Format: CF-LIVE-XXXX-XXXX-XXXX-XXXX-XXXX
         const parts = key.split('-');
         if (parts.length !== 7 || parts[0] !== 'CF' || (parts[1] !== 'LIVE' && parts[1] !== 'TEST')) {
             return false;

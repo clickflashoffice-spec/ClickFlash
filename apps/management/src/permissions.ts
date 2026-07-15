@@ -150,7 +150,27 @@ export const PERMISSIONS: Record<AppRole, Permission[]> = {
     CEO: [
         ...ALL_PERMISSIONS,
     ],
+    admin: [
+        ...ALL_PERMISSIONS,
+    ],
+    manager: [
+        'viewManagementDashboard',
+        'viewDestinations',
+        'viewReports',
+    ],
+    photographer: [
+        'viewDashboard',
+        'viewAlbums',
+    ],
+    editor: [
+        'viewDashboard',
+        'viewAlbums',
+    ],
+    support: [
+        'viewDashboard',
+    ],
 };
+
 
 // Helper function to check permissions
 export function hasPermission(role: AppRole, permission: Permission): boolean {

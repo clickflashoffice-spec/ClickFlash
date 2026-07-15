@@ -2,26 +2,7 @@
 import { PhotoProcessor } from "./photoProcessor";
 import fs from "fs";
 
-// Mock fs
-jest.mock("fs", () => {
-  const actualFs = jest.requireActual("fs");
-  return {
-    ...actualFs,
-    existsSync: jest.fn().mockReturnValue(true),
-    statSync: jest.fn().mockReturnValue({ size: 1024 }),
-    mkdirSync: jest.fn(),
-    promises: {
-      ...actualFs.promises,
-      statfs: jest.fn(),
-      mkdir: jest.fn().mockResolvedValue(undefined),
-      access: jest.fn().mockResolvedValue(undefined),
-      unlink: jest.fn().mockResolvedValue(undefined),
-      rename: jest.fn().mockResolvedValue(undefined),
-      copyFile: jest.fn().mockResolvedValue(undefined),
-    },
-  };
-});
-
+// fs will be mocked via spyOn in beforeEach
 // Mock worker_threads to prevent actual worker instantiation
 jest.mock("worker_threads", () => ({
   Worker: jest.fn().mockImplementation(() => {
@@ -63,6 +44,16 @@ describe("PhotoProcessor Robustness", () => {
   let processor: any;
 
   beforeEach(() => {
+    jest.spyOn(fs, "existsSync").mockReturnValue(true);
+    jest.spyOn(fs, "statSync").mockReturnValue({ size: 1024 } as any);
+    jest.spyOn(fs, "mkdirSync").mockImplementation(() => undefined as any);
+    jest.spyOn(fs.promises, "statfs").mockResolvedValue({ bavail: 10, bsize: 1024*1024*1024 } as any);
+    jest.spyOn(fs.promises, "mkdir").mockResolvedValue(undefined);
+    jest.spyOn(fs.promises, "access").mockResolvedValue(undefined);
+    jest.spyOn(fs.promises, "unlink").mockResolvedValue(undefined);
+    jest.spyOn(fs.promises, "rename").mockResolvedValue(undefined);
+    jest.spyOn(fs.promises, "copyFile").mockResolvedValue(undefined);
+
     // Mocking constructor to avoid worker pool initialization
     processor = new PhotoProcessor("/tmp/photos");
   });

@@ -1,6 +1,7 @@
 import DatabaseManager from "../db.js";
 import { createErrorResponse, sendNotFoundError } from "../errorHandler.js";
 import { createGalleryCheckoutSession } from "../services/stripeService.js";
+import { logger } from "@clickflash/logger";
 
 export async function handleGalleryAccess(request: Request, env: any, url: URL, dbManager: DatabaseManager, corsHeaders: any): Promise<Response | null> {
   // --- PUBLIC: Customer Order Lookup (Gallery Auth) ---
@@ -100,7 +101,7 @@ export async function handleGalleryAccess(request: Request, env: any, url: URL, 
 
       return Response.json({ url: session.url, orderId }, { headers: corsHeaders });
     } catch (error: any) {
-      console.error('Gallery Checkout error:', error);
+      logger.error('Gallery Checkout error:', { args: [error] });
       return createErrorResponse(500, "Internal Server Error", "Failed to create gallery checkout session", undefined, undefined, corsHeaders);
     }
   }

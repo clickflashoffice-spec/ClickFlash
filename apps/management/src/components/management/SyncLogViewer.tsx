@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/apiService';
 import { SyncLog } from '../../types';
 import { format } from 'date-fns';
+import { logger } from "@/utils/logger";
 
 export const SyncLogViewer: React.FC = () => {
     const [logs, setLogs] = useState<SyncLog[]>([]);
@@ -13,7 +14,7 @@ export const SyncLogViewer: React.FC = () => {
             const data = await apiService.getSyncLogs(50);
             setLogs(data);
         } catch (error) {
-            console.error('Failed to fetch sync logs:', error);
+            logger.error('Failed to fetch sync logs:', error);
         } finally {
             setIsLoading(false);
         }

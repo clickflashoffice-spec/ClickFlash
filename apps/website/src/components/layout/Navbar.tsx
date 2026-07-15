@@ -67,8 +67,10 @@ export function Navbar() {
     <nav
       id="main-navbar"
       className={cn(
-        "fixed top-0 left-0 z-[100] w-full border-none transition-all duration-700 ease-out",
-        "bg-white/95 py-0.5 shadow-sm backdrop-blur-md"
+        "fixed left-1/2 z-[100] w-[95%] max-w-7xl -translate-x-1/2 transition-all duration-700 ease-out",
+        scrolled
+          ? "top-2 rounded-full bg-white/90 border border-white/50 shadow-lg backdrop-blur-xl py-2"
+          : "top-6 rounded-full bg-white/60 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] backdrop-blur-md py-3 hover:bg-white/80"
       )}
       role="navigation"
       aria-label="Main Navigation"
@@ -96,9 +98,9 @@ export function Navbar() {
                 prefetch={isExternalApp ? false : undefined}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "transform text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-500 hover:scale-105 hover:text-[#06b6d4] active:scale-95 xl:text-[11px]",
+                  "transform text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-500 hover:scale-105 hover:text-cyan-700 active:scale-95 xl:text-[11px]",
                   "text-slate-800",
-                  isActive && "text-[#06b6d4]"
+                  isActive && "text-cyan-700"
                 )}
               >
                 {link.name}
@@ -108,7 +110,7 @@ export function Navbar() {
           <Link
             id="nav-book-button"
             href="/bookings"
-            className="ml-2 rounded-full bg-cyan-400 px-6 py-2.5 text-[10px] font-black tracking-widest text-white uppercase shadow-lg transition-all hover:scale-105 hover:bg-slate-900 hover:shadow-cyan-400/40 xl:text-[11px]"
+            className="ml-2 rounded-full bg-cyan-700 px-6 py-2.5 text-[10px] font-black tracking-widest text-white uppercase shadow-lg transition-all hover:scale-105 hover:bg-slate-900 hover:shadow-cyan-400/40 xl:text-[11px]"
           >
             {getTranslation(language, "btn_book")}
           </Link>
@@ -138,14 +140,14 @@ export function Navbar() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="absolute inset-x-0 top-full overflow-hidden border-t border-slate-100 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] lg:hidden"
+              className="absolute inset-x-0 top-full mt-4 overflow-hidden rounded-3xl border border-white/50 bg-white/95 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] lg:hidden"
             >
               <div className="container mx-auto flex flex-col gap-7 px-6 py-12">
                 {navLinks.map((link) => (
                   <Link
                     key={link.name}
                     href={link.href}
-                    className="text-xl font-black tracking-widest text-slate-800 uppercase transition-colors hover:text-[#06b6d4]"
+                    className="text-xl font-black tracking-widest text-slate-800 uppercase transition-colors hover:text-cyan-700"
                     onClick={() => setIsOpen(false)}
                   >
                     {link.name}
@@ -154,7 +156,7 @@ export function Navbar() {
                 <div className="my-2 h-px bg-slate-100" />
                 <Link
                   href="/bookings"
-                  className="w-full rounded-2xl bg-cyan-400 py-5 text-center font-black tracking-widest text-white uppercase shadow-xl shadow-cyan-400/30 transition-transform active:scale-95"
+                  className="w-full rounded-2xl bg-cyan-700 py-5 text-center font-black tracking-widest text-white uppercase shadow-xl shadow-cyan-400/30 transition-transform active:scale-95"
                   onClick={() => setIsOpen(false)}
                 >
                   {getTranslation(language, "btn_book")}

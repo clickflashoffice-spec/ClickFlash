@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 import { exec } from 'child_process';
 import path from 'path';
 
@@ -14,7 +15,7 @@ export class PrintSpooler {
      */
     async printDocument(job: PrintJob): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            console.log(`[PrintSpooler] Spooling ${job.filePath} to printer ${job.printerName || 'DEFAULT'}`);
+            logger.info(`[PrintSpooler] Spooling ${job.filePath} to printer ${job.printerName || 'DEFAULT'}`);
             
             // Normalize path for Windows
             const normalizedPath = path.resolve(job.filePath);
@@ -30,15 +31,15 @@ export class PrintSpooler {
 
             exec(command, (error, stdout, stderr) => {
                 if (error) {
-                    console.error(`[PrintSpooler] Print error: ${error.message}`);
+                    logger.error(`[PrintSpooler] Print error: ${error.message}`);
                     return reject(error);
                 }
                 
                 if (stderr) {
-                    console.warn(`[PrintSpooler] Print stderr: ${stderr}`);
+                    logger.warn(`[PrintSpooler] Print stderr: ${stderr}`);
                 }
                 
-                console.log(`[PrintSpooler] Print job sent successfully.`);
+                logger.info(`[PrintSpooler] Print job sent successfully.`);
                 resolve(true);
             });
         });

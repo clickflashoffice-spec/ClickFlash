@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 import type { MetadataRoute } from "next";
 import { fetchPortfolioItems } from "@/lib/settings";
 
@@ -117,7 +118,7 @@ async function getPortfolioItems(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
   } catch (error) {
-    console.warn("Failed to fetch portfolio items for sitemap:", error);
+    logger.warn("Failed to fetch portfolio items for sitemap:", error instanceof Error ? { error: error.message } : undefined);
     return [];
   }
 }

@@ -67,7 +67,7 @@ export function PortfolioPreview() {
 
               {/* Content on Hover - Light Theme */}
               <div className="absolute inset-0 flex flex-col justify-end p-10 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
-                <span className="text-cyan-500 text-[10px] font-black uppercase tracking-[0.4em] mb-3">
+                <span className="text-cyan-700 text-[10px] font-black uppercase tracking-[0.4em] mb-3">
                   {project.category}
                 </span>
                 <h3 className="text-2xl font-black text-slate-800 mb-6 tracking-tight">
@@ -87,7 +87,7 @@ export function PortfolioPreview() {
         <div className="mt-20 text-center">
           <Link
             href="/portfolio"
-            className="inline-flex items-center gap-3 px-10 py-4 bg-slate-900 text-white font-black uppercase tracking-widest text-[11px] rounded-full hover:bg-cyan-500 transition-all shadow-xl hover:shadow-cyan-500/30 active:scale-95"
+            className="inline-flex items-center gap-3 px-10 py-4 bg-slate-900 text-white font-black uppercase tracking-widest text-[11px] rounded-full hover:bg-cyan-700 transition-all shadow-xl hover:shadow-cyan-500/30 active:scale-95"
           >
             Explore Full Portfolio <ArrowRight size={14} />
           </Link>

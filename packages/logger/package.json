@@ -1,14 +1,18 @@
 {
   "name": "@clickflash/logger",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Centralized Winston logger for the ClickFlash ecosystem",
   "type": "module",
   "main": "./dist/index.js",
+  "browser": "./dist/browser.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "node": "./dist/index.js",
+      "edge-light": "./dist/browser.js",
+      "browser": "./dist/browser.js",
+      "default": "./dist/browser.js"
     }
   },
   "scripts": {

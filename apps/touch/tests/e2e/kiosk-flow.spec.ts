@@ -50,7 +50,7 @@ test.describe("Kiosk User Flow", () => {
 
     // Expect to be on Photo Selection Screen for room 101
     await expect(
-      page.getByRole("heading", { name: "Viewing Room: 101" }),
+      page.getByRole("heading", { name: "Room 101" }),
     ).toBeVisible({ timeout: 10000 });
 
     // The mock data for room 101 is "Sunset Couples"
@@ -74,7 +74,7 @@ test.describe("Kiosk User Flow", () => {
 
     // Back on the selection screen
     await expect(
-      page.getByRole("heading", { name: "Viewing Room: 101" }),
+      page.getByRole("heading", { name: "Room 101" }),
     ).toBeVisible();
 
     // Open cart and verify item is present
@@ -97,7 +97,7 @@ test.describe("Kiosk User Flow", () => {
     await page.getByTestId("room-number-confirm-button").click();
 
     await expect(
-      page.getByRole("heading", { name: "Viewing Room: 101" }),
+      page.getByRole("heading", { name: "Room 101" }),
     ).toBeVisible({ timeout: 10000 });
 
     // Go back to home
@@ -123,7 +123,7 @@ test.describe("Kiosk User Flow", () => {
 
     // Still able to see the album offline since it's cached in memory
     await expect(
-      page.getByRole("heading", { name: "Viewing Room: 101" }),
+      page.getByRole("heading", { name: "Room 101" }),
     ).toBeVisible({ timeout: 10000 });
 
     await expect(

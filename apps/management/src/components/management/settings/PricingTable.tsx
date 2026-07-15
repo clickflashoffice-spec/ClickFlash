@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { CheckCircle2, Star, Zap, Building2, Loader2 } from "lucide-react";
 import { Photographer } from "../../../types";
+import { logger } from "@/utils/logger";
 
 interface PricingTableProps {
   currentUser: Photographer;
@@ -39,7 +40,7 @@ const PricingTable: React.FC<PricingTableProps> = ({ currentUser, currentTier = 
         window.location.href = data.url;
       }
     } catch (error) {
-      console.error("Checkout error:", error);
+      logger.error("Checkout error:", error);
       alert("There was an error initiating the checkout process. Please try again.");
     } finally {
       setLoadingTier(null);

@@ -3,6 +3,7 @@ import fs from 'fs';
 import { AICullingService } from '../services/aiCullingService';
 import { sendInternalError, sendInvalidInputError } from '../utils/errorHandler';
 import { strictRateLimiter } from '../middleware/rateLimiter';
+import { requirePermission, PERMISSIONS } from '../middleware/permissions';
 import { customRoutesSchemas } from '../utils/validation';
 
 export default function cullingRoutes(context: any): Router {
@@ -11,7 +12,7 @@ export default function cullingRoutes(context: any): Router {
 
     // POST /api/culling/analyze/:albumId
     // Triggers full analysis and grouping for an album
-    router.post('/analyze/:albumId', strictRateLimiter, async (req: Request, res: Response) => {
+    router.post('/analyze/:albumId', strictRateLimiter, requirePermission(PERMISSIONS.PHOTO_EDIT), async (req: Request, res: Response) => {
         const albumId = req.params.albumId as string;
         if (!albumId) return sendInvalidInputError(res, 'Album ID is required');
 
@@ -48,7 +49,7 @@ export default function cullingRoutes(context: any): Router {
 
     // GET /api/culling/results/:albumId
     // Get groups and selection status for review UI
-    router.get('/results/:albumId', async (req: Request, res: Response) => {
+    router.get('/results/:albumId', requirePermission(PERMISSIONS.PHOTO_VIEW), async (req: Request, res: Response) => {
         const { albumId } = req.params;
         if (!albumId) return sendInvalidInputError(res, 'Album ID is required');
 
@@ -78,7 +79,7 @@ export default function cullingRoutes(context: any): Router {
 
     // POST /api/culling/confirm/:albumId
     // Apply culling choices (delete/hide rejected)
-    router.post('/confirm/:albumId', strictRateLimiter, async (req: Request, res: Response) => {
+    router.post('/confirm/:albumId', strictRateLimiter, requirePermission(PERMISSIONS.PHOTO_EDIT), async (req: Request, res: Response) => {
         const { albumId } = req.params;
         
         const parsed = customRoutesSchemas.cullingConfirm.safeParse(req.body);

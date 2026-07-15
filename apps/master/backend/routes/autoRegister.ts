@@ -2,6 +2,9 @@ import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { DatabaseManager } from "../database/db";
 import { Logger } from "../utils/logger";
+import os from "os";
+import path from "path";
+import fs from "fs";
 
 const autoRegisterLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
@@ -26,6 +29,22 @@ export default function createAutoRegisterRouter(
 
             logger.info(`Auto-registration request from Touch kiosk: ${hostname} (${ip})`);
 
+            // Auto-generate local paths
+            const basePath = path.join(os.homedir(), "Pictures", "ClickFlash", "Kiosks", kioskId);
+            const uploadFolderPath = path.join(basePath, "uploads");
+            const ordersFolderPath = path.join(basePath, "orders");
+
+            [uploadFolderPath, ordersFolderPath].forEach(dir => {
+                if (!fs.existsSync(dir)) {
+                    try {
+                        fs.mkdirSync(dir, { recursive: true });
+                        logger.info(`Auto-created directory for kiosk ${kioskId}: ${dir}`);
+                    } catch (e) {
+                        logger.warn(`Failed to create kiosk dir: ${dir}`, { error: (e as Error).message });
+                    }
+                }
+            });
+
             const db = dbManager.getDb();
             
             // Check if kiosk already exists
@@ -34,18 +53,18 @@ export default function createAutoRegisterRouter(
             if (!existingKiosk) {
                 logger.info(`Registering new Touch kiosk: ${kioskId}`);
                 const insertStmt = db.prepare(`
-                    INSERT INTO kiosks (id, name, status, ipAddress, lastSeen, createdAt)
-                    VALUES (?, ?, 'online', ?, datetime('now'), datetime('now'))
+                    INSERT INTO kiosks (id, name, status, ipAddress, uploadFolderPath, ordersFolderPath, lastSeen, createdAt)
+                    VALUES (?, ?, 'online', ?, ?, ?, datetime('now'), datetime('now'))
                 `);
-                insertStmt.run(kioskId, hostname || `Touch-${kioskId.substring(0, 4)}`, ip);
+                insertStmt.run(kioskId, hostname || `Touch-${kioskId.substring(0, 4)}`, ip, uploadFolderPath, ordersFolderPath);
             } else {
                 logger.info(`Updating existing Touch kiosk: ${kioskId}`);
                 const updateStmt = db.prepare(`
                     UPDATE kiosks 
-                    SET status = 'online', ipAddress = ?, lastSeen = datetime('now') 
+                    SET status = 'online', ipAddress = ?, uploadFolderPath = COALESCE(uploadFolderPath, ?), ordersFolderPath = COALESCE(ordersFolderPath, ?), lastSeen = datetime('now') 
                     WHERE id = ?
                 `);
-                updateStmt.run(ip, kioskId);
+                updateStmt.run(ip, uploadFolderPath, ordersFolderPath, kioskId);
             }
 
             res.json({
@@ -53,6 +72,7 @@ export default function createAutoRegisterRouter(
                 paired: true,
                 masterPort: parseInt(process.env.PORT || '8090', 10),
                 wsPort: parseInt(process.env.PORT || '8090', 10),
+                paths: { uploadFolderPath, ordersFolderPath },
                 message: "Kiosk auto-registered successfully"
             });
         } catch (error) {

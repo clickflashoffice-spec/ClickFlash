@@ -1,6 +1,7 @@
 // backend/shared/logger.ts
 import fs from "fs";
 import path from "path";
+import { logger as globalLogger } from "@clickflash/logger";
 
 const LOG_LEVELS = {
   ERROR: 0,
@@ -52,7 +53,7 @@ export class Logger {
         }
       });
     } catch (e) {
-      console.error("[Logger] Failed to clean up old logs:", e);
+      globalLogger.error("[Logger] Failed to clean up old logs:", { args: [e] });
     }
   }
 
@@ -106,12 +107,12 @@ export class Logger {
           this.ensureLogDirectory();
           fs.appendFileSync(logFile, logEntry, "utf8");
         } catch (retryError: any) {
-          console.error("[Logger] Failed to write log:", retryError.message);
-          console.log(logEntry.trim());
+          globalLogger.error("[Logger] Failed to write log:", { args: [retryError.message] });
+          globalLogger.info(String(logEntry.trim()));
         }
       } else {
-        console.error("[Logger] Failed to write log:", error.message);
-        console.log(logEntry.trim());
+        globalLogger.error("[Logger] Failed to write log:", { args: [error.message] });
+        globalLogger.info(String(logEntry.trim()));
       }
     }
 

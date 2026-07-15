@@ -1,4 +1,5 @@
 import { executeWithRetry } from "../utils/networkUtils";
+import { logger } from "@clickflash/logger";
 
 export class GeminiService {
   private apiKey: string;
@@ -82,7 +83,7 @@ Respond EXACTLY in the following JSON structure:
         insights: result?.insights || ["Not enough data to generate insights."],
       };
     } catch (error) {
-      console.error("Error generating sales forecast with Gemini:", error);
+      logger.error("Error generating sales forecast with Gemini:", { args: [error] });
       return {
         end_of_week_revenue: 0,
         end_of_month_revenue: 0,
@@ -123,7 +124,7 @@ Respond EXACTLY as a JSON array with this structure:
       const arr = JSON.parse(text);
       return Array.isArray(arr) ? arr : [];
     } catch (error) {
-      console.error("Error generating shoot ideas with Gemini:", error);
+      logger.error("Error generating shoot ideas with Gemini:", { args: [error] });
       return [];
     }
   }
@@ -167,7 +168,7 @@ Respond EXACTLY as JSON: {"title":"string","description":"string","categories":[
         coverPhotoIndex: data?.coverPhotoIndex ?? defaults.coverPhotoIndex,
       };
     } catch (error) {
-      console.error("Error generating album suggestions with Gemini:", error);
+      logger.error("Error generating album suggestions with Gemini:", { args: [error] });
       return defaults;
     }
   }
@@ -211,7 +212,7 @@ Provide a helpful, professional, and concise response. Avoid jargon.`;
         "I'm sorry, I couldn't generate a response."
       );
     } catch (error) {
-      console.error("Gemini Chat Error:", error);
+      logger.error("Gemini Chat Error:", { args: [error] });
       return "An error occurred while communicating with the AI service.";
     }
   }

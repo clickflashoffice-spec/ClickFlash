@@ -5,6 +5,7 @@
 
 import { Env } from '../../index';
 import { createJWT } from '../../utils/jwt';
+import { logger } from "@clickflash/logger";
 
 export interface OfficeRegistrationRequest {
   deskId: string;
@@ -142,7 +143,7 @@ export async function handleOfficeRegister(request: Request, env: Env): Promise<
     });
     
   } catch (error) {
-    console.error('Office registration error:', error);
+    logger.error('Office registration error:', { args: [error] });
     return Response.json(
       { error: 'Failed to register office' },
       { status: 500 }

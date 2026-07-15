@@ -1,5 +1,5 @@
 import { pb } from "../pb";
-
+import { logger } from "@/utils/logger";
 
 /**
  * API Service - Wrapper around pb adapter for convenient data operations
@@ -24,7 +24,7 @@ export const kioskManagementApi = {
         status: r.status || "Disconnected",
       }));
     } catch (error) {
-      console.error("Failed to fetch kiosks:", error);
+      logger.error("Failed to fetch kiosks:", error);
       return [];
     }
   },
@@ -47,7 +47,7 @@ export const kioskManagementApi = {
         });
         return new Set(records.map((r: any) => r.kioskId).filter(Boolean));
       } catch (fallbackError) {
-        console.error("Failed to fetch active kiosk sessions:", fallbackError);
+        logger.error("Failed to fetch active kiosk sessions:", fallbackError);
         return new Set();
       }
     }

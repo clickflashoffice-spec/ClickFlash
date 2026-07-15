@@ -25,15 +25,19 @@ const pagesToTest = [
 test.describe("Accessibility Audit", () => {
   for (const path of pagesToTest) {
     test(`should have no accessibility violations on ${path}`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
       await page.goto(`${BASE_URL}${path}`);
       
       // Wait for page to be fully loaded
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForTimeout(1000); // Wait for any residual animations
       
       // Run axe accessibility scan
       const accessibilityScanResults = await new AxeBuilder({ page: page as any })
         .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+        .disableRules(["color-contrast"]) // Run color contrast separately
         .exclude("[data-testid='skip-a11y-check']") // Allow excluding elements
+        .exclude("iframe") // Exclude 3rd party widgets like SnapWidget
         .analyze();
       
       // Report violations
@@ -41,11 +45,15 @@ test.describe("Accessibility Audit", () => {
     });
 
     test(`should have no color contrast issues on ${path}`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
       await page.goto(`${BASE_URL}${path}`);
-      await page.waitForLoadState("networkidle");
+      
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForTimeout(1000); // Wait for any residual animations
       
       const accessibilityScanResults = await new AxeBuilder({ page: page as any })
         .withRules(["color-contrast"])
+        .exclude("iframe")
         .analyze();
       
       expect(accessibilityScanResults.violations).toEqual([]);

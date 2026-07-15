@@ -23,6 +23,7 @@ type ConnectivityListener = (isOnline: boolean) => void;
 class ConnectivityService {
     private masterUrl: string | null = null;
     private listeners: ConnectivityListener[] = [];
+    private urlListeners: ((url: string) => void)[] = [];
     private probeTimer: ReturnType<typeof setTimeout> | null = null;
     private isOnline = navigator.onLine;
     private readonly PROBE_INTERVAL = 10000; // 10s when offline
@@ -38,7 +39,21 @@ class ConnectivityService {
     }
 
     public updateMasterUrl(ip: string): void {
-        this.masterUrl = `http://${ip}:8090`;
+        const newUrl = `http://${ip}:8090`;
+        if (this.masterUrl !== newUrl) {
+            this.masterUrl = newUrl;
+            this.urlListeners.forEach(l => l(this.masterUrl!));
+        }
+    }
+
+    public subscribeUrl(listener: (url: string) => void): () => void {
+        this.urlListeners.push(listener);
+        if (this.masterUrl) {
+            listener(this.masterUrl);
+        }
+        return () => {
+            this.urlListeners = this.urlListeners.filter(l => l !== listener);
+        };
     }
 
     public start(): void {

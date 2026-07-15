@@ -14,7 +14,7 @@ import { DatabaseManager } from "./shared/db";
 import { verifyPassword, hashPassword } from "./shared/auth";
 import { validateRequest, validateLogin } from "./shared/validation";
 import AuditLogger from "./shared/auditLogger";
-import { logger } from "./shared/logger";
+import { appLogger as logger } from './shared/logger';
 import PhotoProcessor from "./shared/photoProcessor";
 import rateLimiter, {
   setAuditLogger as setRateLimiterAuditLogger,
@@ -29,12 +29,14 @@ import createFilesRouter from "./routes/files";
 import createOrderExportRouter from "./routes/orderExport";
 import createRealtimeRouter from "./routes/realtime";
 import createFacesRouter from "./routes/faces";
+import createPairingRouter from "./routes/pairing";
 
 import RealtimeService from "./services/realtimeService";
 import { AlbumService } from "./services/albumService";
 import WatcherService from "./services/watcherService";
 import { VectorIndexService } from "./services/VectorIndexService";
 import { FaceIndexingWorker } from "./services/FaceIndexingWorker";
+import { TouchMdnsDiscovery as MdnsDiscovery } from "./services/mdnsDiscovery";
 
 import {
   sendError,
@@ -453,6 +455,24 @@ const watcherService = new WatcherService(
   realtimeService,
 );
 
+const mdnsDiscovery = new MdnsDiscovery(logger);
+let kioskId = "unpaired";
+try {
+  const setting = dbManager.get<{value: string}>(
+    "SELECT value FROM settings WHERE key = 'pairing_config'"
+  );
+  if (setting && setting.value) {
+    const config = JSON.parse(setting.value);
+    if (config.kioskId) kioskId = config.kioskId;
+  }
+} catch (e) {}
+
+try {
+  mdnsDiscovery.advertise(kioskId, "4.2.0");
+} catch (e: any) {
+  logger.error("[mDNS] Failed to advertise", e);
+}
+
 try {
   watcherService.start();
   logger.info("[Server] Real-time folder monitor started");
@@ -488,6 +508,7 @@ const context = {
   realtimeService,
   photoProcessor,
   vectorIndex,
+  mdnsDiscovery,
 };
 
 app.use("/api", createAuthRouter(context));
@@ -498,6 +519,7 @@ app.use("/api/files", createFilesRouter({ logger, UPLOAD_DIR }));
 app.use("/api/orders", createOrderExportRouter(context));
 app.use("/api/realtime", createRealtimeRouter(context));
 app.use("/api/faces", createFacesRouter(context));
+app.use("/api", createPairingRouter(context as any));
 
 // Global Express error handler — sanitized (Task 2.4)
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

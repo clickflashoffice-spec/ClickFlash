@@ -300,15 +300,23 @@ export default function galleryAuthRoutes(context: GalleryAuthContext): Router {
           return res.json({ success: true, photos: [] });
         }
 
-        photos = dbManager.query(
-          `SELECT 
-            id, filename, tinyUrl, thumbnailUrl as thumbUrl, previewUrl, highResUrl as highres_url,
-            width, height, created_at
-           FROM photos
-           WHERE id IN (${photoIds.map(() => "?").join(",")})
-           ORDER BY created_at ASC`,
-          photoIds,
-        );
+        photos = [];
+        const chunkSize = 500;
+        for (let i = 0; i < photoIds.length; i += chunkSize) {
+          const chunk = photoIds.slice(i, i + chunkSize);
+          const placeholders = chunk.map(() => "?").join(",");
+          photos.push(
+            ...dbManager.query(
+              `SELECT 
+                id, filename, tinyUrl, thumbnailUrl as thumbUrl, previewUrl, highResUrl as highres_url,
+                width, height, created_at
+               FROM photos
+               WHERE id IN (${placeholders})
+               ORDER BY created_at ASC`,
+              chunk
+            )
+          );
+        }
       } else {
         photos = dbManager.query(
           `SELECT 

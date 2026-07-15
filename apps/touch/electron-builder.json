@@ -3,6 +3,7 @@
   "productName": "ClickFlash - Touch Kiosk",
   "copyright": "Copyright © 2025 ClickFlash Photography",
   "electronVersion": "39.8.7",
+  "compression": "maximum",
   "npmRebuild": false,
   "nodeGypRebuild": false,
   "afterPack": "./scripts/ensure-native-deps.js",
@@ -70,10 +71,13 @@
     "perMachine": true,
     "include": "build/installer.nsh",
     "deleteAppDataOnUninstall": true,
-    
     "createDesktopShortcut": false,
     "runAfterFinish": false,
-    "shortcutName": "ClickFlash Touch"
+    "shortcutName": "ClickFlash Touch",
+    "installerIcon": "build/icon.ico",
+    "uninstallerIcon": "build/icon.ico",
+    "uninstallDisplayName": "ClickFlash Touch",
+    "warningsAsErrors": false
   },
   "publish": {
     "provider": "github",

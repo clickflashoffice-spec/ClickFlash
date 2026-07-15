@@ -4,6 +4,7 @@ import {
   Destination,
   SyncLog,
 } from "../../types";
+import { logger } from "@/utils/logger";
 
 /**
  * API Service - Wrapper around pb adapter for convenient data operations
@@ -54,12 +55,12 @@ export const bookingsApi = {
 
   async createDestination(data: Partial<Destination>): Promise<Destination> {
     try {
-      console.log("Creating destination with data:", data);
+      logger.info("Creating destination with data:", data);
       const record = await pb.collection("destinations").create(data);
-      console.log("Destination created successfully:", record);
+      logger.info("Destination created successfully:", record);
       return record as Destination;
     } catch (error: any) {
-      console.error("createDestination error details:", {
+      logger.error("createDestination error details:", {
         error,
         errorType: typeof error,
         errorKeys: error && typeof error === "object" ? Object.keys(error) : [],
@@ -72,7 +73,7 @@ export const bookingsApi = {
       let errorMessage = "Failed to create destination";
       if (error?.response?.data) {
         const pbError = error.response.data;
-        console.log("PocketBase error data:", pbError);
+        logger.info("PocketBase error data:", pbError);
         if (pbError.message) {
           errorMessage = pbError.message;
         } else if (
@@ -87,7 +88,7 @@ export const bookingsApi = {
               .join(", ");
             errorMessage = validationErrors || errorMessage;
           } catch (entriesError) {
-            console.warn("Failed to process validation errors", entriesError);
+            logger.warn("Failed to process validation errors", entriesError);
             // Use default error message
           }
         } else if (pbError.error) {

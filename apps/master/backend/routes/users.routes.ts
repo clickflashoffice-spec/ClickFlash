@@ -142,5 +142,36 @@ export default function usersRoutes(context: any): Router {
     }
   });
 
+  // DELETE User
+  router.delete("/:id", requirePermission(PERMISSIONS.USER_DELETE, context.auditLogger), async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id;
+      const existing = dbManager.get(`SELECT * FROM ${table} WHERE id = ?`, [id]);
+      if (!existing) {
+        return res.status(404).json({ error: "NOT_FOUND", message: `User record not found` });
+      }
+
+      dbManager.run(`DELETE FROM ${table} WHERE id = ?`, [id]);
+
+      const auditUser = (req as any).session?.user || (req as any).user;
+      auditLogger.logDataAccess(
+        auditUser?.id || "unknown",
+        auditUser?.email || "unknown",
+        "DELETE",
+        table,
+        id
+      );
+
+      if (realtimeService) {
+        realtimeService.broadcast({ collection: table, action: "delete", record: { id, collectionName: table } });
+      }
+
+      res.json({ success: true, id });
+    } catch (err: any) {
+      logger.error("Failed to delete user", err);
+      res.status(500).json({ error: "INTERNAL_ERROR", message: err.message });
+    }
+  });
+
   return router;
 }

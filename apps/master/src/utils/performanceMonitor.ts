@@ -122,11 +122,12 @@ export function reportWebVitals(): void {
   if ('web-vitals' in window) {
     // @ts-ignore
     const { getLCP, getFID, getFCP, getCLS, getTTFB } = window['web-vitals'];
-    if (getLCP) getLCP(console.log);
-    if (getFID) getFID(console.log);
-    if (getFCP) getFCP(console.log);
-    if (getCLS) getCLS(console.log);
-    if (getTTFB) getTTFB(console.log);
+    const logMetric = (metric: any) => logger.info('Web Vitals:', metric);
+    if (getLCP) getLCP(logMetric);
+    if (getFID) getFID(logMetric);
+    if (getFCP) getFCP(logMetric);
+    if (getCLS) getCLS(logMetric);
+    if (getTTFB) getTTFB(logMetric);
   }
 }
 

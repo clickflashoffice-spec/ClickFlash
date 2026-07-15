@@ -6,6 +6,7 @@ import {Search,
   Target,
   Clock} from "lucide-react";
 import { PixelFounderCard } from "../common/PixelFounderCard.tsx";
+import { logger } from "@/utils/logger";
 
 interface Prospect {
   id: string;
@@ -30,7 +31,7 @@ const ProspectingCRM: React.FC = () => {
         setLoading(false);
       })
       .catch(err => {
-        console.error("Failed to fetch leads", err);
+        logger.error("Failed to fetch leads", err);
         setLoading(false);
       });
   }, []);

@@ -59,7 +59,7 @@ export default function ClientGateway() {
                         <Logo size="2xl" />
                     </div>
                     <h1 className="text-3xl font-black text-slate-900 mb-3 tracking-tighter uppercase">Client Access</h1>
-                    <p className="text-slate-500 font-medium text-sm leading-relaxed">
+                    <p className="text-slate-600 font-medium text-sm leading-relaxed">
                         Enter your unique session code to access <br /> your private digital gallery.
                     </p>
                 </div>
@@ -81,7 +81,7 @@ export default function ClientGateway() {
                                     Welcome, {galleryInfo.client_name}
                                 </p>
                             )}
-                            <p className="text-sm text-slate-400 font-medium italic mt-4">
+                            <p className="text-sm text-slate-600 font-medium italic mt-4">
                                 Preparing your high-resolution memories...
                             </p>
                         </motion.div>
@@ -94,7 +94,7 @@ export default function ClientGateway() {
                             className="space-y-8"
                         >
                             <div className="space-y-3">
-                                <label htmlFor="code" className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-600 ml-1">
+                                <label htmlFor="code" className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-700 ml-1">
                                     Session Code
                                 </label>
                                 <div className="relative group">
@@ -112,7 +112,7 @@ export default function ClientGateway() {
                                             }`}
                                         autoFocus
                                     />
-                                    <Lock className={`absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 transition-colors ${error ? "text-red-500" : "text-slate-300 group-focus-within:text-cyan-500"
+                                    <Lock className={`absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 transition-colors ${error ? "text-red-500" : "text-slate-300 group-focus-within:text-cyan-700"
                                         }`} />
                                 </div>
                             </div>
@@ -134,7 +134,7 @@ export default function ClientGateway() {
                             <button
                                 type="submit"
                                 disabled={loading || !code}
-                                className="w-full bg-slate-900 text-white font-black h-16 rounded-2xl hover:bg-cyan-500 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:hover:scale-100 flex items-center justify-center gap-3 group text-[13px] uppercase tracking-[0.2em] shadow-xl hover:shadow-cyan-400/20"
+                                className="w-full bg-slate-900 text-white font-black h-16 rounded-2xl hover:bg-cyan-700 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:hover:scale-100 flex items-center justify-center gap-3 group text-[13px] uppercase tracking-[0.2em] shadow-xl hover:shadow-cyan-400/20"
                             >
                                 {loading ? (
                                     <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
@@ -150,8 +150,8 @@ export default function ClientGateway() {
                 </AnimatePresence>
 
                 <div className="mt-12 pt-8 border-t border-slate-50 text-center">
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                        Having issues? <Link href="/contact" className="text-cyan-500 hover:text-slate-900 underline underline-offset-4 transition-colors">Contact Expert Advisor</Link>
+                    <p className="text-[11px] font-bold text-slate-600 uppercase tracking-widest">
+                        Having issues? <Link href="/contact" className="text-cyan-700 hover:text-slate-900 underline underline-offset-4 transition-colors">Contact Expert Advisor</Link>
                     </p>
                 </div>
             </motion.div>

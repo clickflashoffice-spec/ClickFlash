@@ -80,13 +80,13 @@ const Bookings: React.FC<BookingsProps> = ({ showToast, refreshTrigger }) => {
   const kpiData = useMemo(() => {
     const today = new Date().toISOString().split("T")[0];
     return {
-      pending: bookings.filter((b) => b.status === "Pending").length,
+      pending: bookings.filter((b) => b.status === "pending").length,
       unassigned: bookings.filter((b) => !b.photographerId).length,
       confirmedToday: bookings.filter(
-        (b) => b.status === "Confirmed" && b.bookingDate === today,
+        (b) => b.status === "confirmed" && b.bookingDate === today,
       ).length,
       upcoming: bookings.filter(
-        (b) => b.bookingDate >= today && b.status !== "Cancelled",
+        (b) => b.bookingDate >= today && b.status !== "cancelled",
       ).length,
     };
   }, [bookings]);
@@ -134,7 +134,7 @@ const Bookings: React.FC<BookingsProps> = ({ showToast, refreshTrigger }) => {
     const updatedBooking = {
       ...bookingToUpdate,
       photographerId,
-      status: "Confirmed" as BookingStatus,
+      status: "confirmed" as BookingStatus,
     };
     setBookings((prev) =>
       prev.map((b) => (b.id === bookingId ? updatedBooking : b)),
@@ -248,10 +248,10 @@ const Bookings: React.FC<BookingsProps> = ({ showToast, refreshTrigger }) => {
 
   const filterOptions: Array<BookingStatus | "All" | "Unassigned"> = [
     "All",
-    "Pending",
+    "pending",
     "Unassigned",
-    "Confirmed",
-    "Cancelled",
+    "confirmed",
+    "cancelled",
   ];
 
   return (
@@ -290,7 +290,7 @@ const Bookings: React.FC<BookingsProps> = ({ showToast, refreshTrigger }) => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 mb-4 sm:mb-5 md:mb-6">
         <StatCard
-          title="Pending"
+          title="pending"
           value={kpiData.pending}
           icon={
             <svg
@@ -375,7 +375,7 @@ const Bookings: React.FC<BookingsProps> = ({ showToast, refreshTrigger }) => {
       {(() => {
         const todayStr = new Date().toISOString().split("T")[0];
         const todayBookings = bookings.filter(
-          (b) => b.bookingDate === todayStr && b.status !== "Cancelled",
+          (b) => b.bookingDate === todayStr && b.status !== "cancelled",
         );
         if (todayBookings.length === 0) return null;
         return (
@@ -406,7 +406,7 @@ const Bookings: React.FC<BookingsProps> = ({ showToast, refreshTrigger }) => {
                         {b.bookingDate}
                       </p>
                       <div
-                        className={`mt-1 w-full h-1 rounded-full ${b.status === "Confirmed" ? "bg-emerald-500" : "bg-amber-400"}`}
+                        className={`mt-1 w-full h-1 rounded-full ${b.status === "confirmed" ? "bg-emerald-500" : "bg-amber-400"}`}
                       ></div>
                     </div>
                     <div>
@@ -644,14 +644,14 @@ const Bookings: React.FC<BookingsProps> = ({ showToast, refreshTrigger }) => {
                         <td className="p-4">
                           <span
                             className={`px-2.5 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1 ${
-                              booking.status === "Confirmed"
+                              booking.status === "confirmed"
                                 ? "bg-green-500/20 text-green-600 dark:text-green-400"
-                                : booking.status === "Pending"
+                                : booking.status === "pending"
                                   ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
                                   : "bg-red-500/20 text-red-600 dark:text-red-400"
                             }`}
                           >
-                            {booking.status === "Pending" && (
+                            {booking.status === "pending" && (
                               <span className="w-1.5 h-1.5 bg-current rounded-full animate-pulse"></span>
                             )}
                             {booking.status}

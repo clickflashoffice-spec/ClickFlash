@@ -1,4 +1,5 @@
 import { sendAuthError, sendInternalError, createErrorResponse } from "../errorHandler.js";
+import { logger } from "@clickflash/logger";
 
 export const handleAnalytics = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, geminiService: any, payload: any) => {
   const deskId = payload?.desk_id || "UNKNOWN";
@@ -51,7 +52,7 @@ export const handleAnalytics = async (request: Request, url: URL, env: any, dbMa
           );
           return Response.json({ success: true, ...financials }, { headers: corsHeaders });
         } catch (error: any) {
-          console.error("[Financial Analytics Error]", error);
+          logger.error("[Financial Analytics Error]", { args: [error] });
           return sendInternalError(error, "Financial Analytics");
         }
       }
@@ -131,7 +132,7 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
                     "AI analysis unavailable.";
                 }
               } catch (e) {
-                console.error("AI Audit generation failed:", e);
+                logger.error("AI Audit generation failed:", { args: [e] });
               }
             }
 
@@ -168,7 +169,7 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
             { headers: corsHeaders },
           );
         } catch (error: any) {
-          console.error("[Daily Audit Ingest Error]", error);
+          logger.error("[Daily Audit Ingest Error]", { args: [error] });
           return sendInternalError(error, "Daily Audit Processing");
         }
       }
@@ -186,7 +187,7 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
           await analyticsService.ingestResortBI(deskId, body);
           return Response.json({ success: true }, { headers: corsHeaders });
         } catch (error: any) {
-          console.error("[Resort BI Ingest Error]", error);
+          logger.error("[Resort BI Ingest Error]", { args: [error] });
           return sendInternalError(error, "Resort BI Processing");
         }
       }
@@ -215,7 +216,7 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
             { headers: corsHeaders },
           );
         } catch (error: any) {
-          console.error("[Resort BI Retrieval Error]", error);
+          logger.error("[Resort BI Retrieval Error]", { args: [error] });
           return sendInternalError(error, "Resort BI Retrieval");
         }
       }
@@ -300,7 +301,7 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
             { headers: corsHeaders },
           );
         } catch (error: any) {
-          console.error("[Location Audits Retrieval Error]", error);
+          logger.error("[Location Audits Retrieval Error]", { args: [error] });
           return sendInternalError(error, "Location Audits Retrieval");
         }
       }
@@ -332,7 +333,7 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
           const forecast = await geminiService.generateSalesForecast(metrics);
           return Response.json(forecast, { headers: corsHeaders });
         } catch (err: any) {
-          console.error("[Forecast Error]", err);
+          logger.error("[Forecast Error]", { args: [err] });
           return createErrorResponse(500, "AI Forecast Error", err.message);
         }
       }

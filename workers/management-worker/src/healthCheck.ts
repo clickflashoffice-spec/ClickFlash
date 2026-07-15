@@ -1,4 +1,5 @@
 import http from 'http';
+import { logger } from "@clickflash/logger";
 
 const options = {
     hostname: 'localhost',
@@ -8,15 +9,15 @@ const options = {
 };
 
 const req = http.request(options, (res) => {
-    console.log(`STATUS: ${res.statusCode}`);
+    logger.info(String(`STATUS: ${res.statusCode}`));
     res.setEncoding('utf8');
     res.on('data', (chunk) => {
-        console.log(`BODY: ${chunk}`);
+        logger.info(String(`BODY: ${chunk}`));
     });
 });
 
 req.on('error', (e) => {
-    console.error(`problem with request: ${e.message}`);
+    logger.error(String(`problem with request: ${e.message}`));
 });
 
 req.end();

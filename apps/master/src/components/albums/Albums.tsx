@@ -30,7 +30,7 @@ import {
 } from "../../hooks/useAlbums.ts";
 import { usePhotographers } from "../../hooks/usePhotographers.ts";
 import ConfirmationModal from "../common/ConfirmationModal.tsx";
-import { backgroundJobService } from "../../services/backgroundJobService.ts";
+import { imageProcessingService } from "../../services/imageProcessingService.ts";
 import ErrorBoundary from "../common/ErrorBoundary.tsx";
 import { AlbumCardSkeleton } from "../common/Skeleton.tsx";
 
@@ -439,6 +439,7 @@ const Albums: React.FC<AlbumsProps> = ({
     successCount: 0,
     failCount: 0,
     isComplete: false,
+    statusText: "",
   });
 
   const { can } = usePermissions(currentUser);
@@ -536,6 +537,7 @@ const Albums: React.FC<AlbumsProps> = ({
           successCount: 0,
           failCount: 0,
           isComplete: false,
+          statusText: "",
         });
 
         logger.info("Starting photo import", {
@@ -582,6 +584,7 @@ const Albums: React.FC<AlbumsProps> = ({
             ...prev,
             currentFile: file.name,
             currentIndex: fileIndex + 1,
+            statusText: albumData.autoProcess ? "Auto-processing..." : "Preparing...",
           }));
 
           logger.debug(
@@ -593,22 +596,54 @@ const Albums: React.FC<AlbumsProps> = ({
           );
 
           try {
+            let finalFile = file;
+
+            if (albumData.autoProcess) {
+              try {
+                const objectUrl = URL.createObjectURL(file);
+                const img = await imageProcessingService.loadImageFromUrl(objectUrl);
+                URL.revokeObjectURL(objectUrl);
+
+                const imageData = imageProcessingService.getImageData(img);
+                const result = await imageProcessingService.autoEditFullAsync(imageData);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = result.imageData.width;
+                canvas.height = result.imageData.height;
+                const ctx = canvas.getContext('2d')!;
+                ctx.putImageData(result.imageData, 0, 0);
+
+                const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, file.type || 'image/jpeg', 0.9));
+                if (blob) {
+                  finalFile = new File([blob], file.name, { type: file.type || 'image/jpeg' });
+                  logger.debug(`Auto-processed ${file.name} successfully`);
+                }
+              } catch (err) {
+                logger.warn(`Auto-process failed for ${file.name}, falling back to original`, err);
+              }
+            }
+
+            setImportProgress((prev) => ({
+              ...prev,
+              statusText: "Uploading...",
+            }));
+
             const formData = new FormData();
-            formData.append("title", file.name);
+            formData.append("title", finalFile.name);
             formData.append("albumId", createdAlbum.id);
             formData.append("photographerId", String(albumData.photographerId));
-            formData.append("url", file);
+            formData.append("url", finalFile);
 
             // 2-Tier System: Generate and upload proxy
             try {
-              const proxyBlob = await createProxyImage(file);
+              const proxyBlob = await createProxyImage(finalFile);
               formData.append("preview", proxyBlob, "proxy.jpg");
               logger.debug(
-                `Generated proxy for ${file.name} (${(proxyBlob.size / 1024).toFixed(2)} KB)`,
+                `Generated proxy for ${finalFile.name} (${(proxyBlob.size / 1024).toFixed(2)} KB)`,
               );
             } catch (proxyError) {
               logger.warn(
-                `Failed to generate proxy for ${file.name}, falling back to original only`,
+                `Failed to generate proxy for ${finalFile.name}, falling back to original only`,
                 proxyError,
               );
             }
@@ -626,19 +661,13 @@ const Albums: React.FC<AlbumsProps> = ({
               uploadPromise,
               timeoutPromise,
             ])) as Photo;
-            logger.debug(`Photo uploaded successfully: ${file.name}`);
+            logger.debug(`Photo uploaded successfully: ${finalFile.name}`);
 
             const photoUrl = `/api/files/photos/${photo.id}/${photo.url}`;
             
             // Queue auto-edit if enabled
-            if (albumData.autoProcess) {
-              await backgroundJobService.addJob("auto_edit", {
-                photoId: photo.id,
-                url: photoUrl,
-                albumId: createdAlbum.id
-              });
-              logger.debug(`Queued auto_edit job for ${file.name}`);
-            }
+            // Note: Since we already auto-processed before upload, we no longer need the background job
+            // unless we want to do more things backend side, but for now we applied them locally.
 
             return { success: true, url: photoUrl };
           } catch (photoError: any) {
@@ -1352,6 +1381,7 @@ const Albums: React.FC<AlbumsProps> = ({
         successCount={importProgress.successCount}
         failCount={importProgress.failCount}
         isComplete={importProgress.isComplete}
+        statusText={importProgress.statusText}
         onClose={() => setIsProgressModalOpen(false)}
       />
 

@@ -3,6 +3,7 @@ import { ExpenseCategory } from "../../../types";
 import { apiService } from "../../../services/apiService";
 import Spinner from "../../common/Spinner";
 import ExpenseCategoryEditModal from "../modals/ExpenseCategoryEditModal";
+import { logger } from "@/utils/logger";
 
 const ExpenseCategorySettings: React.FC = () => {
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
@@ -18,7 +19,7 @@ const ExpenseCategorySettings: React.FC = () => {
       const data = await apiService.getExpenseCategories();
       setCategories(data);
     } catch (error) {
-      console.error("Failed to load expense categories", error);
+      logger.error("Failed to load expense categories", error);
     } finally {
       setLoading(false);
     }

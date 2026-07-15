@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {Search, AlertCircle, UserPlus, LogOut, Briefcase, ChevronRight} from "lucide-react";
 import { PixelFounderCard } from "../common/PixelFounderCard.tsx";
+import { logger } from "@/utils/logger";
 
 interface StaffAction {
   id: string;
@@ -23,7 +24,7 @@ const HRRecruitment: React.FC = () => {
         setLoading(false);
       })
       .catch(err => {
-        console.error("Failed to fetch HR actions", err);
+        logger.error("Failed to fetch HR actions", err);
         setLoading(false);
       });
   }, []);

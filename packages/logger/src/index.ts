@@ -18,6 +18,8 @@
 import winston from 'winston';
 import 'winston-daily-rotate-file';
 import path from 'path';
+import fs from 'fs';
+import os from 'os';
 
 // =============================================================================
 // TYPES
@@ -41,10 +43,10 @@ export interface LogMeta {
 }
 
 export interface ILogger {
-  debug(message: string, meta?: LogMeta): void;
-  info(message: string, meta?: LogMeta): void;
-  warn(message: string, meta?: LogMeta): void;
-  error(message: string, errorOrMeta?: Error | LogMeta, meta?: LogMeta): void;
+  debug(message: string, meta?: unknown): void;
+  info(message: string, meta?: unknown): void;
+  warn(message: string, meta?: unknown): void;
+  error(message: string, errorOrMeta?: unknown, meta?: unknown): void;
 }
 
 // =============================================================================
@@ -52,7 +54,7 @@ export interface ILogger {
 // =============================================================================
 
 export function createLogger(config: LoggerConfig): ILogger {
-  const logDir = config.logDir || path.join(process.cwd(), 'logs');
+  let logDir = config.logDir || path.join(process.cwd(), 'logs');
   const level = config.level || 'info';
 
   const { combine, timestamp, printf, colorize, errors, json } = winston.format;
@@ -65,25 +67,44 @@ export function createLogger(config: LoggerConfig): ILogger {
 
   // File transports (enabled by default)
   if (config.enableFile !== false) {
-    transports.push(
-      new winston.transports.DailyRotateFile({
-        dirname: logDir,
-        filename: `${config.serviceName}-error-%DATE%.log`,
-        datePattern: 'YYYY-MM-DD',
-        level: 'error',
-        maxFiles: '14d',
-        maxSize: '20m',
-        format: combine(timestamp(), json()),
-      }),
-      new winston.transports.DailyRotateFile({
-        dirname: logDir,
-        filename: `${config.serviceName}-combined-%DATE%.log`,
-        datePattern: 'YYYY-MM-DD',
-        maxFiles: '14d',
-        maxSize: '20m',
-        format: combine(timestamp(), json()),
-      }),
-    );
+    try {
+      if (!fs.existsSync(logDir)) {
+        fs.mkdirSync(logDir, { recursive: true });
+      }
+    } catch (err) {
+      // Fallback to os.tmpdir if EPERM or access denied (e.g. running from C:\Windows\System32 inside IDE/MCP)
+      try {
+        logDir = path.join(os.tmpdir(), 'clickflash-logs');
+        if (!fs.existsSync(logDir)) {
+          fs.mkdirSync(logDir, { recursive: true });
+        }
+      } catch (fallbackErr) {
+        // If even tmpdir fails, disable file transport safely
+        config.enableFile = false;
+      }
+    }
+
+    if (config.enableFile !== false) {
+      transports.push(
+        new winston.transports.DailyRotateFile({
+          dirname: logDir,
+          filename: `${config.serviceName}-error-%DATE%.log`,
+          datePattern: 'YYYY-MM-DD',
+          level: 'error',
+          maxFiles: '14d',
+          maxSize: '20m',
+          format: combine(timestamp(), json()),
+        }),
+        new winston.transports.DailyRotateFile({
+          dirname: logDir,
+          filename: `${config.serviceName}-combined-%DATE%.log`,
+          datePattern: 'YYYY-MM-DD',
+          maxFiles: '14d',
+          maxSize: '20m',
+          format: combine(timestamp(), json()),
+        }),
+      );
+    }
   }
 
   const winstonLogger = winston.createLogger({
@@ -107,30 +128,31 @@ export function createLogger(config: LoggerConfig): ILogger {
     winstonLogger.add(
       new winston.transports.Console({
         format: combine(colorize(), customFormat),
+        stderrLevels: ['error', 'warn', 'info', 'debug'],
       }),
     );
   }
 
   // Wrap in our standard interface
   return {
-    debug(message: string, meta?: LogMeta): void {
-      winstonLogger.debug(message, meta);
+    debug(message: string, meta?: unknown): void {
+      winstonLogger.debug(message, meta as Record<string, unknown>);
     },
-    info(message: string, meta?: LogMeta): void {
-      winstonLogger.info(message, meta);
+    info(message: string, meta?: unknown): void {
+      winstonLogger.info(message, meta as Record<string, unknown>);
     },
-    warn(message: string, meta?: LogMeta): void {
-      winstonLogger.warn(message, meta);
+    warn(message: string, meta?: unknown): void {
+      winstonLogger.warn(message, meta as Record<string, unknown>);
     },
-    error(message: string, errorOrMeta?: Error | LogMeta, meta?: LogMeta): void {
+    error(message: string, errorOrMeta?: unknown, meta?: unknown): void {
       if (errorOrMeta instanceof Error) {
         winstonLogger.error(message, {
           error: errorOrMeta.message,
           stack: errorOrMeta.stack,
-          ...meta,
+          ...(meta as Record<string, unknown>),
         });
       } else {
-        winstonLogger.error(message, errorOrMeta);
+        winstonLogger.error(message, errorOrMeta as Record<string, unknown>);
       }
     },
   };
@@ -172,25 +194,25 @@ export class BrowserLogger implements ILogger {
     this.service = serviceName;
   }
 
-  debug(message: string, meta?: LogMeta): void {
+  debug(message: string, meta?: unknown): void {
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`%c[${this.service}] DEBUG`, 'color: #888; font-size: 11px;', message, meta || '');
+      console.debug(`%c[${this.service}] DEBUG`, 'color: #888; font-size: 11px;', message, meta || '');
     }
   }
 
-  info(message: string, meta?: LogMeta): void {
+  info(message: string, meta?: unknown): void {
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`%c[${this.service}] INFO`, 'color: #2196F3; font-size: 11px; font-weight: bold;', message, meta || '');
+      console.info(`%c[${this.service}] INFO`, 'color: #2196F3; font-size: 11px; font-weight: bold;', message, meta || '');
     } else {
-      console.log(JSON.stringify({ timestamp: new Date().toISOString(), level: 'INFO', service: this.service, message, meta }));
+      console.info(JSON.stringify({ timestamp: new Date().toISOString(), level: 'INFO', service: this.service, message, meta }));
     }
   }
 
-  warn(message: string, meta?: LogMeta): void {
+  warn(message: string, meta?: unknown): void {
     console.warn(`[${this.service}] WARN: ${message}`, meta || '');
   }
 
-  error(message: string, errorOrMeta?: Error | LogMeta, meta?: LogMeta): void {
+  error(message: string, errorOrMeta?: unknown, meta?: unknown): void {
     if (errorOrMeta instanceof Error) {
       console.error(`[${this.service}] ERROR: ${message}`, errorOrMeta, meta || '');
     } else {

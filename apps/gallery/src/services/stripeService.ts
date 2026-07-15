@@ -1,9 +1,10 @@
+import { logger } from '@clickflash/logger';
 import { loadStripe } from '@stripe/stripe-js';
 
 // Initialize Stripe with Publishable Key (exposed in Vite env)
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 if (!STRIPE_PUBLISHABLE_KEY) {
-    console.error("Missing VITE_STRIPE_PUBLISHABLE_KEY in environment variables");
+    logger.error("Missing VITE_STRIPE_PUBLISHABLE_KEY in environment variables");
 }
 
 export const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY || '');
@@ -44,7 +45,7 @@ export const stripeService = {
 
             return await response.json();
         } catch (error) {
-            console.error("Stripe createPaymentIntent failed:", error);
+            logger.error("Stripe createPaymentIntent failed:", error);
             return { clientSecret: '', error: error instanceof Error ? error.message : 'Unknown error' };
         }
     }

@@ -1,6 +1,6 @@
 {
   "name": "@clickflash/config",
-  "version": "0.0.0",
+  "version": "2.0.0",
   "description": "Shared configuration files for the ClickFlash monorepo",
   "private": true,
   "main": "./index.js",

@@ -75,9 +75,19 @@ async function globalSetup() {
 
   // Step 1: Establish a session by hitting health endpoint
   console.log("[E2E Seed] Establishing session...");
-  const healthRes = await fetch(`${BASE_URL}/api/health`);
-  if (!healthRes.ok) {
-    console.warn(`[E2E Seed] Health check failed (${healthRes.status}) — seeding skipped`);
+  let healthRes: Response | null = null;
+  for (let i = 0; i < 30; i++) {
+    try {
+      healthRes = await fetch(`${BASE_URL}/api/health`);
+      if (healthRes.ok) break;
+    } catch (e) {
+      // Backend not ready yet
+    }
+    await new Promise(r => setTimeout(r, 1000));
+  }
+
+  if (!healthRes || !healthRes.ok) {
+    console.warn(`[E2E Seed] Health check failed (${healthRes?.status || "ECONNREFUSED"}) — seeding skipped`);
     return;
   }
   let cookies = extractCookies(healthRes);

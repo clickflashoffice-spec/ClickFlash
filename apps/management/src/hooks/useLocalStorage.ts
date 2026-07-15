@@ -1,4 +1,5 @@
 import { useState, useEffect, Dispatch, SetStateAction } from 'react';
+import { logger } from "@/utils/logger";
 
 /**
  * useLocalStorage Hook
@@ -47,7 +48,7 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, Dispatch<SetState
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
-      console.warn(`Error reading localStorage key “${key}”:`, error);
+      logger.warn(`Error reading localStorage key “${key}”:`, error);
       return initialValue;
     }
   };
@@ -66,7 +67,7 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, Dispatch<SetState
       // Save to local storage
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (error) {
-      console.warn(`Error setting localStorage key “${key}”:`, error);
+      logger.warn(`Error setting localStorage key “${key}”:`, error);
     }
   };
 

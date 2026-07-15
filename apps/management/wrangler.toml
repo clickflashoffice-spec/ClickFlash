@@ -1,0 +1,9 @@
+name = "clickflash-management"
+compatibility_date = "2024-03-29"
+
+[site]
+bucket = "./dist"
+
+[env.production]
+name = "clickflash-management-prod"
+route = { pattern = "manage.clickflash.com/*", zone_name = "clickflash.com" }

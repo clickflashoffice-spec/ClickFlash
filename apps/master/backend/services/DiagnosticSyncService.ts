@@ -132,7 +132,11 @@ export class DiagnosticSyncService {
             if (res.ok) {
                 // Mark as synced
                 const ids = leads.map(l => l.id);
-                this.db.run(`UPDATE prospects SET sync_status = 'synced' WHERE id IN (${ids.map(() => '?').join(',')})`, ids);
+                const chunkSize = 500;
+                for (let i = 0; i < ids.length; i += chunkSize) {
+                    const chunk = ids.slice(i, i + chunkSize);
+                    this.db.run(`UPDATE prospects SET sync_status = 'synced' WHERE id IN (${chunk.map(() => '?').join(',')})`, chunk);
+                }
                 this.logger.debug(`[DiagnosticSync] Synced ${leads.length} CRM leads`);
             }
         } catch (e) {

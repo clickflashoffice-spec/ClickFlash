@@ -1,0 +1,28 @@
+{
+  "hotel": {
+    "id": "cgp",
+    "name": "Concorde Green Park Palace Sousse",
+    "shortName": "CGP",
+    "deskPrefix": "CGP_"
+  },
+  "cloud": {
+    "databaseName": "cgp-db",
+    "bucketName": "cgp-gallery-assets",
+    "managementHubUrl": "https://management.feethub.com",
+    "galleryUrl": "https://gallery.feethub.com"
+  },
+  "app": {
+    "appId": "com.clickflash.master.cgp",
+    "productName": "ClickFlash CGP",
+    "copyright": "© 2026 Concorde Green Park Palace Sousse"
+  },
+  "sync": {
+    "enabled": true,
+    "intervalSeconds": 60,
+    "retryAttempts": 3
+  },
+  "kiosk": {
+    "defaultPort": 8091,
+    "discoveryTimeout": 30000
+  }
+}

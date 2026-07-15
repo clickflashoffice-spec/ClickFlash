@@ -77,65 +77,7 @@ const KioskEditModal: React.FC<KioskEditModalProps> = ({ isOpen, onClose, onSave
           {!isNew && kiosk.name !== 'Unconfigured Kiosk' && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">The Kiosk ID cannot be changed after creation.</p>}
         </div>
 
-        {/* Upload Folder Path */}
-        <div>
-          <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-            <label htmlFor="uploadFolderPath" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Kiosk Upload Folder Path</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                id="uploadFolderPath"
-                name="uploadFolderPath"
-                value={kiosk.uploadFolderPath || ''}
-                onChange={handleChange}
-                placeholder="e.g. \\KIOSK-PC\TouchUploads"
-                autoComplete="off"
-                className={inputStyles}
-              />
-              <button
-                type="button"
-                onClick={() => setKiosk(prev => ({ ...prev, uploadFolderPath: '' }))}
-                className="px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-md text-slate-600 dark:text-slate-300"
-                title="Clear Path"
-              >
-                Clear
-              </button>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Network path where Master copies albums for this kiosk to import.
-            </p>
-          </div>
-        </div>
 
-        {/* Orders Folder Path */}
-        <div>
-          <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-            <label htmlFor="ordersFolderPath" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Kiosk Orders Folder Path</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                id="ordersFolderPath"
-                name="ordersFolderPath"
-                value={kiosk.ordersFolderPath || ''}
-                onChange={handleChange}
-                placeholder="e.g. \\KIOSK-PC\TouchOrders"
-                autoComplete="off"
-                className={inputStyles}
-              />
-              <button
-                type="button"
-                onClick={() => setKiosk(prev => ({ ...prev, ordersFolderPath: '' }))}
-                className="px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-md text-slate-600 dark:text-slate-300"
-                title="Clear Path"
-              >
-                Clear
-              </button>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Network path where Master reads orders exported by this kiosk.
-            </p>
-          </div>
-        </div>
 
         <div className="pt-4 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-700">
           <button type="button" onClick={onClose} className="bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 dark:hover:bg-slate-500 text-slate-800 dark:text-white font-semibold py-2 px-4 rounded-lg transition-colors">Cancel</button>

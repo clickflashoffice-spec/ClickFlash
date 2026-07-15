@@ -1,6 +1,6 @@
 import { pb } from "./pb";
 import { apiService } from "./apiService";
-import { logger } from "../utils/logger";
+import { logger } from "@/utils/logger";
 
 // Helper function to make authenticated API calls to cloud server
 async function cloudApiCall(
@@ -50,7 +50,7 @@ export const pbManagement = {
       });
       return response.ok;
     } catch (e) {
-      console.error("Cloud connection test failed:", e);
+      logger.error("Cloud connection test failed:", e);
       return false;
     }
   },
@@ -734,14 +734,14 @@ export const pbManagement = {
             );
           }
         } catch {
-          console.error(
+          logger.error(
             `Failed to push record ${record.id} in ${collectionName}`,
           );
         }
       }
       return true;
     } catch (e) {
-      console.error(`Force push failed for ${collectionName}:`, e);
+      logger.error(`Force push failed for ${collectionName}:`, e);
       return false;
     }
   },

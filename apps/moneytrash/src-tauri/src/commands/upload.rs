@@ -8,8 +8,13 @@ use crate::state::UploadState;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
-use tauri::State;
+use tauri::{State, AppHandle, Emitter};
 use tauri_plugin_notification::NotificationExt;
+use std::sync::Arc;
+use tokio::sync::Semaphore;
+use tokio::task::JoinSet;
+use tokio::io::{AsyncReadExt, AsyncSeekExt};
+use reqwest::multipart;
 
 /// Maximum file size (500MB)
 const MAX_FILE_SIZE: u64 = 500 * 1024 * 1024;
@@ -68,6 +73,17 @@ pub struct UploadProgress {
     #[serde(rename = "totalChunks")]
     pub total_chunks: u32,
     pub percentage: f64,
+    pub status: String,
+}
+
+#[derive(Clone, Serialize)]
+pub struct NativeUploadProgress {
+    pub session_id: String,
+    pub chunks_received: u32,
+    pub total_chunks: u32,
+    pub percentage: f64,
+    pub bytes_uploaded: u64,
+    pub total_bytes: u64,
     pub status: String,
 }
 
@@ -310,18 +326,29 @@ async fn upload_to_api(
         .build()
         .map_err(|e| AppError::Network(e.to_string()))?;
     
+    // Load config to get API key for auth
+    use crate::commands::config::internal_load_config;
+    let config = internal_load_config().await.unwrap_or(None);
+    let api_key = config.and_then(|c| c.api_key).unwrap_or_default();
+    let auth_header = format!("Bearer {}", api_key);
+    
     // Step 1: Initialize upload
+    let chunk_size = CHUNK_SIZE;
+    let total_chunks = (session.file_size as f64 / chunk_size as f64).ceil() as u32;
+
     let init_response = client
-        .post(format!("{}/api/upload/chunk", api_url))
+        .post(format!("{}/api/upload/chunk/init", api_url))
         .header("Content-Type", "application/json")
+        .header("Authorization", &auth_header)
         .json(&serde_json::json!({
             "fileName": session.file_name,
             "fileSize": session.file_size,
+            "totalChunks": total_chunks,
             "metadata": {
-                "eventName": metadata.event_name,
-                "accessCode": metadata.access_code,
+                "event_name": metadata.event_name,
+                "access_code": metadata.access_code,
                 "mode": metadata.mode,
-                "mimeType": metadata.mime_type,
+                "mime_type": metadata.mime_type,
                 "deskId": metadata.desk_id
             }
         }))
@@ -344,9 +371,6 @@ async fn upload_to_api(
     
     // Step 2: Upload as a single part but streaming (Master API supports chunked transfer encoding)
     // Actually, we'll keep the chunked loop but STREAM each chunk from disk
-    let chunk_size = CHUNK_SIZE;
-    let total_chunks = (session.file_size as f64 / chunk_size as f64).ceil() as u32;
-    
     for i in 0..total_chunks {
         let start = i as u64 * chunk_size as u64;
         let end = ((i + 1) as u64 * chunk_size as u64).min(session.file_size);
@@ -373,6 +397,7 @@ async fn upload_to_api(
         
         let chunk_response = client
             .put(format!("{}/api/upload/chunk", api_url))
+            .header("Authorization", &auth_header)
             .multipart(form)
             .send()
             .await
@@ -387,8 +412,9 @@ async fn upload_to_api(
     
     // Step 3: Finalize
     let finalize_response = client
-        .patch(format!("{}/api/upload/chunk", api_url))
+        .patch(format!("{}/api/upload/chunk/finalize", api_url))
         .header("Content-Type", "application/json")
+        .header("Authorization", &auth_header)
         .json(&serde_json::json!({ "sessionId": api_session_id }))
         .send()
         .await
@@ -556,4 +582,229 @@ mod tests {
         assert_eq!(progress.percentage, 50.0);
         assert_eq!(progress.status, "uploading");
     }
+}
+
+/// Start high-performance multi-threaded native upload from Rust
+#[tauri::command]
+pub async fn start_native_upload(
+    app_handle: tauri::AppHandle,
+    state: State<'_, UploadState>,
+    file_path: String,
+    api_url: Option<String>,
+    metadata: UploadMetadata,
+) -> Result<UploadResult, AppError> {
+    // 1. Validate file
+    let path = std::path::Path::new(&file_path);
+    if !path.exists() {
+        return Err(AppError::FileNotFound(file_path.clone()));
+    }
+    
+    let file_metadata = tokio::fs::metadata(&path).await
+        .map_err(|e| AppError::Io(e.to_string()))?;
+        
+    let file_size = file_metadata.len();
+    let file_name = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+    
+    if let Err(e) = validate_file_size(file_size) {
+        return Err(e);
+    }
+    
+    let session_id = uuid::Uuid::new_v4().to_string();
+    
+    // 2. Initialize in State
+    let chunk_size = CHUNK_SIZE;
+    let total_chunks = (file_size as f64 / chunk_size as f64).ceil() as u32;
+
+    let mut sessions = state.sessions.lock().await;
+    sessions.insert(session_id.clone(), UploadSession {
+        session_id: session_id.clone(),
+        file_name: file_name.clone(),
+        file_size,
+        chunks_received: vec![],
+        total_chunks,
+        metadata: metadata.clone(),
+        created_at: chrono::Utc::now().to_rfc3339(),
+    });
+    drop(sessions);
+    
+    // 3. Get API URL & Token
+    let api_base_url = api_url
+        .filter(|u| !u.trim().is_empty())
+        .unwrap_or_else(|| "https://moneytrash-api.clickflash-office.workers.dev".to_string());
+        
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(3600))
+        .build()
+        .map_err(|e| AppError::Network(e.to_string()))?;
+        
+    use crate::commands::config::internal_load_config;
+    let config = internal_load_config().await.unwrap_or(None);
+    let api_key = config.and_then(|c| c.api_key).unwrap_or_default();
+    let auth_header = format!("Bearer {}", api_key);
+    
+    // 4. API Init
+    let init_response = client
+        .post(format!("{}/api/upload/chunk/init", api_base_url))
+        .header("Content-Type", "application/json")
+        .header("Authorization", &auth_header)
+        .json(&serde_json::json!({
+            "fileName": file_name,
+            "fileSize": file_size,
+            "totalChunks": total_chunks,
+            "metadata": {
+                "eventName": metadata.event_name,
+                "accessCode": metadata.access_code,
+                "mode": metadata.mode,
+                "mimeType": metadata.mime_type,
+                "deskId": metadata.desk_id
+            }
+        }))
+        .send()
+        .await
+        .map_err(AppError::from)?;
+        
+    if !init_response.status().is_success() {
+        let error_text = init_response.text().await.unwrap_or_default();
+        return Err(AppError::Api(format!("Init failed: {}", error_text)));
+    }
+    
+    let init_result: serde_json::Value = init_response.json().await
+        .map_err(|e| AppError::Serialization(e.to_string()))?;
+        
+    let api_session_id = init_result["sessionId"].as_str()
+        .ok_or_else(|| AppError::Api("Invalid response: missing sessionId".to_string()))?
+        .to_string();
+
+    // 5. Multi-threaded Upload
+    let semaphore = Arc::new(Semaphore::new(6)); // Concurrency level: 6 threads
+    let mut join_set = JoinSet::new();
+    
+    let bytes_uploaded = Arc::new(std::sync::atomic::AtomicU64::new(0));
+    let chunks_completed = Arc::new(std::sync::atomic::AtomicU32::new(0));
+    
+    for i in 0..total_chunks {
+        let sem = semaphore.clone();
+        let client_cl = client.clone();
+        let auth_header_cl = auth_header.clone();
+        let api_base_url_cl = api_base_url.clone();
+        let api_session_id_cl = api_session_id.clone();
+        let file_path_cl = file_path.clone();
+        let session_id_cl = session_id.clone();
+        let app_handle_cl = app_handle.clone();
+        let bytes_uploaded_cl = bytes_uploaded.clone();
+        let chunks_completed_cl = chunks_completed.clone();
+        
+        let start = i as u64 * chunk_size as u64;
+        let end = ((i + 1) as u64 * chunk_size as u64).min(file_size);
+        let actual_chunk_size = end - start;
+
+        join_set.spawn(async move {
+            let _permit = sem.acquire().await.unwrap();
+            
+            // Read chunk natively from disk
+            let mut file = tokio::fs::File::open(&file_path_cl).await
+                .map_err(|e| AppError::Io(e.to_string()))?;
+            file.seek(std::io::SeekFrom::Start(start)).await
+                .map_err(|e| AppError::Io(e.to_string()))?;
+            
+            let mut buffer = vec![0; actual_chunk_size as usize];
+            file.read_exact(&mut buffer).await
+                .map_err(|e| AppError::Io(e.to_string()))?;
+                
+            let form = multipart::Form::new()
+                .text("sessionId", api_session_id_cl)
+                .text("chunkIndex", i.to_string())
+                .part("chunk", multipart::Part::bytes(buffer)
+                    .file_name(format!("chunk_{}", i)));
+            
+            // Upload chunk directly
+            let chunk_res = client_cl
+                .put(format!("{}/api/upload/chunk", api_base_url_cl))
+                .header("Authorization", &auth_header_cl)
+                .multipart(form)
+                .send()
+                .await
+                .map_err(AppError::from)?;
+                
+            if !chunk_res.status().is_success() {
+                let error_text = chunk_res.text().await.unwrap_or_default();
+                return Err(AppError::Upload(format!("Chunk {} failed: {}", i, error_text)));
+            }
+            
+            // Progress Update back to Tauri frontend
+            let completed = chunks_completed_cl.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1;
+            let uploaded = bytes_uploaded_cl.fetch_add(actual_chunk_size, std::sync::atomic::Ordering::SeqCst) + actual_chunk_size;
+            
+            let percentage = (completed as f64 / total_chunks as f64) * 100.0;
+            
+            let progress = NativeUploadProgress {
+                session_id: session_id_cl.clone(),
+                chunks_received: completed,
+                total_chunks,
+                percentage,
+                bytes_uploaded: uploaded,
+                total_bytes: file_size,
+                status: if percentage >= 100.0 { "completed".to_string() } else { "uploading".to_string() },
+            };
+            
+            // Emit granular progress via Tauri
+            let _ = app_handle_cl.emit("upload_progress", &progress);
+            
+            Ok::<(), AppError>(())
+        });
+    }
+    
+    // Wait for all chunks to upload
+    while let Some(res) = join_set.join_next().await {
+        match res {
+            Ok(Ok(_)) => continue,
+            Ok(Err(e)) => {
+                // Remove session on error
+                let mut sessions = state.sessions.lock().await;
+                sessions.remove(&session_id);
+                return Err(e);
+            },
+            Err(e) => {
+                let mut sessions = state.sessions.lock().await;
+                sessions.remove(&session_id);
+                return Err(AppError::Upload(format!("Task joined with error: {}", e)));
+            },
+        }
+    }
+    
+    // 6. Finalize Upload
+    let finalize_response = client
+        .patch(format!("{}/api/upload/chunk/finalize", api_base_url))
+        .header("Content-Type", "application/json")
+        .header("Authorization", &auth_header)
+        .json(&serde_json::json!({ "sessionId": api_session_id }))
+        .send()
+        .await
+        .map_err(AppError::from)?;
+        
+    if !finalize_response.status().is_success() {
+        let error_text = finalize_response.text().await.unwrap_or_default();
+        return Err(AppError::Upload(format!("Finalize failed: {}", error_text)));
+    }
+    
+    // Remove session cleanly
+    let mut sessions = state.sessions.lock().await;
+    sessions.remove(&session_id);
+    
+    let result = UploadResult {
+        success: true,
+        session_id: session_id.clone(),
+        file_name: file_name.clone(),
+        file_size,
+        error: None,
+        url: Some(format!("{}/api/upload/{}?session={}", api_base_url, session_id, api_session_id)),
+    };
+    
+    let _ = app_handle.notification()
+        .builder()
+        .title("Upload Complete")
+        .body(&format!("{} uploaded successfully", result.file_name))
+        .show();
+        
+    Ok(result)
 }

@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "c:\\Users\\alamo\\Desktop\\ClickFlash\\logs\\.9386009defeaaf6dd5ad2596c208c4240221302c-audit.json",
+    "files": [
+        {
+            "date": 1784132628412,
+            "name": "c:\\Users\\alamo\\Desktop\\ClickFlash\\logs\\clickflash-error-2026-07-15.log",
+            "hash": "7092591f780bdad1609259b7157bbe39853c8e32d9f35f558c6946f90a3827fb"
+        }
+    ],
+    "hashType": "sha256"
+}

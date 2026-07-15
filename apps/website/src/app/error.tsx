@@ -1,4 +1,5 @@
 'use client';
+import { logger } from '@clickflash/logger';
 
 import Link from 'next/link';
 import { useEffect } from 'react';
@@ -17,7 +18,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   useEffect(() => {
     // Log to Sentry or other error monitoring in production
     if (process.env.NODE_ENV === 'production') {
-      console.error('[Error Boundary]', error);
+      logger.error('[Error Boundary]', error);
     }
   }, [error]);
 
@@ -27,13 +28,13 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
         <h1 className="mb-4 text-4xl font-semibold text-slate-900" style={{ fontFamily: 'var(--font-cormorant)' }}>
           Something went wrong
         </h1>
-        <p className="mb-8 text-slate-500">
+        <p className="mb-8 text-slate-600">
           We encountered an unexpected error. Please try again, or contact us if the problem persists.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <button
             onClick={reset}
-            className="rounded-lg bg-cyan-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-cyan-600"
+            className="rounded-lg bg-cyan-700 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-cyan-600"
           >
             Try again
           </button>

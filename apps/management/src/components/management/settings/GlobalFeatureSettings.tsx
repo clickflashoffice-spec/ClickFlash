@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { apiService } from "../../../services/apiService";
 import { Destination } from "../../../types";
 import Spinner from "../../common/Spinner";
+import { logger } from "@/utils/logger";
 
 const GlobalFeatureSettings: React.FC = () => {
   const [destinations, setDestinations] = useState<Destination[]>([]);
@@ -61,7 +62,7 @@ const GlobalFeatureSettings: React.FC = () => {
         "Global feature configuration saved. Updates will be pushed to Master Portals during next sync.",
       );
     } catch (error) {
-      console.error("Failed to save global features", error);
+      logger.error("Failed to save global features", error);
       alert("Error saving features. Please check your connection.");
     } finally {
       setLoading(false);

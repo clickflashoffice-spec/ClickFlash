@@ -162,11 +162,15 @@ export class DbWriteQueue {
 
     // Phase 1: Mark as 'flushing' in pending_writes
     try {
-      const placeholders = keys.map(() => '?').join(',');
-      this.db.run(
-        `UPDATE pending_writes SET status = 'flushing', updated_at = datetime('now') WHERE id IN (${placeholders})`,
-        keys
-      );
+      const chunkSize = 500;
+      for (let i = 0; i < keys.length; i += chunkSize) {
+        const chunk = keys.slice(i, i + chunkSize);
+        const placeholders = chunk.map(() => '?').join(',');
+        this.db.run(
+          `UPDATE pending_writes SET status = 'flushing', updated_at = datetime('now') WHERE id IN (${placeholders})`,
+          chunk
+        );
+      }
     } catch (err: any) {
       this.logger?.error(`[DbWriteQueue] Failed to mark writes as flushing`, {
         error: err?.message ?? String(err),

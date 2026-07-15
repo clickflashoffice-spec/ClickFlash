@@ -29,7 +29,7 @@ test.describe("Touch Kiosk E2E Suite", () => {
       await navigateToRoom(page, "101");
 
       await expect(
-        page.getByRole("heading", { name: "Viewing Room: 101" })
+        page.getByRole("heading", { name: "Room 101" })
       ).toBeVisible({ timeout: 10000 });
 
       await expect(
@@ -84,7 +84,7 @@ test.describe("Touch Kiosk E2E Suite", () => {
 
       // Return to gallery and open cart
       await page.getByTestId("back-to-gallery-button").click();
-      await expect(page.getByRole("heading", { name: "Viewing Room: 101" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Room 101" })).toBeVisible();
       await page.getByTestId("cart-button").click();
 
       // Verify cart updated
@@ -101,7 +101,7 @@ test.describe("Touch Kiosk E2E Suite", () => {
       await page.getByTestId("add-to-cart-button").click();
 
       await page.getByTestId("back-to-gallery-button").click();
-      await expect(page.getByRole("heading", { name: "Viewing Room: 101" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Room 101" })).toBeVisible();
       await page.getByTestId("cart-button").click();
       await expect(page.getByText(/Your Cart/i)).toBeVisible();
 
@@ -122,7 +122,7 @@ test.describe("Touch Kiosk E2E Suite", () => {
       await page.getByTestId("add-to-cart-button").click();
 
       await page.getByTestId("back-to-gallery-button").click();
-      await expect(page.getByRole("heading", { name: "Viewing Room: 101" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Room 101" })).toBeVisible();
       await page.getByTestId("cart-button").click();
       await expect(page.getByText(/Your Cart/i)).toBeVisible();
 
@@ -142,7 +142,7 @@ test.describe("Touch Kiosk E2E Suite", () => {
     test("should cache photos for offline viewing", async ({ page }) => {
       await navigateToRoom(page, "101");
       await expect(
-        page.getByRole("heading", { name: "Viewing Room: 101" })
+        page.getByRole("heading", { name: "Room 101" })
       ).toBeVisible({ timeout: 10000 });
 
       await page.getByTestId("back-to-home-button").click();
@@ -155,7 +155,7 @@ test.describe("Touch Kiosk E2E Suite", () => {
       await navigateToRoom(page, "101");
 
       await expect(
-        page.getByRole("heading", { name: "Viewing Room: 101" })
+        page.getByRole("heading", { name: "Room 101" })
       ).toBeVisible({ timeout: 10000 });
 
       await page.context().setOffline(false);
@@ -169,13 +169,13 @@ test.describe("Touch Kiosk E2E Suite", () => {
       await page.getByTestId("add-to-cart-button").click();
 
       await page.getByTestId("back-to-gallery-button").click();
-      await expect(page.getByRole("heading", { name: "Viewing Room: 101" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Room 101" })).toBeVisible();
 
       // Preload cart chunk while online
       await page.getByTestId("cart-button").click();
       await expect(page.getByText(/Your Cart/i)).toBeVisible();
       await page.getByRole("button", { name: /Back to Photos/i }).click();
-      await expect(page.getByRole("heading", { name: "Viewing Room: 101" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Room 101" })).toBeVisible();
 
       // Now go offline and reopen cart
       await page.context().setOffline(true);
@@ -232,7 +232,7 @@ test.describe("Touch Kiosk E2E Suite", () => {
       await navigateToRoom(page, "101");
 
       await expect(
-        page.getByRole("heading", { name: "Viewing Room: 101" })
+        page.getByRole("heading", { name: "Room 101" })
       ).toBeVisible({ timeout: 10000 });
 
       const main = page.locator("main").first();
@@ -247,7 +247,7 @@ test.describe("Touch Kiosk E2E Suite", () => {
       }
 
       await expect(
-        page.getByRole("heading", { name: "Viewing Room: 101" })
+        page.getByRole("heading", { name: "Room 101" })
       ).toBeVisible({ timeout: 5000 });
     });
   });

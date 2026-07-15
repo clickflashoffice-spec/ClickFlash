@@ -7,6 +7,7 @@ import PasswordModal from "./PasswordModal";
 import { webSocketService } from "../../services/webSocketService.ts";
 import FaceSearchModal from "./FaceSearchModal";
 import { logger } from "../../utils/logger";
+import { motion, AnimatePresence } from "framer-motion";
 import { faceRecognitionService, FaceSearchResult } from "../../services/faceRecognitionService.ts";
 
 interface WelcomeScreenProps {
@@ -39,27 +40,35 @@ const WelcomeButton: React.FC<{
   delay = 0,
   testId,
 }) => (
-  <button
+  <motion.button
     data-testid={testId}
     onClick={onClick}
-    style={{ animationDelay: `${delay}ms` }}
-    className={`group relative overflow-hidden rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl active:translate-y-0 active:scale-95 touch-manipulation min-h-[160px] sm:min-h-[180px] border-4 ${
+    initial={{ opacity: 0, y: 30 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: delay / 1000, duration: 0.6, type: "spring", bounce: 0.4 }}
+    whileHover={{ y: -8, scale: 1.02 }}
+    whileTap={{ scale: 0.95 }}
+    className={`group relative overflow-hidden rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center transition-shadow duration-300 touch-manipulation min-h-[160px] sm:min-h-[180px] border-4 ${
       highlight
-        ? "border-amber-400 shadow-amber-500/30"
-        : "border-white/20 dark:border-white/10 shadow-xl"
-    } ${gradient}`}
+        ? "border-amber-400/50 shadow-[0_0_30px_rgba(251,191,36,0.3)] bg-white/20 dark:bg-black/40 backdrop-blur-xl"
+        : "border-white/20 dark:border-white/10 shadow-xl bg-white/10 dark:bg-black/20 backdrop-blur-xl"
+    }`}
   >
+    <div className={`absolute inset-0 opacity-20 ${gradient} mix-blend-overlay`} />
     <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-    <div className="relative z-10 mb-3 p-4 rounded-2xl bg-white/20 backdrop-blur-md shadow-inner text-white group-hover:scale-110 transition-transform duration-300">
+    <motion.div 
+      className="relative z-10 mb-3 p-4 rounded-2xl bg-white/20 backdrop-blur-md shadow-inner text-white"
+      whileHover={{ scale: 1.1, rotate: 5 }}
+    >
       {icon}
-    </div>
+    </motion.div>
     <h2 className="relative z-10 text-xl font-bold text-white mb-2 drop-shadow-md whitespace-nowrap">
       {title}
     </h2>
     <p className="relative z-10 text-white/90 text-xs font-medium max-w-[90%] leading-relaxed line-clamp-2">
       {description}
     </p>
-  </button>
+  </motion.button>
 );
 
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
@@ -122,7 +131,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       try {
         const parsed = JSON.parse(savedSettings);
         // Merge defaults with saved settings to ensure new keys exist
-        setSettings((prev) => ({
+        setSettings((prev: KioskSettings) => ({
           ...prev,
           ...parsed,
         }));
@@ -217,6 +226,40 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [settings.enableRFID]);
+
+  // --- IPC Hardware Scanner Listener (Serial/USB) ---
+  useEffect(() => {
+    // @ts-expect-error - electron API exists in preload
+    if (!window.electron || !window.electron.ipcRenderer) return;
+
+    const handleScannerData = (_event: unknown, data: string) => {
+      logger.info("[WelcomeScreen] Hardware Scanner detected code:", data);
+      
+      // If it starts with RFID_, process as RFID
+      if (data.startsWith("RFID_")) {
+        const uid = data.replace("RFID_", "");
+        void processRFID(uid);
+      } else if (data.startsWith("BC_")) {
+        // Barcode processing (same logic usually, mapping to a room/album)
+        const bc = data.replace("BC_", "");
+        void processRFID(bc);
+      } else {
+        // fallback
+        void processRFID(data);
+      }
+    };
+
+    // @ts-expect-error
+    window.electron.ipcRenderer.on("scanner:data", handleScannerData);
+
+    return () => {
+      // @ts-expect-error
+      if (window.electron.ipcRenderer.removeListener) {
+        // @ts-expect-error
+        window.electron.ipcRenderer.removeListener("scanner:data", handleScannerData);
+      }
+    };
   }, [settings.enableRFID]);
 
   const processRFID = async (rfidUid: string) => {
@@ -530,9 +573,14 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       </div>
 
       {/* Attract Screensaver Overlay */}
+      <AnimatePresence>
       {isIdle && (
-        <div 
-          className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-opacity duration-1000"
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1 }}
+          className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center cursor-pointer overflow-hidden"
           onClick={() => setIsIdle(false)}
         >
           <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-black to-purple-900 opacity-60"></div>
@@ -540,10 +588,18 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           <div className="absolute top-[10%] left-[10%] w-72 h-72 bg-blue-600/30 rounded-full blur-[120px] animate-pulse-slow"></div>
           <div className="absolute bottom-[10%] right-[10%] w-96 h-96 bg-purple-600/30 rounded-full blur-[120px] animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
 
-          <div className="relative z-10 flex flex-col items-center animate-float">
-             <div className="p-3 bg-white/10 backdrop-blur-md rounded-full shadow-[0_0_50px_rgba(255,255,255,0.1)] mb-8 border border-white/20">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+            className="relative z-10 flex flex-col items-center animate-float"
+          >
+             <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="p-3 bg-white/10 backdrop-blur-md rounded-full shadow-[0_0_50px_rgba(255,255,255,0.1)] mb-8 border border-white/20"
+             >
                <img src={settings.logoUrl} alt="ClickFlash Kiosk Logo" className="w-56 h-56 rounded-full object-cover border-4 border-white/40 shadow-2xl" />
-             </div>
+             </motion.div>
              <h1 className="text-7xl md:text-9xl font-black text-white tracking-tight drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]">
                {settings.welcomeMessage}
              </h1>
@@ -552,9 +608,10 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                  Touch Screen to Begin
                </p>
              </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* Controls Top Left */}
       <div className="absolute top-6 left-6 flex space-x-4 z-20">
@@ -704,12 +761,20 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         </div>
 
         {cartCount > 0 && onResumeOrder && (
-          <div className="mb-10 w-full max-w-xl mx-auto px-6 animate-bounce">
-            <button
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", bounce: 0.5 }}
+            className="mb-10 w-full max-w-xl mx-auto px-6"
+          >
+            <motion.button
               onClick={onResumeOrder}
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-xl py-5 px-8 rounded-2xl shadow-xl hover:shadow-2xl flex items-center justify-between border-4 border-emerald-300/30 transition-all transform hover:scale-105 active:scale-95 touch-manipulation"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-full bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-600/90 hover:to-teal-700/90 backdrop-blur-xl text-white font-black text-xl py-5 px-8 rounded-2xl shadow-xl hover:shadow-2xl flex items-center justify-between border border-emerald-300/30 transition-all touch-manipulation relative overflow-hidden"
             >
-              <div className="flex items-center space-x-4">
+              <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-300" />
+              <div className="flex items-center space-x-4 relative z-10">
                 <span className="p-3 bg-white/20 rounded-xl">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -720,15 +785,18 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                   <div className="text-2xl font-black">Resume Your Order ({cartCount} items)</div>
                 </div>
               </div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         )}
 
-        <div className="w-full px-6 sm:px-12">
-          <div
+        <div className="w-full px-6 sm:px-12 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, staggerChildren: 0.1 }}
             className={`grid gap-6 items-center justify-center mx-auto ${
               settings.enableRFID
                 ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4 max-w-6xl"
@@ -842,7 +910,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 delay={200}
               />
             )}
-          </div>
+          </motion.div>
         </div>
       </div>
 

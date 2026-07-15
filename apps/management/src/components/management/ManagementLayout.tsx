@@ -36,6 +36,7 @@ const SyncLogsPage = lazy(() => import("./SyncLogsPage.tsx"));
 const UnifiedMasterDashboard = lazy(() => import("./UnifiedMasterDashboard.tsx"));
 const Orders = lazy(() => import("../Orders.tsx"));
 const LicenseManagementPage = lazy(() => import("./LicenseManagementPage.tsx"));
+const EmailCampaigns = lazy(() => import("./EmailCampaigns.tsx"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-64">
@@ -245,6 +246,13 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
             </Suspense>
           );
 
+        case "email_campaigns":
+          return (
+            <Suspense fallback={<PageLoader />}>
+              <EmailCampaigns />
+            </Suspense>
+          );
+
         default:
           return (
             <DashboardErrorBoundary>
@@ -261,7 +269,7 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
 
 
   return (
-    <div className="flex h-screen w-screen bg-[#070b14] text-white overflow-hidden font-sans">
+    <div className="flex h-screen w-screen bg-[#070b14] text-white overflow-hidden font-sans" data-testid="dashboard">
       {/* Mobile Backdrop */}
       {isSidebarOpen && isMobile && (
         <div

@@ -2,6 +2,7 @@ import { Env } from '../server.js';
 import { createErrorResponse } from '../errorHandler.js';
 import DatabaseManager from '../db.js';
 import EmailRelayService from '../services/emailRelayService.js';
+import { logger } from "@clickflash/logger";
 
 export async function handleWebsite(
   request: Request,
@@ -54,7 +55,7 @@ export async function handleWebsite(
 
       return Response.json({ success: true, booking_id: bookingId, message: "Booking received" }, { headers: corsHeaders });
     } catch (error: any) {
-      console.error('Booking submission error:', error);
+      logger.error('Booking submission error:', { args: [error] });
       return createErrorResponse(500, "Internal Server Error", "Failed to submit booking", undefined, undefined, corsHeaders);
     }
   }
@@ -95,7 +96,7 @@ export async function handleWebsite(
 
       return Response.json({ success: true, message: "Contact request received" }, { headers: corsHeaders });
     } catch (error: any) {
-      console.error('Contact submission error:', error);
+      logger.error('Contact submission error:', { args: [error] });
       return createErrorResponse(500, "Internal Server Error", "Failed to submit contact request", undefined, undefined, corsHeaders);
     }
   }
@@ -123,7 +124,7 @@ export async function handleWebsite(
       
       return Response.json({ success: true, items: items || [] }, { headers: corsHeaders });
     } catch (error: any) {
-      console.error('Portfolio fetch error:', error);
+      logger.error('Portfolio fetch error:', { args: [error] });
       // Return empty list on failure rather than breaking the website
       return Response.json({ success: true, items: [] }, { headers: corsHeaders });
     }
@@ -160,7 +161,7 @@ export async function handleWebsite(
 
       return createErrorResponse(404, "Not Found", "Invalid access code", undefined, undefined, corsHeaders);
     } catch (error: any) {
-      console.error('Access code error:', error);
+      logger.error('Access code error:', { args: [error] });
       return createErrorResponse(500, "Internal Server Error", "Failed to validate access code", undefined, undefined, corsHeaders);
     }
   }

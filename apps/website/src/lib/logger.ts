@@ -1,20 +1,22 @@
+import { logger as coreLogger } from '@clickflash/logger';
+
 export const logger = {
   info: (...args: unknown[]) => {
     if (process.env.NODE_ENV !== 'production') {
-      console.info(...args);
+      logger.info(String(...args));
     }
   },
-  warn: (...args: unknown[]) => {
+  warn: (message: string, meta?: any) => {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(...args);
+      coreLogger.warn(message, meta);
     }
   },
-  error: (...args: unknown[]) => {
-    console.error(...args);
+  error: (message: string, meta?: any) => {
+    coreLogger.error(message, meta);
   },
   debug: (...args: unknown[]) => {
     if (process.env.NODE_ENV !== 'production') {
-      console.debug(...args);
+      logger.debug(String(...args));
     }
   }
 };

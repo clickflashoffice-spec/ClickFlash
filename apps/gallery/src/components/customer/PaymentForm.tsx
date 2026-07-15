@@ -60,7 +60,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({ amount, orderId
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+            <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl p-6 rounded-2xl border border-slate-200/50 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]">
                 <PaymentElement id="payment-element" options={{ layout: "tabs" }} />
             </div>
 
@@ -70,19 +70,19 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({ amount, orderId
                 </div>
             )}
 
-            <div className="flex space-x-3">
+            <div className="flex space-x-4 pt-2">
                 <button
                     type="button"
                     onClick={onCancel}
                     disabled={isLoading}
-                    className="flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                    className="flex-1 bg-slate-100/80 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-600/80 text-slate-700 dark:text-slate-200 font-medium py-3.5 px-4 rounded-xl transition-all duration-300 backdrop-blur-sm"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
                     disabled={isLoading || !stripe || !elements}
-                    className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-slate-400 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
+                    className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3.5 px-4 rounded-xl transition-all duration-300 shadow-[0_4px_14px_0_rgb(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] flex items-center justify-center"
                 >
                     {isLoading ? (
                         <span className="flex items-center space-x-2">
@@ -90,7 +90,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({ amount, orderId
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            <span>Processing...</span>
+                            <span className="font-medium">Processing...</span>
                         </span>
                     ) : (
                         `Pay $${amount.toFixed(2)}`

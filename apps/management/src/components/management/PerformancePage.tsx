@@ -46,6 +46,7 @@ interface OrderWithPhotos extends Order {
 
 // ─── Stat Card ───────────────────────────────────────────────────────────────
 import StatCard from "../common/StatCard.tsx";
+import { logger } from "@/utils/logger";
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
@@ -317,14 +318,14 @@ const PhotographerView: React.FC<{
         const costs = timeFilteredExpenses
           .filter((e) => {
             const legacyId = (e as ExpenseWithLegacy).photographerId;
-            const pIds = e.photographerIds || [];
+            const pIds = (e.photographerId as any) || [];
             if (pIds.includes(p.id) && pIds.length > 0) return true;
             if (legacyId === p.id) return true;
             return false;
           })
           .reduce((sum, e) => {
             const legacyId = (e as ExpenseWithLegacy).photographerId;
-            const pIds = e.photographerIds || [];
+            const pIds = (e.photographerId as any) || [];
             if (pIds.includes(p.id) && pIds.length > 0) {
               return sum + e.cost / pIds.length;
             } else if (legacyId === p.id) {
@@ -523,7 +524,7 @@ const PerformancePage: React.FC = () => {
       setOrders(ordersData);
       setExpenses(expensesData);
     } catch (err) {
-      console.error("Failed to load local performance data", err);
+      logger.error("Failed to load local performance data", err);
     } finally {
       setLoading(false);
     }
@@ -535,7 +536,7 @@ const PerformancePage: React.FC = () => {
       const data = await fleetService.getStations();
       setStations(data as StationStats[]);
     } catch (err) {
-      console.error("Failed to load fleet stations", err);
+      logger.error("Failed to load fleet stations", err);
     } finally {
       setStationsLoading(false);
     }

@@ -88,7 +88,7 @@ export default defineConfig({
       testDir: './test-suite/apps/touch',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.TOUCH_URL || 'http://localhost:3001',
+        baseURL: process.env.TOUCH_URL || 'http://localhost:5174',
         viewport: { width: 1920, height: 1080 }, // Kiosk resolution
       },
     },
@@ -97,7 +97,7 @@ export default defineConfig({
       testDir: './test-suite/apps/touch',
       use: {
         ...devices['Desktop Firefox'],
-        baseURL: process.env.TOUCH_URL || 'http://localhost:3001',
+        baseURL: process.env.TOUCH_URL || 'http://localhost:5174',
         viewport: { width: 1920, height: 1080 },
       },
     },

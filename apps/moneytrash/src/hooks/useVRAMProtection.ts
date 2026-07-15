@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 /**
  * VRAM Protection Hook for MoneyTrash
  * Prevents GPU memory exhaustion when handling large batches of high-res images
@@ -94,7 +95,7 @@ export function useVRAMProtection(config: Partial<VRAMConfig> = {}) {
   const getPreview = useCallback(
     async (id: string, file: File): Promise<string> => {
       if (isMemoryPressureHigh()) {
-        console.warn('[VRAM] Memory pressure high, skipping preview generation');
+        logger.warn('[VRAM] Memory pressure high, skipping preview generation');
         return '';
       }
 
@@ -129,7 +130,7 @@ export function useVRAMProtection(config: Partial<VRAMConfig> = {}) {
         
         return preview;
       } catch (err) {
-        console.error('[VRAM] Failed to create preview:', err);
+        logger.error('[VRAM] Failed to create preview:', err);
         return '';
       }
     },

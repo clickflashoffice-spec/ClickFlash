@@ -1,0 +1,34 @@
+{
+  "name": "@clickflash/licensing",
+  "version": "2.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./src/ed25519": {
+      "import": "./src/ed25519.ts",
+      "require": "./dist/ed25519.js",
+      "types": "./dist/ed25519.d.ts",
+      "default": "./dist/ed25519.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run --passWithNoTests",
+    "generate-license": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "systeminformation": "^5.23.0",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.23.1",
+    "vitest": "^4.1.10"
+  }
+}

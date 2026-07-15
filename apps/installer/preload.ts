@@ -68,6 +68,8 @@ export interface InstallerApi {
 
   // Config & Launch
   saveConfig: (config: Record<string, unknown>) => Promise<{ success: boolean; error?: string }>;
+  writeEnvConfig: (params: { targetDir: string; envData: Record<string, string> }) => Promise<{ success: boolean; error?: string }>;
+  getGeolocation: () => Promise<{ success: boolean; data?: any; error?: string }>;
   launchApps: (paths: { master?: string; touch?: string }) => Promise<{ master: boolean; touch: boolean }>;
   selectDirectory: () => Promise<string | null>;
   getLogs: () => Promise<string[]>;
@@ -122,6 +124,8 @@ const api: InstallerApi = {
   runHealthChecks: (config) => ipcRenderer.invoke("installer:runHealthChecks", config),
 
   saveConfig: (config) => ipcRenderer.invoke("installer:saveConfig", config),
+  writeEnvConfig: (params) => ipcRenderer.invoke("installer:writeEnvConfig", params),
+  getGeolocation: () => ipcRenderer.invoke("installer:getGeolocation"),
   launchApps: (paths) => ipcRenderer.invoke("installer:launchApps", paths),
   selectDirectory: () => ipcRenderer.invoke("installer:selectDirectory"),
   getLogs: () => ipcRenderer.invoke("installer:getLogs"),

@@ -82,4 +82,5 @@ export type ManagementView =
   | "license_management"
   | "session_types"
   | "reports_insights"
+  | "email_campaigns"
   | "billing_subscription";

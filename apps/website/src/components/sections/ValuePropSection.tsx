@@ -47,7 +47,7 @@ export function ValuePropSection() {
                         >
                             <div className="flex gap-6 items-start">
                                 <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                                    <value.icon className="w-6 h-6 text-cyan-500" />
+                                    <value.icon className="w-6 h-6 text-cyan-700" />
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-serif font-medium text-white mb-3">{value.title}</h3>

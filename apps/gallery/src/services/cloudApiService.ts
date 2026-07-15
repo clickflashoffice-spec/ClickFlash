@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 /**
  * API Service for Cloud-Based Portals (Customer & Management)
  *
@@ -63,7 +64,7 @@ export const cloudApiService = {
 
       return formattedOrder;
     } catch (err) {
-      console.warn("[Cloud API] Order lookup failed", err);
+      logger.warn("[Cloud API] Order lookup failed", err);
       return null;
     }
   },
@@ -111,7 +112,7 @@ export const cloudApiService = {
 
       return formattedOrder;
     } catch (err) {
-      console.warn("[Cloud API] Order lookup by token failed", err);
+      logger.warn("[Cloud API] Order lookup by token failed", err);
       return null;
     }
   },
@@ -163,7 +164,7 @@ export const cloudApiService = {
 
       return formattedOrder;
     } catch (err) {
-      console.warn("[Cloud API] Order lookup by room failed", err);
+      logger.warn("[Cloud API] Order lookup by room failed", err);
       return null;
     }
   },
@@ -191,7 +192,7 @@ export const cloudApiService = {
       const newOrder = await response.json();
       return newOrder;
     } catch (err) {
-      console.warn("[Cloud API] Create order failed, returning mock", err);
+      logger.warn("[Cloud API] Create order failed, returning mock", err);
       // Fallback to mock for development if cloud api isn't ready
       return {
           id: `ORDER-${Date.now()}`,

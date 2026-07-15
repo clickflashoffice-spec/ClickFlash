@@ -1,5 +1,6 @@
 import DatabaseManager from "../db.js";
 import { createErrorResponse, sendAuthError, sendDatabaseError } from "../errorHandler.js";
+import { logger } from "@clickflash/logger";
 
 /**
  * Cloud Sync Handlers for Management Hub
@@ -50,7 +51,7 @@ export async function handleSync(
         );
         processed.push(op.id);
       } catch (err) {
-        console.error(`[SyncOps] Failed to store op ${op.id}:`, err);
+        logger.error(String(`[SyncOps] Failed to store op ${op.id}:`) + ' ' + String(err));
       }
     }
     return Response.json({ success: true, processed }, { headers: corsHeaders });
@@ -145,7 +146,7 @@ export async function handleSync(
         await dbManager.run(`INSERT INTO ${table} (${keys.join(", ")}) VALUES (${placeholders}) ON CONFLICT(desk_id) DO UPDATE SET ${setClause}`, values);
         count++;
       } catch (e) {
-        console.error(`[SyncBatch] Failed:`, e);
+        logger.error(`[SyncBatch] Failed:`, { args: [e] });
       }
     }
     return Response.json({ success: true, processed: count }, { headers: corsHeaders });

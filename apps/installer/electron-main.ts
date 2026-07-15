@@ -46,7 +46,7 @@ protocol.registerSchemesAsPrivileged([
 const WIZARD_PORT = 5175;
 const WIZARD_URL = `http://localhost:${WIZARD_PORT}`;
 const INSTALLER_LOG = path.join(os.tmpdir(), "clickflash-installer.log");
-const HUB_BASE = process.env.CLICKFLASH_HUB_BASE || "https://hub.clickflash.app";
+const HUB_BASE = process.env.CLICKFLASH_HUB_BASE || "https://management-hub.clickflash-office.workers.dev";
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let mainWindow: BrowserWindow | null = null;

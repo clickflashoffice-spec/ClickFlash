@@ -17,6 +17,16 @@ export interface LeadScoreResult {
     summary: string;
 }
 
+export interface ShootIdea {
+    title: string;
+    description: string;
+    settings?: {
+        aperture: string;
+        shutter_speed: string;
+        iso: string;
+    };
+}
+
 /**
  * ClickFlash Agent Service
  * Powered by Google Gemini API (gemini-2.5-flash)
@@ -140,6 +150,63 @@ export class GeminiAgentService {
             return JSON.parse(text) as LeadScoreResult;
         } catch (error) {
             logger.error('Failed to score lead via Gemini', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Creative AI: Generate Photoshoot Ideas
+     */
+    public async generateShootIdeas(location: string, theme: string, expertise: string): Promise<ShootIdea[]> {
+        if (!this.apiKey) throw new Error("Missing GEMINI_API_KEY. Please configure it in settings or .env.");
+
+        const prompt = `
+            You are a master photography director. Generate 3 unique photoshoot ideas based on the following context.
+            Location: "${location}"
+            Theme: "${theme}"
+            Photographer Expertise: "${expertise}"
+            
+            Respond ONLY with a JSON array containing exactly 3 objects.
+            Format:
+            [
+              {
+                "title": "Creative Title",
+                "description": "Detailed description of the shot, posing, and lighting.",
+                "settings": {
+                  "aperture": "2.8",
+                  "shutter_speed": "1/200",
+                  "iso": "400"
+                }
+              }
+            ]
+        `;
+
+        try {
+            const response = await fetch(`${this.baseUrl}/gemini-2.5-flash:generateContent?key=${this.apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json"
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Gemini API Error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            
+            if (!text) {
+                throw new Error("Empty response from Gemini");
+            }
+
+            return JSON.parse(text) as ShootIdea[];
+        } catch (error) {
+            logger.error('Failed to generate shoot ideas via Gemini', error);
             throw error;
         }
     }

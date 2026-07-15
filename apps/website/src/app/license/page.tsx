@@ -175,7 +175,7 @@ export default function LicensePortalPage() {
               className="w-full py-3.5 px-6 rounded-xl font-semibold bg-gradient-to-r from-amber-500 to-orange-600 text-neutral-950 hover:from-amber-400 hover:to-orange-500 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10"
             >
               <ShieldCheck className="w-5 h-5" />
-              {loading ? "Verifying Cryptographic Signature..." : "Verify & Inspect License"}
+              {loading ? "Inspecting License Payload..." : "Inspect License"}
             </button>
           </form>
         </motion.div>

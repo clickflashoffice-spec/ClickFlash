@@ -1,6 +1,6 @@
 {
   "name": "clickflash-installer",
-  "version": "5.0.0",
+  "version": "2.0.0",
   "description": "ClickFlash Unified 1-Click Installer — Master Portal + Touch Kiosk",
   "private": true,
   "main": "dist/electron/electron-main.js",
@@ -8,7 +8,7 @@
     "dev": "vite",
     "dev:electron": "concurrently \"pnpm run dev\" \"wait-on http://localhost:5175 && electron .\" --names \"renderer,electron\" --prefix-colors \"green,cyan\" --kill-others-on-fail",
     "build": "vite build",
-    "build:electron": "tsc -p tsconfig.electron.json && javascript-obfuscator dist/electron/electron-main.js --output dist/electron/electron-main.js --compact true --control-flow-flattening true --dead-code-injection true --string-array true --string-array-encoding base64 --string-array-threshold 1",
+    "build:electron": "tsc -p tsconfig.electron.json && npx javascript-obfuscator dist/electron/electron-main.js --output dist/electron/electron-main.js --compact true --control-flow-flattening true --dead-code-injection true --string-array true --string-array-encoding base64 --string-array-threshold 1",
     "package": "pnpm run build && pnpm run build:electron && electron-builder build --win --dir",
     "package:installer": "pnpm run build && pnpm run build:electron && electron-builder build --win",
     "lint": "eslint src --ext .ts,.tsx --max-warnings 50",
@@ -24,7 +24,8 @@
     "react-dom": "^19.2.0",
     "systeminformation": "^5.30.7",
     "tailwind-merge": "^3.4.0",
-    "tweetnacl": "^1.0.3"
+    "@clickflash/logger": "workspace:*",
+    "@clickflash/licensing": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

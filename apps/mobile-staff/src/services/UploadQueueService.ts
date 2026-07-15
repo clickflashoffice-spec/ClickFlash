@@ -1,40 +1,97 @@
 /**
  * UploadQueueService.ts
- * Manages background uploading of photos taken by wandering photographers in areas with bad WiFi.
+ * Production offline-first photo upload queue for wandering studio/resort staff.
+ * Features:
+ * - Reactive listener subscriptions for UI badge counts
+ * - Automatic exponential backoff retry on network failures
+ * - Configurable Master/Cloud endpoint
  */
 
 export interface QueuedPhoto {
+    id: string;
     uri: string;
     guestId: string;
     timestamp: string;
+    attempts?: number;
 }
+
+export interface QueueStatus {
+    pendingCount: number;
+    isUploading: boolean;
+    lastError: string | null;
+}
+
+type QueueListener = (status: QueueStatus) => void;
 
 class UploadQueueServiceImpl {
     private queue: QueuedPhoto[] = [];
     private isUploading = false;
-    private masterEndpoint = 'http://192.168.1.100:8090/api/mobile-staff/upload'; // Configure via ENV in production
+    private lastError: string | null = null;
+    private masterEndpoint = 'http://192.168.1.100:8090/api/mobile-staff/upload';
+    private retryTimeoutId: any = null;
+    private retryDelayMs = 3000;
+    private listeners: Set<QueueListener> = new Set();
 
-    enqueue(photo: QueuedPhoto) {
-        this.queue.push(photo);
+    constructor() {
+        // Attempt initial queue flush
         this.processQueue();
+    }
+
+    setMasterEndpoint(url: string): void {
+        this.masterEndpoint = url;
+    }
+
+    subscribe(listener: QueueListener): () => void {
+        this.listeners.add(listener);
+        listener(this.getStatus());
+        return () => this.listeners.delete(listener);
+    }
+
+    getStatus(): QueueStatus {
+        return {
+            pendingCount: this.queue.length,
+            isUploading: this.isUploading,
+            lastError: this.lastError
+        };
+    }
+
+    private notifyListeners(): void {
+        const status = this.getStatus();
+        this.listeners.forEach((listener) => listener(status));
+    }
+
+    enqueue(photo: Omit<QueuedPhoto, 'id'>): QueuedPhoto {
+        const newPhoto: QueuedPhoto = {
+            ...photo,
+            id: `photo_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+            attempts: 0
+        };
+        this.queue.push(newPhoto);
+        this.lastError = null;
+        this.notifyListeners();
+        this.processQueue();
+        return newPhoto;
     }
 
     private async processQueue() {
         if (this.isUploading || this.queue.length === 0) return;
 
         this.isUploading = true;
+        this.notifyListeners();
 
         while (this.queue.length > 0) {
             const photo = this.queue[0];
+            photo.attempts = (photo.attempts || 0) + 1;
+
             try {
                 const formData = new FormData();
                 formData.append('guestId', photo.guestId);
                 formData.append('timestamp', photo.timestamp);
+                formData.append('photoId', photo.id);
                 
-                // Fetch the file from local URI
                 const response = await fetch(photo.uri);
                 const blob = await response.blob();
-                formData.append('photo', blob, `photo_${Date.now()}.jpg`);
+                formData.append('photo', blob, `${photo.id}.jpg`);
 
                 const uploadRes = await fetch(this.masterEndpoint, {
                     method: 'POST',
@@ -42,23 +99,41 @@ class UploadQueueServiceImpl {
                 });
 
                 if (uploadRes.ok) {
-                    console.log(`[UploadQueue] Successfully uploaded photo for guest ${photo.guestId}`);
-                    this.queue.shift(); // Remove from queue on success
+                    this.queue.shift();
+                    this.lastError = null;
+                    this.retryDelayMs = 3000; // Reset backoff
+                    this.notifyListeners();
                 } else {
-                    console.warn(`[UploadQueue] Server returned ${uploadRes.status}. Retrying later...`);
-                    break; // Stop and retry later
+                    this.lastError = `Server HTTP ${uploadRes.status}`;
+                    break;
                 }
-            } catch (error) {
-                console.error(`[UploadQueue] Network error:`, error);
-                break; // Network down, wait for next attempt
+            } catch (error: any) {
+                this.lastError = error?.message || 'Network unreachable';
+                break;
             }
         }
 
         this.isUploading = false;
+        this.notifyListeners();
+
+        // If queue still has items, schedule exponential backoff retry
+        if (this.queue.length > 0) {
+            this.scheduleRetry();
+        }
     }
 
-    // Call this to force a retry
+    private scheduleRetry() {
+        if (this.retryTimeoutId) clearTimeout(this.retryTimeoutId);
+        this.retryTimeoutId = setTimeout(() => {
+            this.processQueue();
+        }, this.retryDelayMs);
+        // Exponential backoff up to 60 seconds
+        this.retryDelayMs = Math.min(this.retryDelayMs * 1.5, 60000);
+    }
+
     retry() {
+        if (this.retryTimeoutId) clearTimeout(this.retryTimeoutId);
+        this.retryDelayMs = 3000;
         this.processQueue();
     }
 }

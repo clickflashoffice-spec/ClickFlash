@@ -6,6 +6,7 @@ import { createToken, verifyToken, extractTokenFromHeader } from "./jwt.js";
 import { checkLoginRateLimit, recordLoginAttempt } from "./loginRateLimiter.js";
 import { handleRest } from "./routes/rest.js";
 import { R2SignedUrlService } from "./services/r2SignedUrlService.js";
+import { logger } from "@clickflash/logger";
 
 export interface Env {
   GALLERY_DB: any; // D1 binding
@@ -323,7 +324,7 @@ const galleryHandler = {
               { status: 200, headers: { "Content-Type": "application/json" } }
             );
           } catch (e: any) {
-            console.error("[Checkout] Error:", e);
+            logger.error("[Checkout] Error:", { args: [e] });
             return new Response(
               JSON.stringify({ error: "Checkout failed. Please try again." }),
               { status: 500, headers: { "Content-Type": "application/json" } }
@@ -377,7 +378,7 @@ const galleryHandler = {
               `).bind(event.id, event.type, JSON.stringify(event)).run();
             } catch (insertErr: any) {
               if (String(insertErr?.message || "").includes("UNIQUE")) {
-                console.info(`[Webhook] Duplicate event ${event.id} ignored (already processed)`);
+                logger.info(String(`[Webhook] Duplicate event ${event.id} ignored (already processed)`));
                 return new Response(
                   JSON.stringify({ received: true, idempotent: true }),
                   { status: 200, headers: { "Content-Type": "application/json" } }
@@ -397,7 +398,7 @@ const galleryHandler = {
               ).bind(session.id).first();
 
               if (existing) {
-                console.info(`[Webhook] Order already exists for session ${session.id} (dedup)`);
+                logger.info(String(`[Webhook] Order already exists for session ${session.id} (dedup)`));
               } else {
                 await env.GALLERY_DB.prepare(`
                   INSERT INTO orders (id, clientName, email, status, totalAmount, albumId, stripe_session_id, created_at)
@@ -441,7 +442,7 @@ const galleryHandler = {
               [],
             );
           } catch (err) {
-            console.warn("[MoneyTrashGallery] D1 query note:", err);
+            logger.warn("[MoneyTrashGallery] D1 query note:", { args: [err] });
             photos = [];
           }
 
@@ -535,7 +536,7 @@ const galleryHandler = {
               [orderId, orderId, customerEmail]
             );
           } catch (err) {
-            console.warn("[OrderLogin] D1 query note:", err);
+            logger.warn("[OrderLogin] D1 query note:", { args: [err] });
           }
 
           // If no order found in DB, or if testing PIN 4829 / standard customer login, return realistic order for preview
@@ -782,7 +783,7 @@ const galleryHandler = {
               headers: { "Content-Type": "application/json" },
             });
           } catch (e: any) {
-            console.error("[CartSnapshot] Error:", e);
+            logger.error("[CartSnapshot] Error:", { args: [e] });
             return new Response(
               JSON.stringify({ error: "Failed to save cart snapshot" }),
               { status: 500, headers: { "Content-Type": "application/json" } }
@@ -870,7 +871,7 @@ const galleryHandler = {
               headers: { "Content-Type": "application/json" },
             });
           } catch (e: any) {
-            console.error("[Pricing] Error:", e);
+            logger.error("[Pricing] Error:", { args: [e] });
             return new Response(JSON.stringify({ error: "Failed to resolve pricing" }), {
               status: 500,
               headers: { "Content-Type": "application/json" },
@@ -994,7 +995,7 @@ const galleryHandler = {
                 headers: { "Content-Type": "application/json" },
               });
             }
-            const photo = photos[0];
+            const photo = photos[0] as any;
             const signedUrlService = new R2SignedUrlService({
               secret: env.JWT_SECRET || "gallery-secret-key",
               defaultTtlSeconds: 900,
@@ -1245,7 +1246,7 @@ const galleryHandler = {
               headers: { "Content-Type": "application/json" },
             });
           } catch (err: any) {
-            console.error("[Upload] Error:", err.message);
+            logger.error("[Upload] Error:", { args: [err.message] });
             return new Response(
               JSON.stringify({ error: "Upload Error", message: err.message }),
               {
@@ -1415,7 +1416,7 @@ const galleryHandler = {
  */
 async function purgeExpiredMoneyTrashPhotos(env: Env): Promise<void> {
   if (!env.GALLERY_BUCKET) {
-    console.log("[MoneyTrash] GALLERY_BUCKET not bound — skipping R2 purge");
+    logger.info(String("[MoneyTrash] GALLERY_BUCKET not bound — skipping R2 purge"));
     return;
   }
 
@@ -1441,7 +1442,7 @@ async function purgeExpiredMoneyTrashPhotos(env: Env): Promise<void> {
     return;
   }
 
-  console.log(`[MoneyTrash] Purging ${candidates.results.length} expired photo(s)`);
+  logger.info(String(`[MoneyTrash] Purging ${candidates.results.length} expired photo(s)`));
 
   // Ensure audit table exists (idempotent)
   await env.GALLERY_DB.prepare(`
@@ -1500,14 +1501,14 @@ async function purgeExpiredMoneyTrashPhotos(env: Env): Promise<void> {
         VALUES (?, ?, ?, 'success', ?)
       `).bind(photo.id, photo.access_code, JSON.stringify(r2Keys), errors.length > 0 ? errors.join("; ") : null).run();
 
-      console.log(`[MoneyTrash] Purged ${photo.id} (${r2Keys.length} R2 objects)`);
+      logger.info(String(`[MoneyTrash] Purged ${photo.id} (${r2Keys.length} R2 objects)`));
     } catch (e: any) {
       const errMsg = e?.message || String(e);
       await env.GALLERY_DB.prepare(`
         INSERT INTO moneytrash_deletion_log (photo_id, access_code, r2_keys_deleted, status, error)
         VALUES (?, ?, ?, 'failed', ?)
       `).bind(photo.id, photo.access_code, JSON.stringify(r2Keys), errMsg).run();
-      console.error(`[MoneyTrash] Failed to purge ${photo.id}:`, errMsg);
+      logger.error(String(`[MoneyTrash] Failed to purge ${photo.id}:`) + ' ' + String(errMsg));
     }
   }
 }
@@ -1522,11 +1523,11 @@ async function handleScheduled(env: Env): Promise<void> {
   try {
     await purgeExpiredMoneyTrashPhotos(env);
   } catch (e: any) {
-    console.error(`[Cron] MoneyTrash purge failed:`, e);
+    logger.error(`[Cron] MoneyTrash purge failed:`, { args: [e] });
   }
 
   if (!env.RESEND_API_KEY) {
-    console.log("[Cron] RESEND_API_KEY not set — skipping abandoned cart emails");
+    logger.info(String("[Cron] RESEND_API_KEY not set — skipping abandoned cart emails"));
     return;
   }
 
@@ -1594,7 +1595,7 @@ async function handleScheduled(env: Env): Promise<void> {
         `UPDATE abandoned_carts SET recovery_sent = 1 WHERE id = ?`
       ).bind(cart.id).run();
     } catch (e) {
-      console.error(`[Cron] Failed to send recovery email to ${cart.email}:`, e);
+      logger.error(String(`[Cron] Failed to send recovery email to ${cart.email}:`) + ' ' + String(e));
     }
   }
 }

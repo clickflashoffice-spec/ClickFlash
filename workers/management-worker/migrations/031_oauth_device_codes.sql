@@ -56,11 +56,12 @@ CREATE TABLE IF NOT EXISTS audit_events (
   payload_json TEXT,                                   -- full event body, JSON
   ip           TEXT,                                   -- request IP (CF-Connecting-IP)
   user_agent   TEXT,
-  ts           INTEGER NOT NULL,                       -- epoch seconds
-  INDEX idx_audit_tenant_ts (tenant_id, ts DESC),
-  INDEX idx_audit_desk_ts (desk_id, ts DESC) WHERE desk_id IS NOT NULL,
-  INDEX idx_audit_action_ts (action, ts DESC)
+  ts           INTEGER NOT NULL                        -- epoch seconds
 );
+
+CREATE INDEX IF NOT EXISTS idx_audit_tenant_ts ON audit_events (tenant_id, ts DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_desk_ts ON audit_events (desk_id, ts DESC) WHERE desk_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_audit_action_ts ON audit_events (action, ts DESC);
 
 -- ============================================================================
 -- PART 3: License Keys (needed for /api/v1/license/validate)
@@ -109,4 +110,3 @@ CREATE INDEX IF NOT EXISTS idx_license_active ON license_keys(is_active) WHERE i
 -- PART 5: Migration record
 -- ============================================================================
 
-INSERT INTO migrations (version, applied_at) VALUES (31, datetime('now'));

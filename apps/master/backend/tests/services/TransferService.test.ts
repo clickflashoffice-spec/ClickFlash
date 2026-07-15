@@ -21,14 +21,19 @@ const mockWss = {
     clients: []
 };
 
-jest.mock('fs', () => ({
-    existsSync: jest.fn(),
-    mkdirSync: jest.fn(),
-    promises: {
-        copyFile: jest.fn(),
-        writeFile: jest.fn()
-    }
-}));
+jest.mock('fs', () => {
+    const original = jest.requireActual('fs');
+    return {
+        ...original,
+        existsSync: jest.fn(),
+        mkdirSync: jest.fn(),
+        promises: {
+            ...original.promises,
+            copyFile: jest.fn(),
+            writeFile: jest.fn()
+        }
+    };
+});
 
 describe('TransferService', () => {
     let service: TransferService;

@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Photo } from '../../types';
 import PhotoMetadata from './PhotoMetadata';
 import ShareModal from './ShareModal';
 import { getPhotoStyle } from '../../utils/styleUtils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 interface LightboxProps {
@@ -30,11 +31,31 @@ const Lightbox: React.FC<LightboxProps> = ({
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [showMetadata, setShowMetadata] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
+    const [controlsVisible, setControlsVisible] = useState(true);
     const slideshowTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const hideControlsTimerRef = useRef<NodeJS.Timeout | null>(null);
     const lightboxRef = useRef<HTMLDivElement>(null);
 
-    const handleNext = () => setCurrentIndex((prev) => (prev + 1) % photos.length);
-    const handlePrev = () => setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length);
+    const handleNext = useCallback(() => setCurrentIndex((prev) => (prev + 1) % photos.length), [photos.length]);
+    const handlePrev = useCallback(() => setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length), [photos.length]);
+
+    // Auto-hide controls logic
+    const resetControlsTimeout = useCallback(() => {
+        setControlsVisible(true);
+        if (hideControlsTimerRef.current) {
+            clearTimeout(hideControlsTimerRef.current);
+        }
+        hideControlsTimerRef.current = setTimeout(() => {
+            setControlsVisible(false);
+        }, 3000);
+    }, []);
+
+    useEffect(() => {
+        resetControlsTimeout();
+        return () => {
+            if (hideControlsTimerRef.current) clearTimeout(hideControlsTimerRef.current);
+        };
+    }, [resetControlsTimeout]);
 
     // Slideshow functionality
     useEffect(() => {
@@ -142,8 +163,9 @@ const Lightbox: React.FC<LightboxProps> = ({
     const downloadPhoto = (photo: Photo) => {
         const link = document.createElement('a');
         link.href = photo.url;
-        const fileName = photo.title.includes('.') ? photo.title.substring(0, photo.title.lastIndexOf('.')) : photo.title;
-        link.download = `${fileName || 'photo'}.jpg`;
+        const safeTitle = photo.title || 'Untitled';
+        const fileName = safeTitle.includes('.') ? safeTitle.substring(0, safeTitle.lastIndexOf('.')) : safeTitle;
+        link.download = `${fileName}.jpg`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -155,11 +177,37 @@ const Lightbox: React.FC<LightboxProps> = ({
         <>
             <div
                 ref={lightboxRef}
-                className="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center backdrop-blur-sm"
+                className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center cursor-auto"
                 onClick={onClose}
+                onMouseMove={resetControlsTimeout}
+                onTouchStart={resetControlsTimeout}
             >
-                {/* Top Bar */}
-                <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 bg-gradient-to-b from-black/60 to-transparent" onClick={e => e.stopPropagation()}>
+                {/* Main Image Layer (Edge-to-Edge) */}
+                <div className="absolute inset-0 flex items-center justify-center overflow-hidden" onClick={e => e.stopPropagation()}>
+                    <div className="absolute inset-0 pointer-events-none z-[1]" style={{ transform: editStyle.transform }}></div>
+                    <img
+                        src={activePhoto.url}
+                        alt={activePhoto.title}
+                        className="w-full h-full object-contain select-none transition-opacity duration-300"
+                        style={{
+                            filter: editStyle.filter,
+                            transform: editStyle.transform,
+                            transformOrigin: 'center'
+                        }}
+                    />
+                </div>
+
+                <AnimatePresence>
+                    {controlsVisible && (
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="absolute inset-0 pointer-events-none"
+                        >
+                            {/* Top Bar */}
+                            <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-auto" onClick={e => e.stopPropagation()}>
                     <div className="text-white">
                         <h3 className="font-bold">{activePhoto.title}</h3>
                         <p className="text-sm text-slate-300">{currentIndex + 1} / {photos.length}</p>
@@ -274,60 +322,47 @@ const Lightbox: React.FC<LightboxProps> = ({
                     </div>
                 </div>
 
-                {/* Slideshow Progress Bar */}
-                {isSlideshowPlaying && (
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-black/40 z-20">
-                        <div
-                            className="h-full bg-blue-500 transition-all duration-300"
-                            style={{ width: `${progress}%` }}
-                        />
-                    </div>
-                )}
+                            {/* Slideshow Progress Bar */}
+                            {isSlideshowPlaying && (
+                                <div className="absolute top-0 left-0 right-0 h-1 bg-black/40 z-20">
+                                    <div
+                                        className="h-full bg-blue-500 transition-all duration-300"
+                                        style={{ width: `${progress}%` }}
+                                    />
+                                </div>
+                            )}
 
-                {/* Main Image */}
-                <div className="relative max-w-[90vw] max-h-[85vh] flex items-center justify-center overflow-hidden" onClick={e => e.stopPropagation()}>
-                    {/* getPhotoStyle does not currently return a boxShadow; only the transform is reused here. */}
-                    <div className="absolute inset-0 pointer-events-none z-[1]" style={{ transform: editStyle.transform }}></div>
-                    <img
-                        src={activePhoto.url}
-                        alt={activePhoto.title}
-                        className="w-full h-full object-contain select-none transition-opacity duration-300"
-                        style={{
-                            filter: editStyle.filter,
-                            transform: editStyle.transform,
-                            transformOrigin: 'center'
-                        }}
-                    />
-                </div>
+                            {/* Metadata Panel */}
+                            {showMetadata && (
+                                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 pointer-events-auto" onClick={e => e.stopPropagation()}>
+                                    <div className="max-w-2xl mx-auto backdrop-blur-md bg-black/40 rounded-xl border border-white/10 overflow-hidden">
+                                        <PhotoMetadata photo={activePhoto} />
+                                    </div>
+                                </div>
+                            )}
 
-                {/* Metadata Panel */}
-                {showMetadata && (
-                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent z-10" onClick={e => e.stopPropagation()}>
-                        <div className="max-w-2xl mx-auto">
-                            <PhotoMetadata photo={activePhoto} />
-                        </div>
-                    </div>
-                )}
-
-                {/* Navigation Arrows */}
-                <button
-                    onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-all z-10"
-                    title="Previous (Left Arrow)"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                </button>
-                <button
-                    onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-all z-10"
-                    title="Next (Right Arrow)"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
+                            {/* Navigation Arrows */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handlePrev(); }}
+                                className="absolute left-6 top-1/2 -translate-y-1/2 p-4 bg-black/20 backdrop-blur-md border border-white/10 rounded-full text-white hover:bg-white/20 transition-all z-20 pointer-events-auto shadow-[0_0_20px_rgba(0,0,0,0.5)]"
+                                title="Previous (Left Arrow)"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleNext(); }}
+                                className="absolute right-6 top-1/2 -translate-y-1/2 p-4 bg-black/20 backdrop-blur-md border border-white/10 rounded-full text-white hover:bg-white/20 transition-all z-20 pointer-events-auto shadow-[0_0_20px_rgba(0,0,0,0.5)]"
+                                title="Next (Right Arrow)"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             {/* Share Modal */}

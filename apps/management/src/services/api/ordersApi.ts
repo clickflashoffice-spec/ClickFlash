@@ -5,7 +5,7 @@ import {
   Order,
 } from "../../types";
 import { PocketRecord } from "../pbTypes";
-import { logger } from "../../utils/logger";
+import { logger as appLogger } from "../../utils/logger";
 import { marketingAutomationService } from "../marketingAutomationService";
 
 /**
@@ -114,7 +114,7 @@ export const ordersApi = {
 
       // Retry on network errors
       if (retryCount < MAX_RETRIES && isNetworkError) {
-        logger.info(
+        appLogger.info(
           `Retrying order update (attempt ${retryCount + 1}/${MAX_RETRIES})`,
           { orderId: id },
         );
@@ -124,7 +124,7 @@ export const ordersApi = {
         return apiService.updateOrder(id, data, retryCount + 1);
       }
 
-      logger.error(
+      appLogger.error(
         "Failed to update order",
         error instanceof Error ? error : undefined,
         { orderId: id, retryCount },
@@ -141,6 +141,14 @@ export const ordersApi = {
     // 1. Update the status to 'Delivered'
     const order = await apiService.updateOrder(orderId, { status: "Delivered" });
 
+    // 1b. Route Commission to photographer
+    try {
+      const { payrollRoutingService } = await import("../payrollRoutingService");
+      await payrollRoutingService.routeCommission(order as Order);
+    } catch (err) {
+      console.warn("[apiService] Failed to route payroll commission:", err);
+    }
+
     // 2. Trigger marketing automation workflow
     try {
       marketingAutomationService.triggerWorkflow("order-completed", order as unknown as Record<string, unknown>);
@@ -152,7 +160,7 @@ export const ordersApi = {
     }
 
     // 3. Emit system notification for Photographer (simulated through logger for now)
-    logger.info(`Order ${orderId} delivered and automation triggered.`);
+    appLogger.info(`Order ${orderId} delivered and automation triggered.`);
 
     return order;
   },

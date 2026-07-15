@@ -44,7 +44,7 @@ export interface EditMetadata {
     engine: string;
 }
 
-type WorkerMessageType = 'analyzeHistogram' | 'autoEnhance' | 'faceRetouch' | 'smartCrop' | 'noiseReduction' | 'applyCrop' | 'autoEditFull';
+type WorkerMessageType = 'analyzeHistogram' | 'autoEnhance' | 'faceRetouch' | 'smartCrop' | 'noiseReduction' | 'applyCrop' | 'autoEditFull' | 'applyWatermark';
 
 interface WorkerMessage {
     id: string;
@@ -52,8 +52,60 @@ interface WorkerMessage {
     payload: any;
 }
 
+// WebAssembly Engine state
+let wasmInstance: any = null;
+let wasmMemory: WebAssembly.Memory | null = null;
+let wasmInitPromise: Promise<boolean> | null = null;
+
+async function ensureWasmLoaded(): Promise<boolean> {
+    if (wasmInstance && wasmMemory) return true;
+    if (wasmInitPromise) return wasmInitPromise;
+
+    wasmInitPromise = (async () => {
+        try {
+            const memory = new WebAssembly.Memory({ initial: 256 }); // 16MB initial
+            const importObject = {
+                env: {
+                    memory,
+                    abort: () => { console.error('WASM abort called'); }
+                }
+            };
+
+            const response = await fetch('/wasm/photoEditor.wasm');
+            if (!response.ok) {
+                return false;
+            }
+            const buffer = await response.arrayBuffer();
+            const module = await WebAssembly.instantiate(buffer, importObject);
+            wasmInstance = module.instance;
+            wasmMemory = memory;
+            return true;
+        } catch (e) {
+            console.warn('WASM engine init failed, falling back to JS canvas math:', e);
+            return false;
+        }
+    })();
+
+    return wasmInitPromise;
+}
+
+function ensureWasmMemory(neededBytes: number): boolean {
+    if (!wasmMemory) return false;
+    const currentBytes = wasmMemory.buffer.byteLength;
+    if (currentBytes < neededBytes) {
+        const extraPages = Math.ceil((neededBytes - currentBytes) / 65536);
+        try {
+            wasmMemory.grow(extraPages);
+        } catch (e) {
+            console.error('Failed to grow WASM memory:', e);
+            return false;
+        }
+    }
+    return true;
+}
+
 /**
- * Calculate color statistics and histograms from ImageData
+ * Calculate color statistics and histograms from ImageData (WASM-accelerated with JS fallback)
  */
 function analyzeHistogram(imageData: ImageData): ColorStats {
     const { data, width, height } = imageData;
@@ -67,18 +119,37 @@ function analyzeHistogram(imageData: ImageData): ColorStats {
 
     let sumR = 0, sumG = 0, sumB = 0;
 
-    for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
+    if (wasmInstance && wasmMemory && ensureWasmMemory(data.length + 3072)) {
+        const memArray = new Uint8Array(wasmMemory.buffer);
+        memArray.set(data, 0);
+        wasmInstance.exports.analyzeHistogramWasm(0, data.length, data.length);
 
-        histogram.r[r]++;
-        histogram.g[g]++;
-        histogram.b[b]++;
+        const countsArray = new Uint32Array(wasmMemory.buffer, data.length, 768);
+        for (let i = 0; i < 256; i++) {
+            const rCount = countsArray[i];
+            const gCount = countsArray[256 + i];
+            const bCount = countsArray[512 + i];
+            histogram.r[i] = rCount;
+            histogram.g[i] = gCount;
+            histogram.b[i] = bCount;
+            sumR += i * rCount;
+            sumG += i * gCount;
+            sumB += i * bCount;
+        }
+    } else {
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
 
-        sumR += r;
-        sumG += g;
-        sumB += b;
+            histogram.r[r]++;
+            histogram.g[g]++;
+            histogram.b[b]++;
+
+            sumR += r;
+            sumG += g;
+            sumB += b;
+        }
     }
 
     const mean = {
@@ -104,10 +175,18 @@ function analyzeHistogram(imageData: ImageData): ColorStats {
 }
 
 /**
- * Apply exposure, contrast, saturation, and clarity adjustments directly to pixel data
+ * Apply exposure, contrast, saturation, and clarity adjustments directly to pixel data (WASM-accelerated with JS fallback)
  */
 function applyPixelAdjustments(data: Uint8ClampedArray, adjustments: ColorAdjustments): void {
-    const { exposure, contrast, saturation } = adjustments;
+    const { exposure, contrast, saturation, clarity } = adjustments;
+
+    if (wasmInstance && wasmMemory && ensureWasmMemory(data.length)) {
+        const memArray = new Uint8Array(wasmMemory.buffer);
+        memArray.set(data, 0);
+        wasmInstance.exports.applyPixelAdjustmentsWasm(0, data.length, exposure, contrast, saturation, clarity || 0);
+        data.set(new Uint8Array(wasmMemory.buffer, 0, data.length));
+        return;
+    }
 
     // Pre-calculate exposure multiplier
     const expMult = Math.pow(2, exposure);
@@ -295,11 +374,19 @@ function faceRetouch(imageData: ImageData, faces: Face[]): ImageData {
 }
 
 /**
- * Fast 3x3 Denoise filter with edge preservation
+ * Fast 3x3 Denoise filter with edge preservation (WASM-accelerated with JS fallback)
  */
 function noiseReduction(imageData: ImageData, strength = 0.5): ImageData {
     const { data, width, height } = imageData;
     const output = new ImageData(new Uint8ClampedArray(data), width, height);
+
+    if (wasmInstance && wasmMemory && ensureWasmMemory(data.length * 2)) {
+        const memArray = new Uint8Array(wasmMemory.buffer);
+        memArray.set(data, 0);
+        wasmInstance.exports.noiseReductionWasm(0, width, height, strength, data.length);
+        output.data.set(new Uint8Array(wasmMemory.buffer, data.length, data.length));
+        return output;
+    }
 
     for (let y = 1; y < height - 1; y++) {
         for (let x = 1; x < width - 1; x++) {
@@ -364,14 +451,47 @@ function autoEditFull(imageData: ImageData, faces: Face[] = []): { imageData: Im
         noiseReductionApplied: true,
         crop,
         processedAt: Date.now(),
-        engine: 'clickflash-canvas-engine-v2'
+        engine: wasmInstance ? 'clickflash-wasm-engine-v3' : 'clickflash-canvas-engine-v2'
     };
 
     return { imageData: denoised, editMetadata };
 }
 
+/**
+ * Apply a watermark (ImageData) onto a base image
+ */
+function applyWatermark(baseImage: ImageData, watermarkImage: ImageData, alpha: number = 0.5): ImageData {
+    const output = new ImageData(new Uint8ClampedArray(baseImage.data), baseImage.width, baseImage.height);
+    const startX = Math.max(0, baseImage.width - watermarkImage.width - 20); // Bottom right with 20px padding
+    const startY = Math.max(0, baseImage.height - watermarkImage.height - 20);
+
+    for (let wy = 0; wy < watermarkImage.height; wy++) {
+        for (let wx = 0; wx < watermarkImage.width; wx++) {
+            const by = startY + wy;
+            const bx = startX + wx;
+
+            if (by >= baseImage.height || bx >= baseImage.width) continue;
+
+            const wIdx = (wy * watermarkImage.width + wx) * 4;
+            const bIdx = (by * baseImage.width + bx) * 4;
+
+            // Watermark alpha channel
+            const wAlpha = (watermarkImage.data[wIdx + 3] / 255) * alpha;
+
+            if (wAlpha > 0) {
+                output.data[bIdx] = Math.round(output.data[bIdx] * (1 - wAlpha) + watermarkImage.data[wIdx] * wAlpha);
+                output.data[bIdx + 1] = Math.round(output.data[bIdx + 1] * (1 - wAlpha) + watermarkImage.data[wIdx + 1] * wAlpha);
+                output.data[bIdx + 2] = Math.round(output.data[bIdx + 2] * (1 - wAlpha) + watermarkImage.data[wIdx + 2] * wAlpha);
+                // Keep base alpha unchanged
+            }
+        }
+    }
+    return output;
+}
+
 // Worker message event listener
-self.onmessage = (e: MessageEvent<WorkerMessage>) => {
+self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
+    await ensureWasmLoaded();
     const { id, type, payload } = e.data;
 
     try {
@@ -415,6 +535,12 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
                 const { imageData, faces } = payload;
                 const { imageData: processed, editMetadata } = autoEditFull(imageData, faces || []);
                 (self as any).postMessage({ id, result: { imageData: processed, editMetadata } }, [processed.data.buffer]);
+                break;
+            }
+            case 'applyWatermark': {
+                const { imageData, watermarkData, alpha } = payload;
+                const watermarked = applyWatermark(imageData, watermarkData, alpha);
+                (self as any).postMessage({ id, result: watermarked }, [watermarked.data.buffer]);
                 break;
             }
             default:

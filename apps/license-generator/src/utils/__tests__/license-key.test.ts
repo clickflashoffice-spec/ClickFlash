@@ -37,7 +37,7 @@ describe('License Key Generator & Validator', () => {
   it('should reject a key with an invalid prefix', async () => {
     const validation = await validateLicenseKey('INVALID-PREFIX-payload.signature');
     expect(validation.valid).toBe(false);
-    expect(validation.error).toBe('Invalid key prefix');
+    expect(validation.error).toBe('Invalid license prefix');
   });
 
   it('should reject a key that has been tampered with', async () => {

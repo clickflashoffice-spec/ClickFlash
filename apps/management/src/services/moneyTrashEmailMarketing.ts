@@ -4,6 +4,7 @@
  */
 
 import { EventEmitter } from "../utils/EventEmitter";
+import { logger } from "@/utils/logger";
 
 interface EmailCampaign {
   id: string;
@@ -454,7 +455,7 @@ Best regards,
 
     // Privacy Interceptor: Abort if user has opted out (GDPR Compliance)
     if (this.unsubscribedEmails.has(recipientEmail)) {
-      console.warn(`[GDPR] Blocked outbound email to unsubscribed user: ${recipientEmail}`);
+      logger.warn(`[GDPR] Blocked outbound email to unsubscribed user: ${recipientEmail}`);
       return false;
     }
 
@@ -486,7 +487,7 @@ Best regards,
       this.emit("email:sent", log);
       return true;
     } catch (error) {
-      console.error("Failed to send email:", error);
+      logger.error("Failed to send email:", error);
       return false;
     }
   }
@@ -748,7 +749,7 @@ Best regards,
     const initialLogCount = this.emailLogs.length;
     this.emailLogs = this.emailLogs.filter((log) => log.recipient !== email);
     
-    console.warn(`[GDPR] Right to be Forgotten executed for ${email}. Purged ${initialLogCount - this.emailLogs.length} logs.`);
+    logger.warn(`[GDPR] Right to be Forgotten executed for ${email}. Purged ${initialLogCount - this.emailLogs.length} logs.`);
     this.emit("user:forgotten", email);
   }
 

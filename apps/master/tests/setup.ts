@@ -1,6 +1,14 @@
 import '@testing-library/jest-dom';
 import { db } from './mocks/database';
 
+if (typeof setImmediate === 'undefined') {
+  (global as any).setImmediate = (fn: Function, ...args: any[]) => setTimeout(fn, 0, ...args);
+}
+if (typeof clearImmediate === 'undefined') {
+  (global as any).clearImmediate = (id: any) => clearTimeout(id);
+}
+
+
 let server: { listen: (opts: { onUnhandledRequest: string }) => void; resetHandlers: () => void; close: () => Promise<void> } | null = null;
 let mockLogger: { debug: jest.Mock; info: jest.Mock; warn: jest.Mock; error: jest.Mock };
 

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { z } from 'zod';
 import {
   PhotoSchema, AlbumSchema, UserSchema, CartItemSchema,
   BookingSchema, ClientSchema, ProductSchema, SessionTypeSchema,
@@ -7,7 +8,8 @@ import {
   UserCreateSchema, LoginSchema, MagicLinkSchema,
   validateOrThrow, validateOrNull, validatePartial, validateSafe,
   sanitizeHtml, sanitizeObject, generateCsrfToken, validateCsrfToken,
-  PaginationSchema, SortSchema,
+  PaginationSchema, SortSchema, ApiResponseSchema,
+  PermissionStringSchema, RolePermissionsSchema, RfidAuthSchema, PosOrderCreateSchema,
 } from './index.js';
 
 // =============================================================================
@@ -127,6 +129,60 @@ describe('MagicLinkSchema', () => {
   });
 });
 
+describe('PermissionStringSchema', () => {
+  it('validates correct permissions', () => {
+    expect(() => validateOrThrow(PermissionStringSchema, 'can(view:orders)')).not.toThrow();
+    expect(() => validateOrThrow(PermissionStringSchema, 'can(edit:users_123)')).not.toThrow();
+    expect(() => validateOrThrow(PermissionStringSchema, 'can(manage:*)')).not.toThrow();
+  });
+
+  it('rejects invalid permissions', () => {
+    expect(() => validateOrThrow(PermissionStringSchema, 'can(destroy:world)')).toThrow();
+    expect(() => validateOrThrow(PermissionStringSchema, 'cannot(view:orders)')).toThrow();
+    expect(() => validateOrThrow(PermissionStringSchema, 'can view orders')).toThrow();
+  });
+});
+
+describe('RolePermissionsSchema', () => {
+  it('validates a valid role and permissions', () => {
+    const data = {
+      role: 'Admin' as const,
+      permissions: ['can(view:orders)', 'can(manage:*)'],
+    };
+    expect(() => validateOrThrow(RolePermissionsSchema, data)).not.toThrow();
+  });
+
+  it('rejects an invalid role', () => {
+    const data = {
+      role: 'SuperUser',
+      permissions: ['can(view:orders)'],
+    };
+    expect(() => validateOrThrow(RolePermissionsSchema, data)).toThrow();
+  });
+
+  it('rejects invalid permissions array', () => {
+    const data = {
+      role: 'Admin' as const,
+      permissions: ['can read orders'],
+    };
+    expect(() => validateOrThrow(RolePermissionsSchema, data)).toThrow();
+  });
+});
+
+describe('RfidAuthSchema', () => {
+  it('validates a valid RFID tag', () => {
+    expect(() => validateOrThrow(RfidAuthSchema, { rfidTag: 'A1B2C3D4' })).not.toThrow();
+    expect(() => validateOrThrow(RfidAuthSchema, { rfidTag: '1234567890ABCDEF1234567890ABCDEF', stationId: 'kiosk-1' })).not.toThrow();
+  });
+
+  it('rejects an invalid RFID tag', () => {
+    expect(() => validateOrThrow(RfidAuthSchema, { rfidTag: 'XYZ' })).toThrow();
+    expect(() => validateOrThrow(RfidAuthSchema, { rfidTag: 'A1B2C3D4!' })).toThrow();
+    expect(() => validateOrThrow(RfidAuthSchema, { rfidTag: 'A1B2C3D' })).toThrow(); // 7 chars, min is 8
+    expect(() => validateOrThrow(RfidAuthSchema, { rfidTag: 'A'.repeat(33) })).toThrow(); // 33 chars, max is 32
+  });
+});
+
 // =============================================================================
 // ORDERS & CART
 // =============================================================================
@@ -147,6 +203,80 @@ describe('OrderCreateSchema', () => {
   it('rejects order with empty items', () => {
     const order = { date: '2026-07-09', clientName: 'John', email: 'j@e.com', total: 0, photographerId: 'p-1', items: [] };
     expect(() => validateOrThrow(OrderCreateSchema, order)).toThrow();
+  });
+});
+
+describe('PosOrderCreateSchema', () => {
+  it('validates a POS order', () => {
+    const posOrder = {
+      date: '2026-07-09',
+      clientName: 'Walk-in',
+      email: 'none@example.com',
+      total: 50.00,
+      photographerId: 'p-2',
+      items: [{ photoId: 'ph-2', name: 'Digital', quantity: 1, price: 50 }],
+      paymentMethod: 'Cash' as const,
+      amountPaid: 60.00,
+      changeDue: 10.00,
+    };
+    expect(() => validateOrThrow(PosOrderCreateSchema, posOrder)).not.toThrow();
+  });
+
+  it('rejects missing POS fields', () => {
+    const invalidPosOrder = {
+      date: '2026-07-09',
+      clientName: 'Walk-in',
+      email: 'none@example.com',
+      total: 50.00,
+      photographerId: 'p-2',
+      items: [{ photoId: 'ph-2', name: 'Digital', quantity: 1, price: 50 }],
+    };
+    expect(() => validateOrThrow(PosOrderCreateSchema, invalidPosOrder)).toThrow();
+  });
+
+  it('validates POS order missing optional changeDue', () => {
+    const posOrder = {
+      date: '2026-07-09',
+      clientName: 'Walk-in',
+      email: 'none@example.com',
+      total: 50.00,
+      photographerId: 'p-2',
+      items: [{ photoId: 'ph-2', name: 'Digital', quantity: 1, price: 50 }],
+      paymentMethod: 'Card' as const,
+      amountPaid: 50.00,
+    };
+    const validated = validateOrThrow(PosOrderCreateSchema, posOrder);
+    expect(validated.source).toBe('kiosk');
+    expect(validated.changeDue).toBeUndefined();
+  });
+
+  it('rejects negative amountPaid', () => {
+    const posOrder = {
+      date: '2026-07-09',
+      clientName: 'Walk-in',
+      email: 'none@example.com',
+      total: 50.00,
+      photographerId: 'p-2',
+      items: [{ photoId: 'ph-2', name: 'Digital', quantity: 1, price: 50 }],
+      paymentMethod: 'Cash' as const,
+      amountPaid: -10.00,
+    };
+    expect(() => validateOrThrow(PosOrderCreateSchema, posOrder)).toThrow();
+  });
+
+  it('rejects negative changeDue', () => {
+    const posOrder = {
+      date: '2026-07-09',
+      clientName: 'Walk-in',
+      email: 'none@example.com',
+      total: 50.00,
+      photographerId: 'p-2',
+      items: [{ photoId: 'ph-2', name: 'Digital', quantity: 1, price: 50 }],
+      paymentMethod: 'Cash' as const,
+      amountPaid: 50.00,
+      changeDue: -5.00,
+    };
+    expect(() => validateOrThrow(PosOrderCreateSchema, posOrder)).toThrow();
   });
 });
 
@@ -202,8 +332,20 @@ describe('SessionTypeSchema', () => {
 });
 
 // =============================================================================
-// SYSTEM
+// SYSTEM & API
 // =============================================================================
+
+describe('ApiResponseSchema', () => {
+  it('validates a successful response', () => {
+    const schema = ApiResponseSchema(z.string());
+    expect(() => validateOrThrow(schema, { success: true, data: "test" })).not.toThrow();
+  });
+
+  it('validates an error response', () => {
+    const schema = ApiResponseSchema(z.string());
+    expect(() => validateOrThrow(schema, { success: false, error: "failed" })).not.toThrow();
+  });
+});
 
 describe('DestinationSchema', () => {
   it('validates a destination', () => {

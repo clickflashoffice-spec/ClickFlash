@@ -1,4 +1,5 @@
 import { sendAuthError, sendNotFoundError, sendInternalError, createErrorResponse } from "../errorHandler.js";
+import { logger } from "@clickflash/logger";
 
 export const handleEmail = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, geminiService: any, payload: any) => {
 
@@ -237,9 +238,7 @@ export const handleEmail = async (request: Request, url: URL, env: any, dbManage
             );
           }
 
-          console.log(
-            `[EmailRelay] Forwarding email to ${body.to} on behalf of desk ${(payload as any).desk_id || "unknown"}`,
-          );
+          logger.info(String(`[EmailRelay] Forwarding email to ${body.to} on behalf of desk ${(payload as any).desk_id || "unknown"}`));
 
           const success = await emailRelayService.sendEmail({
             to: body.to,

@@ -3,6 +3,7 @@ import useSystemSetting from "../../../hooks/useSystemSetting";
 import { isPublicDomain } from "../../../utils/environment";
 import { apiService } from "../../../services/apiService";
 import { Destination } from "../../../types";
+import { logger } from "@/utils/logger";
 
 type ConnectionStatus = "unknown" | "testing" | "success" | "error";
 
@@ -69,7 +70,7 @@ const ConnectionSettings: React.FC = () => {
         setStatus("error");
       }
     } catch (e) {
-      console.error(e);
+      logger.error(e instanceof Error ? e.message : String(e));
       setStatus("error");
     }
   };

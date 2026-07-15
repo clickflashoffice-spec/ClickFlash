@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 import React, { useState } from 'react';
 import { Photo } from '../../types';
 
@@ -15,17 +16,18 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ photos, orderId }) => {
     const downloadPhoto = (photo: Photo) => {
         const link = document.createElement('a');
         let downloadUrl = photo.url;
-        const fileName = photo.title.includes('.') ? photo.title.substring(0, photo.title.lastIndexOf('.')) : photo.title;
-        let downloadFileName = `${fileName || 'photo'}.jpg`;
+        const safeTitle = photo.title || 'Untitled';
+        const fileName = safeTitle.includes('.') ? safeTitle.substring(0, safeTitle.lastIndexOf('.')) : safeTitle;
+        let downloadFileName = `${fileName}.jpg`;
 
         if (selectedSize === 'web') {
             const lastDotIndex = downloadUrl.lastIndexOf('.');
             if (lastDotIndex !== -1) {
                 downloadUrl = downloadUrl.substring(0, lastDotIndex) + '_preview' + downloadUrl.substring(lastDotIndex);
             }
-            downloadFileName = `${fileName || 'photo'}_web.jpg`;
+            downloadFileName = `${fileName}_web.jpg`;
         } else {
-            downloadFileName = `${fileName || 'photo'}_highres.jpg`;
+            downloadFileName = `${fileName}_highres.jpg`;
         }
 
         link.href = downloadUrl;
@@ -56,7 +58,7 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ photos, orderId }) => {
                 link.click();
                 document.body.removeChild(link);
             } catch (err) {
-                console.error('Bulk download failed', err);
+                logger.error('Bulk download failed', err);
                 alert('Bulk download failed. Please try individual downloads.');
             } finally {
                 setIsDownloading(false);
@@ -88,7 +90,7 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ photos, orderId }) => {
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
         } catch (err) {
-            console.error('Apple Wallet pass failed', err);
+            logger.error('Apple Wallet pass failed', err);
             alert('Failed to generate Apple Wallet pass.');
         } finally {
             setIsDownloading(false);
@@ -159,7 +161,7 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ photos, orderId }) => {
                     <div key={photo.id} className="relative group aspect-square rounded-2xl overflow-hidden border border-white/5 bg-slate-900 shadow-lg hover:shadow-cyan-500/10 transition-all">
                         <img
                             src={photo.url}
-                            alt={photo.title}
+                            alt={(photo.title || "Untitled")}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-60 group-hover:opacity-100"
                         />
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex justify-center">

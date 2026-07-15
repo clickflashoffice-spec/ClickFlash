@@ -4,6 +4,7 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs';
 import crypto from 'crypto';
+import { logger } from "@clickflash/logger";
 
 // --- Environment & Port Configuration ---
 // Use BACKEND_PORT (not the generic PORT) so the Vite dev server and preview
@@ -42,7 +43,7 @@ function getOrCreateSecret(name: string, envValue: string | undefined): string {
         try {
             secrets = JSON.parse(fs.readFileSync(secretsFile, 'utf8'));
         } catch {
-            console.warn(`[Security] Could not parse ${secretsFile}; regenerating secrets`);
+            logger.warn(String(`[Security] Could not parse ${secretsFile}; regenerating secrets`));
         }
     }
 
@@ -52,12 +53,12 @@ function getOrCreateSecret(name: string, envValue: string | undefined): string {
             fs.mkdirSync(path.dirname(secretsFile), { recursive: true });
             fs.writeFileSync(secretsFile, JSON.stringify(secrets, null, 2), { mode: 0o600 });
             if (isElectron) {
-                console.log(`[Security] Generated persistent ${name} → ${secretsFile}`);
+                logger.info(String(`[Security] Generated persistent ${name} → ${secretsFile}`));
             } else {
-                console.warn(`[Security] Using temporary ${name}. Set it in .env for stability.`);
+                logger.warn(String(`[Security] Using temporary ${name}. Set it in .env for stability.`));
             }
         } catch (e) {
-            console.warn(`[Security] Could not persist ${name} to disk:`, e);
+            logger.warn(String(`[Security] Could not persist ${name} to disk:`) + ' ' + String(e));
         }
     }
 
@@ -105,57 +106,57 @@ export const IS_PROD = IS_PROD_CHECK;
 const resolveWebRoot = () => {
     // 0. Explicit WEB_ROOT passed from Electron main process
     if (process.env.WEB_ROOT) {
-        console.log(`[WebRoot] Checking explicit env candidate 0: ${process.env.WEB_ROOT}`);
+        logger.info(String(`[WebRoot] Checking explicit env candidate 0: ${process.env.WEB_ROOT}`));
         if (fs.existsSync(path.join(process.env.WEB_ROOT, 'index.html'))) {
-            console.log(`[WebRoot] Found candidate 0 (process.env.WEB_ROOT)`);
+            logger.info(String(`[WebRoot] Found candidate 0 (process.env.WEB_ROOT)`));
             return process.env.WEB_ROOT;
         }
     }
 
     // 1. Production Build (node dist/backend/server.js) -> dist/master
     const candidate1 = path.join(__dirname, '../master');
-    console.log(`[WebRoot] Checking candidate 1: ${candidate1}`);
+    logger.info(String(`[WebRoot] Checking candidate 1: ${candidate1}`));
     if (fs.existsSync(path.join(candidate1, 'index.html'))) {
-        console.log(`[WebRoot] Found candidate 1`);
+        logger.info(String(`[WebRoot] Found candidate 1`));
         return candidate1;
     }
 
     // 2. Dev/Common Structure -> dist/master (relative to CWD)
     const candidate2 = path.join(process.cwd(), 'dist/master');
-    console.log(`[WebRoot] Checking candidate 2: ${candidate2}`);
+    logger.info(String(`[WebRoot] Checking candidate 2: ${candidate2}`));
     if (fs.existsSync(path.join(candidate2, 'index.html'))) {
-        console.log(`[WebRoot] Found candidate 2`);
+        logger.info(String(`[WebRoot] Found candidate 2`));
         return candidate2;
     }
 
     // 3. Electron Unpacked ASAR Production fallback
     const candidate3 = path.join(process.cwd(), 'resources/app.asar.unpacked/dist/master');
-    console.log(`[WebRoot] Checking candidate 3: ${candidate3}`);
+    logger.info(String(`[WebRoot] Checking candidate 3: ${candidate3}`));
     if (fs.existsSync(path.join(candidate3, 'index.html'))) {
-        console.log(`[WebRoot] Found candidate 3`);
+        logger.info(String(`[WebRoot] Found candidate 3`));
         return candidate3;
     }
 
     // 4. ExecPath Relative Unpacked ASAR
     const candidate4 = path.join(path.dirname(process.execPath), 'resources/app.asar.unpacked/dist/master');
-    console.log(`[WebRoot] Checking candidate 4: ${candidate4}`);
+    logger.info(String(`[WebRoot] Checking candidate 4: ${candidate4}`));
     if (fs.existsSync(path.join(candidate4, 'index.html'))) {
-        console.log(`[WebRoot] Found candidate 4`);
+        logger.info(String(`[WebRoot] Found candidate 4`));
         return candidate4;
     }
 
     // 5. Fallback for Electron Resources
     if (IS_PROD) {
-        console.log(`[WebRoot] Falling back to candidate 1 (Prod): ${candidate1}`);
+        logger.info(String(`[WebRoot] Falling back to candidate 1 (Prod): ${candidate1}`));
         return candidate1;
     }
 
-    console.log(`[WebRoot] Using default fallback: ${path.join(process.cwd(), 'dist/master')}`);
+    logger.info(String(`[WebRoot] Using default fallback: ${path.join(process.cwd(), 'dist/master')}`));
     return path.join(process.cwd(), 'dist/master');
 };
 
 export const WEB_ROOT = resolveWebRoot();
-console.log(`[WebRoot] Resolved WEB_ROOT: ${WEB_ROOT}`);
+logger.info(String(`[WebRoot] Resolved WEB_ROOT: ${WEB_ROOT}`));
 
 // --- Rate Limiting Configuration ---
 export const RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10);

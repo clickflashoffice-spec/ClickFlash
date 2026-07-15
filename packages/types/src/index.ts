@@ -1,3 +1,4 @@
+import { z } from 'zod';
 /**
  * ClickFlash Ecosystem - Shared TypeScript Types
  * Version: 4.2.0
@@ -8,7 +9,43 @@
  * NEVER use `any` - use `unknown` and type guards instead.
  */
 
-import { z } from 'zod';
+
+import type {
+  Photo as ValidationPhoto,
+  Album as ValidationAlbum,
+  User as ValidationUser,
+  CartItem as ValidationCartItem,
+  OrderItem as ValidationOrderItem,
+  Order as ValidationOrder,
+  Product as ValidationProduct,
+  Booking as ValidationBooking,
+  Destination as ValidationDestination,
+  TouchKiosk as ValidationTouchKiosk,
+  SyncLog as ValidationSyncLog,
+  SessionType as ValidationSessionType,
+  Currency as ValidationCurrency,
+  UserRole,
+  ManualEdits
+} from '@clickflash/validation';
+
+export type {
+  PhotoCreate,
+  AlbumCreate,
+  UserCreate,
+  OrderCreate,
+  ProductCreate,
+  BookingCreate,
+  Client,
+  LicenseKey,
+  Pagination,
+  Sort,
+  ManualEdits,
+  PermissionString,
+  RolePermissions,
+  RfidAuth,
+  PosOrderCreate,
+  UserRole
+} from '@clickflash/validation';
 
 // =============================================================================
 // BASE TYPES
@@ -26,14 +63,6 @@ export interface BaseRecord {
 // USER & IDENTITY
 // =============================================================================
 
-export const UserRoleSchema = z.enum([
-  'CEO',
-  'Manager',
-  'Team Leader',
-  'Admin',
-  'Photographer',
-]);
-export type UserRole = z.infer<typeof UserRoleSchema>;
 
 export const PayrollTypeSchema = z.enum(['Salary', 'Commission']);
 export type PayrollType = z.infer<typeof PayrollTypeSchema>;
@@ -62,7 +91,7 @@ export interface DayWorkingHours {
 
 export type WorkingHours = Record<DayOfWeek, DayWorkingHours>;
 
-export interface User extends BaseRecord {
+export interface User extends BaseRecord , ValidationUser{
   name: string;
   email: string;
   role: UserRole;
@@ -105,44 +134,6 @@ export interface Annotation {
   rect?: { x: number; y: number; w: number; h: number };
 }
 
-export interface ManualEdits {
-  _v?: number;
-  exposure: number;
-  contrast: number;
-  highlights: number;
-  shadows: number;
-  saturate: number;
-  vibrance: number;
-  grayscale: number;
-  sepia: number;
-  invert: number;
-  hueRotate: number;
-  temperature: number;
-  tint: number;
-  whites: number;
-  blacks: number;
-  soften: number;
-  rotate: number;
-  straighten: number;
-  perspectiveX: number;
-  perspectiveY: number;
-  clarity: number;
-  dropShadow: number;
-  sharpen?: number;
-  vignette?: number;
-  brightness?: number;
-  retouchActions?: RetouchAction[];
-  annotations?: Annotation[];
-  crop?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-  centerX?: number;
-  centerY?: number;
-  zoomLevel?: number;
-}
 
 export interface RetouchAction {
   id: string;
@@ -186,7 +177,7 @@ export type ProofingStatus = 'pending' | 'approved' | 'rejected';
  * ClickFlash Photo Model
  * Standardized for Master, Touch, and Cloud ecosystem.
  */
-export interface Photo extends BaseRecord {
+export interface Photo extends BaseRecord , ValidationPhoto{
   id: string;
   albumId: string;
   url: string;
@@ -211,6 +202,7 @@ export interface Photo extends BaseRecord {
   height?: number;
   resolution?: number; // Mandate
   size?: number; // Mandate: File size in bytes
+  fileSize?: number;
   capturedAt?: string; // Mandate
   hotelId?: string; // Mandate
   mimeType?: string;
@@ -249,7 +241,7 @@ export interface PhotoUpdateInput extends Partial<Omit<Photo, 'id' | 'created' |
 // CART & ORDERS
 // =============================================================================
 
-export interface CartItem {
+export interface CartItem extends BaseRecord, ValidationCartItem {
   id: string;
   photoId: string;
   photo: Photo;
@@ -276,7 +268,7 @@ export interface CartItemCreateInput {
 export type OrderStatus = 'Completed' | 'Pending' | 'Processing' | 'Cancelled' | 'Delivered';
 export type PaymentMethod = 'Cash' | 'Card';
 
-export interface OrderItem {
+export interface OrderItem extends BaseRecord, ValidationOrderItem {
   id: string;
   name: string;
   format?: string;
@@ -288,7 +280,7 @@ export interface OrderItem {
   checksum?: string; // Integrity check for individuals
 }
 
-export interface Order extends BaseRecord {
+export interface Order extends BaseRecord , ValidationOrder{
   date: string;
   clientName: string;
   email: string;
@@ -336,7 +328,7 @@ export interface OrderUpdateInput extends Partial<Omit<Order, 'id' | 'created' |
 
 export type AlbumStatus = 'Draft' | 'Finalized' | 'Archived';
 
-export interface Album extends BaseRecord {
+export interface Album extends BaseRecord , ValidationAlbum{
   title: string;
   date: string;
   photographerId: string | number;
@@ -368,12 +360,12 @@ export interface AlbumUpdateInput extends Partial<Omit<Album, 'id' | 'created' |
 // PRODUCTS & PRICING
 // =============================================================================
 
-export interface Product extends BaseRecord {
+export interface Product extends BaseRecord , ValidationProduct{
   name: string;
   category?: string;
   price: number;
   stock?: number;
-  isFeatured?: boolean | number;
+  isFeatured?: boolean;
   description?: string;
   imageUrl?: string;
 }
@@ -385,13 +377,13 @@ export interface Pack extends BaseRecord {
   products: string[];
 }
 
-export interface SessionType extends BaseRecord {
+export interface SessionType extends BaseRecord , ValidationSessionType{
   name: string;
   numberOfPhotos: number;
   price: number;
 }
 
-export interface Currency extends BaseRecord {
+export interface Currency extends BaseRecord , ValidationCurrency{
   code: string;
   name: string;
   symbol: string;
@@ -404,16 +396,18 @@ export interface Currency extends BaseRecord {
 
 export type KioskStatus = 'Active' | 'Inactive' | 'Maintenance' | 'Connected' | 'Disconnected';
 
-export interface TouchKiosk extends BaseRecord {
+export interface TouchKiosk extends BaseRecord , ValidationTouchKiosk{
   name: string;
   status: KioskStatus;
   lastHeartbeat?: string;
   settings?: Record<string, unknown>;
   ipAddress?: string;
   version?: string;
+  uploadFolderPath?: string;
+  ordersFolderPath?: string;
 }
 
-export interface Destination extends BaseRecord {
+export interface Destination extends BaseRecord , ValidationDestination{
   name: string;
   country: string;
   type: 'Resort' | 'City';
@@ -439,9 +433,10 @@ export interface Destination extends BaseRecord {
   };
   version?: string;
   ipAddress?: string;
+  siteCode?: string;
 }
 
-export interface SyncLog extends BaseRecord {
+export interface SyncLog extends BaseRecord , ValidationSyncLog{
   masterId: string;
   destinationId?: string;
   level: 'info' | 'warn' | 'error';
@@ -470,92 +465,225 @@ export interface PaginatedList<T> {
   totalPages: number;
 }
 
-// =============================================================================
-// ZOD SCHEMAS FOR VALIDATION
-// =============================================================================
-
-export const PhotoSchema = z.object({
-  id: z.string(),
-  albumId: z.string(),
-  url: z.string().url(),
-  watermarkUrl: z.string().url().optional(),
-  originalUrl: z.string().url().optional(),
-  previewUrl: z.string().url().optional(),
-  thumbnailUrl: z.string().url().optional(),
-  title: z.string().optional(),
-  photographerId: z.union([z.string(), z.number()]),
-  category: z.string().optional(),
-  width: z.number().optional(),
-  height: z.number().optional(),
-  resolution: z.number().optional(),
-  size: z.number().optional(),
-  capturedAt: z.string().datetime().optional(),
-  hotelId: z.string().optional(),
-  mimeType: z.string().optional(),
-  fileSize: z.number().optional(),
-  cullingStatus: z.enum(['Selected', 'Rejected', 'Pending']).optional(),
-  proofingStatus: z.enum(['pending', 'approved', 'rejected']).optional(),
-});
-
-export const CartItemSchema = z.object({
-  id: z.string(),
-  photoId: z.string(),
-  name: z.string(),
-  format: z.string().optional(),
-  quantity: z.number().int().positive(),
-  price: z.number().nonnegative(),
-  deliveryType: z.enum(['digital', 'print', 'both']).optional(),
-  productId: z.string().optional(),
-});
-
-export const UserSchema = z.object({
-  id: z.string(),
-  name: z.string().min(1),
-  email: z.string().email(),
-  role: UserRoleSchema,
-  avatarUrl: z.string().url().optional(),
-  destinationId: z.string().optional(),
-});
-
-export const OrderItemSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  format: z.string().optional(),
-  quantity: z.number().int().positive(),
-  price: z.number().nonnegative(),
-  deliveryType: z.enum(['digital', 'print', 'both']).optional(),
-  productId: z.string().optional(),
-  checksum: z.string().optional(),
-});
-
-export const OrderSchema = z.object({
-  id: z.string().uuid(),
-  date: z.string(),
-  clientName: z.string(),
-  email: z.string().email(),
-  status: z.enum(['Completed', 'Pending', 'Processing', 'Cancelled', 'Delivered']),
-  total: z.number().nonnegative(),
-  photographerId: z.union([z.string(), z.number()]),
-  items: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    format: z.string().optional(),
-    quantity: z.number().int().positive(),
-    price: z.number().nonnegative(),
-    deliveryType: z.enum(['digital', 'print', 'both']).optional(),
-    productId: z.string().optional(),
-  })),
-  paymentMethod: z.enum(['Cash', 'Card']).optional(),
-  albumId: z.string().optional(),
-  source: z.enum(['kiosk', 'manual']).optional(),
-  roomNumber: z.string().optional(),
-});
 
 // =============================================================================
 // TYPE EXPORTS
 // =============================================================================
 
-export type PhotoInput = z.infer<typeof PhotoSchema>;
-export type CartItemInput = z.infer<typeof CartItemSchema>;
-export type UserInput = z.infer<typeof UserSchema>;
-export type OrderInput = z.infer<typeof OrderSchema>;
+
+// Added from apps/master/src/types/shared.ts
+export type Photographer = User;
+
+// --- PHOTO & ASSETS ---
+
+export type Permission =
+  | "viewDashboard"
+  | "viewAlbums"
+  | "manageOwnAlbums"
+  | "manageAllAlbums"
+  | "viewOrders"
+  | "viewOwnOrders"
+  | "viewAllOrders"
+  | "viewPhotographers"
+  | "managePhotographers"
+  | "viewBookings"
+  | "manageBookings"
+  | "viewSettings"
+  | "manageLocalSettings"
+  | "manageSessionTypes"
+  | "viewProducts"
+  | "manageProducts"
+  | "viewManagementDashboard"
+  | "viewDestinations"
+  | "viewReports"
+  | "viewExpenses"
+  | "viewCapital"
+  | "viewAdjustments"
+  | "manageAdjustments"
+  | "viewPerformance"
+  | "viewWarehouse"
+  | "manageEquipmentCategories"
+  | "viewPayroll"
+  | "runPayroll"
+  | "viewEcommerceSettings"
+  | "viewGlobalSettings"
+  | "manageGlobalSettings"
+  | "viewDocumentation"
+  | "manageExpenseCategories"
+  | "viewConsumables"
+  | "manageConsumables"
+  | "viewPortfolio"
+  | "managePortfolio";
+
+// --- PRODUCTS & PRICING ---
+
+export interface DailyObjective extends BaseRecord {
+  photographer_id: string | number;
+  date: string;
+  target: number;
+  status: "Pending" | "Completed";
+}
+
+export interface LoginHistory extends BaseRecord {
+  photographerId: string;
+  date: string;
+  ip: string;
+}
+
+export interface ExpenseCategory {
+  id: string;
+  label: string;
+}
+
+export interface EquipmentCategory {
+  id: string;
+  label: string;
+}
+
+export interface Expense extends BaseRecord {
+  date: string;
+  description: string;
+  category: string;
+  cost: number;
+  destinationId: string;
+  photographerId?: string;
+}
+
+export interface LoanPayment {
+  id: string;
+  loanId: string;
+  date: string;
+  amount: number;
+}
+
+export interface Loan extends BaseRecord {
+  date: string;
+  source: string;
+  amount: number;
+  interestRate: number;
+  status: "Active" | "Paid Off";
+  payments: LoanPayment[];
+}
+
+export interface Adjustment extends BaseRecord {
+  date: string;
+  photographerId: string;
+  amount: number;
+  description: string;
+  type: "Bonus" | "Deduction";
+  status: "Paid" | "Unpaid";
+}
+
+export interface Equipment extends BaseRecord {
+  name: string;
+  type: string;
+  status: "In Use" | "Available" | "Needs Repair" | "Retired" | "In Storage";
+  assignedToPhotographerId?: string;
+  destinationId: string;
+}
+
+// --- SYSTEM & INFRA ---
+
+export interface AssistanceRequest {
+  id: string;
+  kioskId: string;
+  message: string;
+  timestamp: Date;
+  status?: "pending" | "resolved" | "dismissed";
+}
+
+export interface FileSystemItem {
+  name: string;
+  type: "folder" | "photo";
+  path: string;
+  children?: FileSystemItem[];
+  photo?: Photo;
+}
+
+export interface Booking extends BaseRecord , ValidationBooking{
+  clientName: string;
+  email: string;
+  phone?: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  bookingDate: string;
+  bookingTime?: string;
+  sessionTypeId: string;
+  sessionId?: string;
+  photographerId?: string;
+  notes?: string;
+  status: "confirmed" | "pending" | "cancelled" | "completed" | "no-show" | "Confirmed" | "Pending" | "Cancelled" | "Completed" | "No-show";
+}
+
+export type BookingStatus = "confirmed" | "pending" | "cancelled" | "completed" | "no-show" | "Confirmed" | "Pending" | "Cancelled" | "Completed" | "No-show";
+
+export interface SystemSetting extends BaseRecord {
+  key: string;
+  value: string | number | boolean | Record<string, unknown>;
+  description?: string;
+}
+
+export interface RevenueSnapshot {
+  date: string;
+  hourlyRevenue: Record<string, number>; // "09:00": 150.00
+  totalRevenue: number;
+  orderCount: number;
+}
+
+export interface ProductStats {
+  productId: string;
+  name: string;
+  category: string;
+  quantitySold: number;
+  revenue: number;
+}
+
+export interface PhotographerPerformance {
+  photographerId: string;
+  name: string;
+  revenueGenerated: number;
+  ordersCompleted: number;
+  averageOrderValue: number;
+  processingEfficiency: number; // Avg mins per album processing
+}
+
+// --- FLEET MONITORING ---
+
+export interface StationStatus {
+  success: boolean;
+  health: {
+    cpuLoad: number;
+    cpuTemp: number | null;
+    memoryUsed: number;
+    memoryTotal: number;
+    memoryPercent: number;
+    diskUsed: number;
+    diskTotal: number;
+    diskPercent: number;
+    diskIO: number;
+    networkLatency: number;
+    uptime: number;
+    timestamp: string;
+  } | null;
+  sync: {
+    timestamp: string;
+    lastSync: string | null;
+    isConnected: boolean;
+    queue: {
+      pending: number;
+      failed: number;
+    };
+    circuit: {
+      state: "CLOSED" | "OPEN" | "HALF_OPEN";
+      openedAt: string | null;
+    };
+  } | null;
+  identity: {
+    deskId: string | null;
+    machineId: string;
+    isProvisioned: boolean;
+    provisioningStatus: "VERIFIED" | "PENDING_TRIAGE" | "UNPROVISIONED";
+  } | null;
+  timestamp: string;
+}
+

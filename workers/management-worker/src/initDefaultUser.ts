@@ -3,6 +3,7 @@ import path from 'path';
 import DatabaseManager from './db.js';
 import { hashPassword } from './auth.js';
 import { DB_FILE } from './config.js';
+import { logger } from "@clickflash/logger";
 
 const DEFAULT_USER = {
     name: 'Alaeddine',
@@ -23,7 +24,7 @@ export async function initDefaultUser(dbManagerOrPath?: DatabaseManager | string
             : DB_FILE;
 
         if (!fs.existsSync(dbPath)) {
-            console.warn(`[Init] Database file not found at ${dbPath}. Will initialize on first server connection.`);
+            logger.warn(String(`[Init] Database file not found at ${dbPath}. Will initialize on first server connection.`));
             return;
         }
 
@@ -38,7 +39,7 @@ export async function initDefaultUser(dbManagerOrPath?: DatabaseManager | string
         const defaultUser = dbManager.get('SELECT * FROM users WHERE email = ?', [DEFAULT_USER.email]) as any;
 
         if (userCount === 0 || !defaultUser) {
-            console.log(`[Init] Creating default admin user: ${DEFAULT_USER.email}`);
+            logger.info(String(`[Init] Creating default admin user: ${DEFAULT_USER.email}`));
             const hashedPassword = await hashPassword(DEFAULT_USER.password);
 
             dbManager.run(
@@ -46,17 +47,17 @@ export async function initDefaultUser(dbManagerOrPath?: DatabaseManager | string
                 [DEFAULT_USER.name, DEFAULT_USER.email, hashedPassword, DEFAULT_USER.role, DEFAULT_USER.desk_id]
             );
 
-            console.log(`[Init] ✓ Default user created successfully`);
+            logger.info(String(`[Init] ✓ Default user created successfully`));
         } else {
-            console.log(`[Init] Default user already exists: ${DEFAULT_USER.email}`);
+            logger.info(String(`[Init] Default user already exists: ${DEFAULT_USER.email}`));
             
             // Ensure desk_id is set for existing admin
             if (!defaultUser.desk_id) {
-                console.log(`[Init] Patching missing desk_id for: ${DEFAULT_USER.email}`);
+                logger.info(String(`[Init] Patching missing desk_id for: ${DEFAULT_USER.email}`));
                 dbManager.run('UPDATE users SET desk_id = ? WHERE email = ?', [DEFAULT_USER.desk_id, DEFAULT_USER.email]);
             }
         }
     } catch (error: any) {
-        console.error('[Init] Error initializing default user:', error.message);
+        logger.error('[Init] Error initializing default user:', { args: [error.message] });
     }
 }

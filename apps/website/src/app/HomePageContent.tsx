@@ -12,6 +12,7 @@ import { getTranslation } from "@/lib/translations";
 import type { WebsiteSettings } from "@/lib/settings";
 
 import { Hero } from "@/components/sections/Hero";
+import { FeaturesBento } from "@/components/sections/FeaturesBento";
 
 interface HomePageContentProps {
   settings: WebsiteSettings;
@@ -39,7 +40,7 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <span className="mb-4 block text-[12px] font-black tracking-[0.3em] text-cyan-500 uppercase">
+            <span className="mb-4 block text-[12px] font-black tracking-[0.3em] text-cyan-700 uppercase">
               Who We Are
             </span>
             <h2 className="mb-6 text-3xl leading-tight font-black tracking-tighter text-slate-900 sm:text-4xl md:mb-8 md:text-5xl lg:text-6xl">
@@ -59,14 +60,14 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
                   ]
               ).map((item) => (
                 <li key={item} className="flex items-center gap-3 font-bold text-slate-800">
-                  <CheckCircle2 className="h-6 w-6 text-cyan-500" />
+                  <CheckCircle2 className="h-6 w-6 text-cyan-700" />
                   {item}
                 </li>
               ))}
             </ul>
             <Link
               href="/services"
-              className="inline-block rounded-full bg-slate-900 px-8 py-3 text-[11px] font-black tracking-widest text-white uppercase transition-all hover:bg-cyan-500 md:px-10 md:py-4 md:text-[12px]"
+              className="inline-block rounded-full bg-slate-900 px-8 py-3 text-[11px] font-black tracking-widest text-white uppercase transition-all hover:bg-cyan-700 md:px-10 md:py-4 md:text-[12px]"
             >
               Our Services
             </Link>
@@ -103,92 +104,19 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
       />
 
       {/* SERVICES PREVIEW */}
-      <section className="container mx-auto px-4 py-16 sm:px-6 md:py-24 lg:px-8 lg:py-32">
-        <div className="mb-12 text-center md:mb-16 lg:mb-20">
-          <span className="mb-4 block text-[11px] font-black tracking-[0.3em] text-cyan-500 uppercase md:text-[12px]">
-            What We Offer
-          </span>
-          <h2 className="mb-4 text-3xl leading-tight font-black tracking-tighter text-slate-900 sm:text-4xl md:mb-6 md:text-5xl lg:text-6xl">
-            Seamless Photography Services
-          </h2>
-          <p className="mx-auto max-w-2xl px-4 text-base text-slate-500 md:text-lg">
-            Capture your moments with our expert touch. From weddings to corporate events, we
-            provide professional photography services tailored to your needs.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:gap-8 lg:grid-cols-3">
-          {[
-            {
-              title: settings.service1Title || "Wedding Photography",
-              desc:
-                settings.service1Desc ||
-                "Capture your special day with timeless elegance and emotion.",
-              image: settings.service1Image || "/images/portfolio/wedding_service.png",
-            },
-            {
-              title: settings.service2Title || "Couple & Romantic",
-              desc:
-                settings.service2Desc ||
-                "Capture intimate and romantic moments in breathtaking beach settings.",
-              image: settings.service2Image || "/images/portfolio/beach_couple.png",
-            },
-            {
-              title: settings.service3Title || "Portrait Sessions",
-              desc:
-                settings.service3Desc ||
-                "Beautiful portraits that capture your personality and style.",
-              image:
-                settings.service3Image ||
-                "/images/portfolio/ab5ba25a-42b0-4b27-a544-39c622685a10.jpg",
-            },
-          ].map((service, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="group"
-            >
-              <div className="relative mb-4 h-[280px] overflow-hidden rounded-2xl sm:h-[320px] md:mb-6 md:h-[400px] md:rounded-3xl">
-                <Image
-                  src={service.image}
-                  alt={service.title}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent" />
-                <div className="absolute bottom-0 left-0 p-8">
-                  <h3 className="mb-2 text-2xl font-black text-white">{service.title}</h3>
-                  <p className="text-sm text-white/80">{service.desc}</p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="mt-8 text-center md:mt-12">
-          <Link
-            href="/services"
-            className="inline-block rounded-full border-2 border-slate-900 px-8 py-3 text-[11px] font-black tracking-widest text-slate-900 uppercase transition-all hover:bg-slate-900 hover:text-white md:px-10 md:py-4 md:text-[12px]"
-          >
-            View All Services
-          </Link>
-        </div>
-      </section>
+      <FeaturesBento settings={settings} />
 
       {/* PORTFOLIO PREVIEW */}
       <section className="bg-slate-50 py-16 text-slate-900 md:py-24 lg:py-32">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center md:mb-16 lg:mb-20">
-            <span className="mb-4 block text-[11px] font-black tracking-[0.3em] text-cyan-500 uppercase md:text-[12px]">
+            <span className="mb-4 block text-[11px] font-black tracking-[0.3em] text-cyan-700 uppercase md:text-[12px]">
               Our Portfolio
             </span>
             <h2 className="mb-4 text-3xl leading-tight font-black tracking-tighter sm:text-4xl md:mb-6 md:text-5xl lg:text-6xl">
               Gallery of Memories
             </h2>
-            <p className="mx-auto max-w-2xl px-4 text-base text-slate-500 md:text-lg">
+            <p className="mx-auto max-w-2xl px-4 text-base text-slate-600 md:text-lg">
               Browse through our collection of captured moments from weddings, resorts, and special
               events around Tunisia.
             </p>
@@ -212,7 +140,7 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-cyan-500/0 transition-colors group-hover:bg-cyan-500/20" />
+                <div className="absolute inset-0 bg-cyan-700/0 transition-colors group-hover:bg-cyan-700/20" />
               </div>
             ))}
           </div>
@@ -220,7 +148,7 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
           <div className="mt-8 text-center md:mt-12">
             <Link
               href="/portfolio"
-              className="inline-block rounded-full bg-cyan-500 px-8 py-3 text-[11px] font-black tracking-widest text-white uppercase transition-all hover:bg-slate-900 md:px-10 md:py-4 md:text-[12px]"
+              className="inline-block rounded-full bg-cyan-700 px-8 py-3 text-[11px] font-black tracking-widest text-white uppercase transition-all hover:bg-slate-900 md:px-10 md:py-4 md:text-[12px]"
             >
               View Full Gallery
             </Link>
@@ -231,7 +159,7 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
       {/* VISION SECTION */}
       <section className="container mx-auto px-4 py-16 sm:px-6 md:py-24 lg:px-8 lg:py-32">
         <div className="mx-auto max-w-4xl px-2 text-center">
-          <span className="mb-4 block text-[11px] font-black tracking-[0.3em] text-cyan-500 uppercase md:text-[12px]">
+          <span className="mb-4 block text-[11px] font-black tracking-[0.3em] text-cyan-700 uppercase md:text-[12px]">
             Our Vision
           </span>
           <h2 className="mb-6 text-3xl leading-tight font-black tracking-tighter text-slate-900 sm:text-4xl md:mb-8 md:text-5xl lg:text-6xl">
@@ -239,11 +167,11 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
           </h2>
           <div className="mb-8 flex flex-wrap justify-center gap-4 md:mb-10 md:gap-8">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-cyan-500" />
+              <CheckCircle2 className="h-5 w-5 text-cyan-700" />
               <span className="font-bold text-slate-800">Capture Special Moments</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-cyan-500" />
+              <CheckCircle2 className="h-5 w-5 text-cyan-700" />
               <span className="font-bold text-slate-800">Share Global Adventures</span>
             </div>
           </div>
@@ -257,7 +185,7 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
           </p>
           <p className="px-2 text-lg font-medium text-slate-900 md:text-xl">
             {settings.visionText3 || "Your moments, our passion –"}{" "}
-            <span className="text-cyan-500">let's create memories</span> together.
+            <span className="text-cyan-700">let's create memories</span> together.
           </p>
         </div>
       </section>
@@ -268,7 +196,7 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
         settings={settings}
         title={
           <>
-            Gallery of <span className="text-cyan-500">Memories</span>
+            Gallery of <span className="text-cyan-700">Memories</span>
           </>
         }
         subtitle="Our Portfolio"

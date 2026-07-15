@@ -62,8 +62,17 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
         className="relative h-screen w-full flex items-center justify-center overflow-hidden"
         aria-labelledby="hero-title"
       >
-        {/* Background Image with Next.js optimization */}
-        <div className="absolute inset-0 z-0 scale-105">
+        {/* Subtle Animated Ken Burns Background */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes ken-burns {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
+          }
+        `}} />
+        <div 
+          className="absolute inset-0 z-0"
+          style={{ animation: 'ken-burns 30s ease-out infinite alternate' }}
+        >
           <Image
             src={imageUrl || defaultImage}
             alt=""
@@ -75,9 +84,9 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
             placeholder="blur"
             blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzVCNzhAP0JQX1hUXl5QVF1hX15fX15fY2RlYmtjbG1wcGJiYv/2wBDAR..."
           />
-          {/* Gradient overlay for text readability */}
+          {/* High Contrast Gradient overlay for text readability */}
           <div 
-            className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"
+            className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/40 to-slate-900/90"
             aria-hidden="true"
           />
         </div>
@@ -91,7 +100,7 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
           >
             <motion.span
               variants={itemVariants}
-              className="block text-cyan-400 text-sm sm:text-base md:text-lg lg:text-xl tracking-[0.15em] md:tracking-[0.2em] uppercase font-black mb-4 md:mb-6 drop-shadow-lg px-4"
+              className="block text-cyan-400 text-sm sm:text-base md:text-xl lg:text-2xl tracking-[0.3em] md:tracking-[0.5em] uppercase font-black mb-4 md:mb-6 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)] px-4"
             >
               {subtitle || "Captured Moments"}
             </motion.span>
@@ -99,16 +108,15 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
             <motion.h1
               id="hero-title"
               variants={itemVariants}
-              className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-sans font-black text-white mb-6 md:mb-10 leading-[0.95] md:leading-[0.9] tracking-tighter drop-shadow-2xl px-2"
+              className="text-5xl sm:text-7xl md:text-9xl lg:text-[10rem] xl:text-[12rem] font-sans font-black text-white mb-6 md:mb-10 leading-[0.85] tracking-tighter drop-shadow-2xl px-2 uppercase mix-blend-overlay"
             >
               {title ? (
                 // SECURITY: title comes from CMS/build-time config, not user input.
-                // If title ever accepts user input, replace with: title.split('\n').map((line, i) => (<React.Fragment key={i}>{i > 0 && <br />}{line}</React.Fragment>))
                 <span dangerouslySetInnerHTML={{ __html: title.replace(/\n/g, '<br />') }} />
               ) : (
                 <>
-                  Creating Smiles <br />
-                  <span className="text-cyan-400">Worldwide</span>
+                  Creating<br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/50">Smiles</span>
                 </>
               )}
             </motion.h1>
@@ -119,7 +127,7 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
             >
               <Link
                 href="/bookings"
-                className="group relative px-8 md:px-12 py-4 md:py-5 bg-cyan-400 text-white font-black uppercase tracking-[0.15em] md:tracking-[0.2em] text-[12px] md:text-[13px] rounded-full hover:bg-cyan-500 transition-all duration-300 shadow-2xl shadow-cyan-400/30 focus:outline-none focus:ring-4 focus:ring-cyan-400/50 focus:ring-offset-4 focus:ring-offset-transparent"
+                className="group relative px-8 md:px-12 py-4 md:py-5 bg-cyan-700 text-white font-black uppercase tracking-[0.15em] md:tracking-[0.2em] text-[12px] md:text-[13px] rounded-full hover:bg-cyan-700 transition-all duration-300 shadow-2xl shadow-cyan-400/30 focus:outline-none focus:ring-4 focus:ring-cyan-400/50 focus:ring-offset-4 focus:ring-offset-transparent"
                 aria-label="Book a professional photoshoot"
               >
                 <span className="relative z-10">Book Now</span>

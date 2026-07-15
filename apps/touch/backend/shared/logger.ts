@@ -1,4 +1,5 @@
 // backend/shared/logger.ts
+import { logger as baseLogger } from "@clickflash/logger";
 import fs from 'fs';
 import path from 'path';
 
@@ -49,7 +50,7 @@ export class Logger {
                 }
             });
         } catch (e) {
-            console.error('[Logger] Failed to clean up old logs:', e);
+            baseLogger.error('[Logger] Failed to clean up old logs:', { args: [e] });
         }
     }
 
@@ -92,12 +93,12 @@ export class Logger {
                     this.ensureLogDirectory();
                     fs.appendFileSync(logFile, logEntry, 'utf8');
                 } catch (retryError: any) {
-                    console.error('[Logger] Failed to write log:', retryError.message);
-                    console.log(logEntry.trim());
+                    baseLogger.error('[Logger] Failed to write log:', { args: [retryError.message] });
+                    baseLogger.info(String(logEntry.trim()));
                 }
             } else {
-                console.error('[Logger] Failed to write log:', error.message);
-                console.log(logEntry.trim());
+                baseLogger.error('[Logger] Failed to write log:', { args: [error.message] });
+                baseLogger.info(String(logEntry.trim()));
             }
         }
 
@@ -128,7 +129,7 @@ export class Logger {
   }
 }
 
-export const logger = new Logger(
+export const appLogger = new Logger(
   process.env.DATA_DIR || path.join(process.cwd(), "pb_data"),
   process.env.LOG_LEVEL || "INFO"
 );

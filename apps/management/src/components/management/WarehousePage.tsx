@@ -12,6 +12,7 @@ import StatCard from "../common/StatCard.tsx";
 import AddEquipmentModal from "./modals/AddEquipmentModal.tsx";
 import { useManagement } from "../../context/ManagementContext.tsx";
 import { ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react";
+import { logger } from "@/utils/logger";
 
 const EQUIPMENT_STATUSES: EquipmentStatus[] = [
   "Available",
@@ -91,7 +92,7 @@ const WarehousePage: React.FC = () => {
       setEquipmentCategories(categoryData);
       setInventory(inventoryData);
     } catch (error) {
-      console.error("Failed to fetch warehouse data", error);
+      logger.error("Failed to fetch warehouse data", error);
     } finally {
       setLoading(false);
     }

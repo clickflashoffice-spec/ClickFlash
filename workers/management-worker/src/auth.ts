@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { logger } from "@clickflash/logger";
 
 const SALT_ROUNDS = 12;
 
@@ -19,7 +20,7 @@ export async function hashPassword(password: string): Promise<string> {
         }
         return hash;
     } catch (error: any) {
-        console.error('[Auth] Password hashing error:', error.message);
+        logger.error('[Auth] Password hashing error:', { args: [error.message] });
         throw error;
     }
 }
@@ -46,7 +47,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
                 return await bcrypt.compare(password, hash);
             } catch (compareError: any) {
                 // Malformed bcrypt hash or internal compare failure.
-                console.warn('[Auth] bcrypt compare failed:', compareError.message);
+                logger.warn('[Auth] bcrypt compare failed:', { args: [compareError.message] });
                 return false;
             }
         }
@@ -58,7 +59,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 
         return false;
     } catch (error: any) {
-        console.error('[Auth] Password verification error:', error.message);
+        logger.error('[Auth] Password verification error:', { args: [error.message] });
         throw error;
     }
 }

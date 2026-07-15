@@ -194,7 +194,7 @@ export default function pairingRoutes(context: PairingContext): Router {
    */
   router.post("/pairing/register", (req: Request, res: Response) => {
     try {
-      const { pairingToken, kioskId, kioskName, httpUrl, wsUrl, expiresAt, uploadFolderPath, ordersFolderPath } =
+      let { pairingToken, kioskId, kioskName, httpUrl, wsUrl, expiresAt, uploadFolderPath, ordersFolderPath } =
         req.body;
 
       if (!pairingToken || !expiresAt) {
@@ -205,13 +205,19 @@ export default function pairingRoutes(context: PairingContext): Router {
         return;
       }
 
+      // Auto-generate paths if missing and we have a kioskId
+      if (kioskId) {
+        const basePath = path.join(require("os").homedir(), "Pictures", "ClickFlash", "Kiosks", kioskId);
+        if (!uploadFolderPath) uploadFolderPath = path.join(basePath, "uploads");
+        if (!ordersFolderPath) ordersFolderPath = path.join(basePath, "orders");
+      }
+
       // Phase 4: Auto-create kiosk directories if paths provided
       if (uploadFolderPath) {
         try {
-          const uploadDir = path.dirname(uploadFolderPath);
-          if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-            logger.info("[Pairing] Auto-created upload directory", { path: uploadDir });
+          if (!fs.existsSync(uploadFolderPath)) {
+            fs.mkdirSync(uploadFolderPath, { recursive: true });
+            logger.info("[Pairing] Auto-created upload directory", { path: uploadFolderPath });
           }
         } catch (dirErr: any) {
           logger.warn("[Pairing] Failed to auto-create upload directory", { path: uploadFolderPath, error: dirErr.message });
@@ -219,10 +225,9 @@ export default function pairingRoutes(context: PairingContext): Router {
       }
       if (ordersFolderPath) {
         try {
-          const ordersDir = path.dirname(ordersFolderPath);
-          if (!fs.existsSync(ordersDir)) {
-            fs.mkdirSync(ordersDir, { recursive: true });
-            logger.info("[Pairing] Auto-created orders directory", { path: ordersDir });
+          if (!fs.existsSync(ordersFolderPath)) {
+            fs.mkdirSync(ordersFolderPath, { recursive: true });
+            logger.info("[Pairing] Auto-created orders directory", { path: ordersFolderPath });
           }
         } catch (dirErr: any) {
           logger.warn("[Pairing] Failed to auto-create orders directory", { path: ordersFolderPath, error: dirErr.message });

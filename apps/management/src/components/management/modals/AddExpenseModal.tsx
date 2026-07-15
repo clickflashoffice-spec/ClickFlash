@@ -24,7 +24,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [category, setCategory] = useState<string>("");
   const [destinationId, setDestinationId] = useState("");
-  const [photographerIds, setPhotographerIds] = useState<string[]>([]);
+  const [photographerId, setPhotographerIds] = useState<string[]>([]);
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
 
   const [photographers, setPhotographers] = useState<Photographer[]>([]);
@@ -69,9 +69,9 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       category,
       cost: Number(cost),
       destinationId,
-      photographerIds: photographerIds.length > 0 ? photographerIds : undefined,
+      photographerId: photographerId.length > 0 ? photographerId : undefined,
       invoiceUrl: invoiceFile ? "#" : undefined,
-    };
+    } as any;
 
     onSave(newExpense);
     // Reset form
@@ -150,15 +150,15 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 >
                   <input
                     type="checkbox"
-                    checked={photographerIds.includes(p.id)}
+                    checked={photographerId.includes(p.id)}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        if (photographerIds.length < 10) {
-                          setPhotographerIds([...photographerIds, p.id]);
+                        if (photographerId.length < 10) {
+                          setPhotographerIds([...photographerId, p.id]);
                         }
                       } else {
                         setPhotographerIds(
-                          photographerIds.filter((id) => id !== p.id),
+                          photographerId.filter((id) => id !== p.id),
                         );
                       }
                     }}
@@ -173,9 +173,9 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 </span>
               )}
             </div>
-            {photographerIds.length > 0 && (
+            {photographerId.length > 0 && (
               <p className="text-xs text-slate-500 mt-1">
-                {photographerIds.length} photographer(s) selected
+                {photographerId.length} photographer(s) selected
               </p>
             )}
           </div>

@@ -49,6 +49,8 @@ export interface Env {
   ADMIN_NOTIFICATION_EMAIL?: string;
   GOOGLE_API_KEY?: string;
   SENTRY_DSN?: string; // Sentry DSN — optional; monitoring disabled when absent
+  LICENSE_PRIVATE_KEY?: string;
+  LICENSE_PUBLIC_KEY?: string;
 }
 
 const managementHandler = {

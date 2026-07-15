@@ -1,0 +1,50 @@
+appId: com.clickflash.master.mac
+productName: ClickFlash MAC
+copyright: © 2026 Marhaba Club Sousse
+
+directories:
+  output: release_mac
+  buildResources: build
+  files:
+    - dist/**/*
+    - package.json
+    - "!pb_data/**/*"
+    - "!storage/**/*"
+    - "!node_modules/**/*"
+    - electron-main.js
+    - .env.production.mac
+    - configs/hotel-configs/mac.json
+
+extraResources:
+  - from: pb_data
+    to: pb_data
+    filter:
+      - "!**/*.db"
+      - "!**/*.log"
+      - "!**/uploads/**"
+  - from: backend
+    to: backend
+    filter:
+      - "**/*"
+  - from: helper_scripts
+    to: helper_scripts
+
+win:
+  target: nsis
+  icon: build/icon.ico
+  requestedExecutionLevel: requireAdministrator
+  forceCodeSigning: false
+  signAndEditExecutable: false
+
+nsis:
+  oneClick: false
+  perMachine: true
+  deleteAppDataOnUninstall: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  runAfterFinish: true
+  shortcutName: ClickFlash MAC
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  installerHeaderIcon: build/icon.ico
+  license: LICENSE

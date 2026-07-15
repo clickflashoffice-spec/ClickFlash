@@ -4,6 +4,7 @@
  */
 
 import { Env } from '../../index';
+import { logger } from "@clickflash/logger";
 
 export async function handleWebhook(request: Request, env: Env, params: Record<string, string>): Promise<Response> {
   try {
@@ -43,7 +44,7 @@ export async function handleWebhook(request: Request, env: Env, params: Record<s
     return Response.json({ success: true });
     
   } catch (error) {
-    console.error('Webhook error:', error);
+    logger.error('Webhook error:', { args: [error] });
     return Response.json(
       { error: 'Failed to process webhook' },
       { status: 500 }
@@ -79,7 +80,7 @@ async function verifyWebhookSignature(payload: string, signature: string | null,
     
     return isValid;
   } catch (error) {
-    console.error('[Webhook] Signature verification error:', error);
+    logger.error('[Webhook] Signature verification error:', { args: [error] });
     return false;
   }
 }

@@ -1,7 +1,6 @@
+import { logger } from '@clickflash/logger';
 import { NextResponse } from 'next/server';
 import { pagesStore } from '@/lib/cmsStore';
-
-export const runtime = 'edge';
 
 function sanitizeHtml(html: string): string {
   return html
@@ -33,7 +32,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, page }, { status: 201 });
   } catch (error) {
-    console.error('Error creating page:', error);
+    logger.error('Error creating page:', error as Error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
@@ -53,5 +52,3 @@ export async function GET(request: Request) {
   const pages = Array.from(pagesStore.values());
   return NextResponse.json({ pages }, { status: 200 });
 }
-
-

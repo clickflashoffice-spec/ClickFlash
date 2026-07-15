@@ -20,7 +20,7 @@ export default function licenseRoutes(context: any): Router {
    */
   router.get("/status", strictRateLimiter, async (_req: Request, res: Response) => {
     try {
-      const status = licenseService.getLocalLicenseStatus();
+      const status = await licenseService.getLocalLicenseStatus();
       res.json({
         success: true,
         status: {

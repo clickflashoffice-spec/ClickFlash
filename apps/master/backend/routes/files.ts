@@ -125,13 +125,20 @@ export default function fileRoutes(context: FilesContext): Router {
 
             // Possible Candidates with potential extension mismatches
             const cadidates: string[] = [];
+            const isHighResRequested = req.query.variant === 'highres' ||
+              req.query.quality === 'highres' ||
+              pathAfterFiles.includes('highres') ||
+              justFilename.includes('_highres');
+
+            const primaryFolder = isHighResRequested ? "highres" : "thumbs";
+            const secondaryFolder = isHighResRequested ? "thumbs" : "highres";
 
             // Add exact match first
             cadidates.push(
-              path.join(targetDir, photo.albumId, "thumbs", justFilename),
+              path.join(targetDir, photo.albumId, primaryFolder, justFilename),
             );
             cadidates.push(
-              path.join(targetDir, photo.albumId, "highres", justFilename),
+              path.join(targetDir, photo.albumId, secondaryFolder, justFilename),
             );
             cadidates.push(path.join(targetDir, photo.albumId, justFilename));
 
@@ -141,22 +148,12 @@ export default function fileRoutes(context: FilesContext): Router {
               if (variant === justFilename) continue; // Skip already added
 
               cadidates.push(
-                path.join(targetDir, photo.albumId, "thumbs", variant),
+                path.join(targetDir, photo.albumId, primaryFolder, variant),
               );
               cadidates.push(
-                path.join(targetDir, photo.albumId, "highres", variant),
+                path.join(targetDir, photo.albumId, secondaryFolder, variant),
               );
               cadidates.push(path.join(targetDir, photo.albumId, variant));
-            }
-
-            // If the requested path explicitly asked for a thumbnail variant (e.g. _tiny.webp, _thumb.jpg)
-            // we should prioritize the 'thumbs' folder.
-            if (
-              justFilename.includes("_tiny") ||
-              justFilename.includes("_thumb") ||
-              justFilename.includes("_preview")
-            ) {
-              // Already prioritized in list above [0]
             }
 
             for (const candidate of cadidates) {

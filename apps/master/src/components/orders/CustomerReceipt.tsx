@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 import React from "react";
 import { Order } from "../../types.ts";
 import useSystemSetting from "../../hooks/useSystemSetting.ts";
@@ -35,7 +36,7 @@ const CustomerReceipt: React.FC<CustomerReceiptProps> = ({ order }) => {
   React.useEffect(() => {
     QRCode.toDataURL(order.id, { margin: 1, width: 128 })
       .then((url: string) => setQrCodeDataUrl(url))
-      .catch((err: any) => console.error("QR Code generation failed", err));
+      .catch((err: any) => logger.error("QR Code generation failed", err));
   }, [order.id]);
 
   if (loading)

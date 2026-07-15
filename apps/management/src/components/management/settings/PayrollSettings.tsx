@@ -3,6 +3,7 @@ import { Photographer } from "../../../types.ts";
 import { useCurrency } from "../../CurrencyContext.tsx";
 import { apiService } from "../../../services/apiService.ts";
 import Spinner from "../../common/Spinner.tsx";
+import { logger } from "@/utils/logger";
 
 const PayrollSettings: React.FC = () => {
   const [photographers, setPhotographers] = useState<Photographer[]>([]);
@@ -59,7 +60,7 @@ const PayrollSettings: React.FC = () => {
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (error) {
-      console.error("Failed to save payroll settings", error);
+      logger.error("Failed to save payroll settings", error);
       setSaveStatus("error");
       setTimeout(() => setSaveStatus("idle"), 3000);
     }

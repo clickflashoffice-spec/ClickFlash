@@ -8,6 +8,7 @@ export type InstallStep =
   | "license"
   | "cloudflare"
   | "destination"
+  | "fleet-overview"
   | "studio"
   | "pairing"
   | "first-sync"
@@ -31,6 +32,7 @@ export interface CloudflareAccount {
 
 export interface FleetRegistrationPayload {
   deskId: string;
+  siteCode: string;
   name: string;
   location: string;
   country: string;
@@ -129,7 +131,7 @@ export interface InstallerState {
   hub: { device_code: string; user_code: string; verification_uri: string; expires_at: number; access_token?: string; refresh_token?: string; tenant_id?: string; interval: number } | null;
 
   // Destination
-  desk: { proposed_id: string; confirmed_id?: string; name: string; location: string; country: string; timezone: string; currency: string } | null;
+  desk: { proposed_id: string; confirmed_id?: string; site_code: string; name: string; location: string; country: string; timezone: string; currency: string } | null;
 
   // Pairing (extend existing)
   pairings: Array<{ kiosk_id: string; mac: string; method: "mdns" | "sweep" | "qr"; paired_at: number }>;
@@ -144,6 +146,7 @@ export const STEP_ORDER: InstallStep[] = [
   "license",
   "cloudflare",
   "destination",
+  "fleet-overview",
   "studio",
   "pairing",
   "first-sync",
@@ -157,6 +160,7 @@ export const STEP_LABELS: Record<InstallStep, string> = {
   license: "License Key",
   cloudflare: "Cloud Account",
   destination: "Destination",
+  "fleet-overview": "Fleet Overview",
   studio: "Studio Profile",
   pairing: "Kiosk Pairing",
   "first-sync": "First Sync",

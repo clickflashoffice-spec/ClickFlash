@@ -8,6 +8,8 @@ import {TrendingUp,
   Brain} from "lucide-react";
 import { PixelFounderCard, PixelFounderStatCard } from "../common/PixelFounderCard.tsx";
 import './YieldIntelligence.css';
+import { logger } from "@/utils/logger";
+
 // import { apiService } from "@/services/apiService"; // Placeholder - fixing relative import if needed
 
 const YieldIntelligence: React.FC = () => {
@@ -25,7 +27,7 @@ const YieldIntelligence: React.FC = () => {
           setAvgOrderValue(Math.round(latest.avg_order_value));
         }
       })
-      .catch(err => console.error("Failed to fetch yield stats", err));
+      .catch(err => logger.error("Failed to fetch yield stats", err));
   }, []);
 
   const revenueStats = useMemo(() => {

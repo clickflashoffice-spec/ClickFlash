@@ -450,7 +450,7 @@ class AdvancedCheckoutService extends EventEmitter {
         items: breakdown.items.map(item => ({
           id: `ITEM-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
           name: item.product.name,
-          format: item.size || 'Standard',
+          format: (item as any).size || 'Standard',
           quantity: item.quantity,
           price: item.price,
           photo: item.photo

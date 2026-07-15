@@ -4,6 +4,7 @@
  */
 
 import { Env } from '../../index';
+import { logger } from "@clickflash/logger";
 
 export async function handleGalleryGet(request: Request, env: Env, params: Record<string, string>): Promise<Response> {
   try {
@@ -73,7 +74,7 @@ export async function handleGalleryGet(request: Request, env: Env, params: Recor
     });
     
   } catch (error) {
-    console.error('Gallery get error:', error);
+    logger.error('Gallery get error:', { args: [error] });
     return Response.json(
       { error: 'Failed to get gallery' },
       { status: 500 }

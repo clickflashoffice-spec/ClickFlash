@@ -1,4 +1,5 @@
 "use client";
+import { logger } from '@clickflash/logger';
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
@@ -43,7 +44,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
+    logger.error("ErrorBoundary caught an error:", error, { componentStack: errorInfo.componentStack });
     
     this.setState({
       error,
@@ -60,11 +61,11 @@ export class ErrorBoundary extends Component<Props, State> {
         if (typeof window !== 'undefined' && (window as any).Sentry) {
           (window as any).Sentry.captureException(error, { extra: errorInfo });
         } else {
-          console.error("[Production Error]", { error, errorInfo });
+          logger.error("[Production Error]", { error: error.message, stack: error.stack, componentStack: errorInfo.componentStack });
         }
       } catch (loggingError) {
         // Prevent telemetry failure from crashing the boundary
-        console.error("Failed to log error", loggingError);
+        logger.error("Failed to log error", loggingError instanceof Error ? loggingError : undefined);
       }
     }
   }
@@ -149,7 +150,7 @@ export function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
           {onRetry && (
             <button
               onClick={onRetry}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-cyan-500 text-white font-semibold rounded-lg hover:bg-cyan-600 transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-cyan-700 text-white font-semibold rounded-lg hover:bg-cyan-600 transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2"
             >
               <RefreshCw className="w-4 h-4" />
               Try Again
@@ -165,9 +166,9 @@ export function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
         </div>
 
         {/* Support Link */}
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-600">
           Need help?{" "}
-          <Link href="/contact" className="text-cyan-600 hover:underline">
+          <Link href="/contact" className="text-cyan-700 hover:underline">
             Contact our support team
           </Link>
         </p>
@@ -187,7 +188,7 @@ export function SceneErrorBoundary({ children }: { children: ReactNode }) {
     <ErrorBoundary
       fallback={<ThreeDFallback />}
       onError={(error) => {
-        console.warn("3D Scene Error:", error);
+        logger.warn("3D Scene Error:", { error: error.message, stack: error.stack });
       }}
     >
       {children}
@@ -220,7 +221,7 @@ function ThreeDFallback() {
         <h3 className="text-xl font-bold text-white mb-2">
           3D View Unavailable
         </h3>
-        <p className="text-slate-400 max-w-xs mx-auto text-sm">
+        <p className="text-slate-600 max-w-xs mx-auto text-sm">
           Your device doesn&apos;t support WebGL, or 3D graphics are disabled.
           The content is still accessible without 3D visualization.
         </p>
@@ -264,7 +265,7 @@ function ThreeDLoadingFallback() {
     <div className="w-full h-full min-h-[400px] bg-slate-900 flex items-center justify-center">
       <div className="text-center">
         <div className="w-12 h-12 mx-auto mb-4 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
-        <p className="text-slate-400 text-sm">Loading 3D Experience...</p>
+        <p className="text-slate-600 text-sm">Loading 3D Experience...</p>
       </div>
     </div>
   );

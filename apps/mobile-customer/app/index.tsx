@@ -4,12 +4,13 @@ import { router } from 'expo-router';
 export default function LoginScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>ClickFlash Customer Login</Text>
+      <Text style={styles.title}>Welcome to ClickFlash</Text>
+      <Text style={styles.subtitle}>Find your resort memories instantly.</Text>
       <TouchableOpacity 
         style={styles.button}
-        onPress={() => router.replace('/(tabs)/gallery')}
+        onPress={() => router.replace('/selfie')}
       >
-        <Text style={styles.buttonText}>Log In</Text>
+        <Text style={styles.buttonText}>Find My Photos</Text>
       </TouchableOpacity>
     </View>
   );
@@ -20,21 +21,33 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#111827', // Tailwind gray-900
+    padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 20,
+    color: '#fff',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#9ca3af', // Tailwind gray-400
+    marginBottom: 40,
+    textAlign: 'center',
   },
   button: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 8,
+    backgroundColor: '#3b82f6', // Tailwind blue-500
+    paddingVertical: 16,
+    paddingHorizontal: 40,
+    borderRadius: 999,
+    width: '100%',
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   }
 });

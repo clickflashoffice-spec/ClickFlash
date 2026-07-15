@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 /**
  * Product Bundle Service
  * Manages product packages, bulk discounts, and combo deals
@@ -8,7 +9,7 @@ import { Product, Photo, CartItem } from '../types';
 
 interface BundleProduct {
   productId: string;
-  quantity: number;
+  quantity: number; photoId?: string; name?: string;
   optional?: boolean;
 }
 
@@ -266,6 +267,8 @@ class ProductBundleService extends EventEmitter {
       return {
         id: `bundle_${bundle.id}_${photo.id}`,
         photo,
+        photoId: photo.id,
+        name: product?.name || 'Bundle Item',
         product: product || { id: 'unknown', name: 'Bundle Item', category: 'Other', price: pricePerPhoto, stock: 999 },
         quantity: 1,
         size: 'Bundle',
@@ -419,7 +422,7 @@ class ProductBundleService extends EventEmitter {
         return bundle;
       }
     } catch (error) {
-      console.error('Failed to import bundle:', error);
+      logger.error('Failed to import bundle:', error);
     }
     return null;
   }

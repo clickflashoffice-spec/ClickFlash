@@ -1,4 +1,5 @@
 import path from 'path';
+import { logger } from "@clickflash/logger";
 
 export class StartupGuard {
     private appType: 'MASTER' | 'TOUCH' | 'MANAGEMENT';
@@ -10,7 +11,7 @@ export class StartupGuard {
     }
 
     verify(): void {
-        console.log(`[StartupGuard] Verifying context for ${this.appType}`);
+        logger.info(String(`[StartupGuard] Verifying context for ${this.appType}`));
         const currentPath = this.rootDir.toLowerCase();
 
         if (this.appType === 'MASTER') {
@@ -25,7 +26,7 @@ export class StartupGuard {
             }
         }
 
-        console.log(`[StartupGuard] ✅ Identity Checked. Running as ${this.appType}`);
+        logger.info(String(`[StartupGuard] ✅ Identity Checked. Running as ${this.appType}`));
     }
 }
 

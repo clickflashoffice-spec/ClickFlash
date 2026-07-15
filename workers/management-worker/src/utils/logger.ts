@@ -1,3 +1,5 @@
+import { logger as baseLogger } from "@clickflash/logger";
+
 // apps/management/backend/src/utils/logger.ts
 
 /**
@@ -25,7 +27,7 @@ export class Logger {
         };
 
         // Cloudflare Workers capture console outputs and present them in the dashboard
-        console.log(JSON.stringify(logEntry));
+        baseLogger.info(String(JSON.stringify(logEntry)));
     }
 
     error(message: string, error?: any, meta: Record<string, any> = {}) {

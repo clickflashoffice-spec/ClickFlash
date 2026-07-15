@@ -10,14 +10,9 @@ interface LicenseStepProps {
 }
 
 function formatLicenseKey(raw: string): string {
-  const cleaned = raw.toUpperCase().replace(/[^A-Z0-9]/g, "");
-  if (cleaned.startsWith("CF-LIVE-")) {
-    const rest = cleaned.slice(8);
-    const parts = rest.match(/.{1,4}/g) || [];
-    return `CF-LIVE-${parts.slice(0, 4).join("-")}`;
-  }
-  const parts = cleaned.match(/.{1,4}/g) || [];
-  return parts.slice(0, 5).join("-");
+  // Ed25519 keys are base64, so we cannot uppercase or strip characters aggressively.
+  // We'll just trim whitespace.
+  return raw.trim();
 }
 
 const LicenseStep: React.FC<LicenseStepProps> = ({ state, onValidate, onNext, onPrev }) => {
@@ -63,13 +58,12 @@ const LicenseStep: React.FC<LicenseStepProps> = ({ state, onValidate, onNext, on
                   type="text"
                   value={key}
                   onChange={handleChange}
-                  placeholder="CF-LIVE-XXXX-XXXX-XXXX-XXXX"
-                  maxLength={24}
-                  className="input-field flex-1 font-mono uppercase"
+                  placeholder="Enter license key..."
+                  className="input-field flex-1 font-mono"
                 />
                 <button
                   onClick={handleValidate}
-                  disabled={validating || key.length < 24}
+                  disabled={validating || key.length < 50}
                   className="btn-secondary flex items-center gap-2 shrink-0"
                 >
                   {validating ? (
@@ -81,7 +75,7 @@ const LicenseStep: React.FC<LicenseStepProps> = ({ state, onValidate, onNext, on
                 </button>
               </div>
               <p className="text-xs text-slate-500 mt-1.5">
-                Format: CF-LIVE-XXXX-XXXX-XXXX-XXXX (24 characters)
+                Format: Full Ed25519 Token
               </p>
             </div>
 

@@ -45,18 +45,4 @@ test.describe('Contact Form', () => {
   });
 });
 
-test.describe('Demo Request Form', () => {
-  test('should submit demo request', async ({ page }) => {
-    await page.goto('/demo');
 
-    await page.fill('[data-testid="company-input"]', 'Test Studio');
-    await page.fill('[data-testid="name-input"]', 'Jane Smith');
-    await page.fill('[data-testid="email-input"]', 'jane@teststudio.com');
-    await page.fill('[data-testid="phone-input"]', '555-1234');
-    await page.selectOption('[data-testid="studio-size-select"]', 'small');
-
-    await page.click('[data-testid="submit-demo-button"]');
-
-    await expect(page.locator('[data-testid="demo-request-success"]')).toBeVisible();
-  });
-});

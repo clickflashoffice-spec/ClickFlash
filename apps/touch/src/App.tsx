@@ -12,6 +12,7 @@ import { logger } from '@/utils/logger';
 import { analytics } from '@/utils/telemetry';
 import { AnimatePresence, motion, Transition } from 'framer-motion';
 import PasswordModal from './components/touch/PasswordModal';
+import { AttractScreensaver } from './components/touch/AttractScreensaver';
 import { rfidIntegrationService } from './services/rfidIntegrationService';
 import { rfidService } from './services/rfidService';
 
@@ -312,7 +313,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
                                 <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-black"><Spinner /></div>}>
                                     {activePhoto && activeAlbum ? <PhotoPreviewScreen
                                         photo={activePhoto}
-                                        albumPhotos={activeAlbum.photos}
+                                        albumPhotos={activeAlbum.photos || []}
                                         cart={cart}
                                         onUpdateCart={handleUpdateCart}
                                         onBack={() => setTouchView('photos')}
@@ -363,12 +364,22 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
     };
 
     return (
-        <div className="touch-portal h-screen w-screen overflow-hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-white select-none">
+        <div className="touch-portal h-screen w-screen overflow-hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-white select-none relative">
             <ErrorBoundary>
                 <AnimatePresence mode="wait">
                     {renderTouchContent()}
                 </AnimatePresence>
             </ErrorBoundary>
+
+            <AttractScreensaver
+                idleTimeoutSeconds={120}
+                onWake={() => {
+                    resetIdleTimer();
+                    if (touchView === 'welcome') {
+                        setTouchView('welcome');
+                    }
+                }}
+            />
             
             <PasswordModal
                 isOpen={showAdminExitModal}

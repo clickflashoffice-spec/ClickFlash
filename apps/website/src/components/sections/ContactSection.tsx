@@ -100,7 +100,7 @@ export function ContactSection() {
           {/* Info */}
           <div>
             <h3 className="text-2xl md:text-3xl font-serif font-medium text-slate-900 mb-6 md:mb-8">Get in Touch</h3>
-            <p className="text-slate-500 mb-12 leading-relaxed">
+            <p className="text-slate-600 mb-12 leading-relaxed">
               Whether you&apos;re a luxury wedding photographer or a high-volume event agency,
               our ecosystem is built to handle your scale. Contact our sales team for
               a private demo of the ClickFlash protocol.
@@ -108,8 +108,8 @@ export function ContactSection() {
 
             <div className="space-y-8">
               <div className="flex items-center gap-6">
-                <div className="w-12 h-12 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-cyan-500" />
+                <div className="w-12 h-12 rounded-full bg-cyan-700/10 border border-cyan-500/20 flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-cyan-700" />
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-widest text-zinc-500 font-bold mb-1">Email</p>
@@ -117,8 +117,8 @@ export function ContactSection() {
                 </div>
               </div>
               <div className="flex items-center gap-6">
-                <div className="w-12 h-12 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-cyan-500" />
+                <div className="w-12 h-12 rounded-full bg-cyan-700/10 border border-cyan-500/20 flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-cyan-700" />
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-widest text-zinc-500 font-bold mb-1">Office</p>
@@ -126,8 +126,8 @@ export function ContactSection() {
                 </div>
               </div>
               <div className="flex items-center gap-6">
-                <div className="w-12 h-12 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-cyan-500" />
+                <div className="w-12 h-12 rounded-full bg-cyan-700/10 border border-cyan-500/20 flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-cyan-700" />
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-widest text-zinc-500 font-bold mb-1">HQ</p>
@@ -149,7 +149,7 @@ export function ContactSection() {
                 >
                   <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
                   <h3 className="text-2xl font-serif text-slate-900 mb-2">Message Sent!</h3>
-                  <p className="text-slate-500">{submitMessage}</p>
+                  <p className="text-slate-600">{submitMessage}</p>
                   <Button
                     variant="outline"
                     className="mt-6"
@@ -168,7 +168,7 @@ export function ContactSection() {
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Full Name</label>
+                      <label className="text-[10px] uppercase tracking-widest text-slate-600 font-bold">Full Name</label>
                       <input
                         type="text"
                         value={formData.name}
@@ -182,7 +182,7 @@ export function ContactSection() {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Business Email</label>
+                      <label className="text-[10px] uppercase tracking-widest text-slate-600 font-bold">Business Email</label>
                       <input
                         type="email"
                         value={formData.email}

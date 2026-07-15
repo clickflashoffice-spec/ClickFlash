@@ -49,7 +49,24 @@ function isIpForbidden(ip, opts = {}) {
         const lower = ip.toLowerCase();
         if (lower === "::") return true;
         if (lower === "::1") return !opts.allowLoopback;
-        if (lower.startsWith("::ffff:")) return isIpForbidden(lower.slice(7), opts);
+        if (lower.startsWith("::ffff:")) {
+            const v4 = lower.slice(7);
+            if (v4.includes(".")) {
+                return isIpForbidden(v4, opts);
+            }
+            if (v4.includes(":")) {
+                const parts = v4.split(":");
+                if (parts.length === 2) {
+                    const w0 = parseInt(parts[0], 16);
+                    const w1 = parseInt(parts[1], 16);
+                    if (!isNaN(w0) && !isNaN(w1)) {
+                        const dotted = `${(w0 >> 8) & 0xff}.${w0 & 0xff}.${(w1 >> 8) & 0xff}.${w1 & 0xff}`;
+                        return isIpForbidden(dotted, opts);
+                    }
+                }
+            }
+            return true;
+        }
         if (/^f[cd][0-9a-f]{2}:/i.test(lower)) return !opts.allowPrivate;
         if (/^fe[89ab][0-9a-f]:/i.test(lower)) return !opts.allowPrivate;
         if (/^2001:db8:/i.test(lower)) return true;
@@ -86,11 +103,18 @@ function checkUrlStatic(rawUrl, opts = {}) {
     if (opts.blockedHostnames && opts.blockedHostnames.some((b) => b.toLowerCase() === hostname.toLowerCase())) {
         return { safe: false, reason: `Hostname is blocked: ${hostname}` };
     }
-    if (/^[\d.:a-fA-F]+$/.test(hostname)) {
-        if (isIpForbidden(hostname, opts)) {
+    const cleanHostname = hostname.startsWith("[") && hostname.endsWith("]")
+        ? hostname.slice(1, -1)
+        : hostname;
+    if (/^[\d.:a-fA-F]+$/.test(cleanHostname)) {
+        if (isIpForbidden(cleanHostname, opts)) {
             return { safe: false, reason: `Forbidden IP literal: ${hostname}` };
         }
-        return { safe: true, ip: hostname };
+        return { safe: true, ip: cleanHostname };
+    }
+    const lowerHost = cleanHostname.toLowerCase();
+    if (!opts.allowLoopback && (lowerHost === "localhost" || lowerHost.endsWith(".localhost"))) {
+        return { safe: false, reason: "Loopback hostname forbidden" };
     }
     return { safe: true };
 }

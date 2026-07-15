@@ -2,6 +2,7 @@ import { pb } from "../pb";
 import {
   Loan,
 } from "../../types";
+import { logger } from "@/utils/logger";
 
 /**
  * API Service - Wrapper around pb adapter for convenient data operations
@@ -47,13 +48,13 @@ export const loansApi = {
         notes: data.notes || "",
       });
 
-      console.log(
+      logger.info(
         `[apiService] Loan payment created for loan ${loanId}:`,
         payment.id,
       );
       return payment;
     } catch (error) {
-      console.error("[apiService] Failed to create loan payment:", error);
+      logger.error("[apiService] Failed to create loan payment:", error);
       throw error;
     }
   },

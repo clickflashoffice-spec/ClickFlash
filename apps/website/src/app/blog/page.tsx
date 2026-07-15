@@ -29,13 +29,13 @@ export default function BlogPage() {
             {/* Hero Section */}
             <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 md:mb-12">
                 <div className="text-center">
-                    <span className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-600 mb-3 md:mb-4 block">
+                    <span className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700 mb-3 md:mb-4 block">
                         Our Blog
                     </span>
                     <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-slate-900 mb-4 tracking-tight">
                         Photography <span className="font-medium">Insights</span>
                     </h1>
-                    <p className="text-slate-500 max-w-2xl mx-auto text-base md:text-lg">
+                    <p className="text-slate-600 max-w-2xl mx-auto text-base md:text-lg">
                         Expert tips, guides, and inspiration for weddings, portraits, and travel photography in Tunisia and beyond.
                     </p>
                 </div>
@@ -48,7 +48,7 @@ export default function BlogPage() {
                         <Link
                             key={category}
                             href={category === "All" ? "/blog" : `/blog/category/${category.toLowerCase().replace(/\s+/g, "-")}`}
-                            className="px-4 md:px-6 py-2 text-xs md:text-sm font-medium transition-all duration-300 border rounded-full bg-white text-slate-600 border-slate-200 hover:border-cyan-500 hover:text-cyan-600"
+                            className="px-4 md:px-6 py-2 text-xs md:text-sm font-medium transition-all duration-300 border rounded-full bg-white text-slate-600 border-slate-200 hover:border-cyan-500 hover:text-cyan-700"
                         >
                             {category}
                         </Link>
@@ -70,16 +70,16 @@ export default function BlogPage() {
                             />
                         </div>
                         <div className="p-6 md:p-8 lg:p-12 flex flex-col justify-center">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-cyan-600 mb-3">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-cyan-700 mb-3">
                                 {blogPosts[0].category}
                             </span>
-                            <h2 className="text-2xl md:text-3xl lg:text-4xl font-medium text-slate-900 mb-4 group-hover:text-cyan-600 transition-colors leading-tight">
+                            <h2 className="text-2xl md:text-3xl lg:text-4xl font-medium text-slate-900 mb-4 group-hover:text-cyan-700 transition-colors leading-tight">
                                 {blogPosts[0].title}
                             </h2>
-                            <p className="text-slate-500 mb-4 md:mb-6 line-clamp-3">
+                            <p className="text-slate-600 mb-4 md:mb-6 line-clamp-3">
                                 {blogPosts[0].excerpt}
                             </p>
-                            <div className="flex items-center gap-4 text-sm text-slate-400">
+                            <div className="flex items-center gap-4 text-sm text-slate-600">
                                 <span>{blogPosts[0].author}</span>
                                 <span>•</span>
                                 <span>{blogPosts[0].readTime}</span>
@@ -112,22 +112,22 @@ export default function BlogPage() {
                             {/* Content */}
                             <div className="flex flex-col">
                                 {/* Tag */}
-                                <span className="text-xs font-semibold uppercase tracking-wider text-cyan-600 mb-2">
+                                <span className="text-xs font-semibold uppercase tracking-wider text-cyan-700 mb-2">
                                     {post.category}
                                 </span>
 
                                 {/* Title */}
-                                <h3 className="text-lg md:text-xl font-medium text-slate-900 group-hover:text-cyan-600 transition-colors leading-snug mb-3">
+                                <h3 className="text-lg md:text-xl font-medium text-slate-900 group-hover:text-cyan-700 transition-colors leading-snug mb-3">
                                     {post.title}
                                 </h3>
 
                                 {/* Excerpt */}
-                                <p className="text-sm text-slate-500 line-clamp-2 mb-4">
+                                <p className="text-sm text-slate-600 line-clamp-2 mb-4">
                                     {post.excerpt}
                                 </p>
 
                                 {/* Meta */}
-                                <div className="flex items-center gap-3 text-xs text-slate-400 mt-auto">
+                                <div className="flex items-center gap-3 text-xs text-slate-600 mt-auto">
                                     <span>{getTimeAgo(post.date)}</span>
                                     <span>•</span>
                                     <span>{post.readTime}</span>
@@ -140,7 +140,7 @@ export default function BlogPage() {
 
             {/* INSTAGRAM FEED */}
             <InstagramFeed
-                title={<>Our <span className="text-cyan-500">Live Feed</span></>}
+                title={<>Our <span className="text-cyan-700">Live Feed</span></>}
                 subtitle="Instagram Updates"
             />
 
@@ -148,9 +148,9 @@ export default function BlogPage() {
             <section className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 md:mt-24 mb-8 md:mb-12">
                 <div className="bg-slate-50 p-8 md:p-12 text-center relative overflow-hidden border border-slate-100 rounded-2xl">
                     <h2 className="text-2xl md:text-3xl font-light text-slate-900 mb-4 tracking-tight">
-                        Subscribe to Our <span className="font-medium text-cyan-500">Newsletter</span>
+                        Subscribe to Our <span className="font-medium text-cyan-700">Newsletter</span>
                     </h2>
-                    <p className="text-slate-500 mb-6 md:mb-8 font-normal text-sm md:text-base px-2">
+                    <p className="text-slate-600 mb-6 md:mb-8 font-normal text-sm md:text-base px-2">
                         Get photography tips and exclusive offers delivered to your inbox.
                     </p>
                     <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto px-2">
@@ -161,7 +161,7 @@ export default function BlogPage() {
                         />
                         <button
                             type="submit"
-                            className="bg-cyan-500 text-white font-medium py-3 md:py-4 px-6 md:px-8 hover:bg-slate-900 transition-all rounded-lg text-sm md:text-base"
+                            className="bg-cyan-700 text-white font-medium py-3 md:py-4 px-6 md:px-8 hover:bg-slate-900 transition-all rounded-lg text-sm md:text-base"
                         >
                             Subscribe
                         </button>

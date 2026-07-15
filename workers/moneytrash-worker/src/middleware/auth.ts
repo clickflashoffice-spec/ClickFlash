@@ -4,6 +4,7 @@
  */
 
 import { verifyJWT } from '../utils/jwt';
+import { logger } from "@clickflash/logger";
 
 export async function authMiddleware(
   request: Request,
@@ -50,7 +51,7 @@ export async function authMiddleware(
     return newRequest;
 
   } catch (error) {
-    console.error('JWT verification failed:', error);
+    logger.error('JWT verification failed:', { args: [error] });
     return Response.json(
       { error: 'Invalid or expired token' },
       { status: 401 }

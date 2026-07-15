@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { Order, Photo, Product } from "../../types.ts";
 import { cloudApiService } from "../../services/cloudApiService";
@@ -64,7 +65,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
           setWhiteLabelEnabled(true);
         }
       } catch (e) {
-        console.error("Failed to fetch features", e);
+        logger.error("Failed to fetch features", e);
       }
     };
     fetchFeatures();
@@ -170,7 +171,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     try {
       await Promise.resolve();
     } catch (error) {
-      console.error("Download failed", error);
+      logger.error("Download failed", error);
       alert("Download failed. Please try again.");
     }
   }, []);
@@ -374,7 +375,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
           onUpdateQuantity={handleUpdateCartQuantity}
           clientName={order?.clientName || "Guest"}
           email={order?.email || ""}
-          photographerId={order?.photographerId || 0}
+          photographerId={typeof order?.photographerId === 'number' ? order.photographerId : parseInt(String(order?.photographerId || "0"), 10)}
           destinationId={order?.destinationId || ""}
           onCheckoutSuccess={handleCheckoutSuccess}
         />

@@ -12,6 +12,7 @@ import Spinner from "../../common/Spinner.tsx";
 import { apiService } from "../../../services/apiService.ts";
 import { Order, Photographer } from "../../../types.ts";
 import { useCurrency } from "../../CurrencyContext.tsx";
+import { logger } from "@/utils/logger";
 
 interface MoneyTrashMarketingProps {
   currentUser: Photographer;
@@ -33,7 +34,7 @@ const MoneyTrashMarketing: React.FC<MoneyTrashMarketingProps> = ({
         const orders = await apiService.getOrders();
         setData({ orders });
       } catch (error) {
-        console.error("Failed to load MoneyTrash data", error);
+        logger.error("Failed to load MoneyTrash data", error);
       } finally {
         setLoading(false);
       }
@@ -52,13 +53,13 @@ const MoneyTrashMarketing: React.FC<MoneyTrashMarketingProps> = ({
 
     // Recovery detection: Orders with source 'website' and status 'Completed'
     const recoveryOrders = filteredOrders.filter(
-      (o) => o.source === "website" && o.status === "Completed",
+      (o) => (o.source as string) === "website" && o.status === "Completed",
     );
 
     // Potential recovery: Website orders that are still pending or cancelled
     const abandonedOrders = filteredOrders.filter(
       (o) =>
-        o.source === "website" &&
+        (o.source as string) === "website" &&
         (o.status === "Pending" || o.status === "Cancelled"),
     );
 

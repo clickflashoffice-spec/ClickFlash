@@ -85,7 +85,7 @@ export default function ServicesPage() {
             align="center"
             light={true}
           />
-          <p className="mx-auto mt-6 max-w-3xl px-4 text-base leading-relaxed text-slate-500 md:mt-8 md:text-lg">
+          <p className="mx-auto mt-6 max-w-3xl px-4 text-base leading-relaxed text-slate-600 md:mt-8 md:text-lg">
             ClickFlash offers a wide range of photography services tailored to various settings
             across Tunisia and beyond. From luxurious resorts to intimate weddings and professional
             corporate events, we capture unforgettable memories for every occasion.
@@ -109,7 +109,7 @@ export default function ServicesPage() {
                 viewport={{ once: true }}
                 className={service.reverse ? "lg:order-2" : "lg:order-1"}
               >
-                <span className="mb-4 block text-[10px] font-black tracking-[0.3em] text-cyan-500 uppercase">
+                <span className="mb-4 block text-[10px] font-black tracking-[0.3em] text-cyan-700 uppercase">
                   {service.title}
                 </span>
                 <h2 className="mb-6 text-2xl leading-tight font-black tracking-tighter text-slate-900 sm:text-3xl md:mb-8 md:text-4xl lg:text-5xl">
@@ -125,7 +125,7 @@ export default function ServicesPage() {
                       className="flex items-center gap-3 text-[12px] font-bold text-slate-800 md:text-[13px]"
                     >
                       <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-cyan-100">
-                        <CheckCircle2 className="h-4 w-4 text-cyan-500" />
+                        <CheckCircle2 className="h-4 w-4 text-cyan-700" />
                       </div>
                       {feature}
                     </div>
@@ -133,7 +133,7 @@ export default function ServicesPage() {
                 </div>
                 <Link
                   href={service.link}
-                  className="inline-block rounded-full bg-cyan-500 px-8 py-3 text-[11px] font-black tracking-widest text-white uppercase transition-all hover:bg-slate-900 md:px-10 md:py-4 md:text-[12px]"
+                  className="inline-block rounded-full bg-cyan-700 px-8 py-3 text-[11px] font-black tracking-widest text-white uppercase transition-all hover:bg-slate-900 md:px-10 md:py-4 md:text-[12px]"
                 >
                   Learn More
                 </Link>
@@ -199,7 +199,7 @@ export default function ServicesPage() {
       <section className="bg-slate-50 py-16 md:py-24 lg:py-32">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center md:mb-16 lg:mb-20">
-            <span className="mb-4 block text-[11px] font-black tracking-[0.3em] text-cyan-500 uppercase md:text-[12px]">
+            <span className="mb-4 block text-[11px] font-black tracking-[0.3em] text-cyan-700 uppercase md:text-[12px]">
               Our Expertise
             </span>
             <h2 className="text-3xl leading-tight font-black tracking-tighter text-slate-900 sm:text-4xl md:text-5xl lg:text-6xl">
@@ -220,7 +220,7 @@ export default function ServicesPage() {
                 <h3 className="mb-3 text-xl font-black text-slate-900 md:mb-4 md:text-2xl">
                   {item.title}
                 </h3>
-                <p className="text-slate-500">{item.desc}</p>
+                <p className="text-slate-600">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -230,7 +230,7 @@ export default function ServicesPage() {
       <InstagramFeed
         title={
           <>
-            Experience <span className="text-cyan-500">ClickFlash</span>
+            Experience <span className="text-cyan-700">ClickFlash</span>
           </>
         }
         subtitle="Stories in Motion"
@@ -240,11 +240,11 @@ export default function ServicesPage() {
       <section className="relative mx-4 mb-16 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 py-16 text-center sm:mx-6 md:mb-20 md:rounded-[3rem] md:py-24">
         <div className="relative z-10 px-4">
           <h2 className="mb-6 text-2xl font-black tracking-tighter text-slate-900 sm:text-3xl md:mb-10 md:text-5xl lg:text-6xl">
-            Ready to Capture <span className="text-cyan-500 italic">Your Moments?</span>
+            Ready to Capture <span className="text-cyan-700 italic">Your Moments?</span>
           </h2>
           <Link
             href="/bookings"
-            className="inline-block rounded-full bg-cyan-500 px-8 py-4 text-[10px] font-black tracking-widest text-white uppercase shadow-xl shadow-cyan-500/20 transition-all hover:bg-slate-900 hover:text-white md:px-14 md:py-6 md:text-[11px]"
+            className="inline-block rounded-full bg-cyan-700 px-8 py-4 text-[10px] font-black tracking-widest text-white uppercase shadow-xl shadow-cyan-500/20 transition-all hover:bg-slate-900 hover:text-white md:px-14 md:py-6 md:text-[11px]"
           >
             Book Now
           </Link>

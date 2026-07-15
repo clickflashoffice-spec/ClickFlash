@@ -1,26 +1,26 @@
 {
-    "name": "gallery-backend",
-    "version": "1.0.0",
-    "description": "TypeScript backend for Gallery App (Cloudflare Worker)",
-    "main": "src/server.ts",
-    "scripts": {
-        "dev": "tsx watch src/server.ts",
-        "start": "tsx src/server.ts",
-        "build": "tsc",
-        "test": "jest"
-    },
-    "dependencies": {
-        "@sentry/cloudflare": "^10.48.0",
-        "bcryptjs": "^2.4.3",
-        "jose": "^6.2.2",
-        "zod": "^3.24.1"
-    },
-    "devDependencies": {
-        "@cloudflare/workers-types": "^4.20240208.0",
-        "@types/bcryptjs": "^2.4.6",
-        "@types/node": "^22.13.1",
-        "tsx": "^4.19.2",
-        "typescript": "^5.7.3",
-        "wrangler": "^3.28.1"
-    }
+  "name": "gallery-backend",
+  "version": "2.0.0",
+  "description": "TypeScript backend for Gallery App (Cloudflare Worker)",
+  "main": "src/server.ts",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "build": "tsc",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@sentry/cloudflare": "^10.48.0",
+    "bcryptjs": "^2.4.3",
+    "jose": "^6.2.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.13.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "wrangler": "^3.28.1"
+  }
 }

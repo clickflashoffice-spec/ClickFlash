@@ -1,5 +1,6 @@
 import { cloudApiService } from "./cloudApiService";
 import type { Order } from "../types.ts";
+import { logger } from "@/utils/logger";
 
 export interface FleetStatus {
   total: number;
@@ -278,7 +279,7 @@ class FleetService {
       if (response.data) return response.data;
       return { total: 4, online: 4, offline: 0, warning: 0 };
     } catch (error) {
-      console.warn("Failed to fetch fleet status, returning fallback status:", error);
+      logger.warn("Failed to fetch fleet status, returning fallback status:", error);
       return { total: 4, online: 4, offline: 0, warning: 0 };
     }
   }
@@ -291,7 +292,7 @@ class FleetService {
       }
       return FALLBACK_MASTER_STATIONS;
     } catch (error) {
-      console.warn("Failed to fetch stations, returning fallback stations:", error);
+      logger.warn("Failed to fetch stations, returning fallback stations:", error);
       return FALLBACK_MASTER_STATIONS;
     }
   }
@@ -304,7 +305,7 @@ class FleetService {
       if (response.data) return response.data;
       return FALLBACK_MASTER_STATIONS.find((s) => s.id === deskId) || FALLBACK_MASTER_STATIONS[0];
     } catch (error) {
-      console.warn("Failed to fetch station details, returning fallback:", error);
+      logger.warn("Failed to fetch station details, returning fallback:", error);
       return FALLBACK_MASTER_STATIONS.find((s) => s.id === deskId) || FALLBACK_MASTER_STATIONS[0];
     }
   }
@@ -315,7 +316,7 @@ class FleetService {
         `/api/cloud/fleet/stations/${deskId}/heartbeat`,
       );
     } catch (error) {
-      console.warn("Failed to send heartbeat:", error);
+      logger.warn("Failed to send heartbeat:", error);
     }
   }
 
@@ -327,7 +328,7 @@ class FleetService {
         await cloudApiService.post("/api/cloud/fleet/sync-all");
       }
     } catch (error) {
-      console.warn("Failed to force sync:", error);
+      logger.warn("Failed to force sync:", error);
     }
   }
 
@@ -346,7 +347,7 @@ class FleetService {
       if (response.data) return response.data;
       return { operations: [], total: 0 };
     } catch (error) {
-      console.warn("Failed to fetch sync operations, returning defaults:", error);
+      logger.warn("Failed to fetch sync operations, returning defaults:", error);
       return { operations: [], total: 0 };
     }
   }
@@ -357,7 +358,7 @@ class FleetService {
         `/api/cloud/sync/operations/${operationId}/retry`,
       );
     } catch (error) {
-      console.warn("Failed to retry operation:", error);
+      logger.warn("Failed to retry operation:", error);
     }
   }
 
@@ -374,7 +375,7 @@ class FleetService {
       if (response.data && Array.isArray(response.data)) return response.data;
       return [];
     } catch (error) {
-      console.warn("Failed to fetch inventory, returning fallback:", error);
+      logger.warn("Failed to fetch inventory, returning fallback:", error);
       return [
         {
           id: "INV-01",
@@ -418,7 +419,7 @@ class FleetService {
       );
       return response.data;
     } catch (error) {
-      console.warn("Failed to update stock:", error);
+      logger.warn("Failed to update stock:", error);
       throw error;
     }
   }
@@ -430,7 +431,7 @@ class FleetService {
       const response = await cloudApiService.post("/api/cloud/inventory", item);
       return response.data;
     } catch (error) {
-      console.warn("Failed to create inventory item:", error);
+      logger.warn("Failed to create inventory item:", error);
       throw error;
     }
   }
@@ -448,7 +449,7 @@ class FleetService {
       if (response.data && Array.isArray(response.data)) return response.data;
       return [];
     } catch (error) {
-      console.warn("Failed to fetch equipment, returning fallback:", error);
+      logger.warn("Failed to fetch equipment, returning fallback:", error);
       return [
         {
           id: "EQ-01",
@@ -478,7 +479,7 @@ class FleetService {
       const response = await cloudApiService.post("/api/cloud/equipment", item);
       return response.data;
     } catch (error) {
-      console.error("Failed to create equipment item:", error);
+      logger.error("Failed to create equipment item:", error);
       throw error;
     }
   }
@@ -494,7 +495,7 @@ class FleetService {
       );
       return response.data;
     } catch (error) {
-      console.error("Failed to update equipment status:", error);
+      logger.error("Failed to update equipment status:", error);
       throw error;
     }
   }
@@ -514,7 +515,7 @@ class FleetService {
         record,
       );
     } catch (error) {
-      console.error("Failed to add maintenance record:", error);
+      logger.error("Failed to add maintenance record:", error);
       throw error;
     }
   } // <-- Added missing brace
@@ -574,7 +575,7 @@ class FleetService {
       if (res.status !== 200) throw new Error("Command failed");
       return true;
     } catch (e) {
-      console.error(`Failed to dispatch ${command} to desk ${deskId}:`, e);
+      logger.error(`Failed to dispatch ${command} to desk ${deskId}:`, e);
       return false;
     }
   }

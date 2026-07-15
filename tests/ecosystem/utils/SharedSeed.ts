@@ -53,7 +53,8 @@ export class SharedSeed {
           if (!file.endsWith(".sql") || applied.has(file)) continue;
           
           const content = fs.readFileSync(path.join(dir, file), "utf8").split(/--\s*Down/i)[0];
-          const statements = content.split(';').map(s => s.trim()).filter(s => s.length > 0);
+          const noComments = content.replace(/--.*$/gm, '');
+          const statements = noComments.split(';').map(s => s.trim()).filter(s => s.length > 0);
           
           try {
             db.transaction(() => {

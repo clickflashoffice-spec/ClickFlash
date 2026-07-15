@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Key, ShieldCheck, Cpu, AlertTriangle, Search, Copy, Check, Download, RefreshCw } from "lucide-react";
+import { Key, ShieldCheck, Cpu, AlertTriangle, Search, Copy, Check, Download, RefreshCw, Plus, X } from "lucide-react";
 
 export interface EnterpriseLicenseRecord {
   id: string;
@@ -19,7 +19,7 @@ const INITIAL_LICENSES: EnterpriseLicenseRecord[] = [
     id: "lic-001",
     resortName: "Grand Riviera Beach & Casino",
     destinationId: "DEST-RIV-01",
-    licenseKey: "CF-LIVE-eyJyZXNvcnQiOiJHcmFuZCBSaXZpZXJhIiwidGllciI6IkVOVEVSUFJJU0UiLCJleHAiOiIyMDI4LTEyLTMxIn0=.SIG-8F93A4B2C1E7D001",
+    licenseKey: "eyJwYXlsb2FkIjp7Im1hY2hpbmVGaW5nZXJwcmludC... (RSA-4096 Base64)",
     tier: "ENTERPRISE",
     hardwareUuid: "49AE-99B1-82C4-FA11",
     issuedAt: "2026-01-15",
@@ -31,7 +31,7 @@ const INITIAL_LICENSES: EnterpriseLicenseRecord[] = [
     id: "lic-002",
     resortName: "Alamo Alpine Ski Resort",
     destinationId: "DEST-ALP-04",
-    licenseKey: "CF-LIVE-eyJyZXNvcnQiOiJBbHBpbmUgU2tpIiwidGllciI6IlBSTyIsImV4cCI6IjIwMjctMDYtMzAifQ==.SIG-71B83C29AA41E902",
+    licenseKey: "eyJwYXlsb2FkIjp7Im1hY2hpbmVGaW5nZXJwcmludC... (RSA-4096 Base64)",
     tier: "PRO",
     hardwareUuid: "B821-44A0-91C3-11D9",
     issuedAt: "2026-02-01",
@@ -43,7 +43,7 @@ const INITIAL_LICENSES: EnterpriseLicenseRecord[] = [
     id: "lic-003",
     resortName: "Sunset Palms Island Club",
     destinationId: "DEST-SUN-09",
-    licenseKey: "CF-LIVE-eyJyZXNvcnQiOiJTdW5zZXQgUGFsbXMiLCJ0aWVyIjoiUkVTT1JUIiwiZXhwIjoiMjAyNi0wNy0xNSJ9.SIG-00A1F3C4B892D110",
+    licenseKey: "eyJwYXlsb2FkIjp7Im1hY2hpbmVGaW5nZXJwcmludC... (RSA-4096 Base64)",
     tier: "RESORT",
     hardwareUuid: "009F-11C2-77AA-55EE",
     issuedAt: "2025-07-15",
@@ -58,11 +58,74 @@ export const LicenseManagementPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTier, setSelectedTier] = useState<string>("ALL");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  
+  const [newLicenseForm, setNewLicenseForm] = useState({
+    resortName: "",
+    destinationId: "",
+    hardwareUuid: "",
+    tier: "PRO",
+    expiresAt: "",
+  });
 
   const handleCopyKey = (id: string, key: string) => {
     navigator.clipboard.writeText(key);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleGenerateLicense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsGenerating(true);
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/admin/licenses`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newLicenseForm)
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.license) {
+        // Create a blob and download it
+        const jsonStr = JSON.stringify(data.license, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `license-${newLicenseForm.hardwareUuid}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Add to UI
+        const newRecord: EnterpriseLicenseRecord = {
+          id: `lic-${Date.now()}`,
+          resortName: newLicenseForm.resortName,
+          destinationId: newLicenseForm.destinationId,
+          licenseKey: `${data.license.signature.substring(0, 32)}... (RSA-4096 Base64)`,
+          tier: newLicenseForm.tier as "ENTERPRISE" | "PRO" | "RESORT",
+          hardwareUuid: newLicenseForm.hardwareUuid,
+          issuedAt: new Date().toISOString().split('T')[0],
+          expiresAt: newLicenseForm.expiresAt || "Never",
+          status: "ACTIVE",
+          signatureValid: true
+        };
+        
+        setLicenses([newRecord, ...licenses]);
+        setIsModalOpen(false);
+        setNewLicenseForm({ resortName: "", destinationId: "", hardwareUuid: "", tier: "PRO", expiresAt: "" });
+      } else {
+        alert("Failed to generate license: " + (data.error || "Unknown error"));
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error contacting cloud backend.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const filteredLicenses = useMemo(() => {
@@ -101,7 +164,7 @@ export const LicenseManagementPage: React.FC = () => {
   };
 
   return (
-    <div className="p-8 space-y-8 bg-slate-950 min-h-screen text-slate-100">
+    <div className="p-8 space-y-8 bg-slate-950 min-h-screen text-slate-100 relative">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
         <div>
@@ -111,10 +174,17 @@ export const LicenseManagementPage: React.FC = () => {
           </div>
           <h1 className="text-3xl font-bold tracking-tight mt-1">Enterprise License Administration</h1>
           <p className="text-slate-400 text-sm mt-1">
-            Audit Ed25519 asymmetric CF-LIVE license keys, hardware machine fingerprints, and resort expirations.
+            Audit RSA-4096 asymmetric license tokens, hardware machine fingerprints, and resort expirations.
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-sm font-semibold transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            Issue New License
+          </button>
           <button
             onClick={handleExportCSV}
             className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl text-sm font-semibold transition-all"
@@ -188,7 +258,7 @@ export const LicenseManagementPage: React.FC = () => {
               <th className="px-6 py-4">Tier</th>
               <th className="px-6 py-4">Hardware UUID Lock</th>
               <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">CF-LIVE Key</th>
+              <th className="px-6 py-4">RSA-4096 Token</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60">
@@ -237,7 +307,7 @@ export const LicenseManagementPage: React.FC = () => {
                     <button
                       onClick={() => handleCopyKey(lic.id, lic.licenseKey)}
                       className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-colors"
-                      title="Copy full CF-LIVE license key"
+                      title="Copy full RSA-4096 license token"
                     >
                       {copiedId === lic.id ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                     </button>
@@ -248,6 +318,68 @@ export const LicenseManagementPage: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Issue Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div className="flex justify-between items-center p-5 border-b border-slate-800 bg-slate-950/50">
+              <h2 className="text-lg font-bold">Issue Cryptographic License</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleGenerateLicense} className="p-6 space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-400 uppercase">Resort Name</label>
+                  <input required value={newLicenseForm.resortName} onChange={e => setNewLicenseForm({...newLicenseForm, resortName: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none" placeholder="e.g. Grand Alpine" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-400 uppercase">Destination ID</label>
+                  <input required value={newLicenseForm.destinationId} onChange={e => setNewLicenseForm({...newLicenseForm, destinationId: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none" placeholder="e.g. DEST-01" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-400 uppercase">Hardware UUID (Target Machine)</label>
+                <div className="flex items-center relative">
+                  <Cpu className="w-4 h-4 absolute left-3 text-slate-500" />
+                  <input required value={newLicenseForm.hardwareUuid} onChange={e => setNewLicenseForm({...newLicenseForm, hardwareUuid: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-3 py-2 text-sm font-mono focus:border-cyan-500 focus:outline-none" placeholder="XXXX-XXXX-XXXX-XXXX" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-400 uppercase">License Tier</label>
+                  <select value={newLicenseForm.tier} onChange={e => setNewLicenseForm({...newLicenseForm, tier: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none">
+                    <option value="PRO">PRO</option>
+                    <option value="ENTERPRISE">ENTERPRISE</option>
+                    <option value="RESORT">RESORT</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-400 uppercase">Expiration Date (Optional)</label>
+                  <input type="date" value={newLicenseForm.expiresAt} onChange={e => setNewLicenseForm({...newLicenseForm, expiresAt: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none" />
+                </div>
+              </div>
+              
+              <div className="bg-cyan-900/20 border border-cyan-800/40 p-4 rounded-xl mt-4">
+                <p className="text-xs text-cyan-300">
+                  <ShieldCheck className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+                  License payload will be signed on the Cloud Backend using the RSA-4096 private key with PSS padding. This will output a `license.json` file to deploy to the kiosk.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors">Cancel</button>
+                <button disabled={isGenerating} type="submit" className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-all flex items-center gap-2">
+                  {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
+                  Sign & Generate
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

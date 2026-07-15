@@ -34,6 +34,7 @@ import { GlobalReportView } from "../reports/GlobalReportView.tsx";
 import DashboardProfitability from "../../dashboard/widgets/DashboardProfitability.tsx";
 import DashboardIncomeAnalytics from "../../dashboard/widgets/DashboardIncomeAnalytics.tsx";
 import type { Order, Booking, Expense, Destination } from "../../../types";
+import { logger } from "@/utils/logger";
 
 interface ClickFlashAnalyticsProps {
   context?: ManagementContext;
@@ -96,7 +97,7 @@ const ClickFlashAnalytics: React.FC<ClickFlashAnalyticsProps> = ({
           destinations: destinations, // Store destinations for leaderboard
         });
       } catch (err) {
-        console.error("Dashboard Sync Failed", err);
+        logger.error("Dashboard Sync Failed", err);
       } finally {
         setLoading(false);
       }

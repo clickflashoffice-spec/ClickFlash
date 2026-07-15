@@ -1,3 +1,5 @@
+import { logger } from "@clickflash/logger";
+
 // backend/init-default-user.js
 // Script to initialize default admin user if database is empty
 // Run this on first startup or when database is reset
@@ -25,24 +27,24 @@ async function initDefaultUser(dbManagerOrPath) {
     // If dbManager is provided (from server.js), use it directly
     if (dbManagerOrPath && typeof dbManagerOrPath.get === 'function') {
         dbManager = dbManagerOrPath;
-        console.log('[Init] Checking for default user...');
+        logger.info(String('[Init] Checking for default user...'));
     } else {
         // Otherwise, create a new connection (standalone execution)
         const dbPath = typeof dbManagerOrPath === 'string'
             ? path.join(dbManagerOrPath, 'data.db')
             : DB_FILE;
-        console.log('[Init] Checking for default user...');
-        console.log(`[Init] Database: ${dbPath}`);
+        logger.info(String('[Init] Checking for default user...'));
+        logger.info(String(`[Init] Database: ${dbPath}`));
 
         if (!require('fs').existsSync(dbPath)) {
-            console.warn(`[Init] Database file not found: ${dbPath}`);
-            console.warn('[Init] Will create default user when database is initialized.');
+            logger.warn(String(`[Init] Database file not found: ${dbPath}`));
+            logger.warn(String('[Init] Will create default user when database is initialized.'));
             return;
         }
 
         dbManager = new DatabaseManager(dbPath);
         dbManager.connect();
-        console.log('[Init] Database connected');
+        logger.info(String('[Init] Database connected'));
     }
 
     try {
@@ -51,13 +53,13 @@ async function initDefaultUser(dbManagerOrPath) {
         const existingUsers = dbManager.query('SELECT COUNT(*) as count FROM users');
         const userCount = existingUsers[0]?.count || 0;
 
-        console.log(`[Init] Found ${userCount} existing user(s)`);
+        logger.info(String(`[Init] Found ${userCount} existing user(s)`));
 
         // Check if default user already exists
         const defaultUser = dbManager.get('SELECT * FROM users WHERE email = ?', [DEFAULT_USER.email]);
 
         if (userCount === 0 || !defaultUser) {
-            console.log(`[Init] Creating default admin user: ${DEFAULT_USER.email}`);
+            logger.info(String(`[Init] Creating default admin user: ${DEFAULT_USER.email}`));
 
             const hashedPassword = await hashPassword(DEFAULT_USER.password);
 
@@ -74,23 +76,23 @@ async function initDefaultUser(dbManagerOrPath) {
                 DEFAULT_USER.desk_id
             ]);
 
-            console.log(`[Init] ✓ Default user created successfully`);
-            console.log(`[Init] Email: ${DEFAULT_USER.email}`);
-            console.log(`[Init] Password: ${DEFAULT_USER.password}`);
-            console.log(`[Init] Role: ${DEFAULT_USER.role}`);
-            console.log(`[Init] Desk ID: ${DEFAULT_USER.desk_id}`);
+            logger.info(String(`[Init] ✓ Default user created successfully`));
+            logger.info(String(`[Init] Email: ${DEFAULT_USER.email}`));
+            logger.info(String(`[Init] Password: ${DEFAULT_USER.password}`));
+            logger.info(String(`[Init] Role: ${DEFAULT_USER.role}`));
+            logger.info(String(`[Init] Desk ID: ${DEFAULT_USER.desk_id}`));
         } else {
-            console.log(`[Init] Default user already exists: ${DEFAULT_USER.email}`);
-            console.log(`[Init] Role: ${defaultUser.role}`);
+            logger.info(String(`[Init] Default user already exists: ${DEFAULT_USER.email}`));
+            logger.info(String(`[Init] Role: ${defaultUser.role}`));
             
             // Ensure desk_id is set for existing admin (Rule 01 compliance)
             if (!defaultUser.desk_id) {
-                console.log(`[Init] Patching missing desk_id for: ${DEFAULT_USER.email}`);
+                logger.info(String(`[Init] Patching missing desk_id for: ${DEFAULT_USER.email}`));
                 dbManager.run('UPDATE users SET desk_id = ? WHERE email = ?', [DEFAULT_USER.desk_id, DEFAULT_USER.email]);
             }
         }
     } catch (error) {
-        console.error('[Init] ERROR:', error.message);
+        logger.error('[Init] ERROR:', { args: [error.message] });
         process.exit(1);
     }
 }
@@ -99,11 +101,11 @@ async function initDefaultUser(dbManagerOrPath) {
 if (require.main === module) {
     initDefaultUser()
         .then(() => {
-            console.log('[Init] Initialization complete');
+            logger.info(String('[Init] Initialization complete'));
             process.exit(0);
         })
         .catch((error) => {
-            console.error('[Init] Fatal error:', error);
+            logger.error('[Init] Fatal error:', { args: [error] });
             process.exit(1);
         });
 }

@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 /**
  * Unified Money Trash Integration Architecture
  * 
@@ -68,7 +69,7 @@ class UnifiedMoneyTrashIntegration extends EventEmitter {
     this.sources.set(source.id, fullSource);
     this.emit('source:registered', fullSource);
     
-    console.log(`[MoneyTrash] Registered source: ${source.name} (${source.type})`);
+    logger.info(`[MoneyTrash] Registered source: ${source.name} (${source.type})`);
     return fullSource;
   }
 
@@ -93,7 +94,7 @@ class UnifiedMoneyTrashIntegration extends EventEmitter {
           });
         }
       } catch (error) {
-        console.error(`[MoneyTrash] Failed to fetch from ${source.name}:`, error);
+        logger.error(`[MoneyTrash] Failed to fetch from ${source.name}:`, error);
       }
     }
     

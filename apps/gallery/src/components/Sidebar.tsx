@@ -1,9 +1,9 @@
+import { logger } from '@clickflash/logger';
 import React, { useEffect, useState } from "react";
 import ThemeToggle from "./ThemeToggle";
 import { Logo } from "./common/Logo";
 import { usePermissions } from "../hooks/usePermissions.ts";
 import { Photographer, View, DestinationFeatures, Permission } from "../types.ts";
-import { logger } from "../utils/logger.ts";
 
 interface SidebarProps {
   currentView: View;
@@ -257,7 +257,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         setLogoUrl(parsed.logoUrl || "/gallery/logo.png");
         setDeskName(parsed.deskName || "MASTER STATION");
       } catch (e) {
-        console.error("Failed to parse branding", e);
+        logger.error("Failed to parse branding", e);
       }
     }
   }, []);

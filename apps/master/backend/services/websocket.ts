@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import WebSocket, { WebSocketServer } from 'ws';
+import crypto from 'crypto';
 import DatabaseManager from '../database/db';
 import { Logger } from '../utils/logger';
 import { SyncManager } from './SyncManager';
@@ -136,15 +137,48 @@ const initWebSocketServer = (server: Server, context: WebSocketContext): WebSock
 
                 const url = new URL(req.url || '', 'http://localhost');
                 const kioskId = url.searchParams.get('kioskId');
+                const signature = url.searchParams.get('signature');
+                const timestamp = url.searchParams.get('timestamp');
+
                 if (!kioskId) {
                     logger.warn(`[WebSocket] Rejected upgrade from ${ip} — no kioskId`);
                     return cb(false, 4001, 'Missing kioskId');
                 }
 
-                const kiosk = dbManager.get('SELECT id FROM kiosks WHERE id = ?', [kioskId]);
+                const kiosk = dbManager.get('SELECT id, settings FROM kiosks WHERE id = ?', [kioskId]);
                 if (!kiosk) {
                     logger.warn(`[WebSocket] Rejected unknown kiosk ${kioskId} from ${ip}`);
                     return cb(false, 4003, 'Unknown kiosk');
+                }
+
+                // Enforce HMAC challenge
+                if (kiosk.settings) {
+                    try {
+                        const settings = typeof kiosk.settings === 'string' ? JSON.parse(kiosk.settings) : kiosk.settings;
+                        if (settings.pairingSecret) {
+                            if (!signature || !timestamp) {
+                                logger.warn(`[WebSocket] Rejected kiosk ${kioskId} from ${ip} — missing HMAC challenge`);
+                                return cb(false, 4001, 'Missing HMAC challenge');
+                            }
+                            
+                            // Check timestamp age (5 minutes max)
+                            if (Math.abs(Date.now() - parseInt(timestamp, 10)) > 5 * 60 * 1000) {
+                                logger.warn(`[WebSocket] Rejected kiosk ${kioskId} from ${ip} — expired timestamp`);
+                                return cb(false, 4001, 'Expired timestamp');
+                            }
+                            
+                            const payload = `${kioskId}:${timestamp}`;
+                            const expectedSig = crypto.createHmac('sha256', settings.pairingSecret).update(payload).digest('hex');
+                            const clientSig = signature.replace(/^sha256=/, '');
+                            
+                            if (expectedSig !== clientSig) {
+                                logger.warn(`[WebSocket] Rejected kiosk ${kioskId} from ${ip} — invalid HMAC signature`);
+                                return cb(false, 4001, 'Invalid HMAC signature');
+                            }
+                        }
+                    } catch (e: any) {
+                        logger.error('[WebSocket] Error parsing kiosk settings', { error: e.message });
+                    }
                 }
 
                 cb(true);

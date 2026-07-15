@@ -6,6 +6,7 @@ import { Order, OrderItem, Product, Photo, ManualEdits } from '../../types.ts';
 import { useCurrency } from '../CurrencyContext.tsx';
 import { apiService } from '../../services/apiService.ts';
 import PhotoEditModal from '../PhotoEditModal.tsx';
+import { logger } from "@/utils/logger";
 
 /**
  * OrderEditModal Component Props
@@ -230,7 +231,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
       onSave(finalizedOrder);
       showToast('Digital delivery finalized! An email with login details has been sent to the customer.');
     } catch (err) {
-      console.error(err);
+      logger.error(err instanceof Error ? err.message : String(err));
       showToast('Error finalizing delivery. Please try again.');
     } finally {
       setIsFinalizing(false);

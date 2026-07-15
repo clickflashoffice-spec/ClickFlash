@@ -31,6 +31,7 @@ interface PhotoMetadata {
   orientation?: number;
   autoEdits?: any;
   autoEnhanced?: boolean;
+  entaggedBarcode?: string | null;
 }
 
 export interface QualityResult {
@@ -362,6 +363,7 @@ export class PhotoProcessor {
         orientation: workerResult.metadata.orientation || 1,
         autoEdits: workerResult.autoEdits,
         autoEnhanced: Boolean(workerResult.autoEdits && Object.keys(workerResult.autoEdits).length > 0),
+        entaggedBarcode: workerResult.entaggedBarcode || null,
       };
     } catch (error) {
       logger.error("[PhotoProcessor] Processing failed:", error);
@@ -389,14 +391,41 @@ export class PhotoProcessor {
     width: number | null,
     height: number | null,
   ): Promise<QualityResult> {
+    try {
+      // 1. Try ML Worker Curation Scoring Engine
+      const mlResult = await this.mlPool.run({
+        type: "curate-photo",
+        imagePath: filepath,
+        width,
+        height,
+      });
+
+      if (mlResult && typeof mlResult.score === "number") {
+        if (mlResult.flags && mlResult.flags.length > 0) {
+          logger.info(
+            `[Quality Engine] AI Curation completed: score=${mlResult.score}, flags=${mlResult.flags.join(", ")}`,
+            { filepath },
+          );
+        }
+        return {
+          score: mlResult.score,
+          flags: mlResult.flags || [],
+        };
+      }
+    } catch (mlErr: any) {
+      logger.warn("[Quality Engine] ML Worker curation check failed, using fast fallback", {
+        error: mlErr.message,
+      });
+    }
+
+    // 2. Fast statistical fallback
     const flags: string[] = [];
     let score = 100;
 
     try {
       const stats = await sharp(filepath).stats();
-      const channels = stats.channels; // [{mean, stdev, …}, …]
+      const channels = stats.channels;
 
-      // 1. Blur detection — low stdev across all channels means flat/blurry image
       const avgStdev =
         channels.reduce((s, c) => s + c.stdev, 0) / channels.length;
       const BLUR_STDEV_THRESHOLD = 18;
@@ -405,8 +434,7 @@ export class PhotoProcessor {
         score -= 40;
       }
 
-      // 2. Exposure detection using channel means
-      const avgMean = channels.slice(0, 3).reduce((s, c) => s + c.mean, 0) / 3; // RGB only
+      const avgMean = channels.slice(0, 3).reduce((s, c) => s + c.mean, 0) / 3;
       if (avgMean > 230) {
         flags.push("overexposed");
         score -= 30;
@@ -415,22 +443,13 @@ export class PhotoProcessor {
         score -= 30;
       }
 
-      // 3. Low resolution
       if (width && height && (width < 800 || height < 800)) {
         flags.push("low_resolution");
         score -= 20;
       }
 
       score = Math.max(0, score);
-
-      if (flags.length > 0) {
-        logger.warn(
-          `[Quality] Photo flagged: ${flags.join(", ")} (score: ${score})`,
-          { filepath },
-        );
-      }
     } catch (err) {
-      // Non-fatal — quality analysis failure should not block the upload
       logger.warn("[Quality] Analysis failed, defaulting to score 100", {
         error: (err as Error).message,
       });

@@ -93,8 +93,8 @@ const CalendarWidget: React.FC = memo(() => {
           {weekDays.map(day => {
             const dayBookings = bookingsByDay.get(day.toDateString()) ?? [];
             const isToday = isSameDay(day, today);
-            const hasPending = dayBookings.some(b => b.status === 'Pending');
-            const hasConfirmed = dayBookings.some(b => b.status === 'Confirmed');
+            const hasPending = dayBookings.some(b => b.status === 'pending');
+            const hasConfirmed = dayBookings.some(b => b.status === 'confirmed');
 
             return (
               <div

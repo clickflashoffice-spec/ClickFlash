@@ -4,6 +4,7 @@
  */
 
 import { Env } from '../../index';
+import { logger } from "@clickflash/logger";
 
 export interface GalleryCreateRequest {
   name: string;
@@ -97,7 +98,7 @@ export async function handleGalleryCreate(request: Request, env: Env): Promise<R
     });
     
   } catch (error) {
-    console.error('Gallery creation error:', error);
+    logger.error('Gallery creation error:', { args: [error] });
     return Response.json(
       { error: 'Failed to create gallery' },
       { status: 500 }

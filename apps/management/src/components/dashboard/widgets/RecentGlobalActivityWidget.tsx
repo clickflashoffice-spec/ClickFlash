@@ -1,5 +1,7 @@
 import React, { useMemo } from "react";
-import { Order, Album, View } from "../../../types.ts";
+import { Order, Album } from "../../../types.ts";
+
+export type View = string;
 
 interface RecentGlobalActivityWidgetProps {
   orders: Order[];
@@ -65,7 +67,7 @@ const RecentGlobalActivityWidget: React.FC<RecentGlobalActivityWidgetProps> = ({
         metadata: {
           status: album.status,
           photographer: album.photographerId?.toString(),
-          destination: album.destinationId?.toString(),
+          destination: (album as any).destinationId?.toString(),
         },
       });
     });

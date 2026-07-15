@@ -36,7 +36,7 @@ export const getBaseUrl = (): string => {
       // Basic validation
       if (serverParam.startsWith("http")) {
         if (isPublicDomain() && !isSafeConnection(serverParam)) {
-          console.warn(`[PB] Blocked unsafe server param: ${serverParam}`);
+          logger.warn(`[PB] Blocked unsafe server param: ${serverParam}`);
         } else {
           return serverParam;
         }
@@ -61,7 +61,7 @@ export const getBaseUrl = (): string => {
         }
         // If mode is local, we continue to default local logic
       } catch (e) {
-        console.error("Failed to parse connection settings", e);
+        logger.error("Failed to parse connection settings", e);
       }
     }
   }
@@ -136,7 +136,7 @@ class CustomPocketBaseAdapter {
   // Helper to support dynamic URL switching
   set baseUrlValue(url: string) {
     if (isPublicDomain() && !isSafeConnection(url)) {
-      console.warn(
+      logger.warn(
         `[PB] Security Block: Attempted to set unsafe URL ${url} on public domain. Ignoring.`,
       );
       return;
@@ -419,7 +419,7 @@ class CustomPocketBaseAdapter {
                 });
               }
             } catch (err) {
-              console.error("SSE Parse Error", err);
+              logger.error("SSE Parse Error", err);
             }
           }
         };

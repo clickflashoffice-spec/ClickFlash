@@ -90,7 +90,7 @@ const ObjectivesModal: React.FC<ObjectivesModalProps> = ({
                     className="bg-white dark:bg-slate-700/50 p-3 rounded-md"
                   >
                     <p className="font-semibold text-slate-800 dark:text-slate-300">
-                      {obj.photoTarget} photos
+                      {obj.target} photos
                     </p>
                     <div className="flex justify-between items-center text-sm mt-1">
                       <span className="text-slate-500 dark:text-slate-400">

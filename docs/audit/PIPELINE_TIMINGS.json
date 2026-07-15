@@ -1,0 +1,113 @@
+{
+  "date": "2026-07-15T17:37:45.049Z",
+  "platform": "win32 x64",
+  "nodeVersion": "v24.13.1",
+  "sharpVersion": "0.35.1",
+  "testImage": {
+    "width": 1024,
+    "height": 768,
+    "format": "jpeg",
+    "bytes": 2631
+  },
+  "totalDurationMs": 262,
+  "totalBytesIn": 10202,
+  "totalBytesOut": 33852,
+  "stages": [
+    {
+      "stage": "1. Generate synthetic JPEG (1024x768)",
+      "durationMs": 36,
+      "bytesIn": 0,
+      "bytesOut": 2631
+    },
+    {
+      "stage": "2. SHA-256 hash",
+      "durationMs": 0,
+      "bytesIn": 2631,
+      "bytesOut": 64,
+      "notes": "hash=e2916fc3f256653b…"
+    },
+    {
+      "stage": "3. Sharp resize (4 derivatives, parallel)",
+      "durationMs": 45,
+      "bytesIn": 2631,
+      "bytesOut": 24862,
+      "notes": "2048=18700 1024=4876 320=868 160=418"
+    },
+    {
+      "stage": "4. Watermark + WebP encode",
+      "durationMs": 126,
+      "bytesIn": 4876,
+      "bytesOut": 5144,
+      "notes": "webp=5144B"
+    },
+    {
+      "stage": "5. SQLite insert + 3 indexes",
+      "durationMs": 33,
+      "bytesIn": 0,
+      "bytesOut": 1,
+      "notes": "1 row, 3 indexes"
+    },
+    {
+      "stage": "6. Idempotency: duplicate (albumId, hash) rejected",
+      "durationMs": 1,
+      "bytesIn": 0,
+      "bytesOut": 1,
+      "notes": "rejected=true"
+    },
+    {
+      "stage": "7. Idempotency: same hash in different album allowed",
+      "durationMs": 2,
+      "bytesIn": 0,
+      "bytesOut": 2,
+      "notes": "count=2"
+    },
+    {
+      "stage": "8. Static file serve (HTTP range request)",
+      "durationMs": 2,
+      "bytesIn": 0,
+      "bytesOut": 1024,
+      "notes": "bytes=4675-5698"
+    },
+    {
+      "stage": "9. Signed URL generation (HMAC-SHA256)",
+      "durationMs": 1,
+      "bytesIn": 0,
+      "bytesOut": 119,
+      "notes": "sig=7faddfce7421a29c…"
+    },
+    {
+      "stage": "10. Signed URL validation (constant-time compare)",
+      "durationMs": 0,
+      "bytesIn": 64,
+      "bytesOut": 1,
+      "notes": "valid=true"
+    },
+    {
+      "stage": "11. MoneyTrash expiry (mark expired)",
+      "durationMs": 3,
+      "bytesIn": 0,
+      "bytesOut": 1,
+      "notes": "status=expired"
+    },
+    {
+      "stage": "12. MoneyTrash recovery (un-expire)",
+      "durationMs": 3,
+      "bytesIn": 0,
+      "bytesOut": 1,
+      "notes": "status=ready"
+    },
+    {
+      "stage": "13. Query album photos",
+      "durationMs": 0,
+      "bytesIn": 0,
+      "bytesOut": 1,
+      "notes": "1 photos"
+    },
+    {
+      "stage": "14. Cleanup (close DB, rm test dir)",
+      "durationMs": 10,
+      "bytesIn": 0,
+      "bytesOut": 0
+    }
+  ]
+}

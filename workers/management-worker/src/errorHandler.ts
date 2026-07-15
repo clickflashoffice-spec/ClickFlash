@@ -1,3 +1,5 @@
+import { logger } from "@clickflash/logger";
+
 export const ERROR_CODES = {
   VALIDATION_ERROR: "VALIDATION_ERROR",
   AUTH_ERROR: "AUTH_ERROR",
@@ -75,7 +77,7 @@ export function sendNotFoundError(
 export function sendDatabaseError(error: Error, operation: string = "") {
   // Sanitize: never leak error internals in production (Task 2.4)
   const isDev = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
-  console.error(`[DatabaseError] [${operation}]`, error);
+  logger.error(String(`[DatabaseError] [${operation}]`) + ' ' + String(error));
   
   return createErrorResponse(
     500,
@@ -89,7 +91,7 @@ export function sendDatabaseError(error: Error, operation: string = "") {
 export function sendInternalError(error: Error, context: string = "") {
   // Sanitize: never leak error internals in production (Task 2.4)
   const isDev = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
-  console.error(`[InternalError] [${context}]`, error);
+  logger.error(String(`[InternalError] [${context}]`) + ' ' + String(error));
   
   return createErrorResponse(
     500,

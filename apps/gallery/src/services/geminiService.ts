@@ -1,3 +1,4 @@
+import { logger } from '@clickflash/logger';
 import { GoogleGenAI, Type } from "@google/genai";
 import { ShootIdea, PhotoCategory } from "../types";
 
@@ -43,7 +44,7 @@ export async function generateShootIdeas(
     const rawText = response.text ?? '';
     return rawText ? (JSON.parse(rawText) as ShootIdea[]) : [];
   } catch (error) {
-    console.error("Error generating shoot ideas with Gemini:", error);
+    logger.error("Error generating shoot ideas with Gemini:", error);
     return [];
   }
 }
@@ -85,7 +86,7 @@ export async function editImageWithAI(base64Image: string, mimeType: string, pro
         
         throw new Error("AI response did not contain image data.");
     } catch (error) {
-        console.error("Error editing image with AI:", error);
+        logger.error("Error editing image with AI:", error);
         throw new Error("Failed to edit image using Gemini API.");
     }
 }
@@ -160,7 +161,7 @@ export async function generateAlbumSuggestions(
         };
 
     } catch (error) {
-        console.error("Error generating album suggestions with Gemini:", error);
+        logger.error("Error generating album suggestions with Gemini:", error);
         throw new Error("Failed to generate album suggestions.");
     }
 }

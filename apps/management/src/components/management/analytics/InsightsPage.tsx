@@ -13,6 +13,7 @@ import { cloudApiService } from "../../../services/cloudApiService";
 import { apiService } from "../../../services/apiService";
 import Spinner from "../../common/Spinner";
 import type { Expense } from "../../../types";
+import { logger } from "@/utils/logger";
 
 interface PhotographerAudit {
   id: string;
@@ -77,11 +78,11 @@ const InsightsPage: React.FC = () => {
                 // Calculate assigned expenses
                 let myExpenses = 0;
                 dailyExpenses.forEach((exp) => {
-                  const pIds = exp.photographerIds || [];
-                  // Handle older records that might still have `photographerId` string
-                  const legacyId = (exp as Expense & { photographerId?: string }).photographerId;
+                  const pIds = ((exp as any).photographerId as string[]) || [];
+                // Handle older records that might still have `photographerId` string
+                const legacyId = typeof (exp as any).photographerId === 'string' ? (exp as any).photographerId : null;
 
-                  if (pIds.includes(pa.photographer_id) && pIds.length > 0) {
+                if (Array.isArray(pIds) && pIds.includes(pa.photographer_id) && pIds.length > 0) {
                     myExpenses += exp.cost / pIds.length;
                   } else if (legacyId && legacyId === pa.photographer_id) {
                     myExpenses += exp.cost;
@@ -106,7 +107,7 @@ const InsightsPage: React.FC = () => {
           setHotels([]);
         }
       } catch (err: unknown) {
-        console.error("Failed to fetch location audits", err);
+        logger.error("Failed to fetch location audits", err);
         setError(err instanceof Error ? err.message : "Failed to load location audits.");
       } finally {
         setLoading(false);

@@ -8,6 +8,7 @@ import StatCard from "../common/StatCard.tsx";
 import PayrollDetailsModal from "./modals/PayrollDetailsModal.tsx";
 import { usePermissions } from "../../hooks/usePermissions.ts";
 import AddAdjustmentModal from "./modals/AddAdjustmentModal.tsx";
+import { logger } from "@/utils/logger";
 
 // Define a more specific type for the enriched payroll data
 type PayrollRowData = Photographer & {
@@ -61,7 +62,7 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser }) => {
       setOrders(ordersData);
       setAdjustments(adjustmentsData);
     } catch (err) {
-      console.error("Failed to load payroll data", err);
+      logger.error("Failed to load payroll data", err);
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { apiService } from "../services/apiService";
+import { logger } from "@/utils/logger";
 
 interface UseSystemSettingReturn<T> {
   value: T;
@@ -23,7 +24,7 @@ export function useSystemSetting<T>(
       try {
         setValue(JSON.parse(stored));
       } catch {
-        console.warn(`Failed to parse local setting for ${key}`);
+        logger.warn(`Failed to parse local setting for ${key}`);
       }
     }
   }, [key]);
@@ -41,7 +42,7 @@ export function useSystemSetting<T>(
           );
         }
       } catch (err) {
-        console.error(`Failed to sync setting ${key} from backend:`, err);
+        logger.error(`Failed to sync setting ${key} from backend:`, err);
         // Don't set error state yet, we have local storage as fallback
       } finally {
         setIsLoading(false);
@@ -73,7 +74,7 @@ export function useSystemSetting<T>(
         setError(
           err instanceof Error ? err : new Error("Failed to save setting"),
         );
-        console.error(`Failed to save setting ${key}:`, err);
+        logger.error(`Failed to save setting ${key}:`, err);
       }
     },
     [key],

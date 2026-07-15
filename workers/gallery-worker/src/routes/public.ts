@@ -5,6 +5,7 @@ import { verifyPassword } from "../auth.js";
 import { handlePayments } from "../payments.js";
 
 import { checkPublicRateLimit } from "../server.js";
+import { logger } from "@clickflash/logger";
 
 export const handlePublic = async (request: Request, url: URL, pathName: string, env: any, dbManager: any, corsHeaders: any, photoProcessor: any) => {
 
@@ -189,7 +190,7 @@ export const handlePublic = async (request: Request, url: URL, pathName: string,
               { status: 200, headers: { "Content-Type": "application/json" } }
             );
           } catch (e: any) {
-            console.error("[Checkout] Error:", e);
+            logger.error("[Checkout] Error:", { args: [e] });
             return new Response(
               JSON.stringify({ error: "Checkout failed. Please try again." }),
               { status: 500, headers: { "Content-Type": "application/json" } }
@@ -244,7 +245,7 @@ export const handlePublic = async (request: Request, url: URL, pathName: string,
               `).bind(event.id, event.type, JSON.stringify(event)).run();
             } catch (insertErr: any) {
               if (String(insertErr?.message || "").includes("UNIQUE")) {
-                console.info(`[Webhook] Duplicate event ${event.id} ignored (already processed)`);
+                logger.info(String(`[Webhook] Duplicate event ${event.id} ignored (already processed)`));
                 return new Response(
                   JSON.stringify({ received: true, idempotent: true }),
                   { status: 200, headers: { "Content-Type": "application/json" } }
@@ -264,7 +265,7 @@ export const handlePublic = async (request: Request, url: URL, pathName: string,
               ).bind(session.id).first();
 
               if (existing) {
-                console.info(`[Webhook] Order already exists for session ${session.id} (dedup)`);
+                logger.info(String(`[Webhook] Order already exists for session ${session.id} (dedup)`));
               } else {
                 await env.GALLERY_DB.prepare(`
                   INSERT INTO orders (id, clientName, email, status, totalAmount, albumId, stripe_session_id, created_at)
@@ -461,7 +462,7 @@ export const handlePublic = async (request: Request, url: URL, pathName: string,
               headers: { "Content-Type": "application/json" },
             });
           } catch (e: any) {
-            console.error("[CartSnapshot] Error:", e);
+            logger.error("[CartSnapshot] Error:", { args: [e] });
             return new Response(
               JSON.stringify({ error: "Failed to save cart snapshot" }),
               { status: 500, headers: { "Content-Type": "application/json" } }
@@ -551,7 +552,7 @@ export const handlePublic = async (request: Request, url: URL, pathName: string,
               headers: { "Content-Type": "application/json" },
             });
           } catch (e: any) {
-            console.error("[Pricing] Error:", e);
+            logger.error("[Pricing] Error:", { args: [e] });
             return new Response(JSON.stringify({ error: "Failed to resolve pricing" }), {
               status: 500,
               headers: { "Content-Type": "application/json" },
@@ -624,7 +625,7 @@ export const handlePublic = async (request: Request, url: URL, pathName: string,
               headers: { "Content-Type": "application/json" },
             });
           } catch (err: any) {
-            console.error("[Upload] Error:", err.message);
+            logger.error("[Upload] Error:", { args: [err.message] });
             return new Response(
               JSON.stringify({ error: "Upload Error", message: err.message }),
               {

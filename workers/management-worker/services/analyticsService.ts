@@ -1,3 +1,5 @@
+import { logger } from "@clickflash/logger";
+
 const { getDatabase } = require('../db');
 
 class AnalyticsService {
@@ -32,7 +34,7 @@ class AnalyticsService {
             const stats = this.db.prepare(sql).get(startDate, endDate);
             return stats || { totalOrders: 0, totalRevenue: 0, averageOrderValue: 0 };
         } catch (error) {
-            console.error('AnalyticsService.getDashboardStats error:', error);
+            logger.error('AnalyticsService.getDashboardStats error:', { args: [error] });
             return { totalOrders: 0, totalRevenue: 0, averageOrderValue: 0 };
         }
     }
@@ -54,7 +56,7 @@ class AnalyticsService {
             `;
             return this.db.prepare(sql).all(startDate, endDate) || [];
         } catch (error) {
-            console.error('AnalyticsService.getRevenueTrend error:', error);
+            logger.error('AnalyticsService.getRevenueTrend error:', { args: [error] });
             return [];
         }
     }
@@ -101,7 +103,7 @@ class AnalyticsService {
 
             return this.db.prepare(sql).all(startDate, endDate, limit) || [];
         } catch (error) {
-            console.error('AnalyticsService.getTopAlbums error:', error);
+            logger.error('AnalyticsService.getTopAlbums error:', { args: [error] });
             // Return empty array instead of crashing
             return [];
         }
@@ -126,7 +128,7 @@ class AnalyticsService {
             `;
             return this.db.prepare(sql).all(startDate, endDate) || [];
         } catch (error) {
-            console.error('AnalyticsService.getTopPhotographers error:', error);
+            logger.error('AnalyticsService.getTopPhotographers error:', { args: [error] });
             return [];
         }
     }
@@ -148,7 +150,7 @@ class AnalyticsService {
             const sql = `UPDATE albums SET view_count = COALESCE(view_count, 0) + 1 WHERE id = ?`;
             return this.db.prepare(sql).run(albumId);
         } catch (error) {
-            console.error('AnalyticsService.incrementAlbumView error:', error);
+            logger.error('AnalyticsService.incrementAlbumView error:', { args: [error] });
             return { changes: 0 };
         }
     }
@@ -244,7 +246,7 @@ class AnalyticsService {
                 productBreakdown: Object.entries(productBreakdown).map(([name, count]) => ({ name, count }))
             };
         } catch (error) {
-            console.error('AnalyticsService.getDailyIntelligence error:', error);
+            logger.error('AnalyticsService.getDailyIntelligence error:', { args: [error] });
             throw error;
         }
     }

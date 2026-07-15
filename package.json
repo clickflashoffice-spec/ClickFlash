@@ -1,6 +1,6 @@
 {
   "name": "clickflash-ecosystem",
-  "version": "4.2.0",
+  "version": "2.0.0",
   "description": "ClickFlash Photography Ecosystem - 6 apps for professional photographers",
   "private": true,
   "scripts": {
@@ -17,7 +17,7 @@
     "release": "pnpm run build && changeset publish",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
-    "dev:legacy": "concurrently \"pnpm run dev:master\" \"pnpm run dev:touch\" \"pnpm run dev:management\" \"pnpm run dev:gallery\" \"pnpm run dev:website\" --names \"master,touch,management,gallery,website\" --prefix-colors \"blue,green,purple,pink,cyan\"",
+    "dev:legacy": "concurrently \"pnpm run dev:master\" \"pnpm run dev:touch\" \"pnpm run dev:management\" \"pnpm run dev:gallery\" \"pnpm run dev:website\" \"pnpm run dev:mcp\" --names \"master,touch,management,gallery,website,mcp\" --prefix-colors \"blue,green,purple,pink,cyan,yellow\"",
     "build:all": "turbo run build",
     "test:all": "turbo run test",
     "clean:safe": "bash scripts/safe-cleanup.sh",
@@ -36,6 +36,8 @@
     "build:gallery": "pnpm --filter star-master-customer run build",
     "build:website": "pnpm --filter main-website run build",
     "build:moneytrash": "pnpm --filter moneytrash-uploader run build",
+    "build:mcp": "pnpm --filter clickflash-mcp run build",
+    "dev:mcp": "pnpm --filter clickflash-mcp run dev",
     "test:master": "pnpm --filter clickflash-master test",
     "test:touch": "pnpm --filter clickflash-touch test",
     "test:management": "pnpm --filter star-master-management test",
@@ -49,6 +51,7 @@
     "test:ecosystem:ci": "pnpm --filter clickflash-master run test:ci && pnpm --filter star-master-management run test:ci && pnpm --filter star-master-customer run test:ci && pnpm --filter clickflash-touch run test:ci",
     "test:e2e": "npx tsx tests/ecosystem/reset.ts && npx playwright test --config=playwright.ecosystem.config.ts",
     "test:e2e:all": "pnpm run test:e2e",
+    "test:e2e:web": "pnpm --filter main-website run test:e2e && pnpm --filter star-master-customer run test:e2e && pnpm --filter star-master-management run test:e2e && pnpm --filter moneytrash-uploader run test:e2e",
     "test:prod": "npx tsx tests/ecosystem/reset.ts && npx playwright test --config=playwright.prod.config.ts",
     "test:prod:all": "pnpm run test:prod",
     "test:report": "npx playwright show-report",
@@ -70,13 +73,15 @@
     "husky": "^9.0.0",
     "playwright": "^1.58.2",
     "sharp": "^0.35.1",
+    "ts-morph": "^28.0.0",
     "tsx": "^4.21.0",
     "turbo": "^2.10.0"
   },
   "pnpm": {
     "overrides": {
       "@types/react": "19.2.17",
-      "@types/react-dom": "19.2.3"
+      "@types/react-dom": "19.2.3",
+      "lightningcss": "1.30.1"
     },
     "onlyBuiltDependencies": [
       "@google/genai",

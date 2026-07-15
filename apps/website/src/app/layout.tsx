@@ -10,6 +10,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { baseMetadata, viewport as siteViewport } from "./metadata";
 import "./globals.css";
 
+
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
   subsets: ["latin"],
@@ -31,6 +32,8 @@ export const viewport: Viewport = siteViewport;
 
 // Export base metadata
 export const metadata: Metadata = baseMetadata;
+
+
 
 export default async function RootLayout({
   children,

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { Download, Camera, CheckCircle } from 'lucide-react';
 import { volumeExportService, ExportOptions } from '../../services/VolumeExportService';

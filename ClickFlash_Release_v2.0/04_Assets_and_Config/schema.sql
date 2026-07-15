@@ -1,29 +1,53 @@
--- ClickFlash v2.0.0 Base SQLite Schema
+-- D1 Schema for ClickFlash Cloud Backend
 
-CREATE TABLE IF NOT EXISTS photos (
+DROP TABLE IF EXISTS users;
+CREATE TABLE users (
     id TEXT PRIMARY KEY,
-    filename TEXT NOT NULL,
-    filepath TEXT NOT NULL,
-    album_id TEXT,
-    captured_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    edit_metadata TEXT DEFAULT '{}',
-    synced_to_cloud INTEGER DEFAULT 0
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS orders (
+DROP TABLE IF EXISTS albums;
+CREATE TABLE albums (
     id TEXT PRIMARY KEY,
-    station_id TEXT NOT NULL,
-    customer_rfid TEXT,
-    items_json TEXT NOT NULL,
-    total_cents INTEGER NOT NULL,
-    status TEXT DEFAULT 'PENDING',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    title TEXT NOT NULL,
+    photographer_id TEXT NOT NULL,
+    date TEXT NOT NULL,
+    room_number TEXT,
+    status TEXT DEFAULT 'Published',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS licenses (
+DROP TABLE IF EXISTS photos;
+CREATE TABLE photos (
     id TEXT PRIMARY KEY,
-    key_signature TEXT NOT NULL,
-    hardware_fingerprint TEXT NOT NULL,
-    features_json TEXT NOT NULL,
-    activated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    album_id TEXT NOT NULL,
+    url TEXT NOT NULL,
+    title TEXT,
+    price INTEGER DEFAULT 500, -- Price in cents
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
+);
+
+DROP TABLE IF EXISTS orders;
+CREATE TABLE orders (
+    id TEXT PRIMARY KEY,
+    user_email TEXT NOT NULL,
+    album_id TEXT NOT NULL,
+    amount_total INTEGER NOT NULL,
+    stripe_session_id TEXT UNIQUE,
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+DROP TABLE IF EXISTS order_items;
+CREATE TABLE order_items (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL,
+    photo_id TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (photo_id) REFERENCES photos(id) ON DELETE CASCADE
 );

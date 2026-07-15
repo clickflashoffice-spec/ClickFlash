@@ -24,9 +24,9 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1000.0",
     "@aws-sdk/s3-request-presigner": "^3.1000.0",
-    "@tauri-apps/api": "^2.2.0",
-    "@tauri-apps/plugin-dialog": "^2.2.0",
-    "@tauri-apps/plugin-fs": "^2.2.0",
+    "@tauri-apps/api": "^2.11.0",
+    "@tauri-apps/plugin-dialog": "^2.7.0",
+    "@tauri-apps/plugin-fs": "^2.5.0",
     "@tauri-apps/plugin-http": "^2.3.0",
     "@tauri-apps/plugin-notification": "^2.2.1",
     "@tauri-apps/plugin-shell": "^2.2.0",

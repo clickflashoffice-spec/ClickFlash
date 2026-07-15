@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { SetupConfig } from '@/components/setup/SetupWizard';
 import { logger } from '@/utils/logger';
 

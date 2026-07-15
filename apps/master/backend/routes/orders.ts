@@ -122,7 +122,7 @@ export default function orderRoutes(context: OrdersContext): Router {
         items,
         clientName,
         email,
-        total,
+        total: _total,
         status,
         date,
         destinationId,

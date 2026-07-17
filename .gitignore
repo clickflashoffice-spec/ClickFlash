@@ -49,6 +49,12 @@ database.sqlite-wal
 # Allow app-level .env.example files
 !apps/**/.env.example
 
+# Private keys and signing material
+**/private_key.pem
+**/*.private.pem
+**/*-private-key.pem
+**/*.key
+
 # Logs and debug artifacts (Master App hygiene)
 *.log
 check_*.js

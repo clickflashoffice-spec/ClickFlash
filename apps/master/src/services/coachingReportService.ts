@@ -1,5 +1,3 @@
-import { logger } from "../utils/logger";
-
 export interface WeeklyMetrics {
     galleryViews: number;
     ordersPlaced: number;
@@ -15,69 +13,54 @@ export interface CoachingReport {
     upsellRecommendation: string;
 }
 
+const safeNumber = (value: unknown): number => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+};
+
+const safeText = (value: unknown, fallback: string): string =>
+    typeof value === "string" && value.trim()
+        ? value.trim().replace(/\s+/g, " ").slice(0, 80)
+        : fallback;
+
+/** Produces transparent coaching guidance from measured weekly metrics. */
 export class CoachingReportService {
-    
-    /**
-     * Generates a weekly AI Coaching Report based on sales metrics
-     */
     async generateWeeklyReport(metrics: WeeklyMetrics, photographerId: string): Promise<CoachingReport> {
-        logger.info(`Generating AI Coaching Report for photographer ${photographerId}`);
-        
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            throw new Error("GEMINI_API_KEY is missing from environment");
+        const galleryViews = safeNumber(metrics.galleryViews);
+        const ordersPlaced = safeNumber(metrics.ordersPlaced);
+        const abandonmentRate = Math.min(100, safeNumber(metrics.cartAbandonmentRate));
+        const averageOrderValue = safeNumber(metrics.averageOrderValue);
+        const totalRevenue = safeNumber(metrics.totalRevenue);
+        const currentTier = safeText(metrics.currentTier, "Unspecified");
+        const conversionRate = galleryViews > 0 ? (ordersPlaced / galleryViews) * 100 : 0;
+        const actionItems: string[] = [];
+
+        if (galleryViews === 0) {
+            actionItems.push("Confirm gallery delivery and promotion before evaluating conversion.");
+        } else if (ordersPlaced === 0) {
+            actionItems.push("Review gallery access, calls to action, and checkout completion because views produced no orders.");
+        } else if (conversionRate < 10) {
+            actionItems.push("Review the most-viewed galleries for pricing clarity and checkout friction before changing packages.");
+        } else {
+            actionItems.push("Preserve the current gallery flow and test only one offer or layout change at a time.");
         }
 
-        const prompt = `
-            You are an expert photography business coach.
-            Analyze these weekly metrics for a photographer:
-            - Views: ${metrics.galleryViews}
-            - Orders: ${metrics.ordersPlaced}
-            - Cart Abandonment: ${metrics.cartAbandonmentRate}%
-            - Average Order Value: €${metrics.averageOrderValue}
-            - Total Revenue: €${metrics.totalRevenue}
-            - Current Tier: ${metrics.currentTier}
-            
-            Provide a coaching report as a JSON object exactly in this format:
-            {
-                "summary": "1-2 sentences summarizing their week.",
-                "actionItems": ["Actionable advice 1", "Actionable advice 2"],
-                "upsellRecommendation": "A specific recommendation on how to upsell or change pricing to improve conversions."
-            }
-        `;
+        actionItems.push(
+            abandonmentRate > 50
+                ? `Investigate checkout friction and permitted follow-up because cart abandonment is ${abandonmentRate.toFixed(1)}%.`
+                : `Track cart abandonment against the current ${abandonmentRate.toFixed(1)}% measured baseline.`,
+        );
 
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: {
-                        responseMimeType: "application/json"
-                    }
-                })
-            });
+        const report: CoachingReport = {
+            summary: `${Math.round(ordersPlaced)} orders from ${Math.round(galleryViews)} gallery views (${conversionRate.toFixed(1)}% conversion) produced €${totalRevenue.toFixed(2)} in revenue. Current tier: ${currentTier}.`,
+            actionItems,
+            upsellRecommendation: ordersPlaced > 0
+                ? `Use the measured €${averageOrderValue.toFixed(2)} average order value as the baseline, then test a clearly differentiated higher-tier package without hiding the existing option.`
+                : "Do not infer an upsell opportunity without completed orders; establish a conversion baseline first.",
+        };
 
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`Gemini API Error: ${response.status} - ${errText}`);
-            }
-
-            const data = await response.json();
-            const textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            
-            if (!textOutput) {
-                throw new Error("Invalid response format from Gemini");
-            }
-
-            const parsedReport = JSON.parse(textOutput) as CoachingReport;
-            logger.info(`Successfully generated Coaching Report for ${photographerId}`);
-            return parsedReport;
-
-        } catch (error) {
-            logger.error(`Error generating coaching report: ${error instanceof Error ? error.message : 'Unknown'}`);
-            throw error;
-        }
+        void photographerId;
+        return report;
     }
 }
 

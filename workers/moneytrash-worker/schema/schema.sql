@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS galleries (
     status TEXT NOT NULL DEFAULT 'active',
     purchase_count INTEGER DEFAULT 0,
     revenue REAL DEFAULT 0,
+    expires_at TEXT NOT NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     FOREIGN KEY (office_id) REFERENCES offices(id)
@@ -43,13 +44,14 @@ CREATE TABLE IF NOT EXISTS galleries (
 CREATE INDEX IF NOT EXISTS idx_galleries_access_code ON galleries(access_code);
 CREATE INDEX IF NOT EXISTS idx_galleries_office_id ON galleries(office_id);
 CREATE INDEX IF NOT EXISTS idx_galleries_status ON galleries(status);
+CREATE INDEX IF NOT EXISTS idx_galleries_expires_at ON galleries(expires_at);
 
 -- Gallery settings table
 CREATE TABLE IF NOT EXISTS gallery_settings (
     gallery_id TEXT PRIMARY KEY,
     single_photo_price REAL,
     full_gallery_price REAL,
-    watermark_enabled INTEGER DEFAULT 1,
+    watermark_enabled INTEGER DEFAULT 0,
     watermark_opacity REAL DEFAULT 0.5,
     allow_downloads INTEGER DEFAULT 0,
     updated_at TEXT NOT NULL,
@@ -96,17 +98,32 @@ CREATE TABLE IF NOT EXISTS orders (
     currency TEXT DEFAULT 'EUR',
     status TEXT NOT NULL DEFAULT 'pending',
     stripe_payment_intent_id TEXT,
+    gallery_id TEXT,
+    client_session_id TEXT,
+    cart_fingerprint TEXT,
+    stripe_checkout_session_id TEXT,
+    stripe_checkout_url TEXT,
+    stripe_payment_status TEXT,
+    stats_recorded_at TEXT,
     paid_at TEXT,
     fulfilled_at TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    FOREIGN KEY (office_id) REFERENCES offices(id)
+    FOREIGN KEY (office_id) REFERENCES offices(id),
+    FOREIGN KEY (gallery_id) REFERENCES galleries(id)
 );
 
 -- Indexes for orders
 CREATE INDEX IF NOT EXISTS idx_orders_access_code ON orders(access_code);
 CREATE INDEX IF NOT EXISTS idx_orders_office_id ON orders(office_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_gallery_id ON orders(gallery_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_gallery_client_session
+    ON orders(gallery_id, client_session_id)
+    WHERE gallery_id IS NOT NULL AND client_session_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_stripe_checkout_session
+    ON orders(stripe_checkout_session_id)
+    WHERE stripe_checkout_session_id IS NOT NULL;
 
 -- Order items table
 CREATE TABLE IF NOT EXISTS order_items (
@@ -138,6 +155,23 @@ CREATE TABLE IF NOT EXISTS upload_logs (
 CREATE INDEX IF NOT EXISTS idx_upload_logs_office_id ON upload_logs(office_id);
 CREATE INDEX IF NOT EXISTS idx_upload_logs_session_id ON upload_logs(session_id);
 CREATE INDEX IF NOT EXISTS idx_upload_logs_created_at ON upload_logs(created_at);
+
+-- Multipart upload parts are tracked in D1 to avoid lost updates when the
+-- desktop uploader sends several R2 parts concurrently.
+CREATE TABLE IF NOT EXISTS upload_parts (
+    session_id TEXT NOT NULL,
+    chunk_index INTEGER NOT NULL,
+    part_number INTEGER NOT NULL,
+    etag TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    office_id TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (session_id, chunk_index),
+    FOREIGN KEY (office_id) REFERENCES offices(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_upload_parts_office_id ON upload_parts(office_id);
+CREATE INDEX IF NOT EXISTS idx_upload_parts_created_at ON upload_parts(created_at);
 
 -- Webhook events table
 CREATE TABLE IF NOT EXISTS webhook_events (
@@ -174,20 +208,4 @@ CREATE TABLE IF NOT EXISTS api_keys (
     revoked_at TEXT,
     created_at TEXT NOT NULL,
     FOREIGN KEY (office_id) REFERENCES offices(id) ON DELETE CASCADE
-);
-
--- Insert default MoneyTrash office (for testing)
-INSERT OR IGNORE INTO offices (id, desk_id, name, type, contact_email, api_key, api_secret, status, settings, created_at, updated_at)
-VALUES (
-    '00000000-0000-0000-0000-000000000001',
-    'MT-TEST-01',
-    'Test MoneyTrash Station',
-    'moneytrash',
-    'test@clickflash.app',
-    'mt_test_key_00000000000000000000000000000000',
-    'test_secret_0000000000000000000000000000000000000000000000000000000000000000',
-    'active',
-    '{"maxUploadSize":52428800,"allowedFormats":["jpg","jpeg","png","heic","webp"],"storageConfig":{"provider":"r2","bucket":"moneytrash-uploads","region":"auto"}}',
-    datetime('now'),
-    datetime('now')
 );

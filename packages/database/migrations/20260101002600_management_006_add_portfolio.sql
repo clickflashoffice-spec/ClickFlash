@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS portfolio_items (
+CREATE TABLE IF NOT EXISTS portfolio_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     image_url TEXT NOT NULL,
     thumbnail_url TEXT,

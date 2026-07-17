@@ -2,7 +2,7 @@
 -- Handles missing tables gracefully
 
 -- First, ensure daily_resort_stats table exists
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS daily_resort_stats (
+CREATE TABLE IF NOT EXISTS daily_resort_stats (
     date TEXT PRIMARY KEY,
     total_guests INTEGER DEFAULT 0,
     departures INTEGER DEFAULT 0,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS daily_resort_stats (
 
 -- Ensure photographer_performance table exists
 -- Note: Foreign key constraint removed for compatibility
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS photographer_performance (
+CREATE TABLE IF NOT EXISTS photographer_performance (
     id TEXT PRIMARY KEY,
     photographer_id INTEGER NOT NULL,
     date TEXT NOT NULL,

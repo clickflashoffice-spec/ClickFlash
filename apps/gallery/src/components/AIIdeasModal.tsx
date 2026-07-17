@@ -1,9 +1,11 @@
-import { logger } from '@clickflash/logger';
 import React, { useState } from 'react';
+
+import { logger } from '@clickflash/logger';
+
 import Modal from './common/Modal';
-import { generateShootIdeas } from '../services/geminiService.ts';
+import { generateShootIdeas } from '../services/creativeAssistantService';
 import { PHOTO_THEMES } from '../constants.ts';
-import { ShootIdea } from '../types.ts';
+import type { ShootIdea } from '../types.ts';
 
 const AIIdeasModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
     const [location, setLocation] = useState('Beach resort');
@@ -22,7 +24,7 @@ const AIIdeasModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOp
             setIdeas(result);
         } catch (err) {
             setError('Failed to generate ideas. Please check the console for details.');
-            logger.error('AI idea generation failed', err instanceof Error ? err : new Error(String(err)));
+            logger.error('Local idea generation failed', err instanceof Error ? err : new Error(String(err)));
         }
         setLoading(false);
     };
@@ -30,7 +32,7 @@ const AIIdeasModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOp
     const consistentInputStyle = "w-full bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md px-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none";
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="AI Photoshoot Idea Generator" size="xl">
+        <Modal isOpen={isOpen} onClose={onClose} title="Photoshoot Idea Generator" size="xl">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <label htmlFor="ai-location" className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Location</label>

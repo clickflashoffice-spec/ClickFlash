@@ -2,13 +2,12 @@ import { logger } from '@clickflash/logger';
 /**
  * API Service for Cloud-Based Portals (Customer & Management)
  *
- * Connects to the PocketBase backend ("The Cloud") to fetch real data.
+ * Connects to the Cloudflare Worker API backed by D1 and R2.
  */
 
 
-import { Order } from "../types.ts";
-
-type LocalStorageOrder = Order & { access_pin?: string; roomNumber?: string };
+import { Order, Product } from "../types.ts";
+import { config } from "../utils/env";
 
 export const cloudApiService = {
   async getOrderByCredentials(
@@ -19,7 +18,7 @@ export const cloudApiService = {
       const normalizedPin = pin.trim();
       const normalizedEmail = email.trim().toLowerCase();
 
-      const baseUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8090";
+      const baseUrl = config.apiUrl;
       const url = `${baseUrl}/api/gallery-auth/order-login`;
 
       const response = await fetch(url, {
@@ -59,6 +58,7 @@ export const cloudApiService = {
         photographerId: order.photographerId,
         destinationId: order.destinationId,
         appliedDiscount: order.appliedDiscount || 0,
+        albumId: order.albumId,
         items: Array.isArray(order.items) ? order.items : [],
       };
 
@@ -75,14 +75,15 @@ export const cloudApiService = {
   async getOrderByToken(token: string): Promise<Order | null> {
     try {
       const normalizedToken = token.trim();
-      const baseUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8090";
-      const url = `${baseUrl}/api/gallery-auth/${encodeURIComponent(normalizedToken)}/verify`;
+      const baseUrl = config.apiUrl;
+      const url = `${baseUrl}/api/gallery-auth/token-verify`;
 
       const response = await fetch(url, {
-        method: "GET",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ token: normalizedToken }),
       });
 
       if (!response.ok) {
@@ -94,7 +95,7 @@ export const cloudApiService = {
       if (!data.success || !data.order) return null;
 
       // Ensure we store it locally so it can be reused across reloads
-      localStorage.setItem("gallery_token", normalizedToken);
+      localStorage.setItem("gallery_token", data.token || normalizedToken);
 
       const order = data.order;
       const formattedOrder: Order = {
@@ -107,6 +108,7 @@ export const cloudApiService = {
         photographerId: order.photographerId,
         destinationId: order.destinationId,
         appliedDiscount: order.appliedDiscount || 0,
+        albumId: order.albumId,
         items: Array.isArray(order.items) ? order.items : [],
       };
 
@@ -117,95 +119,73 @@ export const cloudApiService = {
     }
   },
 
-  /**
-   * Fetches an order by room number (for QR-based login)
-   */
-  async getOrderByRoomNumber(roomNumber: string): Promise<Order | null> {
-    try {
-      const normalizedRoomNumber = roomNumber.trim();
+  async getPhotoDownloadUrl(photoId: string): Promise<string> {
+    const token = localStorage.getItem("gallery_token");
+    if (!token) throw new Error("Customer authentication is required");
 
-      const baseUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8090";
-      const url = `${baseUrl}/api/orders/by-room?roomNumber=${encodeURIComponent(normalizedRoomNumber)}`;
+    const baseUrl = config.apiUrl;
+    const response = await fetch(
+      `${baseUrl}/api/photos/${encodeURIComponent(photoId)}/download-url`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
 
-      const response = await fetch(url, {
-        method: "GET",
+    if (!response.ok) {
+      throw new Error(`Download authorization failed (${response.status})`);
+    }
+
+    const data = await response.json();
+    if (!data.downloadUrl) throw new Error("Download URL was not returned");
+    return data.downloadUrl;
+  },
+
+  async updateProofingStatus(
+    orderId: string,
+    photoId: string,
+    status: "approved" | "rejected" | "pending",
+  ): Promise<void> {
+    const token = localStorage.getItem("gallery_token");
+    if (!token) throw new Error("Customer authentication is required");
+
+    const response = await fetch(
+      `${config.apiUrl}/api/gallery/orders/${encodeURIComponent(orderId)}/photos/${encodeURIComponent(photoId)}/proofing`,
+      {
+        method: "PATCH",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      });
+        body: JSON.stringify({ status }),
+      },
+    );
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          return null;
-        }
-        throw new Error(
-          `Failed to fetch order by room: ${response.statusText}`,
-        );
-      }
-
-      const order = await response.json();
-
-      if (!order) {
-        return null;
-      }
-
-      const formattedOrder: Order = {
-        id: order.id,
-        date: order.date,
-        clientName: order.clientName,
-        email: order.email,
-        status: order.status,
-        total: order.total,
-        photographerId: order.photographerId,
-        destinationId: order.destinationId,
-        appliedDiscount: order.appliedDiscount || 0,
-        items: Array.isArray(order.items) ? order.items : [],
-      };
-
-      return formattedOrder;
-    } catch (err) {
-      logger.warn("[Cloud API] Order lookup by room failed", err);
-      return null;
+    if (!response.ok) {
+      throw new Error(`Proofing update failed (${response.status})`);
     }
   },
 
-  /**
-   * Creates an order in the cloud API.
-   */
-  async createOrder(orderData: Partial<Order>): Promise<Order> {
-    try {
-      const baseUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8090";
-      const url = `${baseUrl}/api/orders`;
-      
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderData)
-      });
+  async getCheckoutStatus(sessionId: string): Promise<{ paid: boolean; status: string; orderId: string }> {
+    const token = localStorage.getItem("gallery_token");
+    if (!token) throw new Error("Customer authentication is required");
 
-      if (!response.ok) {
-        throw new Error(`Failed to create order: ${response.statusText}`);
-      }
+    const response = await fetch(
+      `${config.apiUrl}/api/checkout/sessions/${encodeURIComponent(sessionId)}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    if (!response.ok) throw new Error(`Checkout status failed (${response.status})`);
 
-      const newOrder = await response.json();
-      return newOrder;
-    } catch (err) {
-      logger.warn("[Cloud API] Create order failed, returning mock", err);
-      // Fallback to mock for development if cloud api isn't ready
-      return {
-          id: `ORDER-${Date.now()}`,
-          date: new Date().toISOString(),
-          clientName: orderData.clientName || '',
-          email: orderData.email || '',
-          status: 'Pending',
-          total: orderData.total || 0,
-          photographerId: orderData.photographerId || 0,
-          destinationId: orderData.destinationId || '',
-          appliedDiscount: orderData.appliedDiscount || 0,
-          items: orderData.items || []
-      };
-    }
+    const data = await response.json();
+    return {
+      paid: Boolean(data.paid),
+      status: String(data.status || "pending"),
+      orderId: String(data.orderId || ""),
+    };
+  },
+
+  async getProducts(): Promise<Product[]> {
+    const response = await fetch(`${config.apiUrl}/api/gallery/products`);
+    if (!response.ok) throw new Error(`Product catalog failed (${response.status})`);
+
+    const data = await response.json();
+    return Array.isArray(data.items) ? data.items : [];
   },
 };

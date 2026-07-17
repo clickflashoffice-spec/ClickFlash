@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\moneytrash-worker\\logs\\.b05ea428a7cf74261f0fde2da162be0d6d3042af-audit.json",
+    "files": [
+        {
+            "date": 1784201608896,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\moneytrash-worker\\logs\\clickflash-combined-2026-07-16.log",
+            "hash": "29fddcdd2e46ce6d8257c305ec05fff6fc4f70c536c1d440403b92026ca63b4d"
+        },
+        {
+            "date": 1784279164292,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\moneytrash-worker\\logs\\clickflash-combined-2026-07-17.log",
+            "hash": "d03bd3bc293e1613f40fd34839d3460fd63a452e56785656f259210545f06963"
+        }
+    ],
+    "hashType": "sha256"
+}

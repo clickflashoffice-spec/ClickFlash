@@ -1,5 +1,5 @@
 -- Create daily_objectives table to track photographer targets
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS daily_objectives (
+CREATE TABLE IF NOT EXISTS daily_objectives (
     id TEXT PRIMARY KEY,
     photographer_id TEXT NOT NULL,
     date TEXT NOT NULL,

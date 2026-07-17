@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Check, Layers, Monitor, Tablet, Cloud, Database, Cpu } from "lucide-react";
+import { Check, Layers, Monitor, Tablet, Cloud, Database, Cpu, FolderOpen, ShieldCheck } from "lucide-react";
+import type { ApplicationComponent } from "../../installer-ipc-schemas";
+import type { PayloadBundleSummary } from "../../installer-payload-verification";
 
 export interface AppOption {
-  id: string;
+  id: ApplicationComponent;
   title: string;
   subtitle: string;
   description: string;
@@ -13,7 +15,11 @@ export interface AppOption {
 }
 
 interface AppSelectionStepProps {
-  onNext: (selectedApps: string[]) => void;
+  selectedApps: ApplicationComponent[];
+  installPath: string;
+  payloadBundle: PayloadBundleSummary | null;
+  onSelectPayloadBundle: () => Promise<string | null>;
+  onNext: (selectedApps: ApplicationComponent[]) => void;
   onPrev: () => void;
 }
 
@@ -65,14 +71,21 @@ const APPS: AppOption[] = [
 ];
 
 export const AppSelectionStep: React.FC<AppSelectionStepProps> = ({
+  selectedApps,
+  installPath,
+  payloadBundle,
+  onSelectPayloadBundle,
   onNext,
   onPrev,
 }) => {
-  const [selectedIds, setSelectedIds] = useState<string[]>(() =>
-    APPS.filter((a) => a.defaultChecked).map((a) => a.id)
+  const [selectedIds, setSelectedIds] = useState<ApplicationComponent[]>(() =>
+    selectedApps.length > 0
+      ? selectedApps
+      : APPS.filter((app) => app.defaultChecked).map((app) => app.id)
   );
+  const [selectingDirectory, setSelectingDirectory] = useState(false);
 
-  const toggleApp = (id: string, required?: boolean) => {
+  const toggleApp = (id: ApplicationComponent, required?: boolean) => {
     if (required) return;
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
@@ -81,6 +94,15 @@ export const AppSelectionStep: React.FC<AppSelectionStepProps> = ({
 
   const selectAll = () => {
     setSelectedIds(APPS.map((a) => a.id));
+  };
+
+  const handleSelectDirectory = async () => {
+    setSelectingDirectory(true);
+    try {
+      await onSelectPayloadBundle();
+    } finally {
+      setSelectingDirectory(false);
+    }
   };
 
   return (
@@ -104,6 +126,37 @@ export const AppSelectionStep: React.FC<AppSelectionStepProps> = ({
         >
           Select All Full Suite
         </button>
+      </div>
+
+      <div className="p-4 rounded-2xl border border-slate-700 bg-slate-900/50">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              Signed application bundle
+              {payloadBundle && <ShieldCheck className="w-4 h-4 text-emerald-400" />}
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              Choose a ClickFlash release bundle. Its signature and every application file will be checked before setup continues.
+            </p>
+            <p className="text-xs font-mono text-cyan-300 mt-2 truncate">
+              {installPath || "No verified bundle selected"}
+            </p>
+            {payloadBundle && (
+              <p className="text-xs text-emerald-300 mt-1">
+                Verified release {payloadBundle.releaseId} · v{payloadBundle.version} · {payloadBundle.fileCount.toLocaleString()} files
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleSelectDirectory}
+            disabled={selectingDirectory}
+            className="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-200 hover:bg-slate-800 text-sm font-semibold transition-all flex items-center gap-2 shrink-0 disabled:opacity-50"
+          >
+            <FolderOpen className="w-4 h-4" />
+            {selectingDirectory ? "Verifying..." : "Choose Bundle"}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 max-h-[380px] overflow-y-auto pr-1">
@@ -174,7 +227,12 @@ export const AppSelectionStep: React.FC<AppSelectionStepProps> = ({
         </button>
         <button
           onClick={() => onNext(selectedIds)}
-          disabled={selectedIds.length === 0}
+          disabled={
+            selectedIds.length === 0
+            || !installPath
+            || !payloadBundle
+            || (selectedIds.includes("touch") && !payloadBundle.components.includes("touch"))
+          }
           className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-semibold shadow-lg shadow-blue-600/30 transition-all disabled:opacity-50"
         >
           Continue with {selectedIds.length} Component{selectedIds.length > 1 ? "s" : ""}

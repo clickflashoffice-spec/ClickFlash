@@ -2,8 +2,17 @@
  * Simple Router for Cloudflare Workers
  */
 
-type Handler = (request: Request, env: any, ctx: ExecutionContext, params?: Record<string, string>) => Promise<Response> | Response;
-type Middleware = (request: Request, env: any, ctx: ExecutionContext) => Promise<Response | null> | Response | null;
+type Handler = (
+  request: Request,
+  env: any,
+  params: Record<string, string>,
+  ctx: ExecutionContext,
+) => Promise<Response> | Response;
+type Middleware = (
+  request: Request,
+  env: any,
+  ctx: ExecutionContext,
+) => Promise<Response | Request | null> | Response | Request | null;
 
 interface Route {
   method: string;
@@ -69,7 +78,7 @@ export class Router {
       const match = route.pattern.exec({ pathname: url.pathname });
       if (match) {
         const params = match.pathname.groups;
-        return await route.handler(currentRequest, env, ctx, params);
+        return await route.handler(currentRequest, env, params, ctx);
       }
     }
 

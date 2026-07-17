@@ -1,9 +1,25 @@
 import { describe, it, expect } from 'vitest';
 import { generateLicenseKeys, validateLicenseKey } from '../license-key';
 
+// Compromised legacy key retained only as a deterministic test fixture. Production must rotate it.
+const TEST_SIGNING_KEY = 'EQdSP71FUDU55wNFrjIfVQUpYBme6kBsYhD1ecjmvAg9TlyEi1GiO7PcemwH8fQttWH/4Fh4EUzizyC/GYS+pQ==';
+
+function generateTestLicenseKeys(options: Parameters<typeof generateLicenseKeys>[0]) {
+  return generateLicenseKeys(options, TEST_SIGNING_KEY);
+}
+
 describe('License Key Generator & Validator', () => {
+  it('requires an operator-provided private signing key', async () => {
+    await expect(generateLicenseKeys({
+      plan: 'pro',
+      maxMasters: 5,
+      expiresDays: 30,
+      count: 1
+    }, 'not-a-private-key')).rejects.toThrow('Enter a valid Ed25519 private signing key');
+  });
+
   it('should generate requested number of valid license keys', async () => {
-    const keys = await generateLicenseKeys({
+    const keys = await generateTestLicenseKeys({
       plan: 'pro',
       maxMasters: 5,
       expiresDays: 30,
@@ -17,7 +33,7 @@ describe('License Key Generator & Validator', () => {
   });
 
   it('should validate a generated key correctly', async () => {
-    const keys = await generateLicenseKeys({
+    const keys = await generateTestLicenseKeys({
       plan: 'enterprise',
       maxMasters: 10,
       expiresDays: 365,
@@ -41,7 +57,7 @@ describe('License Key Generator & Validator', () => {
   });
 
   it('should reject a key that has been tampered with', async () => {
-    const keys = await generateLicenseKeys({
+    const keys = await generateTestLicenseKeys({
       plan: 'starter',
       maxMasters: 1,
       expiresDays: 7,
@@ -63,7 +79,7 @@ describe('License Key Generator & Validator', () => {
   });
 
   it('should reject a key when machine ID does not match expected machine ID', async () => {
-    const keys = await generateLicenseKeys({
+    const keys = await generateTestLicenseKeys({
       plan: 'pro',
       maxMasters: 5,
       expiresDays: 30,
@@ -77,7 +93,7 @@ describe('License Key Generator & Validator', () => {
   });
 
   it('should reject an expired license key', async () => {
-    const keys = await generateLicenseKeys({
+    const keys = await generateTestLicenseKeys({
       plan: 'starter',
       maxMasters: 1,
       expiresDays: -1, // expired yesterday

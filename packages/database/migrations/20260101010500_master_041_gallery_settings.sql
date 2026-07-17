@@ -1,5 +1,5 @@
 -- Create gallery_settings table if it doesn't exist
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS gallery_settings (
+CREATE TABLE IF NOT EXISTS gallery_settings (
     id TEXT PRIMARY KEY,
     setting_key TEXT UNIQUE NOT NULL,
     setting_value JSON NOT NULL,

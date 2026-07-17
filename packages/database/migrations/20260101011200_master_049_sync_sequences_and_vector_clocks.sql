@@ -1,7 +1,7 @@
 -- 049_sync_sequences_and_vector_clocks.sql
 -- Sequence tracking and conflict resolution support for Operation-Based Sync (Phase 30)
 -- Track last processed operation ID from remote sites
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS sync_sequences (
+CREATE TABLE IF NOT EXISTS sync_sequences (
     id TEXT PRIMARY KEY,
     -- desk_id_${site_id}
     site_id TEXT UNIQUE NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS sync_sequences (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 -- Vector Clocks for multi-master conflict resolution
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS vector_clocks (
+CREATE TABLE IF NOT EXISTS vector_clocks (
     id TEXT PRIMARY KEY,
     -- desk_id_${site_id}
     site_id TEXT UNIQUE NOT NULL,

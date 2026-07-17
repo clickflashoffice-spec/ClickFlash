@@ -5,6 +5,10 @@ copyright: Copyright © 2026 ClickFlash Studio
 files:
   - dist/renderer/**/*
   - dist/main.js
+  - package.json
+
+npmRebuild: false
+nodeGypRebuild: false
 
 win:
   target:

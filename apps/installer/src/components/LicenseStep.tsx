@@ -1,10 +1,11 @@
 import React, { useState, useCallback } from "react";
 import { ArrowRight, ArrowLeft, Key, Shield, CheckCircle, AlertCircle, RefreshCw, Info } from "lucide-react";
+import type { ValidatedLicense } from "../../installer-ipc-schemas";
 import { InstallerState } from "../types/installer";
 
 interface LicenseStepProps {
   state: InstallerState;
-  onValidate: (key: string) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+  onValidate: (key: string) => Promise<{ success: boolean; data?: ValidatedLicense; error?: string }>;
   onNext: () => void;
   onPrev: () => void;
 }
@@ -86,10 +87,9 @@ const LicenseStep: React.FC<LicenseStepProps> = ({ state, onValidate, onNext, on
                   <span className="text-sm font-semibold text-emerald-300">License Valid</span>
                 </div>
                 <div className="space-y-1 text-xs text-emerald-200/80">
-                  <p>Tenant: <span className="font-mono">{state.license?.tenant_id}</span></p>
                   <p>Plan: <span className="font-mono">{state.license?.plan}</span></p>
-                  <p>Region: <span className="font-mono">{state.license?.region}</span></p>
                   <p>Max Studios: <span className="font-mono">{state.license?.max_masters}</span></p>
+                  <p>Machine: <span className="font-mono">{state.license?.machine_id}</span></p>
                   {state.license?.expires_at && (
                     <p>Expires: <span className="font-mono">{new Date(state.license.expires_at).toLocaleDateString()}</span></p>
                   )}
@@ -129,20 +129,20 @@ const LicenseStep: React.FC<LicenseStepProps> = ({ state, onValidate, onNext, on
             <span className="text-sm font-medium text-slate-200">What is a license key?</span>
           </div>
           <p className="text-xs text-slate-400 mb-3">
-            Your ClickFlash license key ties this studio to your tenant account and unlocks features based on your plan.
+            Your signed ClickFlash license activates the approved plan and studio limit without sending the key to a server.
           </p>
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs text-slate-400">
               <Shield className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Secure tenant isolation</span>
+              <span>Offline signature verification</span>
             </div>
             <div className="flex items-center gap-2 text-xs text-slate-400">
               <Shield className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Feature-gated access</span>
+              <span>Optional machine binding</span>
             </div>
             <div className="flex items-center gap-2 text-xs text-slate-400">
               <Shield className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Region-aware routing</span>
+              <span>Expiry and plan enforcement</span>
             </div>
           </div>
         </div>

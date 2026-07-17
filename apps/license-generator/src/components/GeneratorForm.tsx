@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 
 interface GeneratorFormProps {
-  onGenerate: (plan: string, maxMasters: number, expiresDays: number, count: number, machineId?: string) => void;
+  onGenerate: (
+    plan: string,
+    maxMasters: number,
+    expiresDays: number,
+    count: number,
+    signingKey: string,
+    machineId?: string,
+  ) => void;
 }
 
 export function GeneratorForm({ onGenerate }: GeneratorFormProps) {
@@ -10,6 +17,7 @@ export function GeneratorForm({ onGenerate }: GeneratorFormProps) {
   const [expiresDays, setExpiresDays] = useState(365);
   const [count, setCount] = useState(10);
   const [machineId, setMachineId] = useState('');
+  const [signingKey, setSigningKey] = useState('');
 
   const plans = [
     { value: 'trial', label: 'Trial', desc: '1 studio, 14 days', price: 'Free' },
@@ -20,12 +28,26 @@ export function GeneratorForm({ onGenerate }: GeneratorFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onGenerate(plan, maxMasters, expiresDays, count, machineId.trim() || undefined);
+    onGenerate(plan, maxMasters, expiresDays, count, signingKey, machineId.trim() || undefined);
   };
 
   return (
     <form className="generator-form" onSubmit={handleSubmit}>
       <div className="form-grid">
+        <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+          <label>Private Signing Key</label>
+          <input
+            type="password"
+            placeholder="Paste the operator-controlled Ed25519 private key"
+            value={signingKey}
+            onChange={(e) => setSigningKey(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+            required
+          />
+          <small>The key is held in memory for this session and is not bundled with the app.</small>
+        </div>
+
         <div className="form-group">
           <label>License Plan</label>
           <select value={plan} onChange={(e) => setPlan(e.target.value)}>

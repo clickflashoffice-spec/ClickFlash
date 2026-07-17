@@ -80,6 +80,10 @@ export class R2SignedUrlService {
                 return { valid: false, error: 'URL expired' };
             }
 
+            if (expires > now + this.maxTtl) {
+                return { valid: false, error: 'URL expiry exceeds maximum validity' };
+            }
+
             // Verify signature
             const expectedSignature = await this.createSignature(`/${SIGNED_URL_VERSION}/${storageKey}`, expires);
             if (!this.constantTimeCompare(signature, expectedSignature)) {

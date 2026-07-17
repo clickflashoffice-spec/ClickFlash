@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.electron.json",
+  "compilerOptions": {
+    "outDir": "dist/payload-tools",
+    "rootDir": "."
+  },
+  "include": [
+    "scripts/payload-release.ts",
+    "installer-payload-release.ts",
+    "installer-payload-verification.ts",
+    "installer-application-config.ts",
+    "installer-ipc-schemas.ts"
+  ],
+  "exclude": ["src/**/*", "**/*.test.ts"]
+}
+

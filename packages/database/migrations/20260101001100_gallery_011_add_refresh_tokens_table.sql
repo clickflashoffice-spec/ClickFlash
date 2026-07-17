@@ -1,7 +1,7 @@
 -- 011_add_refresh_tokens_table.sql
 -- Migration for JWT Refresh Token implementation in Gallery
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS refresh_tokens (
+CREATE TABLE IF NOT EXISTS refresh_tokens (
     id TEXT PRIMARY KEY,
     user_id INTEGER NOT NULL,
     token TEXT UNIQUE NOT NULL,

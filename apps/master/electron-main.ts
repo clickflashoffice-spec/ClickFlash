@@ -30,11 +30,13 @@ import {
   IpcMainInvokeEvent,
 } from "electron";
 import path from "path";
+import { pathToFileURL } from "url";
 import fs from "fs";
 import http from "http";
 import crypto from "crypto";
 import { fork, spawn, ChildProcess } from "child_process";
 import { logger } from "@clickflash/logger";
+import { isTrustedIpcSender, resolveContainedPath } from "./electron-security";
 
 // ─── Auto-Updater (production only) ──────────────────────────────────────────
 // initAutoUpdater is compiled from src/main/autoUpdater.ts — not available pre-build.
@@ -55,8 +57,6 @@ protocol.registerSchemesAsPrivileged([
       secure: true,
       standard: true,
       supportFetchAPI: true,
-      allowServiceWorkers: true,
-      bypassCSP: true,
     },
   },
 ]);
@@ -69,9 +69,19 @@ const HEALTH_TIMEOUT = 120_000; // ms — first boot runs 90+ migrations
 const POLL_INTERVAL  = 300;    // ms between health polls
 
 const APP_URL = `http://localhost:${BACKEND_PORT}`;
+const ALLOWED_RENDERER_PERMISSIONS = new Set(["media", "notifications"]);
 
 const ADMIN_PIN: string | null    = process.env.ADMIN_PIN ?? null;
 const ADMIN_SHORTCUT              = "CommandOrControl+Alt+Shift+X";
+
+function isTrustedAppOrigin(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  try {
+    return new URL(value).origin === APP_URL;
+  } catch {
+    return false;
+  }
+}
 
 // PIN brute-force protection
 const pinAttempts = { count: 0, lockedUntil: 0 };
@@ -522,8 +532,23 @@ function killGuardian(): void {
 
 // ─── IPC ──────────────────────────────────────────────────────────────────────
 
+function registerIpcHandler<Args extends unknown[], Result>(
+  channel: string,
+  listener: (event: IpcMainInvokeEvent, ...args: Args) => Result,
+): void {
+  ipcMain.handle(channel, (event, ...args) => {
+    if (!isTrustedIpcSender(event, mainWindow)) {
+      logger.warn("[Security] Blocked IPC from untrusted frame", {
+        args: [channel, event.senderFrame?.url],
+      });
+      throw new Error("Unauthorized IPC sender");
+    }
+    return listener(event, ...(args as Args));
+  });
+}
+
 function setupIpc(): void {
-  ipcMain.handle("kiosk:unlock", (_e: IpcMainInvokeEvent, rawPin: unknown) => {
+  registerIpcHandler("kiosk:unlock", (_e: IpcMainInvokeEvent, rawPin: unknown) => {
     const expected = ADMIN_PIN ?? (!app.isPackaged ? "000000" : null);
 
     if (!expected) {
@@ -575,7 +600,7 @@ function setupIpc(): void {
     return { success: true };
   });
 
-  ipcMain.handle("kiosk:lock", () => {
+  registerIpcHandler("kiosk:lock", () => {
     if (mainWindow) {
       mainWindow.setKiosk(true);
       mainWindow.setFullScreen(true);
@@ -585,7 +610,7 @@ function setupIpc(): void {
     return { success: true };
   });
 
-  ipcMain.handle("dialog:openDirectory", async (_e: IpcMainInvokeEvent, opts?: { title?: string; buttonLabel?: string }) => {
+  registerIpcHandler("dialog:openDirectory", async (_e: IpcMainInvokeEvent, opts?: { title?: string; buttonLabel?: string }) => {
     if (!mainWindow) return null;
     const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
       properties: ["openDirectory"],
@@ -595,7 +620,7 @@ function setupIpc(): void {
     return canceled ? null : filePaths[0];
   });
 
-  ipcMain.handle("dialog:openFile", async (_e: IpcMainInvokeEvent, opts?: { multiple?: boolean; title?: string; filters?: Electron.FileFilter[] }) => {
+  registerIpcHandler("dialog:openFile", async (_e: IpcMainInvokeEvent, opts?: { multiple?: boolean; title?: string; filters?: Electron.FileFilter[] }) => {
     if (!mainWindow) return null;
     const props: Array<"openFile" | "multiSelections"> = opts?.multiple ? ["openFile", "multiSelections"] : ["openFile"];
     const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
@@ -607,7 +632,7 @@ function setupIpc(): void {
     return opts?.multiple ? filePaths : filePaths[0];
   });
 
-  ipcMain.handle("dialog:saveFile", async (_e: IpcMainInvokeEvent, opts?: { title?: string; filters?: Electron.FileFilter[]; defaultPath?: string }) => {
+  registerIpcHandler("dialog:saveFile", async (_e: IpcMainInvokeEvent, opts?: { title?: string; filters?: Electron.FileFilter[]; defaultPath?: string }) => {
     if (!mainWindow) return null;
     const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
       title: opts?.title ?? "Save File",
@@ -749,6 +774,26 @@ app.whenReady().then(async () => {
     });
   });
 
+  session.defaultSession.setPermissionCheckHandler((webContents, permission, requestingOrigin) => {
+    return Boolean(
+      mainWindow
+      && !mainWindow.isDestroyed()
+      && webContents === mainWindow.webContents
+      && ALLOWED_RENDERER_PERMISSIONS.has(permission)
+      && isTrustedAppOrigin(requestingOrigin),
+    );
+  });
+
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
+    callback(Boolean(
+      mainWindow
+      && !mainWindow.isDestroyed()
+      && webContents === mainWindow.webContents
+      && ALLOWED_RENDERER_PERMISSIONS.has(permission)
+      && isTrustedAppOrigin(details.requestingUrl),
+    ));
+  });
+
   // --- RSA-4096 LICENSING CHECK ---
   try {
     const { verifyLicense, getMachineFingerprint } = require('@clickflash/licensing');
@@ -808,16 +853,16 @@ app.whenReady().then(async () => {
       const url          = new URL(request.url);
       const relativePath = decodeURIComponent(url.pathname.startsWith("/") ? url.pathname.slice(1) : url.pathname);
       const dataDir      = getDataDir();
-      const fullPath     = path.normalize(path.join(dataDir, relativePath));
+      const fullPath     = resolveContainedPath(dataDir, relativePath);
 
-      if (!fullPath.startsWith(dataDir)) {
-        logger.error("[Security] clickflash:// Directory traversal attempt:", { args: [fullPath] });
+      if (!fullPath) {
+        logger.error("[Security] clickflash:// Directory traversal attempt", { args: [relativePath] });
         return new Response("Access Denied", { status: 403 });
       }
       if (!fs.existsSync(fullPath)) {
         return new Response("Not Found", { status: 404 });
       }
-      return net.fetch("file://" + fullPath);
+      return net.fetch(pathToFileURL(fullPath).toString());
     } catch (err: unknown) {
       logger.error("[Protocol] clickflash:// error:", { args: [err] });
       return new Response("Internal Error", { status: 500 });

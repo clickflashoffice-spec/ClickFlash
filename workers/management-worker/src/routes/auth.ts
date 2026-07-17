@@ -5,7 +5,7 @@ import { checkLoginRateLimit, recordLoginAttempt } from "../loginRateLimiter.js"
 import { validateLogin } from "../validation.js";
 import { logger } from "@clickflash/logger";
 
-export const handleAuth = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, geminiService: any, payload: any) => {
+export const handleAuth = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, _pixelFounderService: any, payload: any) => {
 
 
       // --- PUBLIC: Check desk_id availability (no auth needed — pre-registration check) ---

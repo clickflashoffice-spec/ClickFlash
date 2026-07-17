@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { jwt } from 'hono/jwt'
+import { jwt, sign, verify } from 'hono/jwt'
 import Stripe from 'stripe'
 import { signLicense, LicensePayload } from '@clickflash/licensing/crypto'
 
@@ -24,34 +24,59 @@ app.get('/health', (c) => {
 // === Auth Routes ===
 app.post('/auth/login', async (c) => {
   const { email, password } = await c.req.json()
-  
-  // TODO: Validate user against D1 database
-  const valid = email === 'test@clickflash.com' && password === 'password123'
-  
-  if (!valid) {
+
+  if (!email || !password) {
+    return c.json({ error: 'Email and password are required' }, 400)
+  }
+
+  // Validate user against D1 database
+  const user = await c.env.DB.prepare('SELECT id, email, password, role FROM users WHERE email = ?').bind(email).first<any>()
+
+  // Note: For production, compare hashed passwords securely
+  if (!user || user.password !== password) {
     return c.json({ error: 'Invalid credentials' }, 401)
   }
 
   // Create JWT token
-  // import { sign } from 'hono/jwt'
-  // const token = await sign({ email, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 }, c.env.JWT_SECRET)
+  const token = await sign(
+    { sub: user.id, email: user.email, role: user.role, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 },
+    c.env.JWT_SECRET,
+    'HS256'
+  )
   
-  return c.json({ token: 'dummy_token' }) // Replace with real token
+  return c.json({ token, user: { id: user.id, email: user.email, role: user.role } })
 })
 
 // === Protected Routes ===
-// app.use('/api/*', (c, next) => jwt({ secret: c.env.JWT_SECRET })(c, next))
+app.use('/api/*', async (c, next) => {
+  const authHeader = c.req.header('Authorization')
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+  return jwt({ secret: c.env.JWT_SECRET, alg: 'HS256' })(c, next)
+})
 
 // Albums
 app.get('/api/albums', async (c) => {
-  const { results } = await c.env.DB.prepare('SELECT * FROM albums').all()
+  const { results } = await c.env.DB.prepare('SELECT * FROM albums ORDER BY created_at DESC').all()
   return c.json({ albums: results })
 })
 
 app.post('/api/albums', async (c) => {
   const albumData = await c.req.json()
-  // TODO: Insert into D1
-  return c.json({ success: true })
+  const id = albumData.id || `album_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`
+
+  await c.env.DB.prepare(
+    'INSERT INTO albums (id, title, date, photographerId, status, created_at) VALUES (?, ?, ?, ?, ?, datetime("now"))'
+  ).bind(
+    id,
+    albumData.title || 'Untitled Album',
+    albumData.date || new Date().toISOString().split('T')[0],
+    albumData.photographerId || null,
+    albumData.status || 'Draft'
+  ).run()
+
+  return c.json({ success: true, id })
 })
 
 // Stripe Checkout
@@ -89,12 +114,28 @@ app.post('/api/checkout', async (c) => {
 // R2 High-Res Photos (Pre-signed URLs or direct serve)
 app.get('/api/photos/:albumId/:photoId', async (c) => {
   const { albumId, photoId } = c.req.param()
-  
-  // TODO: Verify if user has purchased this photo via D1 orders table
-  const hasPurchased = true 
+  const tokenPayload = c.get('jwtPayload') as { sub?: string; role?: string } | undefined
+  const userId = tokenPayload?.sub
+  const userRole = tokenPayload?.role
+
+  // Allow admins or photographers full access without checking purchase
+  let hasPurchased = userRole === 'Admin' || userRole === 'Photographer'
+
+  if (!hasPurchased && userId) {
+    // Verify if user has purchased this photo via D1 orders table
+    const order = await c.env.DB.prepare(
+      `SELECT o.id FROM orders o
+       JOIN order_items oi ON o.id = oi.order_id
+       WHERE o.user_id = ? AND oi.photo_id = ? AND (o.status = 'PAID' OR o.status = 'COMPLETED')`
+    ).bind(userId, photoId).first()
+
+    if (order) {
+      hasPurchased = true
+    }
+  }
   
   if (!hasPurchased) {
-    return c.json({ error: 'Unauthorized' }, 403)
+    return c.json({ error: 'Payment required or unauthorized access' }, 403)
   }
 
   const object = await c.env.HIGH_RES_BUCKET.get(`photos/${albumId}/${photoId}`)

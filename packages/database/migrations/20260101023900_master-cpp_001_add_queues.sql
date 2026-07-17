@@ -1,5 +1,5 @@
 -- Up Migration
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS fulfillment_queue (
+CREATE TABLE IF NOT EXISTS fulfillment_queue (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_id TEXT NOT NULL,
     asset_id TEXT NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS fulfillment_queue (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     error_log TEXT
 );
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS retention_queue (
+CREATE TABLE IF NOT EXISTS retention_queue (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     album_id TEXT NOT NULL,
     asset_id TEXT NOT NULL,

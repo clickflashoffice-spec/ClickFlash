@@ -1,1 +1,0 @@
-import{j as s}from"./index-jN4d3Fsi.js";import{R as r}from"./vendor-router-B3-AMwH9.js";const o=r.memo(({children:e,className:m="",...a})=>s.jsxDEV("div",{className:`premium-card ${m}`,...a,children:e},void 0,!1,{fileName:"C:/Users/alamo/Desktop/ClickFlash/apps/management/src/components/common/Card.tsx",lineNumber:34,columnNumber:5},void 0));o.displayName="Card";export{o as C};

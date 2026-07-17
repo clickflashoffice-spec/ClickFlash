@@ -1,7 +1,7 @@
 -- Migration 055: Add pairing_tokens table
 -- Replaces in-memory Map storage for pairing tokens to survive server restarts.
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS pairing_tokens (
+CREATE TABLE IF NOT EXISTS pairing_tokens (
     token TEXT PRIMARY KEY,
     kiosk_id TEXT,
     kiosk_name TEXT,

@@ -1,7 +1,7 @@
 -- Migration 012: Login attempt tracking for auth brute-force protection
 -- Used by loginRateLimiter.ts to enforce per-email lockout in the Worker.
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS login_attempts (
+CREATE TABLE IF NOT EXISTS login_attempts (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   email       TEXT    NOT NULL,
   ip          TEXT    NOT NULL DEFAULT 'unknown',

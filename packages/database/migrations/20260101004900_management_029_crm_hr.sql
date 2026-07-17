@@ -1,6 +1,6 @@
 -- Renumbered from: v2_crm_hr.sql (non-standard numbering)
 -- Add CRM Leads Table
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS crm_leads (
+CREATE TABLE IF NOT EXISTS crm_leads (
     id TEXT PRIMARY KEY,
     desk_id TEXT,
     resort TEXT,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS crm_leads (
 );
 
 -- Add HR Staff Actions Table
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS hr_staff_actions (
+CREATE TABLE IF NOT EXISTS hr_staff_actions (
     id TEXT PRIMARY KEY,
     desk_id TEXT,
     name TEXT,
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS hr_staff_actions (
 );
 
 -- Add Yield Stats Table
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS system_yield_stats (
+CREATE TABLE IF NOT EXISTS system_yield_stats (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     desk_id TEXT,
     date TEXT,

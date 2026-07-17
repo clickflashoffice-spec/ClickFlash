@@ -14,15 +14,23 @@ import { handleOfficeRegister } from "./handlers/office/register";
 import { handleOfficeVerify } from "./handlers/office/verify";
 import { handleGalleryCreate } from "./handlers/gallery/create";
 import { handleGalleryGet } from "./handlers/gallery/get";
+import { handleGalleryAssetGet } from "./handlers/gallery/asset";
 import { handleWebhook } from "./handlers/webhook";
+import { handleGalleryCheckoutCreate } from "./handlers/checkout/create";
+import { handleGalleryCheckoutStatus } from "./handlers/checkout/status";
+import { handleStripeWebhook } from "./handlers/stripeWebhook";
+import { handleGalleryPurchaseDownload } from "./handlers/checkout/download";
 import { logger } from "@clickflash/logger";
+import { purgeExpiredGalleries } from "./services/galleryRetentionService";
 
 export interface Env {
   DB: D1Database;
   UPLOADS_BUCKET: R2Bucket;
   UPLOAD_SESSIONS: KVNamespace;
   JWT_SECRET: string;
+  MASTER_API_KEY: string;
   STRIPE_SECRET_KEY: string;
+  STRIPE_WEBHOOK_SECRET: string;
   WEBHOOK_SECRET: string;
   ENVIRONMENT: string;
   GALLERY_APP_URL: string;
@@ -42,7 +50,10 @@ export default {
     // CORS headers - use configured origins or default to production domains
     const allowedOrigins =
       env.ALLOWED_ORIGINS ||
-      "https://moneytrash.clickflash.app,https://gallery.clickflash.app";
+      "https://moneytrash.clickflash.com,https://gallery.clickflash.com";
+    const allowedOriginSet = new Set(
+      allowedOrigins.split(",").map((origin) => origin.trim()).filter(Boolean),
+    );
     const requestOrigin = request.headers.get("Origin") || "";
     
     const corsHeaders: Record<string, string> = {
@@ -54,20 +65,7 @@ export default {
 
     const isAllowedOrigin = (origin: string): boolean => {
       if (!origin) return true;
-      if (allowedOrigins.split(",").includes(origin)) return true;
-      try {
-        const { hostname } = new URL(origin);
-        return (
-          hostname.endsWith("clickflash.com") ||
-          hostname.endsWith("clicketflash.com") ||
-          hostname.endsWith("pages.dev") ||
-          hostname.endsWith("workers.dev") ||
-          hostname === "localhost" ||
-          hostname === "127.0.0.1"
-        );
-      } catch {
-        return false;
-      }
+      return allowedOriginSet.has(origin);
     };
 
     if (isAllowedOrigin(requestOrigin)) {
@@ -76,7 +74,14 @@ export default {
 
     // Handle preflight
     if (request.method === "OPTIONS") {
+      if (requestOrigin && !isAllowedOrigin(requestOrigin)) {
+        return Response.json({ error: "Origin is not allowed" }, { status: 403 });
+      }
       return new Response(null, { headers: corsHeaders });
+    }
+
+    if (requestOrigin && !isAllowedOrigin(requestOrigin)) {
+      return Response.json({ error: "Origin is not allowed" }, { status: 403 });
     }
 
     // Apply rate limiting
@@ -98,8 +103,16 @@ export default {
     // Gallery endpoints
     router.post("/api/galleries", handleGalleryCreate);
     router.get("/api/galleries/:code", handleGalleryGet);
+    router.get("/api/gallery-assets/:id", handleGalleryAssetGet);
 
-    // Webhook endpoint
+    // Dedicated customer commerce endpoints. These are authorized with the
+    // short-lived gallery purchase token issued by GET /api/galleries/:code.
+    router.post("/api/gallery-checkout", handleGalleryCheckoutCreate);
+    router.get("/api/gallery-checkout/sessions/:id", handleGalleryCheckoutStatus);
+    router.get("/api/gallery-purchases/:orderId/assets/:assetId", handleGalleryPurchaseDownload);
+    router.post("/api/stripe/webhook", handleStripeWebhook);
+
+    // Legacy office-to-office webhook endpoint
     router.post("/api/webhooks/:event", handleWebhook);
 
     // Health check
@@ -146,5 +159,12 @@ export default {
         },
       );
     }
+  },
+  async scheduled(
+    _controller: ScheduledController,
+    env: Env,
+    ctx: ExecutionContext,
+  ): Promise<void> {
+    ctx.waitUntil(purgeExpiredGalleries(env));
   },
 };

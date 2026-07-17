@@ -2,7 +2,7 @@
 -- Date: 2026-01-31
 
 -- Stripe webhook events log
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS stripe_webhook_events (
+CREATE TABLE IF NOT EXISTS stripe_webhook_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     event_id TEXT UNIQUE NOT NULL,
     event_type TEXT NOT NULL,
@@ -17,7 +17,7 @@ CREATE INDEX idx_webhook_events_type ON stripe_webhook_events(event_type);
 CREATE INDEX idx_webhook_events_created ON stripe_webhook_events(created_at);
 
 -- Payments table
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS payments (
+CREATE TABLE IF NOT EXISTS payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_id TEXT NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
@@ -35,7 +35,7 @@ CREATE INDEX idx_payments_order ON payments(order_id);
 CREATE INDEX idx_payments_stripe_intent ON payments(stripe_payment_intent_id);
 
 -- Fulfillment queue
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS fulfillment_queue (
+CREATE TABLE IF NOT EXISTS fulfillment_queue (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_id TEXT NOT NULL,
     status TEXT DEFAULT 'pending', -- pending, processing, completed, failed

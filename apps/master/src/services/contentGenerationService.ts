@@ -1,5 +1,3 @@
-import { logger } from "../utils/logger";
-
 export interface GalleryMetadata {
     eventName: string;
     date: string;
@@ -14,68 +12,54 @@ export interface GeneratedContent {
     emailBodyText: string;
 }
 
+const safeText = (value: unknown, fallback: string): string => {
+    if (typeof value !== "string") return fallback;
+    const normalized = value.trim().replace(/\s+/g, " ").slice(0, 160);
+    return normalized || fallback;
+};
+
+const escapeHtml = (value: string): string => value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+const safeCount = (value: unknown): number => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 0;
+};
+
+/** Builds reviewable gallery copy locally from supplied metadata. */
 export class ContentGenerationService {
-    
-    /**
-     * Generates SEO-ready blog posts and email campaigns using Gemini
-     */
     async generateGalleryContent(metadata: GalleryMetadata): Promise<GeneratedContent> {
-        logger.info(`Generating AI Content for gallery: ${metadata.eventName}`);
-        
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            throw new Error("GEMINI_API_KEY is missing from environment");
-        }
+        const eventName = safeText(metadata.eventName, "Photo Session");
+        const location = safeText(metadata.location, "the selected location");
+        const date = safeText(metadata.date, "the session date");
+        const highlightImageCount = safeCount(metadata.highlightImageCount);
+        const tags = Array.isArray(metadata.tags)
+            ? metadata.tags
+                .map((tag) => safeText(tag, ""))
+                .filter((tag, index, all) => tag && all.indexOf(tag) === index)
+                .slice(0, 8)
+            : [];
 
-        const prompt = `
-            You are a professional photography copywriter.
-            I have a gallery with the following details:
-            - Event: ${metadata.eventName}
-            - Location: ${metadata.location}
-            - Date: ${metadata.date}
-            - Tags: ${metadata.tags.join(', ')}
-            - Highlights: ${metadata.highlightImageCount} images
-            
-            Please output a JSON object exactly in this format:
-            {
-                "blogPostHtml": "<h1>SEO friendly title</h1><p>2 paragraphs of engaging SEO optimized content about the event.</p>",
-                "emailSubject": "Engaging email subject line to clients",
-                "emailBodyText": "Short email body announcing the gallery is ready to view."
-            }
-        `;
+        const escapedEvent = escapeHtml(eventName);
+        const escapedLocation = escapeHtml(location);
+        const escapedDate = escapeHtml(date);
+        const escapedTags = tags.map(escapeHtml).join(", ");
+        const imageLabel = `${highlightImageCount} highlighted image${highlightImageCount === 1 ? "" : "s"}`;
+        const tagSentence = escapedTags
+            ? `The collection focuses on ${escapedTags}.`
+            : "The collection presents the strongest moments selected by the studio.";
 
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: {
-                        responseMimeType: "application/json"
-                    }
-                })
-            });
+        const content: GeneratedContent = {
+            blogPostHtml: `<h1>${escapedEvent} photography at ${escapedLocation}</h1><p>Captured on ${escapedDate}, this gallery brings together ${imageLabel} from the session.</p><p>${tagSentence} Every image was selected for a clear, consistent client story.</p>`,
+            emailSubject: `${eventName} gallery is ready`,
+            emailBodyText: `Your ${eventName} gallery from ${date} at ${location} is ready to view. It includes ${imageLabel}. Please review your favorites when convenient.`,
+        };
 
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`Gemini API Error: ${response.status} - ${errText}`);
-            }
-
-            const data = await response.json();
-            const textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            
-            if (!textOutput) {
-                throw new Error("Invalid response format from Gemini");
-            }
-
-            const parsedContent = JSON.parse(textOutput) as GeneratedContent;
-            logger.info(`Successfully generated content for ${metadata.eventName}`);
-            return parsedContent;
-
-        } catch (error) {
-            logger.error(`Error generating content: ${error instanceof Error ? error.message : 'Unknown'}`);
-            throw error;
-        }
+        return content;
     }
 }
 

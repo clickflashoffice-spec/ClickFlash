@@ -18,6 +18,7 @@ interface UploadJob {
     singlePhotoPrice?: string;
     fullGalleryPrice?: string;
     apiUrl?: string;
+    deskId?: string;
     useNativePaths?: boolean;
     nativePaths?: string[];
   };
@@ -225,13 +226,14 @@ class DesktopBatchUploadService {
           filePath: nativePath,
           apiUrl: job.metadata.apiUrl,
           metadata: {
-            event_name: job.metadata.eventName,
-            access_code: job.metadata.accessCode,
+            eventName: job.metadata.eventName,
+            accessCode: job.metadata.accessCode,
             mode: job.metadata.mode,
-            mime_type: file.type,
-            customer_email: job.metadata.customerEmail,
-            single_photo_price: job.metadata.singlePhotoPrice,
-            full_gallery_price: job.metadata.fullGalleryPrice
+            mimeType: file.type,
+            deskId: job.metadata.deskId,
+            customerEmail: job.metadata.customerEmail,
+            singlePhotoPrice: job.metadata.singlePhotoPrice,
+            fullGalleryPrice: job.metadata.fullGalleryPrice
           }
         });
       } else {

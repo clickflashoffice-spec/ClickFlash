@@ -27,6 +27,7 @@ bucket_name = "clickflash-backups-staging"
 [env.staging.vars]
 ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:8090"
 FROM_EMAIL = "support@clickflash.com"
+GALLERY_PUBLIC_URL = "http://localhost:5176/gallery/"
 DEPLOY_ENV = "staging"
 MAX_REQS_PER_MINUTE = 600
 GEO_RESTRICTED = "false"
@@ -54,6 +55,7 @@ ALLOWED_ORIGINS = "https://admin.clickflash.com,https://www.clickflash.com,https
 FROM_EMAIL = "support@clickflash.com"
 DEPLOY_ENV = "production"
 FRONTEND_URL = "https://admin.clickflash.com/manage"
+GALLERY_PUBLIC_URL = "https://gallery.clickflash.com/gallery/"
 
 # Hardened WAF Rate Limiting vars
 MAX_REQS_PER_MINUTE = 60

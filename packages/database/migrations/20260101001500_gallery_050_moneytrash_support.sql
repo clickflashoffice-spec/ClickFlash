@@ -2,7 +2,7 @@
 -- Creates tables for archived photos and purchase tracking
 
 -- Archived Photos Table
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS archived_photos (
+CREATE TABLE IF NOT EXISTS archived_photos (
     id TEXT PRIMARY KEY,
     original_photo_id TEXT,
     album_id TEXT,
@@ -28,7 +28,7 @@ CREATE INDEX IF NOT EXISTS idx_archived_photos_status ON archived_photos(status)
 CREATE INDEX IF NOT EXISTS idx_archived_photos_expires ON archived_photos(expires_at);
 
 -- Gallery Settings Table (if not exists)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS gallery_settings (
+CREATE TABLE IF NOT EXISTS gallery_settings (
     id TEXT PRIMARY KEY,
     setting_key TEXT UNIQUE NOT NULL,
     setting_value TEXT NOT NULL,
@@ -52,7 +52,7 @@ VALUES (
 );
 
 -- Money Trash Purchase Log
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS moneytrash_purchases (
+CREATE TABLE IF NOT EXISTS moneytrash_purchases (
     id TEXT PRIMARY KEY,
     photo_id TEXT NOT NULL,
     access_code TEXT NOT NULL,
@@ -77,7 +77,7 @@ CREATE INDEX IF NOT EXISTS idx_moneytrash_purchases_access ON moneytrash_purchas
 -- Adding Money Trash specific fields via settings JSON
 
 -- Sync Queue for Master App integration
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS moneytrash_sync_queue (
+CREATE TABLE IF NOT EXISTS moneytrash_sync_queue (
     id TEXT PRIMARY KEY,
     photo_id TEXT NOT NULL,
     source_type TEXT NOT NULL, -- 'master', 'uploader'

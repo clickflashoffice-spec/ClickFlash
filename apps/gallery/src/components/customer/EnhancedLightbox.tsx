@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useId } from 'react';
 import { Photo } from '../../types';
 import { getPhotoStyle } from '../../utils/styleUtils';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
@@ -35,6 +35,31 @@ const variants = {
   })
 };
 
+const InfoRow: React.FC<{ label: string; value?: string | null }> = ({ label, value }) => (
+  <div className="flex justify-between gap-3">
+    <dt className="text-slate-500">{label}</dt>
+    <dd className="truncate text-right font-semibold text-slate-200">{value || 'Unavailable'}</dd>
+  </div>
+);
+
+function formatDimensions(photo: Photo): string | undefined {
+  const width = photo.width || photo.metadata?.dimensions?.width;
+  const height = photo.height || photo.metadata?.dimensions?.height;
+  return width && height ? `${width} × ${height}` : undefined;
+}
+
+function formatBytes(value?: number): string | undefined {
+  if (!value || value <= 0) return undefined;
+  if (value < 1024 * 1024) return `${Math.round(value / 1024)} KB`;
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatDate(value?: string): string | undefined {
+  if (!value) return undefined;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date.toLocaleDateString();
+}
+
 const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
   photos,
   startIndex,
@@ -43,53 +68,120 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
   onToggleFavorite,
   onOpenAddToCartModal
 }) => {
-  const [[currentIndex, direction], setPage] = useState([startIndex, 0]);
+  const initialIndex = Math.min(Math.max(startIndex, 0), Math.max(photos.length - 1, 0));
+  const [[currentIndex, direction], setPage] = useState([initialIndex, 0]);
   const [zoom, setZoom] = useState<ZoomMode>('fit');
   const [compareMode, setCompareMode] = useState(false);
   const [compareIndex, setCompareIndex] = useState<number | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const titleId = useId();
 
   const activePhoto = photos[currentIndex];
-  const isFavorite = favoritePhotoIds.has(activePhoto.id);
-  const editStyle = activePhoto.manualEdits ? getPhotoStyle(activePhoto.manualEdits) : { filter: undefined, transform: undefined };
+  const isFavorite = activePhoto ? favoritePhotoIds.has(activePhoto.id) : false;
+  const editStyle = activePhoto?.manualEdits ? getPhotoStyle(activePhoto.manualEdits) : { filter: undefined, transform: undefined };
+
+  useEffect(() => {
+    if (photos.length === 0) return;
+    const nextIndex = Math.min(Math.max(startIndex, 0), photos.length - 1);
+    setPage([nextIndex, 0]);
+  }, [photos.length, startIndex]);
+
+  useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      previousFocusRef.current?.focus();
+    };
+  }, []);
 
   const paginate = useCallback((newDirection: number) => {
     setZoom('fit');
     let nextIndex = currentIndex + newDirection;
     if (nextIndex < 0) nextIndex = photos.length - 1;
     if (nextIndex >= photos.length) nextIndex = 0;
+    if (compareIndex === nextIndex && photos.length > 1) {
+      setCompareIndex((nextIndex + 1) % photos.length);
+    }
     setPage([nextIndex, newDirection]);
-  }, [currentIndex, photos.length]);
+  }, [compareIndex, currentIndex, photos.length]);
 
   const handleNext = useCallback(() => paginate(1), [paginate]);
   const handlePrev = useCallback(() => paginate(-1), [paginate]);
-  const resetView = () => setZoom('fit');
+  const resetView = useCallback(() => setZoom('fit'), []);
 
-  const zoomIn = () => setZoom(prev => (prev === 'fit' ? 1.5 : Math.min(prev * 1.3, 5)));
-  const zoomOut = () => setZoom(prev => {
+  const zoomIn = useCallback(() => setZoom(prev => (prev === 'fit' ? 1.5 : Math.min(prev * 1.3, 5))), []);
+  const zoomOut = useCallback(() => setZoom(prev => {
     if (prev === 'fit') return 'fit';
     const newZoom = prev / 1.3;
     return newZoom <= 1 ? 'fit' : newZoom;
-  });
+  }), []);
+
+  const toggleCompareMode = useCallback(() => {
+    if (compareMode) {
+      setCompareMode(false);
+      return;
+    }
+    if (photos.length > 1) {
+      setCompareIndex((currentIndex + 1) % photos.length);
+      setCompareMode(true);
+    }
+  }, [compareMode, currentIndex, photos.length]);
+
+  const stepComparison = useCallback((step: number) => {
+    setCompareIndex((previous) => {
+      let next = ((previous ?? currentIndex) + step + photos.length) % photos.length;
+      if (next === currentIndex && photos.length > 1) {
+        next = (next + step + photos.length) % photos.length;
+      }
+      return next;
+    });
+  }, [currentIndex, photos.length]);
+
+  useEffect(() => {
+    if (compareMode && compareIndex === currentIndex && photos.length > 1) {
+      setCompareIndex((currentIndex + 1) % photos.length);
+    }
+  }, [compareIndex, compareMode, currentIndex, photos.length]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+        ));
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          last?.focus();
+          e.preventDefault();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          first?.focus();
+          e.preventDefault();
+        }
+        return;
+      }
       switch (e.key) {
         case 'Escape': compareMode ? setCompareMode(false) : onClose(); break;
-        case 'ArrowRight': handleNext(); break;
-        case 'ArrowLeft': handlePrev(); break;
+        case 'ArrowRight': e.preventDefault(); handleNext(); break;
+        case 'ArrowLeft': e.preventDefault(); handlePrev(); break;
         case '+': case '=': e.preventDefault(); zoomIn(); break;
         case '-': e.preventDefault(); zoomOut(); break;
         case '0': e.preventDefault(); resetView(); break;
-        case 'c': case 'C': e.preventDefault(); setCompareMode(!compareMode); break;
-        case 'i': case 'I': e.preventDefault(); setShowInfo(!showInfo); break;
+        case 'c': case 'C': e.preventDefault(); toggleCompareMode(); break;
+        case 'i': case 'I': e.preventDefault(); setShowInfo(value => !value); break;
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, compareMode, handleNext, handlePrev, showInfo]);
+  }, [onClose, compareMode, handleNext, handlePrev, resetView, toggleCompareMode, zoomIn, zoomOut]);
 
-  const handleDragEnd = (e: any, { offset, velocity }: PanInfo) => {
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, { offset, velocity }: PanInfo) => {
     const swipe = Math.abs(offset.x) * velocity.x;
     if (swipe < -10000) {
       handleNext();
@@ -103,44 +195,57 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
 
   const comparePhoto = compareIndex !== null ? photos[compareIndex] : null;
 
+  if (!activePhoto) return null;
+
   return (
-    <div className="fixed inset-0 bg-slate-950 z-[100] flex flex-col font-sans text-white overflow-hidden" onClick={onClose}>
+    <div
+      ref={dialogRef}
+      className="fixed inset-0 bg-slate-950 z-[100] flex flex-col font-sans text-white overflow-hidden"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+    >
       {/* Premium Top Bar */}
-      <div className="relative z-[110] px-6 py-4 flex justify-between items-center glass-panel border-b border-white/5 shadow-2xl" onClick={e => e.stopPropagation()}>
+      <div className="relative z-[110] px-4 sm:px-6 py-4 flex justify-between items-center gap-4 overflow-x-auto glass-panel border-b border-white/5 shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex flex-col">
-          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white italic">{activePhoto.title}</h3>
+          <h3 id={titleId} className="text-xs font-black uppercase tracking-[0.2em] text-white italic">{activePhoto.title || 'Untitled photo'}</h3>
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">{currentIndex + 1} <span className="text-slate-700">/</span> {photos.length} <span className="text-slate-700 ml-1">•</span> <span className="text-cyan-400">Master View</span></p>
         </div>
 
         <div className="flex items-center space-x-3">
           {/* Virtual Zoom Controls */}
           <div className="flex items-center space-x-1 bg-black/40 p-1 rounded-xl border border-white/5 backdrop-blur-md">
-            <button onClick={(e) => { e.stopPropagation(); zoomOut(); }} className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Zoom Out">
+            <button type="button" onClick={(e) => { e.stopPropagation(); zoomOut(); }} className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Zoom Out" aria-label="Zoom out">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path d="M20 12H4" /></svg>
             </button>
             <div className="text-[9px] font-black uppercase tracking-widest w-12 text-center text-slate-300">
               {typeof zoom === 'number' ? `${Math.round(zoom * 100)}%` : 'Fit'}
             </div>
-            <button onClick={(e) => { e.stopPropagation(); zoomIn(); }} className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Zoom In">
+            <button type="button" onClick={(e) => { e.stopPropagation(); zoomIn(); }} className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Zoom In" aria-label="Zoom in">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path d="M12 4v16m8-8H4" /></svg>
             </button>
           </div>
 
           <div className="h-6 w-px bg-white/5 mx-1"></div>
 
-          <button onClick={(e) => { e.stopPropagation(); setCompareMode(!compareMode); }} className={`p-2.5 rounded-xl transition-all border ${compareMode ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-white/5 text-slate-400 border-white/10 hover:border-white/20'}`} title="Compare Photos (C)">
+          <button type="button" onClick={(e) => { e.stopPropagation(); toggleCompareMode(); }} disabled={photos.length < 2} aria-pressed={compareMode} aria-label="Compare photos" className={`p-2.5 rounded-xl transition-all border disabled:cursor-not-allowed disabled:opacity-30 ${compareMode ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-white/5 text-slate-400 border-white/10 hover:border-white/20'}`} title="Compare Photos (C)">
             <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" /></svg>
           </button>
 
-          <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(activePhoto.id); }} className={`p-2.5 rounded-xl transition-all border ${isFavorite ? 'bg-red-500 text-white border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-white/5 text-slate-400 border-white/10 hover:border-white/20'}`} title="Favorite">
+          <button type="button" onClick={(e) => { e.stopPropagation(); setShowInfo(value => !value); }} aria-pressed={showInfo} aria-label="Show photo information" className={`p-2.5 rounded-xl transition-all border ${showInfo ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-white/5 text-slate-400 border-white/10 hover:border-white/20'}`} title="Photo Information (I)">
+            <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M12 16v-4m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </button>
+
+          <button type="button" onClick={(e) => { e.stopPropagation(); onToggleFavorite(activePhoto.id); }} aria-pressed={isFavorite} aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'} className={`p-2.5 rounded-xl transition-all border ${isFavorite ? 'bg-red-500 text-white border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-white/5 text-slate-400 border-white/10 hover:border-white/20'}`} title="Favorite">
             <svg className="w-4.5 h-4.5" fill="currentColor" viewBox="0 0 20 20"><path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" /></svg>
           </button>
 
-          <button onClick={(e) => { e.stopPropagation(); onOpenAddToCartModal(activePhoto); }} className="p-2.5 bg-cyan-500/90 text-white rounded-xl border border-cyan-400/50 hover:bg-cyan-400 transition-all shadow-lg" title="Add to Cart">
+          <button type="button" onClick={(e) => { e.stopPropagation(); onOpenAddToCartModal(activePhoto); }} className="p-2.5 bg-cyan-500/90 text-white rounded-xl border border-cyan-400/50 hover:bg-cyan-400 transition-all shadow-lg" title="Add to Cart" aria-label="Add photo to cart">
             <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
           </button>
 
-          <button onClick={onClose} className="p-2.5 bg-white/5 text-slate-400 border border-white/10 rounded-xl hover:text-white hover:border-white/20 transition-all ml-4" title="Close Lightbox">
+          <button ref={closeButtonRef} type="button" onClick={onClose} className="p-2.5 bg-white/5 text-slate-400 border border-white/10 rounded-xl hover:text-white hover:border-white/20 transition-all ml-4" title="Close Lightbox" aria-label="Close lightbox">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
@@ -149,16 +254,29 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
       {/* Main Image Area with Framer Motion */}
       <div className="flex-1 flex overflow-hidden relative cursor-grab active:cursor-grabbing">
         {/* Navigation Layers */}
-        <div className="absolute inset-y-0 left-0 w-32 z-[105] flex items-center justify-center group/nav" onClick={(e) => { e.stopPropagation(); handlePrev(); }}>
+        <button type="button" className="absolute inset-y-0 left-0 w-32 z-[105] flex items-center justify-center group/nav" onClick={(e) => { e.stopPropagation(); handlePrev(); }} aria-label="Previous photo">
           <div className="p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/5 text-white/30 group-hover/nav:text-white group-hover/nav:bg-cyan-500/20 group-hover/nav:border-cyan-500/30 transition-all transform -translate-x-12 group-hover/nav:translate-x-4">
             <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M15 19l-7-7 7-7" /></svg>
           </div>
-        </div>
-        <div className="absolute inset-y-0 right-0 w-32 z-[105] flex items-center justify-center group/nav" onClick={(e) => { e.stopPropagation(); handleNext(); }}>
+        </button>
+        <button type="button" className="absolute inset-y-0 right-0 w-32 z-[105] flex items-center justify-center group/nav" onClick={(e) => { e.stopPropagation(); handleNext(); }} aria-label="Next photo">
           <div className="p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/5 text-white/30 group-hover/nav:text-white group-hover/nav:bg-cyan-500/20 group-hover/nav:border-cyan-500/30 transition-all transform translate-x-12 group-hover/nav:-translate-x-4">
             <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M9 5l7 7-7 7" /></svg>
           </div>
-        </div>
+        </button>
+
+        {showInfo && (
+          <aside className="absolute left-4 top-4 z-[106] w-64 rounded-2xl border border-white/10 bg-slate-950/90 p-4 shadow-2xl backdrop-blur-xl" aria-label="Photo information">
+            <h4 className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400">Photo information</h4>
+            <dl className="space-y-2 text-xs">
+              <InfoRow label="File" value={activePhoto.originalFilename || activePhoto.title || 'Untitled'} />
+              <InfoRow label="Dimensions" value={formatDimensions(activePhoto)} />
+              <InfoRow label="Size" value={formatBytes(activePhoto.fileSize || activePhoto.size)} />
+              <InfoRow label="Captured" value={formatDate(activePhoto.capturedAt || activePhoto.metadata?.dateTaken)} />
+              <InfoRow label="Camera" value={activePhoto.metadata?.camera || activePhoto.metadata?.exif?.Model} />
+            </dl>
+          </aside>
+        )}
 
         {/* Primary Image */}
         <div className={`relative flex-1 flex items-center justify-center overflow-hidden ${compareMode ? 'w-1/2' : 'w-full'}`} onClick={e => e.stopPropagation()}>
@@ -194,11 +312,11 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
           <div className="w-1/2 flex items-center justify-center overflow-hidden border-l border-white/5 bg-black/20 relative z-[100]" onClick={(e) => e.stopPropagation()}>
             <img src={comparePhoto.url} alt={comparePhoto.title} className="max-w-[90%] max-h-[90%] object-contain" />
             <div className="absolute bottom-8 right-8 flex items-center space-x-3 bg-black/50 backdrop-blur-xl border border-white/10 p-2 rounded-2xl">
-              <button onClick={() => setCompareIndex((prev) => prev !== null ? (prev - 1 + photos.length) % photos.length : 1)} className="p-2 text-slate-400 hover:text-white rounded-lg transition-all">
+              <button type="button" onClick={() => stepComparison(-1)} className="p-2 text-slate-400 hover:text-white rounded-lg transition-all" aria-label="Previous comparison photo">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M15 19l-7-7 7-7" /></svg>
               </button>
               <div className="text-[10px] font-black uppercase tracking-widest text-cyan-400">Comparing</div>
-              <button onClick={() => setCompareIndex((prev) => prev !== null ? (prev + 1) % photos.length : 1)} className="p-2 text-slate-400 hover:text-white rounded-lg transition-all">
+              <button type="button" onClick={() => stepComparison(1)} className="p-2 text-slate-400 hover:text-white rounded-lg transition-all" aria-label="Next comparison photo">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 5l7 7-7 7" /></svg>
               </button>
             </div>
@@ -207,11 +325,14 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
       </div>
 
       {/* Bottom Thumbnail Filmstrip */}
-      <div className="h-28 glass-panel border-t border-white/5 flex items-center px-8 gap-3 overflow-x-auto relative z-[110]" onClick={e => e.stopPropagation()}>
+      <div className="h-28 glass-panel border-t border-white/5 flex items-center px-8 gap-3 overflow-x-auto relative z-[110]" onClick={e => e.stopPropagation()} aria-label="Gallery thumbnails">
         {photos.map((photo, idx) => (
           <button
             key={photo.id}
+            type="button"
             onClick={(e) => { e.stopPropagation(); setPage([idx, idx > currentIndex ? 1 : -1]); resetView(); }}
+            aria-label={`View photo ${idx + 1}: ${photo.title || 'Untitled photo'}`}
+            aria-current={idx === currentIndex ? 'true' : undefined}
             className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 relative group ${idx === currentIndex ? 'border-cyan-500 scale-110 shadow-[0_0_20px_rgba(34,211,238,0.3)]' : 'border-transparent opacity-40 hover:opacity-100 hover:scale-105'}`}
           >
             <img src={photo.thumbnailUrl || photo.url} alt="" className="w-full h-full object-cover" />

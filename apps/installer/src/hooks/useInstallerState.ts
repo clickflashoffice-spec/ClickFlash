@@ -4,6 +4,16 @@
  */
 
 import { useState, useCallback, useRef } from "react";
+import type {
+  ApplicationComponent,
+  HeartbeatPayload,
+  InstallerConfig,
+  LaunchAppsPayload,
+  RegisterWithHubPayload,
+  ValidatedLicense,
+  WriteEnvConfigPayload,
+} from "../../installer-ipc-schemas";
+import type { PayloadBundleSelectionResult } from "../../installer-payload-verification";
 import {
   InstallStep,
   STEP_ORDER,
@@ -21,7 +31,7 @@ import {
 declare const window: Window & {
   installerApi: {
     checkPrerequisites: () => Promise<PrerequisiteResults>;
-    openOAuth: (url: string) => Promise<{ success: boolean }>;
+    openOAuth: (url: string) => Promise<{ success: boolean; error?: string }>;
     testCloudflareToken: (token: string) => Promise<{
       success: boolean;
       accounts?: CloudflareAccount[];
@@ -40,26 +50,26 @@ declare const window: Window & {
       deskId: string;
       token: string;
     }) => Promise<HealthCheckResults>;
-    saveConfig: (config: Record<string, unknown>) => Promise<{
+    saveConfig: (config: InstallerConfig) => Promise<{
       success: boolean;
       error?: string;
     }>;
-    writeEnvConfig: (params: { targetDir: string; envData: Record<string, string> }) => Promise<{ success: boolean; error?: string }>;
+    writeEnvConfig: (params: WriteEnvConfigPayload) => Promise<{ success: boolean; error?: string }>;
     getGeolocation: () => Promise<{ success: boolean; data?: { city: string; regionName: string; countryCode?: string; country?: string; timezone: string; currency?: string }; error?: string }>;
-    launchApps: (paths: { master?: string; touch?: string }) => Promise<{ master: boolean; touch: boolean }>;
-    selectDirectory: () => Promise<string | null>;
+    launchApps: (payload: LaunchAppsPayload) => Promise<{ master: boolean; touch: boolean }>;
+    selectPayloadBundle: () => Promise<PayloadBundleSelectionResult>;
     getLogs: () => Promise<string[]>;
     // License
-    validateLicense: (key: string) => Promise<{ success: boolean; data?: { key: string; tenant_id: string; region: string; plan: string; features: string[]; max_masters: number; expires_at: string | null }; error?: string }>;
+    validateLicense: (key: string) => Promise<{ success: boolean; data?: ValidatedLicense; error?: string }>;
     // OAuth Device Code
     requestDeviceCode: () => Promise<{ success: boolean; data?: { device_code: string; user_code: string; verification_uri: string; verification_uri_complete?: string; expires_in: number; interval: number; tenant_id?: string }; error?: string }>;
     pollForToken: (deviceCode: string) => Promise<{ success: boolean; data?: { access_token?: string; refresh_token?: string; tenant_id?: string; error?: string; error_description?: string }; error?: string; status?: number }>;
     // Desk ID
     checkDeskId: (deskId: string) => Promise<{ success: boolean; data?: { available: boolean; suggestions?: string[] }; error?: string }>;
     // Hub Registration
-    registerWithHub: (payload: Record<string, unknown>) => Promise<{ success: boolean; data?: { desk_id: string }; error?: string }>;
-    sendHeartbeat: (payload: Record<string, unknown>) => Promise<{ success: boolean; data?: { r2_test_ok?: boolean }; error?: string }>;
-    openExternalUrl: (url: string) => Promise<{ success: boolean }>;
+    registerWithHub: (payload: RegisterWithHubPayload) => Promise<{ success: boolean; data?: { desk_id: string }; error?: string }>;
+    sendHeartbeat: (payload: HeartbeatPayload) => Promise<{ success: boolean; data?: { r2_test_ok?: boolean }; error?: string }>;
+    openExternalUrl: (url: string) => Promise<{ success: boolean; error?: string }>;
     // Pairing
     discoverMasters: () => Promise<{ success: boolean; masters: Array<{ desk_id: string; tenant_id: string; host: string; port: number; addresses: string[]; latencyMs: number }> }>;
     scanLan: () => Promise<{ success: boolean; masters: Array<{ desk_id: string; tenant_id: string; host: string; port: number; addresses: string[]; latencyMs: number }> }>;
@@ -120,6 +130,7 @@ const initialState: InstallerState = {
   pairingResult: null,
   healthResults: null,
   installPath: "",
+  payloadBundle: null,
   launchOnComplete: true,
   license: null,
   hub: null,
@@ -164,8 +175,40 @@ export function useInstallerState() {
     });
   }, []);
 
-  const setSelectedApps = useCallback((apps: string[]) => {
+  const setSelectedApps = useCallback((apps: ApplicationComponent[]) => {
     setState((s) => ({ ...s, selectedApps: apps }));
+  }, []);
+
+  const selectPayloadBundle = useCallback(async () => {
+    setError(null);
+    try {
+      const result = await api.selectPayloadBundle();
+      if (result.success) {
+        setState((s) => ({
+          ...s,
+          installPath: result.directory,
+          payloadBundle: result.summary,
+        }));
+        addLog(`Signed payload ${result.summary.releaseId} v${result.summary.version} verified.`);
+        return result.directory;
+      }
+      if (!result.canceled) {
+        setState((s) => ({ ...s, installPath: "", payloadBundle: null }));
+        setError(result.error || "Payload bundle verification failed");
+        addLog(`ERROR: ${result.error || "Payload bundle verification failed"}`);
+      }
+      return null;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setState((s) => ({ ...s, installPath: "", payloadBundle: null }));
+      setError(`Payload bundle verification failed: ${message}`);
+      addLog(`ERROR: ${message}`);
+      return null;
+    }
+  }, [addLog, setError]);
+
+  const setLaunchOnComplete = useCallback((launchOnComplete: boolean) => {
+    setState((s) => ({ ...s, launchOnComplete }));
   }, []);
 
   // ─── Step 1: Prerequisites ───────────────────────────────────────────────────
@@ -198,7 +241,7 @@ export function useInstallerState() {
       const result = await api.validateLicense(key);
       if (result.success && result.data) {
         setState((s) => ({ ...s, license: result.data! }));
-        addLog(`License valid. Tenant: ${result.data.tenant_id}, Plan: ${result.data.plan}`);
+        addLog(`License valid. Plan: ${result.data.plan}, Max Studios: ${result.data.max_masters}`);
       } else {
         setError(result.error || "License validation failed");
         addLog(`ERROR: ${result.error}`);
@@ -403,25 +446,31 @@ export function useInstallerState() {
 
   // ─── Step 7: First Sync (register + heartbeat + r2 test) ───────────────────
   const registerAndFirstSync = useCallback(async () => {
-    if (!state.hub?.access_token) {
+    const hub = state.hub;
+    const desk = state.desk;
+    const deskId = state.deskId;
+    if (!hub?.access_token) {
       return { success: false, error: "Not authorized. Please complete the Cloud Account step." };
+    }
+    if (!deskId || !desk) {
+      return { success: false, error: "Destination profile is incomplete." };
     }
     setLoading(true);
     setError(null);
     addLog("Registering with Hub...");
     try {
       const regRes = await api.registerWithHub({
-        desk_id: state.deskId,
-        site_code: state.desk?.site_code,
-        name: state.desk?.name,
-        location: state.desk?.location,
-        country: state.desk?.country,
-        timezone: state.desk?.timezone,
-        currency: state.desk?.currency,
+        desk_id: deskId,
+        site_code: desk.site_code,
+        name: desk.name,
+        location: desk.location,
+        country: desk.country,
+        timezone: desk.timezone,
+        currency: desk.currency,
         hardware_fingerprint: (await api.getHardwareFingerprint()).fingerprint,
         version: "5.0.0",
         mode: "install",
-        access_token: state.hub.access_token,
+        access_token: hub.access_token,
       });
       if (!regRes.success) {
         setLoading(false);
@@ -432,10 +481,10 @@ export function useInstallerState() {
       // First heartbeat
       addLog("Sending first heartbeat...");
       const hbRes = await api.sendHeartbeat({
-        desk_id: state.deskId,
+        desk_id: deskId,
         status: "Online",
         version: "5.0.0",
-        access_token: state.hub.access_token,
+        access_token: hub.access_token,
         test_r2: true,
       });
       if (!hbRes.success) {
@@ -450,7 +499,7 @@ export function useInstallerState() {
         firstSync: { registered_at: Date.now(), heartbeat_ok: true, r2_test_ok: !!hbRes.data?.r2_test_ok },
       }));
       setLoading(false);
-      return { success: true, data: { desk_id: regRes.data?.desk_id || state.deskId!, r2_test_ok: !!hbRes.data?.r2_test_ok } };
+      return { success: true, data: { desk_id: regRes.data?.desk_id || deskId, r2_test_ok: !!hbRes.data?.r2_test_ok } };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(`First sync failed: ${msg}`);
@@ -492,9 +541,15 @@ export function useInstallerState() {
   const saveAndLaunch = useCallback(async () => {
     setLoading(true);
     setError(null);
-    addLog("Saving configuration and launching applications...");
+    addLog("Committing application configuration...");
     try {
-      await api.saveConfig({
+      if (!state.deskId || !state.desk || !state.license) {
+        throw new Error("License and destination configuration must be complete");
+      }
+      if (!state.installPath) {
+        throw new Error("An approved deployment root is required");
+      }
+      const configResult = await api.saveConfig({
         deskId: state.deskId,
         studioProfile: state.studioProfile,
         destination: state.desk,
@@ -505,28 +560,37 @@ export function useInstallerState() {
         version: "5.0.0",
         installedAt: new Date().toISOString(),
       });
+      if (!configResult.success) {
+        throw new Error(configResult.error || "Failed to save installer configuration");
+      }
 
-      // Write .env for Master and Touch apps if installPath is available
-      if (state.installPath) {
-        const envData = {
-          VITE_HUB_BASE: "https://hub.clickflash.app",
-          DESK_ID: state.deskId || "",
-          SITE_CODE: state.desk?.site_code || "",
-          TENANT_ID: state.hub?.tenant_id || "",
-          TIMEZONE: state.desk?.timezone || "UTC",
-          LOCATION_NAME: state.desk?.location || "",
-          CURRENCY: state.desk?.currency || "USD",
-        };
-        await api.writeEnvConfig({ targetDir: state.installPath, envData });
+      const envConfigResult = await api.writeEnvConfig({
+        targetDir: state.installPath,
+        selectedApps: state.selectedApps,
+        deskId: state.deskId,
+        siteCode: state.desk.site_code,
+        tenantId: state.hub?.tenant_id || null,
+        timezone: state.desk.timezone,
+        location: state.desk.location,
+        currency: state.desk.currency,
+      });
+      if (!envConfigResult.success) {
+        throw new Error(envConfigResult.error || "Application configuration failed");
       }
 
       if (state.launchOnComplete) {
-        await api.launchApps({
-          master: state.installPath ? `${state.installPath}/ClickFlash Master.exe` : undefined,
-          touch: state.installPath ? `${state.installPath}/ClickFlash Touch.exe` : undefined,
-        });
+        const components = state.selectedApps.filter(
+          (application): application is "master" | "touch" => application === "master" || application === "touch",
+        );
+        const launchResult = await api.launchApps({ components });
+        const failedApplications = components.filter((application) => !launchResult[application]);
+        if (failedApplications.length > 0) {
+          throw new Error(`Failed to launch: ${failedApplications.join(", ")}`);
+        }
       }
-      addLog("Installation complete. Applications launched.");
+      addLog(state.launchOnComplete
+        ? "Configuration committed. Applications launched."
+        : "Configuration committed successfully.");
       return { success: true };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -547,6 +611,8 @@ export function useInstallerState() {
     nextStep,
     prevStep,
     setSelectedApps,
+    selectPayloadBundle,
+    setLaunchOnComplete,
     setError,
     addLog,
     runPrerequisites,

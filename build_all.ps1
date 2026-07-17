@@ -14,11 +14,11 @@ Copy-Item "release\*.exe" -Destination "$ReleaseDir\ClickFlash_Touch_v3.0.0_Setu
 Write-Host "Building Installer App..."
 Set-Location "C:\Users\alamo\Desktop\ClickFlash\apps\installer"
 npm run package:installer
-# Output is already directed to Release directory via package.json
+Copy-Item "..\..\ClickFlash_Release_v3.0\03_Production_Builds\*.exe" -Destination "$ReleaseDir\ClickFlash_Installer_v3.0.0.exe" -Force -ErrorAction SilentlyContinue
 
 Write-Host "Building License Generator App..."
 Set-Location "C:\Users\alamo\Desktop\ClickFlash\apps\license-generator"
 npm run package:win
-Copy-Item "dist\*.exe" -Destination "$ReleaseDir\ClickFlash_License_Gen_v3.0.0.exe" -Force -ErrorAction SilentlyContinue
+Copy-Item "release\*.exe" -Destination "$ReleaseDir\ClickFlash_License_Gen_v3.0.0.exe" -Force -ErrorAction SilentlyContinue
 
 Write-Host "Build and Copy Complete!"

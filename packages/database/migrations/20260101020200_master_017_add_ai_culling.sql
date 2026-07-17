@@ -1,6 +1,6 @@
 -- AI Culling Schema Migration
 -- Create AI Groups table for finding best photo in a series
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS ai_groups (
+CREATE TABLE IF NOT EXISTS ai_groups (
     id TEXT PRIMARY KEY,
     albumId TEXT NOT NULL,
     bestPhotoId TEXT,
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS ai_groups (
     FOREIGN KEY(albumId) REFERENCES albums(id) ON DELETE CASCADE -- FOREIGN KEY(bestPhotoId) REFERENCES photos(id) -- Circular dependency risk, handle in app logic
 );
 -- Create AI Scores table to store analysis results
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS ai_scores (
+CREATE TABLE IF NOT EXISTS ai_scores (
     photoId TEXT PRIMARY KEY,
     overallScore REAL,
     sharpnessScore REAL,

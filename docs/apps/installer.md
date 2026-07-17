@@ -1,6 +1,6 @@
 # Forensic Architecture Report: `apps/installer/` — Studio Installer Wizard
 
-> Generated: 2026-06-22 | Scope: Electron + Vite + React 19, one-click setup, offline license validation, Cloudflare OAuth, Master/Touch spawn
+> Generated: 2026-06-22 | Security/release evidence updated: 2026-07-17. The current release decision and cross-app findings live in `docs/DESKTOP_APPLICATION_AUDIT_2026-07-16.md`.
 
 ## 1. Overview & Stats
 
@@ -14,8 +14,8 @@
 | **Package manager** | pnpm 10.28.2 |
 | **TS/TSX files** | 32 |
 | **Component files** | 14 |
-| **Test files** | 1 |
-| **Key dependencies** | `electron`, `lucide-react`, `qrcode`, `clsx`, `tailwind-merge` |
+| **Test files** | 10 |
+| **Key dependencies** | `electron`, `zod`, `systeminformation`, `lucide-react`, `qrcode`, `clsx`, `tailwind-merge` |
 
 **Entry flow**: `electron-main.ts` creates a sandboxed `BrowserWindow` (900x650) loading either the Vite dev server or packaged `index.html`. The renderer entry `src/main.tsx` mounts `App.tsx`, which is a 9-step wizard driven by `useInstallerState`.
 
@@ -25,6 +25,16 @@
 apps/installer/
 ├── electron-main.ts              # Electron main process: IPC, OS integration
 ├── preload.ts                    # Context-isolated preload bridge
+├── electron-security.ts          # Renderer, URL, LAN, path, and launch policy
+├── electron-network-security.ts  # Bounded, redirect-denied JSON requests
+├── installer-ipc-schemas.ts      # Strict privileged payload/response schemas
+├── installer-config.ts           # safeStorage protection + atomic JSON writer
+├── installer-application-config.ts # Canonical payload layout + config transaction/rollback
+├── installer-payload-verification.ts # Signed manifest, path, inventory, size, and SHA-256 verification
+├── installer-payload-trust.ts      # Separate packaged/development payload trust roots
+├── installer-payload-release.ts    # Deterministic inventory, signing, secret scan, atomic output
+├── scripts/payload-release.ts      # Operator-only offline signing CLI (not packaged)
+├── tsconfig.payload-tools.json     # Separate CLI compilation boundary
 ├── src/
 │   ├── main.tsx                  # React renderer root
 │   ├── App.tsx                   # 9-step wizard shell
@@ -98,18 +108,20 @@ No web routes. The app is a single-window wizard with 9 steps:
 
 ## 5. Features & User Journeys
 
-1. **New studio setup**: welcome -> validate offline license -> OAuth to Cloudflare Hub -> choose install path -> configure studio -> pair kiosk -> first sync -> health check -> launch apps
-2. **Offline license validation**: `validateLicenseKey` script checks key locally, extracts tenant/region/plan/features/max_masters/expires_at
+1. **New studio setup**: welcome -> choose and verify signed application bundle -> validate offline license -> OAuth to Cloudflare Hub -> configure studio -> pair kiosk -> first sync -> health check -> launch apps
+2. **Offline license validation**: `validateLicenseKey` verifies the Ed25519 signature, schema, expiry, and optional machine binding locally, returning plan, studio limit, expiry, and machine identity
 3. **Cloudflare OAuth device-code flow**: request device code -> open browser for user_code -> poll Hub for token
 4. **Desk registration**: `registerFleet` POSTs to `/api/masters/register` with hardware fingerprint
 5. **Kiosk pairing**: mDNS discovery or LAN sweep -> challenge/response HMAC exchange -> obtain `hmac_secret`
 6. **System integration**: Windows firewall rules, startup registry entry, cloudflared tunnel service install
 
 ### Sub-features
-- Hardware fingerprint (WMIC UUID / hostname hash)
-- Token encryption: Windows DPAPI, macOS Keychain, Linux libsecret, AES-256-GCM fallback
-- Config saved to `~/.clickflash/installer-config.json` (mode 0o600)
-- Installer log at `%TMP%/clickflash-installer.log`
+- Hardware fingerprint through `systeminformation`
+- License-key protection through Electron `safeStorage`; persistence fails closed when OS encryption is unavailable
+- Strict-schema, bounded, atomic config save at `~/.clickflash/installer-config.json`
+- Signed local payload selection with a separate Ed25519 public-key trust domain and full-file SHA-256 verification
+- Deterministic offline payload signer that accepts an external PKCS#8 Ed25519 key, rejects secret-like/private-key content, atomically writes the envelope, and self-verifies
+- Installer log at `%TMP%/clickflash-installer.log` (redaction/rotation remains open)
 
 ## 6. State Management
 
@@ -117,7 +129,7 @@ No web routes. The app is a single-window wizard with 9 steps:
 |-------|------|-------|
 | Wizard state | `useState` in `useInstallerState` | Step index, loading, error, logs, license, hub, desk, studio, pairings, health |
 | Cross-process API | Electron IPC | `window.installerApi` exposed via preload |
-| Persistence | Node fs | Encrypted token file, installer config |
+| Persistence | Node fs + Electron `safeStorage` | Atomic installer config with OS-protected license key |
 | Global store | none | All state local to hook |
 
 ## 7. API / Backend
@@ -126,40 +138,51 @@ The installer has no backend; it calls external APIs from the main process:
 
 - **Hub**: `${CLICKFLASH_HUB_BASE}/api/v1/oauth/device/code`, `/api/v1/oauth/token`, `/api/masters/check-desk-id`, `/api/masters/register`, `/api/masters/heartbeat`
 - **Cloudflare API**: `https://api.cloudflare.com/client/v4/accounts`
-- **Local Master/Touch**: `http://localhost:8090/api/health`, `http://localhost:8091/api/health`, pairing challenge/exchange endpoints
-- **Cloudflared download**: GitHub releases
+- **Local Master/Touch**: fixed loopback health ports plus private-LAN pairing challenge/exchange endpoints
 
 ## 8. Database
 
-None. Stores config in JSON file and encrypted token in OS credential store or `~/.clickflash/.key`.
+None. Stores strict non-secret metadata plus an OS-protected license-key blob in one atomically replaced JSON file.
 
 ## 9. Security Surface
 
 | Area | Status | Notes |
 |------|--------|-------|
 | Renderer isolation | good | `nodeIntegration: false`, `contextIsolation: true`, `sandbox: true`, preload bridge |
-| Navigation | restricted | `will-navigate`/`will-redirect` block non-localhost URLs; external links open in system browser |
-| Protocol | privileged | `clickflash-installer://` registered with `bypassCSP: true` (risky) |
-| License validation | offline | uses local script `scripts/license-key` |
-| Token storage | strong | DPAPI / Keychain / libsecret / AES-256-GCM fallback |
-| Config file | mode 0o600 | good |
+| Navigation | restricted | exact dev origin or packaged entry; credential-free HTTPS links require an explicit host allowlist |
+| Protocol | restricted | secure/standard only; CSP bypass, fetch, and service-worker privileges removed |
+| License validation | offline | verification-only Node Ed25519 path with strict signed payload schema |
+| License storage | OS protected | Electron `safeStorage`; plaintext key is removed before persistence |
+| Application payload | fail-closed verification | separate Ed25519 domain; signed raw manifest, exact canonical layout/inventory, safe paths, sizes, SHA-256, and minimum Installer version; rechecked before config/launch |
+| Config files | bounded/transactional | allowlisted Master/Touch files, same-directory staging/fsync, digest manifest, all-file rollback |
 | OAuth | device-code flow | token polled from Hub; no client secret |
-| Pairing | HMAC challenge-response | secret derived from `masterDeskId + hardwareFingerprint` |
-| OS commands | elevated ops | firewall, registry, cloudflared service install require admin/UAC |
-| Downloads | cloudflared from GitHub | no checksum verification visible |
+| Pairing | private LAN only | DNS results must all be private IPv4 and the approved address is pinned for requests |
+| Privileged IPC | authorized/validated | exact live top-frame sender plus strict Zod objects for renderer-controlled payloads |
+| Network reads | bounded | redirects denied, timeouts applied, response type/schema checked, byte caps enforced |
 | Logging | file in temp | may leak sensitive paths; log rotation absent |
-| Input validation | manual | no Zod schemas visible |
+| Packaging | gated | post-pack raw-byte scan rejects private keys and known licensing test artifacts |
+
+### Offline payload release command
+
+Prepare a bundle containing only `Master/` and optional `Touch/` unpacked application directories. Keep the private key outside that bundle, then run:
+
+```powershell
+pnpm --filter clickflash-installer payload:sign -- --bundle C:\ClickFlash\Payload --private-key D:\SecureKeys\payload.private.pem --key-id payload_2026_1 --release-id release_2026_07_17 --version 2.0.0 --min-installer-version 5.0.0 --created-at 2026-07-17T00:00:00.000Z
+```
+
+The command requires every value explicitly for reproducibility. It prints the public key, manifest SHA-256, components, file count, and total bytes; it never prints or copies the private key. Production use remains blocked until key custody is approved and the reported public key is reviewed and embedded in `installer-payload-trust.ts`.
 
 ## 10. Testing
 
-- `src/services/pairing.test.ts` — single test file
-- Vitest + React Testing Library in devDependencies
+- Ten Vitest suites cover license and payload signature verification, deterministic signing/CLI behavior, external-key custody, secret/private-material rejection, forged/tampered/traversal/undeclared payload rejection, IPC authorization/rejection, schemas, path/network policy, bounded requests, pairing, protected persistence, and atomic writes.
+- Current result: **54/54 tests passed**.
 
 ### Observed gaps
-- No Electron main-process tests
-- No end-to-end installer flow tests
-- No tests for token encryption cross-platform
-- No tests for OS integration (firewall/registry/cloudflared)
+- No end-to-end install/upgrade/repair/rollback journey on a clean Windows VM
+- No clean-machine `safeStorage`/profile ACL evidence under separate Windows users
+- No Authenticode certificate or trusted update-channel proof
+- No approved production payload public key or authorized signed Master/Touch release bundle; packaged builds intentionally fail closed (the deterministic signer is complete)
+- Payload acquisition/copy and transactional install/upgrade/repair/binary rollback remain unfinished; local bundle verification and application configuration commit/rollback are implemented
 
 ## 11. Architecture / Performance / Design System
 
@@ -173,9 +196,8 @@ None. Stores config in JSON file and encrypted token in OS credential store or `
 
 1. **Add a root `test:e2e` Playwright suite** using Electron launch args to exercise the full wizard flow.
 2. **Replace `any` types** in `tokenEncryption.ts` dynamic require blocks with platform-specific optional peer dependency types.
-3. **Add checksum/signature verification** for downloaded `cloudflared.exe`.
-4. **Move OS command execution** to a worker thread to keep UI responsive during firewall/registry/tunnel setup.
-5. **Add Zod schemas** for all IPC payloads and Hub responses.
-6. **Reduce `bypassCSP` protocol privilege** unless strictly required.
-7. **Implement log rotation and redaction** to avoid leaking tokens or file paths.
-8. **Persist pairing secrets** in the OS keychain instead of plain config JSON.
+3. **Approve the payload-key custody ceremony**, embed only the reviewed public key, and use the completed offline signer to issue signed Master/Touch manifests.
+4. **Make install/upgrade/repair/rollback transactional** with reboot and interruption recovery.
+5. **Add log rotation and redaction** to avoid leaking tokens or file paths.
+6. **Require Authenticode signing and timestamp verification** for production builds and updates.
+7. **Run clean Windows 10/11 lifecycle tests** with standard and administrator accounts.

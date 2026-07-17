@@ -15,7 +15,7 @@ import {
   sendDatabaseError,
 } from "./errorHandler.js";
 import { createToken, verifyToken, extractTokenFromHeader } from "./jwt.js";
-import { GeminiService } from "./services/geminiService.js";
+import { PixelFounderService } from "./services/pixelFounderService.js";
 import MarketingAutomationService from "./services/marketingAutomationService.js";
 import { handleOAuth } from "./routes/oauth.js";
 import { DLQService } from "./services/dlqService.js";
@@ -47,7 +47,6 @@ export interface Env {
   RESEND_API_KEY?: string;
   FROM_EMAIL?: string;
   ADMIN_NOTIFICATION_EMAIL?: string;
-  GOOGLE_API_KEY?: string;
   SENTRY_DSN?: string; // Sentry DSN — optional; monitoring disabled when absent
   LICENSE_PRIVATE_KEY?: string;
   LICENSE_PUBLIC_KEY?: string;
@@ -124,7 +123,7 @@ const managementHandler = {
     const recordService = new RecordService(dbManager, emailRelayService);
     const analyticsService = new AnalyticsService(dbManager);
     const photoProcessor = new PhotoProcessor(env.GALLERY_BUCKET);
-    const geminiService = new GeminiService(env.GOOGLE_API_KEY || "");
+    const pixelFounderService = new PixelFounderService();
 
     const response = await (async () => {
       try {
@@ -147,7 +146,7 @@ const managementHandler = {
       }
 
       // Auth Routes (Login, etc.)
-      const authRes = await handleAuth(request, url, env, dbManager, corsHeaders, recordService, analyticsService, emailRelayService, photoProcessor, geminiService, null);
+      const authRes = await handleAuth(request, url, env, dbManager, corsHeaders, recordService, analyticsService, emailRelayService, photoProcessor, pixelFounderService, null);
       if (authRes) return authRes;
 
       // Auth Middleware check for other routes
@@ -161,25 +160,25 @@ const managementHandler = {
       }
 
       // Route Handlers
-      const ordersRes = await handleOrders(request, url, env, dbManager, corsHeaders, recordService, analyticsService, emailRelayService, photoProcessor, geminiService, payload);
+      const ordersRes = await handleOrders(request, url, env, dbManager, corsHeaders, recordService, analyticsService, emailRelayService, photoProcessor, pixelFounderService, payload);
       if (ordersRes) return ordersRes;
 
-      const analyticsRes = await handleAnalytics(request, url, env, dbManager, corsHeaders, recordService, analyticsService, emailRelayService, photoProcessor, geminiService, payload);
+      const analyticsRes = await handleAnalytics(request, url, env, dbManager, corsHeaders, recordService, analyticsService, emailRelayService, photoProcessor, pixelFounderService, payload);
       if (analyticsRes) return analyticsRes;
 
-      const cloudRes = await handleCloud(request, url, env, dbManager, corsHeaders, recordService, analyticsService, emailRelayService, photoProcessor, geminiService, payload);
+      const cloudRes = await handleCloud(request, url, env, dbManager, corsHeaders, recordService, analyticsService, emailRelayService, photoProcessor, pixelFounderService, payload);
       if (cloudRes) return cloudRes;
 
-      const settingsRes = await handleSettings(request, url, env, dbManager, corsHeaders, recordService, analyticsService, emailRelayService, photoProcessor, geminiService, payload);
+      const settingsRes = await handleSettings(request, url, env, dbManager, corsHeaders, recordService, analyticsService, emailRelayService, photoProcessor, pixelFounderService, payload);
       if (settingsRes) return settingsRes;
       
       const telemetryRes = await handleTelemetry(request, url, corsHeaders);
       if (telemetryRes) return telemetryRes;
 
-      const emailRes = await handleEmail(request, url, env, dbManager, corsHeaders, recordService, analyticsService, emailRelayService, photoProcessor, geminiService, payload);
+      const emailRes = await handleEmail(request, url, env, dbManager, corsHeaders, recordService, analyticsService, emailRelayService, photoProcessor, pixelFounderService, payload);
       if (emailRes) return emailRes;
 
-      const aiRes = await handleAi(request, url, env, dbManager, corsHeaders, recordService, analyticsService, emailRelayService, photoProcessor, geminiService, payload);
+      const aiRes = await handleAi(request, url, env, dbManager, corsHeaders, recordService, analyticsService, emailRelayService, photoProcessor, pixelFounderService, payload);
       if (aiRes) return aiRes;
 
       

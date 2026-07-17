@@ -1,6 +1,6 @@
 -- backend/migrations/062_photo_presets.sql
 -- Create photo_presets table for reusable editing templates
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS photo_presets (
+CREATE TABLE IF NOT EXISTS photo_presets (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,

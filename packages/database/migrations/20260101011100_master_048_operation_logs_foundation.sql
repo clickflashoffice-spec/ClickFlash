@@ -1,6 +1,6 @@
 -- 048_operation_logs_foundation.sql
 -- Foundational table for Event Sourcing and Operation-based Sync (Law 01, Audit Finding)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS operation_logs (
+CREATE TABLE IF NOT EXISTS operation_logs (
     id TEXT PRIMARY KEY,
     type TEXT NOT NULL,
     -- e.g., 'PHOTO_IMPORT', 'ORDER_CREATE', 'CONFIG_UPDATE'

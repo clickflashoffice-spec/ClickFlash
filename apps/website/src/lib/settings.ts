@@ -147,7 +147,7 @@ export async function fetchWebsiteSettings(): Promise<WebsiteSettings> {
     // We will fetch ALL settings (collection 'settings') and filter.
     // Assuming the list endpoint is available and not too huge (settings are usually few).
     const response = await fetch(`${API_BASE_URL}/api/collections/settings/records?perPage=100`, {
-      next: { revalidate: 60 }, // Cache for 60 seconds
+      cache: "force-cache",
     });
 
     if (!response.ok) {
@@ -217,7 +217,7 @@ export async function fetchPortfolioItems(): Promise<PortfolioItem[]> {
     const response = await fetch(
       `${API_BASE_URL}/api/collections/portfolio/records?sort=sort_order,-created&perPage=100`,
       {
-        next: { revalidate: 60 },
+        cache: "force-cache",
       }
     );
 

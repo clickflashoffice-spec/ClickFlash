@@ -9,8 +9,8 @@ import { logger } from "@clickflash/logger";
 
 export async function handleUploadCancel(request: Request, env: Env): Promise<Response> {
   try {
-    const body = await request.json();
-    const { sessionId } = body;
+    const body = (await request.json()) as { sessionId?: unknown };
+    const sessionId = typeof body.sessionId === 'string' ? body.sessionId : '';
     
     if (!sessionId) {
       return Response.json(
@@ -29,9 +29,30 @@ export async function handleUploadCancel(request: Request, env: Env): Promise<Re
     }
     
     const session: UploadSession = JSON.parse(sessionData);
+
+    const officeId = request.headers.get('X-Office-Id');
+    if (!officeId || officeId !== session.officeId) {
+      return Response.json(
+        { error: 'Upload session does not belong to this office' },
+        { status: 403 }
+      );
+    }
     
-    // Clean up uploaded chunks
-    await cleanupChunks(env, session);
+    if (session.status !== 'completed') {
+      const upload = env.UPLOADS_BUCKET.resumeMultipartUpload(
+        session.r2Key,
+        session.r2UploadId,
+      );
+      await upload.abort().catch((error) => {
+        logger.warn('Multipart upload was already unavailable during cancel', {
+          args: [error],
+        });
+      });
+    }
+
+    await env.DB.prepare(
+      'DELETE FROM upload_parts WHERE session_id = ? AND office_id = ?',
+    ).bind(session.id, officeId).run();
     
     // Delete session from KV
     await env.UPLOAD_SESSIONS.delete(`session:${sessionId}`);
@@ -51,19 +72,6 @@ export async function handleUploadCancel(request: Request, env: Env): Promise<Re
       { status: 500 }
     );
   }
-}
-
-async function cleanupChunks(env: Env, session: UploadSession): Promise<void> {
-  const deletePromises = session.uploadedChunks.map(async (chunkIndex) => {
-    const chunkKey = `${session.r2Key}.part${chunkIndex}`;
-    try {
-      await env.UPLOADS_BUCKET.delete(chunkKey);
-    } catch (e) {
-      logger.error(String(`Failed to delete chunk ${chunkIndex}:`) + ' ' + String(e));
-    }
-  });
-  
-  await Promise.all(deletePromises);
 }
 
 async function logCancellation(

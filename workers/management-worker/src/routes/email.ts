@@ -1,7 +1,7 @@
 import { sendAuthError, sendNotFoundError, sendInternalError, createErrorResponse } from "../errorHandler.js";
 import { logger } from "@clickflash/logger";
 
-export const handleEmail = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, geminiService: any, payload: any) => {
+export const handleEmail = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, _pixelFounderService: any, payload: any) => {
 
 
       // --- PUBLIC: Check desk_id availability (no auth needed — pre-registration check) ---
@@ -519,28 +519,5 @@ export const handleEmail = async (request: Request, url: URL, env: any, dbManage
       }
 
 
-      // ==========================================
-      // Missing AI Chat Endpoint
-      // ==========================================
-
-      // POST /api/ai/chat - AI chat with Gemini
-      const chatMatch = url.pathname.match(/^\/api\/ai\/chat$/);
-
-      if (chatMatch && request.method === "POST") {
-        if (!payload) return sendAuthError("Auth required");
-        try {
-          const { message, context } = (await request.json()) as any;
-          const aiResponse = await geminiService.generateResponse(
-            message,
-            context,
-          );
-          return Response.json(
-            { success: true, response: aiResponse },
-            { headers: corsHeaders },
-          );
-        } catch (e: any) {
-          return createErrorResponse(500, "AI Error", e.message);
-        }
-      }
   return null;
 };

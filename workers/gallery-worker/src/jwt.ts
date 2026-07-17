@@ -10,6 +10,8 @@
 import { SignJWT, jwtVerify, JWTPayload } from 'jose';
 
 const encoder = new TextEncoder();
+const TOKEN_ISSUER = 'clickflash-gallery';
+const TOKEN_AUDIENCE = 'clickflash-gallery-api';
 
 export interface TokenPayload extends JWTPayload {
   userId?: string | number;
@@ -17,6 +19,7 @@ export interface TokenPayload extends JWTPayload {
   role?: string;
   destinationId?: string;
   orderId?: string;
+  type?: string;
 }
 
 /**
@@ -35,6 +38,8 @@ export async function createToken(
 
   const token = await new SignJWT(payload as JWTPayload)
     .setProtectedHeader({ alg: 'HS256' })
+    .setIssuer(TOKEN_ISSUER)
+    .setAudience(TOKEN_AUDIENCE)
     .setIssuedAt()
     .setExpirationTime(expiresIn)
     .sign(secretKey);
@@ -51,7 +56,11 @@ export async function createToken(
 export async function verifyToken(token: string, secret: string): Promise<TokenPayload | null> {
   try {
     const secretKey = encoder.encode(secret);
-    const { payload } = await jwtVerify(token, secretKey);
+    const { payload } = await jwtVerify(token, secretKey, {
+      algorithms: ['HS256'],
+      issuer: TOKEN_ISSUER,
+      audience: TOKEN_AUDIENCE,
+    });
     return payload as TokenPayload;
   } catch (error) {
     return null;

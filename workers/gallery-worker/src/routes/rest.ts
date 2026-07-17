@@ -1,3 +1,5 @@
+const STAFF_ROLES = new Set(["admin", "manager", "owner", "photographer", "super-admin", "super_admin"]);
+
 export const handleRest = async (
   request: Request,
   url: URL,
@@ -28,6 +30,14 @@ export const handleRest = async (
   }
 
   const table = ALLOWED_RESOURCES[resource];
+
+  const role = typeof payload?.role === "string" ? payload.role.toLowerCase() : "";
+  if (!STAFF_ROLES.has(role)) {
+    return new Response(JSON.stringify({ error: "Forbidden", message: "Staff access required" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   // GET - Fetch records
   if (request.method === "GET") {

@@ -10,7 +10,7 @@ const SESSION_KEY = 'clickflash_cart_session';
  * Only activates when the customer has provided an email.
  * Debounces writes to avoid hammering the API on every quantity change.
  */
-export function useCartSync(email: string | undefined, albumId?: string, currency: string = 'eur'): void {
+export function useCartSync(email: string | undefined): void {
   const items = useCartStore((s) => s.items);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSyncRef = useRef<string>('');
@@ -28,30 +28,28 @@ export function useCartSync(email: string | undefined, albumId?: string, currenc
 
     timerRef.current = setTimeout(async () => {
       try {
-        const sessionId = getOrCreateSession();
-        const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const sessionId = getOrCreateCartSessionId();
+        const token = localStorage.getItem('gallery_token');
+        if (!token) return;
         const baseUrl = config.apiUrl;
 
-        await fetch(`${baseUrl}/api/cart/snapshot`, {
+        const response = await fetch(`${baseUrl}/api/cart/snapshot`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
-            email,
-            albumId: albumId || null,
             items: items.map((i) => ({
+              productId: i.productId,
               photoId: i.photoId,
-              name: i.name,
-              price: i.price,
               quantity: i.quantity,
-              format: i.format,
             })),
-            total,
-            currency,
             sessionId,
           }),
         });
 
-        lastSyncRef.current = fingerprint;
+        if (response.ok) lastSyncRef.current = fingerprint;
       } catch {
         // Silent fail — cart recovery is best-effort, never blocks UX
       }
@@ -60,7 +58,7 @@ export function useCartSync(email: string | undefined, albumId?: string, currenc
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [items, email, albumId, currency]);
+  }, [items, email]);
 }
 
 /**
@@ -68,13 +66,17 @@ export function useCartSync(email: string | undefined, albumId?: string, currenc
  */
 export async function markCartRecovered(): Promise<void> {
   const sessionId = localStorage.getItem(SESSION_KEY);
-  if (!sessionId) return;
+  const token = localStorage.getItem('gallery_token');
+  if (!sessionId || !token) return;
 
   try {
     const baseUrl = config.apiUrl;
     await fetch(`${baseUrl}/api/cart/recovered`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ sessionId }),
     });
   } catch {
@@ -82,10 +84,10 @@ export async function markCartRecovered(): Promise<void> {
   }
 }
 
-function getOrCreateSession(): string {
+export function getOrCreateCartSessionId(): string {
   let session = localStorage.getItem(SESSION_KEY);
-  if (!session) {
-    session = `session_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+  if (!session || !/^[0-9a-f-]{36}$/i.test(session)) {
+    session = crypto.randomUUID();
     localStorage.setItem(SESSION_KEY, session);
   }
   return session;

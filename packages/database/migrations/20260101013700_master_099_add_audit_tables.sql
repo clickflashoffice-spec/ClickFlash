@@ -2,7 +2,7 @@
 -- Date: 2026-04-14
 
 -- Upload audit trail
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS audit_uploads (
+CREATE TABLE IF NOT EXISTS audit_uploads (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     correlation_id TEXT NOT NULL,
     event TEXT NOT NULL,
@@ -21,7 +21,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_uploads_order ON audit_uploads(order_id);
 CREATE INDEX IF NOT EXISTS idx_audit_uploads_created ON audit_uploads(created_at);
 
 -- Order sync audit trail
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS audit_order_sync (
+CREATE TABLE IF NOT EXISTS audit_order_sync (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     correlation_id TEXT NOT NULL,
     event TEXT NOT NULL,
@@ -41,7 +41,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_order_order ON audit_order_sync(order_id);
 CREATE INDEX IF NOT EXISTS idx_audit_order_created ON audit_order_sync(created_at);
 
 -- Sales sync audit trail
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS audit_sales_sync (
+CREATE TABLE IF NOT EXISTS audit_sales_sync (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     correlation_id TEXT NOT NULL,
     event TEXT NOT NULL,

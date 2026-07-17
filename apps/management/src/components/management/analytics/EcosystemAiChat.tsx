@@ -10,7 +10,6 @@ import {
   X,
 } from "lucide-react";
 import { cloudApiService } from "../../../services/cloudApiService";
-import { useSystemSetting } from "../../../hooks/useSystemSetting";
 import { logger } from "@/utils/logger";
 
 interface ChatMessage {
@@ -20,31 +19,13 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-interface AiSettingsType {
-  provider: "openai" | "anthropic" | "gemini";
-  apiKey: string;
-  defaultModel: string;
-  maxTokens: number;
-  temperature: number;
-  enabled: boolean;
-}
-
-const DEFAULT_AI_SETTINGS: AiSettingsType = {
-  provider: "gemini",
-  apiKey: "",
-  defaultModel: "gemini-2.5-flash",
-  maxTokens: 2048,
-  temperature: 0.7,
-  enabled: true,
-};
-
 export const EcosystemAiChat: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
       role: "ai",
       content:
-        "Hello! I am the Ecosystem AI Assistant. I have access to all your Global Master databases, photographer performance, sales rates, and quality issues. How can I help you today?",
+        "Hello! I am PixelFounder. I provide deterministic guidance from telemetry supplied by the current Management view; I will tell you when live data is unavailable.",
       timestamp: new Date(),
     },
   ]);
@@ -53,10 +34,6 @@ export const EcosystemAiChat: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const { value: aiSettings } = useSystemSetting<AiSettingsType>(
-    "aiSettings",
-    DEFAULT_AI_SETTINGS,
-  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -82,13 +59,9 @@ export const EcosystemAiChat: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // In Phase 70, this will call the dedicated /api/ai/chat endpoint in the hub
       const res = await cloudApiService.post("/api/ai/chat", {
         message: userMsg.content,
-        history: messages
-          .slice(-5)
-          .map((m) => ({ role: m.role, content: m.content })),
-        config: aiSettings, // Pass the globally configured credentials (Key, Provider, Model)
+        context: { selectedContext: "Global / Enterprise" },
       });
 
       const aiResponseText =
@@ -104,12 +77,12 @@ export const EcosystemAiChat: React.FC = () => {
 
       setMessages((prev) => [...prev, aiMsg]);
     } catch (error) {
-      logger.error("AI Chat Error:", error);
+      logger.error("PixelFounder Chat Error:", error);
       const errorMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "ai",
         content:
-          "I'm sorry, I encountered a network error while trying to reach the intelligence core. Please ensure your AI API key is configured in settings.",
+          "PixelFounder could not reach the Management service. Check the online connection and try again.",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -122,8 +95,8 @@ export const EcosystemAiChat: React.FC = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        title="Open AI Assistant"
-        aria-label="Open AI Assistant"
+        title="Open PixelFounder"
+        aria-label="Open PixelFounder"
         className="fixed bottom-6 right-6 p-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-2xl hover:shadow-cyan-500/20 transition-all flex items-center justify-center group z-50 focus:outline-none"
       >
         <Sparkles className="w-6 h-6 group-hover:scale-110 transition-transform" />
@@ -167,8 +140,8 @@ export const EcosystemAiChat: React.FC = () => {
           </button>
           <button
             onClick={() => setIsOpen(false)}
-            title="Close AI Assistant"
-            aria-label="Close AI Assistant"
+            title="Close PixelFounder"
+            aria-label="Close PixelFounder"
             className="p-2 hover:bg-white/10 rounded-lg transition-colors focus:outline-none"
           >
             <X className="w-5 h-5" />
@@ -279,7 +252,7 @@ export const EcosystemAiChat: React.FC = () => {
         </div>
         <div className="text-center mt-3">
           <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400">
-            Powered by {aiSettings?.defaultModel || "Gemini 2.5 Flash"}
+            First-party rules + supplied ClickFlash telemetry
           </span>
         </div>
       </div>

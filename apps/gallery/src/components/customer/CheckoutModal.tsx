@@ -1,11 +1,12 @@
-import React, { useState, Suspense } from 'react';
-import { Product, Photo, OrderItem, Order } from '../../types';
-import { cloudApiService } from '../../services/cloudApiService';
-import Modal from '../common/Modal.tsx';
-import { useCurrency } from '../CurrencyContext.tsx';
+import { logger } from '@clickflash/logger';
+import React, { useState } from 'react';
 import type { CartItem } from '@clickflash/types';
 
-// Local payment form removed in favor of Stripe Checkout redirect
+import { config } from '../../utils/env';
+import { getOrCreateCartSessionId } from '../../hooks/useCartSync';
+import { moneyTrashService } from '../../services/moneyTrashService';
+import Modal from '../common/Modal.tsx';
+import { useCurrency } from '../CurrencyContext.tsx';
 
 interface CheckoutModalProps {
     isOpen: boolean;
@@ -13,229 +14,155 @@ interface CheckoutModalProps {
     total: number;
     onClose: () => void;
     onUpdateQuantity: (itemId: string, newQuantity: number) => void;
-    clientName: string;
-    email: string;
-    photographerId: number;
-    destinationId: string;
-    onCheckoutSuccess: (orderId: string) => void;
+    albumId: string;
+    moneyTrashGalleryId?: string;
+    moneyTrashPurchaseToken?: string;
 }
 
-const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, cart, total, onClose, onUpdateQuantity, clientName, email, photographerId, destinationId, onCheckoutSuccess }) => {
+const CheckoutModal: React.FC<CheckoutModalProps> = ({
+    isOpen,
+    cart,
+    total,
+    onClose,
+    onUpdateQuantity,
+    albumId,
+    moneyTrashGalleryId,
+    moneyTrashPurchaseToken,
+}) => {
     const { formatCurrency, currency } = useCurrency();
     const [isLoading, setIsLoading] = useState(false);
-    const [tipAmount, setTipAmount] = useState<number>(0);
-    const [customTip, setCustomTip] = useState<string>('');
-    const [isCustomTip, setIsCustomTip] = useState(false);
-    const [advancePayCode, setAdvancePayCode] = useState<string>('');
-    const [advancePayDiscount, setAdvancePayDiscount] = useState<number>(0);
-
-    const handleApplyAdvancePay = () => {
-        if (!advancePayCode) return;
-        if (advancePayCode.toUpperCase().startsWith('ADV-')) {
-            setAdvancePayDiscount(50);
-            alert('AdvancePay credit of $50 applied!');
-        } else {
-            setAdvancePayDiscount(0);
-            alert('Invalid AdvancePay code.');
-        }
-    };
-
-    const finalTotal = Math.max(0, total + tipAmount - advancePayDiscount);
-
-    const handleCheckout = async () => {
-        setIsLoading(true);
-
-        const orderItems: OrderItem[] = cart.map(item => ({
-            id: item.id,
-            name: `${item.name} (Photo: ${item.photo?.title || 'N/A'})`,
-            format: item.format || 'Digital',
-            quantity: item.quantity,
-            price: item.price,
-            photo: item.photo as Photo,
-        }));
-
-        try {
-            const newOrder = await cloudApiService.createOrder({
-                clientName,
-                email,
-                total: finalTotal,
-                photographerId,
-                destinationId,
-                items: orderItems,
-                appliedDiscount: 0,
-                // Add tip if supported by DB schema, but the prompt mentioned tip columns are added
-                tipAmount,
-            } as unknown as Partial<Order>);
-            onCheckoutSuccess(newOrder.id);
-        } catch (error) {
-            console.error("Failed to create order:", error);
-            alert("There was an error placing your order. Please try again.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const handleStripeCheckout = async () => {
+        if (moneyTrashGalleryId && moneyTrashPurchaseToken) {
+            setIsLoading(true);
+            try {
+                const checkout = await moneyTrashService.createCheckout(
+                    moneyTrashPurchaseToken,
+                    moneyTrashGalleryId,
+                    cart.map((item) => item.photoId),
+                );
+                window.location.assign(checkout.url);
+            } catch (error) {
+                logger.error('MoneyTrash Stripe checkout failed', error);
+                moneyTrashService.clearCheckoutSession();
+                alert('Payment could not be initialized. Please refresh the gallery and try again.');
+                setIsLoading(false);
+            }
+            return;
+        }
+
+        const token = localStorage.getItem('gallery_token');
+        if (!token) {
+            alert('Your secure session has expired. Please sign in again.');
+            return;
+        }
+
         setIsLoading(true);
         try {
-            const baseUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8090";
-            const response = await fetch(`${baseUrl}/api/gallery/checkout`, {
+            const response = await fetch(`${config.apiUrl}/api/checkout`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({
-                    items: cart,
-                    successUrl: window.location.origin + window.location.pathname + '?checkout=success',
-                    cancelUrl: window.location.origin + window.location.pathname + '?checkout=cancel',
-                    clientName,
-                    email,
-                    photographerId,
-                    destinationId,
-                    total: finalTotal,
-                })
+                    items: cart.map((item) => ({
+                        productId: item.productId,
+                        photoId: item.photoId,
+                        quantity: item.quantity,
+                    })),
+                    cartSessionId: getOrCreateCartSessionId(),
+                }),
             });
 
-            if (!response.ok) throw new Error("Failed to create checkout session");
-            const data = await response.json();
-            
-            if (data.url) {
-                window.location.href = data.url;
-            } else {
-                throw new Error("No URL returned from checkout session");
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.url) {
+                throw new Error(data.error || `Checkout failed (${response.status})`);
             }
+
+            window.location.assign(data.url);
         } catch (error) {
-            console.error("Stripe Checkout Error:", error);
-            alert("Payment failed to initialize. Please try again.");
+            logger.error('Stripe checkout failed', error);
+            alert('Payment could not be initialized. Please try again.');
             setIsLoading(false);
         }
     };
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Your Shopping Cart" size="lg">
-            <>
-                    {cart.length === 0 ? (
-                        <div className="text-center py-10">
-                            <p className="text-slate-400">Your shopping cart is empty.</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                            {cart.map(item => (
-                                <div key={item.id} className="flex items-center space-x-4 p-2 rounded-lg bg-slate-100 dark:bg-slate-700/50">
-                                    <img src={item.photo?.url} alt={item.name} className="w-20 h-20 object-cover rounded-md" />
-                                    <div className="flex-1">
-                                        <p className="font-bold">{item.name}</p>
-                                        <p className="text-sm text-slate-400">With photo: "{item.photo?.title}"</p>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <button onClick={() => onUpdateQuantity(item.id, item.quantity - 1)} className="w-8 h-8 rounded bg-slate-200 dark:bg-slate-700">-</button>
-                                        <span>{item.quantity}</span>
-                                        <button onClick={() => onUpdateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 rounded bg-slate-200 dark:bg-slate-700">+</button>
-                                    </div>
-                                    <p className="font-semibold w-24 text-right">{formatCurrency(item.price * item.quantity)}</p>
+            <div className="space-y-6">
+                {cart.length === 0 ? (
+                    <div className="py-10 text-center">
+                        <p className="text-slate-400">Your shopping cart is empty.</p>
+                    </div>
+                ) : (
+                    <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-2">
+                        {cart.map((item) => (
+                            <div key={item.id} className="flex items-center space-x-4 rounded-lg bg-slate-100 p-2 dark:bg-slate-700/50">
+                                <img src={item.photo?.url} alt={item.name} className="h-20 w-20 rounded-md object-cover" />
+                                <div className="flex-1">
+                                    <p className="font-bold">{item.name}</p>
+                                    <p className="text-sm text-slate-400">Photo: {item.photo?.title || item.photoId}</p>
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                    <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-4">
-                        <h3 className="font-semibold mb-3">Add a Tip for the Photographer?</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {[0, 0.1, 0.15, 0.2].map((pct) => (
-                                <button
-                                    key={pct}
-                                    onClick={() => {
-                                        setTipAmount(total * pct);
-                                        setIsCustomTip(false);
-                                    }}
-                                    className={`px-3 py-2 rounded-lg font-medium text-sm transition-colors ${
-                                        tipAmount === total * pct && !isCustomTip
-                                            ? 'bg-cyan-500 text-white'
-                                            : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600'
-                                    }`}
-                                >
-                                    {pct === 0 ? 'No Tip' : `${pct * 100}% (${formatCurrency(total * pct)})`}
-                                </button>
-                            ))}
-                            <button
-                                onClick={() => setIsCustomTip(true)}
-                                className={`px-3 py-2 rounded-lg font-medium text-sm transition-colors ${
-                                    isCustomTip
-                                        ? 'bg-cyan-500 text-white'
-                                        : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600'
-                                }`}
-                            >
-                                Custom
-                            </button>
-                        </div>
-                        {isCustomTip && (
-                            <div className="mt-3 flex items-center space-x-2">
-                                <span className="text-slate-500">{currency.symbol}</span>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="1"
-                                    value={customTip}
-                                    onChange={(e) => {
-                                        setCustomTip(e.target.value);
-                                        setTipAmount(Number(e.target.value) || 0);
-                                    }}
-                                    className="w-24 p-2 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded"
-                                    placeholder="Amount"
-                                />
+                                {moneyTrashGalleryId ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => onUpdateQuantity(item.id, 0)}
+                                        className="rounded bg-slate-200 px-3 py-2 text-xs font-semibold dark:bg-slate-700"
+                                    >
+                                        Remove
+                                    </button>
+                                ) : (
+                                    <div className="flex items-center space-x-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                                            className="h-8 w-8 rounded bg-slate-200 dark:bg-slate-700"
+                                        >
+                                            -
+                                        </button>
+                                        <span>{item.quantity}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                                            className="h-8 w-8 rounded bg-slate-200 dark:bg-slate-700"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                )}
+                                <p className="w-24 text-right font-semibold">{formatCurrency(item.price * item.quantity)}</p>
                             </div>
-                        )}
+                        ))}
                     </div>
-                    {/* AdvancePay Section */}
-                    <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-4">
-                        <h3 className="font-semibold mb-3">AdvancePay Credits</h3>
-                        <div className="flex items-center space-x-2">
-                            <input
-                                type="text"
-                                value={advancePayCode}
-                                onChange={(e) => setAdvancePayCode(e.target.value)}
-                                className="flex-1 p-2 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded uppercase"
-                                placeholder="Enter AdvancePay Code (e.g. ADV-123)"
-                            />
-                            <button
-                                onClick={handleApplyAdvancePay}
-                                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg transition-colors"
-                            >
-                                Apply
-                            </button>
-                        </div>
-                        {advancePayDiscount > 0 && (
-                            <p className="text-green-500 text-sm mt-2 font-medium">
-                                AdvancePay credit applied! (-{formatCurrency(advancePayDiscount)})
-                            </p>
-                        )}
-                    </div>
+                )}
 
-                    <div className="text-right mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                        <div className="text-slate-500 dark:text-slate-400 mb-1">Subtotal: {formatCurrency(total)}</div>
-                        {tipAmount > 0 && <div className="text-slate-500 dark:text-slate-400 mb-1">Tip: {formatCurrency(tipAmount)}</div>}
-                        {advancePayDiscount > 0 && <div className="text-green-500 mb-1">AdvancePay Credit: -{formatCurrency(advancePayDiscount)}</div>}
-                        <div className="flex justify-end items-baseline space-x-2">
-                            <span className="text-slate-500 dark:text-slate-400 text-xl">Total: </span>
-                            <span className="text-3xl font-bold">{formatCurrency(finalTotal)}</span>
-                        </div>
-                    </div>
-                </>
-            
-            <div className="pt-6 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-700 mt-6">
-                    <button onClick={onClose} className="bg-slate-200 hover:bg-slate-300 text-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500 dark:text-white font-semibold py-2 px-4 rounded-lg">Continue Shopping</button>
+                <div className="border-t border-slate-200 pt-4 text-right dark:border-slate-700">
+                    <span className="text-xl text-slate-500 dark:text-slate-400">Total: </span>
+                    <span className="text-3xl font-bold">{formatCurrency(total)}</span>
+                    {currency.code !== 'EUR' && (
+                        <p className="mt-1 text-xs text-slate-500">Card checkout is securely settled in EUR.</p>
+                    )}
+                </div>
+
+                <div className="flex justify-end space-x-3 border-t border-slate-200 pt-6 dark:border-slate-700">
                     <button
-                        onClick={handleCheckout}
-                        disabled={cart.length === 0 || isLoading}
-                        className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg disabled:bg-slate-500"
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-lg bg-slate-200 px-4 py-2 font-semibold text-slate-800 hover:bg-slate-300 dark:bg-slate-600 dark:text-white dark:hover:bg-slate-500"
                     >
-                        {isLoading ? 'Processing...' : 'Pay Later (Room Charge)'}
+                        Continue Shopping
                     </button>
                     <button
-                        onClick={handleStripeCheckout}
-                        disabled={cart.length === 0 || isLoading}
-                        className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg disabled:bg-slate-500 shadow-lg"
+                        type="button"
+                        onClick={() => void handleStripeCheckout()}
+                        disabled={cart.length === 0 || isLoading || (!albumId && !moneyTrashGalleryId)}
+                        className="rounded-lg bg-green-600 px-4 py-2 font-semibold text-white shadow-lg hover:bg-green-700 disabled:bg-slate-500"
                     >
-                        {isLoading ? 'Processing...' : 'Pay Now (Card)'}
+                        {isLoading ? 'Redirecting…' : 'Pay Securely by Card'}
                     </button>
                 </div>
+            </div>
         </Modal>
     );
 };

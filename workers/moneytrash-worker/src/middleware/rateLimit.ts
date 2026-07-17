@@ -18,7 +18,8 @@ const rateLimitStore: RateLimitStore = {};
 const RATE_LIMITS = {
   default: { requests: 100, window: 60 }, // 100 requests per minute
   upload: { requests: 20, window: 60 },   // 20 uploads per minute
-  chunk: { requests: 100, window: 60 },   // 100 chunks per minute
+  chunk: { requests: 1000, window: 60 },  // Authenticated 5MiB multipart requests
+  checkout: { requests: 10, window: 60 }, // Public, token-scoped payment requests
 };
 
 interface RateLimitEnv {
@@ -39,34 +40,25 @@ function getWindowStart(windowSeconds: number): string {
   return new Date(windowStart * 1000).toISOString();
 }
 
-async function getDbCount(
-  db: D1Database,
-  key: string,
-  windowStart: string,
-): Promise<number | null> {
-  try {
-    const row = await db
-      .prepare('SELECT count FROM rate_limits WHERE key = ? AND window_start = ?')
-      .bind(key, windowStart)
-      .first<{ count: number }>();
-    return row?.count ?? null;
-  } catch {
-    return null;
-  }
-}
-
 async function incrementDbCount(
   db: D1Database,
   key: string,
   windowStart: string,
-): Promise<void> {
-  await db
+): Promise<number> {
+  const row = await db
     .prepare(
       `INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?)
-       ON CONFLICT(key) DO UPDATE SET count = count + 1`,
+       ON CONFLICT(key) DO UPDATE SET
+         count = CASE
+           WHEN rate_limits.window_start = excluded.window_start
+             THEN rate_limits.count + 1
+           ELSE 1
+         END,
+         window_start = excluded.window_start
+       RETURNING count`,
     )
     .bind(key, windowStart)
-    .run();
+    .first<{ count: number }>();
 
   // Best-effort cleanup of old windows with probabilistic execution (5%)
   // This massively reduces D1 write contention compared to running on every request.
@@ -77,6 +69,7 @@ async function incrementDbCount(
       .run()
       .catch(() => {});
   }
+  return Number(row?.count || 1);
 }
 
 export async function rateLimitMiddleware(
@@ -92,6 +85,8 @@ export async function rateLimitMiddleware(
     limit = RATE_LIMITS.chunk;
   } else if (url.pathname.includes('/upload')) {
     limit = RATE_LIMITS.upload;
+  } else if (url.pathname.startsWith('/api/gallery-checkout')) {
+    limit = RATE_LIMITS.checkout;
   }
 
   const key = `${clientId}:${url.pathname}`;
@@ -104,14 +99,7 @@ export async function rateLimitMiddleware(
   const db = env?.DB;
 
   if (db) {
-    const dbCount = await getDbCount(db, key, windowStart);
-    if (dbCount === null) {
-      await incrementDbCount(db, key, windowStart);
-      count = 1;
-    } else {
-      count = dbCount + 1;
-      await incrementDbCount(db, key, windowStart);
-    }
+    count = await incrementDbCount(db, key, windowStart);
   } else {
     // Fallback to in-memory store
     if (rateLimitStore[key] && rateLimitStore[key].resetTime < now) {

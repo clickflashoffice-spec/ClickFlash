@@ -45,7 +45,7 @@ const DataManagementSettings = lazy(() => import('./DataManagementSettings'));
 const SessionTypesSettings = lazy(() => import('./SessionTypesSettings'));
 const CategoryManagement = lazy(() => import('./CategoryManagement'));
 const PhotoSettings = lazy(() => import('./PhotoSettings'));
-const AISettings = lazy(() => import('./AISettings'));
+const LocalIntelligenceSettings = lazy(() => import('./LocalIntelligenceSettings'));
 const PrintSettings = lazy(() => import('./PrintSettings'));
 const KioskConnections = lazy(() => import('./KioskConnections'));
 const WatermarkSettings = lazy(() => import('./WatermarkSettings'));
@@ -370,16 +370,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             keywords: ['photos', 'processing', 'import', 'exif', 'metadata', 'storage']
         },
         ai: {
-            label: 'AI & Face Recognition',
+            label: 'Local Intelligence',
             icon: Zap,
             component: (
                 <Suspense fallback={<SettingsTabLoader />}>
-                    <AISettings />
+                    <LocalIntelligenceSettings />
                 </Suspense>
             ),
             permission: can('manageLocalSettings'),
-            description: 'AI features, face recognition, and smart tagging',
-            keywords: ['ai', 'face', 'recognition', 'smart', 'auto', 'ml']
+            description: 'Offline-first culling, analysis tags, and face recognition',
+            keywords: ['local', 'face', 'recognition', 'smart', 'culling', 'tags']
         },
         print: {
             label: 'Print & DNP',

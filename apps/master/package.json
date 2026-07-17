@@ -4,6 +4,7 @@
   "description": "ClickFlash - Master Portal Application",
   "author": "ClickFlash Photography",
   "private": true,
+  "packageManager": "pnpm@10.28.2",
   "main": "dist/electron/electron-main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",

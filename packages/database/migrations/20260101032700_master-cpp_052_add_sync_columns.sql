@@ -11,7 +11,7 @@ CREATE INDEX IF NOT EXISTS idx_expenses_sync_status ON expenses(sync_status);
 CREATE INDEX IF NOT EXISTS idx_expenses_sync_id ON expenses(sync_id);
 
 -- Equipment table (new - for equipment tracking sync)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS equipment (
+CREATE TABLE IF NOT EXISTS equipment (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
@@ -35,7 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_equipment_assigned ON equipment(assignedToPhotogr
 CREATE INDEX IF NOT EXISTS idx_equipment_status ON equipment(status);
 
 -- Sync audit log (for tracking all sync operations locally)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS sync_audit_log (
+CREATE TABLE IF NOT EXISTS sync_audit_log (
     id TEXT PRIMARY KEY,
     table_name TEXT NOT NULL,
     record_id TEXT NOT NULL,

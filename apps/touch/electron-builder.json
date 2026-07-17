@@ -60,17 +60,13 @@
     "icon": "build/icon.ico",
     "requestedExecutionLevel": "requireAdministrator",
     "forceCodeSigning": false,
-    "signAndEditExecutable": false,
-    "sign": null,
-    "certificateSha1": null,
-    "certificateFile": null,
-    "certificatePassword": null
+    "signAndEditExecutable": false
   },
   "nsis": {
     "oneClick": true,
     "perMachine": true,
     "include": "build/installer.nsh",
-    "deleteAppDataOnUninstall": true,
+    "deleteAppDataOnUninstall": false,
     "createDesktopShortcut": false,
     "runAfterFinish": false,
     "shortcutName": "ClickFlash Touch",

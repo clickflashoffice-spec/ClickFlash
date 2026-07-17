@@ -1,7 +1,7 @@
 -- Phase 15: Startup Self-Test & Runtime Health Contract
 -- Persists boot reports and runtime health state transitions
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS system_health_log (
+CREATE TABLE IF NOT EXISTS system_health_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp TEXT NOT NULL DEFAULT (datetime('now')),
     event_type TEXT NOT NULL CHECK(event_type IN ('BOOT', 'DEGRADED', 'RECOVERED', 'CRITICAL', 'FATAL', 'NOMINAL')),

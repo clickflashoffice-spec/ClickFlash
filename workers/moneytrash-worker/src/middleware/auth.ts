@@ -9,12 +9,23 @@ import { logger } from "@clickflash/logger";
 export async function authMiddleware(
   request: Request,
   env: { JWT_SECRET: string }
-): Promise<Response | null> {
-  // Skip auth for public routes (handled in router)
+): Promise<Response | Request | null> {
+  // Skip auth only for explicitly public routes. Gallery asset URLs are
+  // independently protected by short-lived HMAC signatures.
   const url = new URL(request.url);
-  const publicPaths = ['/api/office/register', '/api/office/verify', '/api/health'];
-  
-  if (publicPaths.some(path => url.pathname.startsWith(path))) {
+  const isPublic =
+    (request.method === 'POST' && url.pathname === '/api/office/register') ||
+    (request.method === 'POST' && url.pathname === '/api/office/verify') ||
+    (request.method === 'GET' && url.pathname === '/api/health') ||
+    (request.method === 'GET' && /^\/api\/galleries\/[^/]+$/.test(url.pathname)) ||
+    (request.method === 'GET' && /^\/api\/gallery-assets\/[^/]+$/.test(url.pathname)) ||
+    (request.method === 'POST' && url.pathname === '/api/gallery-checkout') ||
+    (request.method === 'GET' && /^\/api\/gallery-checkout\/sessions\/[^/]+$/.test(url.pathname)) ||
+    (request.method === 'GET' && /^\/api\/gallery-purchases\/[^/]+\/assets\/[^/]+$/.test(url.pathname)) ||
+    (request.method === 'POST' && url.pathname === '/api/stripe/webhook') ||
+    (request.method === 'POST' && /^\/api\/webhooks\/[^/]+$/.test(url.pathname));
+
+  if (isPublic) {
     return null; // Continue to route handler
   }
   

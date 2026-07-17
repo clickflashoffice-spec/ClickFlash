@@ -1,6 +1,6 @@
 import { createErrorResponse } from "../errorHandler.js";
 
-export const handleSettings = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, geminiService: any, payload: any) => {
+export const handleSettings = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, _pixelFounderService: any, payload: any) => {
 
 
       // --- PUBLIC: Check desk_id availability (no auth needed — pre-registration check) ---

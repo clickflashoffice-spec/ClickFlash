@@ -1,11 +1,11 @@
 import { alertingService, AlertRule } from "./alertingService";
-import { sendChatMessage } from "./geminiService";
+import { sendChatMessage } from "./pixelFounderService";
 import { pb } from "./pb";
 import { logger } from "@/utils/logger";
 
 /**
- * LLM-based Studio Agent for Business Alerts
- * Actively monitors business metrics and uses AI to generate proactive insights and alerts.
+ * Rules-backed Studio Agent for business alerts.
+ * It sends measured business metrics to the first-party Management Worker.
  */
 export const studioAgentService = {
   async runHealthCheck(destinationId?: string): Promise<void> {
@@ -26,18 +26,19 @@ export const studioAgentService = {
         revenueToday,
       };
 
-      // 2. Query LLM for insight
+      // 2. Evaluate the supplied metrics through PixelFounder rules.
       const prompt = `Analyze these studio metrics and suggest a single brief actionable alert if needed (e.g. stalled galleries, opportunities for discounts). If everything is fine, return "OK". Metrics: ${JSON.stringify(metrics)}`;
       
-      const aiResponse = await sendChatMessage(prompt, { selectedContext: destinationId || "Global" });
+      const insightResponse = await sendChatMessage(prompt, {
+        selectedContext: destinationId || "Global",
+        metrics,
+      });
 
-      if (aiResponse && !aiResponse.startsWith("OK")) {
+      if (insightResponse && !insightResponse.startsWith("OK")) {
         // Create an alert using the alertingService
-        const ruleId = `studio-agent-rule-${Date.now()}`;
-        
         // Temporarily register a rule to trigger it
         const tempRule: Omit<AlertRule, "id" | "createdAt"> = {
-          name: "AI Studio Insight",
+          name: "PixelFounder Studio Insight",
           condition: {
             metric: "revenue",
             operator: ">=",
@@ -51,10 +52,10 @@ export const studioAgentService = {
           autoResolve: false
         };
 
-        const createdRule = alertingService.createRule(tempRule);
+        alertingService.createRule(tempRule);
         
         // This mimics how the Fotiqo-style agent works.
-        logger.info(`[StudioAgent] Insight generated: ${aiResponse}`);
+        logger.info(`[StudioAgent] Insight generated: ${insightResponse}`);
       }
       
     } catch (err) {

@@ -1,7 +1,7 @@
 -- Migration 066: Diagnostic Telemetry Hardening
 -- Adds local persistent storage for health snapshots and heartbeat status tracking.
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS diagnostic_history (
+CREATE TABLE IF NOT EXISTS diagnostic_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     cpu_temp REAL,

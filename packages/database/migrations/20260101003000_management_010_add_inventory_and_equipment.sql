@@ -1,5 +1,5 @@
 -- Up
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS "inventory" (
+CREATE TABLE IF NOT EXISTS "inventory" (
     "id" TEXT PRIMARY KEY,
     "name" TEXT NOT NULL,
     "type" TEXT NOT NULL,
@@ -8,13 +8,13 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS "inventory" (
     "created" TEXT DEFAULT (datetime('now')),
     "updated" TEXT DEFAULT (datetime('now'))
 );
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS "equipment_categories" (
+CREATE TABLE IF NOT EXISTS "equipment_categories" (
     "id" TEXT PRIMARY KEY,
     "label" TEXT NOT NULL,
     "created" TEXT DEFAULT (datetime('now')),
     "updated" TEXT DEFAULT (datetime('now'))
 );
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS "equipment" (
+CREATE TABLE IF NOT EXISTS "equipment" (
     "id" TEXT PRIMARY KEY,
     "name" TEXT NOT NULL,
     "type" TEXT NOT NULL,

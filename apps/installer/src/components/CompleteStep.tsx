@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import { CheckCircle, Rocket, ExternalLink, FolderOpen, Power } from "lucide-react";
+import { CheckCircle, Rocket, Power } from "lucide-react";
 import { InstallerState } from "../types/installer";
 
 interface CompleteStepProps {
   state: InstallerState;
   onFinish: () => Promise<{ success: boolean; error?: string }>;
+  onSetLaunchOnComplete: (value: boolean) => void;
 }
 
-const CompleteStep: React.FC<CompleteStepProps> = ({ state, onFinish }) => {
+const CompleteStep: React.FC<CompleteStepProps> = ({ state, onFinish, onSetLaunchOnComplete }) => {
   const [finished, setFinished] = useState(false);
   const [launching, setLaunching] = useState(false);
 
@@ -29,10 +30,10 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ state, onFinish }) => {
               <CheckCircle className="w-8 h-8 text-emerald-400" />
             </div>
             <h2 className="text-2xl font-bold text-slate-100 mb-2">
-              Installation Complete
+              Ready to Configure
             </h2>
             <p className="text-slate-400">
-              Your ClickFlash studio is configured and ready to operate.
+              Review the deployment details, then commit configuration to the verified application payloads.
             </p>
           </div>
 
@@ -50,6 +51,10 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ state, onFinish }) => {
               <p className="text-sm text-slate-200">{state.studioProfile.location || "N/A"}</p>
             </div>
             <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-700/50">
+              <p className="text-xs text-slate-500 mb-1">Deployment Root</p>
+              <p className="text-sm font-mono text-cyan-400 break-all">{state.installPath || "N/A"}</p>
+            </div>
+            <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-700/50">
               <p className="text-xs text-slate-500 mb-1">Fleet Status</p>
               <p className="text-sm text-emerald-400">
                 {state.fleetRegistered
@@ -64,7 +69,7 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ state, onFinish }) => {
               type="checkbox"
               id="launch"
               checked={state.launchOnComplete}
-              onChange={() => {}}
+              onChange={(event) => onSetLaunchOnComplete(event.target.checked)}
               className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500/50"
             />
             <label htmlFor="launch" className="text-sm text-slate-300">
@@ -79,7 +84,11 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ state, onFinish }) => {
               className="btn-primary flex items-center gap-2"
             >
               <Rocket className="w-4 h-4" />
-              {launching ? "Launching..." : "Launch Studio"}
+              {launching
+                ? "Committing..."
+                : state.launchOnComplete
+                  ? "Save Configuration & Launch"
+                  : "Save Configuration"}
             </button>
           </div>
         </>
@@ -89,33 +98,14 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ state, onFinish }) => {
             <Power className="w-8 h-8 text-emerald-400" />
           </div>
           <h2 className="text-2xl font-bold text-slate-100 mb-2">
-            Studio is Running
+            Configuration Complete
           </h2>
           <p className="text-slate-400 mb-6">
-            ClickFlash Master and Touch have been launched. You can close this installer.
+            {state.launchOnComplete
+              ? "The selected ClickFlash applications were configured and launched."
+              : "The selected ClickFlash applications were configured successfully."}
           </p>
-          <div className="flex justify-center gap-3">
-            <button
-              onClick={() => {
-                // Open Master in browser
-                window.open("http://localhost:8090", "_blank");
-              }}
-              className="btn-secondary flex items-center gap-2"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Open Master
-            </button>
-            <button
-              onClick={() => {
-                // Open data directory
-                alert("Data directory opened in file explorer");
-              }}
-              className="btn-secondary flex items-center gap-2"
-            >
-              <FolderOpen className="w-4 h-4" />
-              Open Data Folder
-            </button>
-          </div>
+          <p className="text-xs font-mono text-cyan-300 break-all">{state.installPath}</p>
         </div>
       )}
     </div>

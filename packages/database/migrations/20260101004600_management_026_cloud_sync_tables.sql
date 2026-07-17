@@ -3,7 +3,7 @@
 -- Adds tables for cross-master operation log, fleet heartbeats, and retention stats
 
 -- Operation logs: bi-directional sync between all Master desks via Hub relay
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS operation_logs (
+CREATE TABLE IF NOT EXISTS operation_logs (
     id              TEXT NOT NULL,
     desk_id         TEXT NOT NULL,
     type            TEXT NOT NULL CHECK (type IN ('INSERT', 'UPDATE', 'DELETE')),
@@ -20,7 +20,7 @@ CREATE INDEX IF NOT EXISTS idx_operation_logs_desk ON operation_logs (desk_id);
 CREATE INDEX IF NOT EXISTS idx_operation_logs_table ON operation_logs (table_name);
 
 -- Fleet heartbeats: one row per Master desk, updated on each heartbeat
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS fleet_heartbeats (
+CREATE TABLE IF NOT EXISTS fleet_heartbeats (
     desk_id     TEXT PRIMARY KEY,
     last_seen   TEXT NOT NULL,
     metrics     TEXT,   -- JSON blob: orders_today, photos_today, pending_sync, sync_status
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS fleet_heartbeats (
 );
 
 -- System stats: retention/moneytrash stats per desk
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS system_stats (
+CREATE TABLE IF NOT EXISTS system_stats (
     desk_id                     TEXT PRIMARY KEY,
     retention_queue_size        INTEGER DEFAULT 0,
     retention_potential_value   TEXT DEFAULT '0.00',

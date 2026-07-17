@@ -393,6 +393,7 @@ function App() {
       singlePhotoPrice,
       fullGalleryPrice,
       apiUrl: settings.apiUrl,
+      deskId: settings.deskId,
       useNativePaths: isNativeMode,
       nativePaths: files.map(f => f.filePath).filter((p): p is string => !!p)
     });
@@ -579,7 +580,7 @@ function App() {
                   type="text"
                   value={settings.apiUrl}
                   onChange={(e) => setSettings({ ...settings, apiUrl: e.target.value })}
-                  placeholder="https://cloud.clickflash.app"
+                  placeholder="https://moneytrash-api.clickflash-office.workers.dev"
                   className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:border-yellow-500 focus:outline-none transition-colors"
                 />
               </div>

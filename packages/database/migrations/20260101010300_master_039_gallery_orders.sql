@@ -1,5 +1,5 @@
 -- SQLite compatible Gallery Orders (Standardized CamelCase)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS gallery_orders (
+CREATE TABLE IF NOT EXISTS gallery_orders (
     id TEXT PRIMARY KEY,
     tokenId TEXT,
     customerEmail TEXT NOT NULL,

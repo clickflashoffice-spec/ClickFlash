@@ -1,6 +1,6 @@
 -- Protocol 41: Photographer Payroll Ledger
 -- Immutable record of all earnings (Commissions, Bonuses, Deductions)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS photographer_ledger (
+CREATE TABLE IF NOT EXISTS photographer_ledger (
     id TEXT PRIMARY KEY,
     -- UUID
     photographer_id TEXT NOT NULL,

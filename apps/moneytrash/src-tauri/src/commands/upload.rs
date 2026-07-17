@@ -43,6 +43,12 @@ pub struct UploadMetadata {
     pub mime_type: Option<String>,
     #[serde(rename = "deskId")]
     pub desk_id: Option<String>,
+    #[serde(rename = "customerEmail")]
+    pub customer_email: Option<String>,
+    #[serde(rename = "singlePhotoPrice")]
+    pub single_photo_price: Option<String>,
+    #[serde(rename = "fullGalleryPrice")]
+    pub full_gallery_price: Option<String>,
 }
 
 /// Upload session information
@@ -135,6 +141,42 @@ fn validate_file_size(size: u64) -> AppResult<()> {
         ));
     }
     Ok(())
+}
+
+async fn authenticate_office(
+    client: &reqwest::Client,
+    api_url: &str,
+    desk_id: &str,
+    api_key: &str,
+) -> AppResult<String> {
+    if desk_id.trim().is_empty() || api_key.trim().is_empty() {
+        return Err(AppError::Config(
+            "Desk ID and API key are required for cloud uploads".to_string(),
+        ));
+    }
+
+    let response = client
+        .post(format!("{}/api/office/verify", api_url))
+        .json(&serde_json::json!({
+            "deskId": desk_id,
+            "apiKey": api_key,
+        }))
+        .send()
+        .await
+        .map_err(AppError::from)?;
+
+    if !response.status().is_success() {
+        let error_text = response.text().await
+            .unwrap_or_else(|_| "Office verification failed".to_string());
+        return Err(AppError::Api(format!("Office verification failed: {}", error_text)));
+    }
+
+    let payload: serde_json::Value = response.json().await
+        .map_err(|error| AppError::Serialization(error.to_string()))?;
+    payload["token"]
+        .as_str()
+        .map(str::to_string)
+        .ok_or_else(|| AppError::Api("Office verification did not return a token".to_string()))
 }
 
 /// Upload a file chunk with proper error handling
@@ -329,8 +371,13 @@ async fn upload_to_api(
     // Load config to get API key for auth
     use crate::commands::config::internal_load_config;
     let config = internal_load_config().await.unwrap_or(None);
-    let api_key = config.and_then(|c| c.api_key).unwrap_or_default();
-    let auth_header = format!("Bearer {}", api_key);
+    let desk_id = metadata.desk_id.clone()
+        .or_else(|| config.as_ref().and_then(|value| value.desk_id.clone()))
+        .unwrap_or_default();
+    let api_key = config.as_ref().and_then(|value| value.api_key.clone())
+        .unwrap_or_default();
+    let token = authenticate_office(&client, api_url, &desk_id, &api_key).await?;
+    let auth_header = format!("Bearer {}", token);
     
     // Step 1: Initialize upload
     let chunk_size = CHUNK_SIZE;
@@ -349,7 +396,9 @@ async fn upload_to_api(
                 "access_code": metadata.access_code,
                 "mode": metadata.mode,
                 "mime_type": metadata.mime_type,
-                "deskId": metadata.desk_id
+                "customer_email": metadata.customer_email,
+                "single_photo_price": metadata.single_photo_price,
+                "full_gallery_price": metadata.full_gallery_price
             }
         }))
         .send()
@@ -639,8 +688,13 @@ pub async fn start_native_upload(
         
     use crate::commands::config::internal_load_config;
     let config = internal_load_config().await.unwrap_or(None);
-    let api_key = config.and_then(|c| c.api_key).unwrap_or_default();
-    let auth_header = format!("Bearer {}", api_key);
+    let desk_id = metadata.desk_id.clone()
+        .or_else(|| config.as_ref().and_then(|value| value.desk_id.clone()))
+        .unwrap_or_default();
+    let api_key = config.as_ref().and_then(|value| value.api_key.clone())
+        .unwrap_or_default();
+    let token = authenticate_office(&client, &api_base_url, &desk_id, &api_key).await?;
+    let auth_header = format!("Bearer {}", token);
     
     // 4. API Init
     let init_response = client
@@ -652,11 +706,13 @@ pub async fn start_native_upload(
             "fileSize": file_size,
             "totalChunks": total_chunks,
             "metadata": {
-                "eventName": metadata.event_name,
-                "accessCode": metadata.access_code,
+                "event_name": metadata.event_name,
+                "access_code": metadata.access_code,
                 "mode": metadata.mode,
-                "mimeType": metadata.mime_type,
-                "deskId": metadata.desk_id
+                "mime_type": metadata.mime_type,
+                "customer_email": metadata.customer_email,
+                "single_photo_price": metadata.single_photo_price,
+                "full_gallery_price": metadata.full_gallery_price
             }
         }))
         .send()

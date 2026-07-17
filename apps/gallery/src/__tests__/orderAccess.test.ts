@@ -31,16 +31,21 @@ describe('Gallery Order Access', () => {
 
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
-                json: async () => mockOrder
+                json: async () => ({ success: true, token: 'signed-customer-token', order: mockOrder })
             });
 
             const result = await fetch(
-                `${API_URL}/api/orders/by-credentials?pin=123456&email=test@example.com`
+                `${API_URL}/api/gallery-auth/order-login`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId: '123456', customerEmail: 'test@example.com' })
+                }
             );
 
             const data = await result.json();
-            expect(data.id).toBe('order-123');
-            expect(data.email).toBe('test@example.com');
+            expect(data.order.id).toBe('order-123');
+            expect(data.order.email).toBe('test@example.com');
         });
 
         it('should find order by magic link token', async () => {
@@ -52,15 +57,20 @@ describe('Gallery Order Access', () => {
 
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
-                json: async () => mockOrder
+                json: async () => ({ success: true, token: 'signed-customer-token', order: mockOrder })
             });
 
             const result = await fetch(
-                `${API_URL}/api/orders/by-token?token=magic-abc-123`
+                `${API_URL}/api/gallery-auth/token-verify`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: 'magic-abc-123' })
+                }
             );
 
             const data = await result.json();
-            expect(data.id).toBe('order-123');
+            expect(data.order.id).toBe('order-123');
         });
 
         it('should return 404 for invalid credentials', async () => {
@@ -71,7 +81,12 @@ describe('Gallery Order Access', () => {
             });
 
             const result = await fetch(
-                `${API_URL}/api/orders/by-credentials?pin=wrong&email=wrong@example.com`
+                `${API_URL}/api/gallery-auth/order-login`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId: 'wrong', customerEmail: 'wrong@example.com' })
+                }
             );
 
             expect(result.status).toBe(404);

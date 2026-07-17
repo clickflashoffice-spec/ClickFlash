@@ -1,6 +1,6 @@
 -- Add Conflict Logging for High-Res Resilience
 -- Phase: MultiMaster Reliability & Audit
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS sync_conflicts (
+CREATE TABLE IF NOT EXISTS sync_conflicts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     table_name TEXT NOT NULL,
     record_id TEXT NOT NULL,

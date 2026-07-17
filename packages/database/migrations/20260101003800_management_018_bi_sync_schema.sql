@@ -2,7 +2,7 @@
 -- Supports Phase 75 (Resort BI) and Phase 400 (360 Verification)
 
 -- 1. Daily Resort Stats (Hub Version - Multi-Master)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS daily_resort_stats (
+CREATE TABLE IF NOT EXISTS daily_resort_stats (
     id                  TEXT PRIMARY KEY, -- deskId_date
     desk_id             TEXT NOT NULL,
     date                TEXT NOT NULL,
@@ -20,7 +20,7 @@ CREATE INDEX IF NOT EXISTS idx_resort_stats_desk ON daily_resort_stats(desk_id);
 CREATE INDEX IF NOT EXISTS idx_resort_stats_date ON daily_resort_stats(date);
 
 -- 2. Photographer Performance (Hub Version - Multi-Master)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS photographer_performance (
+CREATE TABLE IF NOT EXISTS photographer_performance (
     id                  TEXT PRIMARY KEY, -- deskId_photographerId_date
     desk_id             TEXT NOT NULL,
     photographer_id     INTEGER NOT NULL,

@@ -3,7 +3,7 @@
 -- Guarantees zero data loss for in-memory write queue on power cycles.
 
 -- 1. Pending writes table for DbWriteQueue durability
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS pending_writes (
+CREATE TABLE IF NOT EXISTS pending_writes (
     id TEXT PRIMARY KEY,
     table_name TEXT NOT NULL,
     record_id TEXT NOT NULL,
@@ -20,7 +20,7 @@ CREATE INDEX IF NOT EXISTS idx_pending_writes_table_record ON pending_writes(tab
 
 -- 2. Mutation ack log for SyncManager idempotency
 -- Prevents duplicate application of the same mutation from a kiosk.
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS mutation_ack_log (
+CREATE TABLE IF NOT EXISTS mutation_ack_log (
     id TEXT PRIMARY KEY,
     client_id TEXT NOT NULL,
     mutation_id TEXT NOT NULL,        -- payload.data.id or explicit idempotency key
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS mutation_ack_log (
 CREATE INDEX IF NOT EXISTS idx_mutation_ack_client ON mutation_ack_log(client_id, mutation_id);
 
 -- 3. Sync pipeline health tracking for CloudSyncService per-pipeline circuit breakers
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS sync_pipeline_health (
+CREATE TABLE IF NOT EXISTS sync_pipeline_health (
     pipeline_name TEXT PRIMARY KEY,   -- e.g., 'operation_logs', 'ledger', 'expenses'
     consecutive_failures INTEGER DEFAULT 0,
     last_failure_at DATETIME,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS sync_pipeline_health (
 );
 
 -- 4. Idempotency keys for CloudSyncService -> Hub deduplication
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS sync_idempotency_keys (
+CREATE TABLE IF NOT EXISTS sync_idempotency_keys (
     idempotency_key TEXT PRIMARY KEY,
     desk_id TEXT NOT NULL,
     pipeline_name TEXT NOT NULL,

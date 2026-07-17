@@ -13,9 +13,14 @@ import AddToCartModal from "./AddToCartModal";
 import CheckoutModal from "./CheckoutModal";
 import ProofingModal from "./ProofingModal";
 import ShareModal from "./ShareModal";
-import { MOCK_PRODUCTS } from "../../constants.ts";
 import { MoneyTrashGallery } from "./MoneyTrashGallery";
-import { useCartSync, markCartRecovered } from "../../hooks/useCartSync.ts";
+import {
+  moneyTrashService,
+  type MoneyTrashPhoto,
+  type MoneyTrashPurchaseDownload,
+  type TrashGallery,
+} from "../../services/moneyTrashService";
+import { markCartRecovered, useCartSync } from "../../hooks/useCartSync.ts";
 import useCartStore from "../../stores/useCartStore.ts";
 
 type CustomerView =
@@ -30,7 +35,7 @@ type CustomerView =
 
 interface CustomerLayoutProps {
   order?: Order;
-  trashGallery?: any;
+  trashGallery?: TrashGallery;
   onLogout: () => void;
 }
 
@@ -47,13 +52,23 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
   );
   
   // Zustand Cart Store
-  const { cart, getTotal, getItemCount, setCartOpen } = useCartStore((state) => ({
+  const { cart, clearCart } = useCartStore((state) => ({
     cart: state.items,
-    getTotal: state.getTotal,
-    getItemCount: state.getItemCount,
-    setCartOpen: state.setCartOpen
+    clearCart: state.clearCart,
   }));
+  const activeCart = useMemo(
+    () => cart.filter((item) => trashGallery
+      ? item.productId === "moneytrash_single" && item.photo?.albumId === trashGallery.id
+      : item.productId !== "moneytrash_single"),
+    [cart, trashGallery],
+  );
   const [whiteLabelEnabled, setWhiteLabelEnabled] = useState(false);
+  const [productsForStore, setProductsForStore] = useState<Product[]>([]);
+  const [checkoutNotice, setCheckoutNotice] = useState<{
+    tone: "success" | "warning" | "error";
+    message: string;
+  } | null>(null);
+  const [moneyTrashDownloads, setMoneyTrashDownloads] = useState<MoneyTrashPurchaseDownload[]>([]);
 
   useEffect(() => {
     const fetchFeatures = async () => {
@@ -72,6 +87,129 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     fetchFeatures();
   }, [order?.destinationId, trashGallery?.destinationId]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    cloudApiService.getProducts()
+      .then((products) => {
+        if (!cancelled) setProductsForStore(products);
+      })
+      .catch((error) => {
+        logger.error("Failed to load storefront products", error);
+        if (!cancelled) setProductsForStore([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!order) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const checkoutResult = params.get("checkout");
+    const sessionId = params.get("session_id");
+    if (checkoutResult === "cancelled") {
+      setCheckoutNotice({ tone: "warning", message: "Checkout was cancelled. Your cart is still available." });
+      params.delete("checkout");
+      window.history.replaceState({}, "", `${window.location.pathname}${params.size ? `?${params}` : ""}${window.location.hash}`);
+      return;
+    }
+    if (checkoutResult !== "success" || !sessionId) return;
+
+    let active = true;
+    setCheckoutNotice({ tone: "warning", message: "Confirming your payment…" });
+    const reconcile = async () => {
+      try {
+        for (let attempt = 0; attempt < 5 && active; attempt += 1) {
+          const result = await cloudApiService.getCheckoutStatus(sessionId);
+          if (result.paid) {
+            clearCart();
+            await markCartRecovered();
+            if (active) setCheckoutNotice({ tone: "success", message: "Payment confirmed. Your purchase is ready." });
+            break;
+          }
+          if (attempt < 4) {
+            await new Promise((resolve) => window.setTimeout(resolve, 1000 * (attempt + 1)));
+          } else if (active) {
+            setCheckoutNotice({ tone: "warning", message: "Payment is still processing. Your cart has been preserved." });
+          }
+        }
+      } catch (error) {
+        logger.error("Checkout return verification failed", error);
+        if (active) setCheckoutNotice({ tone: "error", message: "We could not confirm payment yet. Your cart has been preserved." });
+      } finally {
+        params.delete("checkout");
+        params.delete("session_id");
+        window.history.replaceState({}, "", `${window.location.pathname}${params.size ? `?${params}` : ""}${window.location.hash}`);
+      }
+    };
+
+    void reconcile();
+    return () => {
+      active = false;
+    };
+  }, [clearCart, order]);
+
+  useEffect(() => {
+    if (!trashGallery?.purchaseToken) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const checkoutResult = params.get("moneytrash_checkout");
+    const sessionId = params.get("session_id") || moneyTrashService.getRememberedStripeSession();
+    const cleanReturnParams = () => {
+      params.delete("moneytrash_checkout");
+      params.delete("session_id");
+      window.history.replaceState({}, "", `${window.location.pathname}${params.size ? `?${params}` : ""}${window.location.hash}`);
+    };
+
+    if (checkoutResult === "cancelled") {
+      moneyTrashService.clearRememberedStripeSession();
+      setCheckoutNotice({ tone: "warning", message: "Checkout was cancelled. Your selected photos are still in the cart." });
+      cleanReturnParams();
+      return;
+    }
+    if ((checkoutResult && checkoutResult !== "success") || !sessionId) return;
+
+    let active = true;
+    setCheckoutNotice({ tone: "warning", message: "Confirming your MoneyTrash payment…" });
+    const reconcile = async () => {
+      try {
+        for (let attempt = 0; attempt < 5 && active; attempt += 1) {
+          const result = await moneyTrashService.getCheckoutStatus(trashGallery.purchaseToken, sessionId);
+          if (result.paid) {
+            const store = useCartStore.getState();
+            store.items
+              .filter((item) => item.productId === "moneytrash_single" && item.photo?.albumId === trashGallery.id)
+              .forEach((item) => store.removeItem(item.photoId));
+            moneyTrashService.clearCheckoutSession();
+            if (active) {
+              setMoneyTrashDownloads(result.downloads);
+              setCheckoutNotice({ tone: "success", message: "Payment confirmed. Your original files are ready below." });
+            }
+            break;
+          }
+          if (attempt < 4) {
+            await new Promise((resolve) => window.setTimeout(resolve, 1000 * (attempt + 1)));
+          } else if (active) {
+            setCheckoutNotice({ tone: "warning", message: "Payment is still processing. Your cart has been preserved." });
+          }
+        }
+      } catch (error) {
+        logger.error("MoneyTrash checkout return verification failed", error);
+        if (active) setCheckoutNotice({ tone: "error", message: "We could not confirm payment yet. Your cart has been preserved." });
+      } finally {
+        cleanReturnParams();
+      }
+    };
+
+    void reconcile();
+    return () => {
+      active = false;
+    };
+  }, [trashGallery]);
+
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [activeLightboxIndex, setActiveLightboxIndex] = useState(0);
 
@@ -86,9 +224,13 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     (order?.items.map((item) => item.photo).filter(Boolean) as Photo[]) || [];
   const [photosWithProofing, setPhotosWithProofing] =
     useState<Photo[]>(photosInOrder);
+  const lightboxPhotos = useMemo(
+    () => trashGallery?.photos || photosWithProofing,
+    [photosWithProofing, trashGallery],
+  );
 
   // Sync cart to D1 for abandoned cart recovery emails
-  useCartSync(order?.email, order?.destinationId);
+  useCartSync(order?.email);
 
   useEffect(() => {
     setPhotosWithProofing(photosInOrder);
@@ -115,7 +257,6 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
 
   const addItem = useCartStore(state => state.addItem);
   const updateQuantity = useCartStore(state => state.updateQuantity);
-  const clearCart = useCartStore(state => state.clearCart);
 
   const handleAddToCart = useCallback(
     (product: Product, quantity: number) => {
@@ -125,13 +266,28 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
       const deliveryType = product.category === 'Digital' ? 'digital' : 'print';
       
       for (let i = 0; i < quantity; i++) {
-        addItem(photoToAddToCart, product.name, product.price, product.category, deliveryType);
+        addItem(photoToAddToCart, product.id, product.name, product.price, product.category, deliveryType);
       }
       
       setIsAddToCartModalOpen(false);
       setPhotoToAddToCart(null);
     },
     [photoToAddToCart, addItem],
+  );
+
+  const handleAddMoneyTrashPhoto = useCallback(
+    (photo: MoneyTrashPhoto) => {
+      addItem(
+        photo,
+        "moneytrash_single",
+        "Digital Photo",
+        photo.discountPrice,
+        "Digital",
+        "digital",
+      );
+      setIsCheckoutModalOpen(true);
+    },
+    [addItem],
   );
 
   const handleUpdateCartQuantity = useCallback(
@@ -144,13 +300,6 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     },
     [cart, updateQuantity],
   );
-
-  const handleCheckoutSuccess = (orderId: string) => {
-    clearCart();
-    setIsCheckoutModalOpen(false);
-    setView("Status");
-    markCartRecovered(); // Tell D1 this cart converted — don't send recovery email
-  };
 
   const handleUpdateProofingStatus = useCallback(
     async (photoId: string, status: "approved" | "rejected" | "pending") => {
@@ -193,20 +342,21 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
 
   const handleDownloadHighRes = useCallback(async (photo: Photo) => {
     try {
-      await Promise.resolve();
+      const downloadUrl = await cloudApiService.getPhotoDownloadUrl(photo.id);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = `${photo.title || photo.id}_highres.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       logger.error("Download failed", error);
       alert("Download failed. Please try again.");
     }
   }, []);
 
-  const cartItemCount = getItemCount();
-  const cartTotal = getTotal();
-  const productsForStore = useMemo(
-    () => MOCK_PRODUCTS.filter((p) => p.category !== "Digital"),
-    [],
-  );
-
+  const cartItemCount = activeCart.reduce((count, item) => count + item.quantity, 0);
+  const cartTotal = activeCart.reduce((total, item) => total + item.price * item.quantity, 0);
   const renderView = () => {
     switch (view) {
       case "Gallery":
@@ -226,9 +376,9 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
             onBulkShare={handleBulkShare}
             onOpenProofing={() => setIsProofingModalOpen(true)}
             onDownloadHighRes={handleDownloadHighRes}
-            isOrderPaid={
-              order?.status === "Completed" || order?.status === "Delivered"
-            }
+            isOrderPaid={["paid", "completed", "delivered", "fulfilled"].includes(
+              String(order?.status || "").toLowerCase(),
+            )}
           />
         );
       case "Store":
@@ -267,10 +417,12 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
             trashGallery={trashGallery}
             favoritePhotoIds={favoritePhotoIds}
             onToggleFavorite={onToggleFavorite}
-            onOpenAddToCartModal={(photo) =>
-              handleOpenAddToCartModal(photo)
+            onOpenAddToCartModal={handleAddMoneyTrashPhoto}
+            onPhotoClick={(photo) =>
+              openLightbox(
+                trashGallery.photos.findIndex((candidate) => candidate.id === photo.id),
+              )
             }
-            onPhotoClick={() => {}}
           />
         ) : null;
       default:
@@ -361,6 +513,41 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
         </div>
       </header>
 
+      {checkoutNotice && (
+        <div
+          role="status"
+          className={`mx-auto mt-4 max-w-7xl rounded-xl border px-4 py-3 text-sm font-semibold ${
+            checkoutNotice.tone === "success"
+              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
+              : checkoutNotice.tone === "error"
+                ? "border-red-500/40 bg-red-500/10 text-red-200"
+                : "border-amber-500/40 bg-amber-500/10 text-amber-100"
+          }`}
+        >
+          {checkoutNotice.message}
+        </div>
+      )}
+
+      {moneyTrashDownloads.length > 0 && (
+        <section className="mx-auto mt-4 max-w-7xl rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+          <div className="mb-3 text-xs font-black uppercase tracking-widest text-emerald-200">
+            Purchased originals · links refresh when this tab reloads
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {moneyTrashDownloads.map((download) => (
+              <a
+                key={download.photoId}
+                href={download.url}
+                download={download.filename}
+                className="rounded-xl bg-emerald-500 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-950 hover:bg-emerald-400"
+              >
+                Download {download.filename}
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
       <main className="relative z-10 pt-4 pb-16">{renderView()}</main>
 
       {!whiteLabelEnabled && (
@@ -371,12 +558,19 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
 
       {isLightboxOpen && (
         <EnhancedLightbox
-          photos={photosWithProofing}
+          photos={lightboxPhotos}
           startIndex={activeLightboxIndex}
           onClose={() => setIsLightboxOpen(false)}
           favoritePhotoIds={favoritePhotoIds}
           onToggleFavorite={onToggleFavorite}
-          onOpenAddToCartModal={handleOpenAddToCartModal}
+          onOpenAddToCartModal={(photo) => {
+            setIsLightboxOpen(false);
+            if (trashGallery) {
+              handleAddMoneyTrashPhoto(photo as MoneyTrashPhoto);
+            } else {
+              handleOpenAddToCartModal(photo);
+            }
+          }}
         />
       )}
 
@@ -394,14 +588,12 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
         <CheckoutModal
           isOpen={isCheckoutModalOpen}
           onClose={() => setIsCheckoutModalOpen(false)}
-          cart={cart}
+          cart={activeCart}
           total={cartTotal}
           onUpdateQuantity={handleUpdateCartQuantity}
-          clientName={order?.clientName || "Guest"}
-          email={order?.email || ""}
-          photographerId={typeof order?.photographerId === 'number' ? order.photographerId : parseInt(String(order?.photographerId || "0"), 10)}
-          destinationId={order?.destinationId || ""}
-          onCheckoutSuccess={handleCheckoutSuccess}
+          albumId={order?.albumId || photosInOrder[0]?.albumId || ""}
+          moneyTrashGalleryId={trashGallery?.id}
+          moneyTrashPurchaseToken={trashGallery?.purchaseToken}
         />
       )}
 

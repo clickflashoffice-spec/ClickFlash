@@ -4,7 +4,7 @@
 -- ============================================================
 -- Users
 -- ============================================================
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS users (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email       VARCHAR(255) UNIQUE,
   name        VARCHAR(255),
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS users (
 -- ============================================================
 -- Conversations
 -- ============================================================
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS conversations (
+CREATE TABLE IF NOT EXISTS conversations (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id       UUID REFERENCES users(id),
   title         VARCHAR(500),
@@ -40,7 +40,7 @@ CREATE INDEX IF NOT EXISTS idx_conversations_updated_at ON conversations(updated
 -- ============================================================
 -- Messages
 -- ============================================================
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS messages (
+CREATE TABLE IF NOT EXISTS messages (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
   role            VARCHAR(20),
@@ -63,7 +63,7 @@ CREATE INDEX IF NOT EXISTS idx_messages_content_search
 -- ============================================================
 -- Tool Uses
 -- ============================================================
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS tool_uses (
+CREATE TABLE IF NOT EXISTS tool_uses (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   message_id  UUID REFERENCES messages(id) ON DELETE CASCADE,
   tool_name   VARCHAR(100),
@@ -80,7 +80,7 @@ CREATE INDEX IF NOT EXISTS idx_tool_uses_message_id ON tool_uses(message_id);
 -- ============================================================
 -- Sessions (auth)
 -- ============================================================
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS sessions (
+CREATE TABLE IF NOT EXISTS sessions (
   id         VARCHAR(128) PRIMARY KEY,
   user_id    UUID REFERENCES users(id),
   data       JSONB,
@@ -93,7 +93,7 @@ CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
 -- ============================================================
 -- Shared Links
 -- ============================================================
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS shared_links (
+CREATE TABLE IF NOT EXISTS shared_links (
   id              VARCHAR(32) PRIMARY KEY,
   conversation_id UUID REFERENCES conversations(id),
   created_by      UUID REFERENCES users(id),

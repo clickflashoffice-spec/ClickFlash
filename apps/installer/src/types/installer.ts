@@ -2,6 +2,9 @@
  * ClickFlash Installer — Shared TypeScript Types
  */
 
+import type { ApplicationComponent, ValidatedLicense } from "../../installer-ipc-schemas";
+import type { PayloadBundleSummary } from "../../installer-payload-verification";
+
 export type InstallStep =
   | "welcome"
   | "app-selection"
@@ -97,7 +100,7 @@ export interface InstallerState {
   isLoading: boolean;
   error: string | null;
   logs: string[];
-  selectedApps?: string[];
+  selectedApps: ApplicationComponent[];
 
   // Prerequisites
   prerequisites: PrerequisiteResults | null;
@@ -122,10 +125,11 @@ export interface InstallerState {
 
   // Completion
   installPath: string;
+  payloadBundle: PayloadBundleSummary | null;
   launchOnComplete: boolean;
 
   // License
-  license: { key: string; tenant_id: string; region: string; plan: string; features: string[]; max_masters: number; expires_at: string | null } | null;
+  license: ValidatedLicense | null;
 
   // Cloudflare (OAuth)
   hub: { device_code: string; user_code: string; verification_uri: string; expires_at: number; access_token?: string; refresh_token?: string; tenant_id?: string; interval: number } | null;

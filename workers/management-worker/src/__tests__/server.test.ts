@@ -36,7 +36,6 @@ const createEnv = (): any => ({
     ALLOWED_ORIGINS: '*',
     RESEND_API_KEY: 'test-resend-key',
     FROM_EMAIL: 'test@clickflash.ai',
-    GOOGLE_API_KEY: 'test-google-key',
 });
 
 describe('Management Hub API', () => {

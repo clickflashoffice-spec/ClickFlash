@@ -1,5 +1,4 @@
 import { generateEd25519License, verifyEd25519License } from '@clickflash/licensing/src/ed25519';
-const PRIVATE_KEY_B64 = "EQdSP71FUDU55wNFrjIfVQUpYBme6kBsYhD1ecjmvAg9TlyEi1GiO7PcemwH8fQttWH/4Fh4EUzizyC/GYS+pQ==";
 const PUBLIC_KEY_B64 = "PU5chItRojuz3HpsB/H0LbVh/+BYeBFM4s8gvxmEvqU=";
 
 interface LicenseKeyData {
@@ -19,7 +18,15 @@ interface GenerateOptions {
   machineId?: string;
 }
 
-export async function generateLicenseKeys(options: GenerateOptions): Promise<LicenseKeyData[]> {
+export async function generateLicenseKeys(
+  options: GenerateOptions,
+  signingKey: string,
+): Promise<LicenseKeyData[]> {
+  const privateKey = signingKey.trim();
+  if (!/^[A-Za-z0-9+/]{86}==$/.test(privateKey)) {
+    throw new Error('Enter a valid Ed25519 private signing key');
+  }
+
   const keys: LicenseKeyData[] = [];
 
   for (let i = 0; i < options.count; i++) {
@@ -28,7 +35,7 @@ export async function generateLicenseKeys(options: GenerateOptions): Promise<Lic
       maxMasters: options.maxMasters,
       expiresDays: options.expiresDays,
       machineId: options.machineId
-    }, PRIVATE_KEY_B64);
+    }, privateKey);
     
     keys.push({
       key: license.key,

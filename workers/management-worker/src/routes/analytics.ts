@@ -1,7 +1,7 @@
 import { sendAuthError, sendInternalError, createErrorResponse } from "../errorHandler.js";
 import { logger } from "@clickflash/logger";
 
-export const handleAnalytics = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, geminiService: any, payload: any) => {
+export const handleAnalytics = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, pixelFounderService: any, payload: any) => {
   const deskId = payload?.desk_id || "UNKNOWN";
 
 
@@ -90,50 +90,18 @@ export const handleAnalytics = async (request: Request, url: URL, env: any, dbMa
 
             let aiDesc = existing?.ai_audit_description || "";
 
-            // Generate AI Audit Description if it doesn't exist and we have > 0 metrics to talk about
+            // Generate a deterministic audit description from the measured metrics.
             if (
               !aiDesc &&
               (audit.total_customers > 0 || audit.imported_photos > 0)
             ) {
-              try {
-                const soldPercent =
-                  audit.imported_photos > 0
-                    ? Math.round(
-                        (audit.sold_photos / audit.imported_photos) * 100,
-                      )
-                    : 0;
-                const salesRate =
-                  audit.total_customers > 0
-                    ? Math.round(
-                        (audit.sold_photos / audit.total_customers) * 100,
-                      )
-                    : 0;
-
-                const promptText = `Analyze this daily performance data for photographer ${audit.photographer_id} on ${audit.date}.
-Metrics: ${audit.imported_photos} imported photos, ${audit.sold_photos} sold photos (${soldPercent}% sold percent), ${audit.bad_quality_photos} flagged as bad quality, ${audit.total_customers} customers interacted (Sales Rate: ${salesRate}%), $${audit.sales_revenue} in revenue.
-Write a very brief 2-sentence performance review. Explicitly note the sales rate and imported photo sold percent. State if quality is an issue, or if sales conversion is great/poor.`;
-
-                // Quick call to Gemini without the complex structured JSON requirement of the sales forecast
-                const aiRawResponse = await fetch(
-                  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GOOGLE_API_KEY}`,
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      contents: [{ parts: [{ text: promptText }] }],
-                    }),
-                  },
-                );
-
-                if (aiRawResponse.ok) {
-                  const jsonResp = (await aiRawResponse.json()) as any;
-                  aiDesc =
-                    jsonResp.candidates?.[0]?.content?.parts?.[0]?.text ||
-                    "AI analysis unavailable.";
-                }
-              } catch (e) {
-                logger.error("AI Audit generation failed:", { args: [e] });
-              }
+              aiDesc = pixelFounderService.generatePerformanceReview({
+                importedPhotos: audit.imported_photos,
+                soldPhotos: audit.sold_photos,
+                badQualityPhotos: audit.bad_quality_photos,
+                totalCustomers: audit.total_customers,
+                salesRevenue: audit.sales_revenue,
+              });
             }
 
             await dbManager.run(
@@ -330,11 +298,11 @@ Write a very brief 2-sentence performance review. Explicitly note the sales rate
       ) {
         try {
           const metrics = await analyticsService.getForecastData(deskId);
-          const forecast = await geminiService.generateSalesForecast(metrics);
+          const forecast = await pixelFounderService.generateSalesForecast(metrics);
           return Response.json(forecast, { headers: corsHeaders });
         } catch (err: any) {
           logger.error("[Forecast Error]", { args: [err] });
-          return createErrorResponse(500, "AI Forecast Error", err.message);
+          return createErrorResponse(500, "Forecast Error", err.message);
         }
       }
 

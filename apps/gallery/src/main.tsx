@@ -20,18 +20,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Suppress harmless browser extension warnings (e.g., wallet extensions competing for window.ethereum)
-const originalWarn = console.warn;
-console.warn = (...args: any[]) => {
-  const message = args[0]?.toString() || '';
-  // Filter out wallet extension warnings that don't affect functionality
-  if (message.includes("couldn't override `window.ethereum`") ||
-    message.includes("Backpack couldn't override")) {
-    return; // Suppress this specific warning
-  }
-  originalWarn.apply(console, args);
-};
-
 // Set mode for customer portal
 if (!window.location.search.includes('mode=')) {
   const url = new URL(window.location.href);
@@ -57,3 +45,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </ErrorBoundary>
   </React.StrictMode>
 );
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    void navigator.serviceWorker.register('/gallery/service-worker.js').catch(() => {
+      // Gallery remains online when shell caching is unavailable.
+    });
+  });
+}

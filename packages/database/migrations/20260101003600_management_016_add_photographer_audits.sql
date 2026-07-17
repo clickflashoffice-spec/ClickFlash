@@ -2,7 +2,7 @@
 -- Supports Phase 70 (Audits) and Phase 35 (Fleet Monitoring)
 
 -- Daily Photographer Audits: Ingested from Master Stations for BI analytics
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS daily_photographer_audits (
+CREATE TABLE IF NOT EXISTS daily_photographer_audits (
     id                  TEXT PRIMARY KEY, -- deskId_photographerId_date
     desk_id             TEXT NOT NULL,
     photographer_id     INTEGER NOT NULL,
@@ -23,10 +23,10 @@ CREATE INDEX IF NOT EXISTS idx_audits_photographer ON daily_photographer_audits(
 
 -- Ensure fleet_heartbeat_history has necessary columns
 -- (Note: SQLite doesn't support multiple columns in one ALTER TABLE, 
--- but since we use CREATE TABLE IF NOT EXISTS IF NOT EXISTS in schema.sql, 
+-- but since we use CREATE TABLE IF NOT EXISTS in schema.sql,
 -- this migration is primarily for existing test databases)
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS fleet_heartbeat_history (
+CREATE TABLE IF NOT EXISTS fleet_heartbeat_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     desk_id TEXT NOT NULL,
     timestamp TEXT NOT NULL,

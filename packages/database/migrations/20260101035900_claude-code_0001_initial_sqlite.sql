@@ -8,7 +8,7 @@ PRAGMA auto_vacuum = INCREMENTAL;
 -- ============================================================
 -- Users
 -- ============================================================
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS users (
   id                TEXT PRIMARY KEY,
   email             TEXT UNIQUE,
   name              TEXT,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS users (
 -- ============================================================
 -- Conversations
 -- ============================================================
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS conversations (
+CREATE TABLE IF NOT EXISTS conversations (
   id            TEXT PRIMARY KEY,
   user_id       TEXT REFERENCES users(id),
   title         TEXT,
@@ -44,7 +44,7 @@ CREATE INDEX IF NOT EXISTS idx_conversations_updated_at ON conversations(updated
 -- ============================================================
 -- Messages
 -- ============================================================
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS messages (
+CREATE TABLE IF NOT EXISTS messages (
   id              TEXT PRIMARY KEY,
   conversation_id TEXT REFERENCES conversations(id) ON DELETE CASCADE,
   role            TEXT,
@@ -89,7 +89,7 @@ END;
 -- ============================================================
 -- Tool Uses
 -- ============================================================
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS tool_uses (
+CREATE TABLE IF NOT EXISTS tool_uses (
   id          TEXT PRIMARY KEY,
   message_id  TEXT REFERENCES messages(id) ON DELETE CASCADE,
   tool_name   TEXT,
@@ -106,7 +106,7 @@ CREATE INDEX IF NOT EXISTS idx_tool_uses_message_id ON tool_uses(message_id);
 -- ============================================================
 -- Sessions (auth)
 -- ============================================================
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS sessions (
+CREATE TABLE IF NOT EXISTS sessions (
   id         TEXT PRIMARY KEY,
   user_id    TEXT REFERENCES users(id),
   data       TEXT,  -- JSON
@@ -119,7 +119,7 @@ CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
 -- ============================================================
 -- Shared Links
 -- ============================================================
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS shared_links (
+CREATE TABLE IF NOT EXISTS shared_links (
   id              TEXT PRIMARY KEY,
   conversation_id TEXT REFERENCES conversations(id),
   created_by      TEXT REFERENCES users(id),

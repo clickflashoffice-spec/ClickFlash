@@ -1,5 +1,5 @@
 -- Add Packs table
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS packs (
+CREATE TABLE IF NOT EXISTS packs (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS packs (
 );
 
 -- Add Bookings table
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS bookings (
+CREATE TABLE IF NOT EXISTS bookings (
     id TEXT PRIMARY KEY,
     clientName TEXT NOT NULL,
     clientEmail TEXT,

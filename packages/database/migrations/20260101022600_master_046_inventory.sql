@@ -1,5 +1,5 @@
 -- Add inventory table for consumable tracking (Phase 34)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS inventory (
+CREATE TABLE IF NOT EXISTS inventory (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     type TEXT NOT NULL,

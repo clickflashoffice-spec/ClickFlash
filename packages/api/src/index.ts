@@ -6,9 +6,15 @@ export class ConnectionManager {
   private baseUrl: string;
   private authToken: string | null = null;
   private csrfToken: string | null = null;
+  private onUnauthorized?: () => Promise<boolean | void> | boolean | void;
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string, options?: { onUnauthorized?: () => Promise<boolean | void> | boolean | void }) {
     this.baseUrl = baseUrl.replace(/\/$/, "");
+    this.onUnauthorized = options?.onUnauthorized;
+  }
+
+  public setOnUnauthorized(callback?: () => Promise<boolean | void> | boolean | void) {
+    this.onUnauthorized = callback;
   }
 
   public setAuthToken(token: string | null) {
@@ -48,8 +54,13 @@ export class ConnectionManager {
         }
 
         if (response.status === 401) {
-          // TODO: Implement token refresh logic or callback here
           logger.warn(`401 Unauthorized for ${endpoint}`);
+          if (this.onUnauthorized && retries > 0) {
+            const refreshed = await this.onUnauthorized();
+            if (refreshed === true) {
+              return this.request<T>(endpoint, options, retries - 1);
+            }
+          }
         }
 
         throw new Error(`API Error ${response.status}: ${await response.text()}`);

@@ -13,11 +13,10 @@
 
 // ────────────────────────────────────────────────────────────────────────────
 // Vite env vars used in the customer-facing app.
-// VITE_TOUCH_API_URL is read in App.tsx; expand this list as more env vars
-// are added rather than reaching for `(import.meta as any).env`.
+// Expand this list as more env vars are added rather than reaching for
+// `(import.meta as any).env`.
 // ────────────────────────────────────────────────────────────────────────────
 interface ImportMetaEnv {
-  readonly VITE_TOUCH_API_URL?: string;
   readonly VITE_SENTRY_DSN?: string;
   readonly VITE_APP_VERSION?: string;
 }

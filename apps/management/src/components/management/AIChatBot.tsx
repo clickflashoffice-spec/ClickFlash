@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Bot, X, Send, Sparkles } from "lucide-react";
 import { useManagement } from "../../context/ManagementContext";
-import { sendChatMessage } from "../../services/geminiService";
+import { sendChatMessage } from "../../services/pixelFounderService";
 import { logger } from "../../utils/logger";
 
 interface Message {
@@ -22,7 +22,7 @@ const AIChatBot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "Hello! I am PixelFounder AI. How can I assist you with network governance today?",
+      text: "Hello! I am PixelFounder. I provide rules-backed guidance from the ClickFlash telemetry supplied to me.",
       sender: "ai",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
@@ -67,10 +67,10 @@ const AIChatBot: React.FC = () => {
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch (error: unknown) {
-      logger.error("AI PixelFounder Error", { error });
+      logger.error("PixelFounder Error", { error });
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
-        text: `Analysis error: ${error instanceof Error ? error.message : "Failed to reach intelligence layer. Check API key permissions or model availability."}`,
+        text: `Analysis error: ${error instanceof Error ? error.message : "Failed to reach the Management intelligence service."}`,
         sender: "ai",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
@@ -85,7 +85,7 @@ const AIChatBot: React.FC = () => {
       {/* Floating Action Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        title="Open AI Chat"
+        title="Open PixelFounder"
         className={`fixed bottom-8 right-8 w-16 h-16 rounded-full flex items-center justify-center shadow-[0_10px_40px_rgba(56,189,248,0.5)] transition-all duration-300 z-[1000] border border-white/20 hover:scale-110 active:scale-95 ${
           isOpen ? 'bg-slate-800 text-slate-300' : 'bg-gradient-to-br from-[#38bdf8] to-[#0ea5e9] text-white'
         }`}
@@ -107,13 +107,13 @@ const AIChatBot: React.FC = () => {
                 <Bot className="w-5 h-5 text-[#38bdf8]" />
               </div>
               <div className="flex flex-col">
-                <span className="font-bold tracking-tight text-white">PixelFounder AI</span>
-                <span className="text-[10px] text-[#38bdf8] font-medium tracking-wider uppercase">Governance Intelligence</span>
+                <span className="font-bold tracking-tight text-white">PixelFounder</span>
+                <span className="text-[10px] text-[#38bdf8] font-medium tracking-wider uppercase">Governance Guidance</span>
               </div>
             </div>
             <button 
               onClick={() => setIsOpen(false)} 
-              title="Close AI Chat"
+              title="Close PixelFounder"
               className="relative z-10 p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors"
             >
               <X className="w-4 h-4 text-slate-300 hover:text-white" />
@@ -192,7 +192,7 @@ const AIChatBot: React.FC = () => {
             </div>
             <div className="mt-2 text-center">
               <span className="text-[10px] text-slate-400 font-medium tracking-wide">
-                AI can make mistakes. Verify important operational data.
+                Uses supplied ClickFlash telemetry. Verify important operational data.
               </span>
             </div>
           </div>

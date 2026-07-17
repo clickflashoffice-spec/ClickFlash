@@ -1,6 +1,6 @@
 -- Create archive table for orders older than 30 days
 -- Mirrors the structure of the main 'orders' table as of Migration 043
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS orders_archive (
+CREATE TABLE IF NOT EXISTS orders_archive (
     id TEXT PRIMARY KEY,
     date TEXT NOT NULL,
     clientName TEXT,

@@ -183,5 +183,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return allEntries.sort((a, b) => (b.priority || 0) - (a.priority || 0));
 }
 
-// Revalidate every hour
-export const revalidate = 3600;
+// Fully static for Cloudflare Pages
+export const revalidate = false;

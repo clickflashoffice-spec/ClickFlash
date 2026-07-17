@@ -2,7 +2,7 @@
 -- Phase 5-D: allow users to list and revoke active sessions
 -- Date: 2026-05-07
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS user_sessions (
+CREATE TABLE IF NOT EXISTS user_sessions (
     id          TEXT PRIMARY KEY,           -- UUID v4 session identifier
     user_id     INTEGER NOT NULL,           -- FK → users.id
     user_email  TEXT NOT NULL,

@@ -3,7 +3,7 @@
 -- Created: March 13, 2026
 -- Issue: Heartbeat endpoint was failing with 500 error because table didn't exist
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS fleet_heartbeats (
+CREATE TABLE IF NOT EXISTS fleet_heartbeats (
     desk_id TEXT PRIMARY KEY,
     last_seen TEXT NOT NULL,
     metrics TEXT,

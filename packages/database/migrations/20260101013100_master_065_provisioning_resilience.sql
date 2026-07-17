@@ -1,7 +1,7 @@
 -- Phase 7: Industrial Zero-Touch Provisioning (ZTP)
 -- Create provisioning_steps table for resumable deployment state tracking.
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS provisioning_steps (
+CREATE TABLE IF NOT EXISTS provisioning_steps (
     id TEXT PRIMARY KEY,
     label TEXT NOT NULL,
     status TEXT DEFAULT 'pending', -- pending, in_progress, completed, failed, rolled_back

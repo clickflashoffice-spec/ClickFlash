@@ -1,6 +1,7 @@
 import { logger } from '@clickflash/logger';
 import React, { useState } from 'react';
 import { Photo } from '../../types';
+import { cloudApiService } from '../../services/cloudApiService';
 
 interface DownloadPageProps {
     photos: Photo[];
@@ -9,27 +10,25 @@ interface DownloadPageProps {
 
 type DownloadSize = 'web' | 'high-res';
 
-const DownloadPage: React.FC<DownloadPageProps> = ({ photos, orderId }) => {
+const DownloadPage: React.FC<DownloadPageProps> = ({ photos }) => {
     const [selectedSize, setSelectedSize] = useState<DownloadSize>('high-res');
     const [isDownloading, setIsDownloading] = useState(false);
 
-    const downloadPhoto = (photo: Photo) => {
-        const link = document.createElement('a');
-        let downloadUrl = photo.url;
+    const downloadPhoto = async (photo: Photo) => {
+        let downloadUrl: string;
         const safeTitle = photo.title || 'Untitled';
         const fileName = safeTitle.includes('.') ? safeTitle.substring(0, safeTitle.lastIndexOf('.')) : safeTitle;
         let downloadFileName = `${fileName}.jpg`;
 
         if (selectedSize === 'web') {
-            const lastDotIndex = downloadUrl.lastIndexOf('.');
-            if (lastDotIndex !== -1) {
-                downloadUrl = downloadUrl.substring(0, lastDotIndex) + '_preview' + downloadUrl.substring(lastDotIndex);
-            }
+            downloadUrl = photo.previewUrl || photo.thumbnailUrl || photo.url;
             downloadFileName = `${fileName}_web.jpg`;
         } else {
+            downloadUrl = await cloudApiService.getPhotoDownloadUrl(photo.id);
             downloadFileName = `${fileName}_highres.jpg`;
         }
 
+        const link = document.createElement('a');
         link.href = downloadUrl;
         link.download = downloadFileName;
         document.body.appendChild(link);
@@ -38,62 +37,18 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ photos, orderId }) => {
     };
 
     const handleDownloadAll = async () => {
-        if (!orderId) {
-            if (window.confirm(`This will download all ${photos.length} photos individually. Continue?`)) {
-                photos.forEach((photo, index) => {
-                    setTimeout(() => downloadPhoto(photo), index * 300);
-                });
-            }
-            return;
-        }
-
-        if (window.confirm(`Download all ${photos.length} photos as a single ZIP file?`)) {
+        if (window.confirm(`This will download all ${photos.length} photos individually. Continue?`)) {
             setIsDownloading(true);
             try {
-                const downloadUrl = `/api/download/bulk-zip/${orderId}`;
-                const link = document.createElement('a');
-                link.href = downloadUrl;
-                link.download = `Order_${orderId}.zip`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                for (const photo of photos) {
+                    await downloadPhoto(photo);
+                }
             } catch (err) {
                 logger.error('Bulk download failed', err);
-                alert('Bulk download failed. Please try individual downloads.');
+                alert('One or more downloads could not be authorized.');
             } finally {
                 setIsDownloading(false);
             }
-        }
-    };
-
-    const handleAppleWallet = async () => {
-        if (!orderId) return;
-        setIsDownloading(true);
-        try {
-            const response = await fetch(`/api/gallery/wallet-pass`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    orderId,
-                    albumId: photos[0]?.albumId || 'GALLERY',
-                    total: 0 // Ideally we'd pass total here, but DownloadPage only gets photos
-                })
-            });
-            if (!response.ok) throw new Error('Failed to generate pass');
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `Pass-${orderId}.pkpass`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        } catch (err) {
-            logger.error('Apple Wallet pass failed', err);
-            alert('Failed to generate Apple Wallet pass.');
-        } finally {
-            setIsDownloading(false);
         }
     };
 
@@ -136,23 +91,11 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ photos, orderId }) => {
                                 <svg className="h-5 w-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
                                 </svg>
-                                <span className="text-[10px] font-black uppercase tracking-widest">Download Full ZIP</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest">Download All</span>
                             </>
                         )}
                     </button>
 
-                    {orderId && (
-                        <button
-                            onClick={handleAppleWallet}
-                            disabled={isDownloading}
-                            className={`bg-black/60 hover:bg-black text-white border border-slate-700 font-bold py-3.5 px-6 rounded-2xl transition-all flex items-center gap-2 shadow-xl ${isDownloading ? 'opacity-50 cursor-wait' : ''}`}
-                        >
-                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
-                            </svg>
-                            <span className="text-[10px] font-black uppercase tracking-widest">Add to Apple Wallet</span>
-                        </button>
-                    )}
                 </div>
             </div>
 
@@ -166,7 +109,10 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ photos, orderId }) => {
                         />
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex justify-center">
                             <button
-                                onClick={() => downloadPhoto(photo)}
+                                onClick={() => void downloadPhoto(photo).catch((err) => {
+                                    logger.error('Photo download failed', err);
+                                    alert('This photo could not be authorized for download.');
+                                })}
                                 className="w-full py-2 bg-cyan-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg border border-cyan-400/50"
                             >
                                 Get File

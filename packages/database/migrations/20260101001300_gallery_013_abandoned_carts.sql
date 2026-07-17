@@ -2,7 +2,7 @@
 -- Date: 2026-05-17
 
 -- Stores cart snapshots synced from the browser when a customer has an email
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS abandoned_carts (
+CREATE TABLE IF NOT EXISTS abandoned_carts (
     id TEXT PRIMARY KEY,
     email TEXT NOT NULL,
     album_id TEXT,

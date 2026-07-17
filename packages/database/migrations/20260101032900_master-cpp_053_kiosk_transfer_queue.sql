@@ -1,7 +1,7 @@
 -- 053_kiosk_transfer_queue.sql
 -- Implements background transfer jobs for Master-Touch pushes (Law 13 & 15)
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS kiosk_transfer_queue (
+CREATE TABLE IF NOT EXISTS kiosk_transfer_queue (
     id TEXT PRIMARY KEY,
     album_id TEXT NOT NULL,
     kiosk_id TEXT, -- Optional, for kiosk-specific pushes

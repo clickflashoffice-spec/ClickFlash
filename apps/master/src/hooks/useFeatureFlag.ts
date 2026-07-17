@@ -17,7 +17,7 @@ const defaultFlags: Record<string, boolean> = {
   'gallery.stripeCheckout': true,
   'gallery.watermarking': true,
   'gallery.highResDownload': true,
-  'management.geminiAI': false,
+  'management.localIntelligence': true,
   'management.emailRelay': true,
   'global.debugMode': false,
   'global.analytics': true,

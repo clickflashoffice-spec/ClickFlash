@@ -1,5 +1,5 @@
 -- SQLite compatible Gallery Access Tokens (Standardized CamelCase)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS gallery_tokens (
+CREATE TABLE IF NOT EXISTS gallery_tokens (
     id TEXT PRIMARY KEY,
     albumId TEXT NOT NULL,
     customerEmail TEXT NOT NULL,

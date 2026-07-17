@@ -14,8 +14,10 @@ import * as os from "os";
 import * as crypto from "crypto";
 import { fork, ChildProcess } from "child_process";
 import Database from "better-sqlite3-multiple-ciphers";
+import { logger } from "@clickflash/logger";
 import { initAutoUpdater } from "./autoUpdater";
 import { HardwareScannerService } from "./HardwareScannerService";
+import { isTrustedIpcSender, isTrustedLoopbackRendererUrl } from "./electron-security";
 
 // Load environment variables
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -201,6 +203,26 @@ class TouchApp {
                     "Content-Security-Policy": [CSP_POLICY],
                 },
             });
+        });
+
+        session.defaultSession.setPermissionCheckHandler((webContents, permission, requestingOrigin) => {
+            return Boolean(
+                this.mainWindow
+                && !this.mainWindow.isDestroyed()
+                && webContents === this.mainWindow.webContents
+                && permission === "media"
+                && isTrustedLoopbackRendererUrl(requestingOrigin, this.serverPort),
+            );
+        });
+
+        session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
+            callback(Boolean(
+                this.mainWindow
+                && !this.mainWindow.isDestroyed()
+                && webContents === this.mainWindow.webContents
+                && permission === "media"
+                && isTrustedLoopbackRendererUrl(details.requestingUrl, this.serverPort),
+            ));
         });
     }
 
@@ -543,9 +565,24 @@ class TouchApp {
         });
     }
 
+    private registerIpcHandler<Args extends unknown[], Result>(
+        channel: string,
+        listener: (event: IpcMainInvokeEvent, ...args: Args) => Result,
+    ): void {
+        ipcMain.handle(channel, (event, ...args) => {
+            if (!isTrustedIpcSender(event, this.mainWindow)) {
+                logger.warn("[Security] Blocked IPC from untrusted frame", {
+                    args: [channel, event.senderFrame?.url],
+                });
+                throw new Error("Unauthorized IPC sender");
+            }
+            return listener(event, ...(args as Args));
+        });
+    }
+
     private setupIpcHandlers(): void {
         ipcMain.removeHandler("exit-kiosk");
-        ipcMain.handle("exit-kiosk", async (_event: IpcMainInvokeEvent, password: unknown) => {
+        this.registerIpcHandler("exit-kiosk", async (_event: IpcMainInvokeEvent, password: unknown) => {
             let KIOSK_PASSWORD: string | null = null;
 
             try {
@@ -600,7 +637,7 @@ class TouchApp {
 
         // ── Kiosk mode toggle ──────────────────────────────────────────────────────
         ipcMain.removeHandler("enter-kiosk");
-        ipcMain.handle("enter-kiosk", () => {
+        this.registerIpcHandler("enter-kiosk", () => {
             if (this.mainWindow) {
                 this.mainWindow.setKiosk(true);
                 this.mainWindow.setFullScreen(true);
@@ -610,7 +647,7 @@ class TouchApp {
         });
 
         ipcMain.removeHandler("kiosk:lock");
-        ipcMain.handle("kiosk:lock", () => {
+        this.registerIpcHandler("kiosk:lock", () => {
             if (this.mainWindow) {
                 this.mainWindow.setKiosk(true);
                 this.mainWindow.setFullScreen(true);
@@ -621,17 +658,17 @@ class TouchApp {
 
         // ── App lifecycle ──────────────────────────────────────────────────────────
         ipcMain.removeHandler("get-app-version");
-        ipcMain.handle("get-app-version", () => app.getVersion());
+        this.registerIpcHandler("get-app-version", () => app.getVersion());
 
         ipcMain.removeHandler("restart-app");
-        ipcMain.handle("restart-app", () => {
+        this.registerIpcHandler("restart-app", () => {
             app.relaunch();
             app.exit(0);
         });
 
         // ── PIN unlock with attempt lockout ────────────────────────────────────────
         ipcMain.removeHandler("kiosk:unlock");
-        ipcMain.handle("kiosk:unlock", (_event: IpcMainInvokeEvent, rawPin: unknown) => {
+        this.registerIpcHandler("kiosk:unlock", (_event: IpcMainInvokeEvent, rawPin: unknown) => {
             const expected = process.env["ADMIN_PIN"] ?? (!app.isPackaged ? "000000" : null);
             if (!expected) {
                 return { success: false, error: "Kiosk unlock not configured. Set ADMIN_PIN env var." };
@@ -673,7 +710,7 @@ class TouchApp {
         });
 
         ipcMain.removeHandler("getPrinters");
-        ipcMain.handle("getPrinters", async () => {
+        this.registerIpcHandler("getPrinters", async () => {
             try {
                 return await this.mainWindow?.webContents.getPrintersAsync() ?? [];
             } catch {
@@ -682,7 +719,7 @@ class TouchApp {
         });
 
         ipcMain.removeHandler("print");
-        ipcMain.handle("print", (_event: IpcMainInvokeEvent, options: unknown) => {
+        this.registerIpcHandler("print", (_event: IpcMainInvokeEvent, options: unknown) => {
             return new Promise<boolean>((resolve, reject) => {
                 if (!options || typeof options !== "object") {
                     reject(new Error("Invalid print options"));
@@ -703,6 +740,14 @@ class TouchApp {
     }
 
     private setupSecurityFilters(): void {
+        this.mainWindow?.webContents.on("will-navigate", (event, url) => {
+            if (!isTrustedLoopbackRendererUrl(url, this.serverPort)) event.preventDefault();
+        });
+
+        this.mainWindow?.webContents.on("will-redirect", (event, url) => {
+            if (!isTrustedLoopbackRendererUrl(url, this.serverPort)) event.preventDefault();
+        });
+
         this.mainWindow?.webContents.on("before-input-event", (event, input) => {
             const blockedKeys = [
                 "f1", "f2", "f3", "f4", "f5", "f6",

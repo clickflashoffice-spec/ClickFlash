@@ -4,6 +4,15 @@
  */
 
 import { contextBridge, ipcRenderer } from "electron";
+import type {
+  HeartbeatPayload,
+  InstallerConfig,
+  LaunchAppsPayload,
+  RegisterWithHubPayload,
+  ValidatedLicense,
+  WriteEnvConfigPayload,
+} from "./installer-ipc-schemas";
+import type { PayloadBundleSelectionResult } from "./installer-payload-verification";
 
 export interface InstallerApi {
   // Prerequisites
@@ -18,12 +27,12 @@ export interface InstallerApi {
   }>;
 
   // Cloudflare
-  openOAuth: (url: string) => Promise<{ success: boolean }>;
+  openOAuth: (url: string) => Promise<{ success: boolean; error?: string }>;
   testCloudflareToken: (token: string) => Promise<{ success: boolean; accounts?: Array<{ id: string; name: string }>; error?: string }>;
   onOAuthCallback: (callback: (data: { token: string }) => void) => () => void;
 
   // License
-  validateLicense: (key: string) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+  validateLicense: (key: string) => Promise<{ success: boolean; data?: ValidatedLicense; error?: string }>;
 
   // OAuth Device Code
   requestDeviceCode: () => Promise<{ success: boolean; data?: unknown; error?: string }>;
@@ -33,8 +42,8 @@ export interface InstallerApi {
   checkDeskId: (deskId: string) => Promise<{ success: boolean; data?: unknown; error?: string }>;
 
   // Hub Registration
-  registerWithHub: (payload: Record<string, unknown>) => Promise<{ success: boolean; data?: unknown; error?: string }>;
-  sendHeartbeat: (payload: Record<string, unknown>) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+  registerWithHub: (payload: RegisterWithHubPayload) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+  sendHeartbeat: (payload: HeartbeatPayload) => Promise<{ success: boolean; data?: unknown; error?: string }>;
 
   // Fleet
   registerFleet: (payload: {
@@ -49,7 +58,7 @@ export interface InstallerApi {
   }) => Promise<{ success: boolean; data?: unknown; error?: string }>;
 
   // External URL
-  openExternalUrl: (url: string) => Promise<{ success: boolean }>;
+  openExternalUrl: (url: string) => Promise<{ success: boolean; error?: string }>;
 
   // Health
   runHealthChecks: (config: {
@@ -67,11 +76,11 @@ export interface InstallerApi {
   }>;
 
   // Config & Launch
-  saveConfig: (config: Record<string, unknown>) => Promise<{ success: boolean; error?: string }>;
-  writeEnvConfig: (params: { targetDir: string; envData: Record<string, string> }) => Promise<{ success: boolean; error?: string }>;
+  saveConfig: (config: InstallerConfig) => Promise<{ success: boolean; error?: string }>;
+  writeEnvConfig: (params: WriteEnvConfigPayload) => Promise<{ success: boolean; error?: string }>;
   getGeolocation: () => Promise<{ success: boolean; data?: any; error?: string }>;
-  launchApps: (paths: { master?: string; touch?: string }) => Promise<{ master: boolean; touch: boolean }>;
-  selectDirectory: () => Promise<string | null>;
+  launchApps: (paths: LaunchAppsPayload) => Promise<{ master: boolean; touch: boolean }>;
+  selectPayloadBundle: () => Promise<PayloadBundleSelectionResult>;
   getLogs: () => Promise<string[]>;
 
   // Pairing
@@ -115,8 +124,8 @@ const api: InstallerApi = {
   requestDeviceCode: () => ipcRenderer.invoke("installer:requestDeviceCode"),
   pollForToken: (deviceCode: string) => ipcRenderer.invoke("installer:pollForToken", deviceCode),
   checkDeskId: (deskId: string) => ipcRenderer.invoke("installer:checkDeskId", deskId),
-  registerWithHub: (payload: Record<string, unknown>) => ipcRenderer.invoke("installer:registerWithHub", payload),
-  sendHeartbeat: (payload: Record<string, unknown>) => ipcRenderer.invoke("installer:sendHeartbeat", payload),
+  registerWithHub: (payload: RegisterWithHubPayload) => ipcRenderer.invoke("installer:registerWithHub", payload),
+  sendHeartbeat: (payload: HeartbeatPayload) => ipcRenderer.invoke("installer:sendHeartbeat", payload),
   openExternalUrl: (url: string) => ipcRenderer.invoke("installer:openExternalUrl", url),
 
   registerFleet: (payload) => ipcRenderer.invoke("installer:registerFleet", payload),
@@ -127,7 +136,7 @@ const api: InstallerApi = {
   writeEnvConfig: (params) => ipcRenderer.invoke("installer:writeEnvConfig", params),
   getGeolocation: () => ipcRenderer.invoke("installer:getGeolocation"),
   launchApps: (paths) => ipcRenderer.invoke("installer:launchApps", paths),
-  selectDirectory: () => ipcRenderer.invoke("installer:selectDirectory"),
+  selectPayloadBundle: () => ipcRenderer.invoke("installer:selectPayloadBundle"),
   getLogs: () => ipcRenderer.invoke("installer:getLogs"),
 
   // Pairing

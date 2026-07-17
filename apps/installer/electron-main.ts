@@ -15,6 +15,7 @@ import {
   ipcMain,
   dialog,
   protocol,
+  safeStorage,
   shell,
   IpcMainInvokeEvent,
 } from "electron";
@@ -23,10 +24,67 @@ import fs from "fs";
 import os from "os";
 import http from "http";
 import { spawn, exec } from "child_process";
+import { lookup } from "dns/promises";
 import crypto from "crypto";
 import dgram from "dgram";
 import si from "systeminformation";
 import { validateLicenseKey } from "./scripts/license-key";
+import { fetchBoundedJson } from "./electron-network-security";
+import {
+  protectInstallerConfig,
+  writeJsonAtomic,
+} from "./installer-config";
+import {
+  createApplicationConfigurationFiles,
+  getMissingApplicationExecutables,
+  getCanonicalApplicationExecutable,
+  writeFilesTransactionally,
+} from "./installer-application-config";
+import {
+  loadAndVerifyPayloadBundle,
+  type PayloadComponentId,
+  type VerifiedPayloadBundle,
+} from "./installer-payload-verification";
+import {
+  getDevelopmentPayloadTrustRoots,
+  PACKAGED_PAYLOAD_TRUST_ROOTS,
+} from "./installer-payload-trust";
+import {
+  cloudflareAccountsResponseSchema,
+  cloudflareTokenSchema,
+  deskAvailabilityResponseSchema,
+  deskIdSchema,
+  deviceCodeResponseSchema,
+  deviceCodeSchema,
+  externalUrlSchema,
+  fleetRegistrationSchema,
+  hardwareFingerprintSchema,
+  heartbeatResponseSchema,
+  heartbeatSchema,
+  healthCheckSchema,
+  installerConfigSchema,
+  launchAppsSchema,
+  licenseKeySchema,
+  pairingChallengeResponseSchema,
+  pairingExchangeSchema,
+  pairingResponseSchema,
+  registerWithHubSchema,
+  registrationResponseSchema,
+  remoteErrorResponseSchema,
+  tokenResponseSchema,
+  validatedLicenseSchema,
+  writeEnvConfigSchema,
+} from "./installer-ipc-schemas";
+import {
+  getApprovedDirectory,
+  getPinnedPrivateIpv4,
+  getPrivateLanHost,
+  getSafeExternalUrl,
+  getSafeCloudBaseUrl,
+  getValidPort,
+  isPrivateIpv4,
+  isTrustedRendererUrl,
+} from "./electron-security";
 
 // ─── Protocol Registration ────────────────────────────────────────────────────
 protocol.registerSchemesAsPrivileged([
@@ -35,9 +93,6 @@ protocol.registerSchemesAsPrivileged([
     privileges: {
       secure: true,
       standard: true,
-      supportFetchAPI: true,
-      allowServiceWorkers: true,
-      bypassCSP: true,
     },
   },
 ]);
@@ -45,12 +100,66 @@ protocol.registerSchemesAsPrivileged([
 // ─── Config ───────────────────────────────────────────────────────────────────
 const WIZARD_PORT = 5175;
 const WIZARD_URL = `http://localhost:${WIZARD_PORT}`;
+const WIZARD_ORIGIN = new URL(WIZARD_URL).origin;
+const RENDERER_ENTRY = path.join(__dirname, "../renderer/index.html");
 const INSTALLER_LOG = path.join(os.tmpdir(), "clickflash-installer.log");
-const HUB_BASE = process.env.CLICKFLASH_HUB_BASE || "https://management-hub.clickflash-office.workers.dev";
+const DEFAULT_HUB_BASE = "https://management-hub.clickflash-office.workers.dev";
+const ALLOWED_CLOUD_API_HOSTS = [
+  "management-hub.clickflash-office.workers.dev",
+  "hub.clickflash.app",
+  "management.clickflash.app",
+] as const;
+const HUB_BASE = getSafeCloudBaseUrl(
+  process.env.CLICKFLASH_HUB_BASE || DEFAULT_HUB_BASE,
+  ALLOWED_CLOUD_API_HOSTS,
+) || DEFAULT_HUB_BASE;
+const ALLOWED_EXTERNAL_HOSTS = [
+  "dash.cloudflare.com",
+  ...ALLOWED_CLOUD_API_HOSTS,
+];
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let mainWindow: BrowserWindow | null = null;
 let isQuitting = false;
+let approvedInstallDirectory: string | null = null;
+let approvedPayloadBundle: VerifiedPayloadBundle | null = null;
+
+const PAYLOAD_CONFIGURATION_EXTRAS = {
+  master: [".env"],
+  touch: [".env"],
+} as const;
+
+function getPayloadTrustRoots() {
+  return app.isPackaged
+    ? PACKAGED_PAYLOAD_TRUST_ROOTS
+    : getDevelopmentPayloadTrustRoots(process.env);
+}
+
+function getRequestedPayloadComponents(applications: readonly string[]): PayloadComponentId[] {
+  return applications.includes("touch") ? ["master", "touch"] : ["master"];
+}
+
+async function reverifyApprovedPayload(
+  requiredComponents: PayloadComponentId[],
+): Promise<VerifiedPayloadBundle> {
+  if (!approvedPayloadBundle || !approvedInstallDirectory) {
+    throw new Error("A verified payload bundle must be selected first");
+  }
+  const verified = await loadAndVerifyPayloadBundle(
+    approvedInstallDirectory,
+    getPayloadTrustRoots(),
+    app.getVersion(),
+    {
+      requiredComponents,
+      allowedExtraPaths: PAYLOAD_CONFIGURATION_EXTRAS,
+    },
+  );
+  if (verified.summary.manifestSha256 !== approvedPayloadBundle.summary.manifestSha256) {
+    throw new Error("Payload manifest changed after approval; select the bundle again");
+  }
+  approvedPayloadBundle = verified;
+  return verified;
+}
 
 // ─── Logging ──────────────────────────────────────────────────────────────────
 function log(level: "info" | "warn" | "error", message: string, meta?: Record<string, unknown>): void {
@@ -59,6 +168,62 @@ function log(level: "info" | "warn" | "error", message: string, meta?: Record<st
     fs.appendFileSync(INSTALLER_LOG, entry);
   } catch {}
   console.log(entry.trim());
+}
+
+function isTrustedIpcSender(event: IpcMainInvokeEvent): boolean {
+  return Boolean(
+    mainWindow
+    && !mainWindow.isDestroyed()
+    && event.sender === mainWindow.webContents
+    && event.senderFrame === mainWindow.webContents.mainFrame,
+  );
+}
+
+function registerIpcHandler<Args extends unknown[], Result>(
+  channel: string,
+  listener: (event: IpcMainInvokeEvent, ...args: Args) => Result,
+): void {
+  ipcMain.handle(channel, (event, ...args) => {
+    if (!isTrustedIpcSender(event)) {
+      log("warn", "Blocked IPC from untrusted frame", { channel, url: event.senderFrame?.url });
+      throw new Error("Unauthorized IPC sender");
+    }
+    return listener(event, ...(args as Args));
+  });
+}
+
+async function openExternalHttps(value: unknown): Promise<{ success: boolean; error?: string }> {
+  const safeUrl = getSafeExternalUrl(value, ALLOWED_EXTERNAL_HOSTS);
+  if (!safeUrl) return { success: false, error: "Only approved HTTPS URLs may be opened" };
+  try {
+    await shell.openExternal(safeUrl);
+    return { success: true };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+function getRemoteError(data: unknown, fallback: string): string {
+  const parsed = remoteErrorResponseSchema.safeParse(data);
+  return parsed.success ? parsed.data.error : fallback;
+}
+
+async function resolvePrivateLanIpv4(host: string): Promise<string> {
+  const safeHost = getPrivateLanHost(host);
+  if (!safeHost) throw new Error("Pairing target is not a private LAN host");
+
+  const directAddress = getPinnedPrivateIpv4(safeHost, []);
+  if (directAddress) return directAddress;
+
+  const records = await lookup(safeHost, { all: true, family: 4 });
+  const pinnedAddress = getPinnedPrivateIpv4(
+    safeHost,
+    records.map((record) => record.address),
+  );
+  if (!pinnedAddress) {
+    throw new Error("Pairing target did not resolve exclusively to private IPv4 addresses");
+  }
+  return pinnedAddress;
 }
 
 // ─── Window ───────────────────────────────────────────────────────────────────
@@ -86,26 +251,35 @@ function createWindow(): void {
 
   // Security
   mainWindow.webContents.on("will-navigate", (event, url) => {
-    if (!url.startsWith("http://localhost:")) {
+    if (!isTrustedRendererUrl(url, app.isPackaged, WIZARD_ORIGIN, RENDERER_ENTRY)) {
       event.preventDefault();
-      shell.openExternal(url);
+      void openExternalHttps(url).then((result) => {
+        if (!result.success) log("warn", "Blocked renderer navigation", { url });
+      });
     }
   });
 
   mainWindow.webContents.on("will-redirect", (event, url) => {
-    if (!url.startsWith("http://localhost:")) {
+    if (!isTrustedRendererUrl(url, app.isPackaged, WIZARD_ORIGIN, RENDERER_ENTRY)) {
       event.preventDefault();
     }
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    void openExternalHttps(url).then((result) => {
+      if (!result.success) log("warn", "Blocked new-window URL", { url });
+    });
     return { action: "deny" };
+  });
+
+  mainWindow.webContents.on("will-attach-webview", (event) => event.preventDefault());
+  mainWindow.webContents.session.setPermissionRequestHandler((_webContents, _permission, callback) => {
+    callback(false);
   });
 
   // Load wizard
   if (app.isPackaged) {
-    Promise.resolve(mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"))).catch((err) => {
+    Promise.resolve(mainWindow.loadFile(RENDERER_ENTRY)).catch((err) => {
       log("error", "Failed to load renderer", { error: err.message });
     });
   } else {
@@ -127,7 +301,7 @@ function createWindow(): void {
 // ─── IPC Handlers ─────────────────────────────────────────────────────────────
 function setupIpc(): void {
   // System checks
-  ipcMain.handle("installer:checkPrerequisites", async () => {
+  registerIpcHandler("installer:checkPrerequisites", async () => {
     log("info", "Running prerequisite checks");
     const results = {
       nodeVersion: null as string | null,
@@ -170,40 +344,48 @@ function setupIpc(): void {
   });
 
   // Cloudflare OAuth: open browser
-  ipcMain.handle("installer:openOAuth", async (_e: IpcMainInvokeEvent, url: string) => {
-    log("info", "Opening OAuth URL", { url });
-    await shell.openExternal(url);
-    return { success: true };
+  registerIpcHandler("installer:openOAuth", async (_e: IpcMainInvokeEvent, url: string) => {
+    const parsed = externalUrlSchema.safeParse(url);
+    const result = parsed.success
+      ? await openExternalHttps(parsed.data)
+      : { success: false, error: "Invalid OAuth URL" };
+    log(result.success ? "info" : "warn", result.success ? "Opened OAuth URL" : "Blocked OAuth URL");
+    return result;
   });
 
   // Open external URL
-  ipcMain.handle("installer:openExternalUrl", async (_e: IpcMainInvokeEvent, url: string) => {
-    log("info", "Opening external URL", { url });
-    await shell.openExternal(url);
-    return { success: true };
+  registerIpcHandler("installer:openExternalUrl", async (_e: IpcMainInvokeEvent, url: string) => {
+    const parsed = externalUrlSchema.safeParse(url);
+    const result = parsed.success
+      ? await openExternalHttps(parsed.data)
+      : { success: false, error: "Invalid external URL" };
+    log(result.success ? "info" : "warn", result.success ? "Opened external URL" : "Blocked external URL");
+    return result;
   });
 
   // Validate license (OFFLINE — no server required)
-  ipcMain.handle("installer:validateLicense", async (_e: IpcMainInvokeEvent, key: string) => {
+  registerIpcHandler("installer:validateLicense", async (_e: IpcMainInvokeEvent, key: string) => {
     log("info", "Validating license key (offline)");
+    const parsed = licenseKeySchema.safeParse(key);
+    if (!parsed.success) return { success: false, error: "Invalid license key format" };
     try {
       const uuidInfo = await si.uuid();
       const machineId = uuidInfo.os || uuidInfo.hardware || "UNKNOWN_MACHINE";
 
       // Import the offline validator
-      const result = await validateLicenseKey(key, machineId);
+      const result = await validateLicenseKey(parsed.data, machineId);
       
       if (result.valid && result.data) {
-        return { 
-          success: true, 
-          data: {
-            key: key,
+        const validated = validatedLicenseSchema.safeParse({
+            key: parsed.data,
             plan: result.data.plan,
             max_masters: result.data.maxMasters,
             expires_at: result.data.expiresAt,
             machine_id: machineId,
-          }
-        };
+        });
+        return validated.success
+          ? { success: true, data: validated.data }
+          : { success: false, error: "Invalid signed license payload" };
       }
       return { success: false, error: result.error || "Invalid license key" };
     } catch (err: unknown) {
@@ -214,16 +396,21 @@ function setupIpc(): void {
   });
 
   // Request device code
-  ipcMain.handle("installer:requestDeviceCode", async () => {
+  registerIpcHandler("installer:requestDeviceCode", async () => {
     log("info", "Requesting device code from Hub");
     try {
-      const res = await fetch(`${HUB_BASE}/api/v1/oauth/device/code`, {
+      const { response, data } = await fetchBoundedJson(`${HUB_BASE}/api/v1/oauth/device/code`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ client_id: "clickflash-installer" }),
-      });
-      if (res.ok) return { success: true, data: await res.json() };
-      return { success: false, error: `HTTP ${res.status}` };
+      }, { maxBytes: 65_536 });
+      if (!response.ok) {
+        return { success: false, error: getRemoteError(data, `HTTP ${response.status}`) };
+      }
+      const parsed = deviceCodeResponseSchema.safeParse(data);
+      return parsed.success
+        ? { success: true, data: parsed.data }
+        : { success: false, error: "Invalid device-code response from Hub" };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       return { success: false, error: msg };
@@ -231,18 +418,21 @@ function setupIpc(): void {
   });
 
   // Poll for token
-  ipcMain.handle("installer:pollForToken", async (_e: IpcMainInvokeEvent, deviceCode: string) => {
+  registerIpcHandler("installer:pollForToken", async (_e: IpcMainInvokeEvent, deviceCode: string) => {
+    const input = deviceCodeSchema.safeParse(deviceCode);
+    if (!input.success) return { success: false, error: "Invalid device code" };
     try {
-      const res = await fetch(`${HUB_BASE}/api/v1/oauth/token`, {
+      const { response, data } = await fetchBoundedJson(`${HUB_BASE}/api/v1/oauth/token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           grant_type: "urn:ietf:params:oauth:grant-type:device_code",
-          device_code: deviceCode,
+          device_code: input.data,
         }),
-      });
-      const data = (await res.json()) as Record<string, unknown>;
-      return { success: res.ok, data, status: res.status };
+      }, { maxBytes: 65_536 });
+      const parsed = tokenResponseSchema.safeParse(data);
+      if (!parsed.success) return { success: false, error: "Invalid token response from Hub" };
+      return { success: response.ok, data: parsed.data, status: response.status };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       return { success: false, error: msg };
@@ -250,11 +440,22 @@ function setupIpc(): void {
   });
 
   // Check desk_id availability
-  ipcMain.handle("installer:checkDeskId", async (_e: IpcMainInvokeEvent, deskId: string) => {
+  registerIpcHandler("installer:checkDeskId", async (_e: IpcMainInvokeEvent, deskId: string) => {
+    const input = deskIdSchema.safeParse(deskId);
+    if (!input.success) return { success: false, error: "Invalid desk ID" };
     try {
-      const res = await fetch(`${HUB_BASE}/api/masters/check-desk-id?desk_id=${encodeURIComponent(deskId)}`);
-      if (res.ok) return { success: true, data: await res.json() };
-      return { success: false, error: `HTTP ${res.status}` };
+      const { response, data } = await fetchBoundedJson(
+        `${HUB_BASE}/api/masters/check-desk-id?desk_id=${encodeURIComponent(input.data)}`,
+        {},
+        { maxBytes: 65_536 },
+      );
+      if (!response.ok) {
+        return { success: false, error: getRemoteError(data, `HTTP ${response.status}`) };
+      }
+      const parsed = deskAvailabilityResponseSchema.safeParse(data);
+      return parsed.success
+        ? { success: true, data: parsed.data }
+        : { success: false, error: "Invalid desk availability response from Hub" };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       return { success: false, error: msg };
@@ -262,16 +463,24 @@ function setupIpc(): void {
   });
 
   // Register with Hub
-  ipcMain.handle("installer:registerWithHub", async (_e: IpcMainInvokeEvent, payload: Record<string, unknown>) => {
-    log("info", "Registering with Hub", { deskId: payload.desk_id });
+  registerIpcHandler("installer:registerWithHub", async (_e: IpcMainInvokeEvent, payload: Record<string, unknown>) => {
+    const input = registerWithHubSchema.safeParse(payload);
+    if (!input.success) return { success: false, error: "Invalid Hub registration payload" };
+    const { access_token: accessToken, ...registration } = input.data;
+    log("info", "Registering with Hub", { deskId: registration.desk_id });
     try {
-      const res = await fetch(`${HUB_BASE}/api/masters/register`, {
+      const { response, data } = await fetchBoundedJson(`${HUB_BASE}/api/masters/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${payload.access_token}` },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) return { success: true, data: await res.json() };
-      return { success: false, error: `HTTP ${res.status}` };
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
+        body: JSON.stringify(registration),
+      }, { maxBytes: 262_144 });
+      if (!response.ok) {
+        return { success: false, error: getRemoteError(data, `HTTP ${response.status}`) };
+      }
+      const parsed = registrationResponseSchema.safeParse(data);
+      return parsed.success
+        ? { success: true, data: parsed.data }
+        : { success: false, error: "Invalid registration response from Hub" };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       return { success: false, error: msg };
@@ -279,15 +488,23 @@ function setupIpc(): void {
   });
 
   // Send heartbeat
-  ipcMain.handle("installer:sendHeartbeat", async (_e: IpcMainInvokeEvent, payload: Record<string, unknown>) => {
+  registerIpcHandler("installer:sendHeartbeat", async (_e: IpcMainInvokeEvent, payload: Record<string, unknown>) => {
+    const input = heartbeatSchema.safeParse(payload);
+    if (!input.success) return { success: false, error: "Invalid heartbeat payload" };
+    const { access_token: accessToken, ...heartbeat } = input.data;
     try {
-      const res = await fetch(`${HUB_BASE}/api/masters/heartbeat`, {
+      const { response, data } = await fetchBoundedJson(`${HUB_BASE}/api/masters/heartbeat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${payload.access_token}` },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) return { success: true, data: await res.json() };
-      return { success: false, error: `HTTP ${res.status}` };
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
+        body: JSON.stringify(heartbeat),
+      }, { maxBytes: 65_536 });
+      if (!response.ok) {
+        return { success: false, error: getRemoteError(data, `HTTP ${response.status}`) };
+      }
+      const parsed = heartbeatResponseSchema.safeParse(data);
+      return parsed.success
+        ? { success: true, data: parsed.data }
+        : { success: false, error: "Invalid heartbeat response from Hub" };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       return { success: false, error: msg };
@@ -295,15 +512,17 @@ function setupIpc(): void {
   });
 
   // Cloudflare API test
-  ipcMain.handle("installer:testCloudflareToken", async (_e: IpcMainInvokeEvent, token: string) => {
+  registerIpcHandler("installer:testCloudflareToken", async (_e: IpcMainInvokeEvent, token: string) => {
     log("info", "Testing Cloudflare API token");
+    const input = cloudflareTokenSchema.safeParse(token);
+    if (!input.success) return { success: false, error: "Invalid Cloudflare token format" };
     try {
-      const res = await fetch("https://api.cloudflare.com/client/v4/accounts", {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      });
-      const data = (await res.json()) as { success: boolean; result?: Array<{ id: string; name: string }> };
-      if (data.success && data.result) {
-        return { success: true, accounts: data.result };
+      const { data } = await fetchBoundedJson("https://api.cloudflare.com/client/v4/accounts", {
+        headers: { Authorization: `Bearer ${input.data}`, "Content-Type": "application/json" },
+      }, { maxBytes: 524_288 });
+      const parsed = cloudflareAccountsResponseSchema.safeParse(data);
+      if (parsed.success && parsed.data.success && parsed.data.result) {
+        return { success: true, accounts: parsed.data.result };
       }
       return { success: false, error: "Invalid token or insufficient permissions" };
     } catch (err: unknown) {
@@ -313,7 +532,7 @@ function setupIpc(): void {
   });
 
   // Fleet registration
-  ipcMain.handle("installer:registerFleet", async (_e: IpcMainInvokeEvent, payload: {
+  registerIpcHandler("installer:registerFleet", async (_e: IpcMainInvokeEvent, payload: {
     deskId: string;
     name: string;
     location: string;
@@ -323,30 +542,40 @@ function setupIpc(): void {
     cloudApiUrl: string;
     token: string;
   }) => {
-    log("info", "Registering fleet", { deskId: payload.deskId });
+    const input = fleetRegistrationSchema.safeParse(payload);
+    if (!input.success) {
+      return { success: false, error: "Invalid fleet registration payload" };
+    }
+    const cloudApiUrl = getSafeCloudBaseUrl(input.data.cloudApiUrl, ALLOWED_CLOUD_API_HOSTS);
+    if (!cloudApiUrl) return { success: false, error: "Invalid fleet registration payload" };
+    const { deskId, name, location, country, timezone, currency, token } = input.data;
+
+    log("info", "Registering fleet", { deskId });
     try {
-      const res = await fetch(`${payload.cloudApiUrl}/api/masters/register`, {
+      const { response, data } = await fetchBoundedJson(`${cloudApiUrl}/api/masters/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${payload.token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          desk_id: payload.deskId,
-          name: payload.name,
-          location: payload.location,
-          country: payload.country,
-          timezone: payload.timezone,
-          currency: payload.currency,
+          desk_id: deskId,
+          name,
+          location,
+          country,
+          timezone,
+          currency,
           hardware_fingerprint: await getHardwareFingerprint(),
           version: app.getVersion(),
         }),
-      });
-      const data = (await res.json()) as { status: string; desk_id: string; peers?: unknown[]; error?: string };
-      if (res.ok) {
-        return { success: true, data };
+      }, { maxBytes: 262_144 });
+      if (!response.ok) {
+        return { success: false, error: getRemoteError(data, `HTTP ${response.status}`) };
       }
-      return { success: false, error: data.error || `HTTP ${res.status}` };
+      const parsed = registrationResponseSchema.safeParse(data);
+      return parsed.success
+        ? { success: true, data: parsed.data }
+        : { success: false, error: "Invalid fleet registration response" };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       return { success: false, error: msg };
@@ -354,13 +583,21 @@ function setupIpc(): void {
   });
 
   // Health checks
-  ipcMain.handle("installer:runHealthChecks", async (_e: IpcMainInvokeEvent, config: {
+  registerIpcHandler("installer:runHealthChecks", async (_e: IpcMainInvokeEvent, config: {
     masterPort: number;
     touchPort: number;
     cloudApiUrl: string;
     deskId: string;
     token: string;
   }) => {
+    const input = healthCheckSchema.safeParse(config);
+    if (!input.success) {
+      throw new Error("Invalid health-check configuration");
+    }
+    const cloudApiUrl = getSafeCloudBaseUrl(input.data.cloudApiUrl, ALLOWED_CLOUD_API_HOSTS);
+    if (!cloudApiUrl) throw new Error("Invalid health-check configuration");
+    const { masterPort, touchPort, deskId, token } = input.data;
+
     log("info", "Running health checks");
     const checks = {
       masterBackend: false,
@@ -372,29 +609,31 @@ function setupIpc(): void {
 
     // Test Master backend
     try {
-      const res = await fetchWithTimeout(`http://localhost:${config.masterPort}/api/health`, 5000);
+      const res = await fetchWithTimeout(`http://localhost:${masterPort}/api/health`, 5000);
       checks.masterBackend = res.ok;
     } catch {}
 
     // Test Touch backend
     try {
-      const res = await fetchWithTimeout(`http://localhost:${config.touchPort}/api/health`, 5000);
+      const res = await fetchWithTimeout(`http://localhost:${touchPort}/api/health`, 5000);
       checks.touchBackend = res.ok;
     } catch {}
 
     // Test heartbeat to Hub
     try {
-      const res = await fetch(`${config.cloudApiUrl}/api/masters/heartbeat`, {
+      const res = await fetch(`${cloudApiUrl}/api/masters/heartbeat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${config.token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          desk_id: config.deskId,
+          desk_id: deskId,
           status: "Online",
           version: app.getVersion(),
         }),
+        redirect: "error",
+        signal: AbortSignal.timeout(10_000),
       });
       checks.heartbeat = res.ok;
     } catch {}
@@ -404,12 +643,20 @@ function setupIpc(): void {
   });
 
   // Save configuration
-  ipcMain.handle("installer:saveConfig", async (_e: IpcMainInvokeEvent, config: Record<string, unknown>) => {
+  registerIpcHandler("installer:saveConfig", async (_e: IpcMainInvokeEvent, config: Record<string, unknown>) => {
     log("info", "Saving installer configuration");
+    const input = installerConfigSchema.safeParse(config);
+    if (!input.success) return { success: false, error: "Invalid installer configuration" };
+    if (!safeStorage.isEncryptionAvailable()) {
+      return { success: false, error: "OS-protected storage is unavailable" };
+    }
     try {
       const configPath = path.join(os.homedir(), ".clickflash", "installer-config.json");
-      fs.mkdirSync(path.dirname(configPath), { recursive: true });
-      fs.writeFileSync(configPath, JSON.stringify(config, null, 2), { mode: 0o600 });
+      const protectedConfig = protectInstallerConfig(
+        input.data,
+        (plainText) => safeStorage.encryptString(plainText),
+      );
+      writeJsonAtomic(configPath, protectedConfig);
       return { success: true };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -418,43 +665,135 @@ function setupIpc(): void {
   });
 
   // Launch applications
-  ipcMain.handle("installer:launchApps", async (_e: IpcMainInvokeEvent, paths: { master?: string; touch?: string }) => {
-    log("info", "Launching applications", paths);
+  registerIpcHandler("installer:launchApps", async (_e: IpcMainInvokeEvent, payload: unknown) => {
+    log("info", "Launching approved applications");
     const results = { master: false, touch: false };
+    const input = launchAppsSchema.safeParse(payload);
+    if (!input.success || !approvedInstallDirectory) return results;
 
-    if (paths.master && fs.existsSync(paths.master)) {
-      try {
-        spawn(paths.master, [], { detached: true, stdio: "ignore" });
-        results.master = true;
-      } catch (err: unknown) {
-        log("error", "Failed to launch Master", { error: err instanceof Error ? err.message : String(err) });
-      }
+    try {
+      await reverifyApprovedPayload(input.data.components);
+    } catch (err: unknown) {
+      log("error", "Payload re-verification failed before launch", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return results;
     }
 
-    if (paths.touch && fs.existsSync(paths.touch)) {
+    for (const application of input.data.components) {
+      const executable = getCanonicalApplicationExecutable(approvedInstallDirectory, application);
+      if (!executable) continue;
       try {
-        spawn(paths.touch, [], { detached: true, stdio: "ignore" });
-        results.touch = true;
+        spawn(executable, [], {
+          cwd: path.dirname(executable),
+          detached: true,
+          stdio: "ignore",
+        }).unref();
+        results[application] = true;
       } catch (err: unknown) {
-        log("error", "Failed to launch Touch", { error: err instanceof Error ? err.message : String(err) });
+        log("error", `Failed to launch ${application}`, {
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     }
 
     return results;
   });
 
-  // Open directory picker
-  ipcMain.handle("installer:selectDirectory", async () => {
-    if (!mainWindow) return null;
+  // Select and cryptographically verify a local application payload bundle.
+  registerIpcHandler("installer:selectPayloadBundle", async () => {
+    if (!mainWindow) return { success: false, error: "Installer window is unavailable" };
     const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
       properties: ["openDirectory"],
-      title: "Select Installation Directory",
+      title: "Select Signed ClickFlash Payload Bundle",
     });
-    return canceled ? null : filePaths[0];
+    if (canceled) return { success: false, canceled: true };
+    const selectedDirectory = getApprovedDirectory(filePaths[0]);
+    if (!selectedDirectory) {
+      approvedInstallDirectory = null;
+      approvedPayloadBundle = null;
+      return { success: false, error: "Selected payload directory is invalid" };
+    }
+    try {
+      const verified = await loadAndVerifyPayloadBundle(
+        selectedDirectory,
+        getPayloadTrustRoots(),
+        app.getVersion(),
+        { allowedExtraPaths: PAYLOAD_CONFIGURATION_EXTRAS },
+      );
+      approvedInstallDirectory = verified.directory;
+      approvedPayloadBundle = verified;
+      log("info", "Payload bundle verified", {
+        releaseId: verified.summary.releaseId,
+        version: verified.summary.version,
+        keyId: verified.summary.keyId,
+        components: verified.summary.components,
+        fileCount: verified.summary.fileCount,
+      });
+      return {
+        success: true,
+        directory: verified.directory,
+        summary: verified.summary,
+      };
+    } catch (err: unknown) {
+      approvedInstallDirectory = null;
+      approvedPayloadBundle = null;
+      const error = err instanceof Error ? err.message : String(err);
+      log("warn", "Payload bundle verification failed", { error });
+      return { success: false, error };
+    }
   });
 
+  registerIpcHandler("installer:writeEnvConfig", async (_e, params: unknown) => {
+    const input = writeEnvConfigSchema.safeParse(params);
+    if (!input.success) {
+      return { success: false, error: "Invalid application configuration payload" };
+    }
+    const requestedDirectory = getApprovedDirectory(input.data.targetDir);
+    if (
+      !requestedDirectory
+      || !approvedInstallDirectory
+      || path.resolve(requestedDirectory).toLowerCase() !== path.resolve(approvedInstallDirectory).toLowerCase()
+    ) {
+      return { success: false, error: "Application configuration directory was not approved" };
+    }
+
+    try {
+      await reverifyApprovedPayload(getRequestedPayloadComponents(input.data.selectedApps));
+      const missingExecutables = getMissingApplicationExecutables(
+        approvedInstallDirectory,
+        input.data.selectedApps,
+      );
+      if (missingExecutables.length > 0) {
+        return {
+          success: false,
+          error: `Managed application payload is incomplete: ${missingExecutables.join(", ")}`,
+        };
+      }
+      const files = createApplicationConfigurationFiles(
+        input.data,
+        HUB_BASE,
+        app.getVersion(),
+      );
+      writeFilesTransactionally(approvedInstallDirectory, files);
+      log("info", "Application configuration committed", {
+        files: files.map((file) => file.relativePath),
+      });
+      return { success: true };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      log("error", "Application configuration transaction failed", { error: message });
+      return { success: false, error: message };
+    }
+  });
+
+  registerIpcHandler("installer:getGeolocation", async () => ({
+    success: false,
+    error: "Automatic IP geolocation is disabled; enter the location manually",
+  }));
+
   // Get installer logs
-  ipcMain.handle("installer:getLogs", async () => {
+  registerIpcHandler("installer:getLogs", async () => {
     try {
       if (fs.existsSync(INSTALLER_LOG)) {
         return fs.readFileSync(INSTALLER_LOG, "utf8").split("\n").filter(Boolean).slice(-200);
@@ -466,7 +805,7 @@ function setupIpc(): void {
   });
 
   // ─── Pairing: mDNS discovery ────────────────────────────────────────────────
-  ipcMain.handle("installer:discoverMasters", async () => {
+  registerIpcHandler("installer:discoverMasters", async () => {
     log("info", "Browsing mDNS for ClickFlash Masters");
     const masters: Array<{
       desk_id: string;
@@ -504,24 +843,31 @@ function setupIpc(): void {
 
       const records = parseMdnsResponses(responses);
       for (const svc of records) {
-        if (!svc.host || !svc.port) continue;
+        const port = getValidPort(svc.port);
+        const host = getPrivateLanHost(svc.host);
+        if (!host || !port) continue;
         const start = Date.now();
-        let alive = false;
         try {
-          const res = await fetchWithTimeout(`http://${svc.host}:${svc.port}/api/v1/pairing/challenge`, 1500);
-          alive = res.ok;
-        } catch {
-          alive = false;
-        }
-        if (alive) {
+          const pinnedIp = await resolvePrivateLanIpv4(host);
+          const result = await fetchBoundedJson(
+            `http://${pinnedIp}:${port}/api/v1/pairing/challenge`,
+            {},
+            { timeoutMs: 1_500, maxBytes: 16_384 },
+          );
+          const challenge = pairingChallengeResponseSchema.safeParse(result.data);
+          if (!result.response.ok || !challenge.success) continue;
+          const deskId = deskIdSchema.safeParse(svc.desk_id);
+          const tenantId = deskIdSchema.safeParse(svc.tenant_id);
           masters.push({
-            desk_id: svc.desk_id || svc.host,
-            tenant_id: svc.tenant_id || "default",
-            host: svc.host,
-            port: svc.port,
-            addresses: svc.addresses,
+            desk_id: deskId.success ? deskId.data : pinnedIp,
+            tenant_id: tenantId.success ? tenantId.data : "default",
+            host: pinnedIp,
+            port,
+            addresses: [pinnedIp],
             latencyMs: Date.now() - start,
           });
+        } catch {
+          // Ignore unresolvable, public, or unavailable advertisements.
         }
       }
     } catch (err: unknown) {
@@ -533,7 +879,7 @@ function setupIpc(): void {
   });
 
   // ─── Pairing: LAN sweep ───────────────────────────────────────────────────
-  ipcMain.handle("installer:scanLan", async () => {
+  registerIpcHandler("installer:scanLan", async () => {
     log("info", "Sweeping LAN for ClickFlash Masters on port 8090");
     const masters: Array<{
       desk_id: string;
@@ -562,12 +908,16 @@ function setupIpc(): void {
         for (const port of ports) {
           const start = Date.now();
           try {
-            const res = await fetchWithTimeout(`http://${ip}:${port}/api/v1/pairing/challenge`, 1500);
-            if (res.ok) {
-              const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+            const result = await fetchBoundedJson(
+              `http://${ip}:${port}/api/v1/pairing/challenge`,
+              {},
+              { timeoutMs: 1_500, maxBytes: 16_384 },
+            );
+            const challenge = pairingChallengeResponseSchema.safeParse(result.data);
+            if (result.response.ok && challenge.success) {
               masters.push({
-                desk_id: (data.desk_id as string) || ip,
-                tenant_id: (data.tenant_id as string) || "default",
+                desk_id: challenge.data.desk_id || ip,
+                tenant_id: challenge.data.tenant_id || "default",
                 host: ip,
                 port,
                 addresses: [ip],
@@ -587,74 +937,88 @@ function setupIpc(): void {
   });
 
   // ─── Pairing: exchange challenge for HMAC secret ────────────────────────────
-  ipcMain.handle("installer:exchangePairing", async (_e, params: {
+  registerIpcHandler("installer:exchangePairing", async (_e, params: {
     masterHost: string;
     masterPort: number;
     masterDeskId: string;
     kioskId: string;
     hardwareFingerprint: string;
   }) => {
-    log("info", "Exchanging pairing with master", { deskId: params.masterDeskId });
+    const input = pairingExchangeSchema.safeParse(params);
+    if (!input.success || !getPrivateLanHost(input.data.masterHost)) {
+      return { success: false, error: "Invalid private-LAN pairing payload" };
+    }
+    const {
+      masterHost,
+      masterPort,
+      masterDeskId,
+      kioskId,
+      hardwareFingerprint,
+    } = input.data;
+
+    log("info", "Exchanging pairing with master", { deskId: masterDeskId });
     try {
+      const pinnedMasterIp = await resolvePrivateLanIpv4(masterHost);
+      const pairingBaseUrl = `http://${pinnedMasterIp}:${masterPort}`;
+
       // 1. GET challenge
-      const challengeRes = await fetchWithTimeout(
-        `http://${params.masterHost}:${params.masterPort}/api/v1/pairing/challenge`,
-        5000
+      const challengeResult = await fetchBoundedJson(
+        `${pairingBaseUrl}/api/v1/pairing/challenge`,
+        {},
+        { timeoutMs: 5_000, maxBytes: 16_384 },
       );
-      if (!challengeRes.ok) {
-        return { success: false, error: `Challenge request failed: HTTP ${challengeRes.status}` };
+      if (!challengeResult.response.ok) {
+        return {
+          success: false,
+          error: `Challenge request failed: HTTP ${challengeResult.response.status}`,
+        };
       }
-      const challengeData = (await challengeRes.json()) as { nonce?: string; error?: string };
-      const nonce = challengeData.nonce;
-      if (!nonce) {
-        return { success: false, error: "Invalid challenge response: missing nonce" };
+      const challengeData = pairingChallengeResponseSchema.safeParse(challengeResult.data);
+      if (!challengeData.success) {
+        return { success: false, error: "Invalid challenge response" };
       }
+      const nonce = challengeData.data.nonce;
 
       // 2. Build signature
-      const secret = params.masterDeskId + params.hardwareFingerprint;
+      const secret = masterDeskId + hardwareFingerprint;
       const signature = crypto
         .createHmac("sha256", secret)
-        .update(params.kioskId + nonce)
+        .update(kioskId + nonce)
         .digest("hex");
 
       // 3. POST exchange
-      const exchangeRes = await fetchWithTimeout(
-        `http://${params.masterHost}:${params.masterPort}/api/v1/pairing/exchange`,
-        5000,
+      const exchangeResult = await fetchBoundedJson(
+        `${pairingBaseUrl}/api/v1/pairing/exchange`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            kiosk_id: params.kioskId,
+            kiosk_id: kioskId,
             nonce,
             signature,
-            hardware_fingerprint: params.hardwareFingerprint,
+            hardware_fingerprint: hardwareFingerprint,
           }),
-        }
+        },
+        { timeoutMs: 5_000, maxBytes: 65_536 },
       );
-      if (!exchangeRes.ok) {
-        return { success: false, error: `Exchange request failed: HTTP ${exchangeRes.status}` };
+      if (!exchangeResult.response.ok) {
+        return {
+          success: false,
+          error: `Exchange request failed: HTTP ${exchangeResult.response.status}`,
+        };
       }
-      const exchangeData = (await exchangeRes.json()) as {
-        hmac_secret?: string;
-        tenant_id?: string;
-        master_desk_id?: string;
-        master_ip?: string;
-        master_port?: number;
-        error?: string;
-      };
-
-      if (!exchangeData.hmac_secret) {
-        return { success: false, error: exchangeData.error || "Exchange response missing hmac_secret" };
+      const exchangeData = pairingResponseSchema.safeParse(exchangeResult.data);
+      if (!exchangeData.success) {
+        return { success: false, error: "Invalid exchange response" };
       }
 
       return {
         success: true,
-        hmac_secret: exchangeData.hmac_secret,
-        tenant_id: exchangeData.tenant_id || "default",
-        master_desk_id: exchangeData.master_desk_id || params.masterDeskId,
-        master_ip: exchangeData.master_ip || params.masterHost,
-        master_port: exchangeData.master_port || params.masterPort,
+        hmac_secret: exchangeData.data.hmac_secret,
+        tenant_id: exchangeData.data.tenant_id || "default",
+        master_desk_id: exchangeData.data.master_desk_id || masterDeskId,
+        master_ip: pinnedMasterIp,
+        master_port: masterPort,
       };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -664,7 +1028,10 @@ function setupIpc(): void {
   });
 
   // ─── Pairing: generate kiosk ID ─────────────────────────────────────────────
-  ipcMain.handle("installer:generateKioskId", async (_e, _hardwareFingerprint: string) => {
+  registerIpcHandler("installer:generateKioskId", async (_e, hardwareFingerprint: string) => {
+    if (!hardwareFingerprintSchema.safeParse(hardwareFingerprint).success) {
+      throw new Error("Invalid hardware fingerprint");
+    }
     log("info", "Generating kiosk_id");
     const location = os.hostname().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
     const suffix = crypto.randomBytes(2).toString("hex").toUpperCase();
@@ -672,7 +1039,7 @@ function setupIpc(): void {
   });
 
   // ─── Hardware fingerprint ───────────────────────────────────────────────────
-  ipcMain.handle("installer:getHardwareFingerprint", async () => {
+  registerIpcHandler("installer:getHardwareFingerprint", async () => {
     log("info", "Getting hardware fingerprint");
     return { fingerprint: await getHardwareFingerprint() };
   });
@@ -748,7 +1115,11 @@ async function fetchWithTimeout(url: string, timeoutMs: number, init?: RequestIn
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, { ...(init || {}), signal: controller.signal });
+    const res = await fetch(url, {
+      ...(init || {}),
+      redirect: "error",
+      signal: controller.signal,
+    });
     return res;
   } finally {
     clearTimeout(id);
@@ -910,7 +1281,7 @@ function getLocalSubnets(): string[] {
   const subnets = new Set<string>();
   for (const addrs of Object.values(nets)) {
     for (const addr of addrs || []) {
-      if (addr.family === "IPv4" && !addr.internal) {
+      if (addr.family === "IPv4" && !addr.internal && isPrivateIpv4(addr.address)) {
         const parts = addr.address.split(".");
         if (parts.length === 4) {
           subnets.add(`${parts[0]}.${parts[1]}.${parts[2]}`);
@@ -950,8 +1321,9 @@ if (readyPromise && typeof readyPromise.then === "function") {
       const url = new URL(request.url);
       if (url.pathname === "/callback") {
         const token = url.searchParams.get("token");
-        if (token && mainWindow) {
-          mainWindow.webContents.send("installer:oauth-callback", { token });
+        const parsedToken = cloudflareTokenSchema.safeParse(token);
+        if (parsedToken.success && mainWindow) {
+          mainWindow.webContents.send("installer:oauth-callback", { token: parsedToken.data });
         }
       }
       return new Response("<html><body>You can close this window.</body></html>", {

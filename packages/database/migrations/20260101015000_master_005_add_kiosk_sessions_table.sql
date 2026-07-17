@@ -1,5 +1,5 @@
 -- Create kiosk_sessions table
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS kiosk_sessions (
+CREATE TABLE IF NOT EXISTS kiosk_sessions (
     id TEXT PRIMARY KEY,
     kioskId TEXT,
     startTime DATETIME,

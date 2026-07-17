@@ -1,248 +1,294 @@
 /**
- * Finalize upload - assemble chunks and create gallery/order records
+ * Finalize an R2 multipart upload and create its gallery/order record.
  * PATCH /api/upload/chunk/finalize
  */
 
-import { Env } from '../../index';
-import { UploadSession } from './init';
 import { logger } from "@clickflash/logger";
+import type { Env } from "../../index";
+import type { UploadSession } from "./init";
+import { getExpectedChunkSize } from "./validation";
 
-export async function handleUploadFinalize(request: Request, env: Env): Promise<Response> {
+interface UploadPartRow {
+  chunk_index: number;
+  part_number: number;
+  etag: string;
+  size: number;
+}
+
+class FinalizeError extends Error {
+  constructor(
+    message: string,
+    public readonly status = 400,
+  ) {
+    super(message);
+    this.name = "FinalizeError";
+  }
+}
+
+export async function handleUploadFinalize(
+  request: Request,
+  env: Env,
+): Promise<Response> {
   try {
-    const body = await request.json();
-    const { sessionId } = body;
-    
+    const body = (await request.json()) as { sessionId?: unknown };
+    const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
     if (!sessionId) {
-      return Response.json(
-        { error: 'Missing sessionId' },
-        { status: 400 }
-      );
+      return Response.json({ error: "Missing sessionId" }, { status: 400 });
     }
-    
-    // Retrieve session
+
     const sessionData = await env.UPLOAD_SESSIONS.get(`session:${sessionId}`);
     if (!sessionData) {
       return Response.json(
-        { error: 'Session not found or expired' },
-        { status: 404 }
+        { error: "Session not found or expired" },
+        { status: 404 },
       );
     }
-    
+
     const session: UploadSession = JSON.parse(sessionData);
-    
-    // Verify all chunks uploaded
-    if (session.uploadedChunks.length !== session.totalChunks) {
+    const officeId = request.headers.get("X-Office-Id");
+    if (!officeId || officeId !== session.officeId) {
       return Response.json(
-        { 
-          error: 'Upload incomplete',
-          uploaded: session.uploadedChunks.length,
-          total: session.totalChunks,
-          missing: getMissingChunks(session)
-        },
-        { status: 400 }
+        { error: "Upload session does not belong to this office" },
+        { status: 403 },
       );
     }
-    
-    // Assemble chunks into final file in R2
-    const assembledKey = await assembleChunks(env, session);
-    
-    // Create gallery or order record in D1
-    let result;
-    if (session.metadata.mode === 'moneytrash') {
-      result = await createGalleryRecord(env.DB, session, assembledKey, env);
-    } else {
-      result = await createOrderBackupRecord(env.DB, session, assembledKey, env);
+
+    if (session.status === "completed" && session.galleryUrl) {
+      return Response.json({
+        success: true,
+        sessionId,
+        galleryUrl: session.galleryUrl,
+        assetId: session.assetId,
+        accessCode: session.metadata.access_code,
+        alreadyFinalized: true,
+      });
     }
-    
-    // Update session status
-    session.status = 'completed';
-    await env.UPLOAD_SESSIONS.put(
-      `session:${sessionId}`,
-      JSON.stringify(session),
-      { expirationTtl: 3600 } // Keep for 1 hour after completion
-    );
-    
-    // Clean up chunk parts
-    await cleanupChunks(env, session);
-    
+
+    const query = await env.DB.prepare(
+      `SELECT chunk_index, part_number, etag, size
+       FROM upload_parts
+       WHERE session_id = ? AND office_id = ?
+       ORDER BY chunk_index ASC`,
+    ).bind(sessionId, officeId).all<UploadPartRow>();
+    const parts = query.results || [];
+    const missing = getMissingChunks(session, parts);
+    if (missing.length > 0) {
+      return Response.json(
+        {
+          error: "Upload incomplete",
+          uploaded: parts.length,
+          total: session.totalChunks,
+          missing,
+        },
+        { status: 400 },
+      );
+    }
+
+    const uploadedSize = parts.reduce((total, part) => total + Number(part.size), 0);
+    if (uploadedSize !== session.fileSize) {
+      throw new FinalizeError("Uploaded parts do not match the declared file size");
+    }
+
+    let object = await env.UPLOADS_BUCKET.head(session.r2Key);
+    if (!object) {
+      const upload = env.UPLOADS_BUCKET.resumeMultipartUpload(
+        session.r2Key,
+        session.r2UploadId,
+      );
+      object = await upload.complete(
+        parts.map((part) => ({
+          partNumber: Number(part.part_number),
+          etag: String(part.etag),
+        })),
+      );
+    }
+    if (object.size !== session.fileSize) {
+      await env.UPLOADS_BUCKET.delete(session.r2Key);
+      throw new FinalizeError("Final object failed file-size validation", 500);
+    }
+
+    session.status = "assembled";
+    await saveSession(env, session, 3600);
+
+    const result = session.metadata.mode === "moneytrash"
+      ? await createGalleryRecord(env.DB, session, env)
+      : await createOrderBackupRecord(env.DB, session, env);
+
+    session.status = "completed";
+    session.galleryUrl = result.galleryUrl;
+    await saveSession(env, session, 3600);
+    await env.DB.prepare(
+      "DELETE FROM upload_parts WHERE session_id = ? AND office_id = ?",
+    ).bind(sessionId, officeId).run();
+
     return Response.json({
       success: true,
       sessionId,
       galleryUrl: result.galleryUrl,
-      assetId: result.assetId,
+      assetId: session.assetId,
       accessCode: session.metadata.access_code,
     });
-    
   } catch (error) {
-    logger.error('Finalize error:', { args: [error] });
+    if (error instanceof FinalizeError) {
+      return Response.json({ error: error.message }, { status: error.status });
+    }
+    logger.error("Finalize error:", { args: [error] });
     return Response.json(
-      { error: 'Failed to finalize upload' },
-      { status: 500 }
+      { error: "Failed to finalize upload" },
+      { status: 500 },
     );
   }
 }
 
-function getMissingChunks(session: UploadSession): number[] {
+function getMissingChunks(
+  session: UploadSession,
+  parts: UploadPartRow[],
+): number[] {
+  const byIndex = new Map(parts.map((part) => [Number(part.chunk_index), part]));
   const missing: number[] = [];
-  for (let i = 0; i < session.totalChunks; i++) {
-    if (!session.uploadedChunks.includes(i)) {
-      missing.push(i);
+  for (let index = 0; index < session.totalChunks; index += 1) {
+    const part = byIndex.get(index);
+    const expectedSize = getExpectedChunkSize(
+      session.fileSize,
+      session.chunkSize,
+      index,
+    );
+    if (
+      !part ||
+      Number(part.part_number) !== index + 1 ||
+      Number(part.size) !== expectedSize
+    ) {
+      missing.push(index);
     }
   }
   return missing;
 }
 
-async function assembleChunks(env: Env, session: UploadSession): Promise<string> {
-  // For small files, we can use R2's multipart upload
-  // For this implementation, we'll use a simple concatenation approach
-  
-  const finalKey = session.r2Key!;
-  const chunkKeys = session.uploadedChunks
-    .sort((a, b) => a - b)
-    .map(i => `${session.r2Key}.part${i}`);
-  
-  // In production, you'd use R2's multipart upload API
-  // For now, we'll just keep the chunks separate and serve them via a worker
-  
-  return finalKey;
+async function saveSession(
+  env: Env,
+  session: UploadSession,
+  expirationTtl: number,
+): Promise<void> {
+  await env.UPLOAD_SESSIONS.put(
+    `session:${session.id}`,
+    JSON.stringify(session),
+    { expirationTtl },
+  );
 }
 
 async function createGalleryRecord(
   db: D1Database,
   session: UploadSession,
-  r2Key: string,
-  env: Env
-): Promise<{ galleryUrl: string; assetId: string }> {
-  const assetId = crypto.randomUUID();
-  const galleryId = crypto.randomUUID();
-  
-  // Create gallery
+  env: Env,
+): Promise<{ galleryUrl: string }> {
+  const accessCode = session.metadata.access_code;
+  let gallery = await db.prepare(
+    "SELECT id, office_id FROM galleries WHERE access_code = ? LIMIT 1",
+  ).bind(accessCode).first<{ id: string; office_id: string }>();
+
+  if (!gallery) {
+    const candidateId = crypto.randomUUID();
+    await db.prepare(
+      `INSERT OR IGNORE INTO galleries (
+        id, office_id, access_code, name, status, created_at, updated_at,
+        expires_at
+      ) VALUES (?, ?, ?, ?, 'active', datetime('now'), datetime('now'), datetime('now', '+30 days'))`,
+    ).bind(
+      candidateId,
+      session.officeId,
+      accessCode,
+      session.metadata.event_name,
+    ).run();
+    gallery = await db.prepare(
+      "SELECT id, office_id FROM galleries WHERE access_code = ? LIMIT 1",
+    ).bind(accessCode).first<{ id: string; office_id: string }>();
+  }
+
+  if (!gallery || gallery.office_id !== session.officeId) {
+    throw new FinalizeError("Access code belongs to another office", 409);
+  }
+
   await db.prepare(
-    `INSERT INTO galleries (id, office_id, access_code, name, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, 'active', datetime('now'), datetime('now'))`
+    `INSERT INTO gallery_settings (
+      gallery_id, single_photo_price, full_gallery_price,
+      watermark_enabled, allow_downloads, updated_at
+    ) VALUES (?, ?, ?, 0, 0, datetime('now'))
+    ON CONFLICT(gallery_id) DO UPDATE SET
+      single_photo_price = COALESCE(excluded.single_photo_price, gallery_settings.single_photo_price),
+      full_gallery_price = COALESCE(excluded.full_gallery_price, gallery_settings.full_gallery_price),
+      updated_at = datetime('now')`,
   ).bind(
-    galleryId,
-    session.officeId,
-    session.metadata.access_code,
-    session.metadata.event_name
+    gallery.id,
+    session.metadata.single_photo_price || null,
+    session.metadata.full_gallery_price || null,
   ).run();
-  
-  // Create asset
+
   await db.prepare(
-    `INSERT INTO assets (id, gallery_id, office_id, filename, original_name, mime_type, size, r2_key, status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ready', datetime('now'))`
+    `INSERT OR IGNORE INTO assets (
+      id, gallery_id, office_id, filename, original_name, mime_type,
+      size, r2_key, status, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ready', datetime('now'))`,
   ).bind(
-    assetId,
-    galleryId,
+    session.assetId,
+    gallery.id,
     session.officeId,
     session.fileName,
     session.fileName,
     session.metadata.mime_type,
     session.fileSize,
-    r2Key
+    session.r2Key,
   ).run();
-  
-  // Set pricing if provided
-  if (session.metadata.single_photo_price || session.metadata.full_gallery_price) {
-    await db.prepare(
-      `INSERT INTO gallery_settings (gallery_id, single_photo_price, full_gallery_price, updated_at)
-       VALUES (?, ?, ?, datetime('now'))`
-    ).bind(
-      galleryId,
-      session.metadata.single_photo_price || null,
-      session.metadata.full_gallery_price || null
-    ).run();
-  }
-  
-  // Also insert into photos table so customer gallery-worker can display it immediately
-  try {
-    await db.prepare(
-      `INSERT INTO photos (id, album_id, access_code, title, url, storage_key, price, originalPrice, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
-    ).bind(
-      assetId,
-      galleryId,
-      session.metadata.access_code,
-      session.fileName,
-      `/v1/${r2Key}`,
-      r2Key,
-      session.metadata.single_photo_price ? parseFloat(session.metadata.single_photo_price) : 15,
-      30
-    ).run();
-  } catch (err) {
-    logger.warn("[UploadFinalize] Note: photos table insert fallback:", { args: [err] });
-  }
 
-  return {
-    galleryUrl: `${env.GALLERY_APP_URL || 'https://gallery.clickflash.com'}/gallery/${session.metadata.access_code}`,
-    assetId,
-  };
+  return { galleryUrl: buildGalleryUrl(env, accessCode) };
 }
 
 async function createOrderBackupRecord(
   db: D1Database,
   session: UploadSession,
-  r2Key: string,
-  env: Env
-): Promise<{ galleryUrl: string; assetId: string }> {
-  const assetId = crypto.randomUUID();
-  
-  // Create order record (or update existing)
-  const orderId = crypto.randomUUID();
+  env: Env,
+): Promise<{ galleryUrl: string }> {
+  let order = await db.prepare(
+    `SELECT id FROM orders
+     WHERE office_id = ? AND access_code = ? AND status = 'backup'
+     ORDER BY created_at DESC LIMIT 1`,
+  ).bind(session.officeId, session.metadata.access_code).first<{ id: string }>();
+
+  if (!order) {
+    const orderId = crypto.randomUUID();
+    await db.prepare(
+      `INSERT INTO orders (
+        id, office_id, access_code, customer_email, status, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, 'backup', datetime('now'), datetime('now'))`,
+    ).bind(
+      orderId,
+      session.officeId,
+      session.metadata.access_code,
+      session.metadata.customer_email || null,
+    ).run();
+    order = { id: orderId };
+  }
+
   await db.prepare(
-    `INSERT INTO orders (id, office_id, access_code, status, created_at, updated_at)
-     VALUES (?, ?, ?, 'backup', datetime('now'), datetime('now'))`
+    `INSERT OR IGNORE INTO assets (
+      id, order_id, office_id, filename, original_name, mime_type,
+      size, r2_key, status, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ready', datetime('now'))`,
   ).bind(
-    orderId,
-    session.officeId,
-    session.metadata.access_code
-  ).run();
-  
-  // Create asset linked to order
-  await db.prepare(
-    `INSERT INTO assets (id, order_id, office_id, filename, original_name, mime_type, size, r2_key, status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ready', datetime('now'))`
-  ).bind(
-    assetId,
-    orderId,
+    session.assetId,
+    order.id,
     session.officeId,
     session.fileName,
     session.fileName,
     session.metadata.mime_type,
     session.fileSize,
-    r2Key
+    session.r2Key,
   ).run();
 
-  try {
-    await db.prepare(
-      `INSERT INTO photos (id, album_id, access_code, title, url, storage_key, price, originalPrice, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
-    ).bind(
-      assetId,
-      orderId,
-      session.metadata.access_code,
-      session.fileName,
-      `/v1/${r2Key}`,
-      r2Key,
-      15,
-      30
-    ).run();
-  } catch (err) {
-    logger.warn("[UploadFinalize] Note: photos table insert fallback:", { args: [err] });
-  }
-  
-  return {
-    galleryUrl: `${env.GALLERY_APP_URL || 'https://gallery.clickflash.com'}/order/${session.metadata.access_code}`,
-    assetId,
-  };
+  return { galleryUrl: buildGalleryUrl(env, session.metadata.access_code) };
 }
 
-async function cleanupChunks(env: Env, session: UploadSession): Promise<void> {
-  // Delete individual chunk parts
-  const deletePromises = session.uploadedChunks.map(async (chunkIndex) => {
-    const chunkKey = `${session.r2Key}.part${chunkIndex}`;
-    await env.UPLOADS_BUCKET.delete(chunkKey);
-  });
-  
-  await Promise.all(deletePromises);
+function buildGalleryUrl(env: Env, accessCode: string): string {
+  const root = (env.GALLERY_APP_URL || "https://gallery.clickflash.com/gallery/")
+    .replace(/\/+$/, "/");
+  return `${root}?access_code=${encodeURIComponent(accessCode)}`;
 }

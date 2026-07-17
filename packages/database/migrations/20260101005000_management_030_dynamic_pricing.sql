@@ -7,7 +7,7 @@ ALTER TABLE products ADD COLUMN description TEXT;
 ALTER TABLE products ADD COLUMN tier TEXT DEFAULT 'standard';
 
 -- Per-hotel price overrides
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS pricing_overrides (
+CREATE TABLE IF NOT EXISTS pricing_overrides (
     id TEXT PRIMARY KEY,
     product_id TEXT NOT NULL,
     hotel_id TEXT NOT NULL,
@@ -22,7 +22,7 @@ CREATE INDEX idx_pricing_overrides_hotel ON pricing_overrides(hotel_id);
 CREATE INDEX idx_pricing_overrides_product ON pricing_overrides(product_id);
 
 -- Seasonal rate multipliers
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS seasonal_rates (
+CREATE TABLE IF NOT EXISTS seasonal_rates (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     hotel_id TEXT,

@@ -11,11 +11,7 @@ export default defineConfig(({ mode }) => ({
     strictPort: true,
     proxy: {
       "/api": {
-        target: "http://localhost:8090",
-        changeOrigin: true,
-      },
-      "/uploads": {
-        target: "http://localhost:8090",
+        target: "http://localhost:8092",
         changeOrigin: true,
       },
     },
@@ -44,8 +40,6 @@ export default defineConfig(({ mode }) => ({
           "virtual-vendor": ["@tanstack/react-virtual", "react-window"],
           // Charts — loaded only on analytics pages
           "chart-vendor": ["chart.js", "react-chartjs-2", "recharts"],
-          // Stripe — payment flow only; loaded last
-          "stripe-vendor": ["@stripe/stripe-js", "@stripe/react-stripe-js"],
         },
       },
     },

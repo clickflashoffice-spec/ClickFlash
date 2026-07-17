@@ -1,7 +1,8 @@
 import { sendAuthError, sendNotFoundError, sendInternalError, createErrorResponse, sendDatabaseError } from "../errorHandler.js";
+import { escapeEmailHtml, generateMagicLinkToken, generateOrderAccessPin } from "../utils/orderAccessCredentials.js";
 import { logger } from "@clickflash/logger";
 
-export const handleCloud = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, geminiService: any, payload: any) => {
+export const handleCloud = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, _pixelFounderService: any, payload: any) => {
   const deskId = payload?.desk_id || "UNKNOWN";
 
 
@@ -276,12 +277,8 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
           let isNewAccess = false;
 
           if (!accessPin) {
-            // Generate a secure 6-digit PIN
-            accessPin = Math.floor(100000 + Math.random() * 900000).toString();
-            // Generate a cryptographically random token for magic link
-            magicLinkToken =
-              crypto.randomUUID().replace(/-/g, "") +
-              crypto.randomUUID().replace(/-/g, "");
+            accessPin = generateOrderAccessPin();
+            magicLinkToken = generateMagicLinkToken();
             isNewAccess = true;
           }
 
@@ -322,13 +319,14 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
 
           // Send notification email if these are new credentials
           if (isNewAccess) {
-            const galleryUrl = `https://gallery.clickflash.com`; // ToDo: Make environment variable if needed
-            const magicLink = `${galleryUrl}/access?token=${magicLinkToken}`;
+            const galleryUrl = String(env.GALLERY_PUBLIC_URL || "https://gallery.clickflash.com/gallery/");
+            const magicLink = `${galleryUrl}?token=${encodeURIComponent(magicLinkToken)}`;
+            const safeClientName = escapeEmailHtml(order.clientName || "Guest");
 
             const emailHtml = `
                   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
                       <h2>Your Photos are Ready!</h2>
-                      <p>Hi ${order.clientName || "Guest"},</p>
+                      <p>Hi ${safeClientName},</p>
                       <p>Your high-resolution photos from your recent ClickFlash session are now available for download.</p>
                       <p><strong>Option 1:</strong> Access your gallery instantly via this secure link:</p>
                       <p><a href="${magicLink}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">View My Photos</a></p>

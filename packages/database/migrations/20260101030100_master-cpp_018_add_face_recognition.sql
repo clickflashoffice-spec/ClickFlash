@@ -1,5 +1,5 @@
 -- Up
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS photo_faces (
+CREATE TABLE IF NOT EXISTS photo_faces (
     id TEXT PRIMARY KEY,
     photoId TEXT NOT NULL,
     descriptor TEXT NOT NULL,

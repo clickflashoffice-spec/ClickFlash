@@ -73,7 +73,7 @@ const DestinationStep: React.FC<DestinationStepProps> = ({
           setTimezone(res.data.timezone);
           if (res.data.currency) setCurrency(res.data.currency);
         }
-      }).finally(() => {
+      }).catch(() => undefined).finally(() => {
         setIsLocating(false);
       });
     }

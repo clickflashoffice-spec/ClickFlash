@@ -1,7 +1,7 @@
 -- 021_add_refresh_tokens_table.sql
 -- Migration for JWT Refresh Token implementation in Management Hub (D1)
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS refresh_tokens (
+CREATE TABLE IF NOT EXISTS refresh_tokens (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     token TEXT UNIQUE NOT NULL,

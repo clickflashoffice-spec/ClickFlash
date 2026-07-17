@@ -9,7 +9,7 @@ import GeneralSettings from "./settings/GeneralSettings";
 import PhotoSettings from "./settings/PhotoSettings";
 import SystemStatusSettings from "./settings/SystemStatusSettings";
 import ConnectionSettings from "./settings/ConnectionSettings";
-import AiSettings from "./settings/AiSettings";
+import PixelFounderSettings from "./settings/PixelFounderSettings";
 import SubscriptionSettings from "./settings/SubscriptionSettings";
 
 type SettingsTab =
@@ -81,10 +81,10 @@ const ManagementSettingsPage: React.FC<ManagementSettingsPageProps> = ({
     },
     {
       id: "ai" as SettingsTab,
-      label: "AI Ecosystem",
-      component: <AiSettings />,
+      label: "PixelFounder",
+      component: <PixelFounderSettings />,
       permission: can("manageGlobalSettings"),
-      description: "Central AI API Key and model settings.",
+      description: "First-party rules, telemetry scope, and forecast behavior.",
     },
     {
       id: "subscription" as SettingsTab,

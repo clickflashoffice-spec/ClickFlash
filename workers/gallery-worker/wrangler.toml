@@ -25,6 +25,7 @@ bucket_name = "clickflash-gallery-assets-staging"
 [env.staging.vars]
 NODE_ENV = "staging"
 ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:8090"
+GALLERY_PUBLIC_URL = "http://localhost:5176/gallery/"
 DEPLOY_ENV = "staging"
 GEO_RESTRICTED = "false"
 ALLOWED_COUNTRIES = ""
@@ -51,6 +52,7 @@ bucket_name = "clickflash-gallery-assets"
 [vars]
 NODE_ENV = "production"
 ALLOWED_ORIGINS = "https://gallery.clickflash.com,https://clickflash.com,https://www.clickflash.com,https://clicketflash.com,https://www.clicketflash.com,https://admin.clickflash.com"
+GALLERY_PUBLIC_URL = "https://gallery.clickflash.com/gallery/"
 DEPLOY_ENV = "production"
 
 # Hardened Security Policy

@@ -1,5 +1,5 @@
 -- Users (Photographers & Admins)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS users (
 );
 
 -- Albums
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS albums (
+CREATE TABLE IF NOT EXISTS albums (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     date TEXT NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS albums (
 );
 
 -- Photos
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS photos (
+CREATE TABLE IF NOT EXISTS photos (
     id TEXT PRIMARY KEY,
     albumId TEXT NOT NULL,
     title TEXT,
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS photos (
 );
 
 -- Orders
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS orders (
+CREATE TABLE IF NOT EXISTS orders (
     id TEXT PRIMARY KEY,
     date TEXT NOT NULL,
     clientName TEXT,
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS orders (
 );
 
 -- Products
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS products (
+CREATE TABLE IF NOT EXISTS products (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     category TEXT,
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS products (
 );
 
 -- Kiosks
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS kiosks (
+CREATE TABLE IF NOT EXISTS kiosks (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     status TEXT DEFAULT 'Disconnected',
@@ -80,13 +80,13 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS kiosks (
 );
 
 -- Settings / Key-Value Store
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS settings (
+CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value JSON
 );
 
 -- Destinations
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS destinations (
+CREATE TABLE IF NOT EXISTS destinations (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     country TEXT NOT NULL,

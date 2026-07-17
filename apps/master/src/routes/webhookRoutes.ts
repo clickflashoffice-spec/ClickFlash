@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { logger } from "../utils/logger";
-import { geminiAgentService } from "../services/geminiAgentService";
+import { studioIntelligenceService } from "../services/studioIntelligenceService";
 
 const router = Router();
 
@@ -15,7 +15,7 @@ router.post('/whatsapp', async (req: Request, res: Response) => {
         logger.info(`Received WhatsApp message from ${from}: ${message}`);
         
         // Pass plain language instruction to the orchestration agent
-        const intent = await geminiAgentService.parseIntent(message);
+        const intent = await studioIntelligenceService.parseIntent(message);
         
         logger.info(`Parsed WhatsApp intent: ${JSON.stringify(intent)}`);
         res.status(200).json({ success: true, intent });
@@ -31,14 +31,15 @@ router.post('/email', async (req: Request, res: Response) => {
         const { text, from, subject } = req.body;
         logger.info(`Received Email from ${from} [${subject}]`);
         
-        const intent = await geminiAgentService.parseIntent(text || subject || '');
+        const sourceText = text || subject || '';
+        const intent = await studioIntelligenceService.parseIntent(sourceText);
         
-        // If it looks like an inquiry, trigger AI Lead Scoring
-        // @ts-ignore
-        if (intent.action === 'CREATE_ORDER' || intent.action === 'DRAFT_CONTRACT') {
-            // @ts-ignore
-            const leadScore = await geminiAgentService.calculateLeadScore(text);
-            logger.info(`Lead Score generated: ${leadScore}`);
+        // Contract and explicit qualification requests include a transparent BANT score.
+        if (intent.action === 'DRAFT_CONTRACT' || intent.action === 'LEAD_SCORE') {
+            const leadScore = await studioIntelligenceService.scoreLead(sourceText);
+            logger.info(`Lead Score generated: ${JSON.stringify(leadScore)}`);
+            res.status(200).json({ success: true, intent, leadScore });
+            return;
         }
         
         res.status(200).json({ success: true, intent });

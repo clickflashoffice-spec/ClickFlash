@@ -9,6 +9,10 @@ export const env = {
     ? import.meta.env.VITE_CLOUD_API_URL 
     : 'https://management-hub.clickflash-office.workers.dev',
 
+  MONEYTRASH_API_URL: typeof import.meta !== 'undefined' && import.meta.env?.VITE_MONEYTRASH_API_URL
+    ? import.meta.env.VITE_MONEYTRASH_API_URL
+    : 'https://moneytrash-api.clickflash-office.workers.dev',
+
   // Stripe
   STRIPE_PUBLISHABLE_KEY: typeof import.meta !== 'undefined' && import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY
     ? import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
@@ -22,6 +26,7 @@ export const env = {
 export const config = {
   apiUrl: env.API_BASE_URL,
   cloudUrl: env.CLOUD_API_URL,
+  moneyTrashApiUrl: env.MONEYTRASH_API_URL,
   stripeKey: env.STRIPE_PUBLISHABLE_KEY,
   isDev: env.IS_DEV,
   isProd: env.IS_PROD,

@@ -1,5 +1,6 @@
 import DatabaseManager from "../db.js";
 import { createErrorResponse, sendAuthError, sendDatabaseError } from "../errorHandler.js";
+import { escapeEmailHtml, generateMagicLinkToken, generateOrderAccessPin } from "../utils/orderAccessCredentials.js";
 import { logger } from "@clickflash/logger";
 
 /**
@@ -88,8 +89,8 @@ export async function handleSync(
       let isNewAccess = false;
 
       if (!accessPin) {
-        accessPin = Math.floor(100000 + Math.random() * 900000).toString();
-        magicLinkToken = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+        accessPin = generateOrderAccessPin();
+        magicLinkToken = generateMagicLinkToken();
         isNewAccess = true;
       }
 
@@ -103,9 +104,10 @@ export async function handleSync(
       );
 
       if (isNewAccess) {
-        const galleryUrl = `https://gallery.clickflash.com`;
-        const magicLink = `${galleryUrl}/access?token=${magicLinkToken}`;
-        const emailHtml = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;"><h2>Your Photos are Ready!</h2><p>Hi ${order.clientName || "Guest"},</p><p>Your photos are available for download.</p><p><a href="${magicLink}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">View My Photos</a></p><p>Or use PIN: <strong>${accessPin}</strong> at <a href="${galleryUrl}">${galleryUrl}</a></p></div>`;
+        const galleryUrl = String(env.GALLERY_PUBLIC_URL || "https://gallery.clickflash.com/gallery/");
+        const magicLink = `${galleryUrl}?token=${encodeURIComponent(magicLinkToken)}`;
+        const safeClientName = escapeEmailHtml(order.clientName || "Guest");
+        const emailHtml = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;"><h2>Your Photos are Ready!</h2><p>Hi ${safeClientName},</p><p>Your photos are available for download.</p><p><a href="${magicLink}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">View My Photos</a></p><p>Or use PIN: <strong>${accessPin}</strong> at <a href="${galleryUrl}">${galleryUrl}</a></p></div>`;
         await emailRelayService.sendEmail({
           to: order.email,
           from: env.FROM_EMAIL || "support@clicketflash.com",

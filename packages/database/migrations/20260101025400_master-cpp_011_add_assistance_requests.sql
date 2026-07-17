@@ -1,7 +1,7 @@
 -- Migration: Add assistance_requests table
 -- Purpose: Store assistance requests from Touch kiosks for Master Portal notification
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS assistance_requests (
+CREATE TABLE IF NOT EXISTS assistance_requests (
     id TEXT PRIMARY KEY,
     kioskId TEXT NOT NULL,
     message TEXT,

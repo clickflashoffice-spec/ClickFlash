@@ -4,6 +4,11 @@ import CustomerLogin from "./components/customer/CustomerLogin";
 import CustomerLayout from "./components/customer/CustomerLayout";
 import { Order } from "./types";
 import { cloudApiService } from "./services/cloudApiService";
+import {
+  moneyTrashService,
+  type TrashGallery,
+} from "./services/moneyTrashService";
+import useCartStore from "./stores/useCartStore";
 import OfflineScreen from "./components/common/OfflineScreen";
 
 import { NetworkStatusProvider } from "./components/common/NetworkStatusProvider";
@@ -17,7 +22,7 @@ interface CustomerPortalProps {
 const CustomerPortal: React.FC<CustomerPortalProps> = ({ onExit }) => {
   const [authState, setAuthState] = useState<CustomerAuthState>("loading");
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
-  const [currentTrashGallery, setCurrentTrashGallery] = useState<any>(null);
+  const [currentTrashGallery, setCurrentTrashGallery] = useState<TrashGallery | null>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
@@ -31,11 +36,18 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ onExit }) => {
     const pin = params.get("pin");
     const email = params.get("email");
     const token = params.get("token"); // Used for both QR and Magic Link
-    const qrSessionId = params.get("session"); // Only present for QR Login
+
+    const cleanSensitiveParams = () => {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("token");
+      cleanUrl.searchParams.delete("pin");
+      cleanUrl.searchParams.delete("email");
+      window.history.replaceState({}, "", `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
+    };
 
     const tryAutoLogin = async () => {
-      // 1. Magic Link Login (Token only, no session)
-      if (token && !qrSessionId) {
+      // 1. Cloud-issued customer token or magic link
+      if (token) {
         try {
           const order = await cloudApiService.getOrderByToken(token);
           if (order) {
@@ -43,13 +55,7 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ onExit }) => {
             setAuthState("authenticated");
 
             // Clean URL to prevent sharing functional magic links
-            const newUrl =
-              window.location.protocol +
-              "//" +
-              window.location.host +
-              window.location.pathname +
-              window.location.hash;
-            window.history.replaceState({ path: newUrl }, "", newUrl);
+            cleanSensitiveParams();
             return;
           }
         } catch (e) {
@@ -57,52 +63,7 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ onExit }) => {
         }
       }
 
-      // 2. QR-based Login (Token + Session ID)
-      if (token && qrSessionId) {
-        try {
-          // Validate QR session with Touch App
-          const touchApiUrl =
-            import.meta.env.VITE_TOUCH_API_URL ||
-            "http://localhost:8091";
-          const validationResponse = await fetch(
-            `${touchApiUrl}/api/qr/validate`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ sessionId: qrSessionId, token: token }),
-            },
-          );
-
-          if (validationResponse.ok) {
-            const { data } = await validationResponse.json();
-            const roomNumber = data.roomNumber;
-
-            // Fetch order by room number
-            if (roomNumber) {
-              const order =
-                await cloudApiService.getOrderByRoomNumber(roomNumber);
-              if (order) {
-                setCurrentOrder(order);
-                setAuthState("authenticated");
-
-                // Clean URL
-                const newUrl =
-                  window.location.protocol +
-                  "//" +
-                  window.location.host +
-                  window.location.pathname +
-                  window.location.hash;
-                window.history.replaceState({ path: newUrl }, "", newUrl);
-                return;
-              }
-            }
-          }
-        } catch (e) {
-          logger.warn("QR auto-login failed", e);
-        }
-      }
-
-      // 3. Traditional PIN + email login (fallback from URL params)
+      // 2. Traditional PIN + email login (fallback from URL params)
       if (pin && email) {
         try {
           const order = await cloudApiService.getOrderByCredentials(pin, email);
@@ -111,18 +72,45 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ onExit }) => {
             setAuthState("authenticated");
 
             // Clean URL
-            const newUrl =
-              window.location.protocol +
-              "//" +
-              window.location.host +
-              window.location.pathname +
-              window.location.hash;
-            window.history.replaceState({ path: newUrl }, "", newUrl);
+            cleanSensitiveParams();
             return;
           }
         } catch (e) {
           logger.warn("Auto-login failed", e);
         }
+      }
+
+      const storedToken = localStorage.getItem("gallery_token");
+      if (storedToken) {
+        try {
+          const order = await cloudApiService.getOrderByToken(storedToken);
+          if (order) {
+            setCurrentOrder(order);
+            setAuthState("authenticated");
+            return;
+          }
+        } catch (error) {
+          logger.warn("Stored customer session could not be restored", error);
+        }
+        localStorage.removeItem("gallery_token");
+      }
+
+      // MoneyTrash is online-only. Remember only the access code for the
+      // current browser tab and exchange it for a fresh scoped token on reload.
+      const rememberedAccessCode = moneyTrashService.getRememberedAccessCode();
+      if (rememberedAccessCode) {
+        try {
+          const gallery = await moneyTrashService.getArchivedPhotos(rememberedAccessCode);
+          if (gallery?.photos.length) {
+            setCurrentTrashGallery(gallery);
+            setCurrentOrder(null);
+            setAuthState("authenticated");
+            return;
+          }
+        } catch (error) {
+          logger.warn("MoneyTrash browser session could not be restored", error);
+        }
+        moneyTrashService.clearRememberedAccessCode();
       }
       setAuthState("unauthenticated");
     };
@@ -135,20 +123,30 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ onExit }) => {
     };
   }, []);
 
-  const handleLoginSuccess = (payload: any) => {
-    if (payload.photos && payload.id && !payload.items) {
+  const handleLoginSuccess = (payload: Order | TrashGallery) => {
+    if ("photos" in payload) {
       // It's a trash gallery
+      localStorage.removeItem("gallery_token");
       setCurrentTrashGallery(payload);
       setCurrentOrder(null);
+      moneyTrashService.rememberAccessCode(payload.accessCode);
+      useCartStore.getState().clearCart();
     } else {
       // It's a standard order
       setCurrentOrder(payload);
       setCurrentTrashGallery(null);
+      moneyTrashService.clearRememberedAccessCode();
     }
     setAuthState("authenticated");
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("gallery_token");
+    moneyTrashService.clearRememberedAccessCode();
+    if (currentTrashGallery) useCartStore.getState().clearCart();
+    setCurrentOrder(null);
+    setCurrentTrashGallery(null);
+    setAuthState("unauthenticated");
     onExit();
   };
 
@@ -191,7 +189,7 @@ const CustomerPortal: React.FC<CustomerPortalProps> = ({ onExit }) => {
       {currentOrder || currentTrashGallery ? (
         <CustomerLayout
           order={currentOrder ?? undefined}
-          trashGallery={currentTrashGallery}
+          trashGallery={currentTrashGallery ?? undefined}
           onLogout={handleLogout}
         />
       ) : null}

@@ -2,7 +2,7 @@
 -- Database schema for automated email campaigns (SQLite compatible)
 
 -- Marketing campaigns
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS marketing_campaigns (
+CREATE TABLE IF NOT EXISTS marketing_campaigns (
     id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
     name TEXT NOT NULL,
     type TEXT NOT NULL CHECK (type IN ('post-event', 'abandoned-cart', 're-engagement')),
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS marketing_campaigns (
 );
 
 -- Campaign sends (tracking)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS campaign_sends (
+CREATE TABLE IF NOT EXISTS campaign_sends (
     id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
     campaign_id TEXT REFERENCES marketing_campaigns(id) ON DELETE CASCADE,
     customer_email TEXT NOT NULL,
@@ -36,7 +36,7 @@ CREATE INDEX IF NOT EXISTS idx_campaign_sends_sent_at ON campaign_sends(sent_at 
 CREATE INDEX IF NOT EXISTS idx_campaign_sends_campaign ON campaign_sends(campaign_id);
 
 -- Customer engagement scores
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS customer_engagement (
+CREATE TABLE IF NOT EXISTS customer_engagement (
     customer_email TEXT PRIMARY KEY,
     total_emails_sent INTEGER DEFAULT 0,
     total_opened INTEGER DEFAULT 0,

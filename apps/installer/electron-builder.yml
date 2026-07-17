@@ -12,18 +12,21 @@ files:
   - package.json
 
 asar: true
+afterPack: scripts/verify-packaged-artifact.cjs
 
 win:
   target: nsis
-  icon: build/icon.ico
+  icon: ../management/icon.ico
   requestedExecutionLevel: requireAdministrator
   forceCodeSigning: false
-  signAndEditExecutable: false
+  signAndEditExecutable: true
 
 nsis:
   oneClick: true
   perMachine: true
-  deleteAppDataOnUninstall: true
+  installerIcon: ../management/icon.ico
+  uninstallerIcon: ../management/icon.ico
+  deleteAppDataOnUninstall: false
   allowToChangeInstallationDirectory: false
   createDesktopShortcut: true
   createStartMenuShortcut: true

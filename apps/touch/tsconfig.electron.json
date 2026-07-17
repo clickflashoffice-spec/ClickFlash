@@ -10,6 +10,6 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true
     },
-    "include": ["main.ts", "preload.ts", "autoUpdater.ts"],
+    "include": ["main.ts", "electron-security.ts", "preload.ts", "autoUpdater.ts"],
     "exclude": ["node_modules", "dist", "src", "backend", "electron"]
 }

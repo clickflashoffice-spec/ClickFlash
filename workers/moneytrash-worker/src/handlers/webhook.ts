@@ -3,7 +3,7 @@
  * POST /api/webhooks/:event
  */
 
-import { Env } from '../../index';
+import { Env } from '../index';
 import { logger } from "@clickflash/logger";
 
 export async function handleWebhook(request: Request, env: Env, params: Record<string, string>): Promise<Response> {
@@ -11,15 +11,17 @@ export async function handleWebhook(request: Request, env: Env, params: Record<s
     const { event } = params;
     const signature = request.headers.get('X-Webhook-Signature');
     
-    // Verify webhook signature
-    if (!await verifyWebhookSignature(await request.text(), signature, env.WEBHOOK_SECRET)) {
+    const rawBody = await request.text();
+
+    // Verify the exact bytes received before parsing the payload.
+    if (!await verifyWebhookSignature(rawBody, signature, env.WEBHOOK_SECRET)) {
       return Response.json(
         { error: 'Invalid signature' },
         { status: 401 }
       );
     }
     
-    const body = await request.json();
+    const body = JSON.parse(rawBody);
     
     switch (event) {
       case 'payment.completed':

@@ -5,7 +5,7 @@ import type { CartItem, Photo } from '@clickflash/types';
 interface CartState {
   items: CartItem[];
   isOpen: boolean;
-  addItem: (photo: Photo, name: string, price: number, format?: string, deliveryType?: 'digital' | 'print' | 'both') => void;
+  addItem: (photo: Photo, productId: string, name: string, price: number, format?: string, deliveryType?: 'digital' | 'print' | 'both') => void;
   removeItem: (photoId: string) => void;
   updateQuantity: (photoId: string, quantity: number) => void;
   clearCart: () => void;
@@ -21,11 +21,12 @@ export const useCartStore = create<CartState>()(
       items: [],
       isOpen: false,
 
-      addItem: (photo, name, price, format, deliveryType) => {
+      addItem: (photo, productId, name, price, format, deliveryType) => {
         set((state) => {
           const existingIndex = state.items.findIndex((item) => item.photoId === photo.id);
           
           if (existingIndex >= 0) {
+            if (productId === 'moneytrash_single') return state;
             const updatedItems = [...state.items];
             updatedItems[existingIndex] = {
               ...updatedItems[existingIndex],
@@ -43,6 +44,7 @@ export const useCartStore = create<CartState>()(
             quantity: 1,
             price,
             deliveryType,
+            productId,
           };
 
           return { items: [...state.items, newItem] };
@@ -86,6 +88,13 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: 'clickflash-cart',
+      version: 2,
+      migrate: (persistedState, version) => {
+        const state = persistedState as Partial<CartState>;
+        return {
+          items: version < 2 || !Array.isArray(state.items) ? [] : state.items,
+        };
+      },
       partialize: (state) => ({ items: state.items }),
     }
   )

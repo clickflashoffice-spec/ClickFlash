@@ -2,7 +2,7 @@
 -- Standardize sync tracking columns across all data models for consistent DLQ support.
 
 -- Ensure inventory table exists (backfilling if skipped)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS inventory (
+CREATE TABLE IF NOT EXISTS inventory (
     id TEXT PRIMARY KEY,
     sync_id TEXT UNIQUE,
     name TEXT NOT NULL,

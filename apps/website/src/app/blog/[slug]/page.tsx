@@ -16,8 +16,9 @@ export async function generateStaticParams() {
     }));
 }
 
+export const revalidate = false;
 export const dynamicParams = false;
-export const dynamic = 'force-static';
+
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;

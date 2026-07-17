@@ -1,5 +1,5 @@
 -- Up
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS face_indexing_queue (
+CREATE TABLE IF NOT EXISTS face_indexing_queue (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     photoId TEXT NOT NULL,
     priority INTEGER DEFAULT 0,

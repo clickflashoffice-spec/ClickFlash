@@ -27,6 +27,8 @@ const App: React.FC = () => {
     nextStep,
     prevStep,
     setSelectedApps,
+    selectPayloadBundle,
+    setLaunchOnComplete,
     validateLicense,
     requestDeviceCode,
     pollForToken,
@@ -47,6 +49,10 @@ const App: React.FC = () => {
       case "app-selection":
         return (
           <AppSelectionStep
+            selectedApps={state.selectedApps}
+            installPath={state.installPath}
+            payloadBundle={state.payloadBundle}
+            onSelectPayloadBundle={selectPayloadBundle}
             onNext={(selected) => {
               setSelectedApps(selected);
               nextStep();
@@ -132,6 +138,7 @@ const App: React.FC = () => {
           <CompleteStep
             state={state}
             onFinish={saveAndLaunch}
+            onSetLaunchOnComplete={setLaunchOnComplete}
           />
         );
       default:

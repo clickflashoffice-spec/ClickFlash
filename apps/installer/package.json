@@ -1,18 +1,22 @@
 {
   "name": "clickflash-installer",
-  "version": "2.0.0",
+  "version": "5.0.0",
   "description": "ClickFlash Unified 1-Click Installer — Master Portal + Touch Kiosk",
+  "author": "ClickFlash Photography",
   "private": true,
+  "packageManager": "pnpm@10.28.2",
   "main": "dist/electron/electron-main.js",
   "scripts": {
     "dev": "vite",
     "dev:electron": "concurrently \"pnpm run dev\" \"wait-on http://localhost:5175 && electron .\" --names \"renderer,electron\" --prefix-colors \"green,cyan\" --kill-others-on-fail",
     "build": "vite build",
-    "build:electron": "tsc -p tsconfig.electron.json && npx javascript-obfuscator dist/electron/electron-main.js --output dist/electron/electron-main.js --compact true --control-flow-flattening true --dead-code-injection true --string-array true --string-array-encoding base64 --string-array-threshold 1",
-    "package": "pnpm run build && pnpm run build:electron && electron-builder build --win --dir",
-    "package:installer": "pnpm run build && pnpm run build:electron && electron-builder build --win",
-    "lint": "eslint src --ext .ts,.tsx --max-warnings 50",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.electron.json",
+    "build:electron": "rimraf dist/electron && tsc -p tsconfig.electron.json && npx javascript-obfuscator dist/electron/electron-main.js --output dist/electron/electron-main.js --compact true --control-flow-flattening true --dead-code-injection true --string-array true --string-array-encoding base64 --string-array-threshold 1",
+    "build:payload-tool": "rimraf dist/payload-tools && tsc -p tsconfig.payload-tools.json",
+    "payload:sign": "pnpm run build:payload-tool && node dist/payload-tools/scripts/payload-release.js",
+    "package": "pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && electron-builder build --win --dir",
+    "package:installer": "pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && electron-builder build --win",
+    "lint": "eslint src installer-payload-release.ts installer-payload-verification.ts installer-payload-trust.ts scripts/payload-release.ts --ext .ts,.tsx --max-warnings 50",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.electron.json && tsc --noEmit -p tsconfig.payload-tools.json",
     "test": "vitest run",
     "clean": "rimraf dist release"
   },
@@ -24,8 +28,7 @@
     "react-dom": "^19.2.0",
     "systeminformation": "^5.30.7",
     "tailwind-merge": "^3.4.0",
-    "@clickflash/logger": "workspace:*",
-    "@clickflash/licensing": "workspace:*"
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
@@ -49,20 +52,5 @@
     "vite": "^7.3.2",
     "vitest": "^2.1.8",
     "wait-on": "^8.0.3"
-  },
-  "build": {
-    "appId": "com.clickflash.installer",
-    "productName": "ClickFlash Installer",
-    "npmRebuild": false,
-    "directories": {
-      "output": "../../ClickFlash_Release_v3.0/03_Production_Builds"
-    },
-    "files": [
-      "dist/**/*",
-      "package.json"
-    ],
-    "win": {
-      "target": "nsis"
-    }
   }
 }

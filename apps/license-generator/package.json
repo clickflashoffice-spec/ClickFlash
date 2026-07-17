@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "description": "ClickFlash License Key Generator Desktop App",
   "main": "dist/main.js",
+  "packageManager": "pnpm@10.28.2",
   "scripts": {
     "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:electron\"",
     "dev:renderer": "vite",

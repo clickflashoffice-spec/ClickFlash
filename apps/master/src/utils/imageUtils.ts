@@ -4,7 +4,7 @@ import { logger } from '@/utils/logger';
  * Image Utilities
  * 
  * Utility functions for image conversion and manipulation.
- * Used primarily for AI image editing (Gemini API) and photo processing.
+ * Used for local photo processing, previews, and controlled data conversion.
  * Includes a BlobRegistry for strict memory management of temporary assets.
  */
 
@@ -93,9 +93,8 @@ class ThumbnailCache {
 const thumbnailCache = new ThumbnailCache();
 
 /**
- * Fetches an image from a URL and converts it to base64 inline data format.
+ * Fetches an image from a URL and converts it to a MIME-typed base64 payload.
  * 
- * This function is suitable for the Gemini API's `inlineData` field.
  * Supports both HTTP/HTTPS URLs and data URIs.
  * 
  * Features:
@@ -111,8 +110,7 @@ const thumbnailCache = new ThumbnailCache();
  * @example
  * ```ts
  * const { mimeType, data } = await urlToInlineData('https://example.com/image.jpg');
- * // Use with Gemini API
- * const result = await model.generateContent([{ inlineData: { mimeType, data } }]);
+ * saveLocalPreview({ mimeType, data });
  * ```
  */
 export async function urlToInlineData(imageUrl: string): Promise<{ mimeType: string; data: string }> {
@@ -150,7 +148,7 @@ export async function urlToInlineData(imageUrl: string): Promise<{ mimeType: str
 }
 
 /**
- * Converts a File object directly to Gemini API inline data format.
+ * Converts a File object to a MIME-typed base64 payload.
  * 
  * Useful for file uploads from input elements.
  * 

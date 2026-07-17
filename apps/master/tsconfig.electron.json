@@ -13,6 +13,6 @@
     "declaration": false,
     "sourceMap": false
   },
-  "include": ["electron-main.ts", "preload.ts"],
+  "include": ["electron-main.ts", "electron-security.ts", "preload.ts"],
   "exclude": ["node_modules", "dist", "src", "backend"]
 }

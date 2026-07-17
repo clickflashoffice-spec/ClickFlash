@@ -1,10 +1,10 @@
 name = "clickflash-website"
 compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
 
 [env.preview]
 name = "clickflash-website-preview"
-pages_build_output_dir = ".vercel/output/static"
 
 [env.preview.vars]
 NODE_ENV = "staging"
@@ -12,7 +12,6 @@ DEPLOY_ENV = "staging"
 
 [env.production]
 name = "clickflash-website"
-pages_build_output_dir = ".vercel/output/static"
 
 [env.production.vars]
 NODE_ENV = "production"

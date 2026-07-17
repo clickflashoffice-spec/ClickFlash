@@ -12,6 +12,15 @@ export interface OfficeVerifyRequest {
   apiKey: string;
 }
 
+interface OfficeRow {
+  id: string;
+  desk_id: string;
+  name: string;
+  type: string;
+  status: string;
+  settings: string | null;
+}
+
 export async function handleOfficeVerify(request: Request, env: Env): Promise<Response> {
   try {
     const body: OfficeVerifyRequest = await request.json();
@@ -28,7 +37,7 @@ export async function handleOfficeVerify(request: Request, env: Env): Promise<Re
       `SELECT id, desk_id, name, type, status, settings 
        FROM offices 
        WHERE desk_id = ? AND api_key = ?`
-    ).bind(body.deskId, body.apiKey).first();
+    ).bind(body.deskId, body.apiKey).first<OfficeRow>();
     
     if (!office) {
       return Response.json(
@@ -63,7 +72,7 @@ export async function handleOfficeVerify(request: Request, env: Env): Promise<Re
         deskId: office.desk_id,
         name: office.name,
         type: office.type,
-        settings: JSON.parse(office.settings as string),
+        settings: office.settings ? JSON.parse(office.settings) : {},
       },
       token,
       expiresIn: '24h',

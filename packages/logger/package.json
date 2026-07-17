@@ -3,6 +3,9 @@
   "version": "2.0.0",
   "description": "Centralized Winston logger for the ClickFlash ecosystem",
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.js",
   "browser": "./dist/browser.js",
   "types": "./dist/index.d.ts",

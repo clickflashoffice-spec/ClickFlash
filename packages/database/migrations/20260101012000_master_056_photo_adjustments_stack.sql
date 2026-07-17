@@ -1,5 +1,5 @@
 -- Create photo_adjustments table for non-destructive editing
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS photo_adjustments (
+CREATE TABLE IF NOT EXISTS photo_adjustments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     photo_id TEXT NOT NULL,
     adjustments TEXT NOT NULL, -- JSON string of the adjustment stack
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS photo_adjustments (
 CREATE INDEX IF NOT EXISTS idx_photo_adjustments_photo_id ON photo_adjustments(photo_id);
 
 -- Operational Audit Log for AI actions
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS ai_operations (
+CREATE TABLE IF NOT EXISTS ai_operations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     photo_id TEXT NOT NULL,
     operation_type TEXT NOT NULL, -- 'retouch', 'heal', 'exposure'

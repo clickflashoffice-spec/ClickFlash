@@ -1,6 +1,6 @@
 -- Migration 022: Login attempt tracking for auth brute-force protection
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS login_attempts (
+CREATE TABLE IF NOT EXISTS login_attempts (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   email       TEXT    NOT NULL,
   ip          TEXT    NOT NULL DEFAULT 'unknown',

@@ -2,7 +2,7 @@
 -- Date: 2026-06-06
 
 -- General audit log table for GDPR operations
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS audit_logs (
+CREATE TABLE IF NOT EXISTS audit_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     event_type TEXT NOT NULL,
     actor TEXT,
@@ -17,7 +17,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_customer ON audit_logs(target_customer
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit_logs(created_at);
 
 -- Consent records for GDPR consent management
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS consent_records (
+CREATE TABLE IF NOT EXISTS consent_records (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     customer_id TEXT NOT NULL,
     photo_id TEXT,
@@ -35,7 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_consent_granted ON consent_records(granted_at);
 CREATE INDEX IF NOT EXISTS idx_consent_withdrawn ON consent_records(withdrawn_at);
 
 -- Data export requests (GDPR Article 20 portability)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS data_export_requests (
+CREATE TABLE IF NOT EXISTS data_export_requests (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     customer_id TEXT NOT NULL,
     status TEXT DEFAULT 'pending',
@@ -50,7 +50,7 @@ CREATE INDEX IF NOT EXISTS idx_export_status ON data_export_requests(status);
 CREATE INDEX IF NOT EXISTS idx_export_created ON data_export_requests(created_at);
 
 -- Data deletion logs (GDPR Article 17 right to erasure)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS data_deletion_logs (
+CREATE TABLE IF NOT EXISTS data_deletion_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     customer_id TEXT NOT NULL,
     deleted_by TEXT,
@@ -63,7 +63,7 @@ CREATE INDEX IF NOT EXISTS idx_deletion_customer ON data_deletion_logs(customer_
 CREATE INDEX IF NOT EXISTS idx_deletion_at ON data_deletion_logs(deleted_at);
 
 -- Data Processing Agreement signatures
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS dpa_signatures (
+CREATE TABLE IF NOT EXISTS dpa_signatures (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     studio_name TEXT NOT NULL,
     signed_by TEXT,
@@ -76,7 +76,7 @@ CREATE INDEX IF NOT EXISTS idx_dpa_studio ON dpa_signatures(studio_name);
 CREATE INDEX IF NOT EXISTS idx_dpa_signed_at ON dpa_signatures(signed_at);
 
 -- Breach incident records (GDPR Article 33/34)
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS breach_incidents (
+CREATE TABLE IF NOT EXISTS breach_incidents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     description TEXT NOT NULL,
     severity TEXT NOT NULL,

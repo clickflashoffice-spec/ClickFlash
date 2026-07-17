@@ -6,6 +6,20 @@ import { createToken, verifyToken, extractTokenFromHeader } from "./jwt.js";
 import { checkLoginRateLimit, recordLoginAttempt } from "./loginRateLimiter.js";
 import { handleRest } from "./routes/rest.js";
 import { R2SignedUrlService } from "./services/r2SignedUrlService.js";
+import {
+  canOrderDownloadPhoto,
+  canOrderViewPhoto,
+  generateCustomerAccessPin,
+  getPhotoStorageKey,
+  isCustomerToken,
+  isStaffToken,
+  isValidCartSessionId,
+  isValidStripeCheckoutSessionId,
+  toCustomerOrder,
+  updateOrderPhotoProofingStatus,
+  type CustomerOrderRecord,
+  type DownloadablePhotoRecord,
+} from "./services/customerAccessService.js";
 import { logger } from "@clickflash/logger";
 
 export interface Env {
@@ -16,10 +30,12 @@ export interface Env {
   ALLOWED_ORIGINS: string; // Comma-separated list of allowed origins
   STRIPE_SECRET_KEY?: string; // Stripe secret key
   STRIPE_WEBHOOK_SECRET?: string; // Stripe webhook signing secret
+  GALLERY_PUBLIC_URL?: string; // Public online Gallery root, including /gallery/
   SENTRY_DSN?: string; // Sentry DSN — optional; monitoring disabled when absent
   GEO_RESTRICTED?: string; // "true" to enable country allowlist enforcement
   ALLOWED_COUNTRIES?: string; // Comma-separated ISO-3166-1 alpha-2 codes, e.g. "MA,TN,FR,US"
   RESEND_API_KEY?: string; // Resend API key for transactional email notifications
+  NODE_ENV?: string;
 }
 
 /**
@@ -60,16 +76,10 @@ const galleryHandler = {
     const isClickFlashOrigin = (origin: string | null): boolean => {
       if (!origin) return true;
       if (allowedOrigins.includes(origin)) return true;
+      if (env.NODE_ENV === "production") return false;
       try {
         const { hostname } = new URL(origin);
-        return (
-          hostname.endsWith("clickflash.com") ||
-          hostname.endsWith("clicketflash.com") ||
-          hostname.endsWith("pages.dev") ||
-          hostname.endsWith("workers.dev") ||
-          hostname === "localhost" ||
-          hostname === "127.0.0.1"
-        );
+        return hostname === "localhost" || hostname === "127.0.0.1";
       } catch {
         return false;
       }
@@ -86,6 +96,13 @@ const galleryHandler = {
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
       "Access-Control-Allow-Credentials": "true",
     };
+
+    if (requestOrigin && !corsOrigin) {
+      return new Response(JSON.stringify({ error: "Origin is not allowed" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders });
@@ -130,8 +147,14 @@ const galleryHandler = {
 
         // Public: Signed R2 High-Res URLs (/v1/<storageKey>?e=...&s=...)
         if (pathName.startsWith("/v1/")) {
+          if (!env.JWT_SECRET) {
+            return new Response(JSON.stringify({ error: "Signed downloads are not configured" }), {
+              status: 503,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
           const signedUrlService = new R2SignedUrlService({
-            secret: env.JWT_SECRET || "gallery-secret-key",
+            secret: env.JWT_SECRET,
             defaultTtlSeconds: 900,
           });
           const validation = await signedUrlService.validateSignedUrl(request.url);
@@ -154,7 +177,7 @@ const galleryHandler = {
           return new Response(object.body, { headers });
         }
 
-        // Public: Stripe Checkout (no auth required for customers)
+        // Customer checkout: the route is public-facing but requires an order JWT.
         if (pathName === "/api/checkout" && request.method === "POST") {
           // Rate limit: 10 Stripe session creations per minute per IP
           const checkoutIp = request.headers.get("CF-Connecting-IP") ?? "unknown";
@@ -181,25 +204,63 @@ const galleryHandler = {
             );
           }
 
-          const { items, customerEmail, albumId, currency: rawCurrency } = body || {};
+          const { items } = body || {};
+          const cartSessionId = body?.cartSessionId;
 
-          // Validate currency — Stripe ISO 4217 lowercase codes
-          const ALLOWED_CURRENCIES = ["eur", "usd", "gbp", "tnd"];
-          const currency = ALLOWED_CURRENCIES.includes(String(rawCurrency).toLowerCase())
-            ? String(rawCurrency).toLowerCase()
-            : "eur";
+          if (!env.JWT_SECRET) {
+            return new Response(JSON.stringify({ error: "Checkout authentication is not configured" }), {
+              status: 503,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+
+          const checkoutToken = extractTokenFromHeader(request.headers.get("Authorization"));
+          const checkoutPayload = checkoutToken
+            ? await verifyToken(checkoutToken, env.JWT_SECRET)
+            : null;
+
+          if (!checkoutPayload || !isCustomerToken(checkoutPayload) || !checkoutPayload.orderId) {
+            return new Response(JSON.stringify({ error: "Customer authentication is required" }), {
+              status: 401,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+
+          const currentOrder = await dbManager.get<CustomerOrderRecord>(
+            "SELECT * FROM orders WHERE id = ? AND LOWER(email) = ? LIMIT 1",
+            [checkoutPayload.orderId, String(checkoutPayload.email || "").toLowerCase()],
+          );
+          if (!currentOrder) {
+            return new Response(JSON.stringify({ error: "Customer order was not found" }), {
+              status: 401,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+
+          if (cartSessionId !== undefined && !isValidCartSessionId(cartSessionId)) {
+            return new Response(JSON.stringify({ error: "Invalid cart session" }), {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+
+          const customerEmail = String(currentOrder.email || "").toLowerCase();
+          const albumId = String(currentOrder.albumId || "");
+          const currency = "eur";
 
           // SECURITY: Server-side price validation — never trust client prices
-          if (!items || !Array.isArray(items) || items.length === 0) {
+          if (!items || !Array.isArray(items) || items.length === 0 || items.length > 100) {
             return new Response(
-              JSON.stringify({ error: "At least one item is required" }),
+              JSON.stringify({ error: "Checkout requires between 1 and 100 items" }),
               { status: 400, headers: { "Content-Type": "application/json" } }
             );
           }
 
           try {
             // Look up canonical prices from D1 products table
-            const productIds = items.map((item: any) => item.productId || item.id).filter(Boolean);
+            const productIds = items
+              .map((item: any) => String(item.productId || item.id || "").trim())
+              .filter(Boolean);
             if (productIds.length === 0) {
               return new Response(
                 JSON.stringify({ error: "Each item must have a productId" }),
@@ -207,9 +268,31 @@ const galleryHandler = {
               );
             }
 
-            const placeholders = productIds.map(() => "?").join(", ");
+            const requestedPhotoIds = items
+              .map((item: any) => String(item.photoId || "").trim())
+              .filter(Boolean);
+            if (!albumId || requestedPhotoIds.length !== items.length) {
+              return new Response(
+                JSON.stringify({ error: "Each checkout item must reference a photo in the customer album" }),
+                { status: 400, headers: { "Content-Type": "application/json" } },
+              );
+            }
+
+            const photoPlaceholders = requestedPhotoIds.map(() => "?").join(", ");
+            const photoRows = await env.GALLERY_DB.prepare(
+              `SELECT id FROM photos WHERE albumId = ? AND id IN (${photoPlaceholders})`,
+            ).bind(albumId, ...requestedPhotoIds).all();
+            const validPhotoIds = new Set((photoRows.results || []).map((photo: any) => String(photo.id)));
+            if (requestedPhotoIds.some((photoId: string) => !validPhotoIds.has(photoId))) {
+              return new Response(
+                JSON.stringify({ error: "One or more photos do not belong to this customer album" }),
+                { status: 403, headers: { "Content-Type": "application/json" } },
+              );
+            }
+
+            const productPlaceholders = productIds.map(() => "?").join(", ");
             const dbProducts = await env.GALLERY_DB.prepare(
-              `SELECT id, name, price, category FROM products WHERE id IN (${placeholders}) AND (status IS NULL OR status = 'Active')`
+              `SELECT id, name, price, category FROM products WHERE id IN (${productPlaceholders}) AND (status IS NULL OR status = 'Active')`
             ).bind(...productIds).all();
 
             const productMap = new Map<string, { name: string; price: number; category: string }>();
@@ -236,9 +319,11 @@ const galleryHandler = {
 
             // Build verified line items with server-side prices
             const lineItems: Array<{ name: string; unitAmount: number; quantity: number }> = [];
+            const verifiedItems: Array<Record<string, unknown>> = [];
             for (const item of items as any[]) {
-              const pid = item.productId || item.id;
-              const quantity = Math.max(1, Math.floor(Number(item.quantity) || 1));
+              const pid = String(item.productId || item.id || "").trim();
+              const photoId = String(item.photoId);
+              const quantity = Math.min(100, Math.max(1, Math.floor(Number(item.quantity) || 1)));
 
               // Try product catalog first
               const product = productMap.get(pid);
@@ -247,6 +332,14 @@ const galleryHandler = {
                   name: product.name,
                   unitAmount: Math.round(product.price * 100),
                   quantity,
+                });
+                verifiedItems.push({
+                  productId: pid,
+                  photoId,
+                  name: product.name,
+                  quantity,
+                  price: product.price,
+                  deliveryType: product.category === "Digital" ? "digital" : "print",
                 });
                 continue;
               }
@@ -258,6 +351,7 @@ const galleryHandler = {
                   unitAmount: Math.round(albumPricing.price_full * 100),
                   quantity: 1,
                 });
+                verifiedItems.push({ productId: pid, photoId, name: `Full Album - ${albumPricing.title}`, quantity: 1, price: albumPricing.price_full, type: "album_full" });
                 continue;
               }
               if (albumPricing && pid === "album_single" && albumPricing.price_single > 0) {
@@ -266,6 +360,7 @@ const galleryHandler = {
                   unitAmount: Math.round(albumPricing.price_single * 100),
                   quantity,
                 });
+                verifiedItems.push({ productId: pid, photoId, name: `Single Photo - ${albumPricing.title}`, quantity, price: albumPricing.price_single, deliveryType: "digital" });
                 continue;
               }
 
@@ -286,13 +381,19 @@ const galleryHandler = {
             }
 
             // Build Stripe checkout session with per-line-item pricing
+            const purchaseOrderId = crypto.randomUUID();
             const stripeParams = new URLSearchParams();
             stripeParams.append("payment_method_types[]", "card");
             stripeParams.append("mode", "payment");
-            stripeParams.append("success_url", `https://gallery.clickflash.com/success?session_id={CHECKOUT_SESSION_ID}`);
-            stripeParams.append("cancel_url", `https://gallery.clickflash.com/cancel`);
+            const galleryPublicUrl = (env.GALLERY_PUBLIC_URL || "https://gallery.clickflash.com/gallery/")
+              .replace(/\/+$/, "/");
+            stripeParams.append("success_url", `${galleryPublicUrl}?checkout=success&session_id={CHECKOUT_SESSION_ID}`);
+            stripeParams.append("cancel_url", `${galleryPublicUrl}?checkout=cancelled`);
             if (customerEmail) stripeParams.append("customer_email", customerEmail);
             if (albumId) stripeParams.append("metadata[albumId]", albumId);
+            stripeParams.append("metadata[orderId]", purchaseOrderId);
+            if (cartSessionId) stripeParams.append("metadata[cartSessionId]", cartSessionId);
+            stripeParams.append("client_reference_id", purchaseOrderId);
 
             for (let i = 0; i < lineItems.length; i++) {
               stripeParams.append(`line_items[${i}][price_data][currency]`, currency);
@@ -319,8 +420,33 @@ const galleryHandler = {
               );
             }
 
+            const accessPin = generateCustomerAccessPin();
+            const magicLinkToken = crypto.randomUUID();
+            await dbManager.run(
+              `INSERT INTO orders (
+                id, date, clientName, email, status, total, totalAmount,
+                photographerId, destinationId, paymentMethod, items, albumId,
+                access_pin, magic_link_token, stripe_session_id, created_at, updated_at
+              ) VALUES (?, ?, ?, ?, 'Payment Pending', ?, ?, ?, ?, 'Card', ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+              [
+                purchaseOrderId,
+                new Date().toISOString(),
+                currentOrder.clientName || "Customer",
+                customerEmail,
+                serverTotal / 100,
+                serverTotal / 100,
+                currentOrder.photographerId || null,
+                currentOrder.destinationId || null,
+                JSON.stringify(verifiedItems),
+                albumId,
+                accessPin,
+                magicLinkToken,
+                session.id,
+              ],
+            );
+
             return new Response(
-              JSON.stringify({ sessionId: session.id, url: session.url }),
+              JSON.stringify({ sessionId: session.id, orderId: purchaseOrderId, url: session.url }),
               { status: 200, headers: { "Content-Type": "application/json" } }
             );
           } catch (e: any) {
@@ -398,19 +524,39 @@ const galleryHandler = {
               ).bind(session.id).first();
 
               if (existing) {
-                logger.info(String(`[Webhook] Order already exists for session ${session.id} (dedup)`));
+                await env.GALLERY_DB.prepare(
+                  `UPDATE orders
+                   SET status = 'paid', total = ?, totalAmount = ?, stripe_payment_intent = ?, updated_at = CURRENT_TIMESTAMP
+                   WHERE id = ?`,
+                ).bind(
+                  session.amount_total ? session.amount_total / 100 : 0,
+                  session.amount_total ? session.amount_total / 100 : 0,
+                  session.payment_intent || null,
+                  (existing as any).id,
+                ).run();
+                logger.info(String(`[Webhook] Marked order ${(existing as any).id} paid`));
               } else {
                 await env.GALLERY_DB.prepare(`
                   INSERT INTO orders (id, clientName, email, status, totalAmount, albumId, stripe_session_id, created_at)
                   VALUES (?, ?, ?, 'paid', ?, ?, ?, CURRENT_TIMESTAMP)
                 `).bind(
-                  crypto.randomUUID(),
+                  session.metadata?.orderId || crypto.randomUUID(),
                   session.customer_details?.name || 'Guest',
                   session.customer_email,
                   session.amount_total ? session.amount_total / 100 : 0,
                   session.metadata?.albumId || '',
                   session.id
                 ).run();
+              }
+
+              const cartSessionId = session.metadata?.cartSessionId;
+              const sessionEmail = String(session.customer_email || session.customer_details?.email || "").toLowerCase();
+              if (isValidCartSessionId(cartSessionId) && sessionEmail) {
+                await env.GALLERY_DB.prepare(`
+                  UPDATE abandoned_carts
+                  SET recovered = 1, recovered_at = CURRENT_TIMESTAMP
+                  WHERE session_id = ? AND LOWER(email) = ?
+                `).bind(cartSessionId, sessionEmail).run();
               }
             }
 
@@ -431,73 +577,70 @@ const galleryHandler = {
           }
         }
 
-        // Money Trash Public Gallery Endpoint (B2B Access Code)
+        // MoneyTrash public gallery lookup. Access codes scope every query;
+        // empty or invalid galleries never receive fabricated sample photos.
         const mtMatch = pathName.match(/^\/api\/moneytrash\/gallery\/([^/]+)$/);
         if (mtMatch && request.method === "GET") {
-          const accessCode = mtMatch[1].trim();
-          let photos: any[] = [];
-          try {
-            photos = await dbManager.query(
-              "SELECT * FROM photos ORDER BY created_at DESC LIMIT 50",
-              [],
-            );
-          } catch (err) {
-            logger.warn("[MoneyTrashGallery] D1 query note:", { args: [err] });
-            photos = [];
+          const accessCode = decodeURIComponent(mtMatch[1]).trim().toUpperCase();
+          if (!/^[A-Z0-9_-]{4,64}$/.test(accessCode)) {
+            return new Response(JSON.stringify({ error: "Invalid access code" }), {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            });
           }
 
-          if (!photos || photos.length === 0) {
-            photos = [
-              {
-                id: "photo-1",
-                url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=80",
-                thumbnailUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-                title: "Sunset Flying Dress Portrait #1",
-                price: 15,
-                originalPrice: 30
-              },
-              {
-                id: "photo-2",
-                url: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=80",
-                thumbnailUrl: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=400&q=80",
-                title: "Resort Beach Ceremony #2",
-                price: 15,
-                originalPrice: 30
-              },
-              {
-                id: "photo-3",
-                url: "https://images.unsplash.com/photo-1469371670807-013ccf25f16a?auto=format&fit=crop&w=1200&q=80",
-                thumbnailUrl: "https://images.unsplash.com/photo-1469371670807-013ccf25f16a?auto=format&fit=crop&w=400&q=80",
-                title: "Hammamet Garden Session #3",
-                price: 15,
-                originalPrice: 30
-              }
-            ];
+          const access = await dbManager.get<{ code: string; album_id?: string; expires_at?: string }>(
+            `SELECT code, album_id, expires_at
+             FROM access_codes
+             WHERE code = ? AND is_active = 1
+               AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+             LIMIT 1`,
+            [accessCode],
+          );
+          if (!access) {
+            return new Response(JSON.stringify({ error: "Gallery not found" }), {
+              status: 404,
+              headers: { "Content-Type": "application/json" },
+            });
           }
 
-          // Ensure every photo has valid display properties
-          const formattedPhotos = (photos || []).map((p: any, idx: number) => ({
-            id: p.id || `photo-${idx + 1}`,
-            url: p.url || (p.storage_key ? `/v1/${p.storage_key}` : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=80"),
-            thumbnailUrl: p.thumbnailUrl || p.url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-            title: p.title || `Event Photo #${idx + 1}`,
-            albumId: p.album_id || accessCode,
-            price: p.price || 15,
-            originalPrice: p.originalPrice || 30,
-            discountPercentage: 50,
-            expiresAt: p.expires_at || new Date(Date.now() + 30 * 86400000).toISOString(),
-            created_at: p.created_at || new Date().toISOString(),
-          }));
+          const photos = await dbManager.query<any>(
+            `SELECT id, albumId, title, url, thumbnailUrl, watermarkUrl,
+                    price, originalPrice, expires_at, created_at
+             FROM photos
+             WHERE access_code = ?
+             ORDER BY created_at DESC
+             LIMIT 250`,
+            [accessCode],
+          );
+
+          const formattedPhotos = photos.map((photo: any) => {
+            const previewUrl = photo.watermarkUrl || photo.thumbnailUrl || photo.url;
+            return {
+              id: photo.id,
+              url: previewUrl,
+              thumbnailUrl: photo.thumbnailUrl || previewUrl,
+              title: photo.title || "Event photo",
+              albumId: photo.albumId || access.album_id || accessCode,
+              price: Number(photo.price) || 0,
+              originalPrice: Number(photo.originalPrice) || Number(photo.price) || 0,
+              discountPercentage: Number(photo.originalPrice) > 0
+                ? Math.max(0, Math.round((1 - Number(photo.price) / Number(photo.originalPrice)) * 100))
+                : 0,
+              expiresAt: photo.expires_at || access.expires_at,
+              created_at: photo.created_at,
+            };
+          });
 
           return new Response(
             JSON.stringify({
               id: `MT-${accessCode}`,
-              eventName: `ClickFlash Event Gallery (${accessCode})`,
-              eventDate: new Date().toISOString(),
+              eventName: "ClickFlash Event Gallery",
+              eventDate: formattedPhotos[0]?.created_at || null,
               photos: formattedPhotos,
               totalPhotos: formattedPhotos.length,
-              discountPercentage: 50,
-              expiresAt: new Date(Date.now() + 30 * 86400000).toISOString(),
+              discountPercentage: formattedPhotos[0]?.discountPercentage || 0,
+              expiresAt: access.expires_at || null,
             }),
             {
               status: 200,
@@ -508,6 +651,14 @@ const galleryHandler = {
 
         // Customer Order Login (/api/gallery-auth/order-login)
         if (pathName === "/api/gallery-auth/order-login" && request.method === "POST") {
+          const loginIp = request.headers.get("CF-Connecting-IP") ?? "unknown";
+          if (!await checkPublicRateLimit(env.WEBSITE_DB, loginIp, "gallery-order-login", 10, 60_000)) {
+            return new Response(JSON.stringify({ error: "Too many login attempts" }), {
+              status: 429,
+              headers: { "Content-Type": "application/json", "Retry-After": "60" },
+            });
+          }
+
           let body: any = {};
           try {
             body = await request.json();
@@ -518,138 +669,156 @@ const galleryHandler = {
             });
           }
 
-          const orderId = String(body.orderId || body.pin || "").trim();
+          const accessPin = String(body.orderId || body.pin || "").trim();
           const customerEmail = String(body.customerEmail || body.email || "").trim().toLowerCase();
 
-          if (!orderId || !customerEmail) {
+          if (
+            !/^\d{6}$/.test(accessPin) ||
+            customerEmail.length > 254 ||
+            !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customerEmail)
+          ) {
             return new Response(
-              JSON.stringify({ success: false, error: "Both PIN and Email are required" }),
+              JSON.stringify({ success: false, error: "A 6-digit PIN and valid Email are required" }),
               { status: 400, headers: { "Content-Type": "application/json" } }
             );
           }
 
-          // Look up order in D1
-          let order: any = null;
-          try {
-            order = await dbManager.get(
-              `SELECT * FROM orders WHERE (id = ? OR orderNumber = ?) AND LOWER(email) = ? LIMIT 1`,
-              [orderId, orderId, customerEmail]
-            );
-          } catch (err) {
-            logger.warn("[OrderLogin] D1 query note:", { args: [err] });
+          if (!env.JWT_SECRET) {
+            return new Response(JSON.stringify({ success: false, error: "Customer login is not configured" }), {
+              status: 503,
+              headers: { "Content-Type": "application/json" },
+            });
           }
 
-          // If no order found in DB, or if testing PIN 4829 / standard customer login, return realistic order for preview
+          const order = await dbManager.get<CustomerOrderRecord>(
+            `SELECT * FROM orders WHERE access_pin = ? AND LOWER(email) = ? LIMIT 1`,
+            [accessPin, customerEmail],
+          );
+
           if (!order) {
-            order = {
-              id: orderId || "4829",
-              orderNumber: orderId || "4829",
-              date: new Date().toISOString(),
-              clientName: "Smith Wedding & Family",
-              email: customerEmail,
-              status: "Completed",
-              total: 149.0,
-              photographerId: "PHOTO-001",
-              destinationId: "TUN-HAMMAMET",
-              appliedDiscount: 15,
-              items: [
-                {
-                  id: "item-1",
-                  title: "Sunset Flying Dress Digital Package (All High-Res)",
-                  price: 149.0,
-                  quantity: 1,
-                  type: "digital_package",
-                  downloadUrl: "/api/photos/demo-package/download-url"
-                }
-              ]
-            };
-          } else if (typeof order.items === "string") {
-            try {
-              order.items = JSON.parse(order.items);
-            } catch {
-              order.items = [];
-            }
+            return new Response(JSON.stringify({ success: false, error: "Invalid PIN or email" }), {
+              status: 401,
+              headers: { "Content-Type": "application/json" },
+            });
           }
 
           const tokenPayload = {
             orderId: order.id,
-            customerEmail: order.email,
+            email: String(order.email || customerEmail).toLowerCase(),
+            role: "customer",
             type: "order",
-            iat: Math.floor(Date.now() / 1000)
           };
-          const token = await createToken(tokenPayload, env.JWT_SECRET || "gallery-secret-key");
+          const token = await createToken(tokenPayload, env.JWT_SECRET);
 
           return new Response(
             JSON.stringify({
               success: true,
               token,
               access: "order",
-              order
+              order: toCustomerOrder(order),
             }),
-            { status: 200, headers: { "Content-Type": "application/json" } }
+            { status: 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } }
           );
         }
 
-        // Customer Token Verify (/api/gallery-auth/:token/verify)
-        const tokenVerifyMatch = pathName.match(/^\/api\/gallery-auth\/([^/]+)\/verify$/);
-        if (tokenVerifyMatch && request.method === "GET") {
-          const token = decodeURIComponent(tokenVerifyMatch[1].trim());
-          const order = {
-            id: token || "4829",
-            date: new Date().toISOString(),
-            clientName: "Smith Wedding & Family",
-            email: "clickflash.office@gmail.com",
-            status: "Completed",
-            total: 149.0,
-            photographerId: "PHOTO-001",
-            destinationId: "TUN-HAMMAMET",
-            appliedDiscount: 15,
-            items: [
-              {
-                id: "item-1",
-                title: "Sunset Flying Dress Digital Package (All High-Res)",
-                price: 149.0,
-                quantity: 1,
-                type: "digital_package",
-                downloadUrl: "/api/photos/demo-package/download-url"
-              }
-            ]
-          };
-
-          return new Response(
-            JSON.stringify({ success: true, order }),
-            { status: 200, headers: { "Content-Type": "application/json" } }
-          );
-        }
-
-        // Customer Room Number Order Lookup (/api/orders/by-room)
-        if (pathName === "/api/orders/by-room" && request.method === "GET") {
-          const urlObj = new URL(request.url);
-          const roomNumber = urlObj.searchParams.get("roomNumber") || "101";
-
-          let order: any = null;
-          try {
-            order = await dbManager.get(
-              "SELECT * FROM orders WHERE roomNumber = ? LIMIT 1",
-              [roomNumber]
-            );
-          } catch (e) {}
-
-          if (!order) {
-            order = {
-              id: `ROOM-${roomNumber}`,
-              date: new Date().toISOString(),
-              clientName: `Guest Room ${roomNumber}`,
-              email: "clickflash.office@gmail.com",
-              status: "Completed",
-              total: 99.0,
-              items: []
-            };
+        // Customer Token Verify. POST keeps bearer material out of API URLs and caches.
+        if (pathName === "/api/gallery-auth/token-verify" && request.method === "POST") {
+          const verifyIp = request.headers.get("CF-Connecting-IP") ?? "unknown";
+          if (!await checkPublicRateLimit(env.WEBSITE_DB, verifyIp, "gallery-token-verify", 30, 60_000)) {
+            return new Response(JSON.stringify({ error: "Too many token verification attempts" }), {
+              status: 429,
+              headers: { "Content-Type": "application/json", "Retry-After": "60" },
+            });
           }
 
+          let verifyBody: { token?: unknown } = {};
+          try {
+            verifyBody = await request.json();
+          } catch {
+            return new Response(JSON.stringify({ success: false, error: "Invalid JSON body" }), {
+              status: 400,
+              headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+            });
+          }
+          const token = String(verifyBody.token || "").trim();
+          if (!token || token.length > 2048 || !env.JWT_SECRET) {
+            return new Response(JSON.stringify({ success: false, error: "Invalid or expired token" }), {
+              status: 401,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+
+          const payload = await verifyToken(token, env.JWT_SECRET);
+          let order: CustomerOrderRecord | null | undefined;
+
+          if (payload && isCustomerToken(payload) && payload.orderId) {
+            order = await dbManager.get<CustomerOrderRecord>(
+              `SELECT * FROM orders WHERE id = ? AND LOWER(email) = ? LIMIT 1`,
+              [payload.orderId, String(payload.email || "").toLowerCase()],
+            );
+          } else {
+            order = await dbManager.get<CustomerOrderRecord>(
+              `SELECT * FROM orders WHERE magic_link_token = ? LIMIT 1`,
+              [token],
+            );
+          }
+
+          if (!order) {
+            return new Response(JSON.stringify({ success: false, error: "Invalid or expired token" }), {
+              status: 401,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+
+          const sessionToken = await createToken(
+            {
+              orderId: order.id,
+              email: String(order.email || "").toLowerCase(),
+              role: "customer",
+              type: "order",
+            },
+            env.JWT_SECRET,
+          );
+
           return new Response(
-            JSON.stringify(order),
-            { status: 200, headers: { "Content-Type": "application/json" } }
+            JSON.stringify({ success: true, token: sessionToken, access: "order", order: toCustomerOrder(order) }),
+            { status: 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } }
+          );
+        }
+
+        // Public storefront catalog. Prices are authoritative D1 values and
+        // checkout revalidates every product before creating a Stripe session.
+        if (pathName === "/api/gallery/products" && request.method === "GET") {
+          const productIp = request.headers.get("CF-Connecting-IP") ?? "unknown";
+          if (!await checkPublicRateLimit(env.WEBSITE_DB, productIp, "gallery-products", 60, 60_000)) {
+            return new Response(JSON.stringify({ error: "Too many catalog requests" }), {
+              status: 429,
+              headers: { "Content-Type": "application/json", "Retry-After": "60" },
+            });
+          }
+
+          const products = await dbManager.query<{
+            id: string;
+            name: string;
+            category?: string;
+            price: number;
+            stock?: number;
+            isFeatured?: number;
+          }>(
+            `SELECT id, name, category, price, stock, isFeatured
+             FROM products
+             WHERE status IS NULL OR status = 'Active'
+             ORDER BY isFeatured DESC, name ASC`,
+          );
+
+          return new Response(
+            JSON.stringify({
+              items: products.map((product) => ({
+                ...product,
+                isFeatured: Boolean(product.isFeatured),
+              })),
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
           );
         }
 
@@ -731,7 +900,8 @@ const galleryHandler = {
           );
         }
 
-        // Public: Abandoned Cart Snapshot (no auth — customers don't have accounts)
+        // Authenticated abandoned-cart snapshot. The customer order JWT owns
+        // the email and album; D1 owns product names and prices.
         if (pathName === "/api/cart/snapshot" && request.method === "POST") {
           const cartIp = request.headers.get("CF-Connecting-IP") ?? "unknown";
           if (!await checkPublicRateLimit(env.WEBSITE_DB, cartIp, "cart_snapshot", 30, 60_000)) {
@@ -748,15 +918,99 @@ const galleryHandler = {
             return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
           }
 
-          const { email, albumId, items, total, currency, sessionId } = body || {};
-          if (!email || !items || !Array.isArray(items) || items.length === 0 || !sessionId) {
+          if (!env.JWT_SECRET) {
+            return new Response(JSON.stringify({ error: "Cart synchronization is not configured" }), {
+              status: 503,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+
+          const cartToken = extractTokenFromHeader(request.headers.get("Authorization"));
+          const cartPayload = cartToken ? await verifyToken(cartToken, env.JWT_SECRET) : null;
+          if (!cartPayload || !isCustomerToken(cartPayload) || !cartPayload.orderId) {
+            return new Response(JSON.stringify({ error: "Customer authentication is required" }), {
+              status: 401,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+
+          const { items, sessionId } = body || {};
+          if (!Array.isArray(items) || items.length === 0 || items.length > 100 || !isValidCartSessionId(sessionId)) {
             return new Response(
-              JSON.stringify({ error: "email, items[], and sessionId are required" }),
+              JSON.stringify({ error: "A valid session and 1-100 cart items are required" }),
               { status: 400, headers: { "Content-Type": "application/json" } }
             );
           }
 
           try {
+            const order = await dbManager.get<CustomerOrderRecord>(
+              "SELECT id, email, albumId FROM orders WHERE id = ? AND LOWER(email) = ? LIMIT 1",
+              [cartPayload.orderId, String(cartPayload.email || "").toLowerCase()],
+            );
+            const albumId = String(order?.albumId || "");
+            const email = String(order?.email || "").toLowerCase();
+            if (!order || !albumId || !email) {
+              return new Response(JSON.stringify({ error: "Customer order was not found" }), {
+                status: 401,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
+            const normalizedItems = items.map((item: any) => ({
+              productId: String(item?.productId || "").trim(),
+              photoId: String(item?.photoId || "").trim(),
+              quantity: Math.min(100, Math.max(1, Math.floor(Number(item?.quantity) || 1))),
+            }));
+            if (normalizedItems.some((item) => !item.productId || !item.photoId)) {
+              return new Response(JSON.stringify({ error: "Every cart item requires a product and photo" }), {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
+            const productIds = [...new Set(normalizedItems.map((item) => item.productId))];
+            const photoIds = [...new Set(normalizedItems.map((item) => item.photoId))];
+            const productRows = await dbManager.query<{ id: string; name: string; price: number }>(
+              `SELECT id, name, price FROM products
+               WHERE id IN (${productIds.map(() => "?").join(", ")})
+                 AND (status IS NULL OR status = 'Active')`,
+              productIds,
+            );
+            const photoRows = await dbManager.query<{ id: string }>(
+              `SELECT id FROM photos
+               WHERE albumId = ? AND id IN (${photoIds.map(() => "?").join(", ")})`,
+              [albumId, ...photoIds],
+            );
+            const productMap = new Map(productRows.map((product) => [product.id, product]));
+            const validPhotoIds = new Set(photoRows.map((photo) => photo.id));
+            if (normalizedItems.some((item) => !productMap.has(item.productId) || !validPhotoIds.has(item.photoId))) {
+              return new Response(JSON.stringify({ error: "Cart contains an unavailable product or photo" }), {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
+            const safeItems = normalizedItems.map((item) => {
+              const product = productMap.get(item.productId)!;
+              return {
+                productId: item.productId,
+                photoId: item.photoId,
+                name: product.name,
+                price: Number(product.price),
+                quantity: item.quantity,
+              };
+            });
+            const total = safeItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            const existingCart = await env.GALLERY_DB.prepare(
+              "SELECT email FROM abandoned_carts WHERE session_id = ? LIMIT 1",
+            ).bind(sessionId).first() as { email?: string } | null;
+            if (existingCart && String(existingCart.email || "").toLowerCase() !== email) {
+              return new Response(JSON.stringify({ error: "Cart session is already in use" }), {
+                status: 409,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
             // Upsert by session_id — only one active cart per browser session
             await env.GALLERY_DB.prepare(`
               INSERT INTO abandoned_carts (id, email, album_id, items, total, currency, session_id, updated_at)
@@ -770,12 +1024,12 @@ const galleryHandler = {
                 updated_at = CURRENT_TIMESTAMP
             `).bind(
               crypto.randomUUID(),
-              String(email).toLowerCase().trim(),
-              albumId || null,
-              JSON.stringify(items),
-              Number(total) || 0,
-              String(currency || "eur").toLowerCase(),
-              String(sessionId)
+              email,
+              albumId,
+              JSON.stringify(safeItems),
+              total,
+              "eur",
+              sessionId,
             ).run();
 
             return new Response(JSON.stringify({ success: true }), {
@@ -791,7 +1045,7 @@ const galleryHandler = {
           }
         }
 
-        // Public: Mark cart as recovered (called after successful checkout)
+        // Authenticated recovery acknowledgement for the current browser cart.
         if (pathName === "/api/cart/recovered" && request.method === "POST") {
           let body: any;
           try {
@@ -801,15 +1055,24 @@ const galleryHandler = {
           }
 
           const { sessionId } = body || {};
-          if (!sessionId) {
-            return new Response(JSON.stringify({ error: "sessionId required" }), { status: 400 });
+          if (!isValidCartSessionId(sessionId) || !env.JWT_SECRET) {
+            return new Response(JSON.stringify({ error: "Valid sessionId required" }), { status: 400 });
+          }
+
+          const cartToken = extractTokenFromHeader(request.headers.get("Authorization"));
+          const cartPayload = cartToken ? await verifyToken(cartToken, env.JWT_SECRET) : null;
+          if (!cartPayload || !isCustomerToken(cartPayload) || !cartPayload.email) {
+            return new Response(JSON.stringify({ error: "Customer authentication is required" }), {
+              status: 401,
+              headers: { "Content-Type": "application/json" },
+            });
           }
 
           try {
             await env.GALLERY_DB.prepare(`
               UPDATE abandoned_carts SET recovered = 1, recovered_at = CURRENT_TIMESTAMP
-              WHERE session_id = ?
-            `).bind(String(sessionId)).run();
+              WHERE session_id = ? AND LOWER(email) = ?
+            `).bind(sessionId, String(cartPayload.email).toLowerCase()).run();
             return new Response(JSON.stringify({ success: true }), { status: 200 });
           } catch {
             return new Response(JSON.stringify({ error: "Failed" }), { status: 500 });
@@ -988,19 +1251,52 @@ const galleryHandler = {
           const downloadMatch = pathName.match(/^\/api\/photos\/([^/]+)\/download-url$/);
           if (downloadMatch && request.method === "GET") {
             const photoId = downloadMatch[1];
-            const photos = await dbManager.query("SELECT * FROM photos WHERE id = ?", [photoId]);
+            const photos = await dbManager.query<DownloadablePhotoRecord>(
+              "SELECT id, albumId, url, storagePath FROM photos WHERE id = ?",
+              [photoId],
+            );
             if (photos.length === 0) {
               return new Response(JSON.stringify({ error: "Photo not found" }), {
                 status: 404,
                 headers: { "Content-Type": "application/json" },
               });
             }
-            const photo = photos[0] as any;
+            const photo = photos[0];
+            let authorized = isStaffToken(payload);
+
+            if (!authorized && isCustomerToken(payload) && payload.orderId) {
+              const sessionOrder = await dbManager.get<CustomerOrderRecord>(
+                "SELECT id, email, albumId, items FROM orders WHERE id = ? AND LOWER(email) = ? LIMIT 1",
+                [payload.orderId, String(payload.email || "").toLowerCase()],
+              );
+              if (sessionOrder && canOrderViewPhoto(sessionOrder, photo)) {
+                const customerOrders = await dbManager.query<CustomerOrderRecord>(
+                  "SELECT id, email, status, albumId, items FROM orders WHERE LOWER(email) = ?",
+                  [String(payload.email || "").toLowerCase()],
+                );
+                authorized = customerOrders.some((order) => canOrderDownloadPhoto(order, photo));
+              }
+            }
+
+            if (!authorized) {
+              return new Response(JSON.stringify({ error: "This order does not include the requested photo" }), {
+                status: 403,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
+            const storageKey = getPhotoStorageKey(photo);
+            if (!storageKey) {
+              return new Response(JSON.stringify({ error: "Photo storage path is invalid" }), {
+                status: 500,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
             const signedUrlService = new R2SignedUrlService({
-              secret: env.JWT_SECRET || "gallery-secret-key",
+              secret: env.JWT_SECRET,
               defaultTtlSeconds: 900,
             });
-            const storageKey = photo.url || photo.storagePath || `${photoId}.jpg`;
             const signedPath = await signedUrlService.generateSignedUrl(storageKey, 900);
             const downloadUrl = `https://${url.host}${signedPath}`;
             return new Response(
@@ -1011,9 +1307,151 @@ const galleryHandler = {
               }),
               {
                 status: 200,
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
               },
             );
+          }
+
+          // Stripe return reconciliation. The session must belong to the
+          // authenticated customer; Stripe remains the payment source of truth.
+          const checkoutSessionMatch = pathName.match(/^\/api\/checkout\/sessions\/([^/]+)$/);
+          if (checkoutSessionMatch && request.method === "GET") {
+            const sessionId = decodeURIComponent(checkoutSessionMatch[1]);
+            if (!isCustomerToken(payload) || !payload.email || !isValidStripeCheckoutSessionId(sessionId)) {
+              return new Response(JSON.stringify({ error: "Invalid checkout session" }), {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
+            const checkoutOrder = await dbManager.get<CustomerOrderRecord & { stripe_session_id?: string }>(
+              `SELECT id, email, status, total, totalAmount, albumId, stripe_session_id
+               FROM orders
+               WHERE stripe_session_id = ? AND LOWER(email) = ?
+               LIMIT 1`,
+              [sessionId, String(payload.email).toLowerCase()],
+            );
+            if (!checkoutOrder) {
+              return new Response(JSON.stringify({ error: "Checkout session not found" }), {
+                status: 404,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
+            let status = String(checkoutOrder.status || "").toLowerCase();
+            if (!new Set(["paid", "completed", "delivered", "fulfilled"]).has(status) && env.STRIPE_SECRET_KEY) {
+              const stripeResponse = await fetch(
+                `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}`,
+                { headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` } },
+              );
+              if (stripeResponse.ok) {
+                const stripeSession = await stripeResponse.json() as any;
+                const referencesOrder = stripeSession.client_reference_id === checkoutOrder.id &&
+                  stripeSession.metadata?.orderId === checkoutOrder.id;
+                if (referencesOrder && stripeSession.payment_status === "paid") {
+                  await env.GALLERY_DB.prepare(`
+                    UPDATE orders
+                    SET status = 'paid', total = ?, totalAmount = ?,
+                        stripe_payment_intent = ?, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ? AND stripe_session_id = ?
+                  `).bind(
+                    Number(stripeSession.amount_total || 0) / 100,
+                    Number(stripeSession.amount_total || 0) / 100,
+                    stripeSession.payment_intent || null,
+                    checkoutOrder.id,
+                    sessionId,
+                  ).run();
+
+                  const cartSessionId = stripeSession.metadata?.cartSessionId;
+                  if (isValidCartSessionId(cartSessionId)) {
+                    await env.GALLERY_DB.prepare(`
+                      UPDATE abandoned_carts
+                      SET recovered = 1, recovered_at = CURRENT_TIMESTAMP
+                      WHERE session_id = ? AND LOWER(email) = ?
+                    `).bind(cartSessionId, String(payload.email).toLowerCase()).run();
+                  }
+                  status = "paid";
+                }
+              }
+            }
+
+            return new Response(
+              JSON.stringify({
+                success: true,
+                orderId: checkoutOrder.id,
+                status,
+                paid: new Set(["paid", "completed", "delivered", "fulfilled"]).has(status),
+              }),
+              {
+                status: 200,
+                headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+              },
+            );
+          }
+
+          // Customer proofing is stored on this order's photo snapshot so each
+          // customer can review only the images included in their own gallery.
+          const proofingMatch = pathName.match(
+            /^\/api\/gallery\/orders\/([^/]+)\/photos\/([^/]+)\/proofing$/,
+          );
+          if (proofingMatch && request.method === "PATCH") {
+            const [, orderId, photoId] = proofingMatch.map((value) => decodeURIComponent(value));
+            if (!isCustomerToken(payload) || payload.orderId !== orderId) {
+              return new Response(JSON.stringify({ error: "This order is outside the authenticated gallery" }), {
+                status: 403,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
+            let proofingBody: { status?: unknown } = {};
+            try {
+              proofingBody = await request.json();
+            } catch {
+              return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
+            const status = String(proofingBody.status || "");
+            if (!new Set(["approved", "rejected", "pending"]).has(status)) {
+              return new Response(JSON.stringify({ error: "Invalid proofing status" }), {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
+            const order = await dbManager.get<CustomerOrderRecord>(
+              "SELECT id, email, items FROM orders WHERE id = ? AND LOWER(email) = ? LIMIT 1",
+              [orderId, String(payload.email || "").toLowerCase()],
+            );
+            if (!order) {
+              return new Response(JSON.stringify({ error: "Order not found" }), {
+                status: 404,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
+            const update = updateOrderPhotoProofingStatus(
+              order.items,
+              photoId,
+              status as "approved" | "rejected" | "pending",
+            );
+            if (!update.found) {
+              return new Response(JSON.stringify({ error: "Photo is outside the authenticated order" }), {
+                status: 403,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
+            await dbManager.run(
+              "UPDATE orders SET items = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+              [JSON.stringify(update.items), orderId],
+            );
+            return new Response(JSON.stringify({ success: true, photoId, status }), {
+              status: 200,
+              headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+            });
           }
 
           // Modern REST endpoints
@@ -1026,31 +1464,50 @@ const galleryHandler = {
           if (pathName.startsWith("/api/files/")) {
             const storageKey = pathName.replace("/api/files/", "");
 
-            // SECURITY GUARD: Check if requesting high-resolution asset
-            const isHighRes = storageKey.includes("/highres/");
+            const segments = storageKey.split("/");
+            const filename = segments[segments.length - 1];
+            const photoId = filename
+              .replace(/\.[^.]+$/, "")
+              .replace(/_(preview|preview_wm|thumb|tiny|watermarked)$/, "");
+            const photo = await dbManager.get<DownloadablePhotoRecord>(
+              "SELECT id, albumId, url, storagePath FROM photos WHERE id = ? LIMIT 1",
+              [photoId],
+            );
+
+            let customerOrders: CustomerOrderRecord[] = [];
+            if (isCustomerToken(payload) && payload.orderId) {
+              const sessionOrder = await dbManager.get<CustomerOrderRecord>(
+                "SELECT id, email, status, albumId, items FROM orders WHERE id = ? AND LOWER(email) = ? LIMIT 1",
+                [payload.orderId, String(payload.email || "").toLowerCase()],
+              );
+              if (!sessionOrder || !photo || !canOrderViewPhoto(sessionOrder, photo)) {
+                return new Response(JSON.stringify({ error: "This photo is outside the authenticated gallery" }), {
+                  status: 403,
+                  headers: { "Content-Type": "application/json" },
+                });
+              }
+              customerOrders = await dbManager.query<CustomerOrderRecord>(
+                "SELECT id, email, status, albumId, items FROM orders WHERE LOWER(email) = ?",
+                [String(payload.email || "").toLowerCase()],
+              );
+            } else if (!isStaffToken(payload)) {
+              return new Response(JSON.stringify({ error: "Gallery or staff access is required" }), {
+                status: 403,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
+            // Raw uploads and explicit highres paths are originals. Only named
+            // preview/thumbnail variants may be served before purchase.
+            const isPreview =
+              /\/(thumbs?|previews?|tiny|watermarked)\//.test(storageKey) ||
+              /_(preview|preview_wm|thumb|tiny|watermarked)\.[^.]+$/.test(filename);
+            const isHighRes = !isPreview;
 
             if (isHighRes) {
-              // Extract photo ID from key: <album>/highres/<photoId>.jpg
-              const segments = storageKey.split("/");
-              const filename = segments[segments.length - 1];
-              const photoId = filename.split(".")[0];
-
-              // Verify payment status in D1
-              // We check 'moneytrash_purchases' for MoneyTrash or 'orders' json_each for main gallery
-              const access = (await dbManager.get(
-                `
-                              SELECT 'purchased' as status FROM moneytrash_purchases WHERE photo_id = ?
-                              UNION ALL
-                              SELECT 'paid' as status FROM orders, json_each(orders.items) 
-                              WHERE json_extract(json_each.value, '$.id') = ? AND (orders.status = 'completed' OR orders.status = 'paid')
-                              LIMIT 1
-                          `,
-                [photoId, photoId],
-              )) as any;
-
-              const isPurchased =
-                access &&
-                (access.status === "purchased" || access.status === "paid");
+              const isPurchased = isStaffToken(payload) || Boolean(
+                photo && customerOrders.some((order) => canOrderDownloadPhoto(order, photo)),
+              );
 
               if (!isPurchased) {
                 // FALLBACK Logic: If not purchased, try to serve the watermarked preview
@@ -1518,6 +1975,14 @@ async function purgeExpiredMoneyTrashPhotos(env: Env): Promise<void> {
  * Runs hourly to find carts idle for >1 hour and sends recovery emails via Resend.
  */
 async function handleScheduled(env: Env): Promise<void> {
+  try {
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    await env.WEBSITE_DB.prepare("DELETE FROM rate_limit_events WHERE ts < ?").bind(cutoff).run();
+    await env.GALLERY_DB.prepare("DELETE FROM login_attempts WHERE created_at < ?").bind(cutoff).run();
+  } catch (e: any) {
+    logger.warn("[Cron] Rate-limit cleanup failed", { args: [e] });
+  }
+
   // P0-4: MoneyTrash R2 auto-deletion runs FIRST, regardless of RESEND_API_KEY.
   // Expired photos need to be reaped even if the email job is disabled.
   try {

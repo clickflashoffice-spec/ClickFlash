@@ -2,7 +2,7 @@
 -- Purpose: Store CSRF tokens in database instead of in-memory Map
 -- This ensures tokens survive server restarts
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS csrf_tokens (
+CREATE TABLE IF NOT EXISTS csrf_tokens (
     token TEXT PRIMARY KEY,
     user_id TEXT,
     created_at INTEGER NOT NULL,

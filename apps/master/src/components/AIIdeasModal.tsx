@@ -2,7 +2,8 @@ import { logger } from '@clickflash/logger';
 import React, { useState } from 'react';
 import Modal from './common/Modal';
 import { PHOTO_THEMES } from '../constants.ts';
-import { geminiAgentService, ShootIdea } from '../services/geminiAgentService';
+import { studioIntelligenceService } from '../services/studioIntelligenceService';
+import type { ShootIdea } from '../services/studioIntelligenceService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wand2, Sparkles, MapPin, Palette, Award, Camera, Settings2 } from 'lucide-react';
 
@@ -19,9 +20,9 @@ const AIIdeasModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOp
         setError(null);
         setIdeas([]);
         try {
-            const result = await geminiAgentService.generateShootIdeas(location, theme, expertise);
+            const result = await studioIntelligenceService.generateShootIdeas(location, theme, expertise);
             setIdeas(result);
-        } catch (err: any) {
+        } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Failed to generate ideas";
             setError(message);
             logger.error(message);
@@ -35,13 +36,13 @@ const AIIdeasModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOp
     const consistentInputStyle = "w-full pl-10 pr-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 outline-none";
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="AI Photoshoot Idea Generator" size="xl">
+        <Modal isOpen={isOpen} onClose={onClose} title="Photoshoot Idea Generator" size="xl">
             <div className="space-y-6">
                 {/* Header Description */}
                 <div className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-transparent p-4 rounded-xl border border-blue-500/20 flex items-start space-x-3">
                     <Sparkles className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
                     <p className="text-sm text-slate-600 dark:text-slate-300">
-                        Let AI inspire your next session. Configure the parameters below and we'll generate creative concepts, poses, and camera settings tailored to your environment.
+                        Use the local creative playbook to build concepts, poses, and starting camera settings tailored to your environment.
                     </p>
                 </div>
 
@@ -92,7 +93,7 @@ const AIIdeasModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOp
                         ) : (
                             <Wand2 className="w-5 h-5" />
                         )}
-                        <span>{loading ? 'Consulting the Oracle...' : 'Generate Magic'}</span>
+                        <span>{loading ? 'Building ideas...' : 'Generate Ideas'}</span>
                     </div>
                 </motion.button>
 

@@ -56,7 +56,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   perMachine: true
   include: build/installer.nsh
-  deleteAppDataOnUninstall: true
+  deleteAppDataOnUninstall: false
   createDesktopShortcut: false
   runAfterFinish: false
   shortcutName: ClickFlash Master OS

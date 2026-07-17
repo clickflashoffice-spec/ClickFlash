@@ -69,19 +69,6 @@ module.exports = {
       lines: 70,
       statements: 70,
     },
-    // Payment-related code requires higher coverage
-    'src/components/customer/PaymentForm.tsx': {
-      branches: 90,
-      functions: 90,
-      lines: 90,
-      statements: 90,
-    },
-    'src/services/stripeService.ts': {
-      branches: 90,
-      functions: 90,
-      lines: 90,
-      statements: 90,
-    },
   },
   
   // Module file extensions

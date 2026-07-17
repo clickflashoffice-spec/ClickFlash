@@ -27,7 +27,7 @@ export interface FeatureFlags {
   'gallery.highResDownload': FeatureFlag;
   
   // Management
-  'management.geminiAI': FeatureFlag;
+  'management.localIntelligence': FeatureFlag;
   'management.emailRelay': FeatureFlag;
   
   // Global
@@ -49,7 +49,7 @@ const DEFAULT_FLAGS: FeatureFlags = {
   'gallery.watermarking': { enabled: true, description: 'Watermark on previews' },
   'gallery.highResDownload': { enabled: true, description: 'High-resolution download after purchase' },
   
-  'management.geminiAI': { enabled: false, description: 'Google Gemini AI assistance' },
+  'management.localIntelligence': { enabled: true, description: 'First-party rules and local photo analysis' },
   'management.emailRelay': { enabled: true, description: 'Email relay through Hub' },
   
   'global.debugMode': { enabled: false, description: 'Enable verbose logging' },

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Webhook, WebhookOff, Activity, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { apiService } from "../../../services/apiService";
 import { WebhookEvent } from "../../../services/api/webhooksApi";
+import { logger } from '@/utils/logger';
 
 const MarketingWebhooksWidget: React.FC = () => {
   const [logs, setLogs] = useState<WebhookEvent[]>([]);
@@ -14,7 +15,7 @@ const MarketingWebhooksWidget: React.FC = () => {
       const recentLogs = await apiService.getWebhookLogs(5);
       setLogs(recentLogs);
     } catch (e) {
-      console.error("Failed to load webhook logs", e);
+      logger.error("Failed to load webhook logs", e);
     } finally {
       setLoading(false);
     }
@@ -30,7 +31,7 @@ const MarketingWebhooksWidget: React.FC = () => {
       await apiService.testMarketingDripTrigger(topic);
       await fetchLogs();
     } catch (e) {
-      console.error("Failed to trigger webhook", e);
+      logger.error("Failed to trigger webhook", e);
     } finally {
       setTesting(false);
     }

@@ -105,7 +105,7 @@ const PhotoCard: React.FC<{
                         <div className="flex space-x-2 flex-shrink-0">
                             <button
                                 onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-                                className={`p-2.5 rounded-xl backdrop-blur-md border border-white/20 transition-all ${isFavorite ? 'bg-red-500/90 text-white border-red-400/50 shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                                className={`p-2.5 rounded-xl min-h-[48px] min-w-[48px] flex items-center justify-center backdrop-blur-md border border-white/20 transition-all ${isFavorite ? 'bg-red-500/90 text-white border-red-400/50 shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'bg-white/10 text-white hover:bg-white/20'}`}
                                 title="Favorite"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" viewBox="0 0 20 20" fill="currentColor">
@@ -114,7 +114,7 @@ const PhotoCard: React.FC<{
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); onAddToCart(); }}
-                                className="p-2.5 rounded-xl bg-cyan-500/90 text-white backdrop-blur-md border border-cyan-400/50 hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+                                className="p-2.5 rounded-xl min-h-[48px] min-w-[48px] flex items-center justify-center bg-cyan-500/90 text-white backdrop-blur-md border border-cyan-400/50 hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)]"
                                 title="Order Print"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -124,7 +124,7 @@ const PhotoCard: React.FC<{
                             {photo.originalFilename && isOrderPaid && onDownloadHighRes && (
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onDownloadHighRes(); }}
-                                    className="p-2.5 rounded-xl bg-green-500/90 text-white backdrop-blur-md border border-green-400/50 hover:bg-green-400 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)]"
+                                    className="p-2.5 rounded-xl min-h-[48px] min-w-[48px] flex items-center justify-center bg-green-500/90 text-white backdrop-blur-md border border-green-400/50 hover:bg-green-400 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)]"
                                     title="Download High-Res"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -194,10 +194,18 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
         let filtered = photos;
         if (debouncedSearchTerm) {
             const searchLower = debouncedSearchTerm.trim().toLowerCase();
-            filtered = filtered.filter(photo =>
-                [photo.title, photo.category, photo.originalFilename]
-                    .some(value => String(value || '').toLowerCase().includes(searchLower))
-            );
+            filtered = filtered.filter(photo => {
+                const searchStrings = [
+                    photo.title, 
+                    photo.category, 
+                    photo.originalFilename,
+                    ...(photo.aiTags?.clothing_colors || []),
+                    ...(photo.aiTags?.accessories || []),
+                    photo.aiTags?.context
+                ].filter(Boolean);
+                
+                return searchStrings.some(value => String(value || '').toLowerCase().includes(searchLower));
+            });
         }
         if (filter !== 'all') {
             filtered = filtered.filter(photo => {
@@ -269,14 +277,14 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
                         <div className="h-8 w-px bg-white/10 mx-2 hidden sm:block"></div>
                         <div className="flex items-center space-x-2">
                             {onOpenProofing && (
-                                <button onClick={onOpenProofing} className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center gap-2">
+                                <button onClick={onOpenProofing} className="px-4 py-2 min-h-[48px] bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                                     Review Proofs
                                 </button>
                             )}
                             <button
                                 onClick={() => setIsSelectionMode(!isSelectionMode)}
-                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border ${isSelectionMode
+                                className={`px-4 py-2 min-h-[48px] text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border ${isSelectionMode
                                     ? 'bg-cyan-500 text-white border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]'
                                     : 'bg-white/5 text-slate-400 border-white/10 hover:border-white/20'
                                     }`}
@@ -290,10 +298,10 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
                         <div className="relative flex items-center group">
                             <input
                                 type="text"
-                                placeholder="Search by title, category, or filename..."
+                                placeholder="Search 'red shirt', 'sunglasses', 'pool', or filename..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-2.5 pl-11 text-white placeholder-slate-600 outline-none transition-all font-bold text-xs focus:ring-2 focus:ring-cyan-500/50"
+                                className="w-full min-h-[48px] bg-black/40 border border-white/5 rounded-2xl px-5 py-2.5 pl-11 text-white placeholder-slate-600 outline-none transition-all font-bold text-xs focus:ring-2 focus:ring-cyan-500/50"
                             />
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -305,7 +313,7 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
                         <select
                             value={sortOption}
                             onChange={(e) => setSortOption(e.target.value as SortOption)}
-                            className="bg-black/40 border border-white/5 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 focus:ring-2 focus:ring-cyan-500/50 outline-none transition-all"
+                            className="bg-black/40 border border-white/5 rounded-xl px-4 py-2 min-h-[48px] text-[10px] font-black uppercase tracking-widest text-slate-400 focus:ring-2 focus:ring-cyan-500/50 outline-none transition-all"
                         >
                             <option value="date-desc">Newest First</option>
                             <option value="title-asc">Title A-Z</option>
@@ -313,7 +321,7 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
                         </select>
                         <button
                             onClick={handleBulkDownload}
-                            className="p-2.5 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 rounded-xl hover:bg-cyan-500/20 transition-all group shadow-lg"
+                            className="p-2.5 min-h-[48px] min-w-[48px] flex items-center justify-center bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 rounded-xl hover:bg-cyan-500/20 transition-all group shadow-lg"
                             title="Download All"
                             aria-label="Download All Asssets"
                         >
@@ -330,7 +338,7 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
-                            className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border transition-all ${filter === f
+                            className={`px-4 py-1.5 min-h-[48px] rounded-full text-[9px] font-black uppercase tracking-[0.2em] border transition-all ${filter === f
                                 ? 'bg-white/10 text-white border-white/30'
                                 : 'text-slate-500 border-transparent hover:text-slate-300'
                                 }`}

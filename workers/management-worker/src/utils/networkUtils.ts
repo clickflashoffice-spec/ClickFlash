@@ -1,6 +1,6 @@
 import { logger } from "@clickflash/logger";
 
-// apps/management/backend/src/utils/networkUtils.ts
+// Management Worker network utilities.
 
 export interface RetryOptions {
   maxRetries?: number;

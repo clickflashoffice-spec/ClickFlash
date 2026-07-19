@@ -290,7 +290,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [_isSavingStats, setIsSavingStats] = useState(false);
   const [kioskClicks, setKioskClicks] = useState(0);
   const [lastKioskClick, setLastKioskClick] = useState(0);
-  const isElectron = (window as any).electron;
+  const electronApi = window.electron;
 
   const handleSaveDailyStats = async (stats: {
     guests: number;
@@ -336,9 +336,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const verifyKioskExit = async (pin: string): Promise<boolean> => {
-    if (isElectron && isElectron.ipcRenderer) {
+    if (electronApi) {
       try {
-        const res = await isElectron.ipcRenderer.invoke("kiosk:unlock", pin);
+        const res = await electronApi.kiosk.unlock(pin);
         if (!res.success) throw new Error(res.error || "Invalid PIN");
         return true;
       } catch (err: any) {
@@ -648,7 +648,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {/* Fullscreen Toggle - Only show when NOT in fullscreen (Kiosk mode) */}
-          {!isElectron && !isFullscreen && !isCollapsed && (
+          {!electronApi && !isFullscreen && !isCollapsed && (
             <button
               onClick={toggleFullscreen}
               className={`flex items-center justify-center space-x-2 w-full px-3 py-2 rounded-lg transition-colors border mt-2 ${

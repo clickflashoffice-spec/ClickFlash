@@ -496,40 +496,40 @@ function App() {
   ));
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white p-4 md:p-8 font-sans">
+    <main className="min-h-screen bg-[#0B111F] text-white p-4 md:p-8 font-sans">
       {/* Header */}
       <header className="max-w-6xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white">
-            <span className="text-yellow-500">M</span>oney<span className="text-yellow-500">T</span>rash Transfer
+            <span className="text-[#06B6D4]">M</span>oney<span className="text-[#06B6D4]">T</span>rash Transfer
           </h1>
-          <p className="text-zinc-500 text-sm mt-1">
+          <p className="text-slate-400 text-sm mt-1">
             Secure Cloud Upload Gateway for Professional Photography
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-[#131C31] border border-white/10 rounded-lg text-sm text-slate-300 hover:text-white hover:border-white/20 transition-colors flex items-center gap-2"
           >
             <Settings className="w-4 h-4" />
             Settings
           </button>
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-[#131C31] border border-white/10 rounded-lg text-sm text-slate-300 hover:text-white hover:border-white/20 transition-colors flex items-center gap-2"
           >
             <History className="w-4 h-4" />
             History
           </button>
-          <div className="bg-zinc-900 rounded-full p-1 border border-zinc-800 flex items-center">
+          <div className="bg-[#131C31] rounded-full p-1 border border-white/10 flex items-center">
             <button
               onClick={() => handleModeSwitch("moneytrash")}
               className={clsx(
                 "px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2",
                 mode === "moneytrash"
-                  ? "bg-yellow-500 text-black shadow-lg shadow-yellow-500/20"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-[#06B6D4] text-black shadow-lg shadow-[#06B6D4]/20"
+                  : "text-slate-300 hover:text-white"
               )}
             >
               <Smartphone className="w-4 h-4" />
@@ -540,8 +540,8 @@ function App() {
               className={clsx(
                 "px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2",
                 mode === "sold"
-                  ? "bg-green-500 text-black shadow-lg shadow-green-500/20"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-[#8B5CF6] text-black shadow-lg shadow-[#8B5CF6]/20"
+                  : "text-slate-300 hover:text-white"
               )}
             >
               <HardDrive className="w-4 h-4" />
@@ -553,7 +553,7 @@ function App() {
                 "px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2",
                 mode === "analytics"
                   ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20"
-                  : "text-zinc-400 hover:text-white"
+                  : "text-slate-300 hover:text-white"
               )}
             >
               <BarChart2 className="w-4 h-4" />
@@ -565,15 +565,15 @@ function App() {
 
       {/* Settings Panel */}
       {showSettings && (
-        <div className="max-w-6xl mx-auto mb-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold mb-4 text-zinc-300 flex items-center gap-2">
+        <div className="max-w-6xl mx-auto mb-6 bg-[#131C31]/50 border border-white/10 rounded-2xl p-6">
+          <h3 className="text-lg font-semibold mb-4 text-slate-200 flex items-center gap-2">
             <Settings className="w-5 h-5" />
             Application Settings
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">
                   Cloud Hub URL (API)
                 </label>
                 <input
@@ -581,11 +581,11 @@ function App() {
                   value={settings.apiUrl}
                   onChange={(e) => setSettings({ ...settings, apiUrl: e.target.value })}
                   placeholder="https://moneytrash-api.clickflash-office.workers.dev"
-                  className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:border-yellow-500 focus:outline-none transition-colors"
+                  className="w-full bg-black border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:border-yellow-500 focus:outline-none transition-colors"
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">
                   Station ID (Desk ID)
                 </label>
                 <input
@@ -593,28 +593,28 @@ function App() {
                   value={settings.deskId}
                   onChange={(e) => setSettings({ ...settings, deskId: e.target.value.toUpperCase() })}
                   placeholder="STATION-01"
-                  className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:border-yellow-500 focus:outline-none transition-colors font-mono"
+                  className="w-full bg-black border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:border-yellow-500 focus:outline-none transition-colors font-mono"
                 />
               </div>
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl space-y-3">
-                <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Cloud Storage (S3/R2)</h4>
+              <div className="p-4 bg-[#131C31] border border-white/10 rounded-xl space-y-3">
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Cloud Storage (S3/R2)</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <input
                     type="password"
                     value={settings.s3AccessKey || ''}
                     onChange={(e) => setSettings({ ...settings, s3AccessKey: e.target.value })}
                     placeholder="Access Key"
-                    className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:border-yellow-500 focus:outline-none"
+                    className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-yellow-500 focus:outline-none"
                   />
                   <input
                     type="password"
                     value={settings.s3SecretKey || ''}
                     onChange={(e) => setSettings({ ...settings, s3SecretKey: e.target.value })}
                     placeholder="Secret Key"
-                    className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:border-yellow-500 focus:outline-none"
+                    className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-yellow-500 focus:outline-none"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -623,14 +623,14 @@ function App() {
                     value={settings.s3Region || ''}
                     onChange={(e) => setSettings({ ...settings, s3Region: e.target.value })}
                     placeholder="Region (e.g. auto)"
-                    className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:border-yellow-500 focus:outline-none"
+                    className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-yellow-500 focus:outline-none"
                   />
                   <input
                     type="text"
                     value={settings.s3Bucket || ''}
                     onChange={(e) => setSettings({ ...settings, s3Bucket: e.target.value })}
                     placeholder="Bucket Name"
-                    className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:border-yellow-500 focus:outline-none"
+                    className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-yellow-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -641,18 +641,18 @@ function App() {
                     type="checkbox"
                     checked={settings.saveHistory}
                     onChange={(e) => setSettings({ ...settings, saveHistory: e.target.checked })}
-                    className="w-4 h-4 accent-yellow-500"
+                    className="w-4 h-4 accent-[#06B6D4]"
                   />
-                  <span className="text-sm text-zinc-400">Save upload history locally</span>
+                  <span className="text-sm text-slate-300">Save upload history locally</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isNativeMode}
                     onChange={(e) => setIsNativeMode(e.target.checked)}
-                    className="w-4 h-4 accent-yellow-500"
+                    className="w-4 h-4 accent-[#06B6D4]"
                   />
-                  <span className="text-sm text-zinc-400">Enable High-Performance Native Picker</span>
+                  <span className="text-sm text-slate-300">Enable High-Performance Native Picker</span>
                 </label>
               </div>
             </div>
@@ -660,13 +660,13 @@ function App() {
           <div className="mt-4 flex justify-end gap-3">
             <button
               onClick={() => setShowSettings(false)}
-              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm transition-colors"
+              className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={saveSettings}
-              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-black font-medium rounded-lg text-sm transition-colors"
+              className="px-4 py-2 bg-[#06B6D4] hover:bg-[#06B6D4]/80 text-black font-medium rounded-lg text-sm transition-colors"
             >
               Save Settings
             </button>
@@ -676,27 +676,35 @@ function App() {
 
       {/* Upload History Panel */}
       {showHistory && uploadHistory.length > 0 && (
-        <div className="max-w-6xl mx-auto mb-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold mb-4 text-zinc-300 flex items-center gap-2">
-            <History className="w-5 h-5" />
-            Recent Uploads
+        <div className="max-w-6xl mx-auto mb-6 bg-[#131C31] border border-white/10 rounded-2xl p-6 shadow-xl">
+          <h3 className="text-lg font-bold mb-4 text-white flex items-center gap-2">
+            <History className="w-5 h-5 text-[#06B6D4]" />
+            Telemetry Logs
           </h3>
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {uploadHistory.map((item) => (
-              <div key={item.id} className="flex items-center justify-between py-2 px-3 bg-zinc-900 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <FileCheck className={clsx(
-                    "w-4 h-4",
-                    item.mode === 'moneytrash' ? 'text-yellow-500' : 'text-green-500'
-                  )} />
-                  <div>
-                    <p className="text-sm font-medium text-white">{item.eventName}</p>
-                    <p className="text-xs text-zinc-500">{item.accessCode} • {item.fileCount} files</p>
+              <div key={item.id} className="flex flex-col py-3 px-4 bg-[#0B111F] rounded-xl border border-white/5 relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-1 h-full bg-[#06B6D4]/50 group-hover:bg-[#06B6D4] transition-colors" />
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2">
+                    <FileCheck className={clsx(
+                      "w-4 h-4",
+                      item.mode === 'moneytrash' ? 'text-[#06B6D4]' : 'text-[#8B5CF6]'
+                    )} />
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      {item.mode === 'moneytrash' ? 'Gallery' : 'Backup'}
+                    </span>
                   </div>
+                  <span className="text-[10px] font-mono text-slate-500">
+                    {new Date(item.timestamp).toLocaleDateString()}
+                  </span>
                 </div>
-                <span className="text-xs text-zinc-500">
-                  {new Date(item.timestamp).toLocaleString()}
-                </span>
+                
+                <p className="text-sm font-bold text-white mb-1 truncate">{item.eventName}</p>
+                <div className="flex justify-between items-end mt-auto pt-2">
+                  <span className="text-xs font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded border border-white/10">{item.accessCode}</span>
+                  <span className="text-xs font-bold text-[#06B6D4]">{item.fileCount} files</span>
+                </div>
               </div>
             ))}
           </div>
@@ -705,22 +713,22 @@ function App() {
 
       {/* Main Content Area */}
       {mode === 'analytics' ? (
-        <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 shadow-2xl h-[calc(100vh-200px)] overflow-y-auto w-full">
+        <div className="bg-[#131C31] border border-white/10 rounded-2xl p-6 shadow-2xl h-[calc(100vh-200px)] overflow-y-auto w-full">
             <Analytics />
         </div>
       ) : (
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Metadata Column */}
         <div className="lg:col-span-1 space-y-4">
-          <div className="bg-zinc-900/50 border border-zinc-800 p-5 rounded-2xl">
-            <h2 className="text-base font-semibold mb-4 text-zinc-300 flex items-center gap-2">
+          <div className="bg-[#131C31]/50 border border-white/10 p-5 rounded-2xl">
+            <h2 className="text-base font-semibold mb-4 text-slate-200 flex items-center gap-2">
               <FileImage className="w-4 h-4" />
               Gallery Details
             </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">
                   {mode === 'moneytrash' ? 'Event Name' : 'Order Name'} *
                 </label>
                 <input
@@ -737,7 +745,7 @@ function App() {
                     "w-full bg-black border rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none transition-colors",
                     fieldErrors.eventName 
                       ? "border-red-500 focus:border-red-500" 
-                      : "border-zinc-800 focus:border-yellow-500"
+                      : "border-white/10 focus:border-yellow-500"
                   )}
                 />
                 {fieldErrors.eventName && (
@@ -745,7 +753,7 @@ function App() {
                 )}
               </div>
               <div>
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">
                   Access Code *
                 </label>
                 <input
@@ -762,13 +770,13 @@ function App() {
                     "w-full bg-black border rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none transition-colors font-mono uppercase",
                     fieldErrors.accessCode 
                       ? "border-red-500 focus:border-red-500" 
-                      : "border-zinc-800 focus:border-yellow-500"
+                      : "border-white/10 focus:border-yellow-500"
                   )}
                 />
                 {fieldErrors.accessCode ? (
                   <p className="text-xs text-red-500 mt-1">{fieldErrors.accessCode}</p>
                 ) : (
-                  <p className="text-xs text-zinc-600 mt-1">Letters, numbers, hyphens only</p>
+                  <p className="text-xs text-slate-500 mt-1">Letters, numbers, hyphens only</p>
                 )}
               </div>
 
@@ -777,7 +785,7 @@ function App() {
                 <>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">
                         Photo (€)
                       </label>
                       <input
@@ -785,11 +793,11 @@ function App() {
                         value={singlePhotoPrice}
                         onChange={(e) => setSinglePhotoPrice(e.target.value)}
                         placeholder="10.00"
-                        className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-white focus:border-yellow-500 focus:outline-none transition-colors font-mono"
+                        className="w-full bg-black border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-yellow-500 focus:outline-none transition-colors font-mono"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">
                         Gallery (€)
                       </label>
                       <input
@@ -797,12 +805,12 @@ function App() {
                         value={fullGalleryPrice}
                         onChange={(e) => setFullGalleryPrice(e.target.value)}
                         placeholder="150.00"
-                        className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-white focus:border-yellow-500 focus:outline-none transition-colors font-mono"
+                        className="w-full bg-black border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-yellow-500 focus:outline-none transition-colors font-mono"
                       />
                     </div>
                   </div>
-                  <div className="pt-3 border-t border-zinc-800">
-                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                  <div className="pt-3 border-t border-white/10">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">
                       Customer Email
                     </label>
                     <input
@@ -819,7 +827,7 @@ function App() {
                         "w-full bg-black border rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none transition-colors",
                         fieldErrors.customerEmail 
                           ? "border-red-500 focus:border-red-500" 
-                          : "border-zinc-800 focus:border-yellow-500"
+                          : "border-white/10 focus:border-yellow-500"
                       )}
                     />
                     {fieldErrors.customerEmail && (
@@ -832,9 +840,9 @@ function App() {
                       id="notify"
                       checked={sendNotification}
                       onChange={(e) => setSendNotification(e.target.checked)}
-                      className="w-4 h-4 accent-yellow-500 bg-zinc-900 border-zinc-700 rounded focus:ring-yellow-500"
+                      className="w-4 h-4 accent-[#06B6D4] bg-[#131C31] border-white/20 rounded focus:ring-[#06B6D4]"
                     />
-                    <label htmlFor="notify" className="text-xs text-zinc-400 select-none cursor-pointer">
+                    <label htmlFor="notify" className="text-xs text-slate-300 select-none cursor-pointer">
                       Send "Ready to View" Email
                     </label>
                   </div>
@@ -843,8 +851,8 @@ function App() {
               
               {/* Email field for Backup mode (required) */}
               {mode === "sold" && (
-                <div className="pt-3 border-t border-zinc-800">
-                  <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                <div className="pt-3 border-t border-white/10">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">
                     Customer Email <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -861,7 +869,7 @@ function App() {
                       "w-full bg-black border rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none transition-colors",
                       fieldErrors.customerEmail 
                         ? "border-red-500 focus:border-red-500" 
-                        : "border-zinc-800 focus:border-yellow-500"
+                        : "border-white/10 focus:border-yellow-500"
                     )}
                   />
                   {fieldErrors.customerEmail && (
@@ -873,21 +881,21 @@ function App() {
           </div>
 
           {/* Upload Summary */}
-          <div className="bg-zinc-900/50 border border-zinc-800 p-5 rounded-2xl">
-            <h2 className="text-base font-semibold mb-4 text-zinc-300">Summary</h2>
+          <div className="bg-[#131C31]/50 border border-white/10 p-5 rounded-2xl">
+            <h2 className="text-base font-semibold mb-4 text-slate-200">Summary</h2>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between items-center py-1.5 border-b border-zinc-800">
-                <span className="text-zinc-500">Mode</span>
-                <span className={mode === "moneytrash" ? "text-yellow-500" : "text-green-500"}>
+              <div className="flex justify-between items-center py-1.5 border-b border-white/10">
+                <span className="text-slate-400">Mode</span>
+                <span className={mode === "moneytrash" ? "text-[#06B6D4]" : "text-[#8B5CF6]"}>
                   {mode === "moneytrash" ? "Gallery" : "Backup"}
                 </span>
               </div>
-              <div className="flex justify-between items-center py-1.5 border-b border-zinc-800">
-                <span className="text-zinc-500">Files</span>
+              <div className="flex justify-between items-center py-1.5 border-b border-white/10">
+                <span className="text-slate-400">Files</span>
                 <span className="text-white font-medium">{files.length}</span>
               </div>
               <div className="flex justify-between items-center py-1.5">
-                <span className="text-zinc-500">Total Size</span>
+                <span className="text-slate-400">Total Size</span>
                 <span className="text-white font-medium">
                   {formatFileSize(files.reduce((sum, f) => sum + f.file.size, 0))}
                 </span>
@@ -897,7 +905,7 @@ function App() {
             <button
               onClick={handleUpload}
               disabled={uploading || files.length === 0 || !eventName || !accessCode}
-              className="w-full mt-5 bg-white text-black font-bold h-11 rounded-xl hover:bg-yellow-400 disabled:opacity-50 disabled:hover:bg-white transition-colors relative overflow-hidden text-sm"
+              className="w-full mt-5 bg-white text-black font-bold h-11 rounded-xl hover:bg-[#06B6D4]/80 disabled:opacity-50 disabled:hover:bg-white transition-colors relative overflow-hidden text-sm"
             >
               <span className="relative z-10 flex items-center justify-center gap-2">
                 {uploading ? (
@@ -921,7 +929,7 @@ function App() {
             </button>
 
             {uploadStatus && (
-              <p className="text-xs text-zinc-400 mt-3 text-center">{uploadStatus}</p>
+              <p className="text-xs text-slate-300 mt-3 text-center">{uploadStatus}</p>
             )}
           </div>
         </div>
@@ -933,8 +941,8 @@ function App() {
             className={clsx(
               "border-2 border-dashed rounded-2xl flex flex-col transition-all cursor-pointer min-h-[600px] max-h-[800px]",
               isDragActive
-                ? "border-yellow-500 bg-yellow-500/5 scale-[1.01]"
-                : "border-zinc-800 bg-zinc-900/20 hover:border-zinc-700 hover:bg-zinc-900/40"
+                ? "border-yellow-500 bg-[#06B6D4]/5 scale-[1.01]"
+                : "border-white/10 bg-[#131C31]/20 hover:border-white/20 hover:bg-[#131C31]/40"
             )}
           >
             <input {...getInputProps()} />
@@ -944,19 +952,19 @@ function App() {
                 <div className={clsx(
                   "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border-2",
                   mode === "moneytrash"
-                    ? "bg-yellow-500/10 border-yellow-500/30"
-                    : "bg-green-500/10 border-green-500/30"
+                    ? "bg-[#06B6D4]/10 border-yellow-500/30"
+                    : "bg-[#8B5CF6]/10 border-[#8B5CF6]/30"
                 )}>
                   {mode === "moneytrash" ? (
-                    <Upload className="w-10 h-10 text-yellow-500" />
+                    <Upload className="w-10 h-10 text-[#06B6D4]" />
                   ) : (
-                    <FolderUp className="w-10 h-10 text-green-500" />
+                    <FolderUp className="w-10 h-10 text-[#8B5CF6]" />
                   )}
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">
                   {isDragActive ? "Drop Files Here" : "Drag & Drop Photos"}
                 </h3>
-                <p className="text-zinc-500 max-w-md mx-auto mb-6">
+                <p className="text-slate-400 max-w-md mx-auto mb-6">
                   {mode === "moneytrash"
                     ? "Drop JPEG, PNG, or HEIC files to create a client proofing gallery."
                     : "Drop entire folders to backup sold orders to secure cloud storage."}
@@ -966,21 +974,21 @@ function App() {
                 <div className="flex items-center gap-3 mb-6">
                   <button
                     onClick={(e) => { e.stopPropagation(); handleNativeFileSelect(); }}
-                    className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg text-sm text-zinc-300 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/20 rounded-lg text-sm text-slate-200 transition-colors flex items-center gap-2"
                   >
                     <FolderOpen className="w-4 h-4" />
                     Browse Files
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleNativeFolderSelect(); }}
-                    className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg text-sm text-zinc-300 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/20 rounded-lg text-sm text-slate-200 transition-colors flex items-center gap-2"
                   >
                     <MonitorPlay className="w-4 h-4" />
                     Select Folder
                   </button>
                 </div>
 
-                <div className="flex items-center gap-4 text-xs text-zinc-600">
+                <div className="flex items-center gap-4 text-xs text-slate-500">
                   <span className="flex items-center gap-1.5">
                     <Image className="w-3.5 h-3.5" />
                     JPEG, PNG, HEIC
@@ -1008,8 +1016,8 @@ function App() {
                 
                 {/* Required fields hint */}
                 {(fieldErrors.eventName || fieldErrors.accessCode || fieldErrors.customerEmail) && (
-                  <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl max-w-md">
-                    <p className="text-yellow-400 text-xs">
+                  <div className="mt-4 p-3 bg-[#06B6D4]/10 border border-yellow-500/30 rounded-xl max-w-md">
+                    <p className="text-[#06B6D4]/80 text-xs">
                       Please fill in all required fields (*) before selecting files
                     </p>
                   </div>
@@ -1018,13 +1026,13 @@ function App() {
             ) : (
               <div className="flex-1 flex flex-col">
                 {/* File Queue Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-900/50 rounded-t-2xl">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#131C31]/50 rounded-t-2xl">
                   <div className="flex items-center gap-3">
                     <h3 className="text-white font-semibold">
                       Upload Queue ({files.length})
                     </h3>
                     {files.some(f => f.status === 'uploading') && (
-                      <span className="text-xs text-yellow-500 flex items-center gap-1">
+                      <span className="text-xs text-[#06B6D4] flex items-center gap-1">
                         <Loader2 className="w-3 h-3 animate-spin" />
                         Uploading...
                       </span>
@@ -1053,8 +1061,8 @@ function App() {
                           uploadFile.status === 'error'
                             ? "border-red-500/50 bg-red-500/10"
                             : uploadFile.status === 'completed'
-                              ? "border-green-500/50 bg-green-500/10"
-                              : "border-zinc-800 bg-zinc-900"
+                              ? "border-[#8B5CF6]/50 bg-[#8B5CF6]/10"
+                              : "border-white/10 bg-[#131C31]"
                         )}
                       >
                         {/* Preview or Icon */}
@@ -1066,18 +1074,18 @@ function App() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <Image className="w-8 h-8 text-zinc-600" />
+                            <Image className="w-8 h-8 text-slate-500" />
                           </div>
                         )}
 
                         {/* Progress Overlay */}
                         {uploadFile.status === 'uploading' && (
                           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
-                            <Loader2 className="w-6 h-6 text-yellow-500 animate-spin mb-1" />
+                            <Loader2 className="w-6 h-6 text-[#06B6D4] animate-spin mb-1" />
                             <span className="text-xs text-white font-medium">{uploadFile.progress}%</span>
                             <div className="w-12 h-1 bg-zinc-700 rounded-full mt-1 overflow-hidden">
                               <div
-                                className="h-full bg-yellow-500 transition-all duration-200"
+                                className="h-full bg-[#06B6D4] transition-all duration-200"
                                 style={{ width: `${uploadFile.progress}%` }}
                               />
                             </div>
@@ -1086,8 +1094,8 @@ function App() {
 
                         {/* Completed Overlay */}
                         {uploadFile.status === 'completed' && (
-                          <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
-                            <CheckCircle className="w-8 h-8 text-green-500" />
+                          <div className="absolute inset-0 bg-[#8B5CF6]/20 flex items-center justify-center">
+                            <CheckCircle className="w-8 h-8 text-[#8B5CF6]" />
                           </div>
                         )}
 
@@ -1106,7 +1114,7 @@ function App() {
                           <p className="text-[10px] text-white truncate leading-tight">
                             {uploadFile.file.name}
                           </p>
-                          <p className="text-[9px] text-zinc-500">
+                          <p className="text-[9px] text-slate-400">
                             {formatFileSize(uploadFile.file.size)}
                           </p>
                         </div>
@@ -1126,21 +1134,21 @@ function App() {
                 </div>
 
                 {/* Add More Files Area */}
-                <div className="px-6 py-4 border-t border-zinc-800 bg-zinc-900/30 rounded-b-2xl">
-                  <p className="text-xs text-zinc-500 text-center">
+                <div className="px-6 py-4 border-t border-white/10 bg-[#131C31]/30 rounded-b-2xl">
+                  <p className="text-xs text-slate-400 text-center">
                     Drag more files here or use the Browse buttons to add to queue
                   </p>
                   <div className="flex justify-center gap-3 mt-3">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleNativeFileSelect(); }}
-                      className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded text-xs text-zinc-400 transition-colors flex items-center gap-1.5"
+                      className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded text-xs text-slate-300 transition-colors flex items-center gap-1.5"
                     >
                       <FolderOpen className="w-3 h-3" />
                       Add Files
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleNativeFolderSelect(); }}
-                      className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded text-xs text-zinc-400 transition-colors flex items-center gap-1.5"
+                      className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded text-xs text-slate-300 transition-colors flex items-center gap-1.5"
                     >
                       <MonitorPlay className="w-3 h-3" />
                       Add Folder

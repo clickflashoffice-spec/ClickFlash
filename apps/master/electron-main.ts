@@ -22,6 +22,7 @@ import {
   globalShortcut,
   dialog,
   protocol,
+  safeStorage,
   net,
   session,
   Tray,
@@ -36,14 +37,26 @@ import http from "http";
 import crypto from "crypto";
 import { fork, spawn, ChildProcess } from "child_process";
 import { logger } from "@clickflash/logger";
+import {
+  getLicenseMachineId,
+  isValidEd25519PublicKey,
+  loadProtectedDesktopLicense,
+} from "./desktop-license";
 import { isTrustedIpcSender, resolveContainedPath } from "./electron-security";
+import {
+  parseKioskPin,
+  parseOpenDirectoryOptions,
+  parseOpenFileOptions,
+  parsePrintOptions,
+  parseSaveFileOptions,
+} from "./ipc-validation";
 
 // ─── Auto-Updater (production only) ──────────────────────────────────────────
-// initAutoUpdater is compiled from src/main/autoUpdater.ts — not available pre-build.
+// The updater is emitted by build:backend next to the backend bundle.
 let initAutoUpdater: ((win: BrowserWindow) => void) | null = null;
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  initAutoUpdater = require("./dist/main/autoUpdater.js").initAutoUpdater as (win: BrowserWindow) => void;
+  initAutoUpdater = require(path.join(__dirname, "..", "backend", "main", "autoUpdater.js")).initAutoUpdater as (win: BrowserWindow) => void;
 } catch (_) {
   logger.warn(String("[Main] autoUpdater module not available (run `npm run build:backend` first)"));
 }
@@ -96,6 +109,7 @@ let guardianProcess: ChildProcess | null = null;
 let isQuitting = false;
 let powerSaveId: number | null = null;
 let tray: Tray | null = null;
+let verifiedLicensePublicKey: string | null = null;
 
 // ─── Backend ──────────────────────────────────────────────────────────────────
 
@@ -152,10 +166,12 @@ function waitForBackendHealth(deadline = Date.now() + HEALTH_TIMEOUT): Promise<b
 }
 
 async function startBackend(): Promise<boolean> {
-  const isAlreadyRunning = await checkHealthOnce();
-  if (isAlreadyRunning) {
-    logger.info("[Main] Backend already running on port", { args: [BACKEND_PORT] });
-    return true;
+  if (!app.isPackaged) {
+    const isAlreadyRunning = await checkHealthOnce();
+    if (isAlreadyRunning) {
+      logger.info("[Main] Development backend already running on port", { args: [BACKEND_PORT] });
+      return true;
+    }
   }
 
   return new Promise((resolve, reject) => {
@@ -197,6 +213,9 @@ async function startBackend(): Promise<boolean> {
 
     const backendEnv: NodeJS.ProcessEnv = {
       ...process.env,
+      ...(verifiedLicensePublicKey
+        ? { CLICKFLASH_LICENSE_PUBLIC_KEY: verifiedLicensePublicKey }
+        : {}),
       ELECTRON_RUN_AS_NODE: "1",
       DATA_DIR: dataDir,
       WEB_ROOT: getUnpackedPath("master"),
@@ -214,12 +233,17 @@ async function startBackend(): Promise<boolean> {
     backendProcess.stderr?.on("data", (d: Buffer) => process.stderr.write("[Backend:ERR] " + d));
 
     let resolved = false;
+    let startupTimer: NodeJS.Timeout | null = null;
     const finish = (ok: boolean) => {
       if (!resolved) {
         resolved = true;
+        if (startupTimer) clearTimeout(startupTimer);
         resolve(ok);
       }
     };
+    if (app.isPackaged) {
+      startupTimer = setTimeout(() => finish(false), HEALTH_TIMEOUT);
+    }
 
     backendProcess.on("error", (err: Error) => {
       logger.error("[Main] Backend fork error:", { args: [err.message] });
@@ -230,7 +254,7 @@ async function startBackend(): Promise<boolean> {
       logger.warn("[Main] Backend exited (code", { args: [code, ")"] });
       if (!isQuitting) {
         logger.info(String("[Main] Respawning backend in 3 s..."));
-        setTimeout(() => startBackend().catch(console.error), 3000);
+        setTimeout(() => startBackend().catch(logger.error), 3000);
       }
     });
 
@@ -246,7 +270,11 @@ async function startBackend(): Promise<boolean> {
       }
     });
 
-    waitForBackendHealth().then((ok) => finish(ok));
+    // Packaged startup trusts only the child-process ready message. A generic
+    // HTTP response on the well-known port could belong to another process.
+    if (!app.isPackaged) {
+      waitForBackendHealth().then((ok) => finish(ok));
+    }
   });
 }
 
@@ -563,7 +591,12 @@ function setupIpc(): void {
       return { success: false, error: `Too many attempts. Try again in ${secsLeft}s` };
     }
 
-    const pin = typeof rawPin === "string" ? rawPin : "";
+    let pin: string;
+    try {
+      pin = parseKioskPin(rawPin);
+    } catch {
+      return { success: false, error: "Invalid PIN format" };
+    }
 
     let isValid: boolean;
     if (pin.length !== expected.length) {
@@ -610,8 +643,9 @@ function setupIpc(): void {
     return { success: true };
   });
 
-  registerIpcHandler("dialog:openDirectory", async (_e: IpcMainInvokeEvent, opts?: { title?: string; buttonLabel?: string }) => {
+  registerIpcHandler("dialog:openDirectory", async (_e: IpcMainInvokeEvent, rawOptions: unknown) => {
     if (!mainWindow) return null;
+    const opts = parseOpenDirectoryOptions(rawOptions);
     const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
       properties: ["openDirectory"],
       title: opts?.title ?? "Select Folder",
@@ -620,8 +654,9 @@ function setupIpc(): void {
     return canceled ? null : filePaths[0];
   });
 
-  registerIpcHandler("dialog:openFile", async (_e: IpcMainInvokeEvent, opts?: { multiple?: boolean; title?: string; filters?: Electron.FileFilter[] }) => {
+  registerIpcHandler("dialog:openFile", async (_e: IpcMainInvokeEvent, rawOptions: unknown) => {
     if (!mainWindow) return null;
+    const opts = parseOpenFileOptions(rawOptions);
     const props: Array<"openFile" | "multiSelections"> = opts?.multiple ? ["openFile", "multiSelections"] : ["openFile"];
     const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
       properties: props,
@@ -632,14 +667,36 @@ function setupIpc(): void {
     return opts?.multiple ? filePaths : filePaths[0];
   });
 
-  registerIpcHandler("dialog:saveFile", async (_e: IpcMainInvokeEvent, opts?: { title?: string; filters?: Electron.FileFilter[]; defaultPath?: string }) => {
+  registerIpcHandler("dialog:saveFile", async (_e: IpcMainInvokeEvent, rawOptions: unknown) => {
     if (!mainWindow) return null;
+    const opts = parseSaveFileOptions(rawOptions);
     const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
       title: opts?.title ?? "Save File",
       filters: opts?.filters,
       defaultPath: opts?.defaultPath,
     });
     return canceled ? null : filePath;
+  });
+
+  registerIpcHandler("printing:getPrinters", async () => {
+    if (!mainWindow) return [];
+    return mainWindow.webContents.getPrintersAsync();
+  });
+
+  registerIpcHandler("printing:print", (_e: IpcMainInvokeEvent, rawOptions: unknown) => {
+    const options = parsePrintOptions(rawOptions);
+    if (!mainWindow) throw new Error("Print window is unavailable");
+
+    return new Promise<{ success: true }>((resolve, reject) => {
+      mainWindow!.webContents.print({
+        silent: options.silent,
+        printBackground: true,
+        deviceName: options.printer,
+      }, (success, errorType) => {
+        if (!success) reject(new Error(errorType || "Print failed"));
+        else resolve({ success: true });
+      });
+    });
   });
 }
 
@@ -675,6 +732,62 @@ function shutdown(): void {
   }
   try { if (tray && !tray.isDestroyed()) tray.destroy(); } catch (_) {}
   app.quit();
+}
+
+async function enforceDesktopLicense(): Promise<boolean> {
+  const isDevelopment = !app.isPackaged && process.env.NODE_ENV !== "production";
+  if (isDevelopment && process.env.BYPASS_LICENSE_CHECK === "true") {
+    logger.warn(String("[Licensing] BYPASS_LICENSE_CHECK is enabled for development"));
+    return true;
+  }
+  if (!safeStorage.isEncryptionAvailable()) {
+    logger.error(String("[Licensing] OS-protected storage is unavailable"));
+    return false;
+  }
+
+  const publicKey = loadConfiguredLicensePublicKey();
+  if (!isValidEd25519PublicKey(publicKey)) {
+    logger.error(String("[Licensing] CLICKFLASH_LICENSE_PUBLIC_KEY is missing or invalid"));
+    return false;
+  }
+  const configPath = path.join(app.getPath("home"), ".clickflash", "installer-config.json");
+  try {
+    const machineId = await getLicenseMachineId();
+    const result = loadProtectedDesktopLicense(
+      configPath,
+      (encrypted) => safeStorage.decryptString(encrypted),
+      publicKey,
+      machineId,
+    );
+    if (!result.valid) {
+      logger.error("[Licensing] Desktop activation rejected", { args: [result.error] });
+      return false;
+    }
+    verifiedLicensePublicKey = publicKey;
+    logger.info("[Licensing] Hardware-bound Ed25519 activation verified", {
+      args: [result.license?.plan, result.license?.maxMasters],
+    });
+    return true;
+  } catch (error) {
+    logger.error("[Licensing] Desktop activation check failed", { args: [error] });
+    return false;
+  }
+}
+
+function loadConfiguredLicensePublicKey(): string | null {
+  const environmentKey = process.env.CLICKFLASH_LICENSE_PUBLIC_KEY?.trim();
+  if (isValidEd25519PublicKey(environmentKey)) return environmentKey;
+  if (!app.isPackaged) return null;
+
+  try {
+    const trustPath = path.join(process.resourcesPath, "license-public-key.txt");
+    const stat = fs.lstatSync(trustPath);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.size <= 0 || stat.size > 256) return null;
+    const packagedKey = fs.readFileSync(trustPath, "utf8").trim();
+    return isValidEd25519PublicKey(packagedKey) ? packagedKey : null;
+  } catch {
+    return null;
+  }
 }
 
 // ─── System Tray (Phase 2-B) ──────────────────────────────────────────────────
@@ -794,59 +907,14 @@ app.whenReady().then(async () => {
     ));
   });
 
-  // --- RSA-4096 LICENSING CHECK ---
-  try {
-    const { verifyLicense, getMachineFingerprint } = require('@clickflash/licensing');
-    const os = require('os');
-    // License should reside securely in the user's home directory
-    const clickflashDir = path.join(os.homedir(), '.clickflash');
-    const licensePath = path.join(clickflashDir, 'license.json');
-    
-    // In production, we embed the public key during CI/CD. 
-    // In dev, we fallback to the local generated key or env var.
-    let PUBLIC_KEY = process.env.CLICKFLASH_PUB_KEY || ''; 
-    const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';
-
-    // Allow a specific local override for rapid development without a license
-    const isBypassEnabled = isDev && process.env.BYPASS_LICENSE_CHECK === 'true';
-
-    if (!isBypassEnabled) {
-      if (!PUBLIC_KEY) {
-        // Fallback for local development testing of the license check
-        const pubKeyPath = path.join(__dirname, '../../packages/licensing/out/public.pem');
-        if (fs.existsSync(pubKeyPath)) {
-          PUBLIC_KEY = fs.readFileSync(pubKeyPath, 'utf8');
-        }
-      }
-
-      if (!fs.existsSync(licensePath)) {
-        logger.error(`[Licensing] No license found at ${licensePath}`);
-        dialog.showErrorBox("License Error", "No valid ClickFlash license found on this machine.");
-        app.quit();
-        return;
-      }
-
-      const licenseData = JSON.parse(fs.readFileSync(licensePath, 'utf8'));
-      const fingerprint = await getMachineFingerprint();
-      
-      const isValid = verifyLicense(licenseData, PUBLIC_KEY, fingerprint);
-      if (!isValid) {
-        logger.error(`[Licensing] Invalid license or hardware mismatch. Expected Fingerprint: ${fingerprint}`);
-        dialog.showErrorBox("Hardware Binding Error", "This license is bound to another machine or has expired. Please contact ClickFlash support.");
-        app.quit();
-        return;
-      }
-      logger.info("[Licensing] Valid RSA-4096 hardware-bound license detected.");
-    } else {
-      logger.warn("[Licensing] BYPASS_LICENSE_CHECK is enabled. Running in development mode.");
-    }
-  } catch (err: unknown) {
-    logger.error("[Licensing] Fatal error during license verification:", { args: [err] });
-    dialog.showErrorBox("License Error", "A fatal error occurred verifying your license.");
+  if (!await enforceDesktopLicense()) {
+    dialog.showErrorBox(
+      "Activation Error",
+      "A valid hardware-bound ClickFlash activation was not found. Run ClickFlash Studio Setup or contact support.",
+    );
     app.quit();
     return;
   }
-  // --------------------------------
 
   protocol.handle("clickflash", (request) => {
     try {
@@ -877,10 +945,9 @@ app.whenReady().then(async () => {
     const backendReady = await startBackend();
     
     if (app.isPackaged && !backendReady) {
-      logger.warn(String("[Main] Backend did not report ready, proceeding anyway..."));
-    } else {
-      logger.info(String("[Main] Backend is fully ready"));
+      throw new Error("Packaged backend did not report ready");
     }
+    logger.info(String("[Main] Backend is fully ready"));
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
     logger.error("[Main] Failed to start backend:", { args: [error.message] });
@@ -888,33 +955,10 @@ app.whenReady().then(async () => {
       (global as any).backendError = "EADDRINUSE";
     } else {
       dialog.showErrorBox("Backend Error", "Failed to start backend: " + error.message);
+      app.quit();
+      return;
     }
   }
-
-  // --- LICENSING CHECK ---
-  try {
-    const { verifyLicense, getMachineFingerprint } = require('@clickflash/licensing');
-    const licensePath = path.join(getDataDir(), 'license.key');
-    if (fs.existsSync(licensePath)) {
-      const licenseData = JSON.parse(fs.readFileSync(licensePath, 'utf8'));
-      const fingerprint = await getMachineFingerprint();
-      const PUBLIC_KEY = process.env.CLICKFLASH_PUB_KEY || ''; // In prod, embed this during build
-      
-      if (PUBLIC_KEY) {
-        const isValid = verifyLicense(licenseData, PUBLIC_KEY, fingerprint);
-        if (!isValid) {
-          dialog.showErrorBox("License Error", "Invalid or expired license for this machine.");
-          app.quit();
-          return;
-        }
-      }
-    } else if (app.isPackaged) {
-      logger.warn("[Licensing] No license.key found, running in unactivated mode.");
-    }
-  } catch (err: unknown) {
-    logger.error("[Licensing] Error verifying license:", { args: [err] });
-  }
-  // -----------------------
 
   createWindow();
   createTray();

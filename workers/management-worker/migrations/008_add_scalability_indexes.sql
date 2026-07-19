@@ -6,7 +6,5 @@ CREATE INDEX IF NOT EXISTS idx_albums_photographerId ON albums(photographerId);
 CREATE INDEX IF NOT EXISTS idx_photos_photographerId ON photos(photographerId);
 -- Index photographerId on orders table
 CREATE INDEX IF NOT EXISTS idx_orders_photographerId ON orders(photographerId);
--- Index albumId on orders table (critical for album-to-order grouping)
-CREATE INDEX IF NOT EXISTS idx_orders_albumId ON orders(albumId);
 -- Index clientEmail on orders for faster customer lookups
 CREATE INDEX IF NOT EXISTS idx_orders_email ON orders(email);

@@ -40,7 +40,8 @@ test.describe('Kiosk Mode Security', () => {
     test.describe('Kiosk Mode Transitions', () => {
         test('should transition to kiosk mode from admin panel', async () => {
             // Navigate to admin panel
-            await page.goto('http://localhost:8090');
+            const masterUrl = process.env.MASTER_URL || 'http://localhost:8090';
+            await page.goto(masterUrl);
             
             // Login as admin
             await page.fill('[data-testid="username-input"]', 'admin@clickflash.ai');
@@ -119,7 +120,8 @@ test.describe('Kiosk Mode Security', () => {
 
     test.describe('PIN Security', () => {
         test('should enforce 4-digit PIN minimum', async () => {
-            await page.goto('http://localhost:8090/settings/kiosk');
+            const masterUrl = process.env.MASTER_URL || 'http://localhost:8090';
+            await page.goto(`${masterUrl}/settings/kiosk`);
             
             // Try to set short PIN
             await page.fill('[data-testid="kiosk-pin-input"]', '123');
@@ -328,7 +330,8 @@ test.describe('Kiosk Mode Security', () => {
         test('should prevent multiple kiosk instances', async () => {
             // Try to open second instance
             const newPage = await page.context().newPage();
-            await newPage.goto('http://localhost:8090/kiosk');
+            const masterUrl = process.env.MASTER_URL || 'http://localhost:8090';
+            await newPage.goto(`${masterUrl}/kiosk`);
             
             // Should show error about existing session
             const error = await newPage.isVisible('[data-testid="kiosk-session-exists"]');

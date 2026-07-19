@@ -122,7 +122,7 @@ export class FeatureErrorBoundary extends Component<
     // Default error UI
     return (
       <div className="min-h-[400px] flex items-center justify-center p-8">
-        <div className="max-w-md w-full bg-zinc-900/50 border border-red-500/30 rounded-2xl p-8 text-center">
+        <div className="max-w-md w-full bg-[#131C31]/50 border border-red-500/30 rounded-2xl p-8 text-center">
           {/* Error Icon */}
           <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="w-10 h-10 text-red-500" />
@@ -134,7 +134,7 @@ export class FeatureErrorBoundary extends Component<
           </h2>
           
           {featureName && (
-            <p className="text-sm text-zinc-500 mb-4">
+            <p className="text-sm text-white/60 mb-4">
               Error in {featureName}
             </p>
           )}
@@ -142,7 +142,7 @@ export class FeatureErrorBoundary extends Component<
           {/* Error Message */}
           {error && (
             <div className="bg-black/50 rounded-lg p-4 mb-6 text-left">
-              <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">
+              <p className="text-xs text-white/60 uppercase tracking-wider mb-2">
                 Error Details
               </p>
               <p className="text-sm text-red-400 font-mono break-all">
@@ -166,14 +166,14 @@ export class FeatureErrorBoundary extends Component<
             <div className="flex gap-3">
               <button
                 onClick={this.handleReload}
-                className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl transition-colors text-sm"
+                className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-colors text-sm"
               >
                 Reload Page
               </button>
               
               <button
                 onClick={this.handleGoHome}
-                className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl transition-colors text-sm flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-colors text-sm flex items-center justify-center gap-2"
               >
                 <Home className="w-4 h-4" />
                 Go Home
@@ -182,7 +182,7 @@ export class FeatureErrorBoundary extends Component<
           </div>
 
           {/* Support Info */}
-          <p className="text-xs text-zinc-600 mt-6">
+          <p className="text-xs text-white/50 mt-6">
             If this problem persists, please contact support with the error details above.
           </p>
         </div>
@@ -200,19 +200,19 @@ export function UploadErrorBoundary({ children }: { children: ReactNode }) {
       featureName="Upload Feature"
       fallback={
         <div className="min-h-[400px] flex items-center justify-center p-8">
-          <div className="max-w-md w-full bg-zinc-900/50 border border-yellow-500/30 rounded-2xl p-8 text-center">
-            <div className="w-20 h-20 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Upload className="w-10 h-10 text-yellow-500" />
+          <div className="max-w-md w-full bg-[#131C31]/50 border border-yellow-500/30 rounded-2xl p-8 text-center">
+            <div className="w-20 h-20 bg-[#06B6D4]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Upload className="w-10 h-10 text-[#06B6D4]" />
             </div>
             <h2 className="text-xl font-bold text-white mb-2">
               Upload Temporarily Unavailable
             </h2>
-            <p className="text-sm text-zinc-400 mb-6">
+            <p className="text-sm text-white/70 mb-6">
               We&apos;re having trouble with the upload feature. Your files are safe and you can try again.
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-medium rounded-xl transition-colors"
+              className="px-6 py-3 bg-[#06B6D4] hover:bg-[#06B6D4]/80 text-black font-medium rounded-xl transition-colors"
             >
               Retry Upload
             </button>

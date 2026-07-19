@@ -1,145 +1,119 @@
-name: Deploy ClickFlash Ecosystem
+name: Cloudflare Worker Deployment
 
 on:
   push:
-    branches: [main, production]
+    branches: [main]
     paths:
-      - 'apps/gallery/**'
-      - 'apps/moneytrash/**'
-      - 'apps/management/**'
-      - 'apps/website/**'
+      - 'workers/**'
   workflow_dispatch:
     inputs:
-      app:
-        description: 'App to deploy'
+      worker:
+        description: 'Worker to deploy'
         required: true
+        default: 'all'
         type: choice
         options:
           - all
           - gallery
-          - moneytrash
           - management
-          - website
+          - moneytrash
+          - update-server
+
+concurrency:
+  group: cloudflare-workers-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '10.28.2'
 
 jobs:
-  deploy-gallery:
-    if: github.event.inputs.app == 'all' || github.event.inputs.app == 'gallery' || github.event_name == 'push'
+  deploy:
+    name: Deploy ${{ matrix.name }}
     runs-on: ubuntu-latest
-    name: Deploy Gallery Worker
+    environment: production
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: gallery
+            name: Gallery Worker
+            path: workers/gallery-worker
+          - id: management
+            name: Management Worker
+            path: workers/management-worker
+          - id: moneytrash
+            name: MoneyTrash Worker
+            path: workers/moneytrash-worker
+          - id: update-server
+            name: Update Server
+            path: workers/update-server
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout
+        if: inputs.worker == 'all' || inputs.worker == matrix.id
+        uses: actions/checkout@v4
+
       - name: Setup pnpm
+        if: inputs.worker == 'all' || inputs.worker == matrix.id
         uses: pnpm/action-setup@v3
         with:
-          version: '10.28.2'
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
+        if: inputs.worker == 'all' || inputs.worker == matrix.id
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
       - name: Install dependencies
+        if: inputs.worker == 'all' || inputs.worker == matrix.id
         run: pnpm install --frozen-lockfile
 
-      - name: Build Gallery
-        run: pnpm --filter star-master-customer run build
-
-      - name: Deploy Gallery Worker
+      - name: Apply Gallery DB migrations
+        if: matrix.id == 'gallery' && (inputs.worker == 'all' || inputs.worker == 'gallery')
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: workers/gallery-worker
-          command: deploy
+          command: d1 migrations apply gallery-db --remote
 
-  deploy-moneytrash:
-    if: github.event.inputs.app == 'all' || github.event.inputs.app == 'moneytrash' || github.event_name == 'push'
-    runs-on: ubuntu-latest
-    name: Deploy MoneyTrash Worker
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: '10.28.2'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Deploy MoneyTrash Worker
+      - name: Apply Website DB migrations
+        if: matrix.id == 'gallery' && (inputs.worker == 'all' || inputs.worker == 'gallery')
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: workers/moneytrash-worker
-          command: deploy
+          workingDirectory: workers/gallery-worker
+          command: d1 migrations apply clickflash-website-db --remote
 
-  deploy-management:
-    if: github.event.inputs.app == 'all' || github.event.inputs.app == 'management' || github.event_name == 'push'
-    runs-on: ubuntu-latest
-    name: Deploy Management Worker
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: '10.28.2'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Deploy Management Worker
+      - name: Apply Management DB migrations
+        if: matrix.id == 'management' && (inputs.worker == 'all' || inputs.worker == 'management')
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: workers/management-worker
-          command: deploy
+          command: d1 migrations apply management-db --remote
 
-  deploy-website:
-    if: github.event.inputs.app == 'all' || github.event.inputs.app == 'website' || github.event_name == 'push'
-    runs-on: ubuntu-latest
-    name: Deploy Website Pages
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: '10.28.2'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build Website
-        run: pnpm --filter main-website exec npx @cloudflare/next-on-pages
-
-      - name: Deploy Website Pages
+      - name: Apply MoneyTrash DB migrations
+        if: matrix.id == 'moneytrash' && (inputs.worker == 'all' || inputs.worker == 'moneytrash')
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/website
-          command: pages deploy .vercel/output/static --project-name=clickflash-website --branch=main --commit-dirty=true
+          workingDirectory: workers/moneytrash-worker
+          command: d1 migrations apply moneytrash-db --remote
+
+      - name: Deploy Worker
+        if: inputs.worker == 'all' || inputs.worker == matrix.id
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ${{ matrix.path }}
+          command: deploy

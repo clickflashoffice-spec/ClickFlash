@@ -11,10 +11,10 @@ import { Logger } from '../backend/utils/logger';
 
 // Mock logger
 const logger: Logger = {
-  info: (message: string, ...args: unknown[]) => console.log(`[INFO] ${message}`, ...args),
-  warn: (message: string, ...args: unknown[]) => console.log(`[WARN] ${message}`, ...args),
-  error: (message: string, error?: Error, ...args: unknown[]) => console.error(`[ERROR] ${message}`, error, ...args),
-  debug: (message: string, ...args: unknown[]) => console.log(`[DEBUG] ${message}`, ...args),
+  info: (message: string, ...args: unknown[]) => process.stdout.write(`[INFO] ${message} ${args.join(' ')}\n`),
+  warn: (message: string, ...args: unknown[]) => process.stdout.write(`[WARN] ${message} ${args.join(' ')}\n`),
+  error: (message: string, errorOrMeta?: unknown, meta?: unknown) => process.stderr.write(`[ERROR] ${message} ${errorOrMeta || ''} ${meta || ''}\n`),
+  debug: (message: string, ...args: unknown[]) => process.stdout.write(`[DEBUG] ${message} ${args.join(' ')}\n`),
 } as unknown as Logger;
 
 // Mock fetch with Cloudflare API response format
@@ -82,20 +82,20 @@ function createMockFetch() {
 }
 
 async function testCredentialValidation() {
-  console.log('\n=== Test: Credential Validation ===');
+  logger.info('\n=== Test: Credential Validation ===');
   
   const service = new CloudflareAppsProvisioningService(null as any, logger);
   const restore = createMockFetch();
   
   const valid = await service.validateCredentials('fake-token', 'test-account');
-  console.log(`Credential validation result: ${valid ? '✅ PASS' : '❌ FAIL'}`);
+  logger.info(`Credential validation result: ${valid ? '✅ PASS' : '❌ FAIL'}`);
   
   restore();
   return valid;
 }
 
 async function testTunnelCreation() {
-  console.log('\n=== Test: Tunnel Creation ===');
+  logger.info('\n=== Test: Tunnel Creation ===');
   
   const service = new CloudflareAppsProvisioningService(null as any, logger);
   const restore = createMockFetch();
@@ -112,16 +112,16 @@ async function testTunnelCreation() {
   restore();
   
   if (result.tunnel && result.tunnel.tunnelId === 'tunnel-123') {
-    console.log(`Tunnel creation: ✅ PASS (ID: ${result.tunnel.tunnelId})`);
+    logger.info(`Tunnel creation: ✅ PASS (ID: ${result.tunnel.tunnelId})`);
     return true;
   } else {
-    console.log(`Tunnel creation: ❌ FAIL (got: ${JSON.stringify(result.tunnel)})`);
+    logger.info(`Tunnel creation: ❌ FAIL (got: ${JSON.stringify(result.tunnel)})`);
     return false;
   }
 }
 
 async function testDNSConfiguration() {
-  console.log('\n=== Test: DNS Configuration ===');
+  logger.info('\n=== Test: DNS Configuration ===');
   
   const service = new CloudflareAppsProvisioningService(null as any, logger);
   const restore = createMockFetch();
@@ -138,16 +138,16 @@ async function testDNSConfiguration() {
   restore();
   
   if (result.dnsRecords && result.dnsRecords.length >= 3) {
-    console.log(`DNS configuration: ✅ PASS (${result.dnsRecords.length} records)`);
+    logger.info(`DNS configuration: ✅ PASS (${result.dnsRecords.length} records)`);
     return true;
   } else {
-    console.log(`DNS configuration: ❌ FAIL (expected 3+ records, got ${result.dnsRecords?.length || 0})`);
+    logger.info(`DNS configuration: ❌ FAIL (expected 3+ records, got ${result.dnsRecords?.length || 0})`);
     return false;
   }
 }
 
 async function testGalleryAppRegistration() {
-  console.log('\n=== Test: Gallery App Registration ===');
+  logger.info('\n=== Test: Gallery App Registration ===');
   
   const service = new CloudflareAppsProvisioningService(null as any, logger);
   const restore = createMockFetch();
@@ -170,16 +170,16 @@ async function testGalleryAppRegistration() {
   restore();
   
   if (result.app && result.app.id && result.app.id.startsWith('proj-')) {
-    console.log(`Gallery app registration: ✅ PASS (ID: ${result.app.id})`);
+    logger.info(`Gallery app registration: ✅ PASS (ID: ${result.app.id})`);
     return true;
   } else {
-    console.log(`Gallery app registration: ❌ FAIL (got: ${JSON.stringify(result.app)})`);
+    logger.info(`Gallery app registration: ❌ FAIL (got: ${JSON.stringify(result.app)})`);
     return false;
   }
 }
 
 async function testManagementAppRegistration() {
-  console.log('\n=== Test: Management App Registration ===');
+  logger.info('\n=== Test: Management App Registration ===');
   
   const service = new CloudflareAppsProvisioningService(null as any, logger);
   const restore = createMockFetch();
@@ -202,16 +202,16 @@ async function testManagementAppRegistration() {
   restore();
   
   if (result.app && result.app.id && result.app.id.startsWith('proj-')) {
-    console.log(`Management app registration: ✅ PASS (ID: ${result.app.id})`);
+    logger.info(`Management app registration: ✅ PASS (ID: ${result.app.id})`);
     return true;
   } else {
-    console.log(`Management app registration: ❌ FAIL (got: ${JSON.stringify(result.app)})`);
+    logger.info(`Management app registration: ❌ FAIL (got: ${JSON.stringify(result.app)})`);
     return false;
   }
 }
 
 async function testWorkersScriptCreation() {
-  console.log('\n=== Test: Workers Script Creation ===');
+  logger.info('\n=== Test: Workers Script Creation ===');
   
   const service = new CloudflareAppsProvisioningService(null as any, logger);
   const restore = createMockFetch();
@@ -228,18 +228,18 @@ async function testWorkersScriptCreation() {
   restore();
   
   if (result.scriptId && result.scriptId.startsWith('worker-')) {
-    console.log(`Workers script creation: ✅ PASS (ID: ${result.scriptId})`);
+    logger.info(`Workers script creation: ✅ PASS (ID: ${result.scriptId})`);
     return true;
   } else {
-    console.log(`Workers script creation: ❌ FAIL (got: ${JSON.stringify(result.scriptId)})`);
+    logger.info(`Workers script creation: ❌ FAIL (got: ${JSON.stringify(result.scriptId)})`);
     return false;
   }
 }
 
 async function runAllTests() {
-  console.log('╔════════════════════════════════════════════════════════════╗');
-  console.log('║     ClickFlash Cloudflare Provisioning - Mock Tests        ║');
-  console.log('╚════════════════════════════════════════════════════════════╝');
+  logger.info('╔════════════════════════════════════════════════════════════╗');
+  logger.info('║     ClickFlash Cloudflare Provisioning - Mock Tests        ║');
+  logger.info('╚════════════════════════════════════════════════════════════╝');
   
   const results: Record<string, boolean> = {};
   const tests: [string, () => Promise<boolean>][] = [
@@ -255,27 +255,27 @@ async function runAllTests() {
     try {
       results[name] = await testFn();
     } catch (e: any) {
-      console.log(`  ${name}: ❌ ERROR - ${e.message}`);
+      logger.info(`  ${name}: ❌ ERROR - ${e.message}`);
       results[name] = false;
     }
   }
   
-  console.log('\n╔════════════════════════════════════════════════════════════╗');
-  console.log('║                    TEST RESULTS SUMMARY                    ║');
-  console.log('╚════════════════════════════════════════════════════════════╝');
+  logger.info('\n╔════════════════════════════════════════════════════════════╗');
+  logger.info('║                    TEST RESULTS SUMMARY                    ║');
+  logger.info('╚════════════════════════════════════════════════════════════╝');
   
   const allPassed = Object.values(results).every(r => r);
   
   Object.entries(results).forEach(([test, passed]) => {
     const status = passed ? '✅ PASS' : '❌ FAIL';
-    console.log(`  ${test}: ${status}`);
+    logger.info(`  ${test}: ${status}`);
   });
   
-  console.log('');
-  console.log(`Overall: ${allPassed ? '✅ ALL TESTS PASSED' : '❌ SOME TESTS FAILED'}`);
-  console.log('');
+  logger.info('');
+  logger.info(`Overall: ${allPassed ? '✅ ALL TESTS PASSED' : '❌ SOME TESTS FAILED'}`);
+  logger.info('');
   
   process.exit(allPassed ? 0 : 1);
 }
 
-runAllTests().catch(console.error);
+runAllTests().catch(logger.error);

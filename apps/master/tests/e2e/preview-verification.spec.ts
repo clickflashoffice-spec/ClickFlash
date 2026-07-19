@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import path from "path";
 
 test.describe("Production Preview Verification", () => {
-  const PREVIEW_URL = "http://localhost:5174";
+  const PREVIEW_URL = process.env.PREVIEW_URL || "http://localhost:5174";
 
   test("should load login page, authenticate, verify dashboard, and logout", async ({ page }, testInfo) => {
     const artifactsDir = testInfo.outputPath();

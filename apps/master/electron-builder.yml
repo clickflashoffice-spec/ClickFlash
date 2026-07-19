@@ -17,6 +17,7 @@ files:
   - "!build/**/*"
   - "!**/*.map"
   - node_modules/**/*
+  - "!node_modules/@clickflash/licensing/**/*"
 
 # CRITICAL: Native .node binaries MUST be unpacked from asar.
 # fork() with ELECTRON_RUN_AS_NODE cannot read asar archives.
@@ -31,6 +32,8 @@ asarUnpack:
   - "node_modules/file-uri-to-path"
 
 extraResources:
+  - from: build/generated/license-public-key.txt
+    to: license-public-key.txt
   - from: installer_scripts
     to: installer_scripts
   - from: helper_scripts
@@ -43,23 +46,24 @@ extraResources:
     to: tray-icon.png
 
 win:
-  target: nsis
+  target:
+    - target: nsis
+      arch:
+        - x64
   icon: build/icon.ico
   requestedExecutionLevel: requireAdministrator
   forceCodeSigning: false
   signAndEditExecutable: false
+  sign: "../../scripts/ev-sign.js"
 
 compression: maximum
 
 nsis:
-  oneClick: false
-  allowToChangeInstallationDirectory: true
+  oneClick: true
+  allowToChangeInstallationDirectory: false
   perMachine: true
   include: build/installer.nsh
   deleteAppDataOnUninstall: false
-  createDesktopShortcut: false
-  runAfterFinish: false
-  shortcutName: ClickFlash Master OS
   installerIcon: build/icon.ico
   uninstallerIcon: build/icon.ico
   uninstallDisplayName: ClickFlash Master OS

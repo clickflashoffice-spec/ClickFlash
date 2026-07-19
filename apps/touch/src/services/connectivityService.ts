@@ -100,23 +100,10 @@ class ConnectivityService {
     public async startAutoDiscovery(): Promise<void> {
         logger.info('[Connectivity] Starting auto-discovery...');
 
-        // Check if Electron IPC bridge is available
-        if (typeof window !== 'undefined' && (window as any).electronAPI?.startUdpDiscovery) {
-            try {
-                const masterInfo = await (window as any).electronAPI.startUdpDiscovery();
-                if (masterInfo && masterInfo.host) {
-                    logger.info(`[Connectivity] Auto-discovered Master via UDP at ${masterInfo.host}`);
-                    localStorage.setItem('masterLocalIPAddress', masterInfo.host);
-                    this.updateMasterUrl(masterInfo.host);
-                    this.probe();
-                    return;
-                }
-            } catch (error) {
-                logger.warn('[Connectivity] UDP Discovery failed', { error: (error as Error).message });
-            }
-        } else {
-            // Fallback for browser mode: Sweep common local subnet IPs (192.168.1.1 to .254)
-            logger.info('[Connectivity] Browser mode detected, falling back to subnet sweep...');
+        // Discovery is implemented in the renderer until a constrained main-process
+        // UDP contract is available.
+        {
+            logger.info('[Connectivity] Starting bounded subnet discovery...');
             const controller = new AbortController();
             const sweepTimeout = setTimeout(() => controller.abort(), 1500);
 

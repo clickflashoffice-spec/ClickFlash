@@ -359,18 +359,9 @@ const AlbumEditorComponent: React.FC<AlbumEditorProps> = ({
     try {
       // Phase P4: Native Directory Picker via Electron IPC
       let targetDir = "";
-      const electron = (window as { electron?: { ipcRenderer?: { invoke: (channel: string, ...args: unknown[]) => Promise<unknown> }; invoke?: (channel: string, ...args: unknown[]) => Promise<unknown> } }).electron;
-      if (electron?.ipcRenderer?.invoke) {
-        const selectedDir = await electron.ipcRenderer.invoke("dialog:openDirectory") as string | null;
-        if (!selectedDir) return; // User canceled
-        // Validate: must be absolute path, no traversal
-        if (/\.\.[/\\]/.test(selectedDir)) {
-          showToast("Invalid export directory.");
-          return;
-        }
-        targetDir = selectedDir;
-      } else if (electron?.invoke) {
-        const selectedDir = await electron.invoke("dialog:openDirectory") as string | null;
+      const electron = window.electron;
+      if (electron) {
+        const selectedDir = await electron.dialogs.openDirectory({ title: "Select export folder" });
         if (!selectedDir) return;
         if (/\.\.[/\\]/.test(selectedDir)) {
           showToast("Invalid export directory.");

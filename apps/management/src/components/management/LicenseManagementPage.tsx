@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from "react";
 import { Key, ShieldCheck, Cpu, AlertTriangle, Search, Copy, Check, Download, RefreshCw, Plus, X } from "lucide-react";
+import { pb } from "@/services/pb";
+import { logger } from "@/utils/logger";
 
 export interface EnterpriseLicenseRecord {
   id: string;
   resortName: string;
   destinationId: string;
   licenseKey: string;
-  tier: "ENTERPRISE" | "PRO" | "RESORT";
+  tier: "ENTERPRISE" | "PRO" | "STARTER";
   hardwareUuid: string;
   issuedAt: string;
   expiresAt: string;
@@ -14,44 +16,7 @@ export interface EnterpriseLicenseRecord {
   signatureValid: boolean;
 }
 
-const INITIAL_LICENSES: EnterpriseLicenseRecord[] = [
-  {
-    id: "lic-001",
-    resortName: "Grand Riviera Beach & Casino",
-    destinationId: "DEST-RIV-01",
-    licenseKey: "eyJwYXlsb2FkIjp7Im1hY2hpbmVGaW5nZXJwcmludC... (RSA-4096 Base64)",
-    tier: "ENTERPRISE",
-    hardwareUuid: "49AE-99B1-82C4-FA11",
-    issuedAt: "2026-01-15",
-    expiresAt: "2028-12-31",
-    status: "ACTIVE",
-    signatureValid: true,
-  },
-  {
-    id: "lic-002",
-    resortName: "Alamo Alpine Ski Resort",
-    destinationId: "DEST-ALP-04",
-    licenseKey: "eyJwYXlsb2FkIjp7Im1hY2hpbmVGaW5nZXJwcmludC... (RSA-4096 Base64)",
-    tier: "PRO",
-    hardwareUuid: "B821-44A0-91C3-11D9",
-    issuedAt: "2026-02-01",
-    expiresAt: "2027-06-30",
-    status: "ACTIVE",
-    signatureValid: true,
-  },
-  {
-    id: "lic-003",
-    resortName: "Sunset Palms Island Club",
-    destinationId: "DEST-SUN-09",
-    licenseKey: "eyJwYXlsb2FkIjp7Im1hY2hpbmVGaW5nZXJwcmludC... (RSA-4096 Base64)",
-    tier: "RESORT",
-    hardwareUuid: "009F-11C2-77AA-55EE",
-    issuedAt: "2025-07-15",
-    expiresAt: "2026-07-15",
-    status: "WARNING",
-    signatureValid: true,
-  },
-];
+const INITIAL_LICENSES: EnterpriseLicenseRecord[] = [];
 
 export const LicenseManagementPage: React.FC = () => {
   const [licenses, setLicenses] = useState<EnterpriseLicenseRecord[]>(INITIAL_LICENSES);
@@ -80,13 +45,19 @@ export const LicenseManagementPage: React.FC = () => {
     setIsGenerating(true);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/admin/licenses`, {
+      const response = await fetch(`${pb.baseUrl}/api/admin/licenses`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${pb.authStore.token}`,
+        },
         body: JSON.stringify(newLicenseForm)
       });
       
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || data.error || "License generation failed");
+      }
       
       if (data.success && data.license) {
         // Create a blob and download it
@@ -105,11 +76,11 @@ export const LicenseManagementPage: React.FC = () => {
           id: `lic-${Date.now()}`,
           resortName: newLicenseForm.resortName,
           destinationId: newLicenseForm.destinationId,
-          licenseKey: `${data.license.signature.substring(0, 32)}... (RSA-4096 Base64)`,
-          tier: newLicenseForm.tier as "ENTERPRISE" | "PRO" | "RESORT",
+          licenseKey: data.license.key,
+          tier: newLicenseForm.tier as "ENTERPRISE" | "PRO" | "STARTER",
           hardwareUuid: newLicenseForm.hardwareUuid,
-          issuedAt: new Date().toISOString().split('T')[0],
-          expiresAt: newLicenseForm.expiresAt || "Never",
+          issuedAt: String(data.license.createdAt).split('T')[0],
+          expiresAt: data.license.expiresAt || "Unknown",
           status: "ACTIVE",
           signatureValid: true
         };
@@ -121,8 +92,8 @@ export const LicenseManagementPage: React.FC = () => {
         alert("Failed to generate license: " + (data.error || "Unknown error"));
       }
     } catch (err) {
-      console.error(err);
-      alert("Error contacting cloud backend.");
+      logger.error("License generation failed", err);
+      alert(err instanceof Error ? err.message : "Error contacting the management backend.");
     } finally {
       setIsGenerating(false);
     }
@@ -174,7 +145,7 @@ export const LicenseManagementPage: React.FC = () => {
           </div>
           <h1 className="text-3xl font-bold tracking-tight mt-1">Enterprise License Administration</h1>
           <p className="text-slate-400 text-sm mt-1">
-            Audit RSA-4096 asymmetric license tokens, hardware machine fingerprints, and resort expirations.
+            Audit Ed25519 license tokens, hardware machine fingerprints, and resort expirations.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -233,7 +204,7 @@ export const LicenseManagementPage: React.FC = () => {
           />
         </div>
         <div className="flex items-center gap-2">
-          {["ALL", "ENTERPRISE", "PRO", "RESORT"].map((tier) => (
+          {["ALL", "ENTERPRISE", "PRO", "STARTER"].map((tier) => (
             <button
               key={tier}
               onClick={() => setSelectedTier(tier)}
@@ -307,7 +278,7 @@ export const LicenseManagementPage: React.FC = () => {
                     <button
                       onClick={() => handleCopyKey(lic.id, lic.licenseKey)}
                       className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-colors"
-                      title="Copy full RSA-4096 license token"
+                      title="Copy full Ed25519 license token"
                     >
                       {copiedId === lic.id ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                     </button>
@@ -353,7 +324,7 @@ export const LicenseManagementPage: React.FC = () => {
                   <select value={newLicenseForm.tier} onChange={e => setNewLicenseForm({...newLicenseForm, tier: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none">
                     <option value="PRO">PRO</option>
                     <option value="ENTERPRISE">ENTERPRISE</option>
-                    <option value="RESORT">RESORT</option>
+                    <option value="STARTER">STARTER</option>
                   </select>
                 </div>
                 <div className="space-y-2">

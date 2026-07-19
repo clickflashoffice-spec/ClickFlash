@@ -65,6 +65,12 @@ const formatMoney = (value: number): string => `$${roundMoney(value).toFixed(2)}
  * It uses only data supplied by ClickFlash and never calls an external model.
  */
 export class PixelFounderService {
+  private geminiApiKey?: string;
+
+  constructor(geminiApiKey?: string) {
+    this.geminiApiKey = geminiApiKey;
+  }
+
   async generateSalesForecast(metrics: Partial<SalesMetrics> = {}): Promise<{
     end_of_week_revenue: number;
     end_of_month_revenue: number;
@@ -211,6 +217,38 @@ export class PixelFounderService {
     const totalOrders = readMetric(context, ["totalOrders", "total_orders"]);
     const pendingOrders = readMetric(context, ["pendingOrders", "pending_orders"]);
     const revenue = readMetric(context, ["revenueToday", "totalRevenue", "revenue"]);
+
+    if (this.geminiApiKey) {
+      const promptContext = JSON.stringify(context || {});
+      const fullPrompt = `You are PixelFounder, the autonomous AI agent for ClickFlash (an enterprise attraction photography company).
+Current Scope: ${activeContext}
+Live Metrics: ${promptContext}
+
+The user asks: "${message}"
+
+Provide a concise, professional, and highly actionable response. You are authorized to take autonomous actions, so if the user asks you to execute remote fleet commands (e.g., rebooting kiosks, pushing media), you should confirm the action is being executed autonomously. Do not ask for approval if taking an action is clear. Keep your response brief.`;
+
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.geminiApiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: fullPrompt }] }]
+          })
+        });
+
+        if (response.ok) {
+          const data: any = await response.json();
+          if (data.candidates && data.candidates[0] && data.candidates[0].content.parts[0].text) {
+             return data.candidates[0].content.parts[0].text;
+          }
+        } else {
+           console.error("Gemini API error:", await response.text());
+        }
+      } catch (err) {
+        console.error("Failed to fetch from Gemini API", err);
+      }
+    }
 
     if (normalizedMessage.includes("single brief actionable alert")) {
       if (pendingOrders !== undefined && pendingOrders > 0) {

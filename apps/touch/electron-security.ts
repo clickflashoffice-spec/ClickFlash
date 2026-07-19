@@ -1,3 +1,5 @@
+import path from "path";
+
 interface IpcSenderEventLike {
     sender: unknown;
     senderFrame: unknown;
@@ -30,5 +32,24 @@ export function isTrustedLoopbackRendererUrl(value: unknown, port: number | null
         return url.protocol === "http:" && loopback && Number(url.port || "80") === port;
     } catch {
         return false;
+    }
+}
+
+export function resolveRendererAssetPath(root: string, requestUrl: unknown): string | null {
+    if (typeof requestUrl !== "string" || requestUrl.includes("\0")) return null;
+
+    try {
+        const url = new URL(requestUrl, "http://127.0.0.1");
+        const decodedPath = decodeURIComponent(url.pathname);
+        const relativePath = decodedPath === "/"
+            ? "index.html"
+            : decodedPath.replace(/^[/\\]+/, "");
+        const resolvedRoot = path.resolve(root);
+        const resolvedPath = path.resolve(resolvedRoot, relativePath);
+        const relative = path.relative(resolvedRoot, resolvedPath);
+        if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) return null;
+        return resolvedPath;
+    } catch {
+        return null;
     }
 }

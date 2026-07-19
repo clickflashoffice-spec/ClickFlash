@@ -25,6 +25,12 @@ export interface SyncContext {
   cloudEmail: string;
   cloudPassword: string;
   token: string | null;
+  bandwidthThrottle?: {
+    isThrottled: boolean;
+    maxUploadRateKbps: number;
+    delayBetweenChunksMs: number;
+    reason: string;
+  };
 
   setToken(token: string | null): void;
   getHeaders(): Promise<Record<string, string>>;

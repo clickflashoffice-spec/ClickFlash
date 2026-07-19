@@ -161,3 +161,6 @@ export const AnnotationCanvas: React.FC<AnnotationCanvasProps> = React.memo(({
         />
     );
 });
+
+AnnotationCanvas.displayName = 'AnnotationCanvas';
+

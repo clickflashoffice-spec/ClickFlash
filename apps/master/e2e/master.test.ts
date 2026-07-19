@@ -18,7 +18,7 @@ const DEFAULT_PASSWORD = 'ClickFlash2025!';
 test.describe('Master App - Installation & Startup', () => {
   test('M-001: App launches successfully', async () => {
     const electronApp = await electron.launch({
-      args: [join(__dirname, '../electron-main.js')],
+      args: [join(__dirname, '../dist/electron/electron-main.js')],
       env: {
         ...process.env,
         NODE_ENV: 'test',

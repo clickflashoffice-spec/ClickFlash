@@ -19,7 +19,7 @@ export function createSessionMiddleware() {
     try {
         // Ensure directory exists
         const dbPath = path.join(DATA_DIR, 'sessions.db');
-        const db = new Database(dbPath/*, { verbose: console.log } */);
+        const db = new Database(dbPath/*, { verbose: logger.info } */);
 
         sessionStore = new SqliteStore({
             client: db,

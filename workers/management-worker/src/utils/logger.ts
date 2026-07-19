@@ -1,6 +1,6 @@
 import { logger as baseLogger } from "@clickflash/logger";
 
-// apps/management/backend/src/utils/logger.ts
+// Management Worker logger.
 
 /**
  * Enterprise Structured Logger for Cloudflare Workers

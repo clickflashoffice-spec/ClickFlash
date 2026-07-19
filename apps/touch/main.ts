@@ -17,7 +17,12 @@ import Database from "better-sqlite3-multiple-ciphers";
 import { logger } from "@clickflash/logger";
 import { initAutoUpdater } from "./autoUpdater";
 import { HardwareScannerService } from "./HardwareScannerService";
-import { isTrustedIpcSender, isTrustedLoopbackRendererUrl } from "./electron-security";
+import {
+    isTrustedIpcSender,
+    isTrustedLoopbackRendererUrl,
+    resolveRendererAssetPath,
+} from "./electron-security";
+import { parseKioskPassword, parseKioskPin, parsePrintOptions } from "./ipc-validation";
 
 // Load environment variables
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -27,6 +32,9 @@ require("dotenv").config();
 const pinAttempts = { count: 0, lockedUntil: 0 };
 const PIN_MAX_ATTEMPTS = 5;
 const PIN_LOCKOUT_MS = 60 * 60 * 1000; // 60-minute lockout
+const kioskPasswordAttempts = { count: 0, lockedUntil: 0 };
+const KIOSK_PASSWORD_MAX_ATTEMPTS = 5;
+const KIOSK_PASSWORD_LOCKOUT_MS = 15 * 60 * 1000;
 const ADMIN_SHORTCUT = "CommandOrControl+Alt+Shift+X";
 
 interface AppConfig {
@@ -97,7 +105,7 @@ class TouchApp {
             });
         }).catch((err: unknown) => {
             const e = err instanceof Error ? err : new Error(String(err));
-            console.error("[Touch] app.whenReady failed:", e.message);
+            logger.error("[Touch] app.whenReady failed", e);
         });
 
         app.on("will-quit", () => {
@@ -156,21 +164,21 @@ class TouchApp {
                 });
 
                 if (!isLocal) {
-                    console.warn(`[Security] Blocked external request in Touch App: ${details.url}`);
+                    logger.warn(`[Security] Blocked external request in Touch App: ${details.url}`);
                     callback({ cancel: true });
                     return;
                 }
 
                 const port = parseInt(url.port) || 0;
                 if (port > 0 && !ALLOWED_PORTS.includes(port)) {
-                    console.warn(`[Security] Blocked request to unauthorized port ${port}: ${details.url}`);
+                    logger.warn(`[Security] Blocked request to unauthorized port ${port}: ${details.url}`);
                     callback({ cancel: true });
                     return;
                 }
 
                 callback({});
             } catch {
-                console.warn(`[Security] Blocked malformed URL: ${details.url}`);
+                logger.warn(`[Security] Blocked malformed URL: ${details.url}`);
                 callback({ cancel: true });
             }
         });
@@ -303,7 +311,6 @@ class TouchApp {
                 if (results.length === 0) results.push({ name: "Loopback", ip: "127.0.0.1" });
                 res.writeHead(200, {
                     "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "*",
                 });
                 res.end(JSON.stringify({ interfaces: results }));
                 return;
@@ -312,7 +319,6 @@ class TouchApp {
             if (req.url === "/api/mode") {
                 res.writeHead(200, {
                     "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "*",
                 });
                 res.end(JSON.stringify({
                     mode: this.config.appMode,
@@ -330,17 +336,20 @@ class TouchApp {
             ];
             const baseDir = candidates.find(c => fs.existsSync(path.join(c, "index.html"))) || candidates[0];
 
-            let safePath = path
-                .normalize((req.url ?? "/").split("?")[0])
-                .replace(/^(\.\.[/\\])+/, "");
-            if (safePath === "." || safePath === "/" || safePath === "\\") {
-                safePath = "index.html";
+            let filePath = resolveRendererAssetPath(baseDir, req.url ?? "/");
+            if (!filePath) {
+                res.writeHead(403);
+                res.end("Access denied");
+                return;
             }
-
-            let filePath = path.join(baseDir, safePath);
             if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-                if (!path.extname(safePath)) {
-                    filePath = path.join(baseDir, "index.html");
+                if (!path.extname(filePath)) {
+                    filePath = resolveRendererAssetPath(baseDir, "/");
+                    if (!filePath) {
+                        res.writeHead(500);
+                        res.end("Renderer root unavailable");
+                        return;
+                    }
                 } else {
                     res.writeHead(404);
                     res.end("Not found");
@@ -356,7 +365,6 @@ class TouchApp {
                 }
                 const headers: Record<string, string> = {
                     "Content-Type": this.getMimeType(filePath),
-                    "Access-Control-Allow-Origin": "*",
                 };
                 if (path.extname(filePath).toLowerCase() === ".html") {
                     const isProduction =
@@ -371,7 +379,7 @@ class TouchApp {
             });
         });
 
-        this.server.listen(this.config.frontendPort, "0.0.0.0", () => {
+        this.server.listen(this.config.frontendPort, "127.0.0.1", () => {
             const addr = this.server!.address();
             this.serverPort = typeof addr === "object" && addr ? addr.port : this.config.frontendPort;
             this.startBackend();
@@ -411,12 +419,12 @@ class TouchApp {
             };
 
             if (isDev) {
-                console.log("[Touch] Dev mode — backend started externally on port", this.config.backendPort);
+                logger.info(`[Touch] Dev mode — backend started externally on port ${this.config.backendPort}`);
                 return;
             }
 
-            console.log(`[Touch] Starting backend from: ${serverScript}`);
-            console.log(`[Touch] Data directory: ${dataDir}`);
+            logger.info(`[Touch] Starting backend from: ${serverScript}`);
+            logger.info(`[Touch] Data directory: ${dataDir}`);
 
             this.backendProcess = fork(serverScript, [], {
                 stdio: "inherit",
@@ -425,15 +433,15 @@ class TouchApp {
             });
 
             this.backendProcess.on("error", (err) => {
-                console.error("[Touch] Backend process error:", err);
+                logger.error("[Touch] Backend process error", err instanceof Error ? err : { error: String(err) });
             });
 
             this.backendProcess.on("exit", (code, signal) => {
-                console.log(`[Touch] Backend exited with code ${code} (signal: ${signal})`);
+                logger.info(`[Touch] Backend exited with code ${code} (signal: ${signal})`);
             });
         } else {
-            console.error(`[Touch] Backend script not found at: ${serverScript}`);
-            console.error("[Touch] Backend will not start — kiosk may not function properly");
+            logger.error(`[Touch] Backend script not found at: ${serverScript}`);
+            logger.error("[Touch] Backend will not start — kiosk may not function properly");
         }
     }
 
@@ -467,6 +475,7 @@ class TouchApp {
         });
 
         this.mainWindow.setMenu(null);
+        this.setupSecurityFilters();
 
         // Law 16: Lockdown & Splash Screen Resilience
         void this.mainWindow.loadURL(
@@ -483,7 +492,7 @@ class TouchApp {
             const tryLoad = (): void => {
                 const elapsed = Date.now() - start;
                 if (elapsed > maxWait) {
-                    console.error("[Electron] Server did not respond, loading anyway.");
+                    logger.error("[Electron] Server did not respond, loading anyway.");
                     void this.mainWindow?.loadURL(url);
                     return;
                 }
@@ -493,7 +502,7 @@ class TouchApp {
                     (res) => {
                         res.resume();
                         if ((res.statusCode ?? 500) < 500) {
-                            console.log(`[Electron] Backend ready after ${elapsed}ms. Loading UI...`);
+                            logger.info(`[Electron] Backend ready after ${elapsed}ms. Loading UI...`);
                             void this.mainWindow?.loadURL(url);
                         } else {
                             setTimeout(tryLoad, interval);
@@ -533,14 +542,12 @@ class TouchApp {
             }
         } catch (err: unknown) {
             const e = err instanceof Error ? err : new Error(String(err));
-            console.warn("[Touch] Global shortcut registration failed:", e.message);
+            logger.warn(`[Touch] Global shortcut registration failed: ${e.message}`);
         }
-
-        this.setupSecurityFilters();
 
         // Crash Recovery: Auto-restore kiosk and reload on renderer crash
         this.mainWindow.webContents.on("render-process-gone", (_event, details) => {
-            console.error(`[Kiosk] Renderer crashed: ${details.reason}. Recovering...`);
+            logger.error(`[Kiosk] Renderer crashed: ${details.reason}. Recovering...`);
             setTimeout(() => {
                 if (!this.mainWindow) return;
                 void this.mainWindow.loadURL(
@@ -561,7 +568,7 @@ class TouchApp {
         this.scannerService = new HardwareScannerService(this.mainWindow);
         this.scannerService.initialize().catch((err: unknown) => {
             const e = err instanceof Error ? err : new Error(String(err));
-            console.error("[HardwareScanner] Failed to initialize:", e.message);
+            logger.error(`[HardwareScanner] Failed to initialize: ${e.message}`);
         });
     }
 
@@ -580,59 +587,81 @@ class TouchApp {
         });
     }
 
-    private setupIpcHandlers(): void {
-        ipcMain.removeHandler("exit-kiosk");
-        this.registerIpcHandler("exit-kiosk", async (_event: IpcMainInvokeEvent, password: unknown) => {
-            let KIOSK_PASSWORD: string | null = null;
+    private readKioskPassword(): string | null {
+        try {
+            const dataDir = app.isPackaged
+                ? path.join(app.getPath("userData"), "pb_data")
+                : path.join(__dirname, "pb_data");
+            const dbPath = path.join(dataDir, "touch.db");
 
-            try {
-                const isPackaged = app.isPackaged;
-                const dataDir = isPackaged
-                    ? path.join(app.getPath("userData"), "pb_data")
-                    : path.join(__dirname, "pb_data");
-                const dbPath = path.join(dataDir, "touch.db");
-
-                if (fs.existsSync(dbPath)) {
-                    const db = new Database(dbPath, { readonly: true });
+            if (fs.existsSync(dbPath)) {
+                const db = new Database(dbPath, { readonly: true });
+                try {
                     const row = db
                         .prepare("SELECT value FROM settings WHERE key = 'password'")
                         .get() as { value: string } | undefined;
-                    if (row?.value) {
-                        KIOSK_PASSWORD = row.value;
-                    }
+                    if (row?.value) return row.value;
+                } finally {
                     db.close();
                 }
-            } catch (err: unknown) {
-                const e = err instanceof Error ? err : new Error(String(err));
-                console.error("[Electron] Failed to read password from DB:", e.message);
             }
+        } catch (error: unknown) {
+            logger.error("[Electron] Failed to read kiosk password from DB", error);
+        }
 
-            if (KIOSK_PASSWORD === null) {
-                KIOSK_PASSWORD = process.env["KIOSK_PASSWORD"] ?? null;
-            }
+        return process.env["KIOSK_PASSWORD"] ?? null;
+    }
 
-            if (KIOSK_PASSWORD === null) {
-                console.error("[Electron] Kiosk exit password not configured. Set KIOSK_PASSWORD env var or 'password' setting in DB.");
-                return false;
-            }
+    private verifyKioskPassword(rawPassword: unknown): boolean {
+        const now = Date.now();
+        if (kioskPasswordAttempts.lockedUntil > now) return false;
 
-            if (typeof password !== "string") return false;
-            let isValid: boolean;
-            if (password.length !== KIOSK_PASSWORD.length) {
-                const dummy = Buffer.alloc(KIOSK_PASSWORD.length);
-                crypto.timingSafeEqual(dummy, dummy);
-                isValid = false;
-            } else {
-                const p1 = Buffer.from(password, "utf8");
-                const p2 = Buffer.from(KIOSK_PASSWORD, "utf8");
-                isValid = crypto.timingSafeEqual(p1, p2);
-            }
+        const expectedPassword = this.readKioskPassword();
+        if (!expectedPassword) {
+            logger.error("[Electron] Kiosk password is not configured");
+            return false;
+        }
 
-            if (isValid) {
+        let candidate: string;
+        try {
+            candidate = parseKioskPassword(rawPassword);
+        } catch {
+            candidate = "";
+        }
+
+        const candidateBuffer = Buffer.from(candidate, "utf8");
+        const expectedBuffer = Buffer.from(expectedPassword, "utf8");
+        const isValid = candidateBuffer.length === expectedBuffer.length
+            ? crypto.timingSafeEqual(candidateBuffer, expectedBuffer)
+            : (crypto.timingSafeEqual(Buffer.alloc(expectedBuffer.length), Buffer.alloc(expectedBuffer.length)), false);
+
+        if (isValid) {
+            kioskPasswordAttempts.count = 0;
+            kioskPasswordAttempts.lockedUntil = 0;
+            return true;
+        }
+
+        kioskPasswordAttempts.count += 1;
+        if (kioskPasswordAttempts.count >= KIOSK_PASSWORD_MAX_ATTEMPTS) {
+            kioskPasswordAttempts.count = 0;
+            kioskPasswordAttempts.lockedUntil = now + KIOSK_PASSWORD_LOCKOUT_MS;
+        }
+        return false;
+    }
+
+    private setupIpcHandlers(): void {
+        ipcMain.removeHandler("exit-kiosk");
+        this.registerIpcHandler("exit-kiosk", (_event: IpcMainInvokeEvent, password: unknown) => {
+            if (this.verifyKioskPassword(password)) {
                 app.quit();
                 return true;
             }
             return false;
+        });
+
+        ipcMain.removeHandler("kiosk:authenticate");
+        this.registerIpcHandler("kiosk:authenticate", (_event: IpcMainInvokeEvent, password: unknown) => {
+            return this.verifyKioskPassword(password);
         });
 
         // ── Kiosk mode toggle ──────────────────────────────────────────────────────
@@ -680,7 +709,12 @@ class TouchApp {
                 return { success: false, error: `Too many attempts. Try again in ${secsLeft}s` };
             }
 
-            const pin = typeof rawPin === "string" ? rawPin : "";
+            let pin: string;
+            try {
+                pin = parseKioskPin(rawPin);
+            } catch {
+                return { success: false, error: "Invalid PIN format" };
+            }
             let isValid: boolean;
             if (pin.length !== expected.length) {
                 crypto.timingSafeEqual(Buffer.alloc(expected.length), Buffer.alloc(expected.length));
@@ -709,8 +743,8 @@ class TouchApp {
             return { success: true };
         });
 
-        ipcMain.removeHandler("getPrinters");
-        this.registerIpcHandler("getPrinters", async () => {
+        ipcMain.removeHandler("printing:getPrinters");
+        this.registerIpcHandler("printing:getPrinters", async () => {
             try {
                 return await this.mainWindow?.webContents.getPrintersAsync() ?? [];
             } catch {
@@ -718,20 +752,27 @@ class TouchApp {
             }
         });
 
-        ipcMain.removeHandler("print");
-        this.registerIpcHandler("print", (_event: IpcMainInvokeEvent, options: unknown) => {
+        ipcMain.removeHandler("printing:print");
+        this.registerIpcHandler("printing:print", (_event: IpcMainInvokeEvent, options: unknown) => {
             return new Promise<boolean>((resolve, reject) => {
-                if (!options || typeof options !== "object") {
+                let safeOptions;
+                try {
+                    safeOptions = parsePrintOptions(options);
+                } catch {
                     reject(new Error("Invalid print options"));
                     return;
                 }
-                const opts = options as Record<string, unknown>;
-                const safeOptions = {
-                    silent: typeof opts["silent"] === "boolean" ? opts["silent"] : true,
+
+                if (!this.mainWindow) {
+                    reject(new Error("Print window is unavailable"));
+                    return;
+                }
+
+                this.mainWindow.webContents.print({
+                    silent: safeOptions.silent,
                     printBackground: true,
-                    deviceName: typeof opts["printer"] === "string" ? opts["printer"] : "",
-                };
-                this.mainWindow?.webContents.print(safeOptions, (success, errorType) => {
+                    deviceName: safeOptions.printer,
+                }, (success, errorType) => {
                     if (!success) reject(new Error(errorType));
                     else resolve(true);
                 });

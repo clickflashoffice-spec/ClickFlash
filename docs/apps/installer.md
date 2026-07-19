@@ -12,9 +12,9 @@
 | **Desktop shell** | Electron 39.8.7, electron-builder 26.8.1 |
 | **Deployment target** | Windows installer `.exe` (electron-builder) |
 | **Package manager** | pnpm 10.28.2 |
-| **TS/TSX files** | 32 |
+| **TS/TSX files** | 54 |
 | **Component files** | 14 |
-| **Test files** | 10 |
+| **Test files** | 11 |
 | **Key dependencies** | `electron`, `zod`, `systeminformation`, `lucide-react`, `qrcode`, `clsx`, `tailwind-merge` |
 
 **Entry flow**: `electron-main.ts` creates a sandboxed `BrowserWindow` (900x650) loading either the Vite dev server or packaged `index.html`. The renderer entry `src/main.tsx` mounts `App.tsx`, which is a 9-step wizard driven by `useInstallerState`.
@@ -32,6 +32,7 @@ apps/installer/
 ├── installer-application-config.ts # Canonical payload layout + config transaction/rollback
 ├── installer-payload-verification.ts # Signed manifest, path, inventory, size, and SHA-256 verification
 ├── installer-payload-trust.ts      # Separate packaged/development payload trust roots
+├── installer-payload-installation.ts # Same-volume stage, atomic root swap, repair, and rollback
 ├── installer-payload-release.ts    # Deterministic inventory, signing, secret scan, atomic output
 ├── scripts/payload-release.ts      # Operator-only offline signing CLI (not packaged)
 ├── tsconfig.payload-tools.json     # Separate CLI compilation boundary
@@ -153,7 +154,8 @@ None. Stores strict non-secret metadata plus an OS-protected license-key blob in
 | Protocol | restricted | secure/standard only; CSP bypass, fetch, and service-worker privileges removed |
 | License validation | offline | verification-only Node Ed25519 path with strict signed payload schema |
 | License storage | OS protected | Electron `safeStorage`; plaintext key is removed before persistence |
-| Application payload | fail-closed verification | separate Ed25519 domain; signed raw manifest, exact canonical layout/inventory, safe paths, sizes, SHA-256, and minimum Installer version; rechecked before config/launch |
+| Application payload | transactional/fail-closed | separate Ed25519 domain; linked roots rejected; signed raw manifest and exact inventory rechecked; source copied to a verified same-volume stage, destination root atomically swapped, and prior root restored on failure |
+| Repair | same-release only | authenticated managed installations may replace missing/corrupt declared files while preserving only `.env` and the Installer manifest; unmanaged roots and version-changing upgrades are refused |
 | Config files | bounded/transactional | allowlisted Master/Touch files, same-directory staging/fsync, digest manifest, all-file rollback |
 | OAuth | device-code flow | token polled from Hub; no client secret |
 | Pairing | private LAN only | DNS results must all be private IPv4 and the approved address is pinned for requests |
@@ -174,15 +176,15 @@ The command requires every value explicitly for reproducibility. It prints the p
 
 ## 10. Testing
 
-- Ten Vitest suites cover license and payload signature verification, deterministic signing/CLI behavior, external-key custody, secret/private-material rejection, forged/tampered/traversal/undeclared payload rejection, IPC authorization/rejection, schemas, path/network policy, bounded requests, pairing, protected persistence, and atomic writes.
-- Current result: **54/54 tests passed**.
+- Eleven Vitest suites cover license and payload signature verification, deterministic signing/CLI behavior, external-key custody, secret/private-material rejection, forged/tampered/traversal/undeclared payload rejection, transactional fresh install and same-release repair, post-swap rollback, unmanaged-target/version-change refusal, IPC authorization/rejection, schemas, path/network policy, bounded requests, pairing, protected persistence, and atomic writes.
+- Current result: **59/59 tests passed**.
 
 ### Observed gaps
 - No end-to-end install/upgrade/repair/rollback journey on a clean Windows VM
 - No clean-machine `safeStorage`/profile ACL evidence under separate Windows users
 - No Authenticode certificate or trusted update-channel proof
 - No approved production payload public key or authorized signed Master/Touch release bundle; packaged builds intentionally fail closed (the deterministic signer is complete)
-- Payload acquisition/copy and transactional install/upgrade/repair/binary rollback remain unfinished; local bundle verification and application configuration commit/rollback are implemented
+- Version-changing upgrade, reboot/interruption recovery, health-check-triggered binary rollback, and safe uninstall remain unfinished; verified acquisition/copy, fresh installation, same-release repair/root rollback, and configuration commit/rollback are implemented
 
 ## 11. Architecture / Performance / Design System
 
@@ -197,7 +199,7 @@ The command requires every value explicitly for reproducibility. It prints the p
 1. **Add a root `test:e2e` Playwright suite** using Electron launch args to exercise the full wizard flow.
 2. **Replace `any` types** in `tokenEncryption.ts` dynamic require blocks with platform-specific optional peer dependency types.
 3. **Approve the payload-key custody ceremony**, embed only the reviewed public key, and use the completed offline signer to issue signed Master/Touch manifests.
-4. **Make install/upgrade/repair/rollback transactional** with reboot and interruption recovery.
+4. **Extend the completed install/repair root transaction to version-changing upgrades**, reboot/interruption recovery, health-check rollback, and safe uninstall.
 5. **Add log rotation and redaction** to avoid leaking tokens or file paths.
 6. **Require Authenticode signing and timestamp verification** for production builds and updates.
 7. **Run clean Windows 10/11 lifecycle tests** with standard and administrator accounts.

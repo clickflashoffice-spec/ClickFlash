@@ -14,8 +14,8 @@ test.describe("Desktop Hardening & Kiosk Security", () => {
     // We simulate the IPC call from the renderer
     const result = await page.evaluate(async () => {
       try {
-        // @ts-ignore - electron is injected via preload
-        return await window.electron.ipcRenderer.invoke("kiosk:unlock", "wrong-pin");
+        return await window.electron?.kiosk.unlock("wrong-pin")
+          ?? { success: false, error: "Electron bridge unavailable" };
       } catch (err: unknown) {
         return { success: false, error: err instanceof Error ? err.message : String(err) };
       }
@@ -38,13 +38,13 @@ test.describe("Desktop Hardening & Kiosk Security", () => {
       return fired;
     });
 
-    // In desktop app, electron-main.js has mainWindow.webContents.on("context-menu", (e) => e.preventDefault());
+    // The canonical Electron shell blocks the BrowserWindow context menu.
     // However, Playwright tests the DOM. 
     // We expect the app's own handlers to prevent defaults.
   });
 
   test("session integrity after simulated renderer crash", async ({ page }) => {
-    // In electron-main.js we have a 'render-process-gone' handler.
+    // The canonical Electron shell has a 'render-process-gone' handler.
     // Crashing the renderer is not testable in web-preview mode.
     // We simply verify the page is still functional after load.
     await expect(page.locator("body")).toBeVisible();

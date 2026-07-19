@@ -54,7 +54,7 @@ export const studioAgentService = {
 
         alertingService.createRule(tempRule);
         
-        // This mimics how the Fotiqo-style agent works.
+        // This executes the ClickFlash autonomous studio agent loop.
         logger.info(`[StudioAgent] Insight generated: ${insightResponse}`);
       }
       

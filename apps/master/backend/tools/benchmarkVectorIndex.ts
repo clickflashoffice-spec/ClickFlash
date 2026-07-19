@@ -3,6 +3,7 @@ import { DatabaseManager } from '../database/db';
 import { Logger } from '../utils/logger';
 import path from "path";
 import fs from "fs";
+// removed extra import
 
 const TEST_DB = path.join(process.cwd(), "pb_data", "test_benchmark.db");
 const logger = new Logger(path.dirname(TEST_DB));
@@ -80,4 +81,4 @@ async function main() {
   await runBenchmark(500000);
 }
 
-main().catch(console.error);
+main().catch(logger.error);

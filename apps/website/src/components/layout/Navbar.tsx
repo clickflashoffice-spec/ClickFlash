@@ -69,8 +69,8 @@ export function Navbar() {
       className={cn(
         "fixed left-1/2 z-[100] w-[95%] max-w-7xl -translate-x-1/2 transition-all duration-700 ease-out",
         scrolled
-          ? "top-2 rounded-full bg-white/90 border border-white/50 shadow-lg backdrop-blur-xl py-2"
-          : "top-6 rounded-full bg-white/60 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] backdrop-blur-md py-3 hover:bg-white/80"
+          ? "top-2 rounded-full bg-[#0B111F]/90 border border-white/50 shadow-lg backdrop-blur-xl py-2"
+          : "top-6 rounded-full bg-[#0B111F]/60 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] backdrop-blur-md py-3 hover:bg-[#0B111F]/80"
       )}
       role="navigation"
       aria-label="Main Navigation"
@@ -99,7 +99,7 @@ export function Navbar() {
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "transform text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-500 hover:scale-105 hover:text-cyan-700 active:scale-95 xl:text-[11px]",
-                  "text-slate-800",
+                  "text-white/90",
                   isActive && "text-cyan-700"
                 )}
               >
@@ -121,7 +121,7 @@ export function Navbar() {
           id="mobile-menu-toggle"
           className={cn(
             "rounded-lg p-2 transition-all duration-700 hover:bg-black/5 lg:hidden",
-            "text-slate-900"
+            "text-white"
           )}
           onClick={() => setIsOpen(!isOpen)}
           aria-label={isOpen ? "Close main menu" : "Open main menu"}
@@ -140,20 +140,20 @@ export function Navbar() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="absolute inset-x-0 top-full mt-4 overflow-hidden rounded-3xl border border-white/50 bg-white/95 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] lg:hidden"
+              className="absolute inset-x-0 top-full mt-4 overflow-hidden rounded-3xl border border-white/50 bg-[#0B111F]/95 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] lg:hidden"
             >
               <div className="container mx-auto flex flex-col gap-7 px-6 py-12">
                 {navLinks.map((link) => (
                   <Link
                     key={link.name}
                     href={link.href}
-                    className="text-xl font-black tracking-widest text-slate-800 uppercase transition-colors hover:text-cyan-700"
+                    className="text-xl font-black tracking-widest text-white/90 uppercase transition-colors hover:text-cyan-700"
                     onClick={() => setIsOpen(false)}
                   >
                     {link.name}
                   </Link>
                 ))}
-                <div className="my-2 h-px bg-slate-100" />
+                <div className="my-2 h-px bg-white/10" />
                 <Link
                   href="/bookings"
                   className="w-full rounded-2xl bg-cyan-700 py-5 text-center font-black tracking-widest text-white uppercase shadow-xl shadow-cyan-400/30 transition-transform active:scale-95"

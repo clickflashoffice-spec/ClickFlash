@@ -1,18 +1,19 @@
 
 // import fetch from 'node-fetch'; // Removed to rely on global fetch
 import FormData from 'form-data';
+import { logger } from '@/utils/logger';
 
 // --- Configuration ---
 const BASE_URL = 'http://localhost:8090'; // Assuming default port
 const USER_EMAIL = process.env.TEST_EMAIL || 'admin@clickflash.local';
-const USER_PASSWORD = process.env.TEST_PASSWORD || (() => { console.error('Set TEST_PASSWORD env var'); process.exit(1); return ''; })();
+const USER_PASSWORD = process.env.TEST_PASSWORD || (() => { logger.error('Set TEST_PASSWORD env var'); process.exit(1); return ''; })();
 
 // Polyfill fetch if needed (Node 18+ has it globally, but for safety in TS if types are weird)
 // @ts-ignore
 const fetchClient = global.fetch;
 
 async function runVerification() {
-    console.log('🚀 Starting System Integration Verification...');
+    logger.info('🚀 Starting System Integration Verification...');
 
     let cookie = '';
     let albumId = '';
@@ -22,22 +23,22 @@ async function runVerification() {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
 
-        console.log('📡 Pinging server...');
+        logger.info('📡 Pinging server...');
         const healthRes = await fetchClient(`${BASE_URL}/api/health`, { signal: controller.signal });
         clearTimeout(timeout);
 
         if (!healthRes.ok) throw new Error('Server not reachable');
-        console.log('✅ Server is online');
+        logger.info('✅ Server is online');
     } catch (e: any) {
-        console.error(`❌ Server check failed: ${e.message}`);
-        if (e.name === 'AbortError') console.error('   (Request timed out)');
-        console.error('   Please ensure backend is running via "npm run dev:backend"');
+        logger.error(`❌ Server check failed: ${e.message}`);
+        if (e.name === 'AbortError') logger.error('   (Request timed out)');
+        logger.error('   Please ensure backend is running via "npm run dev:backend"');
         process.exit(1);
     }
 
     // 2. Authentication
     try {
-        console.log('🔑 Authenticating...');
+        logger.info('🔑 Authenticating...');
         const loginRes = await fetchClient(`${BASE_URL}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -52,19 +53,19 @@ async function runVerification() {
         const setCookie = loginRes.headers.get('set-cookie');
         if (setCookie) {
             cookie = setCookie.split(';')[0];
-            console.log('✅ Authenticated successfully');
+            logger.info('✅ Authenticated successfully');
         } else {
-            console.warn('⚠️ No Set-Cookie header received. Proceeding, but subsequent requests might fail.');
+            logger.warn('⚠️ No Set-Cookie header received. Proceeding, but subsequent requests might fail.');
         }
 
     } catch (e: any) {
-        console.error(`❌ Authentication Error: ${e.message}`);
+        logger.error(`❌ Authentication Error: ${e.message}`);
         process.exit(1);
     }
 
     // 3. Create Test Album
     try {
-        console.log('📁 Creating Test Album...');
+        logger.info('📁 Creating Test Album...');
         const albumRes = await fetchClient(`${BASE_URL}/api/collections/albums/records`, {
             method: 'POST',
             headers: {
@@ -81,16 +82,16 @@ async function runVerification() {
         if (!albumRes.ok) throw new Error(`Album creation failed: ${albumRes.status}`);
         const albumData = await albumRes.json() as any;
         albumId = albumData.id;
-        console.log(`✅ Album created: ${albumId}`);
+        logger.info(`✅ Album created: ${albumId}`);
 
     } catch (e: any) {
-        console.error(`❌ Album Creation Error: ${e.message}`);
+        logger.error(`❌ Album Creation Error: ${e.message}`);
         process.exit(1);
     }
 
     // 4. Concurrent Image Uploads (Simulating Zero-Block IO)
     try {
-        console.log('📤 Uploading 5 photos concurrently...');
+        logger.info('📤 Uploading 5 photos concurrently...');
 
         const dummyJpg = Buffer.from([
             0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x01, 0x00, 0x48, 0x00, 0x48, 0x00, 0x00,
@@ -121,17 +122,17 @@ async function runVerification() {
             throw new Error(`${failed.length} uploads failed`);
         }
 
-        console.log(`✅ Uploads complete in ${duration}ms (Avg ${duration / 5}ms/req)`);
+        logger.info(`✅ Uploads complete in ${duration}ms (Avg ${duration / 5}ms/req)`);
 
     } catch (e: any) {
-        console.error(`❌ Upload Error: ${e.message}`);
+        logger.error(`❌ Upload Error: ${e.message}`);
         await cleanup(albumId, cookie);
         process.exit(1);
     }
 
     // 5. Verify Processing
     try {
-        console.log('🔍 Verifying Data Consistency...');
+        logger.info('🔍 Verifying Data Consistency...');
         // thumbnails might take time
         await new Promise(r => setTimeout(r, 2000));
 
@@ -143,32 +144,32 @@ async function runVerification() {
         const count = data.items ? data.items.length : 0;
 
         if (count === 5) {
-            console.log(`✅ Verification Passed: 5/5 photos found in DB.`);
+            logger.info(`✅ Verification Passed: 5/5 photos found in DB.`);
         } else {
             throw new Error(`Verification Failed: Expected 5 photos, found ${count}`);
         }
 
     } catch (e: any) {
-        console.error(`❌ Verification Error: ${e.message}`);
+        logger.error(`❌ Verification Error: ${e.message}`);
         await cleanup(albumId, cookie);
         process.exit(1);
     }
 
     // 6. Cleanup
     await cleanup(albumId, cookie);
-    console.log('🎉 System Integration Verification Passed!');
+    logger.info('🎉 System Integration Verification Passed!');
 }
 
 async function cleanup(albumId: string, cookie: string) {
     if (!albumId) return;
     try {
-        console.log('🧹 Cleaning up...');
+        logger.info('🧹 Cleaning up...');
         await fetchClient(`${BASE_URL}/api/collections/albums/records/${albumId}`, {
             method: 'DELETE',
             headers: { 'Cookie': cookie }
         });
     } catch (e) {
-        console.warn('Cleanup warning:', e);
+        logger.warn('Cleanup warning:', e);
     }
 }
 

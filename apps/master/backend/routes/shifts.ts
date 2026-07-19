@@ -1,0 +1,79 @@
+import { Router, Request, Response } from "express";
+
+export default function shiftRoutes(context: any) {
+  const router = Router();
+  const { dbManager, logger } = context;
+
+  // POST /api/shifts/proxy
+  // Receives shift events from the mobile app via LAN, saves to local SQLite queue,
+  // and attempts upstream forwarding to Cloudflare.
+  router.post("/proxy", async (req: Request, res: Response) => {
+    try {
+      const shift = req.body;
+      if (!shift || !shift.photographerId || !shift.type) {
+        return res.status(400).json({ error: "Invalid shift data: photographerId and type required." });
+      }
+
+      logger.info(`[ShiftRoutes] Received shift proxy event from mobile: ${shift.photographerId} - ${shift.type} (method: ${shift.biometricMethod || 'STANDARD'})`);
+
+      const payloadStr = JSON.stringify(shift);
+      let rowId = 0;
+
+      // 1. Save to local SQLite queue
+      try {
+        const info = dbManager.run(
+          `INSERT INTO shifts_proxy_queue (
+            photographer_id, station_id, shift_type, timestamp, biometric_method, biometric_confidence, payload, synced
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
+          [
+            shift.photographerId,
+            shift.stationId || null,
+            shift.type,
+            shift.timestamp || new Date().toISOString(),
+            shift.biometricMethod || null,
+            typeof shift.biometricConfidence === 'number' ? shift.biometricConfidence : null,
+            payloadStr
+          ]
+        );
+        rowId = info.lastInsertRowid;
+      } catch (dbErr: any) {
+        logger.error(`[ShiftRoutes] Failed to insert into shifts_proxy_queue: ${dbErr.message}`);
+      }
+
+      // 2. Attempt to forward directly to Cloudflare
+      const cloudflareUrl = 'https://clickflash-api.yourdomain.workers.dev/api/shifts';
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      
+      fetch(cloudflareUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payloadStr,
+        signal: controller.signal
+      }).then(cloudRes => {
+        if (cloudRes.ok) {
+          logger.info(`[ShiftRoutes] Successfully forwarded shift for ${shift.photographerId} to Cloudflare.`);
+          if (rowId > 0) {
+            try {
+              dbManager.run(`UPDATE shifts_proxy_queue SET synced = 1 WHERE id = ?`, [rowId]);
+            } catch (e: any) {
+              logger.warn(`[ShiftRoutes] Failed to mark shift ${rowId} synced: ${e.message}`);
+            }
+          }
+        } else {
+          logger.warn(`[ShiftRoutes] Failed to forward shift to Cloudflare. HTTP ${cloudRes.status}`);
+        }
+      }).catch(err => {
+         logger.warn(`[ShiftRoutes] Error forwarding shift to Cloudflare (saved locally): ${err.message}`);
+      }).finally(() => clearTimeout(timeoutId));
+
+      return res.status(200).json({ success: true, message: "Shift proxied successfully" });
+    } catch (error: any) {
+      logger.error("[ShiftRoutes] Error handling shift proxy", error);
+      return res.status(500).json({ error: "Failed to proxy shift" });
+    }
+  });
+
+  return router;
+}
+

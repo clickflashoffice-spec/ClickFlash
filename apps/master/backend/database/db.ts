@@ -171,6 +171,10 @@ export class DatabaseManager {
     return this.db.prepare(sql).all(params) as T[];
   }
 
+  public all<T = any>(sql: string, params: any[] = []): T[] {
+    return this.query<T>(sql, params);
+  }
+
   public get<T = any>(sql: string, params: any[] = []): T | undefined {
     if (!this.db) throw new Error("Database not connected");
     return this.db.prepare(sql).get(params) as T | undefined;

@@ -6,7 +6,7 @@ const router = Router();
 
 /**
  * Omnichannel Agent Ingestion Webhooks
- * Parses incoming messages from WhatsApp/Email and routes them to the Fotiqo Agent
+ * Parses incoming messages from WhatsApp/Email and routes them to the ClickFlash Autonomous Swarm
  */
 
 router.post('/whatsapp', async (req: Request, res: Response) => {

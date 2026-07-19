@@ -8,31 +8,23 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./src/index.ts",
       "require": "./dist/index.js",
-      "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./crypto": {
-      "import": "./src/crypto.ts",
-      "require": "./dist/crypto.js",
-      "types": "./dist/crypto.d.ts",
-      "default": "./dist/crypto.js"
-    },
     "./src/ed25519": {
+      "types": "./dist/ed25519.d.ts",
       "import": "./src/ed25519.ts",
       "require": "./dist/ed25519.js",
-      "types": "./dist/ed25519.d.ts",
       "default": "./dist/ed25519.js"
     }
   },
   "scripts": {
     "build": "tsc",
-    "test": "vitest run --passWithNoTests",
-    "generate-license": "tsx src/cli.ts"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "systeminformation": "^5.23.0",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {

@@ -3,7 +3,7 @@ import { destinationService } from '../services/api/destinationService';
 import { Destination } from '../types';
 import Card from './common/Card';
 import Button from './common/Button';
-import Spinner from './common/Spinner';
+import { TableRowSkeleton } from './common/Skeleton';
 import Modal from './common/Modal';
 import FormField from './common/FormField';
 import Input from './common/Input';
@@ -81,9 +81,29 @@ const Locations: React.FC = () => {
 
   if (loading && destinations.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64">
-        <Spinner size="large" />
-        <p className="mt-4 text-slate-500">Loading locations...</p>
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+            <div className="h-10 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+        </div>
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <table className="w-full text-left">
+                <thead>
+                    <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                        <th className="px-6 py-4">Location Name</th>
+                        <th className="px-6 py-4">Timezone</th>
+                        <th className="px-6 py-4">Printers</th>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                    {[...Array(5)].map((_, i) => (
+                        <TableRowSkeleton key={i} columns={5} />
+                    ))}
+                </tbody>
+            </table>
+        </div>
       </div>
     );
   }

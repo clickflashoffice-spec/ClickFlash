@@ -2,80 +2,57 @@
 
 import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
 
-/**
- * ClickFlash Touch Kiosk — Preload Script
- *
- * Exposes a safe, channel-whitelisted IPC bridge to the renderer.
- */
+type Cleanup = () => void;
+type PrintOptions = { printer: string; silent?: boolean };
 
-const INVOKE_CHANNELS: string[] = [
-    // Kiosk mode control
-    "exit-kiosk",
-    "enter-kiosk",
-    "kiosk:unlock",
-    "kiosk:lock",
-    // App lifecycle
-    "get-app-version",
-    "restart-app",
-    // Printing
-    "getPrinters",
-    "print",
-    // Auto-updater (admin UI triggers)
-    "updater:check",
-    "updater:status",
-];
+function onEvent<T>(channel: string, callback: (payload: T) => void): Cleanup {
+  const handler = (_event: IpcRendererEvent, payload: T) => callback(payload);
+  ipcRenderer.on(channel, handler);
+  return () => ipcRenderer.removeListener(channel, handler);
+}
 
-const ON_CHANNELS: string[] = [
-    "kiosk:show-unlock-dialog",
-    "updater:checking",
-    "updater:available",
-    "updater:not-available",
-    "updater:progress",
-    "updater:downloaded",
-    "updater:error",
-    "scanner:data",
-    "scanner:status",
-];
-
-type AnyCallback = (...args: unknown[]) => void;
+function onSignal(channel: string, callback: () => void): Cleanup {
+  const handler = () => callback();
+  ipcRenderer.on(channel, handler);
+  return () => ipcRenderer.removeListener(channel, handler);
+}
 
 contextBridge.exposeInMainWorld("electron", {
-    // Generic whitelist-guarded invoke / on
-    invoke: (channel: string, ...args: unknown[]) => {
-        if (!INVOKE_CHANNELS.includes(channel)) {
-            throw new Error(`[Preload] Blocked IPC channel: ${channel}`);
-        }
-        return ipcRenderer.invoke(channel, ...args);
-    },
-    on: (channel: string, callback: AnyCallback): (() => void) | undefined => {
-        if (!ON_CHANNELS.includes(channel)) return undefined;
-        const handler = (_event: IpcRendererEvent, ...args: unknown[]) => callback(...args);
-        ipcRenderer.on(channel, handler);
-        return () => ipcRenderer.removeListener(channel, handler);
-    },
-
-    // Convenience helpers
-    exitKiosk: (password: string) => ipcRenderer.invoke("exit-kiosk", password),
-    enterKiosk: () => ipcRenderer.invoke("enter-kiosk"),
-    getAppVersion: () => ipcRenderer.invoke("get-app-version"),
-    restartApp: () => ipcRenderer.invoke("restart-app"),
-
-    // Kiosk PIN unlock / lock
-    kiosk: {
-        unlock: (pin: string) => ipcRenderer.invoke("kiosk:unlock", pin),
-        lock: () => ipcRenderer.invoke("kiosk:lock"),
-    },
-
-    // Printing
-    getPrinters: () => ipcRenderer.invoke("getPrinters"),
-    print: (options: unknown) => ipcRenderer.invoke("print", options),
-
-    // Meta
-    platform: process.platform,
-    isElectron: true,
+  isElectron: true,
+  platform: process.platform,
+  exitKiosk: (password: string) => ipcRenderer.invoke("exit-kiosk", password),
+  enterKiosk: () => ipcRenderer.invoke("enter-kiosk"),
+  getAppVersion: () => ipcRenderer.invoke("get-app-version"),
+  restartApp: () => ipcRenderer.invoke("restart-app"),
+  kiosk: {
+    authenticate: (password: string) => ipcRenderer.invoke("kiosk:authenticate", password),
+    unlock: (pin: string) => ipcRenderer.invoke("kiosk:unlock", pin),
+    lock: () => ipcRenderer.invoke("kiosk:lock"),
+    onShowUnlockDialog: (callback: () => void) => onSignal("kiosk:show-unlock-dialog", callback),
+  },
+  printing: {
+    getPrinters: () => ipcRenderer.invoke("printing:getPrinters"),
+    print: (options: PrintOptions) => ipcRenderer.invoke("printing:print", options),
+  },
+  updater: {
+    check: () => ipcRenderer.invoke("updater:check"),
+    download: () => ipcRenderer.invoke("updater:download"),
+    install: () => ipcRenderer.invoke("updater:install"),
+    getStatus: () => ipcRenderer.invoke("updater:status"),
+    onChecking: (callback: () => void) => onSignal("updater:checking", callback),
+    onAvailable: (callback: (info: unknown) => void) => onEvent("updater:available", callback),
+    onNotAvailable: (callback: () => void) => onSignal("updater:not-available", callback),
+    onProgress: (callback: (progress: unknown) => void) => onEvent("updater:progress", callback),
+    onDownloaded: (callback: (info: unknown) => void) => onEvent("updater:downloaded", callback),
+    onError: (callback: (error: unknown) => void) => onEvent("updater:error", callback),
+  },
+  scanner: {
+    onData: (callback: (data: string) => void) => onEvent("scanner:data", callback),
+    onStatus: (callback: (status: string) => void) => onEvent("scanner:status", callback),
+  },
 });
 
 contextBridge.exposeInMainWorld("touchApp", {
-    isDesktop: true,
-    platform: process.platform,
+  isDesktop: true,
+  platform: process.platform,
 });

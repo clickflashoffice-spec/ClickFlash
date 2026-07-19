@@ -7,13 +7,6 @@ Object.defineProperty(global, 'crypto', {
     }
 });
 
-jest.mock('../../../utils/logger', () => ({
-    logger: {
-        error: jest.fn(),
-        warn: jest.fn(),
-        info: jest.fn(),
-    },
-}));
 
 jest.mock('../../pb', () => ({
     pb: require('../../__mocks__/pb').pb,

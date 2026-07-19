@@ -385,6 +385,49 @@ const Login: React.FC<LoginProps> = ({
 
             <button
               type="button"
+              onClick={async () => {
+                try {
+                  setLoading(true);
+                  const { startAuthentication } = await import('@simplewebauthn/browser');
+                  // 1. Fetch auth options from server
+                  const res = await fetch('http://localhost:8090/api/auth/webauthn/generate-authentication-options', {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({ userId: email || 'demo_user' })
+                  });
+                  const options = await res.json();
+                  
+                  // 2. Invoke browser WebAuthn
+                  const asseResp = await startAuthentication(options);
+                  
+                  // 3. Verify with server
+                  const verifyRes = await fetch('http://localhost:8090/api/auth/webauthn/verify-authentication', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: email || 'demo_user', response: asseResp })
+                  });
+                  const verification = await verifyRes.json();
+                  if (verification.success && verification.user) {
+                    onLoginSuccess(verification.user);
+                  } else {
+                    setError("Passkey verification failed.");
+                  }
+                } catch (err: any) {
+                  setError(err.message || "Failed to authenticate with passkey");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              className="w-full bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 font-bold py-3.5 rounded-xl border border-indigo-500/30 transition-all flex items-center justify-center space-x-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v-2H2v-4h4.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 2 2 0 012 2 1 1 0 102 0 4 4 0 00-4-4z" clipRule="evenodd" />
+              </svg>
+              <span>SIGN IN WITH PASSKEY</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setIsFaceLoginOpen(true)}
               className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl border border-slate-700 transition-all flex items-center justify-center space-x-2"
             >
@@ -400,14 +443,59 @@ const Login: React.FC<LoginProps> = ({
                   clipRule="evenodd"
                 />
               </svg>
-              <span>SIGN IN WITH FACE ID</span>
+              <span>SIGN IN WITH ON-PREM FACE SCAN</span>
             </button>
           </form>
+        <div className="flex flex-col items-center justify-center space-y-4 mt-8">
+          <button
+            type="button"
+            onClick={async () => {
+              if (!email) {
+                setError("Please enter your email to register a passkey.");
+                return;
+              }
+              try {
+                setLoading(true);
+                const { startRegistration } = await import('@simplewebauthn/browser');
+                // 1. Fetch auth options from server
+                const res = await fetch('http://localhost:8090/api/auth/webauthn/generate-registration-options', {
+                   method: 'POST',
+                   headers: { 'Content-Type': 'application/json' },
+                   body: JSON.stringify({ userId: email })
+                });
+                const options = await res.json();
+                
+                // 2. Invoke browser WebAuthn
+                const attResp = await startRegistration(options);
+                
+                // 3. Verify with server
+                const verifyRes = await fetch('http://localhost:8090/api/auth/webauthn/verify-registration', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ userId: email, response: attResp })
+                });
+                const verification = await verifyRes.json();
+                if (verification.success) {
+                  setError("Passkey registered successfully! You can now log in using your passkey.");
+                } else {
+                  setError("Passkey registration failed.");
+                }
+              } catch (err: any) {
+                setError(err.message || "Failed to register passkey");
+              } finally {
+                setLoading(false);
+              }
+            }}
+            className="text-slate-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-colors"
+          >
+            Set up Passkey
+          </button>
+          <p className="text-center text-slate-500 text-xs font-medium">
+            SECURE ACCESS • AUTHORIZED PERSONNEL ONLY
+          </p>
         </div>
-        <p className="text-center text-slate-500 text-xs mt-8 font-medium">
-          SECURE ACCESS • AUTHORIZED PERSONNEL ONLY
-        </p>
       </div>
+    </div>
 
       <FaceScanModal
         isOpen={isFaceLoginOpen}

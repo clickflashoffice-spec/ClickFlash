@@ -1,4 +1,6 @@
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
+import { registerForPushNotificationsAsync, sendPushTokenToBackend } from '../../lib/usePushNotifications';
 
 export default function GalleryScreen() {
   // Mock images for demonstration
@@ -6,6 +8,17 @@ export default function GalleryScreen() {
     id: i.toString(),
     uri: `https://picsum.photos/seed/${i}/400/400`
   }));
+
+  useEffect(() => {
+    async function setupPush() {
+      const token = await registerForPushNotificationsAsync();
+      if (token) {
+        // Mock session ID for demonstration
+        await sendPushTokenToBackend('test-session-id', token);
+      }
+    }
+    setupPush();
+  }, []);
 
   return (
     <ScrollView style={styles.container}>

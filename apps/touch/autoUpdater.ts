@@ -3,7 +3,7 @@
  * Handles automatic updates using electron-updater
  */
 
-import { app, dialog, ipcMain, BrowserWindow } from 'electron';
+import { app, dialog, ipcMain, BrowserWindow, IpcMainInvokeEvent } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import { logger } from "@clickflash/logger";
 
@@ -11,8 +11,12 @@ import { logger } from "@clickflash/logger";
 autoUpdater.logger = console;
 autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = true;
+autoUpdater.allowPrerelease = false;
+autoUpdater.allowDowngrade = false;
 
 let mainWindow: BrowserWindow | null = null;
+let eventHandlersRegistered = false;
+let updateCheckScheduled = false;
 let updateStatus: {
   checking: boolean;
   available: boolean;
@@ -33,30 +37,54 @@ let updateStatus: {
 
 export function initAutoUpdater(window: BrowserWindow): void {
   mainWindow = window;
-  
-  // Check for updates after 30 seconds (give app time to fully start)
-  setTimeout(() => {
-    checkForUpdates();
-  }, 30000);
+
+  if (!updateCheckScheduled) {
+    updateCheckScheduled = true;
+    setTimeout(() => {
+      void checkForUpdates();
+    }, 30000);
+  }
 
   setupIpcHandlers();
-  setupEventHandlers();
+  if (!eventHandlersRegistered) {
+    eventHandlersRegistered = true;
+    setupEventHandlers();
+  }
+}
+
+function assertTrustedSender(event: IpcMainInvokeEvent): void {
+  if (
+    !mainWindow
+    || mainWindow.isDestroyed()
+    || event.sender !== mainWindow.webContents
+    || event.senderFrame !== mainWindow.webContents.mainFrame
+  ) {
+    throw new Error('Unauthorized updater IPC sender');
+  }
 }
 
 function setupIpcHandlers(): void {
-  ipcMain.handle('updater:check', async () => {
+  for (const channel of ['updater:check', 'updater:download', 'updater:install', 'updater:status']) {
+    ipcMain.removeHandler(channel);
+  }
+
+  ipcMain.handle('updater:check', async (event) => {
+    assertTrustedSender(event);
     return await checkForUpdates();
   });
 
-  ipcMain.handle('updater:download', async () => {
+  ipcMain.handle('updater:download', async (event) => {
+    assertTrustedSender(event);
     return await downloadUpdate();
   });
 
-  ipcMain.handle('updater:install', () => {
+  ipcMain.handle('updater:install', (event) => {
+    assertTrustedSender(event);
     installUpdate();
   });
 
-  ipcMain.handle('updater:status', () => {
+  ipcMain.handle('updater:status', (event) => {
+    assertTrustedSender(event);
     return updateStatus;
   });
 }

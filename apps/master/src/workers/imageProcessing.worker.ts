@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger';
+
 /* global WebAssembly */
 /**
  * Dedicated Web Worker for Non-Blocking Image Processing
@@ -68,7 +70,7 @@ async function ensureWasmLoaded(): Promise<boolean> {
             const importObject = {
                 env: {
                     memory,
-                    abort: () => { console.error('WASM abort called'); }
+                    abort: () => { logger.error('WASM abort called'); }
                 }
             };
 
@@ -82,7 +84,7 @@ async function ensureWasmLoaded(): Promise<boolean> {
             wasmMemory = memory;
             return true;
         } catch (e) {
-            console.warn('WASM engine init failed, falling back to JS canvas math:', e);
+            logger.warn('WASM engine init failed, falling back to JS canvas math:', e);
             return false;
         }
     })();
@@ -98,7 +100,7 @@ function ensureWasmMemory(neededBytes: number): boolean {
         try {
             wasmMemory.grow(extraPages);
         } catch (e) {
-            console.error('Failed to grow WASM memory:', e);
+            logger.error('Failed to grow WASM memory:', e);
             return false;
         }
     }

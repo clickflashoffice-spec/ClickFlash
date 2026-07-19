@@ -239,7 +239,7 @@ class WebSocketService {
             if (this.onKioskStatusUpdateCallback) {
                 this.onKioskStatusUpdateCallback(data.payload);
             }
-        } else if (['NEW_ALBUM_FOR_KIOSK', 'ALBUM_UPDATED', 'PHOTO_UPDATED', 'ORDER_UPDATED', 'USER_UPDATED', 'NEW_ORDER_NOTIFICATION'].includes(data.type)) {
+        } else if (['NEW_ALBUM_FOR_KIOSK', 'ALBUM_UPDATED', 'PHOTO_UPDATED', 'ORDER_UPDATED', 'USER_UPDATED', 'NEW_ORDER_NOTIFICATION', 'LOCAL_CONFIG_UPDATED', 'BRANDING_UPDATED'].includes(data.type)) {
             if (this.onRefreshCallback) {
                 this.onRefreshCallback();
             }

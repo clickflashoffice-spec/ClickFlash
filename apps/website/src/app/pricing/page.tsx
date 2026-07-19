@@ -79,7 +79,7 @@ const faqs: {
 
 export default function PricingPage() {
     return (
-        <main className="min-h-screen bg-white pt-40 pb-24">
+        <main className="min-h-screen bg-[#0B111F] pt-40 pb-24">
             {/* Hero Section */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-24">
                 <motion.div
@@ -93,7 +93,7 @@ export default function PricingPage() {
                         align="center"
                         light={true}
                     />
-                    <p className="text-xl text-slate-600 max-w-2xl mx-auto font-medium mt-8 leading-relaxed">
+                    <p className="text-xl text-white/70 max-w-2xl mx-auto font-medium mt-8 leading-relaxed">
                         The ultimate ecosystem for photography businesses. Choose the tier that fits your growth.
                     </p>
                 </motion.div>
@@ -110,8 +110,8 @@ export default function PricingPage() {
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.1 }}
                             className={`relative rounded-[3rem] p-10 transition-all duration-500 group hover:-translate-y-2 ${pkg.highlighted
-                                ? "bg-white border-2 border-cyan-400 shadow-2xl shadow-cyan-500/10"
-                                : "bg-slate-50 border border-slate-100"
+                                ? "bg-[#0B111F] border-2 border-cyan-400 shadow-2xl shadow-cyan-500/10"
+                                : "bg-white/5 border border-white/10"
                                 }`}
                         >
                             {pkg.highlighted && (
@@ -122,12 +122,12 @@ export default function PricingPage() {
                             <div className="mb-10">
                                 <span className="text-cyan-700 font-black uppercase tracking-[0.3em] text-[11px] mb-2 block">{pkg.name}</span>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">{pkg.price}</span>
+                                    <span className="text-4xl md:text-5xl font-black text-white tracking-tighter">{pkg.price}</span>
                                 </div>
-                                <p className="text-slate-600 mt-4 font-medium text-sm leading-relaxed">{pkg.description}</p>
+                                <p className="text-white/70 mt-4 font-medium text-sm leading-relaxed">{pkg.description}</p>
                             </div>
 
-                            <ul className="space-y-4 mb-12 border-t border-slate-200 pt-8">
+                            <ul className="space-y-4 mb-12 border-t border-white/20 pt-8">
                                 {pkg.features.map((feature, idx) => (
                                     <li key={idx} className="flex items-start gap-4">
                                         <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${pkg.highlighted ? 'bg-cyan-700 text-white' : 'bg-cyan-100 text-cyan-700'}`}>
@@ -153,7 +153,7 @@ export default function PricingPage() {
             </section>
 
             {/* FAQ Section */}
-            <section className="max-w-5xl mx-auto px-6 py-24 mb-32 bg-slate-50/50 rounded-[4rem] border border-slate-100">
+            <section className="max-w-5xl mx-auto px-6 py-24 mb-32 bg-white/5/50 rounded-[4rem] border border-white/10">
                 <div className="mb-16">
                     <SectionHeader
                         title="Common Questions"
@@ -164,11 +164,11 @@ export default function PricingPage() {
                 </div>
                 <div className="grid md:grid-cols-2 gap-8">
                     {faqs.map((faq, idx) => (
-                        <div key={idx} className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-xl transition-shadow duration-500">
-                            <h4 className="text-slate-900 font-black uppercase tracking-tight text-sm mb-4">
+                        <div key={idx} className="bg-[#0B111F] p-10 rounded-[2.5rem] shadow-sm border border-white/10 hover:shadow-xl transition-shadow duration-500">
+                            <h4 className="text-white font-black uppercase tracking-tight text-sm mb-4">
                                 {faq.question}
                             </h4>
-                            <p className="text-slate-600 text-sm leading-relaxed font-medium">
+                            <p className="text-white/70 text-sm leading-relaxed font-medium">
                                 {faq.answer}
                             </p>
                         </div>
@@ -178,15 +178,15 @@ export default function PricingPage() {
 
             {/* CTA Section */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 md:mb-20">
-                <div className="bg-slate-100 rounded-3xl md:rounded-[4rem] p-10 md:p-16 lg:p-24 shadow-xl relative overflow-hidden group">
+                <div className="bg-white/10 rounded-3xl md:rounded-[4rem] p-10 md:p-16 lg:p-24 shadow-xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-700/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-[100px] group-hover:bg-cyan-700/20 transition-all duration-700"></div>
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl"></div>
 
                     <div className="relative z-10 text-center px-2">
-                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 mb-6 md:mb-8 tracking-tighter">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-6 md:mb-8 tracking-tighter">
                             Ready to <span className="text-cyan-700 italic">Upgrade?</span>
                         </h2>
-                        <p className="text-slate-600 mb-8 md:mb-12 text-base md:text-lg font-medium max-w-xl mx-auto leading-relaxed">
+                        <p className="text-white/70 mb-8 md:mb-12 text-base md:text-lg font-medium max-w-xl mx-auto leading-relaxed">
                             Start using the platform that powers the world's most successful photography studios.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center">
@@ -198,7 +198,7 @@ export default function PricingPage() {
                             </Link>
                             <Link
                                 href="/contact"
-                                className="bg-transparent text-slate-900 font-black uppercase tracking-widest text-[10px] md:text-[11px] py-4 md:py-6 px-8 md:px-12 rounded-full hover:bg-slate-900 hover:text-white transition-all border-2 border-slate-300 active:scale-95"
+                                className="bg-transparent text-white font-black uppercase tracking-widest text-[10px] md:text-[11px] py-4 md:py-6 px-8 md:px-12 rounded-full hover:bg-slate-900 hover:text-white transition-all border-2 border-white/30 active:scale-95"
                             >
                                 Contact Sales
                             </Link>

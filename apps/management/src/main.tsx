@@ -7,10 +7,11 @@ import ErrorBoundary from "./components/common/ErrorBoundary";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./index.css";
+import { logger } from '@/utils/logger';
 
 // Suppress harmless browser extension warnings (e.g., wallet extensions competing for window.ethereum)
-const originalWarn = console.warn;
-console.warn = (...args: unknown[]) => {
+const originalWarn = logger.warn;
+logger.warn = (...args: unknown[]) => {
   const message = args[0]?.toString() || "";
   // Filter out wallet extension warnings that don't affect functionality
   if (
@@ -19,7 +20,7 @@ console.warn = (...args: unknown[]) => {
   ) {
     return; // Suppress this specific warning
   }
-  originalWarn.apply(console, args);
+  originalWarn(...args as [message: string, ...rest: unknown[]]);
 };
 
 // Set mode for management portal

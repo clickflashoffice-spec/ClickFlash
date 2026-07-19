@@ -1,5 +1,6 @@
 packages:
   - "apps/**"
+  - "!apps/**/build-electron-stage"
   - "packages/*"
   - "workers/*"
   - "services/*"

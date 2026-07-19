@@ -47,7 +47,7 @@ wrangler login
 ### 2. Setup (One-time)
 
 ```bash
-cd apps/moneytrash/cloudflare
+cd workers/moneytrash-worker
 chmod +x setup.sh
 ./setup.sh
 ```

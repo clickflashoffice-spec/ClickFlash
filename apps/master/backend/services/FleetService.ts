@@ -39,6 +39,7 @@ export class FleetService {
     private interval: NodeJS.Timeout | null = null;
     private masterId: string | null = null;
     private hubUrl: string;
+    private hubToken: string;
     private lastHeartbeatSuccessful: boolean = true;
 
     constructor(
@@ -47,7 +48,8 @@ export class FleetService {
         thermalService: ThermalService,
         photoProcessor: any,
         dbWriteQueue: any,
-        hubUrl: string
+        hubUrl: string,
+        hubToken: string
     ) {
         this.logger = logger;
         this.db = db;
@@ -55,6 +57,7 @@ export class FleetService {
         this.photoProcessor = photoProcessor;
         this.dbWriteQueue = dbWriteQueue;
         this.hubUrl = hubUrl;
+        this.hubToken = hubToken;
     }
 
     /**
@@ -109,7 +112,10 @@ export class FleetService {
 
             const response = await fetch(`${this.hubUrl}/api/masters/heartbeat`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.hubToken}`
+                },
                 body: JSON.stringify(payload)
             });
 

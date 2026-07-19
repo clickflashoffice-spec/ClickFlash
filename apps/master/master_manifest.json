@@ -2,8 +2,9 @@
   "app": "clickflash",
   "version": "4.1.1",
   "files": [
-    "main.js",
-    "preload.js",
+    "electron-main.ts",
+    "preload.ts",
+    "electron-builder.yml",
     "index.html",
     "package.json",
     "vite.config.ts",

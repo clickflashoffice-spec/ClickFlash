@@ -13,9 +13,10 @@
     "build:electron": "rimraf dist/electron && tsc -p tsconfig.electron.json && npx javascript-obfuscator dist/electron/electron-main.js --output dist/electron/electron-main.js --compact true --control-flow-flattening true --dead-code-injection true --string-array true --string-array-encoding base64 --string-array-threshold 1",
     "build:payload-tool": "rimraf dist/payload-tools && tsc -p tsconfig.payload-tools.json",
     "payload:sign": "pnpm run build:payload-tool && node dist/payload-tools/scripts/payload-release.js",
-    "package": "pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && electron-builder build --win --dir",
-    "package:installer": "pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && electron-builder build --win",
-    "lint": "eslint src installer-payload-release.ts installer-payload-verification.ts installer-payload-trust.ts scripts/payload-release.ts --ext .ts,.tsx --max-warnings 50",
+    "prepare:license-trust": "node ../../scripts/prepare-license-trust.cjs build/generated/license-public-key.txt",
+    "package": "pnpm run prepare:license-trust && pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && electron-builder build --win --dir",
+    "package:installer": "pnpm run prepare:license-trust && pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && electron-builder build --win",
+    "lint": "eslint src installer-payload-installation.ts installer-payload-release.ts installer-payload-verification.ts installer-payload-trust.ts scripts/payload-release.ts --ext .ts,.tsx --max-warnings 50",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.electron.json && tsc --noEmit -p tsconfig.payload-tools.json",
     "test": "vitest run",
     "clean": "rimraf dist release"
@@ -28,7 +29,8 @@
     "react-dom": "^19.2.0",
     "systeminformation": "^5.30.7",
     "tailwind-merge": "^3.4.0",
-    "zod": "^4.1.13"
+    "zod": "^4.1.13",
+    "@clickflash/logger": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

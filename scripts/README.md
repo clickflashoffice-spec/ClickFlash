@@ -18,29 +18,34 @@ npx tsx scripts/build-hotel-packages.ts
 
 ### `deploy-cloud.ps1`
 
-Deploys Cloudflare Workers (gallery, management) and the website to production.
+Validates and deploys the four canonical Cloudflare Workers, applies their D1
+migrations, and builds/deploys the Gallery and Management Pages apps. It defaults
+to staging and refuses staging deployment while resource IDs are placeholders.
+The Website remains owned by its dedicated Pages workflow.
 
 ```powershell
-.\scripts\deploy-cloud.ps1
+.\scripts\deploy-cloud.ps1 -Environment staging -WhatIf
+.\scripts\deploy-cloud.ps1 -Environment production -WhatIf
 ```
 
 Deploys:
-- `apps/gallery` -- CF Worker (D1 + R2)
-- `apps/management` -- CF Worker (D1)
-- `apps/website` -- Vercel / CF Pages
+- `workers/gallery-worker` -- Gallery and Website APIs (D1 + R2)
+- `workers/management-worker` -- Management API (D1 + R2)
+- `workers/moneytrash-worker` -- MoneyTrash API (D1 + R2 + KV)
+- `workers/update-server` -- signed desktop update metadata
+- `apps/gallery` and `apps/management` -- Cloudflare Pages
 
-### `rotate-api-keys.ts`
+### `provision-secrets.sh`
 
-Rotates JWT secrets and API keys across all apps. Should be run quarterly or after any suspected compromise.
+Audits or interactively provisions the exact Cloudflare Worker secrets for
+Gallery, Management, and MoneyTrash. The default environment is staging;
+production must be explicit. Values are sent to Wrangler over stdin and are
+never written into repository files.
 
 ```bash
-npx tsx scripts/rotate-api-keys.ts
+./scripts/provision-secrets.sh --check --env staging
+./scripts/provision-secrets.sh --env production
 ```
-
-Updates:
-- Master `JWT_SECRET` and `SESSION_SECRET`
-- Touch `JWT_SECRET`
-- CF Worker secrets via `wrangler secret put`
 
 ### `verify_ingestion.js`
 

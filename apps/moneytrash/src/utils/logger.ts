@@ -136,10 +136,10 @@ class Logger {
 
     switch (entry.level) {
       case 'debug':
-        logger.debug(String(`%c${prefix}`) + ' ' + String(styles[entry.level]) + ' ' + String(entry.message) + ' ' + String(entry.context || ''));
+        sharedLogger.debug(String(`%c${prefix}`) + ' ' + String(styles[entry.level]) + ' ' + String(entry.message) + ' ' + String(entry.context || ''));
         break;
       case 'info':
-        logger.info(String(`%c${prefix}`) + ' ' + String(styles[entry.level]) + ' ' + String(entry.message) + ' ' + String(entry.context || ''));
+        sharedLogger.info(String(`%c${prefix}`) + ' ' + String(styles[entry.level]) + ' ' + String(entry.message) + ' ' + String(entry.context || ''));
         break;
       case 'warn':
         sharedLogger.warn(entry.message, entry.context as any);

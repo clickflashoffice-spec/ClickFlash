@@ -7,7 +7,7 @@
  */
 
 // JWT_SECRET must be set as a Cloudflare Worker secret:
-//   wrangler secret put JWT_SECRET --config apps/gallery/backend/wrangler.toml
+//   pnpm --dir workers/gallery-worker exec wrangler secret put JWT_SECRET --env=<environment>
 // It is accessed via env.JWT_SECRET at runtime.
 export const JWT_EXPIRY = '24h';
 

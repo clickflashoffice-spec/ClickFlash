@@ -35,34 +35,34 @@ const reviews = [
 
 export function ReviewsSection() {
     return (
-        <section className="py-24 bg-slate-50 relative overflow-hidden">
+        <section className="py-24 bg-white/5 relative overflow-hidden">
             {/* World Map Background (Abstract) */}
             <div className="absolute inset-0 opacity-5 pointer-events-none bg-[url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg')] bg-center bg-no-repeat bg-contain" />
 
             <div className="container mx-auto px-6 relative z-10">
                 <div className="text-center mb-16">
                     <span className="text-cyan-400 font-bold tracking-widest uppercase text-sm mb-4 block">Customer Reviews</span>
-                    <h2 className="text-4xl md:text-5xl font-sans font-bold text-slate-800 mb-6">
+                    <h2 className="text-4xl md:text-5xl font-sans font-bold text-white/90 mb-6">
                         Words from Our <br /> Happy Clients
                     </h2>
-                    <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-white/70 max-w-2xl mx-auto leading-relaxed">
                         At ClickFlash, our clients&apos; satisfaction is our top priority. Hear what
                         they have to say about their experiences with our photography services.
                     </p>
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="flex justify-center flex-wrap gap-6 mb-12 border-b border-slate-200 pb-4 max-w-2xl mx-auto">
-                    <button className="font-bold text-slate-800 border-b-2 border-slate-800 pb-4 -mb-4.5">All reviews</button>
-                    <button className="font-medium text-slate-600 hover:text-slate-800 flex items-center gap-2"><span className="text-blue-500 font-bold">G</span> Google</button>
-                    <button className="font-medium text-slate-600 hover:text-slate-800 flex items-center gap-2"><span className="text-blue-600 font-bold">f</span> Facebook</button>
-                    <button className="font-medium text-slate-600 hover:text-slate-800 flex items-center gap-2"><span className="text-orange-500 font-bold">G</span> Getyourguide</button>
+                <div className="flex justify-center flex-wrap gap-6 mb-12 border-b border-white/20 pb-4 max-w-2xl mx-auto">
+                    <button className="font-bold text-white/90 border-b-2 border-slate-800 pb-4 -mb-4.5">All reviews</button>
+                    <button className="font-medium text-white/70 hover:text-white/90 flex items-center gap-2"><span className="text-blue-500 font-bold">G</span> Google</button>
+                    <button className="font-medium text-white/70 hover:text-white/90 flex items-center gap-2"><span className="text-blue-600 font-bold">f</span> Facebook</button>
+                    <button className="font-medium text-white/70 hover:text-white/90 flex items-center gap-2"><span className="text-orange-500 font-bold">G</span> Getyourguide</button>
                 </div>
 
                 {/* Rating Summary */}
-                <div className="flex flex-col md:flex-row justify-between items-center max-w-4xl mx-auto mb-10 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                <div className="flex flex-col md:flex-row justify-between items-center max-w-4xl mx-auto mb-10 bg-[#0B111F] p-4 rounded-xl shadow-sm border border-white/10">
                     <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-800">Excellent</span>
+                        <span className="font-bold text-white/90">Excellent</span>
                         <div className="flex text-amber-400 gap-0.5">
                             <Star className="w-5 h-5 fill-current" />
                             <Star className="w-5 h-5 fill-current" />
@@ -70,11 +70,11 @@ export function ReviewsSection() {
                             <Star className="w-5 h-5 fill-current" />
                             <Star className="w-5 h-5 fill-current" />
                         </div>
-                        <span className="font-bold text-slate-800">4.9</span>
-                        <span className="text-slate-600">|</span>
-                        <span className="text-slate-600 font-medium">2097 reviews</span>
+                        <span className="font-bold text-white/90">4.9</span>
+                        <span className="text-white/70">|</span>
+                        <span className="text-white/70 font-medium">2097 reviews</span>
                     </div>
-                    <button className="px-6 py-2 border border-slate-300 rounded-lg font-bold text-slate-700 hover:bg-slate-50 transition-colors mt-4 md:mt-0">
+                    <button className="px-6 py-2 border border-white/30 rounded-lg font-bold text-slate-700 hover:bg-white/5 transition-colors mt-4 md:mt-0">
                         Write a review
                     </button>
                 </div>
@@ -88,7 +88,7 @@ export function ReviewsSection() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.1 }}
-                            className="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 flex flex-col gap-4"
+                            className="bg-[#0B111F] p-8 rounded-2xl shadow-lg border border-white/10 flex flex-col gap-4"
                         >
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-3">
@@ -97,8 +97,8 @@ export function ReviewsSection() {
                                         {review.initial}
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-slate-900 text-sm">{review.name}</h4>
-                                        <span className="text-xs text-slate-600">{review.date}</span>
+                                        <h4 className="font-bold text-white text-sm">{review.name}</h4>
+                                        <span className="text-xs text-white/70">{review.date}</span>
                                     </div>
                                 </div>
                                 <span className="text-blue-500 font-bold">G</span>
@@ -111,11 +111,11 @@ export function ReviewsSection() {
                                 </div>
                             </div>
 
-                            <p className="text-slate-600 text-sm leading-relaxed">
+                            <p className="text-white/70 text-sm leading-relaxed">
                                 {review.text}
                             </p>
                             {review.subtext && (
-                                <p className="text-xs text-slate-600 italic mt-auto">{review.subtext}</p>
+                                <p className="text-xs text-white/70 italic mt-auto">{review.subtext}</p>
                             )}
                         </motion.div>
                     ))}

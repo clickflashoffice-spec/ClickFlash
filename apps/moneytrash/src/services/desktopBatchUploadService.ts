@@ -1,10 +1,10 @@
 
 /**
- * Desktop Batch Upload Service for Tauri
+ * Desktop batch upload service
  * Handles high-volume concurrent uploads with native file system access
  */
 
-import { invoke, isTauri } from './tauriService';
+import { invoke, isDesktop } from './tauriService';
 import { logger } from '@/utils/logger';
 
 interface UploadJob {
@@ -201,16 +201,16 @@ class DesktopBatchUploadService {
   }
 
   /**
-   * Upload a single file using Tauri's native APIs with streaming (Zero-Buffer)
+   * Upload a single file using the native streaming API
    */
   private async uploadFile(job: UploadJob, file: File, nativePath?: string): Promise<void> {
-    if (!isTauri()) {
+    if (!isDesktop()) {
       job.progress.failed++;
       job.errors.push({
         file: file.name,
-        error: 'Tauri desktop app required for native file uploads'
+        error: 'ClickFlash desktop app required for native file uploads'
       });
-      logger.error(`Cannot upload ${file.name}: Not running in Tauri context`);
+      logger.error(`Cannot upload ${file.name}: not running in a desktop context`);
       this.notifySubscribers(job.id);
       return;
     }

@@ -1,4 +1,5 @@
 import http from 'http';
+import { logger } from '@/utils/logger';
 
 const MASTER_URL = 'http://localhost:8090';
 const NUM_CLIENTS = 5;
@@ -43,7 +44,7 @@ function makeRequest(kioskId: string): Promise<void> {
                 stats.success++;
             } else {
                 stats.failed++;
-                console.error(`[${kioskId}] Failed: ${res.statusCode}`);
+                logger.error(`[${kioskId}] Failed: ${res.statusCode}`);
             }
             res.resume(); // Consume response
             resolve();
@@ -54,7 +55,7 @@ function makeRequest(kioskId: string): Promise<void> {
             stats.totalRequests++;
             stats.totalLatency += latency;
             stats.failed++;
-            console.error(`[${kioskId}] Error: ${e.message}`);
+            logger.error(`[${kioskId}] Error: ${e.message}`);
             resolve();
         });
 
@@ -67,17 +68,17 @@ async function runClient(id: number) {
     const kioskId = `BENCHMARK_KIOSK_${id}`;
     const endTime = Date.now() + DURATION_MS;
 
-    console.log(`[Client ${id}] Starting...`);
+    logger.info(`[Client ${id}] Starting...`);
 
     while (Date.now() < endTime) {
         await makeRequest(kioskId);
         await new Promise(r => setTimeout(r, REQUEST_INTERVAL_MS));
     }
-    console.log(`[Client ${id}] Finished.`);
+    logger.info(`[Client ${id}] Finished.`);
 }
 
 async function main() {
-    console.log(`Starting Benchmark: ${NUM_CLIENTS} clients, ${DURATION_MS / 1000}s duration...`);
+    logger.info(`Starting Benchmark: ${NUM_CLIENTS} clients, ${DURATION_MS / 1000}s duration...`);
 
     const clients = [];
     for (let i = 0; i < NUM_CLIENTS; i++) {
@@ -86,12 +87,12 @@ async function main() {
 
     await Promise.all(clients);
 
-    console.log('\n=== Benchmark Results ===');
-    console.log(`Total Requests: ${stats.totalRequests}`);
-    console.log(`Success: ${stats.success}`);
-    console.log(`Failed: ${stats.failed}`);
-    console.log(`Avg Latency: ${(stats.totalLatency / stats.totalRequests).toFixed(2)}ms`);
-    console.log(`Requests/Sec: ${(stats.totalRequests / (DURATION_MS / 1000)).toFixed(2)}`);
+    logger.info('\n=== Benchmark Results ===');
+    logger.info(`Total Requests: ${stats.totalRequests}`);
+    logger.info(`Success: ${stats.success}`);
+    logger.info(`Failed: ${stats.failed}`);
+    logger.info(`Avg Latency: ${(stats.totalLatency / stats.totalRequests).toFixed(2)}ms`);
+    logger.info(`Requests/Sec: ${(stats.totalRequests / (DURATION_MS / 1000)).toFixed(2)}`);
 }
 
-main().catch(console.error);
+main().catch(logger.error);

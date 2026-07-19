@@ -8,4 +8,6 @@ export { default as Toast } from './components/Toast';
 export { default as Photo } from './components/Photo';
 export { ErrorBoundary } from './components/ErrorBoundary';
 export { OfflineScreen } from './components/OfflineScreen';
+export { default as Skeleton } from './components/Skeleton';
+export { default as ProgressiveImage, type ProgressiveImageProps } from './components/ProgressiveImage';
 export * from './utils/styleUtils';

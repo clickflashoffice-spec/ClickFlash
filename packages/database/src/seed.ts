@@ -1,6 +1,9 @@
 import Database from 'better-sqlite3';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { createLogger } from '@clickflash/logger';
+
+const logger = createLogger({ serviceName: 'database-seeder' });
 
 export function seed(dbPath: string, environment: 'development' | 'test' = 'development') {
   const db = new Database(dbPath);
@@ -8,5 +11,5 @@ export function seed(dbPath: string, environment: 'development' | 'test' = 'deve
   const sql = readFileSync(seedFile, 'utf-8');
   db.exec(sql);
   db.close();
-  console.log(`Seeded ${environment} data`);
+  logger.info(`Seeded ${environment} data`);
 }

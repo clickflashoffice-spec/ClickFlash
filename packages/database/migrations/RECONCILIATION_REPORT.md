@@ -220,7 +220,6 @@ _No content conflicts._
 - `20260101033300_master-cpp_058_add_session_timing.sql`
 - `20260101033400_master-cpp_059_performance_indexes_v2.sql`
 - `20260101033500_master-cpp_060_performance_indexes_v3.sql`
-- `20260101033600_touch_001_initial_schema.sql`
 - `20260101033700_touch_002_enhanced_photos_schema.sql`
 - `20260101033800_touch_002_update_schema.sql`
 - `20260101033900_touch_003_add_destinations.sql`

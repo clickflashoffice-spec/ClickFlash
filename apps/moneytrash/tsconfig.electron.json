@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "outDir": "./dist/electron",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "sourceMap": false
+  },
+  "include": [
+    "electron-main.ts",
+    "electron-contract.ts",
+    "electron-files.ts",
+    "electron-security.ts",
+    "electron-storage.ts",
+    "electron-uploads.ts",
+    "preload.ts"
+  ],
+  "exclude": ["node_modules", "dist", "release", "src", "src-tauri"]
+}

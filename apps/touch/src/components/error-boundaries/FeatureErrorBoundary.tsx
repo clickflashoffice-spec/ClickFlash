@@ -62,15 +62,10 @@ export class FeatureErrorBoundary extends Component<Props, State> {
             onError(error, errorInfo);
         }
 
-        // Send to Electron logger if available
-        if (window.electron?.logger) {
-            window.electron.logger.error(`[${feature}] Feature error`, {
-                message: error.message,
-                stack: error.stack,
-                componentStack: errorInfo.componentStack,
-                severity
-            });
-        }
+        logger.error(`[${feature}] Feature error`, error, {
+            componentStack: errorInfo.componentStack,
+            severity
+        });
 
         // Send to Sentry in production
         if (import.meta.env.PROD && window.Sentry) {
@@ -98,11 +93,7 @@ export class FeatureErrorBoundary extends Component<Props, State> {
     };
 
     handleExit = () => {
-        if (window.electron?.exitKiosk) {
-            window.electron.exitKiosk();
-        } else {
-            window.location.reload();
-        }
+        window.location.reload();
     };
 
     getSeverityStyles(severity: ErrorSeverity): string {

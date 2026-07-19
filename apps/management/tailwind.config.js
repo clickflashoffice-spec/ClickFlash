@@ -16,6 +16,9 @@ module.exports = {
     theme: {
         extend: {
             colors: {
+                canvas: '#0B111F',
+                surface: '#131C31',
+                obsidian: '#070b14',
                 cf: {
                     base:    'var(--cf-bg-base)',
                     panel:   'var(--cf-bg-panel)',
@@ -38,6 +41,15 @@ module.exports = {
                     900: "#164e63",
                     DEFAULT: "#00B4D8",
                     hover: "#0096B4",
+                },
+                purple: {
+                    400: "#a78bfa",
+                    500: "#8b5cf6",
+                    600: "#7c3aed",
+                    700: "#6d28d9",
+                    800: "#5b21b6",
+                    900: "#4c1d95",
+                    DEFAULT: "#8B5CF6",
                 },
                 slate: {
                     50: '#f8fafc',

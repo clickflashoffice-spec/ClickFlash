@@ -6,34 +6,32 @@ import OnScreenKeyboard from './OnScreenKeyboard';
 interface PasswordModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSuccess: () => void;
+    onSubmit: (password: string) => Promise<boolean>;
 }
 
-const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSuccess }) => {
+const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSubmit }) => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = () => {
-        const savedSettingsRaw = localStorage.getItem('kioskSettingsV2');
-        let adminPassword = '1234'; // Default password
+    const handleSubmit = async () => {
+        if (!password || isSubmitting) return;
+        setIsSubmitting(true);
+        setError('');
 
-        if (savedSettingsRaw) {
-            try {
-                const savedSettings = JSON.parse(savedSettingsRaw);
-                if (savedSettings.password && savedSettings.password.length > 0) {
-                    adminPassword = savedSettings.password;
-                }
-            } catch (e) {
-                logger.warn("Could not parse kiosk settings for password", { error: e instanceof Error ? e.message : String(e) });
+        try {
+            const success = await onSubmit(password);
+            if (success) {
+                resetState();
+                return;
             }
-        }
-
-        if (password === adminPassword) {
-            onSuccess();
-            resetState();
-        } else {
             setError('Incorrect password. Please try again.');
             setPassword('');
+        } catch (submitError) {
+            logger.error('Failed to validate kiosk exit password', submitError);
+            setError('Unable to validate the password. Please try again.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -68,11 +66,12 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, onSucces
                         Cancel
                     </button>
                     <button
-                        onClick={handleSubmit}
+                        onClick={() => void handleSubmit()}
+                        disabled={isSubmitting || password.length === 0}
                         data-testid="admin-password-submit"
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-xl transition-colors"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 text-white font-bold py-3 px-6 rounded-lg text-xl transition-colors"
                     >
-                        Submit
+                        {isSubmitting ? 'Validating…' : 'Submit'}
                     </button>
                 </div>
             </div>

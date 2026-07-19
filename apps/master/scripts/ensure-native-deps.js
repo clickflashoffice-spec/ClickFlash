@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { execSync } = require('child_process');
+const asar = require('@electron/asar');
 
 const NATIVE_MODULE_DEPS = [
   'better-sqlite3-multiple-ciphers',
@@ -320,6 +321,57 @@ function generateGuardianHash(appOutDir) {
   console.log(`[HashGen] ${path.basename(exePath)} → ${digest}`);
 }
 
+function verifyPackageBoundaries(appOutDir) {
+  const archivePath = path.join(appOutDir, 'resources', 'app.asar');
+  if (!fs.existsSync(archivePath)) {
+    throw new Error('[PackageGate] app.asar is missing');
+  }
+
+  const entries = asar.listPackage(archivePath);
+  const requiredEntries = [
+    '\\dist\\electron\\electron-main.js',
+    '\\dist\\electron\\desktop-license.js',
+    '\\dist\\electron\\preload.js',
+  ];
+  for (const required of requiredEntries) {
+    if (!entries.includes(required)) {
+      throw new Error(`[PackageGate] Required runtime entry is missing: ${required}`);
+    }
+  }
+
+  const forbidden = entries.find((entry) => (
+    entry.startsWith('\\node_modules\\@clickflash\\licensing')
+    || /\\out\\private\.pem$/i.test(entry)
+    || /(?:test-gen-verify\.ts|test-nacl\.mjs)$/i.test(entry)
+  ));
+  if (forbidden) {
+    throw new Error(`[PackageGate] Private/source licensing entry was packaged: ${forbidden}`);
+  }
+
+  const updaterPath = path.join(
+    appOutDir,
+    'resources',
+    'app.asar.unpacked',
+    'dist',
+    'backend',
+    'main',
+    'autoUpdater.js',
+  );
+  if (!fs.existsSync(updaterPath)) {
+    throw new Error('[PackageGate] Built auto-updater bundle is missing');
+  }
+  const licenseTrustPath = path.join(appOutDir, 'resources', 'license-public-key.txt');
+  if (!fs.existsSync(licenseTrustPath)) {
+    throw new Error('[PackageGate] Approved license public key is missing');
+  }
+  const licensePublicKey = fs.readFileSync(licenseTrustPath, 'utf8').trim();
+  if (!/^[A-Za-z0-9+/]{43}=$/.test(licensePublicKey)
+      || Buffer.from(licensePublicKey, 'base64').length !== 32) {
+    throw new Error('[PackageGate] Approved license public key is invalid');
+  }
+  console.log(`[PackageGate] ASAR/runtime boundary passed (${entries.length} entries)`);
+}
+
 // electron-builder afterPack hook
 module.exports = async function(context) {
   const appOutDir = context.appOutDir;
@@ -328,10 +380,11 @@ module.exports = async function(context) {
     : context.packager?.config?.electronVersion || '39.8.7';
   const arch = context.arch === 1 ? 'x64' : context.arch === 3 ? 'arm64' : 'x64';
   
-  console.log('[afterPack] Running ensure-native-deps + ABI verification + guardian-hash...');
+  console.log('[afterPack] Running native, ABI, guardian, and package-boundary checks...');
   console.log(`[afterPack] Electron: ${electronVersion}, Arch: ${arch}`);
   
   ensureNativeDeps(appOutDir);
   verifyAndRebuildNative(appOutDir, electronVersion, arch);
   generateGuardianHash(appOutDir);
+  verifyPackageBoundaries(appOutDir);
 };

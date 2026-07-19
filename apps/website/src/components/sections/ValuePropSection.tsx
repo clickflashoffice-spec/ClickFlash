@@ -46,7 +46,7 @@ export function ValuePropSection() {
                             transition={{ delay: index * 0.1 }}
                         >
                             <div className="flex gap-6 items-start">
-                                <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                                <div className="w-12 h-12 rounded-full bg-[#0B111F]/5 border border-white/10 flex items-center justify-center shrink-0">
                                     <value.icon className="w-6 h-6 text-cyan-700" />
                                 </div>
                                 <div>

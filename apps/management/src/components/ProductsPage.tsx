@@ -5,6 +5,7 @@ import PackEditModal from "./modals/PackEditModal.tsx";
 import { useCurrency } from "./CurrencyContext.tsx";
 import { apiService } from "../services/apiService.ts";
 import Spinner from "./common/Spinner.tsx";
+import { StatCardSkeleton, TableRowSkeleton } from "./common/Skeleton.tsx";
 import Card from "./common/Card.tsx";
 import { useDebounce } from "../hooks/useDebounce.ts";
 import { syncPricingToSupabase } from "../services/pricingSync.ts";
@@ -176,8 +177,38 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ context: context }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[400px]">
-        <Spinner />
+      <div className="space-y-6 animate-fadeIn pb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div>
+            <div className="h-8 w-48 bg-slate-200 rounded animate-pulse"></div>
+            <div className="h-4 w-64 bg-slate-200 rounded animate-pulse mt-2"></div>
+          </div>
+          <div className="h-10 w-64 bg-slate-200 rounded-xl animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+        <Card className="!p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left min-w-[600px]">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="p-4"><div className="h-4 w-20 bg-slate-200 rounded animate-pulse"></div></th>
+                  <th className="p-4"><div className="h-4 w-24 bg-slate-200 rounded animate-pulse"></div></th>
+                  <th className="p-4 text-right"><div className="h-4 w-16 bg-slate-200 rounded animate-pulse inline-block"></div></th>
+                  <th className="p-4 text-right"><div className="h-4 w-16 bg-slate-200 rounded animate-pulse inline-block"></div></th>
+                  <th className="p-4 text-center"><div className="h-4 w-24 bg-slate-200 rounded animate-pulse inline-block"></div></th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...Array(5)].map((_, i) => <TableRowSkeleton key={i} columns={5} />)}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       </div>
     );
   }

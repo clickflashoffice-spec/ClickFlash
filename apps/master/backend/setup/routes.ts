@@ -38,9 +38,16 @@ import { createHardwareRouter } from "../routes/hardware.routes";
 import createAutoRegisterRouter from "../routes/autoRegister";
 import reelRoutes from "../routes/reels.routes";
 import createEntaggedRouter from "../routes/entagged.routes";
+import mobileShareRoutes from "../routes/mobileShareRoutes";
+import bridgeRoutes from "../routes/bridge.routes";
+import settingsRoutes from "../routes/settings.routes";
+import shiftRoutes from "../routes/shifts";
+import photographerRoutes from "../routes/photographers.routes";
 
 export function mountRoutes(app: Application, context: any) {
   // Specific API routes
+  app.use("/api/bridge", bridgeRoutes(context));
+  app.use("/api/mobile-share", strictRateLimiter, mobileShareRoutes(context));
   app.use("/api/entagged", createEntaggedRouter(context));
   app.use("/api/hardware", createHardwareRouter());
   app.use("/api/auth", strictRateLimiter, authRoutes(context));
@@ -81,6 +88,9 @@ export function mountRoutes(app: Application, context: any) {
   app.use("/api/cart", cartRoutes(context));
   app.use("/api", syncRoutes(context as any));
   app.use("/api/setup", setupRoutes(context));
+  app.use("/api/settings", settingsRoutes(context));
+  app.use("/api/shifts", shiftRoutes(context));
+  app.use("/api/photographers", photographerRoutes(context));
   app.use("/api/license", licenseRoutes(context));
   app.use("/api/reels", reelRoutes(context));
   app.use("/api/v1/kiosks", createAutoRegisterRouter(context.dbManager, context.logger));

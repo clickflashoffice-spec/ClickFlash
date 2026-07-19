@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ManagementView } from "../../constants.ts";
 import { Photographer } from "../../types.ts";
+import { usePermissions } from "../../hooks/usePermissions.ts";
 import {
   LayoutDashboard,
   Server,
@@ -20,6 +21,7 @@ import {
   CreditCard,
   Key,
   Mail,
+  ShieldCheck,
 } from "lucide-react";
 
 interface SimplifiedSidebarProps {
@@ -36,7 +38,7 @@ interface SimplifiedSidebarProps {
 // Navigation items reduced from 37 to 12 (68% reduction).
 // ============================================================================
 
-type TabId = "dashboard" | "operations" | "finance" | "settings";
+type TabId = "dashboard" | "operations" | "finance" | "settings" | "ai_hub";
 
 interface TabConfig {
   id: TabId;
@@ -53,6 +55,16 @@ const TABS: TabConfig[] = [
     views: ["executive_dashboard"],
   },
   {
+    id: "ai_hub",
+    label: "AI Intelligence",
+    icon: TrendingUp,
+    views: [
+      "ai_manager_workspace",
+      "ai_location_scout",
+      "ai_ceo_workspace"
+    ],
+  },
+  {
     id: "operations",
     label: "Operations",
     icon: Server,
@@ -62,6 +74,7 @@ const TABS: TabConfig[] = [
       "volume_exports",
       "assets_inventory",
       "sync_logs",
+      "sla_monitoring",
     ],
   },
   {
@@ -77,11 +90,14 @@ const TABS: TabConfig[] = [
     views: [
       "general_settings",
       "staff_management",
+      "workforce_dashboard",
       "license_management",
       "session_types",
       "reports_insights",
       "email_campaigns",
       "billing_subscription",
+      "franchise_onboarding",
+      "white_label_settings",
     ],
   },
 ];
@@ -100,26 +116,35 @@ const TAB_ITEMS: Record<TabId, TabItemConfig[]> = {
       icon: LayoutDashboard,
     },
   ],
+  ai_hub: [
+    { view: "ai_manager_workspace", label: "AI Manager (Fleet)", icon: Users },
+    { view: "ai_location_scout", label: "AI Location Scout", icon: Package },
+    { view: "ai_ceo_workspace", label: "AI CEO Workspace", icon: TrendingUp },
+  ],
   operations: [
     { view: "stations_overview", label: "Stations Overview", icon: Server },
     { view: "orders_sales", label: "Orders & Sales", icon: ShoppingCart },
     { view: "volume_exports", label: "Volume Exports", icon: Package },
     { view: "assets_inventory", label: "Assets & Inventory", icon: Package },
     { view: "sync_logs", label: "Sync & Logs", icon: RefreshCw },
+    { view: "sla_monitoring", label: "SLA Uptime Command", icon: ShieldCheck },
   ],
   finance: [
-    { view: "revenue_income", label: "Revenue & Income", icon: TrendingUp },
+    { view: "revenue_income", label: "Revenue & Income", icon: DollarSign },
     { view: "expenses_payroll", label: "Expenses & Payroll", icon: DollarSign },
     { view: "capital_treasury", label: "Capital & Treasury", icon: Users },
   ],
   settings: [
     { view: "general_settings", label: "General Settings", icon: Settings },
     { view: "staff_management", label: "Staff Management", icon: Users },
+    { view: "workforce_dashboard", label: "Workforce Dashboard", icon: ShieldCheck },
     { view: "license_management", label: "License Fleet & Generator", icon: Key },
     { view: "session_types", label: "Session Types", icon: ClipboardList },
     { view: "reports_insights", label: "Reports & Insights", icon: FileText },
     { view: "email_campaigns", label: "Email Campaigns", icon: Mail },
     { view: "billing_subscription", label: "Billing & Plans", icon: CreditCard },
+    { view: "franchise_onboarding", label: "Franchise Setup Wizard", icon: Key },
+    { view: "white_label_settings", label: "White-Label Branding", icon: Settings },
   ],
 };
 
@@ -129,12 +154,21 @@ export const SimplifiedSidebar: React.FC<SimplifiedSidebarProps> = ({
   onLogout,
   currentUser,
 }) => {
+  const { can } = usePermissions(currentUser);
   const [expandedTab, setExpandedTab] = useState<TabId>("dashboard");
   const [_isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Filter tabs based on user permissions
+  const filteredTabs = TABS.filter(tab => {
+    if (tab.id === 'settings' && !can('manageGlobalSettings') && !can('manageLocalSettings')) return false;
+    if (tab.id === 'finance' && !can('viewRevenue') && !can('viewExpenses')) return false;
+    if (tab.id === 'ai_hub' && !can('viewReports')) return false;
+    return true;
+  });
+
   // Determine which tab contains the current view
   const activeTab =
-    TABS.find((tab) => tab.views.includes(currentView)) || TABS[0];
+    filteredTabs.find((tab) => tab.views.includes(currentView)) || filteredTabs[0];
 
   const handleTabClick = (tab: TabConfig) => {
     if (expandedTab === tab.id) {

@@ -308,6 +308,10 @@ export async function installOrRepairPayloadBundle(
   }
   assertSelectedComponentsMatch(selectedComponents, source.summary.components);
 
+  const targetInputStats = await fs.promises.lstat(targetDirectoryInput);
+  if (!targetInputStats.isDirectory() || targetInputStats.isSymbolicLink()) {
+    throw new Error("Installation destination must be a regular directory");
+  }
   const targetDirectory = await fs.promises.realpath(targetDirectoryInput);
   const targetStats = await fs.promises.lstat(targetDirectory);
   if (!targetStats.isDirectory() || targetStats.isSymbolicLink()) {

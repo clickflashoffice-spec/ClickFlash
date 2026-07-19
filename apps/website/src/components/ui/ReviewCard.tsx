@@ -35,7 +35,7 @@ export function ReviewCard({ name, text, rating, date, source }: ReviewCardProps
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col relative h-full"
+            className="bg-[#0B111F] p-6 md:p-8 rounded-3xl border border-white/10 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col relative h-full"
         >
             <div className="absolute top-8 right-8 text-slate-200">
                 {source === 'google' && <GoogleIcon />}
@@ -44,14 +44,14 @@ export function ReviewCard({ name, text, rating, date, source }: ReviewCardProps
             </div>
 
             <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-800 text-lg uppercase">
+                <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center font-black text-white/90 text-lg uppercase">
                     {name.charAt(0)}
                 </div>
                 <div>
-                    <h4 className="font-black text-slate-900 text-sm mb-0.5">
+                    <h4 className="font-black text-white text-sm mb-0.5">
                         {name}
                     </h4>
-                    <span className="text-[11px] text-slate-600 font-medium tracking-wider">
+                    <span className="text-[11px] text-white/70 font-medium tracking-wider">
                         {date}
                     </span>
                 </div>
@@ -66,7 +66,7 @@ export function ReviewCard({ name, text, rating, date, source }: ReviewCardProps
                 ))}
             </div>
 
-            <p className="text-[15px] leading-relaxed text-slate-600 font-medium">
+            <p className="text-[15px] leading-relaxed text-white/70 font-medium">
                 "{text}"
             </p>
         </motion.div>

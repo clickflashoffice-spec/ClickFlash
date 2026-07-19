@@ -1,8 +1,6 @@
-import * as tf from '@tensorflow/tfjs-core';
-import '@tensorflow/tfjs-backend-cpu';
-import * as blazeface from '@tensorflow-models/blazeface';
 import sharp from 'sharp';
 import { logger } from '../utils/logger';
+import { faceService } from './faceService';
 
 export interface ImageStats {
   luminance: number;
@@ -21,19 +19,11 @@ export interface AutoEdits {
   crop?: { x: number; y: number; width: number; height: number };
 }
 
-let faceModel: blazeface.BlazeFaceModel | null = null;
-
 export class AutoEditEngine {
   
   static async initializeFaceModel() {
-    if (!faceModel) {
-      try {
-        logger.info('[AutoEditEngine] Initializing Blazeface model for Smart Crop');
-        faceModel = await blazeface.load();
-      } catch (err) {
-        logger.warn('[AutoEditEngine] Failed to load blazeface model (offline?). Smart Crop will be disabled.', err);
-      }
-    }
+    // No-op for backwards compatibility; face estimation is offloaded to FaceService worker
+    logger.debug('[AutoEditEngine] Face model initialization offloaded to faceWorker via FaceService');
   }
 
   static computeHeuristics(stats: ImageStats): AutoEdits {
@@ -77,39 +67,32 @@ export class AutoEditEngine {
   }
 
   static async smartCrop(imagePath: string, targetAspectRatio: number = 1.0): Promise<{ x: number, y: number, width: number, height: number } | undefined> {
-    if (!faceModel) await this.initializeFaceModel();
-    if (!faceModel) return undefined;
-
     try {
       const image = sharp(imagePath).rotate();
       const metadata = await image.metadata();
       const width = metadata.width || 1000;
       const height = metadata.height || 1000;
       
-      const resizeW = 500;
-      const resizeH = Math.round(height * (500/width));
-      
-      // BlazeFace expects RGB
-      const { data, info } = await image.resize(resizeW, resizeH).removeAlpha().raw().toBuffer({ resolveWithObject: true });
-      
-      const tensor = tf.tensor3d(new Uint8Array(data), [info.height, info.width, info.channels]);
-      const predictions = await faceModel.estimateFaces(tensor, false);
-      tf.dispose(tensor);
-      
-      if (predictions.length > 0) {
+      const analysis = await faceService.analyzeImage(imagePath);
+      if (analysis.faces && analysis.faces.length > 0) {
         let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
         
-        for (const pred of predictions) {
-           const topLeft = pred.topLeft as [number, number];
-           const bottomRight = pred.bottomRight as [number, number];
-           minX = Math.min(minX, topLeft[0]);
-           minY = Math.min(minY, topLeft[1]);
-           maxX = Math.max(maxX, bottomRight[0]);
-           maxY = Math.max(maxY, bottomRight[1]);
+        for (const face of analysis.faces) {
+          const box = face.box;
+          if (box) {
+            minX = Math.min(minX, box.x);
+            minY = Math.min(minY, box.y);
+            maxX = Math.max(maxX, box.x + box.width);
+            maxY = Math.max(maxY, box.y + box.height);
+          }
         }
         
-        const scaleX = width / resizeW;
-        const scaleY = height / resizeH;
+        if (minX === Infinity) return undefined;
+        
+        const analysisW = analysis.width || width;
+        const analysisH = analysis.height || height;
+        const scaleX = width / analysisW;
+        const scaleY = height / analysisH;
         
         minX *= scaleX;
         minY *= scaleY;
@@ -139,7 +122,6 @@ export class AutoEditEngine {
           height: (cropH / height) * 100
         };
       }
-      
     } catch (err) {
       logger.error('[AutoEditEngine] Smart crop failed:', err);
     }

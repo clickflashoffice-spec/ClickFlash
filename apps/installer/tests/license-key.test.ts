@@ -65,6 +65,19 @@ describe('Installer license verification', () => {
     expect(result.error).toContain('Machine ID mismatch');
   });
 
+  it('rejects an unbound license during Installer activation', async () => {
+    const fixture = createSignedLicense();
+
+    await expect(validateLicenseKey(
+      fixture.key,
+      'machine-1',
+      fixture.publicKeyB64,
+    )).resolves.toEqual({
+      valid: false,
+      error: 'License is not bound to this machine',
+    });
+  });
+
   it('rejects expired and malformed payloads', () => {
     const expired = createSignedLicense({ expiresAt: '2020-01-01' });
     const malformed = createSignedLicense({ maxMasters: 0 });
@@ -76,7 +89,8 @@ describe('Installer license verification', () => {
   });
 
   it('rejects an invalid production key format', async () => {
-    await expect(validateLicenseKey('not-a-license')).resolves.toEqual({
+    const fixture = createSignedLicense();
+    await expect(validateLicenseKey('not-a-license', 'machine-001', fixture.publicKeyB64)).resolves.toEqual({
       valid: false,
       error: 'Invalid license prefix',
     });

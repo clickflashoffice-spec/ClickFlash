@@ -3,9 +3,9 @@
  * Handles automatic updates using electron-updater
  */
 
-import { app, dialog, ipcMain, BrowserWindow } from 'electron';
+import { app, dialog, ipcMain, BrowserWindow, IpcMainInvokeEvent } from 'electron';
 import { autoUpdater, UpdateInfo } from 'electron-updater';
-import { logger } from '@/utils/logger';
+import { logger } from '@clickflash/logger';
 
 // Configure auto-updater
 autoUpdater.logger = console;
@@ -27,6 +27,8 @@ interface UpdateStatus {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let eventHandlersRegistered = false;
+let updateCheckScheduled = false;
 let updateStatus: UpdateStatus = {
   checking: false,
   available: false,
@@ -37,30 +39,54 @@ let updateStatus: UpdateStatus = {
 
 export function initAutoUpdater(window: BrowserWindow): void {
   mainWindow = window;
-  
-  // Check for updates after 10 seconds
-  setTimeout(() => {
-    checkForUpdates();
-  }, 10000);
+
+  if (!updateCheckScheduled) {
+    updateCheckScheduled = true;
+    setTimeout(() => {
+      void checkForUpdates();
+    }, 10000);
+  }
 
   setupIpcHandlers();
-  setupEventHandlers();
+  if (!eventHandlersRegistered) {
+    eventHandlersRegistered = true;
+    setupEventHandlers();
+  }
+}
+
+function assertTrustedSender(event: IpcMainInvokeEvent): void {
+  if (
+    !mainWindow
+    || mainWindow.isDestroyed()
+    || event.sender !== mainWindow.webContents
+    || event.senderFrame !== mainWindow.webContents.mainFrame
+  ) {
+    throw new Error('Unauthorized updater IPC sender');
+  }
 }
 
 function setupIpcHandlers(): void {
-  ipcMain.handle('updater:check', async () => {
+  for (const channel of ['updater:check', 'updater:download', 'updater:install', 'updater:status']) {
+    ipcMain.removeHandler(channel);
+  }
+
+  ipcMain.handle('updater:check', async (event) => {
+    assertTrustedSender(event);
     return await checkForUpdates();
   });
 
-  ipcMain.handle('updater:download', async () => {
+  ipcMain.handle('updater:download', async (event) => {
+    assertTrustedSender(event);
     return await downloadUpdate();
   });
 
-  ipcMain.handle('updater:install', () => {
+  ipcMain.handle('updater:install', (event) => {
+    assertTrustedSender(event);
     installUpdate();
   });
 
-  ipcMain.handle('updater:status', () => {
+  ipcMain.handle('updater:status', (event) => {
+    assertTrustedSender(event);
     return updateStatus;
   });
 }
@@ -73,7 +99,7 @@ function setupEventHandlers(): void {
   });
 
   autoUpdater.on('update-available', (info: UpdateInfo) => {
-    logger.info('[AutoUpdater] Update available:', info.version);
+    logger.info('[AutoUpdater] Update available:', { args: [info.version] });
     updateStatus = {
       ...updateStatus,
       checking: false,
@@ -104,7 +130,7 @@ function setupEventHandlers(): void {
   });
 
   autoUpdater.on('error', (error) => {
-    logger.error('[AutoUpdater] Error:', error);
+    logger.error('[AutoUpdater] Error:', { args: [error] });
     updateStatus = { ...updateStatus, checking: false, error: error.message };
     notifyRenderer('error', { message: error.message });
   });
@@ -119,7 +145,7 @@ async function checkForUpdates(): Promise<UpdateStatus> {
     await autoUpdater.checkForUpdates();
     return updateStatus;
   } catch (error) {
-    logger.error('[AutoUpdater] Failed to check:', error);
+    logger.error('[AutoUpdater] Failed to check:', { args: [error] });
     updateStatus = { ...updateStatus, error: (error as Error).message };
     return updateStatus;
   }
@@ -130,7 +156,7 @@ async function downloadUpdate(): Promise<UpdateStatus> {
     await autoUpdater.downloadUpdate();
     return updateStatus;
   } catch (error) {
-    logger.error('[AutoUpdater] Failed to download:', error);
+    logger.error('[AutoUpdater] Failed to download:', { args: [error] });
     updateStatus = { ...updateStatus, error: (error as Error).message };
     return updateStatus;
   }

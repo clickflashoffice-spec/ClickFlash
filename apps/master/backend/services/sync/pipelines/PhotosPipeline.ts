@@ -118,6 +118,11 @@ export class PhotosPipeline implements SyncPipeline {
             [photo.id]
           );
         }
+
+        // Apply dynamic bandwidth shaping delay if configured
+        if (context.bandwidthThrottle?.isThrottled && context.bandwidthThrottle.delayBetweenChunksMs > 0) {
+          await new Promise(resolve => setTimeout(resolve, context.bandwidthThrottle!.delayBetweenChunksMs));
+        }
       }
 
       return {

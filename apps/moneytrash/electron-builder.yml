@@ -1,0 +1,52 @@
+appId: com.clickflash.moneytrash
+productName: MoneyTrash Uploader
+copyright: Copyright © 2026 ClickFlash Photography
+
+directories:
+  output: release-electron
+  buildResources: src-tauri/icons
+  app: build-electron-stage
+
+files:
+  - dist/**/*
+  - package.json
+  - "!dist/**/*.map"
+  - "!src-tauri/**/*"
+  - "!node_modules/**/*"
+
+win:
+  target: nsis
+  icon: src-tauri/icons/icon.ico
+  requestedExecutionLevel: asInvoker
+  forceCodeSigning: false
+  signAndEditExecutable: false
+  sign: "../../scripts/ev-sign.js"
+
+electronFuses:
+  runAsNode: false
+  enableCookieEncryption: true
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+  grantFileProtocolExtraPrivileges: false
+
+nsis:
+  oneClick: true
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: false
+  deleteAppDataOnUninstall: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  runAfterFinish: false
+  shortcutName: MoneyTrash Uploader
+  installerIcon: src-tauri/icons/icon.ico
+  uninstallerIcon: src-tauri/icons/icon.ico
+  uninstallDisplayName: MoneyTrash Uploader
+
+electronVersion: "39.8.7"
+npmRebuild: false
+nodeGypRebuild: false
+asar: true
+compression: maximum

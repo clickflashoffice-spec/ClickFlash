@@ -658,8 +658,12 @@ export default function collectionRoutes(context: CollectionsContext): Router {
         try {
           const cloudApiUrl = (dbManager.get<{value: string}>("SELECT value FROM settings WHERE key = 'cloud_url'"))?.value || process.env.CLOUD_URL || 'http://localhost:8080';
           const licenseService = new LicenseService(dbManager, logger, cloudApiUrl);
-          await licenseService.setLicenseKey(responseData.licenseKey);
-          logger.info(`[License] Applied license key from destination update`);
+          const applied = await licenseService.setLicenseKey(responseData.licenseKey);
+          if (applied) {
+            logger.info(`[License] Applied signed license from destination update`);
+          } else {
+            logger.warn(`[License] Rejected invalid or hardware-unbound destination license`);
+          }
         } catch (err: any) {
           logger.error(`[License] Failed to apply license key from destination: ${err.message}`);
         }
@@ -1180,7 +1184,15 @@ export default function collectionRoutes(context: CollectionsContext): Router {
 
         Promise.all(fileProcessingPromises)
           .then(() => {
-            processRecordCreation(req, res, table, data, pathName).catch(
+            processRecordCreation(req, res, table, data, pathName)
+              .then(() => {
+                if (table === "photos" && data.id && data.storagePath) {
+                  const { AICullingService } = require('../services/aiCullingService');
+                  const aiCulling = new AICullingService(req.app.locals.dbManager || (req as any).dbManager);
+                  aiCulling.analyzePhoto(data.id, data.storagePath).catch((e: any) => logger.error(`[Collections] AI Culling failed for ${data.id}:`, e));
+                }
+              })
+              .catch(
               (error) => {
                 sendDatabaseError(res, error, "inserting record");
               },

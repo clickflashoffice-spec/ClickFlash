@@ -1,26 +1,27 @@
 import { DatabaseManager } from '../backend/database/db';
 import path from 'path';
 import { DB_FILE } from '../backend/config/constants';
+import { logger } from '@/utils/logger';
 
 async function verifyFixes() {
-    console.log('--- Phase 34: Lightweight Verification of Import Fixes ---');
+    logger.info('--- Phase 34: Lightweight Verification of Import Fixes ---');
 
     // Use a fresh DB manager instance
     const dbManager = new DatabaseManager(DB_FILE);
     const MIGRATIONS_DIR = path.resolve(__dirname, '../backend/database/migrations');
 
     try {
-        console.log('1. Testing Database Connection & WAL Checkpoint...');
+        logger.info('1. Testing Database Connection & WAL Checkpoint...');
         dbManager.connect(MIGRATIONS_DIR);
 
         if (typeof (dbManager as any).checkpoint === 'function') {
-            console.log('[PASS] DatabaseManager.checkpoint exists');
+            logger.info('[PASS] DatabaseManager.checkpoint exists');
             (dbManager as any).checkpoint();
         } else {
             throw new Error('[FAIL] DatabaseManager.checkpoint missing');
         }
 
-        console.log('2. Testing Album Visibility Race Condition...');
+        logger.info('2. Testing Album Visibility Race Condition...');
         const albumId = `test_album_${Date.now()}`;
         dbManager.run(
             "INSERT INTO albums (id, title, date, photographerId, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
@@ -33,12 +34,12 @@ async function verifyFixes() {
         // Immediate check (Simulation of a subsequent photo upload request)
         const album = dbManager.get("SELECT * FROM albums WHERE id = ?", [albumId]);
         if (album) {
-            console.log('[PASS] Album found immediately after WAL checkpoint (Fix Root Cause 1)');
+            logger.info('[PASS] Album found immediately after WAL checkpoint (Fix Root Cause 1)');
         } else {
             throw new Error('[FAIL] Album NOT found after creation/checkpoint');
         }
 
-        console.log('3. Testing Face Indexing Queue Order (FK Safety)...');
+        logger.info('3. Testing Face Indexing Queue Order (FK Safety)...');
         const photoId = `test_photo_${Date.now()}`;
 
         // Step A: Insert Photo (Simulating collections.ts)
@@ -57,17 +58,17 @@ async function verifyFixes() {
 
         const queueItem = dbManager.get("SELECT * FROM face_indexing_queue WHERE photoId = ?", [photoId]);
         if (queueItem && queueItem.photoId === photoId) {
-            console.log('[PASS] Face indexing queue entry created successfully AFTER photo insertion (Fix Root Cause 2)');
+            logger.info('[PASS] Face indexing queue entry created successfully AFTER photo insertion (Fix Root Cause 2)');
         } else {
             throw new Error('[FAIL] Face indexing queue entry missing or mismatch');
         }
 
-        console.log('--- LIGHTWEIGHT STABILITY CHECKS PASSED ---');
+        logger.info('--- LIGHTWEIGHT STABILITY CHECKS PASSED ---');
         process.exit(0);
 
     } catch (err) {
-        console.error('--- VERIFICATION FAILED ---');
-        console.error(err);
+        logger.error('--- VERIFICATION FAILED ---');
+        logger.error(err instanceof Error ? err.message : String(err));
         process.exit(1);
     } finally {
         dbManager.close();

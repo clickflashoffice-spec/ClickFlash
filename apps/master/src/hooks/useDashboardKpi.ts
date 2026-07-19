@@ -7,6 +7,8 @@ export interface KpiData {
   todaysPhotos: number;
   albumsToProcess: number;
   pendingOrders: number;
+  ptpActive?: number;
+  ptpSpeed?: string;
 }
 
 const getTodayString = (): string => {

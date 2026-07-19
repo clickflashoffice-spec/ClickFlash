@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { logger } from '@/utils/logger';
 
 // ESM dirname fix
 const __filename = fileURLToPath(import.meta.url);
@@ -12,7 +13,7 @@ const SRC_DIR = path.join(ROOT_DIR, 'backend');
 const DIST_DIR = path.join(ROOT_DIR, 'dist', 'backend');
 
 async function copyAssets() {
-    console.log('[Assets] Copying static assets...');
+    logger.info('[Assets] Copying static assets...');
 
     // Migrations
     const srcMigrations = path.join(SRC_DIR, 'migrations');
@@ -20,17 +21,17 @@ async function copyAssets() {
 
     if (await fs.pathExists(srcMigrations)) {
         await fs.copy(srcMigrations, destMigrations);
-        console.log(`[Assets] Copied migrations to ${destMigrations}`);
+        logger.info(`[Assets] Copied migrations to ${destMigrations}`);
     } else {
-        console.warn('[Assets] Warning: No migrations directory found.');
+        logger.warn('[Assets] Warning: No migrations directory found.');
     }
 
     // Add other assets here if needed (e.g. email templates)
 
-    console.log('[Assets] Done.');
+    logger.info('[Assets] Done.');
 }
 
 copyAssets().catch(err => {
-    console.error('[Assets] Error copying assets:', err);
+    logger.error('[Assets] Error copying assets:', err);
     process.exit(1);
 });

@@ -25,15 +25,15 @@ const queryClient = new QueryClient({
 });
 
 // Suppress harmless browser extension warnings (e.g., wallet extensions competing for window.ethereum)
-const originalWarn = console.warn;
-console.warn = (...args: any[]) => {
+const originalWarn = logger.warn;
+logger.warn = (...args: any[]) => {
   const message = args[0]?.toString() || '';
   // Filter out wallet extension warnings that don't affect functionality
   if (message.includes("couldn't override `window.ethereum`") ||
     message.includes("Backpack couldn't override")) {
     return; // Suppress this specific warning
   }
-  originalWarn.apply(console, args);
+  (originalWarn as any)(...args);
 };
 
 // Set mode for touch portal
@@ -68,13 +68,7 @@ const TouchKioskApp = () => {
               <App
                 isOnline={isOnline}
                 showToast={(msg) => logger.debug('Toast:', msg)}
-                onExit={async () => {
-                  if (window.electron?.exitKiosk) {
-                    await window.electron.exitKiosk();
-                  } else {
-                    logger.warn('Exit Kiosk not available');
-                  }
-                }}
+                onExit={() => logger.info('Exiting touch kiosk app')}
               />
             </CurrencyProvider>
           </ThemeProvider>

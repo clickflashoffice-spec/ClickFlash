@@ -1,11 +1,9 @@
 // backend/services/faceService.ts
 import path from "path";
 import fs from "fs";
-import { Logger } from '../utils/logger';
+import { logger } from '../utils/logger';
 import { FaceAnalysis, FaceWorkerResult, FaceWorkerJob } from "../types/face";
 import { WorkerPool } from '../services/WorkerPool';
-
-const logger = new Logger(path.resolve(process.cwd(), "pb_data"));
 
 // Path to models
 const getModelsPath = () => {
@@ -85,6 +83,8 @@ export class FaceService {
         })),
         scores: result.scores,
         faceCount: result.faceCount || 0,
+        width: result.width,
+        height: result.height,
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

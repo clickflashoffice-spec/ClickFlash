@@ -4,6 +4,7 @@ import { verifyPassword, hashPassword } from "../auth.js";
 import { checkLoginRateLimit, recordLoginAttempt } from "../loginRateLimiter.js";
 import { validateLogin } from "../validation.js";
 import { logger } from "@clickflash/logger";
+import { hasValidProvisioningSecret } from "../provisioning.js";
 
 export const handleAuth = async (request: Request, url: URL, env: any, dbManager: any, corsHeaders: any, recordService: any, analyticsService: any, emailRelayService: any, photoProcessor: any, _pixelFounderService: any, payload: any) => {
 
@@ -58,8 +59,17 @@ export const handleAuth = async (request: Request, url: URL, env: any, dbManager
         const { provisioningSecret, machine_id, is_auto_ztp } = body;
         let { deskId, deskName, email, password, deskLocation } = body;
 
-        // Industrial Hardening: Enforce Provisioning Secret
-        if (env.PROVISIONING_SECRET && provisioningSecret !== env.PROVISIONING_SECRET) {
+        if (!env.PROVISIONING_SECRET) {
+          return createErrorResponse(
+            503,
+            "Service Unavailable",
+            "Desk provisioning is not configured"
+          );
+        }
+
+        // Fail closed and accept the secret through an explicit header or the
+        // legacy request field during installer migration.
+        if (!hasValidProvisioningSecret(request, env.PROVISIONING_SECRET, provisioningSecret)) {
           return createErrorResponse(
             403,
             "Forbidden",

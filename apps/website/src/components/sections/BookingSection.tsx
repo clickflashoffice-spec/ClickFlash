@@ -182,7 +182,7 @@ export function BookingSection() {
                             type="text"
                             value={formData.name}
                             onChange={(e) => handleChange("name", e.target.value)}
-                            className={`w-full bg-white/5 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors ${errors.name ? "border-red-500" : "border-white/10"
+                            className={`w-full bg-[#0B111F]/5 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors ${errors.name ? "border-red-500" : "border-white/10"
                               }`}
                             placeholder="John Doe"
                           />
@@ -195,7 +195,7 @@ export function BookingSection() {
                             type="email"
                             value={formData.email}
                             onChange={(e) => handleChange("email", e.target.value)}
-                            className={`w-full bg-white/5 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors ${errors.email ? "border-red-500" : "border-white/10"
+                            className={`w-full bg-[#0B111F]/5 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors ${errors.email ? "border-red-500" : "border-white/10"
                               }`}
                             placeholder="john@example.com"
                           />
@@ -209,7 +209,7 @@ export function BookingSection() {
                           type="tel"
                           value={formData.phone}
                           onChange={(e) => handleChange("phone", e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
+                          className="w-full bg-[#0B111F]/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
                           placeholder="+1 (555) 123-4567"
                         />
                       </div>
@@ -232,7 +232,7 @@ export function BookingSection() {
                             type="date"
                             value={formData.event_date}
                             onChange={(e) => handleChange("event_date", e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
+                            className="w-full bg-[#0B111F]/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
                           />
                         </div>
 
@@ -245,7 +245,7 @@ export function BookingSection() {
                             type="text"
                             value={formData.event_location}
                             onChange={(e) => handleChange("event_location", e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
+                            className="w-full bg-[#0B111F]/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
                             placeholder="City, Venue"
                           />
                         </div>
@@ -261,7 +261,7 @@ export function BookingSection() {
                             type="number"
                             value={formData.guest_count}
                             onChange={(e) => handleChange("guest_count", e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
+                            className="w-full bg-[#0B111F]/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
                             placeholder="Approximate number"
                             min="1"
                           />
@@ -275,7 +275,7 @@ export function BookingSection() {
                           <select
                             value={formData.budget_range}
                             onChange={(e) => handleChange("budget_range", e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors appearance-none"
+                            className="w-full bg-[#0B111F]/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors appearance-none"
                           >
                             {budgetOptions.map(option => (
                               <option key={option.value} value={option.value} className="bg-zinc-900">
@@ -299,7 +299,7 @@ export function BookingSection() {
                         <select
                           value={formData.service_type}
                           onChange={(e) => handleChange("service_type", e.target.value)}
-                          className={`w-full bg-white/5 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors appearance-none ${errors.service_type ? "border-red-500" : "border-white/10"
+                          className={`w-full bg-[#0B111F]/5 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors appearance-none ${errors.service_type ? "border-red-500" : "border-white/10"
                             }`}
                         >
                           {serviceOptions.map(option => (
@@ -316,7 +316,7 @@ export function BookingSection() {
                         <textarea
                           value={formData.message}
                           onChange={(e) => handleChange("message", e.target.value)}
-                          className={`w-full bg-white/5 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors min-h-[150px] ${errors.message ? "border-red-500" : "border-white/10"
+                          className={`w-full bg-[#0B111F]/5 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors min-h-[150px] ${errors.message ? "border-red-500" : "border-white/10"
                             }`}
                           placeholder="Tell us about your vision, specific requirements, or any questions you have..."
                         />

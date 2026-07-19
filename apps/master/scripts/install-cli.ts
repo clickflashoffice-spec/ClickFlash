@@ -15,6 +15,7 @@ import http from 'http';
 import crypto from 'crypto';
 import { createWriteStream, existsSync, mkdirSync } from 'fs';
 import { pipeline } from 'stream/promises';
+import { logger } from '@/utils/logger';
 
 const API_BASE = process.env.CLOUDFLARE_API_URL || 'https://api.cloudflare.com/client/v4';
 const HUB_URL = process.env.HUB_URL || 'https://hub.clickflash.photo';
@@ -49,7 +50,7 @@ interface ProgressCallback {
 
 function log(level: 'info' | 'warn' | 'error', message: string, ...args: unknown[]): void {
   const prefix = level === 'error' ? '❌' : level === 'warn' ? '⚠️' : '✓';
-  console.log(`[${new Date().toISOString()}] ${prefix} ${message}`, ...args);
+  logger.info(`[${new Date().toISOString()}] ${prefix} ${message}`, ...args);
 }
 
 async function downloadFile(url: string, destPath: string): Promise<void> {
@@ -868,7 +869,7 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
   
   if (args.includes('--help') || args.includes('-h')) {
-    console.log(`
+    logger.info(`
 ClickFlash 1-Click Installation CLI
 
 Usage:
@@ -946,8 +947,8 @@ Examples:
 
   const errors = validateConfig(config);
   if (errors.length > 0) {
-    console.error('Configuration errors:');
-    errors.forEach(e => console.error(`  - ${e}`));
+    logger.error('Configuration errors:');
+    errors.forEach(e => logger.error(`  - ${e}`));
     process.exit(1);
   }
 
@@ -955,7 +956,7 @@ Examples:
 
   const result = await performInstallation(
     fullConfig,
-    (step, message, progress) => console.log(`[${progress}%] ${step}: ${message}`)
+    (step, message, progress) => logger.info(`[${progress}%] ${step}: ${message}`)
   );
 
   if (result.success) {

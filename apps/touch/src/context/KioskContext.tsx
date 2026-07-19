@@ -12,6 +12,7 @@ import { PocketRecord } from '../services/pbTypes';
 import { kioskConfig } from '../config/kioskConfig';
 import { storageMonitor } from '../services/storageMonitor';
 import { connectivityService } from '../services/connectivityService';
+import { brandingService } from '../services/brandingService';
 
 // Extend Window interface
 declare global {
@@ -619,6 +620,13 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
                                     logger.info(`[Kiosk] Received broadcast refresh for ${collection}`);
                                     refreshProductData();
                                 }
+                            }
+
+                            // Global Settings & Branding real-time sync propagation
+                            if (message.type === 'LOCAL_CONFIG_UPDATED' || message.type === 'BRANDING_UPDATED') {
+                                logger.info(`[Kiosk] Received ${message.type} broadcast, checking updates and branding`);
+                                brandingService.checkForUpdates(true).catch(() => {});
+                                refreshProductData();
                             }
                         } catch (e) { }
                     },

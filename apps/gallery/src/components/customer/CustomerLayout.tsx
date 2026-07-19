@@ -63,6 +63,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     [cart, trashGallery],
   );
   const [whiteLabelEnabled, setWhiteLabelEnabled] = useState(false);
+  const [brandLogoUrl, setBrandLogoUrl] = useState<string | null>(null);
   const [productsForStore, setProductsForStore] = useState<Product[]>([]);
   const [checkoutNotice, setCheckoutNotice] = useState<{
     tone: "success" | "warning" | "error";
@@ -71,20 +72,26 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
   const [moneyTrashDownloads, setMoneyTrashDownloads] = useState<MoneyTrashPurchaseDownload[]>([]);
 
   useEffect(() => {
-    const fetchFeatures = async () => {
+    const fetchBranding = async () => {
       const destId = order?.destinationId || trashGallery?.destinationId;
       if (!destId) return;
       try {
-        const dests = await Promise.resolve<any[]>([]);
-        const myDest = dests.find((d: any) => d.id === destId);
-        if (myDest?.features?.whiteLabel) {
+        const branding = await cloudApiService.getResortBranding(destId);
+        if (branding) {
           setWhiteLabelEnabled(true);
+          
+          if (branding.primaryColor) {
+            document.documentElement.style.setProperty('--brand-primary', branding.primaryColor);
+          }
+          if (branding.logoUrl) {
+            setBrandLogoUrl(branding.logoUrl);
+          }
         }
       } catch (e) {
-        logger.error("Failed to fetch features", e);
+        logger.error("Failed to fetch resort branding", e);
       }
     };
-    fetchFeatures();
+    fetchBranding();
   }, [order?.destinationId, trashGallery?.destinationId]);
 
   useEffect(() => {
@@ -446,7 +453,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
             <div className="relative group">
               <div className="absolute inset-0 bg-cyan-500 rounded-xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity"></div>
               <img
-                src={photosInOrder[0]?.url || "/gallery/logo.png"}
+                src={brandLogoUrl || photosInOrder[0]?.url || "/gallery/logo.png"}
                 alt="Gallery"
                 className="w-11 h-11 rounded-xl object-cover border border-white/10 relative z-10 shadow-lg"
               />

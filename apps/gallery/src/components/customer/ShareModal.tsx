@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Modal from '../common/Modal';
 import { Photo } from '../../types';
+import UpsellEngine from './UpsellEngine';
 import { 
     shareToFacebook, 
     shareToTwitter, 
@@ -34,10 +35,17 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, photo, gallery
         imageUrl: shareImageUrl,
     };
     
+    const unlockDiscount = () => {
+        const now = Date.now();
+        localStorage.setItem('clickflash_share15_unlocked', 'true');
+        localStorage.setItem('clickflash_share15_expires', (now + 15 * 60 * 1000).toString());
+    };
+
     const handleCopyLink = async () => {
         const success = await copyToClipboard(shareUrl);
         if (success) {
             setCopied(true);
+            unlockDiscount();
             setTimeout(() => setCopied(false), 2000);
         } else {
             alert('Failed to copy link. Please try again.');
@@ -45,6 +53,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, photo, gallery
     };
     
     const handleEmailShare = () => {
+        unlockDiscount();
         if (emailAddress) {
             shareViaEmail({
                 ...shareOptions,
@@ -58,6 +67,9 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, photo, gallery
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Share" size="md">
             <div className="space-y-6">
+                {/* Upsell Reward Engine Banner */}
+                <UpsellEngine galleryId={galleryId} photoId={photo?.id} />
+
                 {/* Social Media Buttons */}
                 <div>
                     <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-3">
@@ -65,7 +77,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, photo, gallery
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
                         <button
-                            onClick={() => shareToFacebook(shareOptions)}
+                            onClick={() => { unlockDiscount(); shareToFacebook(shareOptions); }}
                             className="flex items-center justify-center space-x-2 p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                         >
                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -75,7 +87,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, photo, gallery
                         </button>
                         
                         <button
-                            onClick={() => shareToTwitter(shareOptions)}
+                            onClick={() => { unlockDiscount(); shareToTwitter(shareOptions); }}
                             className="flex items-center justify-center space-x-2 p-3 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors"
                         >
                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -85,7 +97,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, photo, gallery
                         </button>
                         
                         <button
-                            onClick={() => shareToPinterest(shareOptions)}
+                            onClick={() => { unlockDiscount(); shareToPinterest(shareOptions); }}
                             className="flex items-center justify-center space-x-2 p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
                         >
                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

@@ -383,6 +383,10 @@ export async function loadAndVerifyPayloadBundle(
     throw new Error("Payload trust root is not configured");
   }
 
+  const selectedDirectoryStats = await fs.promises.lstat(selectedDirectory);
+  if (!selectedDirectoryStats.isDirectory() || selectedDirectoryStats.isSymbolicLink()) {
+    throw new Error("Selected payload bundle is not a regular directory");
+  }
   const directory = await fs.promises.realpath(selectedDirectory);
   const directoryStats = await fs.promises.lstat(directory);
   if (!directoryStats.isDirectory() || directoryStats.isSymbolicLink()) {

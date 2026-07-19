@@ -39,7 +39,7 @@ class CameraTriggerService {
                      hardwareTriggerService.handleTrigger({
                          sensorId: `RAW_UDP_${rinfo.address}`,
                          rideId: 'GENERIC_RIDE'
-                     }).catch(console.error);
+                     }).catch(logger.error);
                 } else {
                      logger.warn(`[CameraTriggerService] Invalid UDP payload from ${rinfo.address}`, { payload: msg.toString() });
                 }

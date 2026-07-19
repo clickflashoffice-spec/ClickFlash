@@ -6,6 +6,7 @@ import { ManagementContext } from "../../constants.ts";
 import { HotelReportView } from "./reports/HotelReportView.tsx";
 import { GlobalReportView } from "./reports/GlobalReportView.tsx";
 import { PhotographerPerformanceMatrix } from "./reports/PhotographerPerformanceMatrix.tsx";
+import { AnalyticsDashboard } from "./AnalyticsDashboard.tsx";
 import {
   FileText,
   Download,
@@ -228,6 +229,9 @@ const ReportsPage: React.FC = () => {
           </span>
         </div>
       </div>
+
+      {/* Cloudflare D1 Live Analytics */}
+      <AnalyticsDashboard />
 
       {/* Main Content View */}
       {isGlobal ? (

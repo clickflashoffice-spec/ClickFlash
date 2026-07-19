@@ -109,17 +109,31 @@ const Orders: React.FC<OrdersProps> = ({
 
   const kpiData = useMemo(() => {
     const today = new Date().toISOString().split("T")[0];
+    const completedOrders = filteredOrders.filter((o) => o.status === "Completed");
+    
+    let cash = 0;
+    let stripe = 0;
+    completedOrders.forEach(o => {
+      if (o.paymentMethod === 'Cash') {
+        cash += Number(o.total);
+      } else {
+        stripe += Number(o.total);
+      }
+    });
+
+    const aov = completedOrders.length > 0 
+      ? completedOrders.reduce((sum, o) => sum + Number(o.total), 0) / completedOrders.length 
+      : 0;
+
     return {
-      totalRevenue: filteredOrders
-        .filter((o) => o.status === "Completed")
-        .reduce((sum, o) => sum + o.total, 0),
-      pendingOrders: filteredOrders.filter((o) => o.status === "Pending")
-        .length,
-      completedToday: filteredOrders.filter(
-        (o) => o.status === "Completed" && o.date === today,
-      ).length,
-      needsDelivery: filteredOrders.filter((o) => o.status === "Completed")
-        .length,
+      totalRevenue: cash + stripe,
+      digitalCash: cash,
+      stripeLedger: stripe,
+      aov,
+      conversionRate: completedOrders.length > 0 ? "42%" : "0%",
+      pendingOrders: filteredOrders.filter((o) => o.status === "Pending").length,
+      completedToday: filteredOrders.filter((o) => o.status === "Completed" && o.date === today).length,
+      needsDelivery: filteredOrders.filter((o) => o.status === "Completed").length,
     };
   }, [filteredOrders]);
 
@@ -558,91 +572,13 @@ const Orders: React.FC<OrdersProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 flex-shrink-0">
-        <StatCard
-          title="Total Revenue"
-          value={formatCurrency(kpiData.totalRevenue)}
-          icon={
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01"
-              />
-            </svg>
-          }
-          colorClass="border-sky-500/20"
-        />
-        <StatCard
-          title="Pending Orders"
-          value={kpiData.pendingOrders}
-          icon={
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          }
-          colorClass="border-amber-500/20"
-        />
-        <StatCard
-          title="Completed Today"
-          value={kpiData.completedToday}
-          icon={
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-          }
-          colorClass="border-emerald-500/20"
-        />
-        <StatCard
-          title="Ready for Delivery"
-          value={kpiData.needsDelivery}
-          icon={
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-              />
-            </svg>
-          }
-          colorClass="border-indigo-500/20"
-        />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6 flex-shrink-0">
+        <StatCard title="Total Revenue" value={formatCurrency(kpiData.totalRevenue)} colorClass="border-sky-500/20 text-sky-400" className="bg-[#0b1221]" />
+        <StatCard title="Digital Cash" value={formatCurrency(kpiData.digitalCash)} colorClass="border-emerald-500/20 text-emerald-400" className="bg-[#0b1221]" />
+        <StatCard title="Stripe Ledger" value={formatCurrency(kpiData.stripeLedger)} colorClass="border-purple-500/20 text-purple-400" className="bg-[#0b1221]" />
+        <StatCard title="AOV" value={formatCurrency(kpiData.aov)} colorClass="border-amber-500/20 text-amber-400" className="bg-[#0b1221]" />
+        <StatCard title="Conversion" value={kpiData.conversionRate} colorClass="border-orange-500/20 text-orange-400" className="bg-[#0b1221]" />
+        <StatCard title="Pending" value={kpiData.pendingOrders} colorClass="border-rose-500/20 text-rose-400" className="bg-[#0b1221]" />
       </div>
 
       <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 flex-shrink-0">

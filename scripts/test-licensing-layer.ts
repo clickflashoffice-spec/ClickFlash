@@ -1,21 +1,17 @@
-import { generateEd25519License, verifyEd25519License } from '../packages/licensing/src/ed25519';
-
-const PRIVATE_KEY_B64 = "EQdSP71FUDU55wNFrjIfVQUpYBme6kBsYhD1ecjmvAg9TlyEi1GiO7PcemwH8fQttWH/4Fh4EUzizyC/GYS+pQ==";
-const PUBLIC_KEY_B64 = "PU5chItRojuz3HpsB/H0LbVh/+BYeBFM4s8gvxmEvqU=";
+import { generateEd25519KeyPair, generateEd25519License, verifyEd25519License } from '../packages/licensing/src/ed25519';
 
 async function run() {
   console.log('Testing License Generator...');
   try {
+    const testKeys = generateEd25519KeyPair();
     const license = generateEd25519License({
       plan: 'pro',
       maxMasters: 5,
       expiresDays: 365,
       machineId: '1234-5678'
-    }, PRIVATE_KEY_B64);
-    
-    console.log('Generated Key:', license.key);
+    }, testKeys.privateKey);
 
-    const validation = verifyEd25519License(license.key, PUBLIC_KEY_B64, { expectedMachineId: '1234-5678' });
+    const validation = verifyEd25519License(license.key, testKeys.publicKey, { expectedMachineId: '1234-5678' });
     
     console.log('Validation Result:', validation);
     

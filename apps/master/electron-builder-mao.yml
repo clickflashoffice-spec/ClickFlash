@@ -5,15 +5,16 @@ copyright: © 2026 Marhaba Occidental Sousse
 directories:
   output: release_mao
   buildResources: build
-  files:
-    - dist/**/*
-    - package.json
-    - "!pb_data/**/*"
-    - "!storage/**/*"
-    - "!node_modules/**/*"
-    - electron-main.js
-    - .env.production.mao
-    - configs/hotel-configs/mao.json
+
+files:
+  - dist/**/*
+  - package.json
+  - "!pb_data/**/*"
+  - "!storage/**/*"
+  - "!node_modules/**/*"
+  - electron-main.js
+  - .env.production.mao
+  - configs/hotel-configs/mao.json
 
 extraResources:
   - from: pb_data

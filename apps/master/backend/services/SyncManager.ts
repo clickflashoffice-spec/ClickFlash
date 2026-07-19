@@ -346,12 +346,35 @@ export class SyncManager {
         }
     }
 
+    /**
+     * Phase 4: Master Kiosk Optimization — Sanitize payload for lightweight WebSocket frames.
+     * Strips large base64 data URLs or huge metadata blobs before broadcasting across local network.
+     */
+    private sanitizeForBroadcast(data: any): any {
+        if (!data || typeof data !== 'object') return data;
+        if (Array.isArray(data)) return data.map(item => this.sanitizeForBroadcast(item));
+
+        const sanitized: Record<string, any> = {};
+        for (const [key, value] of Object.entries(data)) {
+            if (typeof value === 'string' && (value.startsWith('data:image/') || value.length > 4096)) {
+                sanitized[key] = '[TRUNCATED_FOR_BROADCAST]';
+            } else if (typeof value === 'object' && value !== null) {
+                sanitized[key] = this.sanitizeForBroadcast(value);
+            } else {
+                sanitized[key] = value;
+            }
+        }
+        return sanitized;
+    }
+
     private broadcastUpdate(payload: SyncPayload, sourceClientId: string) {
+        const sanitizedData = this.sanitizeForBroadcast(payload.data);
+
         const message = {
             type: 'STATE_UPDATE',
             entity: payload.entity,
             action: payload.action,
-            data: payload.data,
+            data: sanitizedData,
             source: sourceClientId,
             timestamp: Date.now()
         };
@@ -370,8 +393,15 @@ export class SyncManager {
             });
         }
 
+        const BACKPRESSURE_LIMIT = 1024 * 1024; // 1 MB buffer limit for 4-core/16GB PC stability
+
         this.clients.forEach((client) => {
             if (client.clientId !== sourceClientId && client.ws.readyState === WebSocket.OPEN) {
+                // Phase 4: Backpressure protection against slow kiosks or network spikes
+                if (client.ws.bufferedAmount > BACKPRESSURE_LIMIT) {
+                    this.logger.warn(`[SyncManager] Client ${client.clientId} experiencing backpressure (buffered: ${client.ws.bufferedAmount} bytes). Dropping broadcast to preserve Master PC memory/CPU.`);
+                    return;
+                }
                 client.ws.send(jsonMessage);
                 if (specificMessage) {
                     client.ws.send(specificMessage);
@@ -391,6 +421,22 @@ export class SyncManager {
             entity: 'orders',
             action: 'update',
             data: { id: orderId, status, ...data }
+        };
+
+        this.broadcastUpdate(payload, 'MASTER');
+    }
+
+    /**
+     * Broadcasts a cash payment pending event to all clients.
+     */
+    public broadcastCashPending(orderId: string, data: any = {}) {
+        const payload: SyncPayload = {
+            type: 'STATE_UPDATE',
+            clientId: 'MASTER',
+            timestamp: Date.now(),
+            entity: 'orders',
+            action: 'cash_pending',
+            data: { id: orderId, ...data }
         };
 
         this.broadcastUpdate(payload, 'MASTER');

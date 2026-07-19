@@ -14,9 +14,9 @@ const DB_FILE = path.join(DATA_DIR, "master.db");
 const UPLOAD_DIR = "E:\\ClickFlash\\apps\\master\\uploads";
 
 async function testR2Upload() {
-    console.log("🛠️ Testing R2 Cloud Upload Pipeline...");
-
     const logger = new Logger(DATA_DIR);
+    logger.info("🛠️ Testing R2 Cloud Upload Pipeline...");
+    
     const dbManager = new DatabaseManager(DB_FILE);
     dbManager.connect();
 

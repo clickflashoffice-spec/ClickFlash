@@ -93,3 +93,6 @@ export const RetouchCanvas: React.FC<RetouchCanvasProps> = React.memo(({
 });
 
 export default RetouchCanvas;
+
+RetouchCanvas.displayName = 'RetouchCanvas';
+

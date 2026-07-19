@@ -28,10 +28,10 @@ function MetricCard({ label, value, icon: Icon, trend, color }: MetricProps) {
                 )}
             </div>
             <div className="space-y-1">
-                <h4 className="text-slate-600 text-[10px] uppercase tracking-widest font-bold">
+                <h4 className="text-white/70 text-[10px] uppercase tracking-widest font-bold">
                     {label}
                 </h4>
-                <div className="text-3xl font-serif font-medium text-slate-900 tabular-nums">
+                <div className="text-3xl font-serif font-medium text-white tabular-nums">
                     {value}
                 </div>
             </div>
@@ -53,7 +53,7 @@ export function FleetStatus() {
     }, []);
 
     return (
-        <section id="fleet-status" className="py-16 md:py-24 lg:py-32 bg-slate-50">
+        <section id="fleet-status" className="py-16 md:py-24 lg:py-32 bg-white/5">
             <div className="container mx-auto px-6">
                 <SectionHeader
                     title="Global Fleet Pulse"
@@ -91,8 +91,8 @@ export function FleetStatus() {
                     {/* Bento Grid - Secondary Layer */}
                     <GlassPanel className="lg:col-span-2 p-8 flex flex-col justify-between overflow-hidden relative">
                         <div className="relative z-10">
-                            <h3 className="text-xl font-serif font-medium text-slate-900 mb-2">Regional Ingestion</h3>
-                            <p className="text-slate-600 text-sm max-w-xs">High-volume data streams currently active across 12 resort zones.</p>
+                            <h3 className="text-xl font-serif font-medium text-white mb-2">Regional Ingestion</h3>
+                            <p className="text-white/70 text-sm max-w-xs">High-volume data streams currently active across 12 resort zones.</p>
                         </div>
 
                         {/* World Map Mockup */}
@@ -122,8 +122,8 @@ export function FleetStatus() {
                                 <div className="w-3 h-3 bg-cyan-700 rounded-full animate-pulse shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
                                 <span className="text-sm font-bold uppercase tracking-widest text-cyan-700">Live Infrastructure</span>
                             </div>
-                            <h3 className="text-2xl font-serif font-medium text-slate-900">Zero-Latency <br />Protocol</h3>
-                            <p className="text-slate-600 text-sm max-w-xs">Proprietary offline-first sync engine designed for multi-TB libraries.</p>
+                            <h3 className="text-2xl font-serif font-medium text-white">Zero-Latency <br />Protocol</h3>
+                            <p className="text-white/70 text-sm max-w-xs">Proprietary offline-first sync engine designed for multi-TB libraries.</p>
                         </div>
                         <Zap className="w-24 h-24 text-white/5 -rotate-12 group-hover:rotate-0 group-hover:text-cyan-700/20 transition-all duration-700" />
                     </div>

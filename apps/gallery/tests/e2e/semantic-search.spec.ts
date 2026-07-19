@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Fotiqo Parity: Semantic Search & Magic Links', () => {
+test.describe('ClickFlash AI: Semantic Search & Magic Links', () => {
   test('should load gallery via Magic Link (token)', async ({ page }) => {
-    // Navigate to a gallery URL with a token parameter simulating Fotiqo's SMS drop
+    // Navigate to a gallery URL with a token parameter simulating instant SMS/Email access drop
     await page.goto('/gallery/test-album-123?token=mock-magic-link-token');
 
     // Wait for the gallery to load (the App component should intercept the token and auto-login)
@@ -25,8 +25,7 @@ test.describe('Fotiqo Parity: Semantic Search & Magic Links', () => {
     await searchInput.fill('sunset');
     
     // There should be a loading spinner or some state transition
-    // (We don't actually wait for Gemini API to return in a basic E2E unless mocked, but we verify UI reacts)
-    // Here we just ensure the input accepts the Fotiqo-style semantic queries without crashing.
+    // Here we just ensure the input accepts our semantic queries without crashing.
     await expect(searchInput).toHaveValue('sunset');
   });
 });

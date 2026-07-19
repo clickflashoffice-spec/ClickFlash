@@ -132,12 +132,12 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
               >
                 <span className="relative z-10">Book Now</span>
                 {/* Hover effect */}
-                <span className="absolute inset-0 rounded-full bg-white/20 scale-0 group-hover:scale-100 transition-transform duration-300" aria-hidden="true" />
+                <span className="absolute inset-0 rounded-full bg-[#0B111F]/20 scale-0 group-hover:scale-100 transition-transform duration-300" aria-hidden="true" />
               </Link>
               
               <Link
                 href="/portfolio"
-                className="group px-8 md:px-12 py-4 md:py-5 bg-white/10 backdrop-blur-md border-2 border-white/20 text-white font-black uppercase tracking-[0.15em] md:tracking-[0.2em] text-[12px] md:text-[13px] rounded-full hover:bg-white hover:text-slate-900 transition-all duration-300 shadow-2xl focus:outline-none focus:ring-4 focus:ring-white/50 focus:ring-offset-4 focus:ring-offset-transparent"
+                className="group px-8 md:px-12 py-4 md:py-5 bg-[#0B111F]/10 backdrop-blur-md border-2 border-white/20 text-white font-black uppercase tracking-[0.15em] md:tracking-[0.2em] text-[12px] md:text-[13px] rounded-full hover:bg-[#0B111F] hover:text-[#0B111F] transition-all duration-300 shadow-2xl focus:outline-none focus:ring-4 focus:ring-white/50 focus:ring-offset-4 focus:ring-offset-transparent"
                 aria-label="View our photography portfolio"
               >
                 Portfolio
@@ -160,7 +160,7 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
               transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
               className="w-6 h-10 rounded-full border-2 border-white/40 flex items-start justify-center p-2"
             >
-              <motion.div className="w-1.5 h-2.5 bg-white/60 rounded-full" />
+              <motion.div className="w-1.5 h-2.5 bg-[#0B111F]/60 rounded-full" />
             </motion.div>
           </motion.div>
         )}

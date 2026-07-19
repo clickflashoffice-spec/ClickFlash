@@ -4,13 +4,18 @@ copyright: Copyright © 2026 ClickFlash Studio
 
 files:
   - dist/renderer/**/*
-  - dist/main.js
+  - dist/**/*.js
+  - assets/icon.png
   - package.json
+  - "!node_modules/@clickflash/**/*"
 
 npmRebuild: false
 nodeGypRebuild: false
+electronVersion: "39.8.7"
+afterPack: scripts/verify-packaged-artifact.cjs
 
 win:
+  icon: assets/icon.png
   target:
     - nsis
 

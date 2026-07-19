@@ -66,7 +66,7 @@ export const SystemAudit: React.FC = () => {
                 .then(data => {
                     if (isMounted) setDiagnostics(data);
                 })
-                .catch(console.error);
+                .catch(logger.error);
         }, 5000);
         return () => {
             isMounted = false;

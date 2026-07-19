@@ -5,7 +5,7 @@
  * and automatically retry when the connection is restored.
  */
 
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from "./tauriService";
 import { logger } from "@/utils/logger";
 import { progressStorage, type PersistedProgress } from "./progressStorage";
 import type { NetworkStatus } from "@/types";
@@ -27,7 +27,7 @@ export interface UploadQueueItem {
   /** Associated file */
   file: File;
 
-  /** Native file path (for Tauri desktop) */
+  /** Operator-approved native file path */
   nativePath?: string;
 
   /** Upload metadata */
@@ -297,9 +297,29 @@ class UploadQueueService {
   }
 
   /**
-   * Upload a single file using Tauri commands
+   * Upload a single file through the desktop bridge
    */
   private async uploadFile(item: UploadQueueItem): Promise<void> {
+    if (item.nativePath) {
+      await invoke("start_native_upload", {
+        filePath: item.nativePath,
+        apiUrl: item.metadata.apiUrl,
+        metadata: {
+          eventName: item.metadata.eventName,
+          accessCode: item.metadata.accessCode,
+          mode: item.metadata.mode,
+          mimeType: item.file.type,
+          deskId: item.metadata.deskId,
+          customerEmail: item.metadata.customerEmail,
+          singlePhotoPrice: item.metadata.singlePhotoPrice,
+          fullGalleryPrice: item.metadata.fullGalleryPrice,
+        },
+      });
+      item.progress = 100;
+      this.notifyProgress(item);
+      return;
+    }
+
     const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks for high-volume uploads
     const fileData = await this.readFileData(item);
     const totalChunks = Math.ceil(fileData.length / CHUNK_SIZE);
@@ -358,16 +378,7 @@ class UploadQueueService {
    * Read file data (native path or File object)
    */
   private async readFileData(item: UploadQueueItem): Promise<Uint8Array> {
-    if (item.nativePath) {
-      // Read from native path using Tauri
-      const data = await invoke<number[]>("read_file", {
-        path: item.nativePath,
-      });
-      return new Uint8Array(data);
-    } else {
-      // Read from File object
-      return new Uint8Array(await item.file.arrayBuffer());
-    }
+    return new Uint8Array(await item.file.arrayBuffer());
   }
 
   /**
@@ -409,7 +420,7 @@ class UploadQueueService {
     const item = this.items.get(id);
     if (!item) return false;
 
-    // If uploading, try to cancel via Tauri
+    // If uploading, try to cancel via the desktop bridge
     if (item.status === "uploading" && item.sessionId) {
       try {
         await invoke("cancel_upload", { sessionId: item.sessionId });

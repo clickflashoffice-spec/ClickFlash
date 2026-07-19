@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
+import { generateEd25519KeyPair } from '@clickflash/licensing';
 import { generateLicenseKeys, validateLicenseKey } from '../license-key';
 
-// Compromised legacy key retained only as a deterministic test fixture. Production must rotate it.
-const TEST_SIGNING_KEY = 'EQdSP71FUDU55wNFrjIfVQUpYBme6kBsYhD1ecjmvAg9TlyEi1GiO7PcemwH8fQttWH/4Fh4EUzizyC/GYS+pQ==';
+const testKeys = generateEd25519KeyPair();
 
 function generateTestLicenseKeys(options: Parameters<typeof generateLicenseKeys>[0]) {
-  return generateLicenseKeys(options, TEST_SIGNING_KEY);
+  return generateLicenseKeys(options, testKeys.privateKey);
 }
 
 describe('License Key Generator & Validator', () => {
@@ -14,7 +14,8 @@ describe('License Key Generator & Validator', () => {
       plan: 'pro',
       maxMasters: 5,
       expiresDays: 30,
-      count: 1
+      count: 1,
+      machineId: 'machine-001',
     }, 'not-a-private-key')).rejects.toThrow('Enter a valid Ed25519 private signing key');
   });
 
@@ -23,7 +24,8 @@ describe('License Key Generator & Validator', () => {
       plan: 'pro',
       maxMasters: 5,
       expiresDays: 30,
-      count: 3
+      count: 3,
+      machineId: 'machine-001',
     });
 
     expect(keys).toHaveLength(3);
@@ -42,7 +44,7 @@ describe('License Key Generator & Validator', () => {
     });
 
     const keyData = keys[0];
-    const validation = await validateLicenseKey(keyData.key);
+    const validation = await validateLicenseKey(keyData.key, testKeys.publicKey);
 
     expect(validation.valid).toBe(true);
     expect(validation.plan).toBe('enterprise');
@@ -51,7 +53,7 @@ describe('License Key Generator & Validator', () => {
   });
 
   it('should reject a key with an invalid prefix', async () => {
-    const validation = await validateLicenseKey('INVALID-PREFIX-payload.signature');
+    const validation = await validateLicenseKey('INVALID-PREFIX-payload.signature', testKeys.publicKey);
     expect(validation.valid).toBe(false);
     expect(validation.error).toBe('Invalid license prefix');
   });
@@ -61,19 +63,20 @@ describe('License Key Generator & Validator', () => {
       plan: 'starter',
       maxMasters: 1,
       expiresDays: 7,
-      count: 1
+      count: 1,
+      machineId: 'machine-001',
     });
 
     // Tamper with the payload (change the first character of the base64 payload)
     const tamperedKey = keys[0].key.replace(/CF-LIVE-./, 'CF-LIVE-A');
     
-    const validation = await validateLicenseKey(tamperedKey);
+    const validation = await validateLicenseKey(tamperedKey, testKeys.publicKey);
     expect(validation.valid).toBe(false);
     expect(validation.error).toBe('Invalid signature - key tampered with');
   });
 
   it('should reject malformed keys gracefully', async () => {
-    const validation = await validateLicenseKey('CF-LIVE-justPayloadWithoutSignature');
+    const validation = await validateLicenseKey('CF-LIVE-justPayloadWithoutSignature', testKeys.publicKey);
     expect(validation.valid).toBe(false);
     expect(validation.error).toBe('Invalid key format');
   });
@@ -87,7 +90,7 @@ describe('License Key Generator & Validator', () => {
       machineId: 'hw-machine-id-123'
     });
 
-    const validation = await validateLicenseKey(keys[0].key, { expectedMachineId: 'hw-machine-id-DIFFERENT' });
+    const validation = await validateLicenseKey(keys[0].key, testKeys.publicKey, { expectedMachineId: 'hw-machine-id-DIFFERENT' });
     expect(validation.valid).toBe(false);
     expect(validation.error).toBe('Machine ID mismatch - license bound to different hardware');
   });
@@ -97,10 +100,11 @@ describe('License Key Generator & Validator', () => {
       plan: 'starter',
       maxMasters: 1,
       expiresDays: -1, // expired yesterday
-      count: 1
+      count: 1,
+      machineId: 'machine-001',
     });
 
-    const validation = await validateLicenseKey(keys[0].key);
+    const validation = await validateLicenseKey(keys[0].key, testKeys.publicKey);
     expect(validation.valid).toBe(false);
     expect(validation.error).toBe('License key has expired');
   });

@@ -57,7 +57,7 @@ export async function verifyJWT(token: string, secret: string): Promise<JWTPaylo
     signatureBuffer,
     encoder.encode(`${encodedHeader}.${encodedPayload}`),
   );
-  if (!isValid) throw new Error("Invalid signature");
+  if (!isValid || bytesToBase64Url(signatureBytes) !== signature) throw new Error("Invalid signature");
 
   const payload = parseSegment<JWTPayload>(encodedPayload);
   const now = Math.floor(Date.now() / 1000);

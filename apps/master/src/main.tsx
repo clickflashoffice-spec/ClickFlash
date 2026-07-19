@@ -13,17 +13,17 @@ import "./i18n";
 
 
 // Suppress harmless browser extension warnings (e.g., wallet extensions competing for window.ethereum)
-const originalWarn = console.warn;
-console.warn = (...args: any[]) => {
-  const message = args[0]?.toString() || "";
+const originalWarn = logger.warn.bind(logger);
+logger.warn = (message: string, meta?: unknown) => {
+  const msgStr = message?.toString() || "";
   // Filter out wallet extension warnings that don't affect functionality
   if (
-    message.includes("couldn't override `window.ethereum`") ||
-    message.includes("Backpack couldn't override")
+    msgStr.includes("couldn't override `window.ethereum`") ||
+    msgStr.includes("Backpack couldn't override")
   ) {
     return; // Suppress this specific warning
   }
-  originalWarn.apply(console, args);
+  originalWarn(message, meta);
 };
 
 // Global error handler for dynamic import failures (common after deployment/rebuilds)

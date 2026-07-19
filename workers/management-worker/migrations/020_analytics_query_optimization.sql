@@ -3,7 +3,6 @@
 
 -- Orders table: Date range + status + desk (most common analytics pattern)
 CREATE INDEX IF NOT EXISTS idx_orders_date_status ON orders(date, status);
-CREATE INDEX IF NOT EXISTS idx_orders_date_desk_status ON orders(date, desk_id, status);
 
 -- Albums table: Date range queries for reporting
 CREATE INDEX IF NOT EXISTS idx_albums_date ON albums(date);
@@ -12,7 +11,6 @@ CREATE INDEX IF NOT EXISTS idx_albums_date ON albums(date);
 CREATE INDEX IF NOT EXISTS idx_photos_albumId ON photos(albumId);
 
 -- Foreign key indexes for JOIN performance
-CREATE INDEX IF NOT EXISTS idx_orders_albumId ON orders(albumId);
 CREATE INDEX IF NOT EXISTS idx_orders_photographerId ON orders(photographerId);
 
 -- Daily resort stats: Date range queries (BI dashboard)

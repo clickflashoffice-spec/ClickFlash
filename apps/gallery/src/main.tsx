@@ -6,6 +6,7 @@ import { CurrencyProvider } from './components/CurrencyContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './index.css';
+import './i18n';
 
 // Gallery QueryClient — customer-facing portal: moderate caching, no
 // window-focus refetch (kiosk/tablet users don't background-switch tabs).

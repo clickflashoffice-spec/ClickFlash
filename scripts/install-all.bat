@@ -92,8 +92,8 @@ echo ===================================================
 echo   Installation Complete!
 echo ===================================================
 echo.
-echo Local apps installed. Cloud apps (Management, Gallery,
-echo Website) are deployed via deploy_ecosystem.ps1.
+echo Local apps installed. Review scripts\deploy-cloud.ps1 -WhatIf
+echo before deploying cloud services.
 echo.
 echo Run start-all.bat to launch local applications.
 echo.

@@ -50,7 +50,6 @@ const config: Config = {
   testPathIgnorePatterns: [
     '/node_modules/',
     '/dist/',
-    '/electron-new/',
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   roots: ['<rootDir>'],

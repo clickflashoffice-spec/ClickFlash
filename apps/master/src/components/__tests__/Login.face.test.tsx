@@ -4,7 +4,7 @@
  * Tests for Face ID login functionality in the Login component
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import Login from '../Login';
 import { apiService } from '../../services/apiService';
 
@@ -55,16 +55,20 @@ describe('Login Component - Face Login', () => {
         jest.clearAllMocks();
     });
 
+    afterEach(() => {
+        cleanup();
+    });
+
     it('renders Face ID login button', () => {
         render(<Login {...defaultProps} />);
 
-        expect(screen.getByRole('button', { name: /sign in with face id/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /sign in with on-prem face scan/i })).toBeInTheDocument();
     });
 
     it('opens face scan modal when Face ID button is clicked', () => {
         render(<Login {...defaultProps} />);
 
-        fireEvent.click(screen.getByRole('button', { name: /sign in with face id/i }));
+        fireEvent.click(screen.getByRole('button', { name: /sign in with on-prem face scan/i }));
 
         expect(screen.getByTestId('face-scan-modal')).toBeInTheDocument();
         expect(screen.getByText('Login with Face ID')).toBeInTheDocument();
@@ -86,7 +90,7 @@ describe('Login Component - Face Login', () => {
         render(<Login {...defaultProps} />);
 
         // Open face login modal
-        fireEvent.click(screen.getByRole('button', { name: /sign in with face id/i }));
+        fireEvent.click(screen.getByRole('button', { name: /sign in with on-prem face scan/i }));
 
         // Capture face
         fireEvent.click(screen.getByTestId('face-capture-btn'));
@@ -112,7 +116,7 @@ describe('Login Component - Face Login', () => {
         render(<Login {...defaultProps} portalName="Master Portal" />);
 
         // Open face login modal
-        fireEvent.click(screen.getByRole('button', { name: /sign in with face id/i }));
+        fireEvent.click(screen.getByRole('button', { name: /sign in with on-prem face scan/i }));
 
         // Capture face
         fireEvent.click(screen.getByTestId('face-capture-btn'));
@@ -132,7 +136,7 @@ describe('Login Component - Face Login', () => {
         render(<Login {...defaultProps} />);
 
         // Open face login modal
-        fireEvent.click(screen.getByRole('button', { name: /sign in with face id/i }));
+        fireEvent.click(screen.getByRole('button', { name: /sign in with on-prem face scan/i }));
 
         // Capture face
         fireEvent.click(screen.getByTestId('face-capture-btn'));
@@ -158,7 +162,7 @@ describe('Login Component - Face Login', () => {
         render(<Login {...defaultProps} portalName="Management Portal" />);
 
         // Open face login modal
-        fireEvent.click(screen.getByRole('button', { name: /sign in with face id/i }));
+        fireEvent.click(screen.getByRole('button', { name: /sign in with on-prem face scan/i }));
 
         // Capture face
         fireEvent.click(screen.getByTestId('face-capture-btn'));
@@ -184,7 +188,7 @@ describe('Login Component - Face Login', () => {
         render(<Login {...defaultProps} portalName="Management Portal" />);
 
         // Open face login modal
-        fireEvent.click(screen.getByRole('button', { name: /sign in with face id/i }));
+        fireEvent.click(screen.getByRole('button', { name: /sign in with on-prem face scan/i }));
 
         // Capture face
         fireEvent.click(screen.getByTestId('face-capture-btn'));

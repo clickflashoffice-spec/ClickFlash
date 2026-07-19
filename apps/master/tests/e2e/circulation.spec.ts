@@ -15,7 +15,8 @@ test.describe('Ecosystem Circulation Flow', () => {
     
     // Assuming Touch kiosk runs on 8091 or we mock the API response
     // But since this is an E2E testing the actual UI, we hit localhost:8091
-    await page.goto('http://localhost:8091/');
+    const touchUrl = process.env.TOUCH_URL || 'http://localhost:8091';
+    await page.goto(`${touchUrl}/`);
     
     // Wait for kiosk welcome screen
     await expect(page.locator('text=Welcome to ClickFlash')).toBeVisible({ timeout: 10000 });
@@ -51,7 +52,8 @@ test.describe('Ecosystem Circulation Flow', () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     
-    await page.goto('http://localhost:8090/orders');
+    const masterUrl = process.env.MASTER_URL || 'http://localhost:8090';
+    await page.goto(`${masterUrl}/orders`);
     
     // Log in
     await page.fill('input[name="email"]', 'admin@clickflash.app');

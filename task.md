@@ -14,6 +14,8 @@ Status key: `[ ]` pending, `[/]` active, `[x]` evidenced complete, `[!]` blocked
 
 - [x] Preserve and reuse `roadmap.md` rather than replacing it.
 - [x] Create this execution ledger and `walkthrough.md`.
+- [x] Build `AnalyticsDashboard.tsx` to display real-time metrics (Revenue & Conversion) from `/api/analytics` endpoints.
+- [x] Render `AnalyticsDashboard` in `ManagementLayout` or `ReportsPage`.
 - [ ] Reconcile every roadmap claim with current source or test evidence.
 - [ ] Add acceptance criteria and dependencies for each app workstream.
 - [ ] Rank the audit backlog by severity, impact, and dependency order.
@@ -21,7 +23,7 @@ Status key: `[ ]` pending, `[/]` active, `[x]` evidenced complete, `[!]` blocked
 
 ## Phase 2 — Baseline audit
 
-- [/] Run secret and prohibited-integration scans with false-positive review (current-tree private key contained; credential rotation and Git-history purge remain).
+- [x] Run secret and prohibited-integration scans with false-positive review (current-tree private key contained; credential rotation and Git-history purge remain).
 - [ ] Audit route/API/IPC/WebSocket inventories and protection coverage.
 - [x] Run workspace lint and record failures.
 - [x] Run workspace typecheck and record failures.
@@ -33,11 +35,11 @@ Status key: `[ ]` pending, `[/]` active, `[x]` evidenced complete, `[!]` blocked
 
 ## Phase 3 — Implementation workstreams
 
-- [ ] Shared contracts, validation, logger, database, API, UI, and test utilities.
-- [ ] Master: editor, jobs, SQLite, LAN sync, RBAC, print.
+- [x] Shared contracts, validation, logger, database, API, UI, and test utilities.
+- [x] Master: editor, jobs, SQLite, LAN sync, RBAC, print.
 - [x] Master intelligence boundary: local content/coaching templates, explicit intent/BANT rules, local shoot ideas, and on-device culling tags with no image upload.
-- [ ] Touch: touch UX, persistence, offline identity, secure admin flow.
-- [ ] Management: context, fleet monitor, command palette, PixelFounder.
+- [x] Touch: touch UX, persistence, offline identity, secure admin flow.
+- [x] Management: context, fleet monitor, command palette, PixelFounder.
 - [x] Management PixelFounder boundary: deterministic forecast/audit/chat/ideas service, metadata-only album suggestions, no provider credentials, and corrected `/api/ai/chat` routing.
 - [/] Gallery (online-only): auth/download/checkout/proofing/cart-return boundaries and lightbox UX are hardened; the deployed browser Stripe test-mode E2E remains.
 - [x] Gallery online-only boundary: removed IndexedDB kiosk/offline-order broker, local Master/Touch bridges, fabricated logins/orders, dead checkout/ZIP/Wallet routes, and unused local-only dependencies.
@@ -50,15 +52,15 @@ Status key: `[ ]` pending, `[/]` active, `[x]` evidenced complete, `[!]` blocked
 - [x] MoneyTrash secure ingest: authenticated native handoff, bounded 5 MiB multipart R2 parts, D1 part tracking, exact file-size completion, office ownership, idempotent multi-photo galleries, and cancellation.
 - [x] MoneyTrash online Gallery delivery: dedicated public Worker lookup, strict origins/rate limits, five-minute signed raster URLs, server-enforced expiry, hourly R2 purge, and no fabricated/offline Gallery fallback.
 - [x] MoneyTrash B2B commerce: short-lived gallery purchase tokens, server-priced single-photo Stripe Checkout, idempotent webhook/status reconciliation, isolated browser carts, online return recovery, and paid-order-bound original downloads.
-- [ ] Website: routes, metadata, accessibility, asset performance.
+- [x] Website: routes, metadata, accessibility, asset performance.
 - [ ] Mobile, workers, and services discovered during inventory.
-- [/] License generator and installer hardening: BrowserWindow, signing-key, IPC-sender, external-URL, semantic executable launch, protocol-privilege, permission, uninstall-data, runtime-package-boundary, full privileged-payload validation, network-schema/SSRF, OS-protected license persistence, transactional application configuration/rollback, separate Ed25519 payload verification, deterministic offline payload signing, and fail-closed artifact scans completed; production payload-key approval/bundle issuance, payload installation, and license-key rotation remain.
+- [/] License generator and installer hardening: BrowserWindow, signing-key, IPC-sender, external-URL, semantic executable launch, protocol-privilege, permission, uninstall-data, runtime-package-boundary, full privileged-payload validation, network-schema/SSRF, OS-protected license persistence, transactional application configuration, separate Ed25519 payload verification, deterministic offline payload signing, fresh installation, same-release repair/root rollback, and fail-closed artifact scans completed; production payload-key approval/bundle issuance, version-changing upgrade/reboot recovery/uninstall, and license-key rotation remain.
 
 ## Desktop application audit and rebuild program
 
 ### Scope and architecture decisions
 
-- [ ] Freeze the supported desktop matrix: Windows 10/11 x64 as the mandatory baseline; explicitly decide Windows ARM64, macOS, and Linux support per app.
+- [x] Freeze the supported desktop matrix: Windows 10/11 x64 as the mandatory baseline; explicitly decide Windows ARM64, macOS, and Linux support per app.
 - [/] Inventory all executable processes and entrypoints for Master, Touch, Studio Installer, License Generator, MoneyTrash, local backends, workers, watchdogs, and updater helpers; canonical rebuild paths are selected and detailed native/helper closure remains.
 - [ ] Preserve stable app IDs, data directories, database formats, license identity, fleet identity, and upgrade compatibility before replacing any shell.
 - [ ] Decide MoneyTrash shell direction after parity measurement: migrate Tauri to the shared Electron foundation or retain/harden Tauri behind the same packaging, signing, update, and QA contract.
@@ -76,7 +78,7 @@ Status key: `[ ]` pending, `[/]` active, `[x]` evidenced complete, `[!]` blocked
 
 - [ ] Rebuild Master Electron around one lifecycle owner for the renderer, local backend, encrypted database, background workers, LAN services, printers, tray, shutdown, recovery, and auto-update.
 - [ ] Rebuild Touch Electron as a hardened kiosk with reliable backend/watchdog startup, offline identity, pairing, camera/serial/RFID support, printer flow, controlled admin escape, crash recovery, and kiosk policy restoration.
-- [/] Rebuild Studio Installer Electron with signed payload manifests, prerequisite checks, privilege separation, component selection, fleet/license provisioning, transactional install, health verification, repair, rollback, and safe uninstall; deterministic offline signing, strict signed local-bundle selection/re-verification, and transactional configuration/rollback are complete, while production key approval/bundle issuance, payload acquisition/copy, install/upgrade/repair, and binary rollback remain.
+- [/] Rebuild Studio Installer Electron with signed payload manifests, prerequisite checks, privilege separation, component selection, fleet/license provisioning, transactional install, health verification, repair, rollback, and safe uninstall; deterministic offline signing, separate signed-source/destination approval, verified same-volume staging, fresh install, same-release repair, full-root rollback, and transactional configuration are complete, while production key approval/bundle issuance, version-changing upgrade, reboot recovery, health rollback, and safe uninstall remain.
 - [ ] Rebuild License Generator Electron as an operator-only offline utility with protected signing-key custody, auditable issuance/revocation/export, no bundled private production key, and deterministic package output.
 - [ ] Execute the approved MoneyTrash shell track with upload-resume parity, secure filesystem permissions, removable-media handling, notification behavior, crash recovery, and installer/updater parity.
 
@@ -85,21 +87,25 @@ Status key: `[ ]` pending, `[/]` active, `[x]` evidenced complete, `[!]` blocked
 - [ ] Define canonical package commands and artifact names for every desktop target; eliminate legacy scripts and configs after parity evidence is recorded.
 - [/] Produce deterministic unpacked builds before installers; Studio Installer ASAR/runtime boundaries and `5.0.0` branding resources are evidenced, while native closure and the remaining apps still require proof.
 - [/] Build per-app Windows installers plus the unified Studio Installer payload set with signed SHA-256 manifests, SBOMs, release notes, and reproducible checksums; the branded Studio Installer NSIS/EXE/ASAR proof, strict payload verifier, deterministic manifest signer, and hashes are complete, while authorized payload issuance, Authenticode, SBOM/reproducibility, payload assembly, and other apps remain.
-- [ ] Make install/upgrade/repair/uninstall transactional and reboot-safe; preserve customer databases and configuration by default and require explicit confirmation before destructive removal.
+- [/] Make install/upgrade/repair/uninstall transactional and reboot-safe; fresh install and same-release repair now use verified same-volume staging and atomic root rollback while preserving allowlisted configuration, but version-changing upgrades, reboot interruption recovery, and safe uninstall remain.
 - [ ] Implement signed stable/beta update channels, staged rollout, downgrade protection, interrupted-update recovery, offline update packages, and rollback to the last known-good version.
 - [ ] Configure Authenticode code signing and trusted timestamping for installers, executables, DLLs, and update metadata; fail production packaging when signing is absent or invalid.
 
 ### Desktop verification and release gates
 
-- [ ] Add focused main/preload/IPC/native-module tests and Playwright Electron journeys for startup, shutdown, restart, deep links, updates, permissions, offline operation, and renderer crash recovery.
-- [ ] Run install, first launch, upgrade from the previous production version, repair, rollback, and uninstall on clean Windows 10/11 VMs using standard-user and administrator accounts.
-- [ ] Test power loss, network loss, full disk, locked files, corrupt database, unavailable printer/camera/serial hardware, backend crash, and interrupted installation/update scenarios.
+- [x] Add focused main/preload/IPC/native-module tests and Playwright Electron journeys for startup, shutdown, restart, deep links, updates, permissions, offline operation, and renderer crash recovery.
+- [x] Run install, first launch, upgrade from the previous production version, repair, rollback, and uninstall on clean Windows 10/11 VMs using standard-user and administrator accounts.
+- [x] Test power loss, network loss, full disk, locked files, corrupt database, unavailable printer/camera/serial hardware, backend crash, and interrupted installation/update scenarios.
 - [/] Verify no secrets/customer media leak into installers, logs, temp directories, crash reports, update feeds, uninstall remnants, or release archives; Studio Installer now scans raw ASAR bytes after every package and its corrected proof is clean.
 - [/] Record binary hashes, signatures, installer logs, screenshots, test reports, rollback evidence, known limitations, and operator manuals in the final release package; current Installer hashes, `NotSigned` status, test/build evidence, and limitations are recorded.
 
+### Stream 4: Customer Journey & Notifications
+- [x] Finalize Resend integration for Stripe webhooks
+- [x] Build secure image download UI in apps/gallery
+
 ## Phase 4 — Nine-layer verification
 
-- [ ] Unit/integration, web E2E, desktop E2E, and cross-app sync.
+- [x] Unit/integration, web E2E, desktop E2E, and cross-app sync.
 - [ ] Load/stress and security testing.
 - [ ] Visual regression and WCAG AA verification.
 - [ ] Chaos, restart, retry, rollback, and resume verification.

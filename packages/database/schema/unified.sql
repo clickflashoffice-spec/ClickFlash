@@ -63,6 +63,9 @@ CREATE TABLE IF NOT EXISTS photos (
   file_path TEXT NOT NULL,
   status TEXT DEFAULT 'pending',
   sync_status TEXT DEFAULT 'local',
+  ai_score REAL,
+  is_rejected BOOLEAN DEFAULT 0,
+  burst_group TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(album_id) REFERENCES albums(id)
 );

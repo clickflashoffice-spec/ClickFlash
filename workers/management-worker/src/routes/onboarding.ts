@@ -1,6 +1,7 @@
 import { createErrorResponse } from "../errorHandler";
 import { LicenseService } from "../services/licenseService";
 import { logger } from "../utils/logger";
+import { hasValidProvisioningSecret } from "../provisioning.js";
 
 export async function handleOnboarding(
   request: Request,
@@ -19,13 +20,13 @@ export async function handleOnboarding(
   if (url.pathname === "/api/v1/license/validate" && request.method === "POST") {
     try {
       const body: any = await request.json().catch(() => ({}));
-      const { key, desk_id } = body;
+      const { key, desk_id, machine_id } = body;
 
-      if (!key) {
-        return createErrorResponse(400, "Bad Request", "License key is required", undefined, undefined, corsHeaders);
+      if (!key || !machine_id) {
+        return createErrorResponse(400, "Bad Request", "License key and machine_id are required", undefined, undefined, corsHeaders);
       }
 
-      const result = await licenseService.validateLicenseKey(key, desk_id);
+      const result = await licenseService.validateLicenseKey(key, desk_id, machine_id);
 
       if (!result.valid) {
         return createErrorResponse(403, "Forbidden", result.error || "Invalid license key", undefined, undefined, corsHeaders);
@@ -51,19 +52,30 @@ export async function handleOnboarding(
   if (url.pathname === "/api/v1/onboarding/register" && request.method === "POST") {
     try {
       const body: any = await request.json().catch(() => ({}));
-      const { desk_id, name, country = "US", plan = "free", admin_email } = body;
+      const { desk_id, name, country = "US", plan = "trial", machine_id, provisioningSecret } = body;
 
-      if (!desk_id || !name) {
-        return createErrorResponse(400, "Bad Request", "desk_id and name are required", undefined, undefined, corsHeaders);
+      if (!env.PROVISIONING_SECRET || !env.LICENSE_PRIVATE_KEY) {
+        return createErrorResponse(503, "Service Unavailable", "Onboarding is not configured", undefined, undefined, corsHeaders);
+      }
+      if (!hasValidProvisioningSecret(request, env.PROVISIONING_SECRET, provisioningSecret)) {
+        return createErrorResponse(403, "Forbidden", "Invalid provisioning secret", undefined, undefined, corsHeaders);
+      }
+
+      if (!desk_id || !name || !machine_id) {
+        return createErrorResponse(400, "Bad Request", "desk_id, name, and machine_id are required", undefined, undefined, corsHeaders);
       }
 
       if (!/^[a-zA-Z0-9_-]{3,64}$/.test(desk_id)) {
         return createErrorResponse(400, "Validation Error", "desk_id must be 3-64 alphanumeric/underscore characters", undefined, undefined, corsHeaders);
       }
 
-      const validPlans = ["free", "starter", "pro", "enterprise"];
+      if (!/^[A-Za-z0-9:._-]{3,128}$/.test(machine_id)) {
+        return createErrorResponse(400, "Validation Error", "machine_id format is invalid", undefined, undefined, corsHeaders);
+      }
+
+      const validPlans = ["trial", "starter", "pro", "enterprise"];
       if (!validPlans.includes(plan)) {
-        return createErrorResponse(400, "Validation Error", "Invalid plan type. Must be free, starter, pro, or enterprise", undefined, undefined, corsHeaders);
+        return createErrorResponse(400, "Validation Error", "Invalid plan type. Must be trial, starter, pro, or enterprise", undefined, undefined, corsHeaders);
       }
 
       // Check existing destination/studio
@@ -85,9 +97,10 @@ export async function handleOnboarding(
       // Generate license key
       const keys = await licenseService.generateLicenseKeys({
         deskId: desk_id,
-        plan: plan as any,
+        plan: plan as "trial" | "starter" | "pro" | "enterprise",
         maxMasters,
-        expiresDays: 365
+        expiresDays: 365,
+        machineId: machine_id,
       });
 
       const licenseKey = keys[0].key;
@@ -98,7 +111,7 @@ export async function handleOnboarding(
         [licenseKey, desk_id]
       );
 
-      logger.info(`Onboarded new studio '${name}' (${desk_id}) on plan '${plan}' with key ${licenseKey}`);
+      logger.info(`Onboarded new studio '${name}' (${desk_id}) on plan '${plan}'`);
 
       return Response.json(
         {
@@ -114,45 +127,6 @@ export async function handleOnboarding(
       );
     } catch (err: any) {
       logger.error(`Error during studio onboarding: ${err.message}`);
-      return createErrorResponse(500, "Internal Server Error", err.message, undefined, undefined, corsHeaders);
-    }
-  }
-
-  // --- POST /api/v1/onboarding/webhook ---
-  if (url.pathname === "/api/v1/onboarding/webhook" && request.method === "POST") {
-    try {
-      const body: any = await request.json().catch(() => ({}));
-      const { type, data } = body;
-
-      if (!type || !data || !data.object) {
-        return createErrorResponse(400, "Bad Request", "Invalid webhook payload structure", undefined, undefined, corsHeaders);
-      }
-
-      logger.info(`Received webhook event: ${type}`);
-
-      if (type === "checkout.session.completed" || type === "invoice.payment_succeeded" || type === "customer.subscription.updated") {
-        const obj = data.object;
-        const deskId = obj.client_reference_id || obj.metadata?.desk_id;
-        const newPlan = obj.metadata?.plan || "pro";
-
-        if (deskId) {
-          const validPlans = ["free", "starter", "pro", "enterprise"];
-          if (validPlans.includes(newPlan)) {
-            const maxMasters = newPlan === "enterprise" ? 10 : newPlan === "pro" ? 5 : newPlan === "starter" ? 2 : 1;
-            
-            await dbManager.run(
-              "UPDATE licenses SET plan = ?, max_masters = ?, updated_at = CURRENT_TIMESTAMP WHERE desk_id = ?",
-              [newPlan, maxMasters, deskId]
-            );
-
-            logger.info(`Updated desk ${deskId} to plan ${newPlan} via Stripe webhook`);
-          }
-        }
-      }
-
-      return Response.json({ received: true, status: "processed" }, { headers: corsHeaders });
-    } catch (err: any) {
-      logger.error(`Error processing onboarding webhook: ${err.message}`);
       return createErrorResponse(500, "Internal Server Error", err.message, undefined, undefined, corsHeaders);
     }
   }

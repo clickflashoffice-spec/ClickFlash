@@ -117,6 +117,86 @@ export default function galleryCheckoutRoutes(
   });
 
   /**
+   * Create cash checkout session (notifies staff app)
+   */
+  router.post("/:token/cash", strictRateLimiter, async (req: Request, res: Response) => {
+    try {
+      const { token } = req.params;
+      const parsed = customRoutesSchemas.galleryCheckout.safeParse(req.body);
+
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Cart is empty or items format is invalid" });
+      }
+      const { items } = parsed.data;
+
+      let payload: any;
+      try {
+        payload = jwt.verify(token as string, JWT_SECRET) as any;
+      } catch (error) {
+        return res.status(401).json({ error: "Invalid or expired token" });
+      }
+
+      if (payload.type !== "magic-link") {
+        return res.status(403).json({ error: "Checkout not available for order downloads" });
+      }
+
+      const tokenRecord = dbManager.get(
+        "SELECT id, albumId FROM gallery_tokens WHERE token = ?",
+        [token],
+      );
+
+      if (!tokenRecord) {
+        return res.status(404).json({ error: "Token not found" });
+      }
+
+      const total = items.reduce(
+        (sum: number, item: any) => sum + item.price * item.quantity,
+        0,
+      ) + (payload.tipAmount || 0);
+
+      const galleryOrderId = `GLY_${randomUUID().replace(/-/g, "").substring(0, 12)}`;
+
+      dbManager.run(
+        `INSERT INTO gallery_orders (id, tokenId, customerEmail, items, total, status)
+                 VALUES (?, ?, ?, ?, ?, 'awaiting_cash')`,
+        [
+          galleryOrderId,
+          tokenRecord.id,
+          payload.customerEmail,
+          JSON.stringify(items),
+          total,
+        ],
+      );
+
+      logger.info("[GalleryCheckout] Created cash pending session", {
+        galleryOrderId,
+        total,
+      });
+
+      // Broadcast cash pending event
+      if (syncManager) {
+          syncManager.broadcastCashPending(galleryOrderId, { 
+              total, 
+              items, 
+              albumId: tokenRecord.albumId, 
+              customerEmail: payload.customerEmail 
+          });
+      }
+
+      res.json({
+        success: true,
+        orderId: galleryOrderId,
+        status: "awaiting_cash"
+      });
+    } catch (error: any) {
+      logger.error("[GalleryCheckout] Failed to create cash pending session", {
+        error: error.message,
+      });
+      res.status(500).json({ error: error.message || "Failed to create cash checkout session" });
+    }
+  });
+
+  /**
    * Stripe webhook handler
    */
   router.post(

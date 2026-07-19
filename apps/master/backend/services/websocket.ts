@@ -222,6 +222,27 @@ const initWebSocketServer = (server: Server, context: WebSocketContext): WebSock
     const wsConnectionCounts = new Map<string, { count: number; resetAt: number }>();
     const WS_MAX_CONNECTIONS_PER_MIN = 20;
 
+    // Phase 4: Safe broadcast helper enforcing backpressure limits for 4-core PC stability
+    const safeBroadcast = (
+        sender: WebSocket | null,
+        dataStr: string,
+        filter?: (client: CustomWebSocket) => boolean
+    ) => {
+        const BACKPRESSURE_LIMIT = 1024 * 1024; // 1MB limit for 4-core 16GB PC stability
+        wss.clients.forEach((client: WebSocket) => {
+            const customClient = client as CustomWebSocket;
+            if (client !== sender && client.readyState === WebSocket.OPEN) {
+                if (filter && !filter(customClient)) return;
+                if (client.bufferedAmount > BACKPRESSURE_LIMIT) {
+                    logger.warn(`[WebSocket] Client backpressure (${client.bufferedAmount} bytes). Dropping broadcast.`);
+                    return;
+                }
+                client.send(dataStr);
+            }
+        });
+    };
+    (wss as any).safeBroadcast = safeBroadcast;
+
     wss.on('connection', (ws: CustomWebSocket, req: any) => {
         const ip = req.socket.remoteAddress?.replace('::ffff:', '') || 'unknown';
 
@@ -253,14 +274,10 @@ const initWebSocketServer = (server: Server, context: WebSocketContext): WebSock
             if (ws.clientInfo && ws.clientInfo.type === 'kiosk') {
                 updateKioskStatus(ws.clientInfo.kioskId, ip, 'Connected', ws.clientInfo);
                 // Also broadcast status update to frontend
-                wss.clients.forEach((client) => {
-                    if (client !== ws && client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({
-                            type: 'KIOSK_STATUS_UPDATE',
-                            payload: { id: ws.clientInfo!.kioskId, name: ws.clientInfo!.name || 'Kiosk', status: 'Connected' }
-                        }));
-                    }
-                });
+                safeBroadcast(ws, JSON.stringify({
+                    type: 'KIOSK_STATUS_UPDATE',
+                    payload: { id: ws.clientInfo!.kioskId, name: ws.clientInfo!.name || 'Kiosk', status: 'Connected' }
+                }));
             }
         });
 
@@ -291,70 +308,51 @@ const initWebSocketServer = (server: Server, context: WebSocketContext): WebSock
                         updateKioskStatus(ws.clientInfo.kioskId, ip, 'Connected', ws.clientInfo);
 
                         // Broadcast new connection
-                        wss.clients.forEach((client: WebSocket) => {
-                            if (client !== ws && client.readyState === WebSocket.OPEN) {
-                                client.send(JSON.stringify({
-                                    type: 'KIOSK_STATUS_UPDATE',
-                                    payload: { id: ws.clientInfo!.kioskId, name: ws.clientInfo!.name || 'Kiosk', status: 'Connected' }
-                                }));
-                            }
-                        });
+                        safeBroadcast(ws, JSON.stringify({
+                            type: 'KIOSK_STATUS_UPDATE',
+                            payload: { id: ws.clientInfo!.kioskId, name: ws.clientInfo!.name || 'Kiosk', status: 'Connected' }
+                        }));
                     }
                     return;
                 }
 
+                // Phase 4: Add explicit check for ASSISTANCE_REQUEST
                 if (data.type === 'ASSISTANCE_REQUEST') {
-                    if (logger && logger.info) logger.info('Assistance requested', { payload: data.payload, ip });
+                    const requestId = crypto.randomUUID();
+                    const kioskId = ws.clientInfo?.kioskId || data.payload?.kioskId || 'unknown';
+                    const message = data.payload?.message || 'Assistance requested';
+                    
+                    if (logger && logger.info) logger.info('Assistance requested', { kioskId, message, ip });
 
-                    const kioskId = data.payload?.kioskId || 'UNKNOWN_KIOSK';
-                    const message = data.payload?.message || 'Customer needs assistance';
-                    const requestId = `${kioskId}-${Date.now()}`;
-
-                    // Persist to DB
-                    try {
-                        dbManager.run(
-                            'INSERT INTO assistance_requests (id, kioskId, message, status) VALUES (?, ?, ?, ?)',
-                            [requestId, kioskId, message, 'pending']
-                        );
-                    } catch (dbErr: any) {
-                        logger.error('[WS] Failed to persist assistance request', { error: dbErr.message });
+                    if (dbManager) {
+                        try {
+                            dbManager.run(
+                                'INSERT INTO assistance_requests (id, kioskId, message, status) VALUES (?, ?, ?, ?)',
+                                [requestId, kioskId, message, 'pending']
+                            );
+                        } catch (dbErr: any) {
+                            logger.error('[WS] Failed to persist assistance request', { error: dbErr.message });
+                        }
                     }
 
                     // Broadcast to all connected clients (especially Master Frontend)
-                    wss.clients.forEach((client) => {
-                        if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({
-                                type: 'ASSISTANCE_REQUEST',
-                                payload: { ...data.payload, id: requestId, timestamp: new Date().toISOString() }
-                            }));
-                        }
-                    });
+                    safeBroadcast(null, JSON.stringify({
+                        type: 'ASSISTANCE_REQUEST',
+                        payload: { ...data.payload, id: requestId, timestamp: new Date().toISOString() }
+                    }));
                     return;
                 }
 
                 // Rule 08: Admin Ghosting Logic
                 if (data.type === 'GHOST_FRAME' || data.type === 'GHOST_START' || data.type === 'GHOST_STOP') {
                     // Relay to admins (clients that are NOT kiosks)
-                    wss.clients.forEach((client: WebSocket) => {
-                        const customClient = client as CustomWebSocket;
-                        // Improve targeting: Only send to 'admin' or 'master' types, or all non-kiosks
-                        if (client !== ws && client.readyState === WebSocket.OPEN) {
-                            // Simple relay for now
-                            if (customClient.clientInfo?.type !== 'kiosk') {
-                                client.send(message.toString());
-                            }
-                        }
-                    });
+                    safeBroadcast(ws, message.toString(), (c) => c.clientInfo?.type !== 'kiosk');
                     return;
                 }
 
                 if (data.type === 'BROADCAST_DATA_REFRESH') {
                     if (logger && logger.info) logger.info('Relaying BROADCAST_DATA_REFRESH', { collection: data.collection, ip });
-                    wss.clients.forEach((client) => {
-                        if (client !== ws && client.readyState === WebSocket.OPEN) {
-                            client.send(message.toString());
-                        }
-                    });
+                    safeBroadcast(ws, message.toString());
                     return;
                 }
 
@@ -379,14 +377,10 @@ const initWebSocketServer = (server: Server, context: WebSocketContext): WebSock
                 }
 
                 // Broadcast disconnection
-                wss.clients.forEach((client) => {
-                    if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({
-                            type: 'KIOSK_STATUS_UPDATE',
-                            payload: { id: ws.clientInfo!.kioskId, name: ws.clientInfo!.name || 'Kiosk', status: 'Disconnected' }
-                        }));
-                    }
-                });
+                safeBroadcast(null, JSON.stringify({
+                    type: 'KIOSK_STATUS_UPDATE',
+                    payload: { id: ws.clientInfo!.kioskId, name: ws.clientInfo!.name || 'Kiosk', status: 'Disconnected' }
+                }));
             }
         });
 

@@ -86,4 +86,4 @@ async function run() {
     db.close();
 }
 
-run().catch(console.error);
+run().catch(logger.error);

@@ -5,6 +5,7 @@ import MaintenanceService from "../services/maintenanceService";
 import startOrderWatcher from "../services/orderWatcher";
 import { tunnelService } from "../services/tunnelService";
 import AuditService from '../services/auditService';
+import { startSyncWorker } from "../workers/syncWorker";
 import path from "path";
 
 export async function initializeEcosystem(context: any) {
@@ -20,6 +21,7 @@ export async function initializeEcosystem(context: any) {
     campaignScheduler,
     auditLogger,
     automatedBackupService,
+    fleetService,
     config
   } = context;
 
@@ -41,8 +43,9 @@ export async function initializeEcosystem(context: any) {
     // 3. Operational: Queue & Sync
     if (queueProcessor) queueProcessor.start();
     if (maintenancePoller) maintenancePoller.start();
+    if (fleetService) fleetService.start();
     await cloudSyncService.syncRemoteSettings().catch((e: Error) => logger.warn("[Startup] Settings sync failed", { error: e.message }));
-    logger.info("[Startup] Core: Queue and Maintenance Poller active.");
+    logger.info("[Startup] Core: Queue, Maintenance Poller, and Fleet Service active.");
 
     // 4. Operational Workers (Law 13 Compliance)
     startFolderMonitor(context);
@@ -57,6 +60,7 @@ export async function initializeEcosystem(context: any) {
 
     // 5. External Hub Integrations
     cloudSyncService.start();
+    startSyncWorker(); // New Unified D1 Sync Worker
     logger.info("[Startup] Cloud Relay: Sync service started.");
 
     // Start MoneyTrash Service

@@ -60,7 +60,6 @@ export default defineConfig(({ mode }) => ({
             "@tensorflow/tfjs",
             "@tensorflow/tfjs-backend-cpu",
             "@tensorflow/tfjs-core",
-            "@tensorflow-models/blazeface",
           ],
           "vendor-face-api": ["@vladmandic/face-api"],
           // Offline-first DB

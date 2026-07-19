@@ -19,6 +19,10 @@
 
 # production
 /build
+/dist
+/release
+/release-electron
+/build-electron-stage
 
 # misc
 .DS_Store

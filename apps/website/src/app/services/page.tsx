@@ -71,7 +71,7 @@ const services = [
 
 export default function ServicesPage() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-[#0B111F]">
       {/* HERO SECTION */}
       <section className="container mx-auto px-4 pt-28 pb-16 text-center sm:px-6 md:pt-36 md:pb-20 lg:px-8 lg:pt-40">
         <motion.div
@@ -85,7 +85,7 @@ export default function ServicesPage() {
             align="center"
             light={true}
           />
-          <p className="mx-auto mt-6 max-w-3xl px-4 text-base leading-relaxed text-slate-600 md:mt-8 md:text-lg">
+          <p className="mx-auto mt-6 max-w-3xl px-4 text-base leading-relaxed text-white/70 md:mt-8 md:text-lg">
             ClickFlash offers a wide range of photography services tailored to various settings
             across Tunisia and beyond. From luxurious resorts to intimate weddings and professional
             corporate events, we capture unforgettable memories for every occasion.
@@ -97,7 +97,7 @@ export default function ServicesPage() {
       {services.map((service, index) => (
         <section
           key={service.id}
-          className={`py-16 md:py-24 lg:py-32 ${index % 2 !== 0 ? "border-y border-slate-100 bg-slate-50/50" : "bg-white"}`}
+          className={`py-16 md:py-24 lg:py-32 ${index % 2 !== 0 ? "border-y border-white/10 bg-white/5/50" : "bg-[#0B111F]"}`}
         >
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div
@@ -112,17 +112,17 @@ export default function ServicesPage() {
                 <span className="mb-4 block text-[10px] font-black tracking-[0.3em] text-cyan-700 uppercase">
                   {service.title}
                 </span>
-                <h2 className="mb-6 text-2xl leading-tight font-black tracking-tighter text-slate-900 sm:text-3xl md:mb-8 md:text-4xl lg:text-5xl">
+                <h2 className="mb-6 text-2xl leading-tight font-black tracking-tighter text-white sm:text-3xl md:mb-8 md:text-4xl lg:text-5xl">
                   {service.headline}
                 </h2>
-                <p className="mb-8 text-base leading-relaxed text-slate-600 md:mb-10 md:text-lg">
+                <p className="mb-8 text-base leading-relaxed text-white/70 md:mb-10 md:text-lg">
                   {service.description}
                 </p>
                 <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:mb-10 md:gap-6">
                   {service.features.map((feature) => (
                     <div
                       key={feature}
-                      className="flex items-center gap-3 text-[12px] font-bold text-slate-800 md:text-[13px]"
+                      className="flex items-center gap-3 text-[12px] font-bold text-white/90 md:text-[13px]"
                     >
                       <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-cyan-100">
                         <CheckCircle2 className="h-4 w-4 text-cyan-700" />
@@ -196,13 +196,13 @@ export default function ServicesPage() {
       </section>
 
       {/* EXPERTISE SECTION */}
-      <section className="bg-slate-50 py-16 md:py-24 lg:py-32">
+      <section className="bg-white/5 py-16 md:py-24 lg:py-32">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center md:mb-16 lg:mb-20">
             <span className="mb-4 block text-[11px] font-black tracking-[0.3em] text-cyan-700 uppercase md:text-[12px]">
               Our Expertise
             </span>
-            <h2 className="text-3xl leading-tight font-black tracking-tighter text-slate-900 sm:text-4xl md:text-5xl lg:text-6xl">
+            <h2 className="text-3xl leading-tight font-black tracking-tighter text-white sm:text-4xl md:text-5xl lg:text-6xl">
               Enhancing Your Experience
             </h2>
           </div>
@@ -215,12 +215,12 @@ export default function ServicesPage() {
             ].map((item, i) => (
               <div
                 key={i}
-                className="rounded-2xl bg-white p-6 text-center shadow-sm md:rounded-3xl md:p-8"
+                className="rounded-2xl bg-[#0B111F] p-6 text-center shadow-sm md:rounded-3xl md:p-8"
               >
-                <h3 className="mb-3 text-xl font-black text-slate-900 md:mb-4 md:text-2xl">
+                <h3 className="mb-3 text-xl font-black text-white md:mb-4 md:text-2xl">
                   {item.title}
                 </h3>
-                <p className="text-slate-600">{item.desc}</p>
+                <p className="text-white/70">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -237,9 +237,9 @@ export default function ServicesPage() {
       />
 
       {/* CTA SECTION */}
-      <section className="relative mx-4 mb-16 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 py-16 text-center sm:mx-6 md:mb-20 md:rounded-[3rem] md:py-24">
+      <section className="relative mx-4 mb-16 overflow-hidden rounded-2xl border border-white/10 bg-white/5 py-16 text-center sm:mx-6 md:mb-20 md:rounded-[3rem] md:py-24">
         <div className="relative z-10 px-4">
-          <h2 className="mb-6 text-2xl font-black tracking-tighter text-slate-900 sm:text-3xl md:mb-10 md:text-5xl lg:text-6xl">
+          <h2 className="mb-6 text-2xl font-black tracking-tighter text-white sm:text-3xl md:mb-10 md:text-5xl lg:text-6xl">
             Ready to Capture <span className="text-cyan-700 italic">Your Moments?</span>
           </h2>
           <Link

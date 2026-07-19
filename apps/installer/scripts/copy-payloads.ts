@@ -5,6 +5,7 @@
 
 import fs from "fs";
 import path from "path";
+import { logger } from '@clickflash/logger';
 
 const installerDir = process.cwd();
 const masterRelease = path.resolve(installerDir, "..", "master", "release");
@@ -13,7 +14,7 @@ const stagingDir = path.resolve(installerDir, "staging");
 
 function copyDir(src: string, dest: string): void {
   if (!fs.existsSync(src)) {
-    console.warn(`[copy-payloads] Source not found: ${src}`);
+    logger.warn(`[copy-payloads] Source not found: ${src}`);
     return;
   }
   fs.mkdirSync(dest, { recursive: true });
@@ -33,4 +34,4 @@ fs.mkdirSync(stagingDir, { recursive: true });
 copyDir(masterRelease, path.join(stagingDir, "master"));
 copyDir(touchRelease, path.join(stagingDir, "touch"));
 
-console.log("[copy-payloads] Payloads staged successfully.");
+logger.info("[copy-payloads] Payloads staged successfully.");

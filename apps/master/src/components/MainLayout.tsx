@@ -713,6 +713,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         <AIIdeasModal
           isOpen={isAIIdeasModalOpen}
           onClose={() => setAIIdeasModalOpen(false)}
+          albums={dashboardData?.albums || []}
         />
       </Suspense>
       {toastMessage && (

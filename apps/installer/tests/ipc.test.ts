@@ -142,6 +142,7 @@ vi.mock('systeminformation', () => ({
 
 // Mock the offline license validator
 vi.mock('../scripts/license-key', () => ({
+  isValidLicensePublicKey: vi.fn().mockReturnValue(true),
   validateLicenseKey: vi.fn().mockImplementation((key, machineId) => {
     if (key === 'VALID_KEY') {
       return { 
@@ -158,6 +159,7 @@ describe('Installer IPC Handlers', () => {
     selectedDirectory = null;
     delete process.env.CLICKFLASH_PAYLOAD_KEY_ID;
     delete process.env.CLICKFLASH_PAYLOAD_PUBLIC_KEY;
+    process.env.CLICKFLASH_LICENSE_PUBLIC_KEY = Buffer.alloc(32, 7).toString('base64');
     // Clear handlers before each test
     for (const key in handlers) delete handlers[key];
     
@@ -172,6 +174,7 @@ describe('Installer IPC Handlers', () => {
   afterEach(() => {
     delete process.env.CLICKFLASH_PAYLOAD_KEY_ID;
     delete process.env.CLICKFLASH_PAYLOAD_PUBLIC_KEY;
+    delete process.env.CLICKFLASH_LICENSE_PUBLIC_KEY;
     for (const directory of createdDirectories.splice(0)) {
       fs.rmSync(directory, { recursive: true, force: true });
     }
@@ -219,6 +222,15 @@ describe('Installer IPC Handlers', () => {
     });
     expect(saveResult).toEqual({ success: false, error: 'Invalid installer configuration' });
 
+    const installResult = await handlers['installer:installPayload'](trustedEvent as any, {
+      components: ['master'],
+      unexpected: true,
+    });
+    expect(installResult).toEqual({
+      success: false,
+      error: 'Invalid application installation request',
+    });
+
     const launchResult = await handlers['installer:launchApps'](trustedEvent as any, {
       components: ['master'],
       unexpected: true,
@@ -227,23 +239,38 @@ describe('Installer IPC Handlers', () => {
   });
 
   it('commits allowlisted application configuration only after directory approval', async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'clickflash-ipc-deployment-'));
-    createdDirectories.push(root);
-    fs.mkdirSync(path.join(root, 'Master'));
-    fs.mkdirSync(path.join(root, 'Touch'));
-    fs.writeFileSync(path.join(root, 'Master', 'ClickFlash Master OS.exe'), 'master');
-    fs.writeFileSync(path.join(root, 'Touch', 'ClickFlash - Touch Kiosk.exe'), 'touch');
-    signPayloadBundle(root);
-    selectedDirectory = root;
+    const source = fs.mkdtempSync(path.join(os.tmpdir(), 'clickflash-ipc-source-'));
+    const target = fs.mkdtempSync(path.join(os.tmpdir(), 'clickflash-ipc-target-'));
+    createdDirectories.push(source, target);
+    fs.mkdirSync(path.join(source, 'Master'));
+    fs.mkdirSync(path.join(source, 'Touch'));
+    fs.writeFileSync(path.join(source, 'Master', 'ClickFlash Master OS.exe'), 'master');
+    fs.writeFileSync(path.join(source, 'Touch', 'ClickFlash - Touch Kiosk.exe'), 'touch');
+    signPayloadBundle(source);
+    selectedDirectory = source;
 
     const approved = await handlers['installer:selectPayloadBundle'](trustedEvent as any);
     expect(approved).toMatchObject({
       success: true,
-      directory: fs.realpathSync(root),
+      directory: fs.realpathSync(source),
       summary: { releaseId: 'release_ipc_test', components: ['master', 'touch'] },
     });
+
+    selectedDirectory = target;
+    const approvedTarget = await handlers['installer:selectInstallDirectory'](trustedEvent as any);
+    expect(approvedTarget).toBe(fs.realpathSync(target));
+
+    const installed = await handlers['installer:installPayload'](trustedEvent as any, {
+      components: ['master', 'touch'],
+    });
+    expect(installed).toMatchObject({
+      success: true,
+      mode: 'install',
+      summary: { releaseId: 'release_ipc_test', components: ['master', 'touch'] },
+    });
+
     const result = await handlers['installer:writeEnvConfig'](trustedEvent as any, {
-      targetDir: root,
+      targetDir: target,
       selectedApps: ['master', 'touch'],
       deskId: 'MASTER_TUNIS_01',
       siteCode: 'TUNIS_01',
@@ -254,9 +281,11 @@ describe('Installer IPC Handlers', () => {
     });
 
     expect(result).toEqual({ success: true });
-    expect(fs.existsSync(path.join(root, 'Master', '.env'))).toBe(true);
-    expect(fs.existsSync(path.join(root, 'Touch', '.env'))).toBe(true);
-    expect(fs.existsSync(path.join(root, 'clickflash-installation.json'))).toBe(true);
+    expect(fs.existsSync(path.join(target, 'Master', 'ClickFlash Master OS.exe'))).toBe(true);
+    expect(fs.existsSync(path.join(target, 'Touch', 'ClickFlash - Touch Kiosk.exe'))).toBe(true);
+    expect(fs.existsSync(path.join(target, 'Master', '.env'))).toBe(true);
+    expect(fs.existsSync(path.join(target, 'Touch', '.env'))).toBe(true);
+    expect(fs.existsSync(path.join(target, 'clickflash-installation.json'))).toBe(true);
   });
 
   it('rejects unapproved cloud and public-LAN network targets', async () => {

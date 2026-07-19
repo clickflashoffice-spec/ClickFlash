@@ -5,6 +5,7 @@ import { verifyPassword } from "./auth.js";
 import { createToken, verifyToken, extractTokenFromHeader } from "./jwt.js";
 import { checkLoginRateLimit, recordLoginAttempt } from "./loginRateLimiter.js";
 import { handleRest } from "./routes/rest.js";
+import { handleWebsiteApi } from "./routes/website.js";
 import { R2SignedUrlService } from "./services/r2SignedUrlService.js";
 import {
   canOrderDownloadPhoto,
@@ -35,6 +36,8 @@ export interface Env {
   GEO_RESTRICTED?: string; // "true" to enable country allowlist enforcement
   ALLOWED_COUNTRIES?: string; // Comma-separated ISO-3166-1 alpha-2 codes, e.g. "MA,TN,FR,US"
   RESEND_API_KEY?: string; // Resend API key for transactional email notifications
+  ADMIN_NOTIFICATION_EMAIL?: string;
+  FROM_EMAIL?: string;
   NODE_ENV?: string;
 }
 
@@ -144,6 +147,15 @@ const galleryHandler = {
             },
           );
         }
+
+        const websiteResponse = await handleWebsiteApi(
+          request,
+          pathName,
+          env,
+          corsHeaders,
+          checkPublicRateLimit,
+        );
+        if (websiteResponse) return websiteResponse;
 
         // Public: Signed R2 High-Res URLs (/v1/<storageKey>?e=...&s=...)
         if (pathName.startsWith("/v1/")) {
@@ -819,84 +831,6 @@ const galleryHandler = {
               })),
             }),
             { status: 200, headers: { "Content-Type": "application/json" } },
-          );
-        }
-
-        // Website Portfolio (Public)
-        if (pathName === "/api/website/portfolio" && request.method === "GET") {
-          const url = new URL(request.url);
-          const category = url.searchParams.get("category");
-          const featured = url.searchParams.get("featured") === "true";
-
-          let query = "SELECT * FROM portfolio_items WHERE 1=1";
-          const params: any[] = [];
-
-          if (category && category !== "All") {
-            query += " AND category = ?";
-            params.push(category);
-          }
-          if (featured) {
-            query += " AND is_featured = 1";
-          }
-          query += " ORDER BY created_at DESC";
-
-          const stmt = env.WEBSITE_DB.prepare(query);
-          const result = await stmt.bind(...params).all();
-
-          return new Response(
-            JSON.stringify({
-              items: result.results || [],
-              count: result.results?.length || 0,
-            }),
-            {
-              status: 200,
-              headers: { "Content-Type": "application/json" },
-            },
-          );
-        }
-
-        // Website Access Code Validation (Public)
-        if (pathName === "/api/website/access-code" && request.method === "POST") {
-          const { code } = (await request.json()) as any;
-
-          if (!code) {
-            return new Response(
-              JSON.stringify({
-                error: "Validation Error",
-                message: "Code is required",
-              }),
-              {
-                status: 400,
-              },
-            );
-          }
-
-          const accessCode = await env.WEBSITE_DB.prepare(
-            `SELECT * FROM access_codes WHERE code = ? AND is_active = 1 AND (expires_at IS NULL OR expires_at > datetime('now'))`
-          ).bind(code.trim().toUpperCase()).first();
-
-          if (!accessCode) {
-            return new Response(
-              JSON.stringify({
-                error: "Invalid Code",
-                message: "Invalid or expired access code",
-              }),
-              {
-                status: 401,
-              },
-            );
-          }
-
-          return new Response(
-            JSON.stringify({
-              success: true,
-              message: "Access granted",
-              redirectUrl: accessCode.redirect_url || `https://gallery.clickflash.com/album/${accessCode.album_id}`,
-            }),
-            {
-              status: 200,
-              headers: { "Content-Type": "application/json" },
-            },
           );
         }
 
@@ -1711,113 +1645,6 @@ const galleryHandler = {
               },
             );
           }
-        }
-
-        // --- Website API Routes (Public) ---
-        // Contact Form
-        if (pathName === "/api/website/contact" && request.method === "POST") {
-          // Rate limit: 5 contact form submissions per 10 minutes per IP
-          const contactIp = request.headers.get("CF-Connecting-IP") ?? "unknown";
-          if (!await checkPublicRateLimit(env.WEBSITE_DB, contactIp, "contact", 5, 600_000)) {
-            return new Response(JSON.stringify({ error: "Rate limit exceeded", message: "Too many requests. Please try again later." }), {
-              status: 429,
-              headers: { "Content-Type": "application/json", "Retry-After": "600", ...corsHeaders },
-            });
-          }
-          const { name, email, service, message } = (await request.json()) as any;
-
-          if (!name || !email || !message) {
-            return new Response(
-              JSON.stringify({
-                error: "Validation Error",
-                message: "Missing required fields",
-              }),
-              {
-                status: 400,
-              },
-            );
-          }
-
-          const stmt = env.WEBSITE_DB.prepare(`
-                      INSERT INTO contact_submissions (name, email, service, message)
-                      VALUES (?, ?, ?, ?)
-                  `);
-
-          await stmt.bind(name, email, service || null, message).run();
-
-          return new Response(
-            JSON.stringify({ success: true, message: "Message received" }),
-            {
-              status: 201,
-              headers: { "Content-Type": "application/json" },
-            },
-          );
-        }
-
-        // Bookings
-        if (pathName === "/api/website/bookings" && request.method === "POST") {
-          // Rate limit: 3 booking submissions per 10 minutes per IP
-          const bookingIp = request.headers.get("CF-Connecting-IP") ?? "unknown";
-          if (!await checkPublicRateLimit(env.WEBSITE_DB, bookingIp, "bookings", 3, 600_000)) {
-            return new Response(JSON.stringify({ error: "Rate limit exceeded", message: "Too many booking requests. Please try again later." }), {
-              status: 429,
-              headers: { "Content-Type": "application/json", "Retry-After": "600", ...corsHeaders },
-            });
-          }
-          const booking = (await request.json()) as any;
-
-          // Normalise fields — website form sends name/service_type/event_date/event_location
-          const name = booking.name || `${booking.firstName ?? ""} ${booking.lastName ?? ""}`.trim();
-          const email = booking.email ?? "";
-          const phone = booking.phone ?? null;
-          const serviceType = booking.service_type || booking.sessionType || null;
-          const eventDate = booking.event_date || booking.date || null;
-          const location = booking.event_location || booking.location || null;
-          const message = booking.message || null;
-
-          await env.WEBSITE_DB.prepare(
-            `INSERT INTO bookings (name, email, phone, service_type, event_date, event_location, message, status)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-          ).bind(name, email, phone, serviceType, eventDate, location, message, "pending").run();
-
-          // Email notification via Resend — non-fatal, booking is already saved if this fails
-          if (env.RESEND_API_KEY) {
-            const html = `
-              <h2 style="font-family:sans-serif;color:#0f172a;">New Booking Request</h2>
-              <table style="font-family:sans-serif;border-collapse:collapse;width:100%;max-width:560px;">
-                <tr><td style="padding:6px 12px;font-weight:bold;color:#475569;">Name</td><td style="padding:6px 12px;">${name}</td></tr>
-                <tr style="background:#f8fafc;"><td style="padding:6px 12px;font-weight:bold;color:#475569;">Email</td><td style="padding:6px 12px;"><a href="mailto:${email}" style="color:#06b6d4;">${email}</a></td></tr>
-                <tr><td style="padding:6px 12px;font-weight:bold;color:#475569;">Phone</td><td style="padding:6px 12px;">${phone ?? "—"}</td></tr>
-                <tr style="background:#f8fafc;"><td style="padding:6px 12px;font-weight:bold;color:#475569;">Service</td><td style="padding:6px 12px;">${serviceType ?? "—"}</td></tr>
-                <tr><td style="padding:6px 12px;font-weight:bold;color:#475569;">Date</td><td style="padding:6px 12px;">${eventDate ?? "—"}</td></tr>
-                <tr style="background:#f8fafc;"><td style="padding:6px 12px;font-weight:bold;color:#475569;">Location</td><td style="padding:6px 12px;">${location ?? "—"}</td></tr>
-                <tr><td style="padding:6px 12px;font-weight:bold;color:#475569;">Message</td><td style="padding:6px 12px;">${message ?? "—"}</td></tr>
-              </table>
-              <p style="font-family:sans-serif;font-size:12px;color:#94a3b8;margin-top:24px;">Sent by ClickFlash Booking System</p>
-            `;
-            await fetch("https://api.resend.com/emails", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${env.RESEND_API_KEY}`,
-              },
-              body: JSON.stringify({
-                from: "ClickFlash Bookings <onboarding@resend.dev>",
-                to: ["clickflash.office@gmail.com"],
-                reply_to: email || undefined,
-                subject: `New Booking — ${name} (${serviceType ?? "Photography"})`,
-                html,
-              }),
-            }).catch(() => {}); // swallow — booking is already persisted
-          }
-
-          return new Response(
-            JSON.stringify({ success: true, message: "Booking received" }),
-            {
-              status: 201,
-              headers: { "Content-Type": "application/json" },
-            },
-          );
         }
 
         return new Response("Not Found", { status: 404 });

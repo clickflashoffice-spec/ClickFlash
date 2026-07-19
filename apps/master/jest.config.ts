@@ -41,6 +41,14 @@ const config: Config = {
       transformIgnorePatterns: [
         'node_modules/(?!(lucide-react|framer-motion|uuid|@uuid|@clickflash)/)',
       ],
+      testPathIgnorePatterns: [
+        '/node_modules/',
+        '/dist/',
+        '/release/',
+        '/release_mao/',
+        '/release_mac/',
+        '/release_cgp/',
+      ],
       setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
     },
     {
@@ -72,6 +80,14 @@ const config: Config = {
       },
       transformIgnorePatterns: [
         'node_modules/(?!(lucide-react|framer-motion|uuid|@uuid|@clickflash)/)',
+      ],
+      testPathIgnorePatterns: [
+        '/node_modules/',
+        '/dist/',
+        '/release/',
+        '/release_mao/',
+        '/release_mac/',
+        '/release_cgp/',
       ],
     },
   ],
@@ -143,7 +159,10 @@ const config: Config = {
   testPathIgnorePatterns: [
     '/node_modules/',
     '/dist/',
-    '/electron-new/',
+    '/release/',
+    '/release_mao/',
+    '/release_mac/',
+    '/release_cgp/',
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   roots: ['<rootDir>'],

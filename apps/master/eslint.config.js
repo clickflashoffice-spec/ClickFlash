@@ -7,8 +7,7 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 export default [
   {
     ...js.configs.recommended,
-    // Exclude electron-main.js from global recommended (it has its own Node.js config block below)
-    ignores: ["electron-main.js"],
+    ignores: [],
   },
   {
     files: ["src/**/*.{ts,tsx}"],
@@ -117,7 +116,6 @@ export default [
         RequestInit: "readonly",
         Response: "readonly",
         ResponseInit: "readonly",
-        fetch: "readonly",
 
         // React
         React: "readonly",
@@ -193,11 +191,16 @@ export default [
         // IdleDeadline for requestIdleCallback
         IdleDeadline: "readonly",
 
-        // Node.js types used in Electron frontend code
+        // Node.js types & globals used in Electron code
         NodeJS: "readonly",
         process: "readonly",
         global: "readonly",
         globalThis: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        Buffer: "readonly",
+        module: "readonly",
+        require: "readonly",
 
         // URL
         URL: "readonly",
@@ -250,8 +253,8 @@ export default [
     },
   },
   {
-    // Backend files — Node.js environment
-    files: ["backend/**/*.ts"],
+    // Backend & Electron main/workers — Node.js environment
+    files: ["backend/**/*.ts", "src/main/**/*.ts", "src/workers/**/*.ts"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -294,51 +297,15 @@ export default [
         "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
       ],
-      "no-console": "off", // Backend uses console for structured logging
+      "no-console": "off", // Backend/Electron main uses console for structured logging
       "no-unused-vars": "off",
       "prefer-const": "warn",
       "no-var": "error",
     },
   },
   {
-    // Electron Main Process — Node.js CJS environment
-    // electron-main.js uses require/process/__dirname/__filename which are Node.js globals
-    files: ["electron-main.js"],
-    languageOptions: {
-      ecmaVersion: 2020,
-      sourceType: "commonjs",
-      globals: {
-        require: "readonly",
-        module: "readonly",
-        exports: "readonly",
-        __dirname: "readonly",
-        __filename: "readonly",
-        process: "readonly",
-        Buffer: "readonly",
-        console: "readonly",
-        setTimeout: "readonly",
-        clearTimeout: "readonly",
-        setInterval: "readonly",
-        clearInterval: "readonly",
-        setImmediate: "readonly",
-        URL: "readonly",
-        URLSearchParams: "readonly",
-      },
-    },
-    rules: {
-      "no-console": "off",
-      "no-unused-vars": [
-        "warn",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
-      ],
-      "no-undef": "off", // Node globals handled above
-    },
-  },
-  {
     // Ignore patterns
     ignores: [
-      "electron-main.js", // Node.js/Electron CJS — not subject to browser ESLint rules
-      "electron-main-new.js", // Node.js/Electron CJS — not subject to browser ESLint rules
       "dist/**",
       "node_modules/**",
       "coverage/**",

@@ -2,6 +2,7 @@ import { DatabaseManager } from "../backend/database/db";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import { logger } from '@/utils/logger';
 
 const DATA_DIR = "E:\\ClickFlash\\apps\\master\\pb_data";
 const DB_FILE = path.join(DATA_DIR, "master.db");
@@ -11,13 +12,13 @@ const TARGET_PHOTOS = 100000;
 const ALBUMS_COUNT = 50;
 
 async function generateStressData() {
-    console.log(`🚀 Generating Stress Data (${TARGET_PHOTOS} photos)...`);
+    logger.info(`🚀 Generating Stress Data (${TARGET_PHOTOS} photos)...`);
 
     const dbManager = new DatabaseManager(DB_FILE);
     dbManager.connect();
 
     // 1. Create Albums
-    console.log(`Creating ${ALBUMS_COUNT} albums...`);
+    logger.info(`Creating ${ALBUMS_COUNT} albums...`);
     const albumIds: string[] = [];
     const now = new Date().toISOString();
     const today = now.split('T')[0];
@@ -39,7 +40,7 @@ async function generateStressData() {
     });
 
     // 2. Batch Insert Photos
-    console.log(`Inserting ${TARGET_PHOTOS} photo records...`);
+    logger.info(`Inserting ${TARGET_PHOTOS} photo records...`);
     const startTime = Date.now();
     
     dbManager.transaction(() => {
@@ -61,32 +62,32 @@ async function generateStressData() {
             stmt.run(id, albumId, title, url, now, now, 1); // Assuming photographerId 1 exists
 
             if (i > 0 && i % 20000 === 0) {
-                console.log(`  Processed ${i} photos...`);
+                logger.info(`  Processed ${i} photos...`);
             }
         }
     });
 
     const endTime = Date.now();
-    console.log(`✅ Seeding complete in ${(endTime - startTime) / 1000}s`);
+    logger.info(`✅ Seeding complete in ${(endTime - startTime) / 1000}s`);
 
     // 3. Performance Benchmark (Simple query)
-    console.log("\n📊 Running Performance Benchmarks...");
+    logger.info("\n📊 Running Performance Benchmarks...");
     
     const startQuery = Date.now();
     const count = dbManager.get<{ count: number }>("SELECT COUNT(*) as count FROM photos");
-    console.log(`- Total Photos: ${count?.count}`);
-    console.log(`- Count Query Time: ${Date.now() - startQuery}ms`);
+    logger.info(`- Total Photos: ${count?.count}`);
+    logger.info(`- Count Query Time: ${Date.now() - startQuery}ms`);
 
     const startAlbum = Date.now();
     const albumId = albumIds[0];
     dbManager.query("SELECT * FROM photos WHERE albumId = ? LIMIT 100", [albumId]);
-    console.log(`- Fetch 100 Photos from Album Time: ${Date.now() - startAlbum}ms`);
+    logger.info(`- Fetch 100 Photos from Album Time: ${Date.now() - startAlbum}ms`);
 
     dbManager.close();
-    console.log("\n✨ Stress Test Data Generation Complete.");
+    logger.info("\n✨ Stress Test Data Generation Complete.");
 }
 
 generateStressData().catch(err => {
-    console.error("Stress test generation failed:", err);
+    logger.error("Stress test generation failed:", err);
     process.exit(1);
 });

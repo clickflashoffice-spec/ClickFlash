@@ -28,7 +28,7 @@ import { lookup } from "dns/promises";
 import crypto from "crypto";
 import dgram from "dgram";
 import si from "systeminformation";
-import { validateLicenseKey } from "./scripts/license-key";
+import { isValidLicensePublicKey, validateLicenseKey } from "./scripts/license-key";
 import { fetchBoundedJson } from "./electron-network-security";
 import {
   protectInstallerConfig,
@@ -46,6 +46,10 @@ import {
   type VerifiedPayloadBundle,
 } from "./installer-payload-verification";
 import {
+  INSTALLATION_CONFIG_FILENAME,
+  installOrRepairPayloadBundle,
+} from "./installer-payload-installation";
+import {
   getDevelopmentPayloadTrustRoots,
   PACKAGED_PAYLOAD_TRUST_ROOTS,
 } from "./installer-payload-trust";
@@ -62,6 +66,7 @@ import {
   heartbeatResponseSchema,
   heartbeatSchema,
   healthCheckSchema,
+  installPayloadSchema,
   installerConfigSchema,
   launchAppsSchema,
   licenseKeySchema,
@@ -75,6 +80,7 @@ import {
   validatedLicenseSchema,
   writeEnvConfigSchema,
 } from "./installer-ipc-schemas";
+import { logger } from '@clickflash/logger';
 import {
   getApprovedDirectory,
   getPinnedPrivateIpv4,
@@ -120,9 +126,26 @@ const ALLOWED_EXTERNAL_HOSTS = [
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let mainWindow: BrowserWindow | null = null;
+
+function loadConfiguredLicensePublicKey(): string | null {
+  const environmentKey = process.env.CLICKFLASH_LICENSE_PUBLIC_KEY?.trim();
+  if (isValidLicensePublicKey(environmentKey)) return environmentKey;
+  if (!app.isPackaged) return null;
+
+  try {
+    const trustPath = path.join(process.resourcesPath, "license-public-key.txt");
+    const stat = fs.lstatSync(trustPath);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.size <= 0 || stat.size > 256) return null;
+    const packagedKey = fs.readFileSync(trustPath, "utf8").trim();
+    return isValidLicensePublicKey(packagedKey) ? packagedKey : null;
+  } catch {
+    return null;
+  }
+}
 let isQuitting = false;
 let approvedInstallDirectory: string | null = null;
 let approvedPayloadBundle: VerifiedPayloadBundle | null = null;
+let installedPayloadManifestSha256: string | null = null;
 
 const PAYLOAD_CONFIGURATION_EXTRAS = {
   master: [".env"],
@@ -139,11 +162,11 @@ function getRequestedPayloadComponents(applications: readonly string[]): Payload
   return applications.includes("touch") ? ["master", "touch"] : ["master"];
 }
 
-async function reverifyApprovedPayload(
+async function reverifyInstalledPayload(
   requiredComponents: PayloadComponentId[],
 ): Promise<VerifiedPayloadBundle> {
-  if (!approvedPayloadBundle || !approvedInstallDirectory) {
-    throw new Error("A verified payload bundle must be selected first");
+  if (!approvedInstallDirectory || !installedPayloadManifestSha256) {
+    throw new Error("Applications must be installed or repaired before configuration");
   }
   const verified = await loadAndVerifyPayloadBundle(
     approvedInstallDirectory,
@@ -152,12 +175,12 @@ async function reverifyApprovedPayload(
     {
       requiredComponents,
       allowedExtraPaths: PAYLOAD_CONFIGURATION_EXTRAS,
+      allowedExtraRootPaths: [INSTALLATION_CONFIG_FILENAME],
     },
   );
-  if (verified.summary.manifestSha256 !== approvedPayloadBundle.summary.manifestSha256) {
-    throw new Error("Payload manifest changed after approval; select the bundle again");
+  if (verified.summary.manifestSha256 !== installedPayloadManifestSha256) {
+    throw new Error("Installed payload no longer matches the approved release");
   }
-  approvedPayloadBundle = verified;
   return verified;
 }
 
@@ -167,7 +190,7 @@ function log(level: "info" | "warn" | "error", message: string, meta?: Record<st
   try {
     fs.appendFileSync(INSTALLER_LOG, entry);
   } catch {}
-  console.log(entry.trim());
+  logger.info(entry.trim());
 }
 
 function isTrustedIpcSender(event: IpcMainInvokeEvent): boolean {
@@ -370,10 +393,17 @@ function setupIpc(): void {
     if (!parsed.success) return { success: false, error: "Invalid license key format" };
     try {
       const uuidInfo = await si.uuid();
-      const machineId = uuidInfo.os || uuidInfo.hardware || "UNKNOWN_MACHINE";
+      const machineId = uuidInfo.os || uuidInfo.hardware;
+      if (!machineId || machineId === "-") {
+        return { success: false, error: "Stable hardware identity is unavailable" };
+      }
+      const publicKey = loadConfiguredLicensePublicKey();
+      if (!isValidLicensePublicKey(publicKey)) {
+        return { success: false, error: "License trust root is not configured" };
+      }
 
       // Import the offline validator
-      const result = await validateLicenseKey(parsed.data, machineId);
+      const result = await validateLicenseKey(parsed.data, machineId, publicKey);
       
       if (result.valid && result.data) {
         const validated = validatedLicenseSchema.safeParse({
@@ -672,7 +702,7 @@ function setupIpc(): void {
     if (!input.success || !approvedInstallDirectory) return results;
 
     try {
-      await reverifyApprovedPayload(input.data.components);
+      await reverifyInstalledPayload(input.data.components);
     } catch (err: unknown) {
       log("error", "Payload re-verification failed before launch", {
         error: err instanceof Error ? err.message : String(err),
@@ -710,8 +740,8 @@ function setupIpc(): void {
     if (canceled) return { success: false, canceled: true };
     const selectedDirectory = getApprovedDirectory(filePaths[0]);
     if (!selectedDirectory) {
-      approvedInstallDirectory = null;
       approvedPayloadBundle = null;
+      installedPayloadManifestSha256 = null;
       return { success: false, error: "Selected payload directory is invalid" };
     }
     try {
@@ -719,10 +749,9 @@ function setupIpc(): void {
         selectedDirectory,
         getPayloadTrustRoots(),
         app.getVersion(),
-        { allowedExtraPaths: PAYLOAD_CONFIGURATION_EXTRAS },
       );
-      approvedInstallDirectory = verified.directory;
       approvedPayloadBundle = verified;
+      installedPayloadManifestSha256 = null;
       log("info", "Payload bundle verified", {
         releaseId: verified.summary.releaseId,
         version: verified.summary.version,
@@ -736,10 +765,72 @@ function setupIpc(): void {
         summary: verified.summary,
       };
     } catch (err: unknown) {
-      approvedInstallDirectory = null;
       approvedPayloadBundle = null;
+      installedPayloadManifestSha256 = null;
       const error = err instanceof Error ? err.message : String(err);
       log("warn", "Payload bundle verification failed", { error });
+      return { success: false, error };
+    }
+  });
+
+  registerIpcHandler("installer:selectInstallDirectory", async () => {
+    if (!mainWindow) return null;
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+      properties: ["openDirectory"],
+      title: "Select ClickFlash Installation Destination",
+    });
+    if (canceled) return null;
+    const selectedDirectory = getApprovedDirectory(filePaths[0]);
+    if (!selectedDirectory) return null;
+    try {
+      const canonicalDirectory = fs.realpathSync(selectedDirectory);
+      const stats = fs.lstatSync(canonicalDirectory);
+      if (!stats.isDirectory() || stats.isSymbolicLink()) return null;
+      approvedInstallDirectory = canonicalDirectory;
+      installedPayloadManifestSha256 = null;
+      return approvedInstallDirectory;
+    } catch {
+      return null;
+    }
+  });
+
+  registerIpcHandler("installer:installPayload", async (_e, payload: unknown) => {
+    const input = installPayloadSchema.safeParse(payload);
+    if (!input.success) {
+      return { success: false, error: "Invalid application installation request" };
+    }
+    if (!approvedPayloadBundle || !approvedInstallDirectory) {
+      return { success: false, error: "Select a signed bundle and installation destination first" };
+    }
+
+    try {
+      const result = await installOrRepairPayloadBundle(
+        approvedPayloadBundle.directory,
+        approvedInstallDirectory,
+        getPayloadTrustRoots(),
+        app.getVersion(),
+        input.data.components,
+        { expectedManifestSha256: approvedPayloadBundle.summary.manifestSha256 },
+      );
+      installedPayloadManifestSha256 = result.summary.manifestSha256;
+      log("info", result.mode === "install" ? "Application payload installed" : "Application payload repaired", {
+        releaseId: result.summary.releaseId,
+        version: result.summary.version,
+        components: result.summary.components,
+        recoveryBackupPreserved: Boolean(result.recoveryBackup),
+      });
+      return {
+        success: true,
+        mode: result.mode,
+        summary: result.summary,
+        warning: result.recoveryBackup
+          ? "Installation completed, but a recovery backup could not be removed"
+          : undefined,
+      };
+    } catch (err: unknown) {
+      installedPayloadManifestSha256 = null;
+      const error = err instanceof Error ? err.message : String(err);
+      log("error", "Application payload transaction failed", { error });
       return { success: false, error };
     }
   });
@@ -759,7 +850,7 @@ function setupIpc(): void {
     }
 
     try {
-      await reverifyApprovedPayload(getRequestedPayloadComponents(input.data.selectedApps));
+      await reverifyInstalledPayload(getRequestedPayloadComponents(input.data.selectedApps));
       const missingExecutables = getMissingApplicationExecutables(
         approvedInstallDirectory,
         input.data.selectedApps,

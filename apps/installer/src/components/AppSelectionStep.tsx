@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Check, Layers, Monitor, Tablet, Cloud, Database, Cpu, FolderOpen, ShieldCheck } from "lucide-react";
 import type { ApplicationComponent } from "../../installer-ipc-schemas";
 import type { PayloadBundleSummary } from "../../installer-payload-verification";
@@ -16,9 +16,11 @@ export interface AppOption {
 
 interface AppSelectionStepProps {
   selectedApps: ApplicationComponent[];
+  payloadBundlePath: string;
   installPath: string;
   payloadBundle: PayloadBundleSummary | null;
   onSelectPayloadBundle: () => Promise<string | null>;
+  onSelectInstallDirectory: () => Promise<string | null>;
   onNext: (selectedApps: ApplicationComponent[]) => void;
   onPrev: () => void;
 }
@@ -72,9 +74,11 @@ const APPS: AppOption[] = [
 
 export const AppSelectionStep: React.FC<AppSelectionStepProps> = ({
   selectedApps,
+  payloadBundlePath,
   installPath,
   payloadBundle,
   onSelectPayloadBundle,
+  onSelectInstallDirectory,
   onNext,
   onPrev,
 }) => {
@@ -83,27 +87,56 @@ export const AppSelectionStep: React.FC<AppSelectionStepProps> = ({
       ? selectedApps
       : APPS.filter((app) => app.defaultChecked).map((app) => app.id)
   );
-  const [selectingDirectory, setSelectingDirectory] = useState(false);
+  const [selectingBundle, setSelectingBundle] = useState(false);
+  const [selectingTarget, setSelectingTarget] = useState(false);
+
+  useEffect(() => {
+    if (!payloadBundle) return;
+    setSelectedIds((previous) => {
+      const withoutTouch = previous.filter((application) => application !== "touch");
+      return payloadBundle.components.includes("touch")
+        ? [...withoutTouch, "touch"]
+        : withoutTouch;
+    });
+  }, [payloadBundle]);
 
   const toggleApp = (id: ApplicationComponent, required?: boolean) => {
-    if (required) return;
+    if (required || (id === "touch" && payloadBundle)) return;
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
 
   const selectAll = () => {
-    setSelectedIds(APPS.map((a) => a.id));
+    setSelectedIds(APPS
+      .filter((application) => (
+        application.id !== "touch" || !payloadBundle || payloadBundle.components.includes("touch")
+      ))
+      .map((application) => application.id));
   };
 
-  const handleSelectDirectory = async () => {
-    setSelectingDirectory(true);
+  const handleSelectBundle = async () => {
+    setSelectingBundle(true);
     try {
       await onSelectPayloadBundle();
     } finally {
-      setSelectingDirectory(false);
+      setSelectingBundle(false);
     }
   };
+
+  const handleSelectTarget = async () => {
+    setSelectingTarget(true);
+    try {
+      await onSelectInstallDirectory();
+    } finally {
+      setSelectingTarget(false);
+    }
+  };
+
+  const desktopSelectionMatchesBundle = Boolean(
+    payloadBundle
+    && selectedIds.includes("touch") === payloadBundle.components.includes("touch"),
+  );
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -139,7 +172,7 @@ export const AppSelectionStep: React.FC<AppSelectionStepProps> = ({
               Choose a ClickFlash release bundle. Its signature and every application file will be checked before setup continues.
             </p>
             <p className="text-xs font-mono text-cyan-300 mt-2 truncate">
-              {installPath || "No verified bundle selected"}
+              {payloadBundlePath || "No verified bundle selected"}
             </p>
             {payloadBundle && (
               <p className="text-xs text-emerald-300 mt-1">
@@ -149,12 +182,35 @@ export const AppSelectionStep: React.FC<AppSelectionStepProps> = ({
           </div>
           <button
             type="button"
-            onClick={handleSelectDirectory}
-            disabled={selectingDirectory}
+            onClick={handleSelectBundle}
+            disabled={selectingBundle}
             className="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-200 hover:bg-slate-800 text-sm font-semibold transition-all flex items-center gap-2 shrink-0 disabled:opacity-50"
           >
             <FolderOpen className="w-4 h-4" />
-            {selectingDirectory ? "Verifying..." : "Choose Bundle"}
+            {selectingBundle ? "Verifying..." : "Choose Bundle"}
+          </button>
+        </div>
+      </div>
+
+      <div className="p-4 rounded-2xl border border-slate-700 bg-slate-900/50">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-slate-200">Installation destination</p>
+            <p className="text-xs text-slate-400 mt-1">
+              Choose an empty folder for a new installation, or the same verified ClickFlash release to repair it without losing configuration.
+            </p>
+            <p className="text-xs font-mono text-cyan-300 mt-2 truncate">
+              {installPath || "No installation destination selected"}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleSelectTarget}
+            disabled={selectingTarget}
+            className="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-200 hover:bg-slate-800 text-sm font-semibold transition-all flex items-center gap-2 shrink-0 disabled:opacity-50"
+          >
+            <FolderOpen className="w-4 h-4" />
+            {selectingTarget ? "Selecting..." : "Choose Destination"}
           </button>
         </div>
       </div>
@@ -229,9 +285,10 @@ export const AppSelectionStep: React.FC<AppSelectionStepProps> = ({
           onClick={() => onNext(selectedIds)}
           disabled={
             selectedIds.length === 0
+            || !payloadBundlePath
             || !installPath
             || !payloadBundle
-            || (selectedIds.includes("touch") && !payloadBundle.components.includes("touch"))
+            || !desktopSelectionMatchesBundle
           }
           className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-semibold shadow-lg shadow-blue-600/30 transition-all disabled:opacity-50"
         >

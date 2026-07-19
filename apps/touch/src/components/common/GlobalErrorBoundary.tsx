@@ -5,15 +5,8 @@ import { analytics } from '@/utils/telemetry';
 
 // Use a simple inline logger or console if the main logger isn't available in this context
 const logError = (error: Error, errorInfo: ErrorInfo) => {
-    // In production, this would go to Sentry or the backend logger via IPC
     analytics.trackError(error, "GlobalErrorBoundary");
-    try {
-        if (window.electron?.logger) {
-            window.electron.logger.error('Frontend Crash', { error: error.message, stack: error.stack, componentStack: errorInfo.componentStack });
-        }
-    } catch (e) {
-        // Fallback
-    }
+    logger.error('Frontend crash', error, { componentStack: errorInfo.componentStack });
 };
 
 interface Props {
@@ -52,11 +45,7 @@ class GlobalErrorBoundary extends Component<Props, State> {
     };
 
     private handleExit = () => {
-        if (window.electron?.exitKiosk) {
-            window.electron.exitKiosk();
-        } else {
-            window.close();
-        }
+        window.location.reload();
     };
 
     public render() {

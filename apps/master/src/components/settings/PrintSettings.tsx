@@ -20,6 +20,11 @@ const PrintSettings: React.FC = () => {
     const [isLoadingPrinters, setIsLoadingPrinters] = useState(true);
     const [printerError, setPrinterError] = useState<string | null>(null);
 
+    // ICC Profile State
+    const [iccProfile, setIccProfile] = useState<string | null>(null);
+    const [isUploadingIcc, setIsUploadingIcc] = useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
     useEffect(() => {
         // Detect installed printers
         const detectPrinters = async () => {
@@ -28,9 +33,9 @@ const PrintSettings: React.FC = () => {
 
             try {
                 // Check if we're in Electron environment
-                if (isElectron() && window.electron?.getPrinters) {
-                    const printers = await window.electron.getPrinters();
-                    setInstalledPrinters(printers.map((p: any) => p.name));
+                if (isElectron() && window.electron) {
+                    const printers = await window.electron.printing.getPrinters();
+                    setInstalledPrinters(printers.map((printer) => printer.name));
                 } else {
                     // Fallback: Use Backend API
                     const response = await fetch('/api/printers');
@@ -54,7 +59,24 @@ const PrintSettings: React.FC = () => {
             }
         };
 
+        const fetchIccProfile = async () => {
+            try {
+                const response = await fetch('/api/settings/icc-profile', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        setIccProfile(data.profile);
+                    }
+                }
+            } catch (error) {
+                logger.error('Failed to fetch ICC profile:', error);
+            }
+        };
+
         detectPrinters();
+        fetchIccProfile();
     }, []);
 
     const handleRefreshPrinters = async () => {
@@ -62,9 +84,9 @@ const PrintSettings: React.FC = () => {
         setPrinterError(null);
 
         try {
-            if (isElectron() && window.electron?.getPrinters) {
-                const printers = await window.electron.getPrinters();
-                setInstalledPrinters(printers.map((p: any) => p.name));
+            if (isElectron() && window.electron) {
+                const printers = await window.electron.printing.getPrinters();
+                setInstalledPrinters(printers.map((printer) => printer.name));
             } else {
                 // Backend API Fallback
                 const response = await fetch('/api/printers');
@@ -87,10 +109,9 @@ const PrintSettings: React.FC = () => {
         }
 
         try {
-            if (isElectron() && window.electron?.print) {
-                await window.electron.print({
+            if (isElectron() && window.electron) {
+                await window.electron.printing.print({
                     printer: printConfig.defaultPrinter,
-                    content: 'Test Print - Star Master Photography OS',
                     silent: false
                 });
                 alert('Test print sent successfully!');
@@ -117,6 +138,53 @@ const PrintSettings: React.FC = () => {
         } catch (error) {
             logger.error('Test print failed:', error);
             alert(`Test print failed: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    };
+
+    const handleIccUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingIcc(true);
+        const formData = new FormData();
+        formData.append('profile', file);
+
+        try {
+            const response = await fetch('/api/settings/icc-profile', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                body: formData
+            });
+            const data = await response.json();
+            if (data.success) {
+                setIccProfile(data.profile);
+                alert('ICC Profile uploaded successfully!');
+            } else {
+                throw new Error(data.error || 'Failed to upload');
+            }
+        } catch (error) {
+            logger.error('ICC upload failed:', error);
+            alert(`Upload failed: ${error instanceof Error ? error.message : String(error)}`);
+        } finally {
+            setIsUploadingIcc(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const handleClearIcc = async () => {
+        if (!confirm('Are you sure you want to clear the global ICC profile?')) return;
+        
+        try {
+            const response = await fetch('/api/settings/icc-profile', {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            const data = await response.json();
+            if (data.success) {
+                setIccProfile(null);
+            }
+        } catch (error) {
+            logger.error('Failed to clear ICC profile:', error);
         }
     };
 
@@ -194,6 +262,60 @@ const PrintSettings: React.FC = () => {
 
                 <Card>
                     <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
+                        Color Management (ICC Profiles)
+                    </h3>
+                    <div className="space-y-4">
+                        <div>
+                            <p className="text-sm text-slate-500 mb-3">
+                                Upload an ICC Color Profile to ensure exact color reproduction for print. This profile will be embedded into all new high-res photos automatically.
+                            </p>
+                            {iccProfile ? (
+                                <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-md border border-indigo-200 dark:border-indigo-800 flex justify-between items-center">
+                                    <div className="truncate pr-4">
+                                        <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-200">Active Profile</p>
+                                        <p className="text-xs text-indigo-700 dark:text-indigo-400 font-mono mt-1 truncate">{iccProfile}</p>
+                                    </div>
+                                    <button 
+                                        onClick={handleClearIcc}
+                                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-colors shrink-0"
+                                        title="Clear Profile"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-md border border-dashed border-slate-300 dark:border-slate-600">
+                                    <p className="text-sm text-slate-500 text-center">No global ICC profile configured. Using sRGB default.</p>
+                                </div>
+                            )}
+                        </div>
+                        <input 
+                            type="file" 
+                            accept=".icc,.icm" 
+                            className="hidden" 
+                            ref={fileInputRef} 
+                            onChange={handleIccUpload} 
+                        />
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploadingIcc}
+                            className="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white font-semibold rounded-lg transition-colors flex justify-center items-center gap-2"
+                        >
+                            {isUploadingIcc ? (
+                                <>
+                                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    Uploading...
+                                </>
+                            ) : (
+                                'Upload .ICC / .ICM Profile'
+                            )}
+                        </button>
+                    </div>
+                </Card>
+
+                <Card>
+                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         Automation
                     </h3>
@@ -245,4 +367,6 @@ const PrintSettings: React.FC = () => {
     );
 };
 
-export default PrintSettings;
+PrintSettings.displayName = 'PrintSettings';
+
+export default React.memo(PrintSettings);

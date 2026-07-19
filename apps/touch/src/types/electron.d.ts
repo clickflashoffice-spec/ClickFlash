@@ -1,33 +1,61 @@
-/**
- * Electron Window API Types
- * 
- * Type definitions for the Electron API exposed on the window object.
- * This provides type safety when accessing window.electron in the Touch app.
- */
+export interface DesktopPrinterInfo {
+    name: string;
+    displayName: string;
+    description: string;
+    status: number;
+    isDefault: boolean;
+    options?: Record<string, string>;
+}
+
+export interface DesktopUpdateStatus {
+    checking: boolean;
+    available: boolean;
+    downloaded: boolean;
+    error: string | null;
+    progress: number;
+    version: string | null;
+    releaseNotes: string | null;
+}
 
 export interface ElectronAPI {
-    /**
-     * Exit the kiosk application. When invoked from a settings modal that
-     * requires admin auth, the password is passed through to the main
-     * process for verification; resolves to `true` on success.
-     */
-    exitKiosk: (password?: string) => Promise<boolean> | void;
-    /** Logger interface for Electron main process */
-    logger: {
-        error: (message: string, meta?: Record<string, unknown>) => void;
-        info: (message: string, meta?: Record<string, unknown>) => void;
-        warn: (message: string, meta?: Record<string, unknown>) => void;
-        debug: (message: string, meta?: Record<string, unknown>) => void;
+    isElectron: true;
+    platform: NodeJS.Platform;
+    exitKiosk: (password: string) => Promise<boolean>;
+    enterKiosk: () => Promise<{ success: boolean }>;
+    getAppVersion: () => Promise<string>;
+    restartApp: () => Promise<void>;
+    kiosk: {
+        authenticate: (password: string) => Promise<boolean>;
+        unlock: (pin: string) => Promise<{ success: boolean; error?: string }>;
+        lock: () => Promise<{ success: boolean }>;
+        onShowUnlockDialog: (callback: () => void) => () => void;
     };
-    /** Check if running in Electron environment */
-    isElectron: boolean;
+    printing: {
+        getPrinters: () => Promise<DesktopPrinterInfo[]>;
+        print: (options: { printer: string; silent?: boolean }) => Promise<boolean>;
+    };
+    updater: {
+        check: () => Promise<DesktopUpdateStatus>;
+        download: () => Promise<DesktopUpdateStatus>;
+        install: () => Promise<void>;
+        getStatus: () => Promise<DesktopUpdateStatus>;
+        onChecking: (callback: () => void) => () => void;
+        onAvailable: (callback: (info: { version?: string; releaseNotes?: string }) => void) => () => void;
+        onNotAvailable: (callback: () => void) => () => void;
+        onProgress: (callback: (progress: { percent?: number }) => void) => () => void;
+        onDownloaded: (callback: (info: { version?: string }) => void) => () => void;
+        onError: (callback: (error: { message?: string }) => void) => () => void;
+    };
+    scanner: {
+        onData: (callback: (data: string) => void) => () => void;
+        onStatus: (callback: (status: string) => void) => () => void;
+    };
 }
 
 declare global {
     interface Window {
-        /** Electron API exposed by the preload script */
         electron?: ElectronAPI;
-        /** Sentry error tracking (available in production) */
+        touchApp?: { isDesktop: true; platform: NodeJS.Platform };
         Sentry?: {
             captureException: (error: Error) => void;
             withScope: (callback: (scope: {
@@ -35,22 +63,12 @@ declare global {
                 setExtra: (key: string, value: unknown) => void;
             }) => void) => void;
         };
-        /** Google Analytics gtag */
         gtag?: (
             command: string,
             eventName: string,
             params?: Record<string, unknown>
         ) => void;
-        /**
-         * jsdom-mocked localStorage captured by setupTests.ts so the
-         * useLocalStorage hook can detect when it is running under tests
-         * and bypass the real Storage object.
-         */
         __TEST_LOCAL_STORAGE?: Storage;
-        /**
-         * Bridge installed by the Electron preload script for offline
-         * queue draining via IPC. Only present in the kiosk runtime.
-         */
         sendSyncMessage?: (item: unknown) => Promise<unknown>;
     }
 }

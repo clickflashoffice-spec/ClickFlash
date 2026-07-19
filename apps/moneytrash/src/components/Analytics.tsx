@@ -43,26 +43,21 @@ export const Analytics: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${cloudApiService.getApiUrl()}/api/analytics/financials?startDate=${startDate}&endDate=${endDate}`, {
-        headers: {
-          'Authorization': `Bearer ${cloudApiService.getApiKey()}`, // Assuming the API key is used for auth or we have a token
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
+      const data = await cloudApiService.getFinancials(startDate, endDate) as {
+        success?: boolean;
+        message?: string;
+        summary?: FinancialSummary;
+        dailyTrend?: DailyTrend[];
+      };
       if (data.success) {
+        if (!data.summary) throw new Error('Analytics response did not include a summary');
         setSummary(data.summary);
         setDailyData(data.dailyTrend || []);
       } else {
         throw new Error(data.message || 'Failed to load analytics');
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while fetching analytics');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred while fetching analytics');
     } finally {
       setLoading(false);
     }
@@ -96,8 +91,8 @@ export const Analytics: React.FC = () => {
     <div className="space-y-6 max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Financial Analytics</h2>
-          <p className="text-slate-500 text-sm">Track your studio and gallery revenue</p>
+          <h2 className="text-2xl font-bold text-white">Financial Analytics</h2>
+          <p className="text-white/60 text-sm">Track your studio and gallery revenue</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
@@ -105,19 +100,19 @@ export const Analytics: React.FC = () => {
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 border border-white/10 rounded-lg text-sm bg-[#131C31] focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <span className="text-slate-400">to</span>
+          <span className="text-white/60">to</span>
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 border border-white/10 rounded-lg text-sm bg-[#131C31] focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             onClick={loadData}
             disabled={loading}
-            className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors"
+            className="p-2 bg-white/5 hover:bg-white/10 text-white/70 rounded-lg transition-colors"
             title="Refresh Data"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
@@ -142,50 +137,50 @@ export const Analytics: React.FC = () => {
 
       {!error && summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <div className="bg-[#131C31] p-5 rounded-xl border border-white/10 shadow-sm">
             <div className="flex justify-between items-start mb-2">
-              <p className="text-sm font-medium text-slate-500">Total Revenue</p>
-              <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+              <p className="text-sm font-medium text-white/60">Total Revenue</p>
+              <div className="p-2 bg-emerald-900/30 text-emerald-400 rounded-lg">
                 <DollarSign className="w-5 h-5" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-slate-800">
+            <h3 className="text-2xl font-bold text-white">
               ${summary.totalRevenue.toFixed(2)}
             </h3>
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <div className="bg-[#131C31] p-5 rounded-xl border border-white/10 shadow-sm">
             <div className="flex justify-between items-start mb-2">
-              <p className="text-sm font-medium text-slate-500">Average Order</p>
-              <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+              <p className="text-sm font-medium text-white/60">Average Order</p>
+              <div className="p-2 bg-blue-900/30 text-cyan-400 rounded-lg">
                 <DollarSign className="w-5 h-5" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-slate-800">
+            <h3 className="text-2xl font-bold text-white">
               ${summary.averageOrderValue.toFixed(2)}
             </h3>
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <div className="bg-[#131C31] p-5 rounded-xl border border-white/10 shadow-sm">
             <div className="flex justify-between items-start mb-2">
-              <p className="text-sm font-medium text-slate-500">In-Person Sales</p>
-              <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+              <p className="text-sm font-medium text-white/60">In-Person Sales</p>
+              <div className="p-2 bg-purple-900/30 text-purple-400 rounded-lg">
                 <Store className="w-5 h-5" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-slate-800">
+            <h3 className="text-2xl font-bold text-white">
               ${summary.inPersonSales.toFixed(2)}
             </h3>
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <div className="bg-[#131C31] p-5 rounded-xl border border-white/10 shadow-sm">
             <div className="flex justify-between items-start mb-2">
-              <p className="text-sm font-medium text-slate-500">Gallery Sales</p>
-              <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
+              <p className="text-sm font-medium text-white/60">Gallery Sales</p>
+              <div className="p-2 bg-amber-900/30 text-amber-400 rounded-lg">
                 <ImageIcon className="w-5 h-5" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-slate-800">
+            <h3 className="text-2xl font-bold text-white">
               ${summary.gallerySales.toFixed(2)}
             </h3>
           </div>
@@ -194,40 +189,40 @@ export const Analytics: React.FC = () => {
 
       {!error && dailyData.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-800 mb-6">Revenue Trend</h3>
+          <div className="bg-[#131C31] p-6 rounded-xl border border-white/10 shadow-sm">
+            <h3 className="text-lg font-semibold text-white mb-6">Revenue Trend</h3>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={dailyData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
+                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
                   <RechartsTooltip 
                     formatter={(value: any) => [`$${Number(value || 0).toFixed(2)}`, 'Revenue']}
-                    contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    contentStyle={{ backgroundColor: '#131C31', color: '#fff', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.3)' }}
                   />
                   <Legend />
-                  <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6' }} activeDot={{ r: 6 }} name="Total Revenue" />
+                  <Line type="monotone" dataKey="revenue" stroke="#06b6d4" strokeWidth={3} dot={{ r: 4, fill: '#06b6d4' }} activeDot={{ r: 6 }} name="Total Revenue" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-800 mb-6">Sales Channel Breakdown</h3>
+          <div className="bg-[#131C31] p-6 rounded-xl border border-white/10 shadow-sm">
+            <h3 className="text-lg font-semibold text-white mb-6">Sales Channel Breakdown</h3>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailyData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
+                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
                   <RechartsTooltip 
                     formatter={(value: any) => [`$${Number(value || 0).toFixed(2)}`, '']}
-                    contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    contentStyle={{ backgroundColor: '#131C31', color: '#fff', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.3)' }}
                   />
                   <Legend />
-                  <Bar dataKey="inPersonSales" stackId="a" fill="#a855f7" name="In-Person Sales" radius={[0, 0, 4, 4]} />
-                  <Bar dataKey="gallerySales" stackId="a" fill="#f59e0b" name="Gallery Sales" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="inPersonSales" stackId="a" fill="#8b5cf6" name="In-Person Sales" radius={[0, 0, 4, 4]} />
+                  <Bar dataKey="gallerySales" stackId="a" fill="#06b6d4" name="Gallery Sales" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

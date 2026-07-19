@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger';
+
 // apps/management/src/services/EmailService.ts
 
 export class EmailService {
@@ -47,7 +49,7 @@ export class EmailService {
 
       return data;
     } catch (error: any) {
-      console.error('EmailService Error:', error);
+      logger.error('EmailService Error:', error);
       throw error;
     }
   }

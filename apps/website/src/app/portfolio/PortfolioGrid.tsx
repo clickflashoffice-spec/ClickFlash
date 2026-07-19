@@ -105,7 +105,7 @@ export default function PortfolioGrid({ items }: PortfolioGridProps) {
                         onClick={() => setActiveCategory(category)}
                         className={`px-8 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all duration-300 ${activeCategory === category
                             ? "bg-cyan-700 text-white shadow-lg shadow-cyan-500/20"
-                            : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                            : "bg-white/5 text-white/70 hover:bg-white/10"
                             }`}
                     >
                         {category}
@@ -125,7 +125,7 @@ export default function PortfolioGrid({ items }: PortfolioGridProps) {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 transition={{ duration: 0.5 }}
-                                className="break-inside-avoid group relative rounded-3xl overflow-hidden bg-slate-50 cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 mb-8"
+                                className="break-inside-avoid group relative rounded-3xl overflow-hidden bg-white/5 cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-500 border border-white/10 mb-8"
                             >
                                 <div className="relative overflow-hidden">
                                     <Image
@@ -158,9 +158,9 @@ export default function PortfolioGrid({ items }: PortfolioGridProps) {
                     </AnimatePresence>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-slate-600">
+                <div className="flex flex-col items-center justify-center py-20 text-white/70">
                     <ImageIcon className="w-16 h-16 mb-4 opacity-20" />
-                    <p className="text-lg font-bold text-slate-900">Portfolio Gallery Coming Soon</p>
+                    <p className="text-lg font-bold text-white">Portfolio Gallery Coming Soon</p>
                     <p className="text-sm">We are currently curating our best shots.</p>
                 </div>
             )}

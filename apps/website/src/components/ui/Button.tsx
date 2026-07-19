@@ -26,7 +26,7 @@ export function Button({
         primary: "bg-cyan-700 text-white hover:bg-slate-900",
         secondary: "bg-slate-900 text-white hover:bg-slate-800",
         outline: "border border-cyan-500/20 text-cyan-700 hover:bg-cyan-700/10",
-        ghost: "text-slate-600 hover:text-cyan-700 hover:bg-cyan-700/5",
+        ghost: "text-white/70 hover:text-cyan-700 hover:bg-cyan-700/5",
     };
 
     const sizes = {

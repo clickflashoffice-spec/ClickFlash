@@ -19,47 +19,66 @@ export const cloudApiService = {
       const normalizedEmail = email.trim().toLowerCase();
 
       const baseUrl = config.apiUrl;
-      const url = `${baseUrl}/api/gallery-auth/order-login`;
+      // Use the new login endpoint
+      const url = `${baseUrl}/api/gallery-auth/login`;
 
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ orderId: normalizedPin, customerEmail: normalizedEmail })
+        body: JSON.stringify({ accessCode: normalizedPin })
       });
 
       if (!response.ok) {
         if (response.status === 404 || response.status === 401) {
           return null;
         }
-        throw new Error(`Failed to fetch order: ${response.statusText}`);
+        throw new Error(`Failed to authenticate: ${response.statusText}`);
       }
 
       const data = await response.json();
 
-      if (!data.success || !data.order) {
+      if (!data.success || !data.token) {
         return null;
       }
 
       // Store JWT token for subsequent requests
-      if (data.token) {
-        localStorage.setItem("gallery_token", data.token);
+      localStorage.setItem("gallery_token", data.token);
+
+      // Now fetch the photos
+      const photosResponse = await fetch(`${baseUrl}/api/photos`, {
+        headers: { Authorization: `Bearer ${data.token}` }
+      });
+
+      if (!photosResponse.ok) {
+         throw new Error(`Failed to fetch photos: ${photosResponse.statusText}`);
       }
 
-      const order = data.order;
+      const photosData = await photosResponse.json();
+      const photos = photosData.photos || [];
+
+      // Construct an Order structure to satisfy the frontend expectations
+      const event = data.event;
       const formattedOrder: Order = {
-        id: order.id,
-        date: order.date || new Date().toISOString(),
-        clientName: order.clientName,
-        email: order.email,
-        status: order.status,
-        total: order.total,
-        photographerId: order.photographerId,
-        destinationId: order.destinationId,
-        appliedDiscount: order.appliedDiscount || 0,
-        albumId: order.albumId,
-        items: Array.isArray(order.items) ? order.items : [],
+        id: event?.id || normalizedPin,
+        date: event?.date || new Date().toISOString(),
+        clientName: normalizedEmail, // Use email as client name placeholder
+        email: normalizedEmail,
+        status: 'Completed',
+        total: 0,
+        photographerId: event?.photographer_id || 'system',
+        items: photos.map((photo: any) => ({
+          id: `item-${photo.id}`,
+          name: 'Digital Photo',
+          quantity: 1,
+          price: 0,
+          photo: {
+             ...photo,
+             // The backend sends aiTags, the frontend component expects aiTags
+             aiTags: photo.aiTags,
+          }
+        })) as any[],
       };
 
       return formattedOrder;
@@ -70,46 +89,72 @@ export const cloudApiService = {
   },
 
   /**
-   * Fetches an order via secure Magic Link Token or Stored JWT Token
+   * Fetches an order via secure Magic Link Token, QR Code Token, or Stored JWT Token
    */
   async getOrderByToken(token: string): Promise<Order | null> {
     try {
-      const normalizedToken = token.trim();
+      let normalizedToken = token.trim();
       const baseUrl = config.apiUrl;
-      const url = `${baseUrl}/api/gallery-auth/token-verify`;
 
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token: normalizedToken }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 404 || response.status === 401) return null;
-        throw new Error(`Failed to verify token: ${response.statusText}`);
+      // 1. Check if token is a dynamic QR token by exchanging via /api/qr/validate
+      try {
+        const qrResponse = await fetch(`${baseUrl}/api/qr/validate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: normalizedToken })
+        });
+        if (qrResponse.ok) {
+          const qrData = await qrResponse.json();
+          if (qrData.success && qrData.token) {
+            normalizedToken = qrData.token;
+          }
+        }
+      } catch (qrErr) {
+        // Not a valid QR token or backend unreachable, proceed treating as JWT
       }
 
-      const data = await response.json();
-      if (!data.success || !data.order) return null;
-
       // Ensure we store it locally so it can be reused across reloads
-      localStorage.setItem("gallery_token", data.token || normalizedToken);
+      localStorage.setItem("gallery_token", normalizedToken);
 
-      const order = data.order;
+      // Since the token is a JWT, we can just fetch the photos
+      const photosResponse = await fetch(`${baseUrl}/api/photos`, {
+        headers: { Authorization: `Bearer ${normalizedToken}` }
+      });
+
+      if (!photosResponse.ok) {
+         if (photosResponse.status === 404 || photosResponse.status === 401) return null;
+         throw new Error(`Failed to fetch photos: ${photosResponse.statusText}`);
+      }
+
+      const photosData = await photosResponse.json();
+      const photos = photosData.photos || [];
+
+      // Decode token to get event info
+      let tokenPayload: any = {};
+      try {
+        tokenPayload = JSON.parse(atob(normalizedToken));
+      } catch (e) {
+        // Ignore decode error
+      }
+
       const formattedOrder: Order = {
-        id: order.id,
-        date: order.date || new Date().toISOString(),
-        clientName: order.clientName,
-        email: order.email,
-        status: order.status,
-        total: order.total,
-        photographerId: order.photographerId,
-        destinationId: order.destinationId,
-        appliedDiscount: order.appliedDiscount || 0,
-        albumId: order.albumId,
-        items: Array.isArray(order.items) ? order.items : [],
+        id: tokenPayload?.eventId || 'unknown',
+        date: new Date().toISOString(),
+        clientName: 'Guest',
+        email: '',
+        status: 'Completed',
+        total: 0,
+        photographerId: 'system',
+        items: photos.map((photo: any) => ({
+          id: `item-${photo.id}`,
+          name: 'Digital Photo',
+          quantity: 1,
+          price: 0,
+          photo: {
+             ...photo,
+             aiTags: photo.aiTags,
+          }
+        })) as any[],
       };
 
       return formattedOrder;
@@ -187,5 +232,35 @@ export const cloudApiService = {
 
     const data = await response.json();
     return Array.isArray(data.items) ? data.items : [];
+  },
+
+  async notifyCashPending(items: any[]): Promise<{ orderId: string, status: string }> {
+    const token = localStorage.getItem("gallery_token");
+    if (!token) throw new Error("Customer authentication is required");
+
+    const response = await fetch(`${config.apiUrl}/api/gallery-checkout/${encodeURIComponent(token)}/cash`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ items }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to notify cash payment (${response.status})`);
+    }
+    return response.json();
+  },
+
+  async getResortBranding(destinationId: string): Promise<any> {
+    try {
+      const response = await fetch(`${config.apiUrl}/api/resorts/branding?destination_id=${encodeURIComponent(destinationId)}`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.branding || null;
+    } catch (e) {
+      logger.error("Failed to fetch resort branding", e);
+      return null;
+    }
   },
 };

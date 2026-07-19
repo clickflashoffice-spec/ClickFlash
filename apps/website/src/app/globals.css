@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 :root {
-  /* Base Colors - ClickFlash Light Theme */
-  --background: #ffffff;
-  --foreground: #0f172a;
-  /* Slate 900 */
+  /* Base Colors - Tactical Industrial Theme */
+  --background: #0B111F;
+  --foreground: #F8FAFC;
+  /* Canvas and Surface */
 
   /* Brand - Cyan (ClickFlash) */
   --cyan-50: #ecfeff;
@@ -21,8 +21,8 @@
   --cyan-900: #164e63;
 
   /* UI Accents */
-  --card-bg: #f8fafc;
-  --border-color: #e2e8f0;
+  --card-bg: #131C31;
+  --border-color: rgba(255, 255, 255, 0.05);
 }
 
 @layer utilities {

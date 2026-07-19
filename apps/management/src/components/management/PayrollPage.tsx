@@ -105,7 +105,12 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser }) => {
       if (p.payrollType === "Salary") {
         basePay = p.monthlySalary || 0;
       } else {
-        commissionPay = totalSales * (p.commissionRate || 0);
+        let activeRate = p.commissionRate || 0.1;
+        if (useTieredCommissions) {
+          if (totalSales > 2000) activeRate = 0.20;
+          else if (totalSales > 1000) activeRate = 0.15;
+        }
+        commissionPay = totalSales * activeRate;
       }
 
       const totalPay = basePay + commissionPay + adjustmentsTotal;
@@ -129,6 +134,7 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser }) => {
     payrollPeriod,
     paymentStatus,
     context,
+    useTieredCommissions,
   ]);
 
   const kpiData = useMemo(() => {
@@ -242,6 +248,19 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser }) => {
     setIsAdjustmentModalOpen(false);
   };
 
+  const [useTieredCommissions, setUseTieredCommissions] = useState(false);
+
+  const handleExport = (format: 'ach' | 'sepa' | 'csv') => {
+    const content = payrollData.map(p => `${p.id},${p.name},${p.totalPay},${format.toUpperCase()}`).join('\n');
+    const blob = new Blob([content], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `payroll-clearing-${payrollPeriod}.${format === 'csv' ? 'csv' : 'txt'}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) return <Spinner />;
 
   const unpaidPhotographersCount = payrollData.filter((p) => !p.isPaid).length;
@@ -301,14 +320,37 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser }) => {
                 </option>
               ))}
             </select>
+            <label className="flex items-center gap-2 ml-4 text-xs font-bold text-slate-300 cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                checked={useTieredCommissions}
+                onChange={e => setUseTieredCommissions(e.target.checked)}
+                className="w-4 h-4 rounded border-white/20 bg-black/40 text-blue-500 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer" 
+              />
+              Tiered Commissions
+            </label>
           </div>
-          <button
-            onClick={handlePayAll}
-            disabled={unpaidPhotographersCount === 0 || !can("runPayroll")}
-            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl hover:bg-emerald-500/20 transition-all text-xs font-black uppercase tracking-wider disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            {`Pay All (${unpaidPhotographersCount})`}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleExport('ach')}
+              className="px-4 py-2.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl hover:bg-blue-500/20 transition-all text-xs font-black uppercase tracking-wider"
+            >
+              Export ACH
+            </button>
+            <button
+              onClick={() => handleExport('csv')}
+              className="px-4 py-2.5 bg-white/5 text-slate-300 border border-white/10 rounded-xl hover:bg-white/10 transition-all text-xs font-black uppercase tracking-wider"
+            >
+              CSV
+            </button>
+            <button
+              onClick={handlePayAll}
+              disabled={unpaidPhotographersCount === 0 || !can("runPayroll")}
+              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl hover:bg-emerald-500/20 transition-all text-xs font-black uppercase tracking-wider disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              {`Pay All (${unpaidPhotographersCount})`}
+            </button>
+          </div>
         </div>
       </div>
 

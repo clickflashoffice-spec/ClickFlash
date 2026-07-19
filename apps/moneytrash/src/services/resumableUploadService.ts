@@ -4,7 +4,7 @@ import { logger } from '@clickflash/logger';
  * Handles network interruptions and app crashes gracefully
  */
 
-import { invoke } from '@tauri-apps/api/core';
+import { invoke } from './tauriService';
 import { env } from '@/utils/env';
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks for high-volume uploads
@@ -435,7 +435,7 @@ class ResumableUploadService {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: session.serverSessionId })
-      }).catch(console.error);
+      }).catch(error => logger.error('Unable to cancel expired upload:', error));
     }
 
     this.sessions.delete(sessionId);

@@ -250,6 +250,18 @@ export class PhotoProcessor {
       await this.checkDiskSpace();
 
       const tempOutputDir = path.dirname(tempFilepath);
+      let iccProfilePath: string | undefined = undefined;
+      if (this.db) {
+          try {
+              const setting = this.db.get<{value: string}>("SELECT value FROM settings WHERE key = 'iccProfilePath'");
+              if (setting && setting.value) {
+                  iccProfilePath = setting.value;
+              }
+          } catch (e) {
+              logger.warn("[PhotoProcessor] Failed to fetch ICC setting", e);
+          }
+      }
+
       const workerResult = await this.runWorker({
         type: "process",
         filepath: tempFilepath,
@@ -258,6 +270,7 @@ export class PhotoProcessor {
         ext,
         // Pass client-supplied MIME type for cross-validation in the worker
         mimeType: file.mimetype || undefined,
+        iccProfilePath,
       });
 
       // --- Post-Worker Resolution ---

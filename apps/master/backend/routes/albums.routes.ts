@@ -158,6 +158,20 @@ export default function albumsRoutes(context: any): Router {
     }
   });
 
+  // GET DeepThink & Search Ideas Inspiration
+  router.get("/:id/inspiration", requirePermission(PERMISSIONS.ALBUM_EDIT, context.auditLogger), async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id;
+      const { DeepThinkService } = require("../services/deepThinkService");
+      const deepThinkService = new DeepThinkService(dbManager);
+      const report = await deepThinkService.getInspirationForAlbum(id);
+      res.json(report);
+    } catch (err: any) {
+      logger.error(`[DeepThinkEndpoint] Failed to get inspiration for album ${req.params.id}:`, err);
+      res.status(500).json({ error: "INSPIRATION_ERROR", message: err.message });
+    }
+  });
+
   // DELETE Album
   router.delete("/:id", requirePermission(PERMISSIONS.ALBUM_DELETE, context.auditLogger), async (req: Request, res: Response) => {
     try {

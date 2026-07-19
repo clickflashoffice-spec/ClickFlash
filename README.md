@@ -236,9 +236,9 @@ For automated local setup and deployment, the following scripts are available in
 
 ### PowerShell Scripts
 
-- `deploy_ecosystem.ps1`: Full ecosystem deployment orchestration.
+- `scripts/deploy-cloud.ps1`: Validated Worker migrations, bundles, and Cloudflare deployment orchestration.
 - `start-all.ps1`: Starts all 6 application dev servers concurrently.
-- `deploy-web.ps1`: Deploys online web apps (Management, Gallery, Website).
+- `.github/workflows/cd.yml`: Dedicated online-only Pages deployment for Management, Gallery, and Website.
 
 ### Batch Scripts
 

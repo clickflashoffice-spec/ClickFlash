@@ -6,15 +6,26 @@ export interface StatCardProps {
   value: React.ReactNode;
   icon: React.ReactNode;
   className?: string;
+  color?: "blue" | "purple" | "emerald" | "amber" | "rose" | "cyan";
+  subtitle?: string;
   onClick?: () => void;
   isLoading?: boolean;
 }
 
 export const StatCard: React.FC<StatCardProps> = React.memo(
-  ({ title, value, icon, className = "", onClick, isLoading }) => {
+  ({ title, value, icon, className = "", color = "blue", subtitle, onClick, isLoading }) => {
     if (isLoading) {
       return <StatCardSkeleton />;
     }
+
+    const colorClasses = {
+      blue: "bg-blue-500/10 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400",
+      purple: "bg-purple-500/10 dark:bg-purple-400/10 text-purple-600 dark:text-purple-400",
+      emerald: "bg-emerald-500/10 dark:bg-emerald-400/10 text-emerald-600 dark:text-emerald-400",
+      amber: "bg-amber-500/10 dark:bg-amber-400/10 text-amber-600 dark:text-amber-400",
+      rose: "bg-rose-500/10 dark:bg-rose-400/10 text-rose-600 dark:text-rose-400",
+      cyan: "bg-cyan-500/10 dark:bg-cyan-400/10 text-cyan-600 dark:text-cyan-400",
+    }[color] || "bg-blue-500/10 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400";
 
     return (
       <motion.div
@@ -42,7 +53,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(
         {/* Subtle internal shine effect */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none rounded-2xl" />
 
-        <div className="relative p-2.5 sm:p-3 rounded-2xl bg-blue-500/10 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400 shrink-0 shadow-sm transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+        <div className={`relative p-2.5 sm:p-3 rounded-2xl shrink-0 shadow-sm transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${colorClasses}`}>
           {React.isValidElement(icon)
             ? React.cloneElement(icon as React.ReactElement<any>, {
                 className: "h-5 w-5 sm:h-6 sm:w-6",
@@ -56,6 +67,9 @@ export const StatCard: React.FC<StatCardProps> = React.memo(
           <p className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-850 dark:text-white leading-tight tracking-tight font-heading">
             {value}
           </p>
+          {subtitle && (
+            <p className="text-xs text-cyan-600 dark:text-cyan-400 mt-1 font-mono font-bold tracking-tight bg-cyan-500/10 px-2 py-0.5 rounded w-fit">{subtitle}</p>
+          )}
         </div>
       </motion.div>
     );

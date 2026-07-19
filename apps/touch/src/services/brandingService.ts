@@ -288,9 +288,9 @@ class BrandingService {
     }
 
     /**
-     * Check for branding updates from server
+     * Check for branding updates from server (publicly callable on real-time WS events)
      */
-    private async checkForUpdates(): Promise<void> {
+    public async checkForUpdates(force = false): Promise<void> {
         try {
             const response = await fetch(`/api/config/branding?v=${Date.now()}`, {
                 method: 'GET',
@@ -302,11 +302,12 @@ class BrandingService {
             if (response.ok) {
                 const config = await response.json() as Partial<BrandingConfig>;
                 
-                // Check if this is a newer version
-                if (this.isNewerVersion(config.version, this.currentBranding.version)) {
-                    logger.info('[BrandingService] New branding version available', {
+                // Check if this is a newer version or forced via broadcast
+                if (force || this.isNewerVersion(config.version, this.currentBranding.version)) {
+                    logger.info('[BrandingService] New branding version available or forced refresh', {
                         current: this.currentBranding.version,
                         available: config.version,
+                        force
                     });
                     await this.applyBranding(config);
                 }

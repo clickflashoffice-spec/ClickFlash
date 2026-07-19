@@ -91,13 +91,13 @@ function StarRating({ rating }: { rating: number }) {
 
 export default function TestimonialsPage() {
     return (
-        <main className="min-h-screen bg-white pt-32 pb-24">
+        <main className="min-h-screen bg-[#0B111F] pt-32 pb-24">
             {/* Hero Section */}
             <section className="max-w-5xl mx-auto px-6 text-center mb-24">
-                <h1 className="text-6xl md:text-8xl font-serif text-slate-900 mb-8 uppercase tracking-tighter">
+                <h1 className="text-6xl md:text-8xl font-serif text-white mb-8 uppercase tracking-tighter">
                     Clie<span className="text-cyan-700">nt</span> <span className="text-cyan-700 italic">Stories</span>
                 </h1>
-                <p className="text-xl text-slate-600 font-medium max-w-2xl mx-auto">
+                <p className="text-xl text-white/70 font-medium max-w-2xl mx-auto">
                     Real reviews from real clients. Discover the ClickFlash experience through the eyes of our amazing community.
                 </p>
             </section>
@@ -106,9 +106,9 @@ export default function TestimonialsPage() {
             <section className="max-w-6xl mx-auto px-6 mb-32">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                     {stats.map((stat, idx) => (
-                        <div key={idx} className="text-center p-10 bg-slate-50 rounded-[2.5rem] border border-slate-100 shadow-sm transition-all hover:bg-white hover:shadow-xl hover:shadow-slate-200/50">
+                        <div key={idx} className="text-center p-10 bg-white/5 rounded-[2.5rem] border border-white/10 shadow-sm transition-all hover:bg-[#0B111F] hover:shadow-xl hover:shadow-slate-200/50">
                             <div className="text-4xl md:text-5xl font-serif text-cyan-700 font-bold mb-3 tracking-tighter">{stat.value}</div>
-                            <div className="text-slate-600 text-[10px] font-black uppercase tracking-[0.2em]">{stat.label}</div>
+                            <div className="text-white/70 text-[10px] font-black uppercase tracking-[0.2em]">{stat.label}</div>
                         </div>
                     ))}
                 </div>
@@ -120,19 +120,19 @@ export default function TestimonialsPage() {
                     {testimonials.map((testimonial, idx) => (
                         <div
                             key={idx}
-                            className="bg-white border border-slate-100 rounded-[3rem] p-10 flex flex-col shadow-2xl shadow-slate-200/50 relative group transition-all duration-500 hover:-translate-y-2 hover:shadow-cyan-500/10"
+                            className="bg-[#0B111F] border border-white/10 rounded-[3rem] p-10 flex flex-col shadow-2xl shadow-slate-200/50 relative group transition-all duration-500 hover:-translate-y-2 hover:shadow-cyan-500/10"
                         >
                             <div className="mb-6 flex justify-between items-start">
                                 <StarRating rating={testimonial.rating} />
                                 <div className="text-cyan-700/20 text-6xl font-serif leading-none transition-colors group-hover:text-cyan-700/40">“</div>
                             </div>
-                            <blockquote className="text-slate-600 mb-8 flex-grow leading-relaxed font-medium">
+                            <blockquote className="text-white/70 mb-8 flex-grow leading-relaxed font-medium">
                                 &ldquo;{testimonial.quote}&rdquo;
                             </blockquote>
                             <div className="pt-8 border-t border-slate-50">
-                                <div className="font-serif text-2xl text-slate-900 mb-1 tracking-tight">{testimonial.name}</div>
+                                <div className="font-serif text-2xl text-white mb-1 tracking-tight">{testimonial.name}</div>
                                 <div className="text-cyan-700 text-[10px] font-black uppercase tracking-widest mb-3">{testimonial.event}</div>
-                                <div className="text-slate-600 text-xs font-medium">{testimonial.location} • {testimonial.date}</div>
+                                <div className="text-white/70 text-xs font-medium">{testimonial.location} • {testimonial.date}</div>
                             </div>
                         </div>
                     ))}
@@ -141,14 +141,14 @@ export default function TestimonialsPage() {
 
             {/* CTA Section */}
             <section className="max-w-7xl mx-auto px-6">
-                <div className="bg-slate-50 border border-slate-100 rounded-[4rem] p-16 md:p-24 text-center relative overflow-hidden shadow-sm">
+                <div className="bg-white/5 border border-white/10 rounded-[4rem] p-16 md:p-24 text-center relative overflow-hidden shadow-sm">
                     {/* Decorative Background */}
                     <div className="absolute top-0 right-0 w-[60%] h-[60%] bg-cyan-700/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
 
-                    <h2 className="text-4xl md:text-7xl font-black text-slate-900 mb-8 uppercase tracking-tighter relative z-10">
+                    <h2 className="text-4xl md:text-7xl font-black text-white mb-8 uppercase tracking-tighter relative z-10">
                         Ready to Create <br /> <span className="text-cyan-700 italic">Your Story?</span>
                     </h2>
-                    <p className="text-slate-600 mb-12 max-w-xl mx-auto text-lg font-medium relative z-10">
+                    <p className="text-white/70 mb-12 max-w-xl mx-auto text-lg font-medium relative z-10">
                         Join hundreds of satisfied clients who trusted us to capture their most precious moments with cinematic precision.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-6 justify-center relative z-10">
@@ -160,7 +160,7 @@ export default function TestimonialsPage() {
                         </Link>
                         <Link
                             href="/portfolio"
-                            className="bg-white text-slate-900 border border-slate-200 font-black uppercase py-6 px-14 rounded-full hover:bg-slate-50 transition-all text-[11px] tracking-widest"
+                            className="bg-[#0B111F] text-white border border-white/20 font-black uppercase py-6 px-14 rounded-full hover:bg-white/5 transition-all text-[11px] tracking-widest"
                         >
                             View Portfolio
                         </Link>

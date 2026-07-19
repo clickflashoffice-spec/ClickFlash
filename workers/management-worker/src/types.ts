@@ -2,6 +2,8 @@ export interface Env {
     JWT_SECRET: string;
     STRIPE_SECRET_KEY?: string;
     STRIPE_WEBHOOK_SECRET?: string;
+    STRIPE_PRO_PRICE_ID?: string;
+    BILLING_RETURN_URL?: string;
     DB: D1Database;
     LICENSE_PRIVATE_KEY?: string;
     LICENSE_PUBLIC_KEY?: string;

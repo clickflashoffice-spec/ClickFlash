@@ -5,12 +5,41 @@ import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import { logger } from '@clickflash/logger';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
+const APP_FILTERS = {
+  master: "clickflash-master",
+  touch: "clickflash-touch",
+  website: "main-website",
+  gallery: "star-master-customer",
+  management: "star-master-management",
+  moneytrash: "moneytrash-uploader",
+} as const;
+const APP_NAMES = Object.keys(APP_FILTERS);
+const MAX_SOURCE_BYTES = 1_048_576;
+const MAX_LOG_BYTES = 10_485_760;
+
+function isKnownAppName(value: unknown): value is keyof typeof APP_FILTERS {
+  return typeof value === "string" && Object.hasOwn(APP_FILTERS, value);
+}
+
+function resolveContainedRegularFile(rootDir: string, requestedPath: unknown): string | null {
+  if (typeof requestedPath !== "string" || requestedPath.length === 0) return null;
+  const resolvedRoot = path.resolve(rootDir);
+  const resolvedPath = path.resolve(resolvedRoot, requestedPath);
+  if (!resolvedPath.startsWith(`${resolvedRoot}${path.sep}`)) return null;
+  try {
+    const stat = fs.lstatSync(resolvedPath);
+    return stat.isFile() && !stat.isSymbolicLink() ? resolvedPath : null;
+  } catch {
+    return null;
+  }
+}
 
 export function registerTools(): Tool[] {
   return [
@@ -20,7 +49,7 @@ export function registerTools(): Tool[] {
       inputSchema: {
         type: "object",
         properties: {
-          appName: { type: "string", description: "Name of the app to start (e.g., master, touch, website)" }
+          appName: { type: "string", enum: APP_NAMES, description: "Name of the app to start" }
         },
         required: ["appName"]
       }
@@ -95,7 +124,7 @@ export function registerTools(): Tool[] {
       inputSchema: {
         type: "object",
         properties: {
-          appName: { type: "string", description: "Name of the app to scan (e.g. master, touch)" }
+          appName: { type: "string", enum: APP_NAMES, description: "Name of the app to scan" }
         },
         required: ["appName"]
       }
@@ -123,48 +152,13 @@ export function registerTools(): Tool[] {
       }
     },
     {
-      name: "generate_license",
-      description: "Generates an Ed25519-signed license directly from the MCP. Useful for automated setup or tests without interacting with the Management UI.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          deskId: { type: "string" },
-          plan: { type: "string", enum: ["free", "pro", "enterprise"] },
-          maxMasters: { type: "number" }
-        },
-        required: ["deskId", "plan", "maxMasters"]
-      }
-    },
-    {
-      name: "run_migrations",
-      description: "Automatically run Prisma migrations for a specified application.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          appName: { type: "string", description: "Name of the app (e.g. master, management)" }
-        },
-        required: ["appName"]
-      }
-    },
-    {
       name: "fetch_app_logs",
       description: "Reads the most recent logs outputted by @clickflash/logger for an app.",
       inputSchema: {
         type: "object",
         properties: {
-          appName: { type: "string", description: "Name of the app (e.g. master)" },
-          lines: { type: "number", description: "Number of tail lines to fetch" }
-        },
-        required: ["appName"]
-      }
-    },
-    {
-      name: "deploy_app",
-      description: "Triggers a deployment for a specific app or the whole ecosystem.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          appName: { type: "string", description: "Name of the app, or 'all' for ecosystem" }
+          appName: { type: "string", enum: APP_NAMES, description: "Name of the app" },
+          lines: { type: "number", minimum: 1, maximum: 1000, description: "Number of tail lines to fetch" }
         },
         required: ["appName"]
       }
@@ -184,18 +178,13 @@ function getPlanDir() {
 
 export async function handleToolCall(name: string, args: any) {
   if (name === "start_app") {
-    const filterMap: Record<string, string> = {
-      master: "clickflash-master",
-      touch: "clickflash-touch",
-      website: "main-website",
-      gallery: "star-master-customer",
-      management: "star-master-management",
-      moneytrash: "moneytrash-uploader"
-    };
-    
-    const filter = filterMap[args.appName] || args.appName;
+    const appName: unknown = args.appName;
+    if (!isKnownAppName(appName)) {
+      return { content: [{ type: "text", text: "Error: Unknown application." }] };
+    }
+    const filter = APP_FILTERS[appName];
     return {
-      content: [{ type: "text", text: `To start ${args.appName}, please run this command in your terminal: pnpm --filter ${filter} run dev` }]
+      content: [{ type: "text", text: `To start ${appName}, please run this command in your terminal: pnpm --filter ${filter} run dev` }]
     };
   } else if (name === "run_ecosystem_tests") {
     try {
@@ -283,7 +272,7 @@ export async function handleToolCall(name: string, args: any) {
       const { stdout: bannedSaaS } = await execAsync("git grep -E -n '(Auth0|@clerk|pusher|firebase|vercel)' -- 'apps/' || true", { cwd: rootDir });
       
       let report = "Architecture Audit Report:\n\n";
-      report += "1. console.log usage (violates Zero console.log mandate):\n";
+      report += "1. logger.info usage (violates Zero logger.info mandate):\n";
       report += consoleLogs ? consoleLogs : "No violations found.\n";
       report += "\n2. Banned SaaS Usage (violates 100% Custom mandate):\n";
       report += bannedSaaS ? bannedSaaS : "No violations found.\n";
@@ -293,6 +282,9 @@ export async function handleToolCall(name: string, args: any) {
       return { content: [{ type: "text", text: `Audit error: ${e.message}` }] };
     }
   } else if (name === "scan_security") {
+    if (!isKnownAppName(args.appName)) {
+      return { content: [{ type: "text", text: "Error: Unknown application." }] };
+    }
     const rootDir = path.resolve(__dirname, "../../..");
     const targetDir = path.join("apps", args.appName);
     try {
@@ -316,9 +308,12 @@ export async function handleToolCall(name: string, args: any) {
     }
   } else if (name === "suggest_refactor") {
     const rootDir = path.resolve(__dirname, "../../..");
-    const absolutePath = path.join(rootDir, args.filePath);
-    if (!fs.existsSync(absolutePath)) {
-       return { content: [{ type: "text", text: `File not found: ${args.filePath}` }] };
+    const absolutePath = resolveContainedRegularFile(rootDir, args.filePath);
+    if (!absolutePath) {
+       return { content: [{ type: "text", text: "File not found or outside the workspace." }] };
+    }
+    if (fs.statSync(absolutePath).size > MAX_SOURCE_BYTES) {
+       return { content: [{ type: "text", text: "File exceeds the 1 MiB analysis limit." }] };
     }
     const fileContent = fs.readFileSync(absolutePath, "utf-8");
     const lines = fileContent.split("\n");
@@ -360,58 +355,32 @@ export async function handleToolCall(name: string, args: any) {
     } catch (e: any) {
       return { content: [{ type: "text", text: `Discovery error: ${e.message}` }] };
     }
-  } else if (name === "generate_license") {
-    try {
-      const { generateEd25519KeyPair, generateEd25519License } = await import("@clickflash/licensing/src/ed25519");
-      const pair = generateEd25519KeyPair();
-      const license = generateEd25519License({
-        plan: args.plan,
-        maxMasters: args.maxMasters,
-        expiresDays: 365,
-        machineId: args.deskId
-      }, pair.privateKey);
-      return { content: [{ type: "text", text: `License: ${license}\nPrivateKey: ${pair.privateKey}\nPublicKey: ${pair.publicKey}` }] };
-    } catch (e: any) {
-      return { content: [{ type: "text", text: `Error generating license: ${e.message}` }] };
-    }
-  } else if (name === "run_migrations") {
-    try {
-      const rootDir = path.resolve(__dirname, "../../..");
-      // Using generic db:push or prisma generate depending on the app.
-      const { stdout, stderr } = await execAsync(`pnpm --filter clickflash-${args.appName} run db:push`, { cwd: rootDir });
-      return { content: [{ type: "text", text: `Migration output:\n${stdout}\n${stderr}` }] };
-    } catch (e: any) {
-      return { content: [{ type: "text", text: `Migration error: ${e.message}` }] };
-    }
   } else if (name === "fetch_app_logs") {
     try {
-      const lines = args.lines || 100;
+      if (!isKnownAppName(args.appName)) {
+        return { content: [{ type: "text", text: "Error: Unknown application." }] };
+      }
+      const lines = Number.isInteger(args.lines) ? Math.min(Math.max(args.lines, 1), 1000) : 100;
       const rootDir = path.resolve(__dirname, "../../..");
       const logDir = path.join(rootDir, "apps", args.appName, "logs");
-      if (!fs.existsSync(logDir)) {
+      if (!fs.existsSync(logDir) || fs.lstatSync(logDir).isSymbolicLink()) {
          return { content: [{ type: "text", text: `No logs directory found for ${args.appName} at ${logDir}` }] };
       }
       
-      const files = fs.readdirSync(logDir).filter(f => f.endsWith('.log'));
+      const files = fs.readdirSync(logDir)
+        .filter((file) => file.endsWith(".log"))
+        .map((file) => ({ file, fullPath: resolveContainedRegularFile(logDir, file) }))
+        .filter((entry): entry is { file: string; fullPath: string } => Boolean(entry.fullPath))
+        .filter((entry) => fs.statSync(entry.fullPath).size <= MAX_LOG_BYTES)
+        .sort((a, b) => fs.statSync(a.fullPath).mtimeMs - fs.statSync(b.fullPath).mtimeMs);
       if (files.length === 0) return { content: [{ type: "text", text: "Log directory is empty or has no .log files." }] };
       
-      const latestLog = files.sort().pop();
-      const logPath = path.join(logDir, latestLog!);
-      
-      let content = "";
-      if (process.platform === "win32") {
-        const { stdout } = await execAsync(`powershell -Command "Get-Content '${logPath}' -Tail ${lines}"`);
-        content = stdout;
-      } else {
-        const { stdout } = await execAsync(`tail -n ${lines} "${logPath}"`);
-        content = stdout;
-      }
-      return { content: [{ type: "text", text: `Latest log (${latestLog}):\n${content}` }] };
+      const latestLog = files.at(-1)!;
+      const content = fs.readFileSync(latestLog.fullPath, "utf8").split(/\r?\n/).slice(-lines).join("\n");
+      return { content: [{ type: "text", text: `Latest log (${latestLog.file}):\n${content}` }] };
     } catch (e: any) {
       return { content: [{ type: "text", text: `Error fetching logs: ${e.message}` }] };
     }
-  } else if (name === "deploy_app") {
-    return { content: [{ type: "text", text: `Deployment command received. Simulated deployment triggered for ${args.appName}.` }] };
   }
   
   throw new Error(`Unknown tool: ${name}`);

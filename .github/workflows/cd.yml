@@ -1,5 +1,12 @@
 name: Cloudflare Pages Deployment
 
+concurrency:
+  group: cloudflare-pages-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
@@ -21,6 +28,7 @@ env:
 jobs:
   deploy-website:
     name: Deploy Website to Cloudflare Pages
+    if: github.event_name == 'push' || inputs.app == 'all' || inputs.app == 'website'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -57,6 +65,7 @@ jobs:
 
   deploy-gallery:
     name: Deploy Gallery to Cloudflare Pages
+    if: github.event_name == 'push' || inputs.app == 'all' || inputs.app == 'gallery'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -93,6 +102,7 @@ jobs:
 
   deploy-management:
     name: Deploy Management to Cloudflare Pages
+    if: github.event_name == 'push' || inputs.app == 'all' || inputs.app == 'management'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

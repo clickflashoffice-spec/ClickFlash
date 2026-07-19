@@ -20,12 +20,12 @@ export function initConsoleCleanup(): void {
 
     // In production, suppress all console output
     if (!isDev && !isTest) {
-        console.log = () => {};
-        console.warn = () => {};
+        logger.info = () => {};
+        logger.warn = () => {};
         console.info = () => {};
         console.debug = () => {};
         // Keep error but send to logger
-        console.error = (...args: unknown[]) => {
+        logger.error = (...args: unknown[]) => {
             const message = args[0] as string;
             const data = args.slice(1);
             logger.error(message, undefined, data.length > 0 ? data : undefined);
@@ -34,19 +34,19 @@ export function initConsoleCleanup(): void {
     }
 
     // In development, redirect to structured logger
-    console.log = (...args: unknown[]) => {
+    logger.info = (...args: unknown[]) => {
         const message = args[0] as string;
         const data = args.slice(1);
         logger.debug(message, data.length === 1 ? data[0] : data.length > 0 ? data : undefined);
     };
 
-    console.warn = (...args: unknown[]) => {
+    logger.warn = (...args: unknown[]) => {
         const message = args[0] as string;
         const data = args.slice(1);
         logger.warn(message, data.length === 1 ? data[0] : data.length > 0 ? data : undefined);
     };
 
-    console.error = (...args: unknown[]) => {
+    logger.error = (...args: unknown[]) => {
         const message = args[0] as string;
         const error = args[1] instanceof Error ? args[1] : undefined;
         const data = args.slice(error ? 2 : 1);

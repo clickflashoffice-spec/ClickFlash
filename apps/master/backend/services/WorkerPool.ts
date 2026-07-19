@@ -57,6 +57,9 @@ export class WorkerPool {
         }
       }
     }, HEARTBEAT_INTERVAL_MS);
+    if (this.heartbeatTimer && this.heartbeatTimer.unref) {
+      this.heartbeatTimer.unref();
+    }
   }
 
   public close() {

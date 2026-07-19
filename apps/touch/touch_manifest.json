@@ -2,8 +2,9 @@
   "app": "touch",
   "version": "4.1.1",
   "files": [
-    "main.js",
-    "preload.js",
+    "main.ts",
+    "preload.ts",
+    "electron-builder.json",
     "index.html",
     "package.json",
     "vite.config.ts",

@@ -2,6 +2,9 @@ name = "clickflash-update-server"
 main = "index.ts"
 compatibility_date = "2026-06-13"
 
+[env.staging]
+name = "clickflash-update-server-staging"
+
 # Add D1/KV bindings for production
 # [[d1_databases]]
 # binding = "DB"

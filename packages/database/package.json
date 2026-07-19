@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "better-sqlite3-multiple-ciphers": "^12.8.0"
+    "better-sqlite3-multiple-ciphers": "^12.8.0",
+    "@clickflash/logger": "workspace:*"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

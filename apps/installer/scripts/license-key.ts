@@ -3,7 +3,6 @@ import {
   verify as verifySignature,
 } from 'node:crypto';
 
-const PUBLIC_KEY_B64 = 'PU5chItRojuz3HpsB/H0LbVh/+BYeBFM4s8gvxmEvqU=';
 const ED25519_SPKI_PREFIX = Buffer.from('302a300506032b6570032100', 'hex');
 const VALID_PLANS = new Set(['starter', 'pro', 'enterprise', 'trial']);
 
@@ -20,6 +19,11 @@ export interface LicenseResult {
   valid: boolean;
   data?: LicenseData;
   error?: string;
+}
+
+export function isValidLicensePublicKey(value: unknown): value is string {
+  if (typeof value !== 'string' || !/^[A-Za-z0-9+/]{43}=$/.test(value.trim())) return false;
+  return Buffer.from(value.trim(), 'base64').length === 32;
 }
 
 function decodeBase64Url(value: string): Buffer {
@@ -115,7 +119,15 @@ export function verifyEd25519License(
 
 export async function validateLicenseKey(
   key: string,
-  currentMachineId?: string,
+  currentMachineId: string,
+  publicKeyB64: string,
 ): Promise<LicenseResult> {
-  return verifyEd25519License(key, PUBLIC_KEY_B64, currentMachineId);
+  if (!isValidLicensePublicKey(publicKeyB64)) {
+    return { valid: false, error: 'License public key is not configured' };
+  }
+  const result = verifyEd25519License(key, publicKeyB64, currentMachineId);
+  if (result.valid && result.data?.machineId !== currentMachineId) {
+    return { valid: false, error: 'License is not bound to this machine' };
+  }
+  return result;
 }

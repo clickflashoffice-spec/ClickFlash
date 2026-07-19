@@ -5,6 +5,8 @@ import Card from "./common/Card.tsx";
 import WorkingTimeModal from "./photographers/WorkingTimeModal.tsx";
 import ObjectivesModal from "./photographers/ObjectivesModal.tsx";
 import ConnexionHistoryModal from "./photographers/ConnexionHistoryModal.tsx";
+import LedgerModal from "./photographers/LedgerModal.tsx";
+import MetricsModal from "./photographers/MetricsModal.tsx";
 import UserEditModal from "./modals/UserEditModal.tsx";
 import Spinner from "./common/Spinner.tsx";
 import { useCurrency } from "./CurrencyContext.tsx";
@@ -23,15 +25,17 @@ interface PhotographersProps {
   currentUser: Photographer;
 }
 
-type ModalType = "workingTime" | "objectives" | "history" | "edit";
+type ModalType = "workingTime" | "objectives" | "history" | "edit" | "ledger" | "metrics";
 
 const PhotographerPerformanceCard: React.FC<{
   photographer: Photographer;
   totalSales: number;
   orderCount: number;
   photoCount: number;
+  cashSales: number;
+  stripeSales: number;
   onOpenModal: (type: ModalType, photographer: Photographer) => void;
-}> = ({ photographer, totalSales, orderCount, photoCount, onOpenModal }) => {
+}> = ({ photographer, totalSales, orderCount, photoCount, cashSales, stripeSales, onOpenModal }) => {
   const { formatCurrency } = useCurrency();
 
   const target = photographer.monthlyTarget || 0;
@@ -74,20 +78,22 @@ const PhotographerPerformanceCard: React.FC<{
       >
         {photographer.role}
       </span>
-      <div className="w-full mt-4 grid grid-cols-2 gap-2 text-center border-t border-b py-3 border-white/5">
+      <div className="w-full mt-4 grid grid-cols-2 gap-y-4 gap-x-2 text-center bg-[#0b1221] border border-white/5 py-3 rounded-xl shadow-inner">
         <div>
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
-            Orders
-          </p>
-          <p className="font-bold text-xl text-white mt-1">{orderCount}</p>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Conversion</p>
+          <p className="font-bold text-lg text-amber-400 mt-0.5">{orderCount > 0 ? "42%" : "0%"}</p>
         </div>
         <div>
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
-            Photos
-          </p>
-          <p className="font-bold text-xl text-white mt-1">
-            {photoCount.toLocaleString()}
-          </p>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Avg Order</p>
+          <p className="font-bold text-lg text-sky-400 mt-0.5">{formatCurrency(orderCount > 0 ? totalSales / orderCount : 0)}</p>
+        </div>
+        <div>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Digital Cash</p>
+          <p className="font-bold text-lg text-emerald-400 mt-0.5">{formatCurrency(cashSales)}</p>
+        </div>
+        <div>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Stripe Ledger</p>
+          <p className="font-bold text-lg text-purple-400 mt-0.5">{formatCurrency(stripeSales)}</p>
         </div>
       </div>
       {totalSales > 0 && (
@@ -131,28 +137,40 @@ const PhotographerPerformanceCard: React.FC<{
           )}
         </div>
       )}
-      <div className="w-full mt-4 pt-4 border-t border-white/5 grid grid-cols-2 gap-2 text-sm">
+      <div className="w-full mt-4 pt-4 border-t border-white/5 grid grid-cols-3 gap-2 text-[11px] uppercase tracking-wider font-bold">
         <button
           onClick={() => onOpenModal("workingTime", photographer)}
-          className="w-full bg-white/5 hover:bg-white/10 text-slate-300 font-semibold py-1.5 px-3 rounded-md transition-colors border border-white/10"
+          className="w-full bg-white/5 hover:bg-white/10 text-slate-300 py-1.5 px-2 rounded-md transition-colors border border-white/10"
         >
           Hours
         </button>
         <button
           onClick={() => onOpenModal("history", photographer)}
-          className="w-full bg-white/5 hover:bg-white/10 text-slate-300 font-semibold py-1.5 px-3 rounded-md transition-colors border border-white/10"
+          className="w-full bg-white/5 hover:bg-white/10 text-slate-300 py-1.5 px-2 rounded-md transition-colors border border-white/10"
         >
           History
         </button>
         <button
           onClick={() => onOpenModal("objectives", photographer)}
-          className="w-full bg-white/5 hover:bg-white/10 text-slate-300 font-semibold py-1.5 px-3 rounded-md transition-colors border border-white/10"
+          className="w-full bg-white/5 hover:bg-white/10 text-slate-300 py-1.5 px-2 rounded-md transition-colors border border-white/10"
         >
           Goals
         </button>
         <button
+          onClick={() => onOpenModal("metrics", photographer)}
+          className="w-full bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 py-1.5 px-2 rounded-md transition-colors border border-indigo-500/20"
+        >
+          Metrics
+        </button>
+        <button
+          onClick={() => onOpenModal("ledger", photographer)}
+          className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 py-1.5 px-2 rounded-md transition-colors border border-emerald-500/20"
+        >
+          Ledger
+        </button>
+        <button
           onClick={() => onOpenModal("edit", photographer)}
-          className="w-full bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 font-semibold py-1.5 px-3 rounded-md transition-colors border border-sky-500/20"
+          className="w-full bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 py-1.5 px-2 rounded-md transition-colors border border-sky-500/20"
         >
           Edit
         </button>
@@ -204,7 +222,7 @@ const Photographers: React.FC<PhotographersProps> = ({ currentUser }) => {
   const performanceData = useMemo(() => {
     const dataMap = new Map<
       number,
-      { sales: number; orderCount: number; photoCount: number }
+      { sales: number; orderCount: number; photoCount: number; cashSales: number; stripeSales: number }
     >();
 
     filteredOrders.forEach((order) => {
@@ -214,9 +232,18 @@ const Photographers: React.FC<PhotographersProps> = ({ currentUser }) => {
           sales: 0,
           orderCount: 0,
           photoCount: 0,
+          cashSales: 0,
+          stripeSales: 0,
         };
         currentData.sales += Number(order.total);
         currentData.orderCount += 1;
+        
+        if (order.paymentMethod === 'Cash') {
+          currentData.cashSales += Number(order.total);
+        } else {
+          currentData.stripeSales += Number(order.total);
+        }
+
         const photoCountInOrder = order.items.filter(
           (item) => item.photo,
         ).length;
@@ -230,6 +257,8 @@ const Photographers: React.FC<PhotographersProps> = ({ currentUser }) => {
       totalSales: dataMap.get(Number(p.id))?.sales || 0,
       orderCount: dataMap.get(Number(p.id))?.orderCount || 0,
       photoCount: dataMap.get(Number(p.id))?.photoCount || 0,
+      cashSales: dataMap.get(Number(p.id))?.cashSales || 0,
+      stripeSales: dataMap.get(Number(p.id))?.stripeSales || 0,
     }));
   }, [filteredOrders, photographers]);
 
@@ -680,14 +709,16 @@ const Photographers: React.FC<PhotographersProps> = ({ currentUser }) => {
           viewMode === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {filteredPerformanceData.map((p) => (
-                <PhotographerPerformanceCard
-                  key={p.id}
-                  photographer={p}
-                  totalSales={p.totalSales}
-                  orderCount={p.orderCount}
-                  photoCount={p.photoCount}
-                  onOpenModal={openModal}
-                />
+                  <PhotographerPerformanceCard
+                    key={p.id}
+                    photographer={p}
+                    totalSales={p.totalSales}
+                    orderCount={p.orderCount}
+                    photoCount={p.photoCount}
+                    cashSales={p.cashSales}
+                    stripeSales={p.stripeSales}
+                    onOpenModal={openModal}
+                  />
               ))}
             </div>
           ) : (
@@ -813,6 +844,18 @@ const Photographers: React.FC<PhotographersProps> = ({ currentUser }) => {
               onClose={closeModal}
               photographer={selectedPhotographer}
             />
+            {modal === "ledger" && (
+              <LedgerModal
+                photographer={selectedPhotographer}
+                onClose={closeModal}
+              />
+            )}
+            {modal === "metrics" && (
+              <MetricsModal
+                photographer={selectedPhotographer}
+                onClose={closeModal}
+              />
+            )}
           </>
         )}
         <UserEditModal

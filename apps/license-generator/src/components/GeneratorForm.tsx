@@ -1,23 +1,29 @@
 import React, { useState } from 'react';
 
 interface GeneratorFormProps {
+  signingKeyLabel: string | null;
+  onSelectSigningKey: () => void;
+  onClearSigningKey: () => void;
   onGenerate: (
     plan: string,
     maxMasters: number,
     expiresDays: number,
     count: number,
-    signingKey: string,
-    machineId?: string,
+    machineId: string,
   ) => void;
 }
 
-export function GeneratorForm({ onGenerate }: GeneratorFormProps) {
+export function GeneratorForm({
+  signingKeyLabel,
+  onSelectSigningKey,
+  onClearSigningKey,
+  onGenerate,
+}: GeneratorFormProps) {
   const [plan, setPlan] = useState('pro');
   const [maxMasters, setMaxMasters] = useState(5);
   const [expiresDays, setExpiresDays] = useState(365);
   const [count, setCount] = useState(10);
   const [machineId, setMachineId] = useState('');
-  const [signingKey, setSigningKey] = useState('');
 
   const plans = [
     { value: 'trial', label: 'Trial', desc: '1 studio, 14 days', price: 'Free' },
@@ -28,24 +34,22 @@ export function GeneratorForm({ onGenerate }: GeneratorFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onGenerate(plan, maxMasters, expiresDays, count, signingKey, machineId.trim() || undefined);
+    onGenerate(plan, maxMasters, expiresDays, count, machineId.trim());
   };
 
   return (
     <form className="generator-form" onSubmit={handleSubmit}>
       <div className="form-grid">
         <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-          <label>Private Signing Key</label>
-          <input
-            type="password"
-            placeholder="Paste the operator-controlled Ed25519 private key"
-            value={signingKey}
-            onChange={(e) => setSigningKey(e.target.value)}
-            autoComplete="off"
-            spellCheck={false}
-            required
-          />
-          <small>The key is held in memory for this session and is not bundled with the app.</small>
+          <label>Private Signing Key File</label>
+          <div className="key-file-controls">
+            <button type="button" onClick={onSelectSigningKey}>
+              {signingKeyLabel ? 'Replace key' : 'Select key'}
+            </button>
+            {signingKeyLabel && <button type="button" onClick={onClearSigningKey}>Clear</button>}
+          </div>
+          <small>{signingKeyLabel || 'No key selected'}</small>
+          <small>The renderer never receives the private key or its file path.</small>
         </div>
 
         <div className="form-group">
@@ -93,9 +97,10 @@ export function GeneratorForm({ onGenerate }: GeneratorFormProps) {
         </div>
         
         <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-          <label>Hardware Binding (Optional Machine ID)</label>
+          <label>Hardware Binding (Required OS Machine ID)</label>
           <input
             type="text"
+            required
             placeholder="e.g. 12345678-1234-1234-1234-123456789012"
             value={machineId}
             onChange={(e) => setMachineId(e.target.value)}
@@ -103,7 +108,7 @@ export function GeneratorForm({ onGenerate }: GeneratorFormProps) {
         </div>
       </div>
 
-      <button type="submit" className="generate-btn">
+      <button type="submit" className="generate-btn" disabled={!signingKeyLabel}>
         Generate License Keys
       </button>
     </form>

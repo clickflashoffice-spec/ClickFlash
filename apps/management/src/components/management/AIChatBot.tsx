@@ -12,9 +12,9 @@ interface Message {
 }
 
 const QUICK_PROMPTS = [
-  "Analyze revenue today",
-  "Check fleet sync latency",
-  "Summarize hotel context",
+  "Push latest media loop to Kiosks",
+  "Analyze why Resort revenue is down",
+  "Reboot stalled cameras",
 ];
 
 const AIChatBot: React.FC = () => {
@@ -22,7 +22,7 @@ const AIChatBot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "Hello! I am PixelFounder. I provide rules-backed guidance from the ClickFlash telemetry supplied to me.",
+      text: "Hello! I am PixelFounder, your autonomous AI fleet manager. I am connected to live telemetry and can execute operational commands on your behalf.",
       sender: "ai",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },

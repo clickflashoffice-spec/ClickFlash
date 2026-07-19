@@ -115,6 +115,24 @@ body {
   border-color: var(--primary);
 }
 
+.key-file-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.key-file-controls button {
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.key-file-controls button:hover {
+  border-color: var(--primary);
+}
+
 .generate-btn {
   width: 100%;
   padding: 14px 24px;
@@ -135,6 +153,12 @@ body {
 
 .generate-btn:active {
   transform: translateY(0);
+}
+
+.generate-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
 }
 
 .keys-container {

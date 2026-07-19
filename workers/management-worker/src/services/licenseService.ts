@@ -6,7 +6,7 @@ const KEY_PREFIX = 'CF-LIVE-';
 export interface LicenseKeyData {
   key: string;
   deskId: string;
-  plan: 'free' | 'starter' | 'pro' | 'enterprise';
+  plan: 'starter' | 'pro' | 'enterprise' | 'trial';
   maxMasters: number;
   expiresAt?: string;
   status: 'active' | 'expired' | 'revoked';
@@ -15,10 +15,11 @@ export interface LicenseKeyData {
 
 export interface GenerateOptions {
   deskId: string;
-  plan: 'free' | 'starter' | 'pro' | 'enterprise';
+  plan: 'starter' | 'pro' | 'enterprise' | 'trial';
   maxMasters: number;
   expiresDays?: number;
   count?: number;
+  machineId: string;
 }
 
 export interface LicenseValidationResult {
@@ -58,9 +59,10 @@ export class LicenseService {
         throw new Error('LICENSE_PRIVATE_KEY is required to generate licenses.');
       }
       const license = generateEd25519License({
-        plan: options.plan as any,
+        plan: options.plan,
         maxMasters: options.maxMasters,
         expiresDays: options.expiresDays || 365,
+        machineId: options.machineId,
       }, this.privateKeyB64);
 
       const keyData: LicenseKeyData = {
@@ -120,14 +122,24 @@ export class LicenseService {
     return keys;
   }
 
-  async validateLicenseKey(key: string, deskId?: string): Promise<LicenseValidationResult> {
+  async validateLicenseKey(
+    key: string,
+    deskId?: string,
+    machineId?: string,
+  ): Promise<LicenseValidationResult> {
     if (!this.publicKeyB64) {
       return { valid: false, error: 'LICENSE_PUBLIC_KEY is not configured on server' };
     }
+    if (!machineId) {
+      return { valid: false, error: 'Machine ID is required for license validation' };
+    }
 
-    const result = verifyEd25519License(key, this.publicKeyB64);
+    const result = verifyEd25519License(key, this.publicKeyB64, { expectedMachineId: machineId });
     if (!result.valid || !result.data) {
       return { valid: false, error: result.error || 'Invalid signature' };
+    }
+    if (!result.data.machineId || result.data.machineId !== machineId) {
+      return { valid: false, error: 'License is not bound to this machine' };
     }
 
     // If we have database connection, check database records
@@ -203,7 +215,7 @@ export class LicenseService {
       }
     }
 
-    // Standalone / offline validation (format and checksum passed)
+    // Standalone validation has passed signature, expiry, and hardware binding.
     return {
       valid: true,
       plan: result.data?.plan || 'pro',

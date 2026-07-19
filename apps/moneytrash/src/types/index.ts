@@ -94,6 +94,7 @@ export interface UploadHistoryItem {
 export interface AppSettings {
   apiUrl: string;
   deskId: string;
+  apiKey?: string;
   autoStartUpload: boolean;
   saveHistory: boolean;
   s3AccessKey?: string;

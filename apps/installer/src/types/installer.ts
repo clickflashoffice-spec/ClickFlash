@@ -124,6 +124,7 @@ export interface InstallerState {
   healthResults: HealthCheckResults | null;
 
   // Completion
+  payloadBundlePath: string;
   installPath: string;
   payloadBundle: PayloadBundleSummary | null;
   launchOnComplete: boolean;

@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { CheckCircle2, Star, Zap, Building2, Loader2 } from "lucide-react";
-import { Photographer } from "../../../types";
+import { pb } from "@/services/pb";
 import { logger } from "@/utils/logger";
+import type { Photographer } from "../../../types";
 
 interface PricingTableProps {
   currentUser: Photographer;
@@ -11,23 +12,19 @@ interface PricingTableProps {
 const PricingTable: React.FC<PricingTableProps> = ({ currentUser, currentTier = "Free" }) => {
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
 
-  const handleUpgrade = async (tierName: string, priceId: string) => {
+  const handleUpgrade = async (tierName: string) => {
     try {
       setLoadingTier(tierName);
       
-      const { getEnv } = await import("../../../utils/env");
-      const baseUrl = getEnv().VITE_API_BASE_URL || "";
-      const response = await fetch(`${baseUrl}/api/billing/checkout`, {
+      const response = await fetch(`${pb.baseUrl}/api/billing/checkout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${pb.authStore.token}`,
         },
         body: JSON.stringify({
-          priceId: priceId,
-          successUrl: window.location.origin + "/management?billing=success",
-          cancelUrl: window.location.origin + "/management?billing=cancel",
+          plan: "pro",
           studioName: currentUser.name || "My Studio",
-          email: currentUser.email,
         }),
       });
 
@@ -59,7 +56,6 @@ const PricingTable: React.FC<PricingTableProps> = ({ currentUser, currentTier = 
         "Standard Web Galleries",
         "Email Support",
       ],
-      priceId: "price_free_mock",
       buttonText: currentTier === "Free" ? "Current Plan" : "Downgrade",
       disabled: currentTier === "Free",
       isPopular: false,
@@ -77,7 +73,6 @@ const PricingTable: React.FC<PricingTableProps> = ({ currentUser, currentTier = 
         "Priority 24/7 Support",
         "Advanced Analytics",
       ],
-      priceId: "price_1ProMockID_FromStripe",
       buttonText: currentTier === "Pro" ? "Current Plan" : "Upgrade to Pro",
       disabled: currentTier === "Pro",
       isPopular: true,
@@ -94,7 +89,6 @@ const PricingTable: React.FC<PricingTableProps> = ({ currentUser, currentTier = 
         "SLA Guarantees",
         "Custom SSO & API Access",
       ],
-      priceId: "price_enterprise_mock",
       buttonText: currentTier === "Enterprise" ? "Current Plan" : "Contact Sales",
       disabled: currentTier === "Enterprise",
       isPopular: false,
@@ -153,7 +147,7 @@ const PricingTable: React.FC<PricingTableProps> = ({ currentUser, currentTier = 
                 if (tier.name === "Enterprise") {
                   alert("Please contact enterprise@clicketflash.com");
                 } else {
-                  handleUpgrade(tier.name, tier.priceId);
+                  handleUpgrade(tier.name);
                 }
               }}
               disabled={tier.disabled || loadingTier !== null}

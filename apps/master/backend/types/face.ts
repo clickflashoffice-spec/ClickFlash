@@ -18,6 +18,8 @@ export interface FaceAnalysis {
         expression: number;
     };
     faceCount: number;
+    width?: number;
+    height?: number;
 }
 
 export interface FaceWorkerJob {
@@ -39,4 +41,7 @@ export interface FaceWorkerResult {
         expression: number;
     };
     faceCount?: number;
+    width?: number;
+    height?: number;
 }
+

@@ -47,10 +47,10 @@ export function FeaturesBento({ settings }: FeaturesBentoProps) {
         <span className="mb-4 block text-[11px] font-black tracking-[0.3em] text-cyan-700 uppercase md:text-[12px]">
           What We Offer
         </span>
-        <h2 className="mb-4 text-3xl leading-tight font-black tracking-tighter text-slate-900 sm:text-4xl md:mb-6 md:text-5xl lg:text-6xl">
+        <h2 className="mb-4 text-3xl leading-tight font-black tracking-tighter text-white sm:text-4xl md:mb-6 md:text-5xl lg:text-6xl">
           Signature Experiences
         </h2>
-        <p className="mx-auto max-w-2xl px-4 text-base text-slate-600 md:text-lg">
+        <p className="mx-auto max-w-2xl px-4 text-base text-white/70 md:text-lg">
           We curate exceptional photography experiences designed to immortalize your most precious moments with unparalleled artistry.
         </p>
       </div>
@@ -63,7 +63,7 @@ export function FeaturesBento({ settings }: FeaturesBentoProps) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: feature.delay, duration: 0.6, ease: "easeOut" }}
-            className={`group relative overflow-hidden rounded-3xl bg-slate-100 ${feature.className}`}
+            className={`group relative overflow-hidden rounded-3xl bg-[#0B111F]/5 ${feature.className}`}
           >
             {/* Subtle Border Glow on Hover */}
             <div className="absolute inset-0 z-20 rounded-3xl border-2 border-transparent transition-colors duration-500 group-hover:border-cyan-400/50 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] group-hover:shadow-[0_0_30px_rgba(34,211,238,0.3)]" />
@@ -93,7 +93,7 @@ export function FeaturesBento({ settings }: FeaturesBentoProps) {
       <div className="mt-12 text-center md:mt-16">
         <Link
           href="/services"
-          className="group inline-flex items-center gap-2 rounded-full border-2 border-slate-900 px-8 py-3 text-[11px] font-black tracking-widest text-slate-900 uppercase transition-all hover:bg-slate-900 hover:text-white md:px-10 md:py-4 md:text-[12px]"
+          className="group inline-flex items-center gap-2 rounded-full border-2 border-white/20 px-8 py-3 text-[11px] font-black tracking-widest text-white uppercase transition-all hover:bg-[#0B111F] hover:text-[#0B111F] md:px-10 md:py-4 md:text-[12px]"
         >
           View All Services
           <span className="transform transition-transform group-hover:translate-x-1">→</span>

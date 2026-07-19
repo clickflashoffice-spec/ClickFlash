@@ -44,7 +44,14 @@ export type {
   RolePermissions,
   RfidAuth,
   PosOrderCreate,
-  UserRole
+  UserRole,
+  MobileLogin,
+  MobileUpload,
+  MobileSync,
+  FleetHeartbeat,
+  FleetCommand,
+  LicenseValidation,
+  LicenseRevoke
 } from '@clickflash/validation';
 
 // =============================================================================
@@ -211,6 +218,12 @@ export interface Photo extends BaseRecord , ValidationPhoto{
   overallScore?: number;
   sharpnessScore?: number;
   orientation?: number;
+  aiTags?: {
+    clothing_colors?: string[];
+    accessories?: string[];
+    context?: string;
+    people_count?: number;
+  };
   _pixelModified?: boolean;
   _metadataModified?: boolean;
 }
@@ -687,3 +700,25 @@ export interface StationStatus {
   timestamp: string;
 }
 
+// --- MOBILE APP ---
+
+export interface MobileSession extends BaseRecord {
+  photographerId: string | number;
+  deviceId: string;
+  deviceModel?: string;
+  loginTime: string;
+  lastActive: string;
+  token: string;
+  status: 'active' | 'expired' | 'revoked';
+}
+
+export interface FaceVector extends BaseRecord {
+  photoId: string;
+  descriptor: number[];
+  boundingBox?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}

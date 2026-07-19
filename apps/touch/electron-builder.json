@@ -60,11 +60,13 @@
     "icon": "build/icon.ico",
     "requestedExecutionLevel": "requireAdministrator",
     "forceCodeSigning": false,
-    "signAndEditExecutable": false
+    "signAndEditExecutable": false,
+    "sign": "../../scripts/ev-sign.js"
   },
   "nsis": {
     "oneClick": true,
     "perMachine": true,
+    "allowToChangeInstallationDirectory": false,
     "include": "build/installer.nsh",
     "deleteAppDataOnUninstall": false,
     "createDesktopShortcut": false,

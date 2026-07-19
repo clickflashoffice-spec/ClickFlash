@@ -285,21 +285,21 @@ const GrowthPage: React.FC<GrowthPageProps> = ({ currentUser }) => {
                     </p>
                 </div>
 
-                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                <div className="flex bg-slate-900/50 backdrop-blur-md border border-white/10 p-1 rounded-xl shadow-inner">
                     <button
                         onClick={() => setActiveTab('campaigns')}
-                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'campaigns'
-                                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'campaigns'
+                                ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 shadow-[0_0_15px_rgba(79,70,229,0.2)]'
+                                : 'text-slate-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         Campaigns
                     </button>
                     <button
                         onClick={() => setActiveTab('retention')}
-                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'retention'
-                                ? 'bg-white dark:bg-slate-700 text-green-600 dark:text-green-400 shadow-sm'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'retention'
+                                ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+                                : 'text-slate-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         Retention (Money Trash)
@@ -319,23 +319,23 @@ const GrowthPage: React.FC<GrowthPageProps> = ({ currentUser }) => {
                         {/* Marketing Analytics Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {/* ... Analytics Cards ... */}
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <div className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Active Campaigns</div>
-                                <div className="text-4xl font-black text-slate-900 dark:text-white">{marketingAnalytics?.activeCampaigns || 0}</div>
-                                <div className="text-xs text-slate-400 mt-2">of {marketingAnalytics?.totalCampaigns || 0} total</div>
+                            <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl shadow-2xl border border-white/10">
+                                <div className="text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Active Campaigns</div>
+                                <div className="text-4xl font-black text-white">{marketingAnalytics?.activeCampaigns || 0}</div>
+                                <div className="text-xs text-slate-500 mt-2">of {marketingAnalytics?.totalCampaigns || 0} total</div>
                             </div>
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <div className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Total Sent</div>
-                                <div className="text-4xl font-black text-blue-600 dark:text-blue-400">{marketingAnalytics?.totalSent?.toLocaleString() || 0}</div>
-                                <div className="text-xs text-slate-400 mt-2">Emails delivered</div>
+                            <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl shadow-2xl border border-white/10">
+                                <div className="text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Total Sent</div>
+                                <div className="text-4xl font-black text-indigo-400">{marketingAnalytics?.totalSent?.toLocaleString() || 0}</div>
+                                <div className="text-xs text-slate-500 mt-2">Emails delivered</div>
                             </div>
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <div className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Avg Open Rate</div>
-                                <div className="text-4xl font-black text-green-600 dark:text-green-400">{marketingAnalytics?.avgOpenRate || 0}%</div>
+                            <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl shadow-2xl border border-white/10">
+                                <div className="text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Avg Open Rate</div>
+                                <div className="text-4xl font-black text-emerald-400">{marketingAnalytics?.avgOpenRate || 0}%</div>
                             </div>
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <div className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Avg Click Rate</div>
-                                <div className="text-4xl font-black text-purple-600 dark:text-purple-400">{marketingAnalytics?.avgClickRate || 0}%</div>
+                            <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl shadow-2xl border border-white/10">
+                                <div className="text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Avg Click Rate</div>
+                                <div className="text-4xl font-black text-purple-400">{marketingAnalytics?.avgClickRate || 0}%</div>
                             </div>
                         </div>
 
@@ -353,8 +353,8 @@ const GrowthPage: React.FC<GrowthPageProps> = ({ currentUser }) => {
                         </div>
 
                         {/* Campaigns List */}
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                            <div className="divide-y divide-slate-200 dark:divide-slate-700">
+                        <div className="bg-white/5 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
+                            <div className="divide-y divide-white/5">
                                 {campaigns.map(campaign => (
                                     <div key={campaign.id} className="p-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -434,31 +434,31 @@ const GrowthPage: React.FC<GrowthPageProps> = ({ currentUser }) => {
                     >
                         {/* Retention Stats */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <div className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Queue Size</div>
-                                <div className="text-4xl font-black text-slate-900 dark:text-white">{retentionStats?.queues?.retention || 0}</div>
-                                <div className="text-xs text-slate-400 mt-2">Photos pending upload</div>
+                            <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl shadow-2xl border border-white/10">
+                                <div className="text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Queue Size</div>
+                                <div className="text-4xl font-black text-white">{retentionStats?.queues?.retention || 0}</div>
+                                <div className="text-xs text-slate-500 mt-2">Photos pending upload</div>
                             </div>
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <div className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Potential Value</div>
-                                <div className="text-4xl font-black text-green-600 dark:text-green-400">
+                            <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl shadow-2xl border border-white/10">
+                                <div className="text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Potential Value</div>
+                                <div className="text-4xl font-black text-emerald-400">
                                     €{((retentionStats?.queues?.retention || 0) * retentionPrice).toFixed(2)}
                                 </div>
-                                <div className="text-xs text-slate-400 mt-2">@ €{retentionPrice} / photo</div>
+                                <div className="text-xs text-slate-500 mt-2">@ €{retentionPrice} / photo</div>
                             </div>
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <div className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Status</div>
-                                <div className={`text-xl font-bold uppercase ${retentionStats?.status === 'syncing' ? 'text-blue-500' : retentionStats?.status === 'paused' ? 'text-yellow-500' : 'text-green-500'}`}>
+                            <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl shadow-2xl border border-white/10">
+                                <div className="text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Status</div>
+                                <div className={`text-xl font-bold uppercase ${retentionStats?.status === 'syncing' ? 'text-indigo-400' : retentionStats?.status === 'paused' ? 'text-amber-400' : 'text-emerald-400'}`}>
                                     {retentionStats?.status || 'Idle'}
                                 </div>
-                                <div className="text-xs text-slate-400 mt-2">
+                                <div className="text-xs text-slate-500 mt-2">
                                     Cloud: {cloudStatus === 'online' ? 'Online' : 'Offline'}
                                 </div>
                             </div>
                         </div>
 
                         {/* Config Panel */}
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                        <div className="bg-white/5 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 p-6">
                             <h3 className="font-bold text-lg mb-4 text-slate-900 dark:text-white">Strategy Settings</h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
@@ -513,9 +513,9 @@ const GrowthPage: React.FC<GrowthPageProps> = ({ currentUser }) => {
                         </div>
 
                         {/* Candidates List */}
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                        <div className="bg-white/5 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
                             <div
-                                className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center cursor-pointer"
+                                className="px-6 py-4 border-b border-white/10 bg-white/5 flex justify-between items-center cursor-pointer hover:bg-white/10 transition-colors"
                                 onClick={() => setShowCandidates(!showCandidates)}
                             >
                                 <h3 className="font-bold text-slate-900 dark:text-white">Retention Candidates ({candidates.length})</h3>

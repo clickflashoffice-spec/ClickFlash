@@ -58,7 +58,7 @@ export default async function RootLayout({
         <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
       </head>
       <body
-        className={`${outfit.variable} ${cormorant.variable} min-h-screen bg-white text-slate-900 antialiased`}
+        className={`${outfit.variable} ${cormorant.variable} min-h-screen bg-[#0B111F] text-white antialiased`}
       >
         {/* Skip to main content link for accessibility */}
         <a

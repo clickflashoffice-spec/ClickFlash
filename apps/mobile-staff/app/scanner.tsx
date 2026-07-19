@@ -3,8 +3,8 @@ import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'rea
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
 import { insertScan } from '../db/database';
-import { syncEngine } from '../lib/syncEngine';
-import { logger } from "@clickflash/logger";
+import { UnifiedSyncService } from '../src/services/UnifiedSyncService';
+import { logger } from "../src/utils/logger";
 
 export default function ScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -15,10 +15,9 @@ export default function ScannerScreen() {
 
   const isScanning = useRef(false);
 
-  // Start Sync Engine on mount
+  // Trigger immediate sync on mount
   useEffect(() => {
-    syncEngine.start(5000);
-    return () => syncEngine.stop();
+    UnifiedSyncService.syncNow();
   }, []);
 
   if (!permission) {

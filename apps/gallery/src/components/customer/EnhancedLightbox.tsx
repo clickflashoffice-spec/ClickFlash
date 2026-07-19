@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useId } from 'react';
 import { Photo } from '../../types';
 import { getPhotoStyle } from '../../utils/styleUtils';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
+import { MagicEraserTool } from './MagicEraserTool';
 
 interface EnhancedLightboxProps {
   photos: Photo[];
@@ -74,6 +75,7 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
   const [compareMode, setCompareMode] = useState(false);
   const [compareIndex, setCompareIndex] = useState<number | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [showMagicEraser, setShowMagicEraser] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -195,6 +197,20 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
 
   const comparePhoto = compareIndex !== null ? photos[compareIndex] : null;
 
+  if (showMagicEraser && activePhoto) {
+    return (
+      <MagicEraserTool
+        imageUrl={activePhoto.url}
+        onCancel={() => setShowMagicEraser(false)}
+        onSuccess={(processedUrl) => {
+          // In a real app we'd update the photo URL in the store
+          activePhoto.url = processedUrl;
+          setShowMagicEraser(false);
+        }}
+      />
+    );
+  }
+
   if (!activePhoto) return null;
 
   return (
@@ -235,6 +251,10 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
 
           <button type="button" onClick={(e) => { e.stopPropagation(); setShowInfo(value => !value); }} aria-pressed={showInfo} aria-label="Show photo information" className={`p-2.5 rounded-xl transition-all border ${showInfo ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-white/5 text-slate-400 border-white/10 hover:border-white/20'}`} title="Photo Information (I)">
             <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M12 16v-4m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </button>
+
+          <button type="button" onClick={(e) => { e.stopPropagation(); setShowMagicEraser(true); }} className="p-2.5 bg-purple-500/20 text-purple-400 rounded-xl border border-purple-500/30 hover:bg-purple-500/40 hover:text-white transition-all shadow-lg" title="Magic Eraser" aria-label="Magic Eraser">
+            <span className="font-bold tracking-widest px-1 text-xs uppercase flex items-center gap-1">✨ Erase</span>
           </button>
 
           <button type="button" onClick={(e) => { e.stopPropagation(); onToggleFavorite(activePhoto.id); }} aria-pressed={isFavorite} aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'} className={`p-2.5 rounded-xl transition-all border ${isFavorite ? 'bg-red-500 text-white border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-white/5 text-slate-400 border-white/10 hover:border-white/20'}`} title="Favorite">

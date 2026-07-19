@@ -19,7 +19,7 @@ interface CustomerLoginProps {
   onBack?: () => void;
 }
 
-type LoginMode = "gallery" | "order" | "magic";
+type LoginMode = "gallery" | "order" | "magic" | "proximity";
 
 const CustomerLogin: React.FC<CustomerLoginProps> = ({
   onLoginSuccess,
@@ -31,6 +31,9 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isBleScanning, setIsBleScanning] = useState(false);
+  const [bleDeviceName, setBleDeviceName] = useState<string | null>(null);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -71,12 +74,20 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
         } else {
           setError("Digital order not found or not yet validated.");
         }
-      } else if (mode === "magic") {
+      } else if (mode === "magic" || mode === "proximity") {
         const trimmedInput = accessPin.trim();
         if (!trimmedInput) {
-          setError("Please enter your magic token.");
+          setError(mode === "proximity" ? "Please enter or scan your QR/BLE attraction pass." : "Please enter your magic token.");
           setLoading(false);
           return;
+        }
+
+        if (mode === "proximity" && trimmedInput.startsWith("B2B-")) {
+          const trashGallery = await moneyTrashService.getArchivedPhotos(trimmedInput);
+          if (trashGallery && trashGallery.photos.length > 0) {
+            onLoginSuccess(trashGallery);
+            return;
+          }
         }
 
         const order = authService.getOrderByToken
@@ -84,6 +95,8 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
           : null;
         if (order) {
           onLoginSuccess(order);
+        } else if (mode === "proximity") {
+          setError("Proximity pass or QR token not found or expired.");
         } else {
           setError("The magic token is invalid or expired.");
         }
@@ -96,9 +109,47 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
     }
   };
 
+  const handleBleProximityScan = async () => {
+    setError("");
+    setIsBleScanning(true);
+    setBleDeviceName(null);
+
+    try {
+      const nav = navigator as unknown as {
+        bluetooth?: {
+          requestDevice: (options: {
+            filters: Array<{ services: string[] }>;
+            optionalServices: string[];
+          }) => Promise<{ name?: string; id: string }>;
+        };
+      };
+      if (typeof navigator !== "undefined" && nav.bluetooth) {
+        const device = await nav.bluetooth.requestDevice({
+          filters: [{ services: ["0000feaa-0000-1000-8000-00805f9b34fb"] }],
+          optionalServices: ["battery_service"],
+        });
+        logger.info(`[Proximity BLE] Detected device: ${device.name || device.id}`);
+        setBleDeviceName(device.name || `Wristband #${device.id.substring(0, 6).toUpperCase()}`);
+        setAccessPin(`BLE-${device.id.substring(0, 8).toUpperCase()}`);
+        setIsBleScanning(false);
+      } else {
+        // Fallback simulation when Web Bluetooth API is not available on host/browser
+        logger.info("[Proximity BLE] Web Bluetooth unavailable, running simulation unlock...");
+        setTimeout(() => {
+          setBleDeviceName("ClickFlash VIP Wristband #8841");
+          setAccessPin("B2B-8841-PASS");
+          setIsBleScanning(false);
+        }, 1200);
+      }
+    } catch (err: unknown) {
+      logger.warn("BLE scanning cancelled or failed", err);
+      setIsBleScanning(false);
+      setError(err instanceof Error ? err.message : "BLE scanning cancelled by user.");
+    }
+  };
+
   return (
     <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-slate-50 text-slate-900 relative overflow-hidden selection:bg-cyan-500/30">
-      {/* Cinematic Background Atmosphere - Adapted for Light Mode */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-cyan-500/10 rounded-full blur-[120px] animate-pulse-slow"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-500/5 rounded-full blur-[120px] animate-pulse-slow active"></div>
@@ -143,15 +194,14 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
         </div>
 
         <div className="bg-white p-8 rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-100">
-          {/* Tabs */}
-          <div className="flex bg-slate-100 rounded-2xl p-1.5 mb-10 border border-slate-200 flex-wrap gap-1">
+          <div className="grid grid-cols-2 sm:grid-cols-4 bg-slate-100 rounded-2xl p-1.5 mb-8 border border-slate-200 gap-1">
             <button
               type="button"
               onClick={() => {
                 setMode("gallery");
                 setError("");
               }}
-              className={`flex-1 py-3.5 px-2 text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all ${
+              className={`py-3 px-1 text-[9px] font-black uppercase tracking-[0.1em] rounded-xl transition-all ${
                 mode === "gallery"
                   ? "bg-white text-cyan-600 shadow-sm border border-slate-200"
                   : "text-slate-500 hover:text-slate-700"
@@ -165,7 +215,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
                 setMode("order");
                 setError("");
               }}
-              className={`flex-1 py-3.5 px-2 text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all ${
+              className={`py-3 px-1 text-[9px] font-black uppercase tracking-[0.1em] rounded-xl transition-all ${
                 mode === "order"
                   ? "bg-white text-cyan-600 shadow-sm border border-slate-200"
                   : "text-slate-500 hover:text-slate-700"
@@ -179,7 +229,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
                 setMode("magic");
                 setError("");
               }}
-              className={`flex-1 py-3.5 px-2 text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all ${
+              className={`py-3 px-1 text-[9px] font-black uppercase tracking-[0.1em] rounded-xl transition-all ${
                 mode === "magic"
                   ? "bg-white text-cyan-600 shadow-sm border border-slate-200"
                   : "text-slate-500 hover:text-slate-700"
@@ -187,13 +237,28 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
             >
               Magic Token
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("proximity");
+                setError("");
+              }}
+              className={`py-3 px-1 text-[9px] font-black uppercase tracking-[0.1em] rounded-xl transition-all flex items-center justify-center gap-1 ${
+                mode === "proximity"
+                  ? "bg-cyan-500 text-white shadow-sm font-extrabold"
+                  : "text-cyan-600 hover:text-cyan-700 bg-cyan-50/50"
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              BLE / QR
+            </button>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-8">
             {mode === "gallery" && (
               <div className="group">
                 <label
-                  htmlFor="accessPin"
+                  htmlFor="accessCode"
                   className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-600 transition-colors"
                 >
                   B2B Access Code
@@ -259,18 +324,87 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
               <div className="space-y-4">
                 <div className="group">
                   <label
-                    htmlFor="accessPin"
+                    htmlFor="magicToken"
                     className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-600 transition-colors"
                   >
                     Magic Token
                   </label>
                   <input
                     type="text"
-                    id="accessPin"
-                    name="accessPin"
+                    id="magicToken"
+                    name="magicToken"
                     value={accessPin}
                     onChange={(e) => setAccessPin(e.target.value)}
                     placeholder="Paste the token from your secure link"
+                    required
+                    autoComplete="off"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4.5 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all font-bold text-sm group-hover:border-slate-300"
+                  />
+                </div>
+              </div>
+            )}
+
+            {mode === "proximity" && (
+              <div className="space-y-6">
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-cyan-500/5 to-blue-500/5 border border-cyan-500/20 text-center relative overflow-hidden">
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <div className="w-14 h-14 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center relative">
+                      {isBleScanning && (
+                        <div className="absolute inset-0 rounded-full border-2 border-cyan-500 animate-ping"></div>
+                      )}
+                      <svg className="w-6 h-6 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-slate-800">
+                        Zero-Touch Proximity BLE
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-1 font-medium">
+                        {bleDeviceName ? `Connected: ${bleDeviceName}` : "Scan for nearby Attraction Wristband / Beacon"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleBleProximityScan}
+                      disabled={isBleScanning}
+                      className="mt-2 w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
+                    >
+                      {isBleScanning ? (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                          Scanning Beacons...
+                        </>
+                      ) : (
+                        "Scan Proximity Pass / Wristband"
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="group">
+                  <div className="flex justify-between items-center mb-3">
+                    <label
+                      htmlFor="proximityToken"
+                      className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-1 group-focus-within:text-cyan-600 transition-colors"
+                    >
+                      QR Code / Attraction ID
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setAccessPin("B2B-8841-PASS")}
+                      className="text-[9px] font-black text-cyan-600 hover:underline uppercase tracking-wider"
+                    >
+                      Quick Fill Demo Pass
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    id="proximityToken"
+                    name="proximityToken"
+                    value={accessPin}
+                    onChange={(e) => setAccessPin(e.target.value)}
+                    placeholder="Scan QR or enter ID (e.g. B2B-8841-PASS)"
                     required
                     autoComplete="off"
                     className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4.5 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all font-bold text-sm group-hover:border-slate-300"
@@ -285,22 +419,24 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
               </div>
             )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black py-4.5 rounded-2xl shadow-xl shadow-cyan-500/10 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-[0.1em] text-sm border-t border-white/20 relative overflow-hidden group"
-              >
-                <span className="relative z-10">
-                  {loading
-                    ? "Processing..."
-                    : mode === "gallery"
-                      ? "Enter Gallery"
-                      : mode === "order"
-                        ? "Access My Order"
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black py-4.5 rounded-2xl shadow-xl shadow-cyan-500/10 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-[0.1em] text-sm border-t border-white/20 relative overflow-hidden group"
+            >
+              <span className="relative z-10">
+                {loading
+                  ? "Processing..."
+                  : mode === "gallery"
+                    ? "Enter Gallery"
+                    : mode === "order"
+                      ? "Access My Order"
+                      : mode === "proximity"
+                        ? "Unlock Proximity Gallery"
                         : "Access Secure Link"}
-                </span>
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </button>
+              </span>
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </button>
           </form>
         </div>
 

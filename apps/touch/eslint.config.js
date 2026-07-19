@@ -361,8 +361,6 @@ export default [
             "*.config.js",
             "eslint.config.js",
             "autoUpdater.js",
-            "main.js",
-            "preload.js",
             "**/__mocks__/**",
             "**/*.test.ts",
             "**/*.test.tsx",

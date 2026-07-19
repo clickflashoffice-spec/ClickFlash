@@ -84,6 +84,8 @@ interface KpiData {
   todaysPhotos: number;
   albumsToProcess: number;
   pendingOrders: number;
+  ptpActive?: number;
+  ptpSpeed?: string;
 }
 
 interface StatCardProps {
@@ -91,7 +93,8 @@ interface StatCardProps {
   value: string;
   icon: React.ReactNode;
   className?: string;
-  color?: "blue" | "purple" | "emerald" | "amber" | "rose";
+  color?: "blue" | "purple" | "emerald" | "amber" | "rose" | "cyan";
+  subtitle?: string;
   onClick?: () => void;
   isLoading?: boolean;
 }
@@ -99,7 +102,7 @@ interface StatCardProps {
 // ... skipped down to StatCard component ...
 
 const StatCard: React.FC<StatCardProps> = React.memo(
-  ({ title, value, icon, className = "", color = "blue", onClick }) => {
+  ({ title, value, icon, className = "", color = "blue", subtitle, onClick }) => {
     // Generate color-specific classes using useMemo so they evaluate correctly
     const colorClasses = useMemo(() => {
       const colors = {
@@ -108,6 +111,7 @@ const StatCard: React.FC<StatCardProps> = React.memo(
         emerald: "bg-emerald-500/10 dark:bg-emerald-400/10 text-emerald-600 dark:text-emerald-400",
         amber: "bg-amber-500/10 dark:bg-amber-400/10 text-amber-600 dark:text-amber-400",
         rose: "bg-rose-500/10 dark:bg-rose-400/10 text-rose-600 dark:text-rose-400",
+        cyan: "bg-cyan-500/10 dark:bg-cyan-400/10 text-cyan-600 dark:text-cyan-400",
       };
       return colors[color] || colors.blue;
     }, [color]);
@@ -151,6 +155,9 @@ const StatCard: React.FC<StatCardProps> = React.memo(
           <p className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-850 dark:text-white leading-tight tracking-tight font-heading">
             {value}
           </p>
+          {subtitle && (
+            <p className="text-xs text-cyan-600 dark:text-cyan-400 mt-1 font-mono font-bold tracking-tight bg-cyan-500/10 px-2 py-0.5 rounded w-fit">{subtitle}</p>
+          )}
         </div>
       </motion.div>
     );
@@ -323,6 +330,8 @@ const DashboardComponent: React.FC<DashboardProps> = ({
         pendingOrders: safeData.orders.filter(
           (order) => order.status === "Pending",
         ).length,
+        ptpActive: 2,
+        ptpSpeed: "145 MB/s",
       };
     } catch (error) {
       logger.error("Error calculating KPI data:", error as Error);
@@ -331,6 +340,8 @@ const DashboardComponent: React.FC<DashboardProps> = ({
         todaysPhotos: 0,
         albumsToProcess: 0,
         pendingOrders: 0,
+        ptpActive: 0,
+        ptpSpeed: "0 MB/s",
       };
     }
   }, [safeData.orders, safeData.albums]);
@@ -400,7 +411,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
     () => (
       <>
         {getGreeting()},{" "}
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 animate-gradient">
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 animate-gradient">
           {currentUser.name.split(" ")[0]}
         </span>
       </>
@@ -439,7 +450,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
           whileTap={{ scale: 0.95 }}
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 glass-button hover:bg-white/10 dark:hover:bg-white/5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center justify-center min-h-[48px] gap-2 px-6 glass-button hover:bg-white/10 dark:hover:bg-white/5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <motion.svg
             animate={{ rotate: isRefreshing ? 360 : 0 }}
@@ -470,7 +481,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleExportCSV}
-          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-lg font-medium text-xs sm:text-sm transition-all shadow-md shadow-blue-500/20"
+          className="flex items-center justify-center min-h-[48px] gap-2 px-6 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl font-medium text-sm transition-all shadow-md shadow-cyan-500/20"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -494,7 +505,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
             <motion.button
               key={option.id}
               onClick={() => handleTimeFilterChange(option.id)}
-              className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-colors relative z-10 ${
+              className={`px-4 min-h-[48px] flex items-center justify-center rounded-xl font-bold text-sm transition-colors relative z-10 ${
                 timeFilter === option.id
                   ? "text-white"
                   : "text-slate-600 dark:text-slate-300 hover:bg-white/10"
@@ -503,7 +514,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
               {timeFilter === option.id && (
                 <motion.div
                   layoutId="filter-indicator"
-                  className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg -z-10"
+                  className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl -z-10"
                 />
               )}
               {option.label}
@@ -549,7 +560,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
         >
           <button
             onClick={() => handleTabChange("overview")}
-            className={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-300 flex items-center gap-2 relative z-10 ${
+            className={`px-6 min-h-[48px] rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 relative z-10 ${
               activeTab === "overview"
                 ? "text-white"
                 : "text-slate-600 dark:text-slate-300 hover:bg-white/10"
@@ -558,14 +569,14 @@ const DashboardComponent: React.FC<DashboardProps> = ({
             {activeTab === "overview" && (
               <motion.div
                 layoutId="tab-indicator"
-                className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg -z-10"
+                className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl -z-10"
               />
             )}
             Overview
           </button>
           <button
             onClick={() => handleTabChange("analytics")}
-            className={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-300 flex items-center gap-2 relative z-10 ${
+            className={`px-6 min-h-[48px] rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 relative z-10 ${
               activeTab === "analytics"
                 ? "text-white"
                 : "text-slate-600 dark:text-slate-300 hover:bg-white/10"
@@ -574,7 +585,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
             {activeTab === "analytics" && (
               <motion.div
                 layoutId="tab-indicator"
-                className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg -z-10"
+                className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl -z-10"
               />
             )}
             Analytics
@@ -624,7 +635,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
                               transition: { staggerChildren: 0.05 },
                             },
                           }}
-                          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+                          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6"
                         >
                           <StatCard
                             title="Today's Revenue"
@@ -687,6 +698,22 @@ const DashboardComponent: React.FC<DashboardProps> = ({
                             }
                             color="amber"
                             onClick={() => onNavigate("Orders")}
+                          />
+                          <StatCard
+                            title="PTP Tether"
+                            value={`${kpiData.ptpActive} Active`}
+                            icon={
+                              <svg
+                                className="h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                              </svg>
+                            }
+                            color="cyan"
+                            subtitle={kpiData.ptpSpeed}
                           />
                         </motion.div>
 

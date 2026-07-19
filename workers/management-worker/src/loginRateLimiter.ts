@@ -1,6 +1,6 @@
 /**
  * Login Rate Limiter — D1-backed, Cloudflare Worker compatible.
- * Mirrors apps/gallery/backend/src/loginRateLimiter.ts for the Management Hub.
+ * Management Hub login rate limiter.
  *
  * Limits: 5 failed/email and 20 failed/IP within 15 minutes → HTTP 429.
  * Requires: login_attempts table (migration 022_add_login_attempts.sql).

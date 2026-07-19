@@ -100,7 +100,8 @@ export const faceRecognitionService = {
       const response = await fetch(`${pb.baseUrl}/api/faces/search-vector`, {
         method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(pb.authStore.token ? { 'Authorization': `Bearer ${pb.authStore.token}` } : {})
         },
         body: JSON.stringify({ descriptor: descriptorArray }),
       });

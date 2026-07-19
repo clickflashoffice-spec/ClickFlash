@@ -5,6 +5,10 @@ main = "src/server.ts"
 compatibility_date = "2024-10-01"
 compatibility_flags = ["nodejs_compat"]
 
+routes = [
+  { pattern = "api.clicketflash.com/*", custom_domain = true }
+]
+
 [env.staging]
 name = "gallery-backend-staging"
 
@@ -12,11 +16,13 @@ name = "gallery-backend-staging"
 binding = "GALLERY_DB"
 database_name = "gallery-db-staging"
 database_id = "STAGING_GALLERY_DB_ID_HERE"
+migrations_dir = "migrations"
 
 [[env.staging.d1_databases]]
 binding = "WEBSITE_DB"
 database_name = "clickflash-website-db-staging"
 database_id = "STAGING_WEBSITE_DB_ID_HERE"
+migrations_dir = "migrations/website"
 
 [[env.staging.r2_buckets]]
 binding = "GALLERY_BUCKET"
@@ -26,6 +32,8 @@ bucket_name = "clickflash-gallery-assets-staging"
 NODE_ENV = "staging"
 ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:8090"
 GALLERY_PUBLIC_URL = "http://localhost:5176/gallery/"
+FROM_EMAIL = "support@clickflash.com"
+ADMIN_NOTIFICATION_EMAIL = "clickflash.office@gmail.com"
 DEPLOY_ENV = "staging"
 GEO_RESTRICTED = "false"
 ALLOWED_COUNTRIES = ""
@@ -39,11 +47,13 @@ SENTRY_PROJECT = "clickflash-gallery-staging"
 binding = "GALLERY_DB"
 database_name = "gallery-db"
 database_id = "b556a025-1ada-46f1-ac15-2f7d117ca350" 
+migrations_dir = "migrations"
 
 [[d1_databases]]
 binding = "WEBSITE_DB"
 database_name = "clickflash-website-db"
 database_id = "5f78535b-10d3-45b4-af94-a6e5a061cac5"
+migrations_dir = "migrations/website"
 
 [[r2_buckets]]
 binding = "GALLERY_BUCKET"
@@ -53,6 +63,8 @@ bucket_name = "clickflash-gallery-assets"
 NODE_ENV = "production"
 ALLOWED_ORIGINS = "https://gallery.clickflash.com,https://clickflash.com,https://www.clickflash.com,https://clicketflash.com,https://www.clicketflash.com,https://admin.clickflash.com"
 GALLERY_PUBLIC_URL = "https://gallery.clickflash.com/gallery/"
+FROM_EMAIL = "support@clickflash.com"
+ADMIN_NOTIFICATION_EMAIL = "clickflash.office@gmail.com"
 DEPLOY_ENV = "production"
 
 # Hardened Security Policy
@@ -62,9 +74,11 @@ WAF_RATE_LIMIT = "100/min"
 SENTRY_PROJECT = "clickflash-gallery"
 
 # Secrets — set via CLI:
-# wrangler secret put JWT_SECRET --env production
-# wrangler secret put STRIPE_SECRET_KEY --env production
-# wrangler secret put STRIPE_WEBHOOK_SECRET --env production
+# Production is the top-level Wrangler environment; select it explicitly.
+# wrangler secret put JWT_SECRET --env=""
+# wrangler secret put STRIPE_SECRET_KEY --env=""
+# wrangler secret put STRIPE_WEBHOOK_SECRET --env=""
+# wrangler secret put RESEND_API_KEY --env=""
 
 [triggers]
 crons = ["0 * * * *"]  # Every hour — abandoned cart recovery emails

@@ -13,6 +13,8 @@ ClickFlash is a multi-app photobooth platform. The system consists of:
 | **moneytrash** | Next.js | 3000 | Cloudflare Pages |
 | **website** | Static / Next.js | — | Cloudflare Pages |
 | **master-cpp** | Qt6 + C++ | — | Windows native binary |
+| **mobile-photographer**| Expo / React Native | — | Android APK/AAB |
+| **mobile-client**| Expo / React Native | — | iOS / Android App |
 
 ---
 
@@ -28,13 +30,19 @@ graph TB
         TOUCH3["Touch Kiosk N\n(touch :8091)"]
         PRINTER["Receipt Printer\n(USB/Network)"]
         RFID["RFID Reader\n(USB Serial)"]
+        MOBILE["Photographer App\n(mobile-photographer)"]
+        CAMERA["Nikon D7000 DSLR"]
 
+        CAMERA -- "USB OTG / PTP\n(Photo Capture)" --> MOBILE
+        MOBILE -- "POST /api/ingest\n(Dual Route A)" --> MASTER
+        
         TOUCH1 -- "POST /api/sync/mutation\n(photo, order push)" --> MASTER
         TOUCH2 -- "POST /api/sync/mutation" --> MASTER
         TOUCH3 -- "POST /api/sync/mutation" --> MASTER
         MASTER -- "SSE /api/realtime\n(live updates)" --> TOUCH1
         MASTER -- "SSE /api/realtime" --> TOUCH2
         MASTER -. "Bonjour mDNS\n(auto-discovery)" .- TOUCH1
+        MASTER -. "Bonjour mDNS" .- MOBILE
         TOUCH1 --> PRINTER
         TOUCH1 --> RFID
     end
@@ -45,6 +53,7 @@ graph TB
         MONEYTRASH["moneytrash\n(CF Pages :3000)"]
     end
 
+    MOBILE -- "POST Pre-Signed URL\n(Dual Route B)" --> GALLERY
     MASTER -- "cloud sync\nPOST /api/cloud/sync" --> GALLERY
     MASTER -- "cloud sync" --> MGMT
     CUSTOMER["Customer\n(mobile browser)"] --> GALLERY
@@ -56,11 +65,16 @@ graph TB
 
 ```mermaid
 sequenceDiagram
+    participant Cam as Nikon D7000
+    participant Mob as Mobile App
     participant C as Customer (Kiosk)
     participant T as Touch Backend (:8091)
     participant M as Master Backend (:8090)
     participant P as Printer
 
+    Cam->>Mob: USB PTP Event (New Photo)
+    Mob->>M: Route A: Upload to Master (LAN)
+    Mob->>Cloud: Route B: Upload to Gallery (Cloud)
     C->>T: POST /api/orders (select photos)
     T->>T: Generate order (UUID, price calc)
     T->>M: POST /api/sync/mutation {order}
@@ -104,6 +118,7 @@ sequenceDiagram
 | gallery | JWT (bcrypt) | localStorage | Customer via order credentials |
 | management | JWT (bcrypt) | localStorage | Operator, CF Worker target |
 | moneytrash | Next-Auth / API key | httpOnly cookie | Hotel API keys |
+| mobile-photographer | PIN / JWT | AsyncStorage | Secure device-bound auth |
 
 **Known gap:** gallery + management use localStorage JWT — XSS risk. Tracked for CF Worker migration.
 
@@ -128,6 +143,11 @@ graph LR
         TB --> TDX[Dexie offline store]
     end
 
+    subgraph mobile["apps/mobile-photographer"]
+        MobTether[PtpTetherModule.kt] --> MobRouter[PhotoRouter.ts]
+        MobRouter --> MR
+    end
+
     subgraph gallery["apps/gallery (Web)"]
         GB[backend/server.js] --> GDB[(SQLite replica)]
         GR[React SPA] -->|fetch| GB
@@ -138,6 +158,7 @@ graph LR
         MGR[React SPA] -->|fetch| MGB
     end
 
+    MobRouter -->|POST /api/ingest| MB
     MB -->|POST /api/sync/mutation| TB
     TB -->|POST /api/cloud/sync via Master| GB
     TB -->|POST /api/cloud/sync via Master| MGB

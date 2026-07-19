@@ -89,10 +89,52 @@ parentPort.on('message', async (job: any) => {
 
             tensor.dispose();
 
-            const faces = detections.map((d: any) => ({
-                descriptor: Array.from(d.descriptor),
-                box: d.detection.box
-            }));
+            // Helper function for Eye Aspect Ratio (EAR)
+            const calculateEAR = (eyePoints: { x: number; y: number }[]): number => {
+                if (!eyePoints || eyePoints.length < 6) return 0.3; // Default open
+                const dist = (p1: { x: number; y: number }, p2: { x: number; y: number }) =>
+                    Math.hypot(p1.x - p2.x, p1.y - p2.y);
+                const vertical1 = dist(eyePoints[1], eyePoints[5]);
+                const vertical2 = dist(eyePoints[2], eyePoints[4]);
+                const horizontal = dist(eyePoints[0], eyePoints[3]);
+                if (horizontal === 0) return 0.3;
+                return (vertical1 + vertical2) / (2.0 * horizontal);
+            };
+
+            let totalEAR = 0;
+            let blinkDetected = false;
+
+            const faces = detections.map((d: any) => {
+                let ear = 0.3;
+                if (d.landmarks) {
+                    try {
+                        const leftEye = d.landmarks.getLeftEye();
+                        const rightEye = d.landmarks.getRightEye();
+                        const leftEAR = calculateEAR(leftEye);
+                        const rightEAR = calculateEAR(rightEye);
+                        ear = (leftEAR + rightEAR) / 2.0;
+                        if (ear < 0.2) blinkDetected = true;
+                        totalEAR += ear;
+                    } catch {
+                        totalEAR += 0.3;
+                    }
+                } else {
+                    totalEAR += 0.3;
+                }
+
+                return {
+                    descriptor: Array.from(d.descriptor),
+                    box: {
+                        x: d.detection.box.x,
+                        y: d.detection.box.y,
+                        width: d.detection.box.width,
+                        height: d.detection.box.height
+                    },
+                    ear
+                };
+            });
+
+            const avgEAR = detections.length > 0 ? totalEAR / detections.length : 0.3;
 
             // Hero Score Logic (Rule 53: AI Smart Selection)
             // 1. Face Confidence
@@ -126,17 +168,38 @@ parentPort.on('message', async (job: any) => {
                 logger.warn('[FaceWorker] Failed to calculate sharpness:', e.message);
             }
 
-            const heroScore = (avgFaceScore * 0.7) + (Math.min(sharpness / 1000, 1.0) * 0.3);
+            // 3. Exposure statistics (mean brightness across channels)
+            let exposureScore = 0.7;
+            try {
+                const stats = await sharp(imagePath).stats();
+                const avgMean = stats.channels.reduce((sum: number, ch: any) => sum + ch.mean, 0) / stats.channels.length;
+                // Ideal exposure around 110-140 in 8-bit space [0-255]
+                const dev = Math.abs(avgMean - 128) / 128;
+                exposureScore = Math.max(0.1, 1.0 - (dev * 0.8));
+            } catch (e: any) {
+                logger.warn('[FaceWorker] Failed to calculate exposure stats:', e.message);
+            }
+
+            // Penalty for blinking / closed eyes
+            const blinkPenalty = blinkDetected ? 0.4 : 1.0;
+            const expressionScore = Math.min(1.0, avgFaceScore * (avgEAR / 0.3));
+
+            const normalizedSharpness = Math.min(sharpness / 1000, 1.0);
+            const heroScore = ((avgFaceScore * 0.4) + (normalizedSharpness * 0.3) + (exposureScore * 0.2) + (expressionScore * 0.1)) * blinkPenalty;
 
             parentPort?.postMessage({
                 success: true,
                 faces,
                 scores: {
                     overall: heroScore,
-                    sharpness: sharpness / 1000,
-                    expression: avgFaceScore
+                    sharpness: normalizedSharpness,
+                    exposure: exposureScore,
+                    expression: expressionScore,
+                    blinkDetected
                 },
-                faceCount: detections.length
+                faceCount: detections.length,
+                width: info.width,
+                height: info.height
             });
         }
     } catch (error: any) {

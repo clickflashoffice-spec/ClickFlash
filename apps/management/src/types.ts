@@ -77,7 +77,7 @@ export interface Loan extends BaseRecord {
   payments: LoanPayment[];
 }
 
-export type AppRole = "admin" | "manager" | "photographer" | "editor" | "support" | "Admin" | "Manager" | "CEO" | "Team Leader" | "Photographer";
+export type AppRole = "admin" | "manager" | "photographer" | "editor" | "support" | "Admin" | "Manager" | "CEO" | "Team Leader" | "Photographer" | "HQ Admin" | "Regional Manager" | "Resort Manager";
 
 // Use string type for permission since management has 40+ dynamic permissions
 export type Permission = string;

@@ -45,10 +45,11 @@ class Logger {
   private isDevelopment: boolean;
 
   constructor() {
-    // Use import.meta.env for Vite environment
-    const envLevel = (import.meta.env.VITE_LOG_LEVEL || 'INFO').toUpperCase();
+    // Safely check import.meta.env or fallback to process.env
+    const metaEnv: Record<string, any> = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : (typeof process !== 'undefined' ? process.env : {});
+    const envLevel = ((metaEnv.VITE_LOG_LEVEL || metaEnv.LOG_LEVEL) || 'INFO').toUpperCase();
     this.level = LogLevel[envLevel as keyof typeof LogLevel] ?? LogLevel.INFO;
-    this.isDevelopment = import.meta.env.DEV || import.meta.env.MODE === 'development';
+    this.isDevelopment = metaEnv.DEV || metaEnv.MODE === 'development' || metaEnv.NODE_ENV === 'development';
   }
 
   private shouldLog(level: LogLevel): boolean {

@@ -28,14 +28,14 @@ export const UpdateNotification: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Listen for update events from main process
-    const ipc = (window.electron as any)?.ipcRenderer;
-    if (ipc) {
-      ipc.on('updater:checking', () => {
-        setStatus(prev => ({ ...prev, checking: true }));
-      });
+    const updater = window.electron?.updater;
+    if (!updater) return;
 
-      ipc.on('updater:available', (_: unknown, info: any) => {
+    const cleanups = [
+      updater.onChecking(() => {
+        setStatus(prev => ({ ...prev, checking: true }));
+      }),
+      updater.onAvailable((info) => {
         setStatus(prev => ({
           ...prev,
           checking: false,
@@ -44,26 +44,25 @@ export const UpdateNotification: React.FC = () => {
           releaseNotes: info.releaseNotes
         }));
         setIsVisible(true);
-      });
-
-      ipc.on('updater:progress', (_: unknown, progress: any) => {
-        setStatus(prev => ({ ...prev, progress: progress.percent }));
-      });
-
-      ipc.on('updater:downloaded', () => {
+      }),
+      updater.onProgress((progress) => {
+        setStatus(prev => ({ ...prev, progress: progress.percent ?? 0 }));
+      }),
+      updater.onDownloaded(() => {
         setStatus(prev => ({ ...prev, downloaded: true, progress: 100 }));
-      });
+      }),
+      updater.onError((error) => {
+        setStatus(prev => ({ ...prev, error: error.message ?? 'Update failed', checking: false }));
+      }),
+    ];
 
-      ipc.on('updater:error', (_: unknown, error: any) => {
-        setStatus(prev => ({ ...prev, error: error.message, checking: false }));
-      });
-    }
+    return () => cleanups.forEach((cleanup) => cleanup());
   }, []);
 
   const handleCheckForUpdates = async () => {
     setStatus(prev => ({ ...prev, checking: true }));
     try {
-      await (window.electron as any)?.ipcRenderer.invoke('updater:check');
+      await window.electron?.updater.check();
     } catch (error) {
       logger.error('Failed to check for updates:', error);
     }
@@ -71,14 +70,14 @@ export const UpdateNotification: React.FC = () => {
 
   const handleDownload = async () => {
     try {
-      await (window.electron as any)?.ipcRenderer.invoke('updater:download');
+      await window.electron?.updater.download();
     } catch (error) {
       logger.error('Failed to download update:', error);
     }
   };
 
   const handleInstall = () => {
-    (window.electron as any)?.ipcRenderer.invoke('updater:install');
+    void window.electron?.updater.install();
   };
 
   const handleDismiss = () => {

@@ -688,8 +688,8 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
           // Also insert/update D1 photos table
           try {
             await env.DB.prepare(
-              `INSERT INTO photos (id, albumId, url, status, desk_id, created_at)
-               VALUES (?, ?, ?, 'available', ?, CURRENT_TIMESTAMP)
+              `INSERT INTO photos (id, albumId, url, desk_id, created_at)
+               VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
                ON CONFLICT(id) DO UPDATE SET
                  url = EXCLUDED.url,
                  status = EXCLUDED.status,

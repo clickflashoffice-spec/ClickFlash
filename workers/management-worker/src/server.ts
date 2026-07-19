@@ -32,7 +32,6 @@ import { handleTelemetry } from "./routes/telemetry.js";
 import { handleMasters } from "./routes/masters.js";
 import { handleOnboarding } from "./routes/onboarding.js";
 import { handleBilling } from "./routes/billing.js";
-import { handleWebsite } from "./routes/website.js";
 
 /**
  * Management Hub Cloudflare Worker
@@ -50,6 +49,7 @@ export interface Env {
   SENTRY_DSN?: string; // Sentry DSN — optional; monitoring disabled when absent
   LICENSE_PRIVATE_KEY?: string;
   LICENSE_PUBLIC_KEY?: string;
+  GEMINI_API_KEY?: string;
 }
 
 const managementHandler = {
@@ -83,10 +83,10 @@ const managementHandler = {
       try {
         const { hostname } = new URL(origin);
         return (
-          hostname.endsWith("clickflash.com") ||
-          hostname.endsWith("clicketflash.com") ||
-          hostname.endsWith("pages.dev") ||
-          hostname.endsWith("workers.dev") ||
+          hostname === "clickflash.com" || hostname.endsWith(".clickflash.com") ||
+          hostname === "clicketflash.com" || hostname.endsWith(".clicketflash.com") ||
+          hostname.endsWith(".pages.dev") ||
+          hostname.endsWith(".workers.dev") ||
           hostname === "localhost" ||
           hostname === "127.0.0.1"
         );
@@ -95,9 +95,11 @@ const managementHandler = {
       }
     };
 
-    const corsOrigin = isClickFlashOrigin(requestOrigin)
-      ? (requestOrigin || "*")
-      : "";
+    if (requestOrigin && !isClickFlashOrigin(requestOrigin)) {
+      return new Response("Forbidden Origin", { status: 403 });
+    }
+
+    const corsOrigin = requestOrigin || "*";
 
     // CORS Headers with proper validation
     const corsHeaders = {
@@ -105,6 +107,7 @@ const managementHandler = {
       "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
       "Access-Control-Allow-Credentials": "true",
+      "Vary": "Origin",
     };
 
     if (request.method === "OPTIONS") {
@@ -123,7 +126,7 @@ const managementHandler = {
     const recordService = new RecordService(dbManager, emailRelayService);
     const analyticsService = new AnalyticsService(dbManager);
     const photoProcessor = new PhotoProcessor(env.GALLERY_BUCKET);
-    const pixelFounderService = new PixelFounderService();
+    const pixelFounderService = new PixelFounderService(env.GEMINI_API_KEY);
 
     const response = await (async () => {
       try {
@@ -192,15 +195,10 @@ const managementHandler = {
 
       // --- Billing API ---
       if (url.pathname.startsWith("/api/billing/")) {
-        const billingRes = await handleBilling(request, env, url, corsHeaders);
+        const billingRes = await handleBilling(request, env, url, corsHeaders, payload);
         if (billingRes) return billingRes;
       }
-      
-      // --- Website Public API ---
-      if (url.pathname.startsWith("/api/website/")) {
-        const websiteRes = await handleWebsite(request, env, url, corsHeaders, dbManager, emailRelayService);
-        if (websiteRes) return websiteRes;
-      }
+
       
       return sendNotFoundError("Route", url.pathname);
       } catch (e: any) {
@@ -220,6 +218,7 @@ const managementHandler = {
     // Apply unified CORS + security headers to every response
     const headers = new Headers(response.headers);
     Object.entries(corsHeaders).forEach(([k, v]) => headers.set(k, v));
+    headers.set("Vary", "Origin");
 
     // Security headers — matches gallery worker hardening
     headers.set("X-Content-Type-Options", "nosniff");

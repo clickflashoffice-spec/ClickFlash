@@ -33,7 +33,7 @@ This guide walks through provisioning the Cloudflare resources needed for MoneyT
 ### Option A: Using Wrangler CLI (Interactive)
 
 ```bash
-cd apps/moneytrash/cloudflare
+cd workers/moneytrash-worker
 
 # Create D1 database
 npx wrangler d1 create moneytrash-db
@@ -192,7 +192,7 @@ openssl rand -base64 32
 ## Step 7: Deploy Worker
 
 ```bash
-cd apps/moneytrash/cloudflare
+cd workers/moneytrash-worker
 
 # Deploy to production
 npx wrangler deploy

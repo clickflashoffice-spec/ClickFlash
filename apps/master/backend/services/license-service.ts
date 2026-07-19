@@ -1,8 +1,9 @@
-import crypto from "crypto";
 import { Logger } from "../utils/logger";
 import { DatabaseManager } from "../database/db";
-import { verifyEd25519License } from "@clickflash/licensing";
-import si from "systeminformation";
+import {
+    getLicenseMachineId,
+    verifySignedDesktopLicense,
+} from "../shared/desktopLicenseContract";
 
 export interface LicenseStatus {
     isValid: boolean;
@@ -12,22 +13,34 @@ export interface LicenseStatus {
     lastChecked: number | null;
 }
 
+interface LicenseServiceOptions {
+    publicKeyB64?: string;
+    getMachineId?: () => Promise<string>;
+}
+
 export class LicenseService {
-    private readonly SECRET_SALT = "clickflash-secret-salt-2026";
     private readonly GRACE_PERIOD_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+    private readonly publicKeyB64: string;
+    private readonly getMachineId: () => Promise<string>;
 
     constructor(
         private readonly db: DatabaseManager,
         private readonly logger: Logger,
-        private readonly hubUrl: string
-    ) {}
+        private readonly hubUrl: string,
+        options: LicenseServiceOptions = {},
+    ) {
+        this.publicKeyB64 = options.publicKeyB64
+            ?? process.env.CLICKFLASH_LICENSE_PUBLIC_KEY?.trim()
+            ?? "";
+        this.getMachineId = options.getMachineId ?? getLicenseMachineId;
+    }
 
     /**
      * Set a new license key in the system
      */
     public async setLicenseKey(key: string): Promise<boolean> {
-        if (!await this.verifyChecksum(key)) {
-            this.logger.warn(`[LicenseService] Invalid checksum for key: ${key}`);
+        if (!await this.verifyLicenseKey(key)) {
+            this.logger.warn("[LicenseService] Rejected invalid or unbound signed license.");
             return false;
         }
 
@@ -73,8 +86,8 @@ export class LicenseService {
         let lastChecked = lastCheckedRecord ? JSON.parse(lastCheckedRecord.value) : null;
         const recordedStatus = statusRecord ? JSON.parse(statusRecord.value) : 'active';
 
-        // Check format and checksum
-        if (!await this.verifyChecksum(licenseKey)) {
+        // Re-verify the same signature and machine binding enforced at startup.
+        if (!await this.verifyLicenseKey(licenseKey)) {
             return {
                 isValid: false,
                 licenseKey,
@@ -197,48 +210,17 @@ export class LicenseService {
         }
     }
 
-    private async verifyChecksum(key: string): Promise<boolean> {
-        // Try Ed25519 verification first
-        // The public key must match the one used by the Management Worker & License Generator
-        const PUBLIC_KEY_B64 = "PU5chItRojuz3HpsB/H0LbVh/+BYeBFM4s8gvxmEvqU=";
-        
+    private async verifyLicenseKey(key: string): Promise<boolean> {
         try {
-            // Get local machine ID to enforce hardware binding
-            const uuidInfo = await si.uuid();
-            const machineId = uuidInfo.os || uuidInfo.hardware || "UNKNOWN_MACHINE";
-
-            const result = verifyEd25519License(key, PUBLIC_KEY_B64, { expectedMachineId: machineId });
-            if (result.valid) {
-                return true;
-            } else if (result.error && result.error.includes('Machine ID mismatch')) {
-                this.logger.warn(`[LicenseService] Hardware binding failed: License bound to different hardware.`);
-                return false;
-            }
-        } catch (e) {
-            // Ignore error, fallback to legacy
-        }
-
-        // Legacy SHA-256 fallback format: CF-LIVE-XXXX-XXXX-XXXX-XXXX-XXXX
-        if (!key.startsWith('CF-LIVE-') && !key.startsWith('CF-TEST-')) {
+            const machineId = await this.getMachineId();
+            const result = verifySignedDesktopLicense(key, this.publicKeyB64);
+            return Boolean(
+                result.valid
+                && result.license
+                && result.license.machineId === machineId,
+            );
+        } catch {
             return false;
         }
-
-        const parts = key.split('-');
-        if (parts.length !== 7 || parts[0] !== 'CF' || (parts[1] !== 'LIVE' && parts[1] !== 'TEST')) {
-            return false;
-        }
-
-        const providedChecksum = parts.pop(); // Remove and return the last segment
-        if (!providedChecksum || providedChecksum.length !== 4) {
-            return false;
-        }
-
-        const baseKey = parts.join('-'); // Reconstruct without checksum
-        const dataToHash = baseKey + this.SECRET_SALT;
-
-        const hash = crypto.createHash('sha256').update(dataToHash).digest('hex');
-        const expectedChecksum = hash.substring(0, 4).toUpperCase();
-
-        return providedChecksum.toUpperCase() === expectedChecksum;
     }
 }

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Order } from '../../types.ts';
 import { useCurrency } from '../CurrencyContext.tsx';
 
@@ -26,9 +27,15 @@ const OrderCard: React.FC<{ order: Order; onClick: () => void; onDownloadSlip?: 
     };
 
     return (
-        <div
+        <motion.div
+            layout
+            layoutId={`order-${order.id}`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -4, scale: 1.02 }}
+            whileDrag={{ scale: 1.05, zIndex: 50, rotate: 2 }}
             draggable
-            onDragStart={handleDragStart}
+            onDragStart={handleDragStart as any}
             onClick={onClick}
             className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 cursor-grab active:cursor-grabbing hover:shadow-md transition-all hover:-translate-y-1"
         >
@@ -77,7 +84,7 @@ const OrderCard: React.FC<{ order: Order; onClick: () => void; onDownloadSlip?: 
                     Print Slip
                 </button>
             )}
-        </div>
+        </motion.div>
     );
 }, (prevProps, nextProps) => {
     // Custom comparison for better performance
@@ -132,7 +139,7 @@ const OrdersBoard: React.FC<OrdersBoardProps> = ({ orders, onUpdateStatus, onOrd
                                 {formatCurrency(totalValue)}
                             </div>
                         </div>
-                        <div className="p-3 space-y-3 overflow-y-auto flex-1 custom-scrollbar">
+                        <div className="p-3 space-y-3 overflow-y-auto flex-1 custom-scrollbar min-h-[100px]">
                             {colOrders.map(order => (
                                 <OrderCard
                                     key={order.id}

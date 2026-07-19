@@ -4,6 +4,7 @@ export interface LicenseKeyData {
   maxMasters: number;
   expiresAt: string;
   createdAt: string;
+  machineId: string;
 }
 
 export type LicensePlan = 'trial' | 'starter' | 'pro' | 'enterprise';

@@ -1,14 +1,19 @@
 import { jest } from '@jest/globals';
 import { LicenseService } from '../services/licenseService.js';
+import { generateEd25519KeyPair } from '@clickflash/licensing';
 
-const MOCK_PRIVATE_KEY = "EQdSP71FUDU55wNFrjIfVQUpYBme6kBsYhD1ecjmvAg9TlyEi1GiO7PcemwH8fQttWH/4Fh4EUzizyC/GYS+pQ==";
-const MOCK_PUBLIC_KEY = "PU5chItRojuz3HpsB/H0LbVh/+BYeBFM4s8gvxmEvqU=";
+const MACHINE_ID = 'test-machine-id';
 
 describe('LicenseService', () => {
   let service: LicenseService;
+  let privateKey: string;
+  let publicKey: string;
 
   beforeEach(() => {
-    service = new LicenseService(undefined, MOCK_PRIVATE_KEY, MOCK_PUBLIC_KEY);
+    const pair = generateEd25519KeyPair();
+    privateKey = pair.privateKey;
+    publicKey = pair.publicKey;
+    service = new LicenseService(undefined, privateKey, publicKey);
   });
 
   describe('generateLicenseKeys', () => {
@@ -17,7 +22,8 @@ describe('LicenseService', () => {
         deskId: 'TEST_DESK_01',
         plan: 'pro',
         maxMasters: 5,
-        count: 2
+        count: 2,
+        machineId: MACHINE_ID,
       });
 
       expect(keys).toHaveLength(2);
@@ -25,20 +31,20 @@ describe('LicenseService', () => {
       expect(keyStr.startsWith('CF-LIVE-')).toBe(true);
       
       // Validate the generated key
-      const validation = await service.validateLicenseKey(keyStr);
+      const validation = await service.validateLicenseKey(keyStr, 'TEST_DESK_01', MACHINE_ID);
       expect(validation.valid).toBe(true);
     });
   });
 
   describe('validateLicenseKey', () => {
     it('should reject keys without CF-LIVE- prefix', async () => {
-      const res = await service.validateLicenseKey('INVALID-KEY-FORMAT-1234');
+      const res = await service.validateLicenseKey('INVALID-KEY-FORMAT-1234', undefined, MACHINE_ID);
       expect(res.valid).toBe(false);
       expect(res.error).toBe('Invalid license prefix');
     });
 
     it('should reject keys with invalid format/segments', async () => {
-      const res = await service.validateLicenseKey('CF-LIVE-ABCD-EFGH-IJKL');
+      const res = await service.validateLicenseKey('CF-LIVE-ABCD-EFGH-IJKL', undefined, MACHINE_ID);
       expect(res.valid).toBe(false);
       expect(res.error).toBe('Invalid key format');
     });
@@ -47,7 +53,8 @@ describe('LicenseService', () => {
       const keys = await service.generateLicenseKeys({
         deskId: 'TEST_DESK_01',
         plan: 'pro',
-        maxMasters: 5
+        maxMasters: 5,
+        machineId: MACHINE_ID,
       });
       const originalKey = keys[0].key;
       const parts = originalKey.split('.');
@@ -58,7 +65,7 @@ describe('LicenseService', () => {
       }
       const tamperedKey = parts.join('.');
 
-      const res = await service.validateLicenseKey(tamperedKey);
+      const res = await service.validateLicenseKey(tamperedKey, undefined, MACHINE_ID);
       expect(res.valid).toBe(false);
       expect(res.error).toContain('Invalid signature');
     });
@@ -80,11 +87,11 @@ describe('LicenseService', () => {
         })
       };
 
-      const dbService = new LicenseService(mockDb, MOCK_PRIVATE_KEY, MOCK_PUBLIC_KEY);
-      const keys = await dbService.generateLicenseKeys({ deskId: 'DESK_01', plan: 'enterprise', maxMasters: 10 });
+      const dbService = new LicenseService(mockDb, privateKey, publicKey);
+      const keys = await dbService.generateLicenseKeys({ deskId: 'DESK_01', plan: 'enterprise', maxMasters: 10, machineId: MACHINE_ID });
       const validKey = keys[0].key;
 
-      const res = await dbService.validateLicenseKey(validKey, 'DESK_01');
+      const res = await dbService.validateLicenseKey(validKey, 'DESK_01', MACHINE_ID);
       expect(res.valid).toBe(true);
       expect(res.plan).toBe('enterprise');
       expect(res.maxMasters).toBe(10);
@@ -107,11 +114,11 @@ describe('LicenseService', () => {
         })
       };
 
-      const dbService = new LicenseService(mockDb, MOCK_PRIVATE_KEY, MOCK_PUBLIC_KEY);
-      const keys = await dbService.generateLicenseKeys({ deskId: 'DESK_01', plan: 'pro', maxMasters: 5 });
+      const dbService = new LicenseService(mockDb, privateKey, publicKey);
+      const keys = await dbService.generateLicenseKeys({ deskId: 'DESK_01', plan: 'pro', maxMasters: 5, machineId: MACHINE_ID });
       const validKey = keys[0].key;
 
-      const res = await dbService.validateLicenseKey(validKey);
+      const res = await dbService.validateLicenseKey(validKey, 'DESK_01', MACHINE_ID);
       expect(res.valid).toBe(false);
       expect(res.error).toContain('revoked');
     });

@@ -1,21 +1,16 @@
-import { generateEd25519License, verifyEd25519License } from '@clickflash/licensing/src/ed25519';
-const PUBLIC_KEY_B64 = "PU5chItRojuz3HpsB/H0LbVh/+BYeBFM4s8gvxmEvqU=";
-
-interface LicenseKeyData {
-  key: string;
-  plan: string;
-  maxMasters: number;
-  expiresAt: string;
-  createdAt: string;
-  machineId?: string;
-}
+import { generateEd25519License, verifyEd25519License } from '@clickflash/licensing';
+import type { LicenseKeyData } from '../types/license';
 
 interface GenerateOptions {
   plan: 'trial' | 'starter' | 'pro' | 'enterprise';
   maxMasters: number;
   expiresDays: number;
   count: number;
-  machineId?: string;
+  machineId: string;
+}
+
+export function isValidSigningKey(value: unknown): value is string {
+  return typeof value === 'string' && /^[A-Za-z0-9+/]{86}==$/.test(value.trim());
 }
 
 export async function generateLicenseKeys(
@@ -23,7 +18,7 @@ export async function generateLicenseKeys(
   signingKey: string,
 ): Promise<LicenseKeyData[]> {
   const privateKey = signingKey.trim();
-  if (!/^[A-Za-z0-9+/]{86}==$/.test(privateKey)) {
+  if (!isValidSigningKey(privateKey)) {
     throw new Error('Enter a valid Ed25519 private signing key');
   }
 
@@ -56,9 +51,10 @@ export interface ValidateOptions {
 
 export async function validateLicenseKey(
   key: string,
+  publicKeyB64: string,
   options?: ValidateOptions
 ): Promise<{ valid: boolean; plan?: string; maxMasters?: number; expiresAt?: string; machineId?: string; error?: string }> {
-  const result = verifyEd25519License(key, PUBLIC_KEY_B64, options);
+  const result = verifyEd25519License(key, publicKeyB64, options);
   
   if (result.valid && result.data) {
     return {

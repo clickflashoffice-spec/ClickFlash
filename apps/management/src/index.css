@@ -83,7 +83,7 @@
   }
 
   body {
-    @apply bg-[#070b14] text-[#f8fafc] font-sans antialiased;
+    @apply bg-[#0B111F] text-[#f8fafc] font-sans antialiased;
     font-family: "Plus Jakarta Sans", system-ui, sans-serif;
   }
 
@@ -95,11 +95,11 @@
 @layer components {
   /* --- LAYOUT COMPONENTS --- */
   .pixel-sidebar {
-    @apply w-72 bg-[#111827] border-r border-white/10 flex flex-col h-screen overflow-y-auto py-6;
+    @apply w-72 bg-[#131C31] border-r border-slate-800 flex flex-col h-screen overflow-y-auto py-6;
   }
 
   .pixel-main {
-    @apply flex-1 p-8 overflow-y-auto bg-[#0f172a] relative;
+    @apply flex-1 p-8 overflow-y-auto bg-[#0B111F] relative;
   }
 
   /* --- HEADER --- */
@@ -218,9 +218,21 @@
     @apply flex justify-between items-center py-3 border-b border-white/5 last:border-0;
   }
 
-  /* --- BUTTONS --- */
+  /* --- BUTTONS & TACTICAL UI --- */
   .btn-ai {
-    @apply bg-[#38bdf8] text-[#070b14] px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#0ea5e9] transition-all;
+    @apply bg-[#38bdf8] text-[#070b14] px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#0ea5e9] transition-all min-h-[44px];
+  }
+
+  .btn-tactical {
+    @apply bg-[#06B6D4] text-[#0B111F] px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#0891B2] transition-all shadow-md min-h-[44px] min-w-[44px];
+  }
+
+  .card-tactical {
+    @apply bg-[#131C31] rounded-xl p-5 border border-slate-800 text-slate-100 shadow-lg;
+  }
+
+  .tactical-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6;
   }
 
   .btn-whatsapp { @apply bg-[#25D366] text-white; }

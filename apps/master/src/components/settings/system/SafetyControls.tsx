@@ -46,17 +46,19 @@ export const SafetyControls: React.FC<SafetyControlsProps> = ({ canResetDb, isRe
                             Close the application and return to Desktop.
                         </p>
                         <button
-                            onClick={() => {
+                            onClick={() => void (async () => {
                                 if (confirm('Exit Kiosk Mode and return to OS?')) {
-                                    // @ts-ignore
-                                    if (window.electron && window.electron.exitKiosk) {
-                                        // @ts-ignore
-                                        window.electron.exitKiosk();
-                                    } else {
+                                    if (!window.electron) {
                                         alert('Kiosk Exit API not available.');
+                                        return;
                                     }
+
+                                    const pin = prompt('Enter the administrator PIN:');
+                                    if (pin === null) return;
+                                    const result = await window.electron.kiosk.unlock(pin);
+                                    if (!result.success) alert(result.error ?? 'Unable to exit kiosk mode.');
                                 }
-                            }}
+                            })()}
                             className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold uppercase tracking-wider rounded-md transition-colors shadow-sm w-full text-center"
                         >
                             EXIT TO DESKTOP

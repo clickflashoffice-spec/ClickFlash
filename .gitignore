@@ -89,6 +89,10 @@ backup_project.ps1
 # Master app – compiled Windows binaries (distribute via release pipeline, not git)
 apps/master/KioskGuardian.exe
 apps/master/**/*.exe
+apps/master/electron-builder-cgp.yml
+apps/master/electron-builder-mac.yml
+apps/master/electron-builder-mao.yml
+apps/master/release_*/
 
 # Ad-hoc debug/audit scripts committed during development
 apps/master/check_*.js

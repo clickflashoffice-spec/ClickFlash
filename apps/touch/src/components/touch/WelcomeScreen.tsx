@@ -6,6 +6,8 @@ import { KioskSettings, DestinationFeatures, Photo } from "../../types.ts";
 import PasswordModal from "./PasswordModal";
 import { webSocketService } from "../../services/webSocketService.ts";
 import FaceSearchModal from "./FaceSearchModal";
+import { VintageSlideshow } from "./VintageSlideshow";
+import { SelfServiceQRModal } from "../SelfServiceQRModal";
 import { logger } from "../../utils/logger";
 import { motion, AnimatePresence } from "framer-motion";
 import { faceRecognitionService, FaceSearchResult } from "../../services/faceRecognitionService.ts";
@@ -58,7 +60,15 @@ const WelcomeButton: React.FC<{
     <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
     <motion.div 
       className="relative z-10 mb-3 p-4 rounded-2xl bg-white/20 backdrop-blur-md shadow-inner text-white"
-      whileHover={{ scale: 1.1, rotate: 5 }}
+      animate={{ y: [0, -8, 0], rotate: [0, 2, -2, 0] }}
+      transition={{ 
+        duration: 3 + (delay % 2), 
+        repeat: Infinity, 
+        ease: "easeInOut",
+        delay: delay / 1000
+      }}
+      whileHover={{ scale: 1.15, rotate: 10, y: -10 }}
+      whileTap={{ scale: 0.9 }}
     >
       {icon}
     </motion.div>
@@ -93,6 +103,12 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   // Face Search State
   const [isFaceSearchOpen, setIsFaceSearchOpen] = useState(false);
   const [faceSearchLoading, setFaceSearchLoading] = useState(false);
+
+  // Vintage Booth State
+  const [isVintageBoothOpen, setIsVintageBoothOpen] = useState(false);
+
+  // Self-Service QR Kiosk State
+  const [isSelfServiceQROpen, setIsSelfServiceQROpen] = useState(false);
 
   const [settings, setSettings] = useState<KioskSettings>({
     logoUrl: "/logo.png",
@@ -613,6 +629,19 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       )}
       </AnimatePresence>
 
+      {isVintageBoothOpen && (
+        <div className="absolute inset-0 z-[100] bg-black">
+          <VintageSlideshow 
+            photos={[]} // User can capture new photos inside the overlay
+            onCaptureRequest={() => {
+              showToast("Starting Vintage Capture Sequence!");
+              // Would trigger actual capture logic here
+            }}
+            onExitMode={() => setIsVintageBoothOpen(false)}
+          />
+        </div>
+      )}
+
       {/* Controls Top Left */}
       <div className="absolute top-6 left-6 flex space-x-4 z-20">
         <button
@@ -883,6 +912,38 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               delay={150}
             />
 
+            {/* Vintage Booth Button */}
+            <WelcomeButton
+              onClick={() => setIsVintageBoothOpen(true)}
+              title="Vintage Studio Booth"
+              description="Take timeless photos with real-time vintage filters."
+              testId="welcome-vintage-booth-button"
+              icon={
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              }
+              gradient="bg-gradient-to-br from-orange-600 to-red-800 dark:from-orange-700 dark:to-red-900"
+              delay={150}
+            />
+
+            {/* Self-Service QR Kiosk Button */}
+            <WelcomeButton
+              onClick={() => setIsSelfServiceQROpen(true)}
+              title="Order on Phone"
+              description="Scan dynamic QR code to bypass kiosk and order on your device."
+              testId="welcome-self-service-qr-button"
+              icon={
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                </svg>
+              }
+              gradient="bg-gradient-to-br from-amber-500 to-yellow-700 dark:from-amber-600 dark:to-yellow-800"
+              highlight={true}
+              delay={170}
+            />
+
             {/* Optional RFID Button */}
             {settings.enableRFID && (
               <WelcomeButton
@@ -927,7 +988,11 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       <PasswordModal
         isOpen={isPasswordModalOpen}
         onClose={() => setPasswordModalOpen(false)}
-        onSuccess={handleAdminAuthSuccess}
+        onSubmit={async (password) => {
+          const success = await window.electron?.kiosk.authenticate(password) ?? false;
+          if (success) handleAdminAuthSuccess();
+          return success;
+        }}
       />
       <RoomNumberModal
         isOpen={isRoomNumberModalOpen}
@@ -947,6 +1012,13 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         onClose={() => setIsFaceSearchOpen(false)}
         onSearch={handleFaceSearch}
         title="Search for Your Photos"
+      />
+
+      <SelfServiceQRModal
+        isOpen={isSelfServiceQROpen}
+        onClose={() => setIsSelfServiceQROpen(false)}
+        eventId="default-event"
+        accessCode="GUEST-2026"
       />
 
       {/* Loading overlay for face search */}

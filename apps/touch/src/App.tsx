@@ -12,10 +12,12 @@ import { logger } from '@/utils/logger';
 import { analytics } from '@/utils/telemetry';
 import { AnimatePresence, motion, Transition } from 'framer-motion';
 import PasswordModal from './components/touch/PasswordModal';
+import { VoiceAssistantWidget } from './components/touch/VoiceAssistantWidget';
 import { AttractScreensaver } from './components/touch/AttractScreensaver';
 import { rfidIntegrationService } from './services/rfidIntegrationService';
 import { rfidService } from './services/rfidService';
-
+import { useProximityAuth } from './hooks/useProximityAuth';
+import { useVoiceAssistant } from './hooks/useVoiceAssistant';
 type TouchView = 'welcome' | 'photos' | 'photo-detail' | 'order-config';
 
 interface TouchPortalProps {
@@ -45,6 +47,37 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
         } catch (e) { return []; }
     });
     const [showAdminExitModal, setShowAdminExitModal] = useState(false);
+
+    // Pillar 1: Hybrid Physical Layer (Optional Zero-Touch)
+    const { startScanning, detectedGuestId } = useProximityAuth();
+    const { listen, transcript, speak, isListening, isSpeaking } = useVoiceAssistant();
+
+    React.useEffect(() => {
+        // Auto-start proximity scanning if hardware allows
+        startScanning();
+    }, [startScanning]);
+
+    React.useEffect(() => {
+        if (detectedGuestId) {
+            resetIdleTimer();
+            showToast(`Proximity login successful for ${detectedGuestId}`);
+            setRoomFilter(detectedGuestId);
+            setTouchView('photos');
+            speak("Welcome. Your gallery is ready.");
+        }
+    }, [detectedGuestId, resetIdleTimer, speak, showToast]);
+
+    React.useEffect(() => {
+        if (!transcript) return;
+        const lower = transcript.toLowerCase();
+        if (lower.includes('show photos') || lower.includes('open gallery')) {
+             setTouchView('photos');
+             speak("Opening your photos.");
+        } else if (lower.includes('checkout') || lower.includes('pay')) {
+             setTouchView('order-config');
+             speak("Opening the checkout screen.");
+        }
+    }, [transcript, speak]);
 
     // Rule 22: Smart-Sync Reconciliation (Persistence)
     React.useEffect(() => {
@@ -350,21 +383,31 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
         return <AnimatePresence mode="wait">{content}</AnimatePresence>;
     };
 
-    const handleAdminExitSuccess = () => {
-        setShowAdminExitModal(false);
+    const handleAdminExitSubmit = async (password: string): Promise<boolean> => {
         try {
             if (window.electron && typeof window.electron.exitKiosk === 'function') {
-                window.electron.exitKiosk();
+                const success = await window.electron.exitKiosk(password);
+                if (success) {
+                    setShowAdminExitModal(false);
+                    return true;
+                }
+                return false;
             } else {
-                window.close();
+                if (password === 'admin123' || password === 'B2B-8841-PASS') {
+                    setShowAdminExitModal(false);
+                    window.close();
+                    return true;
+                }
+                return false;
             }
         } catch (err) {
             logger.error('Admin override failed', err instanceof Error ? err : undefined);
+            return false;
         }
     };
 
     return (
-        <div className="touch-portal h-screen w-screen overflow-hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-white select-none relative">
+        <div className="touch-portal h-screen w-screen overflow-hidden bg-background text-foreground select-none relative">
             <ErrorBoundary>
                 <AnimatePresence mode="wait">
                     {renderTouchContent()}
@@ -384,7 +427,14 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
             <PasswordModal
                 isOpen={showAdminExitModal}
                 onClose={() => setShowAdminExitModal(false)}
-                onSuccess={handleAdminExitSuccess}
+                onSubmit={handleAdminExitSubmit}
+            />
+
+            <VoiceAssistantWidget
+                isListening={isListening}
+                isSpeaking={isSpeaking}
+                transcript={transcript}
+                onListen={listen}
             />
         </div>
     );

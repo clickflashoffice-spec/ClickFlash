@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useInfinitePhotos } from '../hooks/usePhotos';
 import Card from './common/Card';
 import Button from './common/Button';
-import Spinner from './common/Spinner';
+
 import LazyImage from './common/LazyImage';
 import Input from './common/Input';
 import { FixedSizeGrid } from 'react-window';
@@ -38,7 +38,7 @@ const SentinelCell = React.memo(({ style, gutter, hasNextPage, isFetchingNextPag
       className="flex justify-center items-center pb-[var(--gutter-size)]"
       style={{ ...style, '--gutter-size': `${gutter}px` } as React.CSSProperties}
     >
-      {isFetchingNextPage && <Spinner size="medium" />}
+      {isFetchingNextPage && <div className="w-full mt-4"><PhotoGridSkeleton count={4} /></div>}
     </div>
   );
 });

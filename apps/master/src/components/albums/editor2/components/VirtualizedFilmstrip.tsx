@@ -1,8 +1,6 @@
 import React, {
   useRef,
   useEffect,
-  useState,
-  useCallback,
   useMemo,
 } from "react";
 import { Photo, ManualEdits } from "@/types/shared";
@@ -10,6 +8,7 @@ import { Wand2, Zap } from "lucide-react";
 import { getPhotoStyle, INITIAL_EDITS, isEdited } from "@/utils/styleUtils";
 import { EditorFilters } from "../EditorFilters";
 import { getOrientationTransform } from "@/utils/exifOrientation";
+import { VirtuosoGrid, VirtuosoGridHandle } from "react-virtuoso";
 
 interface VirtualizedFilmstripProps {
   photos: Photo[];
@@ -23,9 +22,7 @@ interface VirtualizedFilmstripProps {
   onDeselectAll: () => void;
 }
 
-const THUMBNAIL_WIDTH = 128; // 32 * 4 = 128px
-const THUMBNAIL_GAP = 8; // gap-2 = 8px
-const BUFFER_ITEMS = 3; // Render extra items outside viewport
+const THUMBNAIL_WIDTH = 200;
 
 export const VirtualizedFilmstrip: React.FC<VirtualizedFilmstripProps> = ({
   photos,
@@ -38,84 +35,21 @@ export const VirtualizedFilmstrip: React.FC<VirtualizedFilmstripProps> = ({
   onSelectAll,
   onDeselectAll,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [scrollLeft, setScrollLeft] = useState(0);
-  const [containerWidth, setContainerWidth] = useState(0);
-
-  // Calculate total width
-  const totalWidth = useMemo(() => {
-    return photos.length * (THUMBNAIL_WIDTH + THUMBNAIL_GAP);
-  }, [photos.length]);
-
-  // Calculate visible range
-  const visibleRange = useMemo(() => {
-    const startIdx = Math.floor(scrollLeft / (THUMBNAIL_WIDTH + THUMBNAIL_GAP));
-    const visibleCount = Math.ceil(
-      containerWidth / (THUMBNAIL_WIDTH + THUMBNAIL_GAP),
-    );
-
-    const start = Math.max(0, startIdx - BUFFER_ITEMS);
-    const end = Math.min(photos.length, startIdx + visibleCount + BUFFER_ITEMS);
-
-    return { start, end };
-  }, [scrollLeft, containerWidth, photos.length]);
-
-  // Handle scroll
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    setScrollLeft(e.currentTarget.scrollLeft);
-  }, []);
-
-  // Update container width on resize
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const updateWidth = () => {
-      setContainerWidth(container.clientWidth);
-    };
-
-    updateWidth();
-
-    const resizeObserver = new ResizeObserver(updateWidth);
-    resizeObserver.observe(container);
-
-    return () => resizeObserver.disconnect();
-  }, []);
+  const virtuosoRef = useRef<VirtuosoGridHandle>(null);
 
   // Scroll active photo into view
   useEffect(() => {
-    if (!activePhotoId || !containerRef.current) return;
+    if (!activePhotoId || !virtuosoRef.current) return;
 
     const activeIndex = photos.findIndex((p) => p.id === activePhotoId);
     if (activeIndex === -1) return;
 
-    const photoLeft = activeIndex * (THUMBNAIL_WIDTH + THUMBNAIL_GAP);
-    const photoRight = photoLeft + THUMBNAIL_WIDTH;
-
-    const container = containerRef.current;
-    const currentScroll = container.scrollLeft;
-    const viewportWidth = container.clientWidth;
-
-    // Check if photo is outside visible area
-    if (
-      photoLeft < currentScroll ||
-      photoRight > currentScroll + viewportWidth
-    ) {
-      container.scrollTo({
-        left: photoLeft - viewportWidth / 2 + THUMBNAIL_WIDTH / 2,
-        behavior: "smooth",
-      });
-    }
+    virtuosoRef.current.scrollToIndex({
+      index: activeIndex,
+      align: 'center',
+      behavior: 'smooth'
+    });
   }, [activePhotoId, photos]);
-
-  const visiblePhotos = useMemo(() => {
-    return photos
-      .slice(visibleRange.start, visibleRange.end)
-      .map((photo, index) => ({
-        photo,
-        index: visibleRange.start + index,
-      }));
-  }, [photos, visibleRange]);
 
   return (
     <div
@@ -149,23 +83,16 @@ export const VirtualizedFilmstrip: React.FC<VirtualizedFilmstripProps> = ({
       </div>
 
       {/* Virtualized Scroll Container */}
-      <div
-        ref={containerRef}
-        className="flex-1 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300"
-        onScroll={handleScroll}
-        role="listbox"
-        aria-label="Photo thumbnails"
-        aria-multiselectable="true"
-      >
-        {/* Spacer for total width */}
-        <div
-          style={{ width: totalWidth, height: "100%", position: "relative" }}
-        >
-          {visiblePhotos.map(({ photo, index }) => (
+      <div className="flex-1 pb-4">
+        <VirtuosoGrid
+          ref={virtuosoRef}
+          data={photos}
+          style={{ height: '100%', width: '100%' }}
+          itemClassName="h-32 flex-shrink-0"
+          listClassName="flex gap-2 pb-4 scrollbar-thin scrollbar-thumb-gray-300 items-center overflow-x-auto"
+          itemContent={(_index, photo) => (
             <VirtualThumbnail
-              key={photo.id}
               photo={photo}
-              index={index}
               isActive={activePhotoId === photo.id}
               isSelected={selectedPhotoIds.has(photo.id)}
               isDirty={dirtyPhotoIds.has(photo.id)}
@@ -176,8 +103,8 @@ export const VirtualizedFilmstrip: React.FC<VirtualizedFilmstripProps> = ({
                 onToggleSelection(photo.id);
               }}
             />
-          ))}
-        </div>
+          )}
+        />
       </div>
     </div>
   );
@@ -185,7 +112,6 @@ export const VirtualizedFilmstrip: React.FC<VirtualizedFilmstripProps> = ({
 
 interface VirtualThumbnailProps {
   photo: Photo;
-  index: number;
   isActive: boolean;
   isSelected: boolean;
   isDirty: boolean;
@@ -197,7 +123,6 @@ interface VirtualThumbnailProps {
 const VirtualThumbnail: React.FC<VirtualThumbnailProps> = React.memo(
   ({
     photo,
-    index,
     isActive,
     isSelected,
     isDirty,
@@ -205,8 +130,6 @@ const VirtualThumbnail: React.FC<VirtualThumbnailProps> = React.memo(
     onClick,
     onToggleSelection,
   }) => {
-    const left = index * (THUMBNAIL_WIDTH + THUMBNAIL_GAP);
-
     const photoStyle = useMemo(() => {
       const photoEdits = edit || photo.manualEdits || { ...INITIAL_EDITS };
       const style = getPhotoStyle(
@@ -256,10 +179,7 @@ const VirtualThumbnail: React.FC<VirtualThumbnailProps> = React.memo(
     );
 
     return (
-      <div
-        className="absolute top-0 h-32"
-        style={{ left, width: THUMBNAIL_WIDTH }}
-      >
+      <div style={{ width: THUMBNAIL_WIDTH, height: '100%' }}>
         <div className="relative group h-full">
           <button
             onClick={onClick}

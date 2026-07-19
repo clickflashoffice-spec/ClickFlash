@@ -1,0 +1,15 @@
+[project]
+name = "clickflash-ride-node"
+version = "0.1.0"
+description = "Daemon for automatic ingestion from fixed Nikon D7000 cameras on attractions using AI Vision trigger"
+dependencies = [
+    "gphoto2>=2.3.6",
+    "boto3>=1.34.0",
+    "loguru>=0.7.2",
+    "python-dotenv>=1.0.1",
+    "opencv-python>=4.8.0"
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

@@ -1,12 +1,13 @@
 
 import fetch from 'node-fetch';
+import { logger } from '@/utils/logger';
 
 const BASE_URL = 'http://localhost:8090';
 const EMAIL = process.env.TEST_EMAIL || 'admin@clickflash.local';
-const PASSWORD = process.env.TEST_PASSWORD || (() => { console.error('Set TEST_PASSWORD env var'); process.exit(1); return ''; })();
+const PASSWORD = process.env.TEST_PASSWORD || (() => { logger.error('Set TEST_PASSWORD env var'); process.exit(1); return ''; })();
 
 async function run() {
-    console.log('--- Testing Kiosk API Persistence ---');
+    logger.info('--- Testing Kiosk API Persistence ---');
 
     // 1. Login
     const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
@@ -16,12 +17,12 @@ async function run() {
     });
 
     if (!loginRes.ok) {
-        console.error('Login failed:', await loginRes.text());
+        logger.error('Login failed:', await loginRes.text());
         return;
     }
 
     const loginData: any = await loginRes.json();
-    console.log('Login successful. User:', loginData.user.email);
+    logger.info('Login successful. User:', loginData.user.email);
     const cookie = loginRes.headers.get('set-cookie');
     const headers = {
         'Content-Type': 'application/json',
@@ -39,15 +40,15 @@ async function run() {
     });
 
     if (!createRes.ok) {
-        console.error('Create failed:', await createRes.text());
+        logger.error('Create failed:', await createRes.text());
         return;
     }
     const kiosk: any = await createRes.json();
-    console.log('Created Kiosk ID:', kiosk.id);
+    logger.info('Created Kiosk ID:', kiosk.id);
 
     // 3. Update Kiosk with ordersFolderPath
     const testPath = 'C:\\Test\\Orders';
-    console.log(`Updating kiosk with ordersFolderPath: ${testPath}`);
+    logger.info(`Updating kiosk with ordersFolderPath: ${testPath}`);
     const updateRes = await fetch(`${BASE_URL}/api/collections/kiosks/records/${kiosk.id}`, {
         method: 'PATCH', // Collections uses PATCH for update
         headers,
@@ -57,27 +58,27 @@ async function run() {
     });
 
     if (!updateRes.ok) {
-        console.error('Update failed:', await updateRes.text());
+        logger.error('Update failed:', await updateRes.text());
         return;
     }
     const updatedKiosk: any = await updateRes.json();
-    console.log('Update response ordersFolderPath:', updatedKiosk.ordersFolderPath);
+    logger.info('Update response ordersFolderPath:', updatedKiosk.ordersFolderPath);
 
     // 4. Verification Check
     if (updatedKiosk.ordersFolderPath === testPath) {
-        console.log('SUCCESS: API returned the updated path.');
+        logger.info('SUCCESS: API returned the updated path.');
     } else {
-        console.error('FAILURE: API did not return the updated path.');
+        logger.error('FAILURE: API did not return the updated path.');
     }
 
     // 5. Fetch again to double check
     // 5. Fetch again to double check
     const fetchUrl = `${BASE_URL}/api/collections/kiosks/records?filter=id="${kiosk.id}"`;
-    console.log('Fetching from:', fetchUrl);
+    logger.info('Fetching from:', fetchUrl);
     const fetchRes = await fetch(fetchUrl, { headers });
 
     if (!fetchRes.ok) {
-        console.error('Fetch Failed:', fetchRes.status, await fetchRes.text());
+        logger.error('Fetch Failed:', fetchRes.status, await fetchRes.text());
         return;
     }
 
@@ -85,18 +86,18 @@ async function run() {
     const fetchedKiosk = fetchResult.items ? fetchResult.items[0] : null;
 
     if (!fetchedKiosk) {
-        console.error('Kiosk not found in list response');
+        logger.error('Kiosk not found in list response');
         return;
     }
 
-    console.log('Refetched Full Object:', JSON.stringify(fetchedKiosk, null, 2));
-    console.log('Refetched ordersFolderPath:', fetchedKiosk.ordersFolderPath);
+    logger.info('Refetched Full Object:', JSON.stringify(fetchedKiosk, null, 2));
+    logger.info('Refetched ordersFolderPath:', fetchedKiosk.ordersFolderPath);
 
     if (fetchedKiosk.ordersFolderPath === testPath) {
-        console.log('SUCCESS: Persistence confirmed.');
+        logger.info('SUCCESS: Persistence confirmed.');
     } else {
-        console.error('FAILURE: Persistence Check Failed.');
+        logger.error('FAILURE: Persistence Check Failed.');
     }
 }
 
-run().catch(console.error);
+run().catch(logger.error);

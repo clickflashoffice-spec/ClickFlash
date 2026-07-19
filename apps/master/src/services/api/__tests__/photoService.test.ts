@@ -2,19 +2,11 @@ import { photoService, validateManualEdits } from '../photoService';
 import { mockCollection, resetPbMocks } from '../../__mocks__/pb';
 import { INITIAL_EDITS } from '../../../utils/styleUtils';
 
-// Mock the logger
-jest.mock('../../../utils/logger', () => ({
-    logger: {
-        error: jest.fn(),
-        warn: jest.fn(),
-        info: jest.fn(),
-    },
-}));
-
 // Mock the actual pb module
 jest.mock('../../pb', () => ({
     pb: require('../../__mocks__/pb').pb,
 }));
+
 
 describe('photoService', () => {
     beforeEach(() => {

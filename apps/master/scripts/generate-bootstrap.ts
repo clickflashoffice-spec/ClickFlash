@@ -14,6 +14,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { logger } from '@/utils/logger';
 
 interface BootstrapConfig {
   locationName: string;
@@ -42,8 +43,8 @@ function resolveEnvVar(value: string): string {
   if (envMatch) {
     const envValue = process.env[envMatch[1]];
     if (!envValue) {
-      console.error(`ERROR: Environment variable ${envMatch[1]} is not set`);
-      console.error(`       Set it with: export ${envMatch[1]}=your_value`);
+      logger.error(`ERROR: Environment variable ${envMatch[1]} is not set`);
+      logger.error(`       Set it with: export ${envMatch[1]}=your_value`);
       process.exit(1);
     }
     return envValue;
@@ -93,7 +94,7 @@ function parseArgs(): {
     } else if (arg === '--dryRun') {
       args.dryRun = true;
     } else if (arg.startsWith('--')) {
-      console.error(`Unknown option: ${arg}`);
+      logger.error(`Unknown option: ${arg}`);
       process.exit(1);
     }
   }
@@ -114,7 +115,7 @@ async function generateBootstrap(options: {
   
   const locationName = options.destination.trim();
   if (locationName.length < 2) {
-    console.error('ERROR: Destination name must be at least 2 characters');
+    logger.error('ERROR: Destination name must be at least 2 characters');
     process.exit(1);
   }
 
@@ -125,7 +126,7 @@ async function generateBootstrap(options: {
   const adminPassword = options.password || resolveEnvVar('${ADMIN_PASSWORD}');
   
   if (adminPassword.length < 8) {
-    console.error('ERROR: Password must be at least 8 characters');
+    logger.error('ERROR: Password must be at least 8 characters');
     process.exit(1);
   }
 
@@ -145,7 +146,7 @@ async function generateBootstrap(options: {
     };
     
     if (!config.cloudflareConfig.accountId || !config.cloudflareConfig.zoneId) {
-      console.warn('WARNING: Cloudflare Account ID or Zone ID not set. Cloudflare provisioning will be skipped.');
+      logger.warn('WARNING: Cloudflare Account ID or Zone ID not set. Cloudflare provisioning will be skipped.');
       config.cloudflareConfig = undefined;
     }
   }
@@ -162,20 +163,20 @@ function getBootstrapPath(customPath?: string): string {
 }
 
 async function main() {
-  console.log('🚀 ClickFlash Bootstrap Generator\n');
+  logger.info('🚀 ClickFlash Bootstrap Generator\n');
 
   const args = parseArgs();
 
   const destination = args.destination;
 
   if (!destination) {
-    console.error('ERROR: --destination is required');
-    console.log('\nUsage:');
-    console.log('  npm run bootstrap -- --destination "Paradise Resort"');
-    console.log('  npm run bootstrap -- -d "Ocean Hotel" -e admin@ocean.com');
-    console.log('\nEnvironment Variables (for secrets):');
-    console.log('  export ADMIN_PASSWORD=my_secret_password');
-    console.log('  export CLOUDFLARE_API_TOKEN=your_token');
+    logger.error('ERROR: --destination is required');
+    logger.info('\nUsage:');
+    logger.info('  npm run bootstrap -- --destination "Paradise Resort"');
+    logger.info('  npm run bootstrap -- -d "Ocean Hotel" -e admin@ocean.com');
+    logger.info('\nEnvironment Variables (for secrets):');
+    logger.info('  export ADMIN_PASSWORD=my_secret_password');
+    logger.info('  export CLOUDFLARE_API_TOKEN=your_token');
     process.exit(1);
   }
 
@@ -193,41 +194,41 @@ async function main() {
   const bootstrapJson = JSON.stringify(config, null, 2);
   const bootstrapPath = getBootstrapPath(args.output);
 
-  console.log('📋 Generated Configuration:');
-  console.log(`   Location:     ${config.locationName}`);
-  console.log(`   Admin Email:  ${config.adminEmail}`);
-  console.log(`   Password:      ${config.adminPassword.substring(0, 3)}***`);
-  console.log(`   Hub URL:      ${config.hubUrl}`);
+  logger.info('📋 Generated Configuration:');
+  logger.info(`   Location:     ${config.locationName}`);
+  logger.info(`   Admin Email:  ${config.adminEmail}`);
+  logger.info(`   Password:      ${config.adminPassword.substring(0, 3)}***`);
+  logger.info(`   Hub URL:      ${config.hubUrl}`);
   if (config.cloudflareConfig) {
-    console.log(`   Cloudflare:   ✓ Configured`);
+    logger.info(`   Cloudflare:   ✓ Configured`);
   } else {
-    console.log(`   Cloudflare:   ✗ Not configured (will use defaults)`);
+    logger.info(`   Cloudflare:   ✗ Not configured (will use defaults)`);
   }
-  console.log(`   Output:       ${bootstrapPath}`);
+  logger.info(`   Output:       ${bootstrapPath}`);
 
   if (args.dryRun) {
-    console.log('\n🔍 Dry run - not writing file');
-    console.log('\nbootstrap.json would contain:');
-    console.log(bootstrapJson);
+    logger.info('\n🔍 Dry run - not writing file');
+    logger.info('\nbootstrap.json would contain:');
+    logger.info(bootstrapJson);
     return;
   }
 
   const dataDir = getDataDir();
   if (!fs.existsSync(dataDir)) {
-    console.log(`\n📁 Creating data directory: ${dataDir}`);
+    logger.info(`\n📁 Creating data directory: ${dataDir}`);
     fs.mkdirSync(dataDir, { recursive: true });
   }
 
   fs.writeFileSync(bootstrapPath, bootstrapJson, 'utf8');
-  console.log(`\n✅ bootstrap.json created successfully!`);
-  console.log(`\nNext steps:`);
-  console.log(`  1. Review: cat ${bootstrapPath}`);
-  console.log(`  2. Start Master: npm run dev:full`);
-  console.log(`  3. System will auto-provision on first run`);
-  console.log(`\n💡 To regenerate, run: npm run bootstrap -- --destination "${destination}"`);
+  logger.info(`\n✅ bootstrap.json created successfully!`);
+  logger.info(`\nNext steps:`);
+  logger.info(`  1. Review: cat ${bootstrapPath}`);
+  logger.info(`  2. Start Master: npm run dev:full`);
+  logger.info(`  3. System will auto-provision on first run`);
+  logger.info(`\n💡 To regenerate, run: npm run bootstrap -- --destination "${destination}"`);
 }
 
 main().catch((error) => {
-  console.error('Fatal error:', error);
+  logger.error('Fatal error:', error);
   process.exit(1);
 });

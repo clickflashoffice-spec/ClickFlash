@@ -1,4 +1,5 @@
 import type { D1Database, ExecutionContext } from '@cloudflare/workers-types';
+import { logger } from '@/utils/logger';
 
 export interface Env {
   DB: D1Database;
@@ -12,7 +13,7 @@ export default {
     env: Env,
     ctx: ExecutionContext
   ): Promise<void> {
-    console.log(`[DripCampaignWorker] Cron triggered at ${new Date(controller.scheduledTime).toISOString()}`);
+    logger.info(`[DripCampaignWorker] Cron triggered at ${new Date(controller.scheduledTime).toISOString()}`);
 
     try {
       // 1. Process Abandoned Carts
@@ -22,7 +23,7 @@ export default {
       await processGalleryFollowUps(env);
 
     } catch (error) {
-      console.error('[DripCampaignWorker] Error processing campaigns:', error);
+      logger.error('[DripCampaignWorker] Error processing campaigns:', error);
     }
   },
 };
@@ -56,14 +57,14 @@ async function processAbandonedCarts(env: Env) {
     }
   } catch (e) {
     // Suppress D1 errors if table doesn't exist yet for this mock
-    console.warn('Abandoned cart processing skipped or failed', e);
+    logger.warn('Abandoned cart processing skipped or failed', e);
   }
 }
 
 async function processGalleryFollowUps(env: Env) {
   // Similar logic for finding guests who viewed a gallery but bought nothing
   // Mock implementation
-  console.log('[DripCampaignWorker] Processing gallery follow-ups...');
+  logger.info('[DripCampaignWorker] Processing gallery follow-ups...');
 }
 
 async function sendEmail(apiKey: string, to: string, subject: string, html: string): Promise<boolean> {
@@ -83,7 +84,7 @@ async function sendEmail(apiKey: string, to: string, subject: string, html: stri
     });
     return res.ok;
   } catch (err) {
-    console.error('Failed to send email via Resend', err);
+    logger.error('Failed to send email via Resend', err);
     return false;
   }
 }

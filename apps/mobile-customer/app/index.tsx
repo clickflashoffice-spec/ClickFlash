@@ -10,7 +10,13 @@ export default function LoginScreen() {
         style={styles.button}
         onPress={() => router.replace('/selfie')}
       >
-        <Text style={styles.buttonText}>Find My Photos</Text>
+        <Text style={styles.buttonText}>Find My Photos (Selfie)</Text>
+      </TouchableOpacity>
+      <TouchableOpacity 
+        style={[styles.button, styles.qrButton]}
+        onPress={() => router.push('/qr-scan')}
+      >
+        <Text style={styles.buttonText}>Scan Kiosk QR Code</Text>
       </TouchableOpacity>
     </View>
   );
@@ -44,6 +50,10 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     width: '100%',
     alignItems: 'center',
+    marginBottom: 16,
+  },
+  qrButton: {
+    backgroundColor: '#f59e0b', // Tailwind amber-500
   },
   buttonText: {
     color: '#fff',

@@ -17,6 +17,8 @@ import { PhotosPipeline } from "./sync/pipelines/PhotosPipeline";
 import { Order } from "../types/shared";
 import crypto from "crypto";
 import { LicenseService } from "./license-service";
+import { BandwidthShaperService } from "./BandwidthShaperService";
+
 interface SyncConfig {
   enabled: boolean;
   retentionDays: number;
@@ -418,11 +420,21 @@ export class CloudSyncService {
       if (!this.token) return;
       const token = this.token;
 
+      this.dbManager.run(`
+        CREATE TABLE IF NOT EXISTS global_settings (
+          id TEXT PRIMARY KEY,
+          key TEXT UNIQUE,
+          value TEXT,
+          version INTEGER DEFAULT 1,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
       // Read last known hash from settings table
       let lastHash = "";
       try {
         const row = this.dbManager.get<{ value: string }>(
-          "SELECT value FROM settings WHERE key = 'remote_settings_hash'",
+          "SELECT value FROM settings WHERE id = 'remote_settings_hash' OR key = 'remote_settings_hash'",
         );
         if (row?.value) lastHash = row.value;
       } catch (e: any) {
@@ -455,9 +467,14 @@ export class CloudSyncService {
       for (const setting of data.settings ?? []) {
         try {
           this.dbManager.run(
-            `INSERT INTO settings (key, value) VALUES (?, ?)
-             ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
-            [setting.id, setting.value],
+            `INSERT INTO settings (id, key, value) VALUES (?, ?, ?)
+             ON CONFLICT(id) DO UPDATE SET value = excluded.value, key = excluded.key`,
+            [setting.id, setting.id, setting.value],
+          );
+          this.dbManager.run(
+            `INSERT INTO global_settings (id, key, value, version, updated_at) VALUES (?, ?, ?, 1, datetime('now'))
+             ON CONFLICT(id) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`,
+            [setting.id, setting.id, setting.value],
           );
         } catch (e: any) {
           this.logger.warn("[CloudSync] Failed to apply remote setting", {
@@ -469,14 +486,22 @@ export class CloudSyncService {
 
       // Store the new hash so we skip next poll if unchanged
       this.dbManager.run(
-        `INSERT INTO settings (key, value) VALUES ('remote_settings_hash', ?)
-         ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+        `INSERT INTO settings (id, key, value) VALUES ('remote_settings_hash', 'remote_settings_hash', ?)
+         ON CONFLICT(id) DO UPDATE SET value = excluded.value`,
         [data.hash],
       );
 
       this.logger.info("[CloudSync] Remote settings applied successfully", {
         hash: data.hash,
       });
+
+      if (typeof (this as any).onSettingsUpdated === 'function') {
+        try {
+          (this as any).onSettingsUpdated(data.settings);
+        } catch (cbErr: any) {
+          this.logger.warn(`[CloudSync] onSettingsUpdated callback error: ${cbErr.message}`);
+        }
+      }
     } catch (e: any) {
       // Silently swallow — Hub may be unreachable during offline operation (Law 01)
     }
@@ -715,6 +740,11 @@ export class CloudSyncService {
   }
 
   private createSyncContext(): SyncContext {
+    let bandwidthThrottle;
+    try {
+      bandwidthThrottle = BandwidthShaperService.getInstance().getThrottleConfig();
+    } catch {}
+
     return {
       dbManager: this.dbManager,
       logger: this.logger,
@@ -723,6 +753,7 @@ export class CloudSyncService {
       token: this.token,
       setToken: (t: string | null) => { this.token = t; },
       getHeaders: async () => this.getHeaders(),
+      bandwidthThrottle,
     } as unknown as SyncContext;
   }
 
@@ -1506,9 +1537,19 @@ export class CloudSyncService {
   // ── Phase 51: Hub → Master Global Settings Propagation ──────────────
   private async pullGlobalSettings() {
     try {
+      this.dbManager.run(`
+        CREATE TABLE IF NOT EXISTS global_settings (
+          id TEXT PRIMARY KEY,
+          key TEXT UNIQUE,
+          value TEXT,
+          version INTEGER DEFAULT 1,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
       // Get last settings hash to avoid re-downloading unchanged settings
       const lastHash = this.dbManager.get<{ value: string }>(
-        "SELECT value FROM settings WHERE id = 'hub_settings_hash'",
+        "SELECT value FROM settings WHERE id = 'hub_settings_hash' OR key = 'hub_settings_hash'",
       );
       const currentHash = lastHash?.value || "";
 
@@ -1536,25 +1577,39 @@ export class CloudSyncService {
         `[CloudSync] Received ${data.settings.length} global settings from Hub.`,
       );
 
-      // Upsert settings locally
-      const upsertStmt = this.dbManager
+      // Upsert settings locally (populating both id and key for compatibility across migrations)
+      const upsertSettingsStmt = this.dbManager
         .getDb()
         .prepare(
-          "INSERT INTO settings (id, value) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value",
+          "INSERT INTO settings (id, key, value) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value, key = excluded.key",
+        );
+      const upsertGlobalStmt = this.dbManager
+        .getDb()
+        .prepare(
+          "INSERT INTO global_settings (id, key, value, version, updated_at) VALUES (?, ?, ?, 1, datetime('now')) ON CONFLICT(id) DO UPDATE SET value = excluded.value, updated_at = datetime('now')",
         );
 
       const tx = this.dbManager.getDb().transaction(() => {
         for (const setting of data.settings!) {
-          upsertStmt.run(setting.id, setting.value);
+          upsertSettingsStmt.run(setting.id, setting.id, setting.value);
+          upsertGlobalStmt.run(setting.id, setting.id, setting.value);
         }
         // Store the new hash
-        upsertStmt.run("hub_settings_hash", data.hash);
+        upsertSettingsStmt.run("hub_settings_hash", "hub_settings_hash", data.hash);
       });
       tx();
 
       this.logger.info(
         `[CloudSync] Applied ${data.settings.length} global settings (hash: ${data.hash.substring(0, 8)}...).`,
       );
+
+      if (typeof (this as any).onSettingsUpdated === 'function') {
+        try {
+          (this as any).onSettingsUpdated(data.settings);
+        } catch (cbErr: any) {
+          this.logger.warn(`[CloudSync] onSettingsUpdated callback error: ${cbErr.message}`);
+        }
+      }
     } catch (e: any) {
       const msg = getErrorMessage(e);
       if (!msg.includes("404")) {
@@ -1562,6 +1617,7 @@ export class CloudSyncService {
       }
     }
   }
+
 
   private async applyRemoteOperations(operations: RemoteOperation[]) {
     let lastInBatchIdx = 0;
@@ -2387,16 +2443,62 @@ export class CloudSyncService {
     return this.uploadFileChunked(orderId, assetId, relativeUrl, albumId);
   }
 
+  /**
+   * Phase 4: Master Kiosk Optimization — Aggressive pre-upload image compression.
+   * Optimizes uncompressed/large image files right before chunking/streaming to cloud storage,
+   * significantly saving network bandwidth and R2 storage costs while retaining perceptual quality.
+   */
+  private async ensureCompressedBeforeUpload(filePath: string): Promise<string> {
+    try {
+      const ext = path.extname(filePath).toLowerCase();
+      if (!['.jpg', '.jpeg', '.png', '.webp'].includes(ext)) {
+        return filePath;
+      }
+      const stats = fs.statSync(filePath);
+      // Only compress if over 2.5MB or if it's an unoptimized JPEG/PNG
+      if (stats.size < 2.5 * 1024 * 1024) {
+        return filePath;
+      }
+
+      const sharp = require('sharp');
+      const optimizedPath = `${filePath}.optimized${ext}`;
+      if (fs.existsSync(optimizedPath)) {
+        return optimizedPath;
+      }
+
+      this.logger.info(`[CloudSync] Aggressive pre-upload compression for ${path.basename(filePath)} (${(stats.size / 1024 / 1024).toFixed(2)} MB)...`);
+      const pipeline = sharp(filePath, { failOnError: false }).rotate();
+      if (ext === '.jpg' || ext === '.jpeg') {
+        await pipeline.jpeg({ quality: 88, mozjpeg: true, chromaSubsampling: '4:4:4' }).toFile(optimizedPath);
+      } else if (ext === '.webp') {
+        await pipeline.webp({ quality: 85, effort: 4 }).toFile(optimizedPath);
+      } else if (ext === '.png') {
+        await pipeline.png({ compressionLevel: 8, effort: 4 }).toFile(optimizedPath);
+      } else {
+        return filePath;
+      }
+
+      const newStats = fs.statSync(optimizedPath);
+      this.logger.info(`[CloudSync] Compressed ${path.basename(filePath)}: ${(stats.size / 1024 / 1024).toFixed(2)} MB -> ${(newStats.size / 1024 / 1024).toFixed(2)} MB (${Math.round((1 - newStats.size / stats.size) * 100)}% savings)`);
+      return optimizedPath;
+    } catch (err: any) {
+      this.logger.warn(`[CloudSync] Pre-upload compression skipped: ${err.message}`);
+      return filePath;
+    }
+  }
+
   private async uploadFileChunked(
     orderId: string,
     assetId: string,
     relativeUrl: string,
     albumId?: string,
   ) {
-    const filePath = path.join(this.uploadDir, relativeUrl);
-    if (!fs.existsSync(filePath)) {
+    const originalFilePath = path.join(this.uploadDir, relativeUrl);
+    if (!fs.existsSync(originalFilePath)) {
       throw new Error(`File missing: ${relativeUrl}`);
     }
+
+    const filePath = await this.ensureCompressedBeforeUpload(originalFilePath);
 
     const stats = fs.statSync(filePath);
     const totalSize = stats.size;
@@ -2498,10 +2600,11 @@ export class CloudSyncService {
         path.join(this.uploadDir, relativeUrl),
       ];
 
-      const filePath = candidates.find((p) => fs.existsSync(p));
-      if (!filePath) {
+      const rawFilePath = candidates.find((p) => fs.existsSync(p));
+      if (!rawFilePath) {
         throw new Error(`No suitable preview found for ${relativeUrl}`);
       }
+      const filePath = await this.ensureCompressedBeforeUpload(rawFilePath);
 
       const form = new FormData();
       // Use correct field names for Gallery backend compatibility

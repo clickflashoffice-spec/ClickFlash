@@ -31,6 +31,10 @@ class WebSocketService {
     private pendingMessages: unknown[] = [];
     private readonly MAX_QUEUE_SIZE = 50;
 
+    private coalescedQueue: Map<string, unknown[]> = new Map();
+    private coalesceTimeout: number | null = null;
+    private readonly COALESCE_DELAY_MS = 500;
+
     private heartbeatInterval: number | null = null;
     private lastConnectionTime: Date | null = null;
     private wsUrl: string = 'ws://localhost:8090/ws';
@@ -291,17 +295,76 @@ class WebSocketService {
                 this.onKioskStatusUpdateCallback(data.payload as { id: string; name: string; status: 'Connected' | 'Disconnected' });
             }
         } else if (['ALBUM_UPDATED', 'PHOTO_UPDATED', 'ORDER_UPDATED', 'USER_UPDATED', 'NEW_ORDER_NOTIFICATION'].includes(data.type)) {
-            if (this.onRefreshCallback) {
-                this.onRefreshCallback();
-            }
-            if (this.onMessageCallback) {
-                this.onMessageCallback(data);
-            }
+            // Coalesce rapid updates to prevent React render storms on 4-core hardware
+            this.coalesceUpdates(data.type, data.payload);
         } else {
             if (this.onMessageCallback) {
                 this.onMessageCallback(data);
             }
         }
+    }
+
+    /**
+     * Coalesce rapid updates from kiosks into batched notifications every 500ms
+     */
+    public coalesceUpdates(eventType: string, payload: unknown) {
+        if (!this.coalescedQueue.has(eventType)) {
+            this.coalescedQueue.set(eventType, []);
+        }
+        if (payload !== undefined) {
+            this.coalescedQueue.get(eventType)?.push(payload);
+        }
+
+        if (!this.coalesceTimeout) {
+            this.coalesceTimeout = window.setTimeout(() => {
+                this.flushCoalescedUpdates();
+            }, this.COALESCE_DELAY_MS);
+        }
+    }
+
+    private flushCoalescedUpdates() {
+        this.coalesceTimeout = null;
+        if (this.coalescedQueue.size === 0) return;
+
+        const batchedEvents: Record<string, unknown[]> = {};
+        this.coalescedQueue.forEach((items, eventType) => {
+            batchedEvents[eventType] = items;
+        });
+        this.coalescedQueue.clear();
+
+        logger.debug('[WebSocketService] Flushing coalesced updates:', Object.keys(batchedEvents));
+
+        if (this.onRefreshCallback) {
+            this.onRefreshCallback();
+        }
+
+        if (this.onMessageCallback) {
+            this.onMessageCallback({
+                type: 'BATCH_UPDATED',
+                payload: batchedEvents
+            });
+        }
+    }
+
+    /**
+     * Strip heavy Base64 image payloads or massive arrays before transmitting over WebSocket
+     */
+    public stripHeavyPayloads(payload: unknown): unknown {
+        if (!payload || typeof payload !== 'object') return payload;
+        if (Array.isArray(payload)) {
+            return payload.map(item => this.stripHeavyPayloads(item));
+        }
+        const clean: Record<string, unknown> = {};
+        for (const [key, val] of Object.entries(payload as Record<string, unknown>)) {
+            if (typeof val === 'string' && val.startsWith('data:image/') && val.length > 5000) {
+                clean[key] = '[STRIPPED_BASE64_IMAGE]';
+            } else if (typeof val === 'object' && val !== null) {
+                clean[key] = this.stripHeavyPayloads(val);
+            } else {
+                clean[key] = val;
+            }
+        }
+        return clean;
     }
 
     public disconnect(intentional = true) {
@@ -314,6 +377,11 @@ class WebSocketService {
             clearTimeout(this.reconnectTimeout);
             this.reconnectTimeout = null;
         }
+        if (this.coalesceTimeout) {
+            clearTimeout(this.coalesceTimeout);
+            this.coalesceTimeout = null;
+        }
+        this.coalescedQueue.clear();
         if (this.ws) {
             this.ws.close();
             this.ws = null;
@@ -323,11 +391,12 @@ class WebSocketService {
     }
 
     public sendMessage(message: unknown) {
+        const cleanMessage = this.stripHeavyPayloads(message);
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(JSON.stringify(message));
+            this.ws.send(JSON.stringify(cleanMessage));
         } else {
             if (this.pendingMessages.length < this.MAX_QUEUE_SIZE) {
-                this.pendingMessages.push(message);
+                this.pendingMessages.push(cleanMessage);
             } else {
                 logger.warn('[WebSocketService] Message queue full, dropping message');
             }

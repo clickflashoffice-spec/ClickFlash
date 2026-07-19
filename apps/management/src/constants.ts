@@ -71,6 +71,7 @@ export type ManagementView =
   | "volume_exports"
   | "assets_inventory"
   | "sync_logs"
+  | "sla_monitoring"
 
   // Finance Tab
   | "revenue_income"
@@ -80,8 +81,16 @@ export type ManagementView =
   // Settings Tab
   | "general_settings"
   | "staff_management"
+  | "workforce_dashboard"
   | "license_management"
   | "session_types"
   | "reports_insights"
   | "email_campaigns"
-  | "billing_subscription";
+  | "billing_subscription"
+  | "franchise_onboarding"
+  | "white_label_settings"
+
+  // AI Hub Tab
+  | "ai_manager_workspace"
+  | "ai_location_scout"
+  | "ai_ceo_workspace";

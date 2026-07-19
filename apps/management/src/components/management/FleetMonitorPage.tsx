@@ -8,7 +8,8 @@ import {Server,
   MapPin,
   HardDrive,
   Search,
-  Terminal} from "lucide-react";
+  Terminal,
+  Sparkles} from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -509,9 +510,15 @@ export const FleetMonitorPage: React.FC<{
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-1">Operations</p>
+          <div className="flex items-center gap-3 mb-1">
+            <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Operations</p>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-widest">
+              <Sparkles className="w-3 h-3" />
+              Autopilot Active
+            </span>
+          </div>
           <h1 className="text-2xl font-black text-white tracking-tight">Fleet Monitor</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Monitor and manage all Master stations</p>
+          <p className="text-sm text-slate-500 mt-0.5">PixelFounder AI is autonomously monitoring and routing workloads</p>
         </div>
         <div className="flex items-center gap-2">
           <button

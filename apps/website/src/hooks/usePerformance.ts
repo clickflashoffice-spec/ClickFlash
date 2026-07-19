@@ -99,7 +99,7 @@ function getRating(value: number, thresholds: { good: number; poor: number }): W
  * ```tsx
  * function App() {
  *   const { metrics, observeElement } = usePerformance({
- *     onMetric: (metric) => console.log(metric),
+ *     onMetric: (metric) => logger.info(metric),
  *     reportToAnalytics: true,
  *   });
  *   

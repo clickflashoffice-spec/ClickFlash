@@ -26,7 +26,7 @@ export function InstagramFeed({
   } = settings;
 
   return (
-    <section className="container mx-auto bg-white px-6 py-24">
+    <section className="container mx-auto bg-[#0B111F] px-6 py-24">
       <div className="mb-16 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -36,7 +36,7 @@ export function InstagramFeed({
           <span className="mb-4 block text-[12px] font-black tracking-[0.4em] text-cyan-700 uppercase">
             {subtitle}
           </span>
-          <h2 className="mb-10 text-5xl font-black tracking-tighter text-slate-800 md:text-7xl">
+          <h2 className="mb-10 text-5xl font-black tracking-tighter text-white/90 md:text-7xl">
             {title}
           </h2>
         </motion.div>

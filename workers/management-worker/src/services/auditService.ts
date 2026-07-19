@@ -1,6 +1,6 @@
 import { logger } from "@clickflash/logger";
 
-// apps/management/backend/src/services/auditService.ts
+// Management Worker audit service.
 /**
  * Audit Service for Management Cloud
  * Provides structured audit logging for analytics operations

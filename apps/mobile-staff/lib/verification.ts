@@ -1,4 +1,4 @@
-import { logger } from "@clickflash/logger";
+import { logger } from "../src/utils/logger";
 
 /**
  * Verifies a scanned QR code payload locally.

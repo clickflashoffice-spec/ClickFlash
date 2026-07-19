@@ -6,6 +6,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type {
   HeartbeatPayload,
+  InstallPayload,
   InstallerConfig,
   LaunchAppsPayload,
   RegisterWithHubPayload,
@@ -13,6 +14,8 @@ import type {
   WriteEnvConfigPayload,
 } from "./installer-ipc-schemas";
 import type { PayloadBundleSelectionResult } from "./installer-payload-verification";
+import type { PayloadBundleSummary } from "./installer-payload-verification";
+import type { PayloadInstallationMode } from "./installer-payload-installation";
 
 export interface InstallerApi {
   // Prerequisites
@@ -81,6 +84,14 @@ export interface InstallerApi {
   getGeolocation: () => Promise<{ success: boolean; data?: any; error?: string }>;
   launchApps: (paths: LaunchAppsPayload) => Promise<{ master: boolean; touch: boolean }>;
   selectPayloadBundle: () => Promise<PayloadBundleSelectionResult>;
+  selectInstallDirectory: () => Promise<string | null>;
+  installPayload: (payload: InstallPayload) => Promise<{
+    success: boolean;
+    mode?: PayloadInstallationMode;
+    summary?: PayloadBundleSummary;
+    warning?: string;
+    error?: string;
+  }>;
   getLogs: () => Promise<string[]>;
 
   // Pairing
@@ -137,6 +148,8 @@ const api: InstallerApi = {
   getGeolocation: () => ipcRenderer.invoke("installer:getGeolocation"),
   launchApps: (paths) => ipcRenderer.invoke("installer:launchApps", paths),
   selectPayloadBundle: () => ipcRenderer.invoke("installer:selectPayloadBundle"),
+  selectInstallDirectory: () => ipcRenderer.invoke("installer:selectInstallDirectory"),
+  installPayload: (payload) => ipcRenderer.invoke("installer:installPayload", payload),
   getLogs: () => ipcRenderer.invoke("installer:getLogs"),
 
   // Pairing

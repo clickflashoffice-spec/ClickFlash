@@ -2,34 +2,57 @@ import React, { useState, useCallback } from 'react';
 import { GeneratorForm } from './components/GeneratorForm';
 import { KeyList } from './components/KeyList';
 import { Validator } from './components/Validator';
-import { generateLicenseKeys, validateLicenseKey } from './utils/license-key';
 import { LicenseKeyData } from './types/license';
 import './styles.css';
 
 function App() {
   const [generatedKeys, setGeneratedKeys] = useState<LicenseKeyData[]>([]);
   const [notification, setNotification] = useState<string | null>(null);
+  const [signingKeyLabel, setSigningKeyLabel] = useState<string | null>(null);
 
   const handleGenerate = useCallback(async (
     plan: string,
     maxMasters: number,
     expiresDays: number,
     count: number,
-    signingKey: string,
-    machineId?: string,
+    machineId: string,
   ) => {
     try {
-      const keys = await generateLicenseKeys({
-        plan: plan as any,
+      const keys = await window.licenseApi.generateLicenses({
+        plan: plan as 'trial' | 'starter' | 'pro' | 'enterprise',
         maxMasters,
         expiresDays,
         count,
         machineId
-      }, signingKey);
+      });
       setGeneratedKeys(keys);
       showNotification(`Generated ${keys.length} license keys`);
     } catch (err) {
       showNotification(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  }, []);
+
+  const handleSelectSigningKey = useCallback(async () => {
+    try {
+      const result = await window.licenseApi.selectSigningKey();
+      if (result.selected) {
+        setSigningKeyLabel(`${result.fileName} (${result.keyId})`);
+        showNotification('Private signing key loaded into the protected main process');
+      } else if (result.error) {
+        showNotification(`Error: ${result.error}`);
+      }
+    } catch (err) {
+      showNotification(`Error: ${err instanceof Error ? err.message : 'Unable to load signing key'}`);
+    }
+  }, []);
+
+  const handleClearSigningKey = useCallback(async () => {
+    try {
+      await window.licenseApi.clearSigningKey();
+      setSigningKeyLabel(null);
+      showNotification('Private signing key cleared');
+    } catch (err) {
+      showNotification(`Error: ${err instanceof Error ? err.message : 'Unable to clear signing key'}`);
     }
   }, []);
 
@@ -52,7 +75,7 @@ function App() {
   }, []);
 
   const handleValidate = useCallback(async (key: string) => {
-    return await validateLicenseKey(key);
+    return window.licenseApi.validateLicense({ key });
   }, []);
 
   const showNotification = (message: string) => {
@@ -70,7 +93,12 @@ function App() {
       <main className="app-main">
         <section className="section">
           <h2>Generate Keys</h2>
-          <GeneratorForm onGenerate={handleGenerate} />
+          <GeneratorForm
+            signingKeyLabel={signingKeyLabel}
+            onSelectSigningKey={handleSelectSigningKey}
+            onClearSigningKey={handleClearSigningKey}
+            onGenerate={handleGenerate}
+          />
         </section>
 
         {generatedKeys.length > 0 && (
@@ -93,7 +121,7 @@ function App() {
       )}
 
       <footer className="app-footer">
-        <p>ClickFlash Studio v4.2.0 • Offline License Generator</p>
+        <p>ClickFlash Studio • Offline License Generator</p>
       </footer>
     </div>
   );

@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["ExpoDslrUsbModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.dslrusb.ExpoDslrUsbModule"]
+  }
+}

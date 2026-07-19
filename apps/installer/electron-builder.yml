@@ -11,6 +11,10 @@ files:
   - dist/electron/**/*
   - package.json
 
+extraResources:
+  - from: build/generated/license-public-key.txt
+    to: license-public-key.txt
+
 asar: true
 afterPack: scripts/verify-packaged-artifact.cjs
 

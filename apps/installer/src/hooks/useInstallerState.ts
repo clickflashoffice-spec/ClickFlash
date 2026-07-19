@@ -7,13 +7,18 @@ import { useState, useCallback, useRef } from "react";
 import type {
   ApplicationComponent,
   HeartbeatPayload,
+  InstallPayload,
   InstallerConfig,
   LaunchAppsPayload,
   RegisterWithHubPayload,
   ValidatedLicense,
   WriteEnvConfigPayload,
 } from "../../installer-ipc-schemas";
-import type { PayloadBundleSelectionResult } from "../../installer-payload-verification";
+import type {
+  PayloadBundleSelectionResult,
+  PayloadBundleSummary,
+} from "../../installer-payload-verification";
+import type { PayloadInstallationMode } from "../../installer-payload-installation";
 import {
   InstallStep,
   STEP_ORDER,
@@ -58,6 +63,14 @@ declare const window: Window & {
     getGeolocation: () => Promise<{ success: boolean; data?: { city: string; regionName: string; countryCode?: string; country?: string; timezone: string; currency?: string }; error?: string }>;
     launchApps: (payload: LaunchAppsPayload) => Promise<{ master: boolean; touch: boolean }>;
     selectPayloadBundle: () => Promise<PayloadBundleSelectionResult>;
+    selectInstallDirectory: () => Promise<string | null>;
+    installPayload: (payload: InstallPayload) => Promise<{
+      success: boolean;
+      mode?: PayloadInstallationMode;
+      summary?: PayloadBundleSummary;
+      warning?: string;
+      error?: string;
+    }>;
     getLogs: () => Promise<string[]>;
     // License
     validateLicense: (key: string) => Promise<{ success: boolean; data?: ValidatedLicense; error?: string }>;
@@ -129,6 +142,7 @@ const initialState: InstallerState = {
   touchPaired: false,
   pairingResult: null,
   healthResults: null,
+  payloadBundlePath: "",
   installPath: "",
   payloadBundle: null,
   launchOnComplete: true,
@@ -186,22 +200,39 @@ export function useInstallerState() {
       if (result.success) {
         setState((s) => ({
           ...s,
-          installPath: result.directory,
+          payloadBundlePath: result.directory,
           payloadBundle: result.summary,
         }));
         addLog(`Signed payload ${result.summary.releaseId} v${result.summary.version} verified.`);
         return result.directory;
       }
       if (!result.canceled) {
-        setState((s) => ({ ...s, installPath: "", payloadBundle: null }));
+        setState((s) => ({ ...s, payloadBundlePath: "", payloadBundle: null }));
         setError(result.error || "Payload bundle verification failed");
         addLog(`ERROR: ${result.error || "Payload bundle verification failed"}`);
       }
       return null;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      setState((s) => ({ ...s, installPath: "", payloadBundle: null }));
+      setState((s) => ({ ...s, payloadBundlePath: "", payloadBundle: null }));
       setError(`Payload bundle verification failed: ${message}`);
+      addLog(`ERROR: ${message}`);
+      return null;
+    }
+  }, [addLog, setError]);
+
+  const selectInstallDirectory = useCallback(async () => {
+    setError(null);
+    try {
+      const selectedDirectory = await api.selectInstallDirectory();
+      if (selectedDirectory) {
+        setState((s) => ({ ...s, installPath: selectedDirectory }));
+        addLog(`Installation destination approved: ${selectedDirectory}`);
+      }
+      return selectedDirectory;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(`Installation destination selection failed: ${message}`);
       addLog(`ERROR: ${message}`);
       return null;
     }
@@ -541,28 +572,29 @@ export function useInstallerState() {
   const saveAndLaunch = useCallback(async () => {
     setLoading(true);
     setError(null);
-    addLog("Committing application configuration...");
+    addLog("Preparing transactional application installation...");
     try {
       if (!state.deskId || !state.desk || !state.license) {
         throw new Error("License and destination configuration must be complete");
       }
       if (!state.installPath) {
-        throw new Error("An approved deployment root is required");
+        throw new Error("An approved installation destination is required");
       }
-      const configResult = await api.saveConfig({
-        deskId: state.deskId,
-        studioProfile: state.studioProfile,
-        destination: state.desk,
-        license: state.license,
-        hub: state.hub ? { tenant_id: state.hub.tenant_id } : null,
-        pairings: state.pairings,
-        firstSync: state.firstSync,
-        version: "5.0.0",
-        installedAt: new Date().toISOString(),
-      });
-      if (!configResult.success) {
-        throw new Error(configResult.error || "Failed to save installer configuration");
+      if (!state.payloadBundlePath || !state.payloadBundle) {
+        throw new Error("A verified application bundle is required");
       }
+
+      const components = state.selectedApps.filter(
+        (application): application is "master" | "touch" => application === "master" || application === "touch",
+      );
+      const installationResult = await api.installPayload({ components });
+      if (!installationResult.success) {
+        throw new Error(installationResult.error || "Application installation failed");
+      }
+      addLog(installationResult.mode === "repair"
+        ? "Verified application repair committed."
+        : "Verified application installation committed.");
+      if (installationResult.warning) addLog(`WARNING: ${installationResult.warning}`);
 
       const envConfigResult = await api.writeEnvConfig({
         targetDir: state.installPath,
@@ -578,10 +610,22 @@ export function useInstallerState() {
         throw new Error(envConfigResult.error || "Application configuration failed");
       }
 
+      const configResult = await api.saveConfig({
+        deskId: state.deskId,
+        studioProfile: state.studioProfile,
+        destination: state.desk,
+        license: state.license,
+        hub: state.hub ? { tenant_id: state.hub.tenant_id } : null,
+        pairings: state.pairings,
+        firstSync: state.firstSync,
+        version: "5.0.0",
+        installedAt: new Date().toISOString(),
+      });
+      if (!configResult.success) {
+        throw new Error(configResult.error || "Failed to save installer configuration");
+      }
+
       if (state.launchOnComplete) {
-        const components = state.selectedApps.filter(
-          (application): application is "master" | "touch" => application === "master" || application === "touch",
-        );
         const launchResult = await api.launchApps({ components });
         const failedApplications = components.filter((application) => !launchResult[application]);
         if (failedApplications.length > 0) {
@@ -594,7 +638,7 @@ export function useInstallerState() {
       return { success: true };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      setError(`Launch failed: ${msg}`);
+      setError(`Setup failed: ${msg}`);
       addLog(`ERROR: ${msg}`);
       return { success: false, error: msg };
     } finally {
@@ -612,6 +656,7 @@ export function useInstallerState() {
     prevStep,
     setSelectedApps,
     selectPayloadBundle,
+    selectInstallDirectory,
     setLaunchOnComplete,
     setError,
     addLog,

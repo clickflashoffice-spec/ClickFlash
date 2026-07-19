@@ -87,13 +87,13 @@ export default function BookingsPage() {
     };
 
     return (
-        <main className="min-h-screen bg-white pt-24 pb-16">
+        <main className="min-h-screen bg-[#0B111F] pt-24 pb-16">
             {/* Hero Section */}
             <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
-                <h1 className="text-4xl md:text-6xl font-black text-slate-800 mb-6 uppercase tracking-tighter">
+                <h1 className="text-4xl md:text-6xl font-black text-white/90 mb-6 uppercase tracking-tighter">
                     Book Your <span className="text-cyan-700">Session</span>
                 </h1>
-                <p className="text-xl text-slate-600 font-medium tracking-tight">
+                <p className="text-xl text-white/70 font-medium tracking-tight">
                     Let&apos;s capture your moments. Choose your session type and preferred date.
                 </p>
             </section>
@@ -103,10 +103,10 @@ export default function BookingsPage() {
                 <section className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
                     <div className="bg-cyan-50 border border-cyan-100 rounded-3xl p-12 text-center shadow-xl">
                         <div className="text-5xl mb-6 scale-125">✨</div>
-                        <h2 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tighter">
+                        <h2 className="text-3xl font-black text-white/90 mb-4 uppercase tracking-tighter">
                             Booking Requested!
                         </h2>
-                        <p className="text-slate-600 font-medium">
+                        <p className="text-white/70 font-medium">
                             Thank you for choosing ClickFlash. We&apos;ve received your request and will contact you within 24 hours to confirm details.
                         </p>
                         <button
@@ -123,14 +123,14 @@ export default function BookingsPage() {
                 <>
                     {/* Session Types */}
                     <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-                        <h2 className="text-xl font-black text-slate-600 mb-8 text-center uppercase tracking-widest">
+                        <h2 className="text-xl font-black text-white/70 mb-8 text-center uppercase tracking-widest">
                             Select Session Type
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {sessionTypes.map((session) => (
                                 <label
                                     key={session.id}
-                                    className="relative flex items-start p-8 bg-white border border-slate-100 rounded-3xl cursor-pointer hover:shadow-xl hover:border-cyan-500/50 transition-all group"
+                                    className="relative flex items-start p-8 bg-[#0B111F] border border-white/10 rounded-3xl cursor-pointer hover:shadow-xl hover:border-cyan-500/50 transition-all group"
                                 >
                                     <input
                                         type="radio"
@@ -143,10 +143,10 @@ export default function BookingsPage() {
                                     <div className="absolute inset-0 rounded-3xl border-2 border-transparent peer-checked:border-cyan-500 pointer-events-none transition-all"></div>
                                     <div className="text-5xl mr-6 group-hover:scale-110 transition-transform duration-300">{session.icon}</div>
                                     <div className="flex-1">
-                                        <h3 className="text-xl font-black text-slate-800 group-hover:text-cyan-700 transition-colors uppercase tracking-tight">
+                                        <h3 className="text-xl font-black text-white/90 group-hover:text-cyan-700 transition-colors uppercase tracking-tight">
                                             {session.name}
                                         </h3>
-                                        <p className="text-slate-600 text-sm mt-1 leading-relaxed">{session.description}</p>
+                                        <p className="text-white/70 text-sm mt-1 leading-relaxed">{session.description}</p>
                                     </div>
                                 </label>
                             ))}
@@ -155,10 +155,10 @@ export default function BookingsPage() {
 
                     {/* Booking Form */}
                     <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="bg-white border border-slate-100 rounded-[2.5rem] p-12 shadow-2xl relative overflow-hidden">
+                        <div className="bg-[#0B111F] border border-white/10 rounded-[2.5rem] p-12 shadow-2xl relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-50/50 blur-3xl rounded-full -translate-x-12 translate-y-12 -z-10" />
 
-                            <h2 className="text-2xl font-black text-slate-800 mb-10 uppercase tracking-tighter">
+                            <h2 className="text-2xl font-black text-white/90 mb-10 uppercase tracking-tighter">
                                 Contact Information
                             </h2>
 
@@ -171,7 +171,7 @@ export default function BookingsPage() {
                             <form onSubmit={handleSubmit} className="space-y-8">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="md:col-span-2">
-                                        <label htmlFor="name" className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 ml-1">
+                                        <label htmlFor="name" className="block text-[10px] font-black uppercase tracking-widest text-white/70 mb-3 ml-1">
                                             Full Name *
                                         </label>
                                         <input
@@ -181,7 +181,7 @@ export default function BookingsPage() {
                                             required
                                             value={formData.name}
                                             onChange={handleChange}
-                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all font-bold"
+                                            className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-xl text-white/90 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-[#0B111F] transition-all font-bold"
                                             placeholder="John Doe"
                                         />
                                     </div>
@@ -189,7 +189,7 @@ export default function BookingsPage() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div>
-                                        <label htmlFor="email" className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 ml-1">
+                                        <label htmlFor="email" className="block text-[10px] font-black uppercase tracking-widest text-white/70 mb-3 ml-1">
                                             Email Address *
                                         </label>
                                         <input
@@ -199,13 +199,13 @@ export default function BookingsPage() {
                                             required
                                             value={formData.email}
                                             onChange={handleChange}
-                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all font-bold"
+                                            className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-xl text-white/90 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-[#0B111F] transition-all font-bold"
                                             placeholder="john@example.com"
                                         />
                                     </div>
 
                                     <div>
-                                        <label htmlFor="phone" className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 ml-1">
+                                        <label htmlFor="phone" className="block text-[10px] font-black uppercase tracking-widest text-white/70 mb-3 ml-1">
                                             Phone Number
                                         </label>
                                         <input
@@ -214,7 +214,7 @@ export default function BookingsPage() {
                                             name="phone"
                                             value={formData.phone}
                                             onChange={handleChange}
-                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all font-bold"
+                                            className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-xl text-white/90 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-[#0B111F] transition-all font-bold"
                                             placeholder="+1 (555) 000-0000"
                                         />
                                     </div>
@@ -222,7 +222,7 @@ export default function BookingsPage() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div>
-                                        <label htmlFor="event_date" className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 ml-1">
+                                        <label htmlFor="event_date" className="block text-[10px] font-black uppercase tracking-widest text-white/70 mb-3 ml-1">
                                             Preferred Date *
                                         </label>
                                         <input
@@ -232,11 +232,11 @@ export default function BookingsPage() {
                                             required
                                             value={formData.event_date}
                                             onChange={handleChange}
-                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all font-bold"
+                                            className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-xl text-white/90 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-[#0B111F] transition-all font-bold"
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="time" className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 ml-1">
+                                        <label htmlFor="time" className="block text-[10px] font-black uppercase tracking-widest text-white/70 mb-3 ml-1">
                                             Preferred Time
                                         </label>
                                         <select
@@ -244,7 +244,7 @@ export default function BookingsPage() {
                                             name="time"
                                             value={formData.time}
                                             onChange={handleChange}
-                                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all font-bold"
+                                            className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-xl text-white/90 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-[#0B111F] transition-all font-bold"
                                         >
                                             <option value="">Select a time</option>
                                             <option value="morning">Morning (8am - 12pm)</option>
@@ -255,7 +255,7 @@ export default function BookingsPage() {
                                 </div>
 
                                 <div>
-                                    <label htmlFor="event_location" className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 ml-1">
+                                    <label htmlFor="event_location" className="block text-[10px] font-black uppercase tracking-widest text-white/70 mb-3 ml-1">
                                         Event Location
                                     </label>
                                     <input
@@ -264,13 +264,13 @@ export default function BookingsPage() {
                                         name="event_location"
                                         value={formData.event_location}
                                         onChange={handleChange}
-                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all font-bold"
+                                        className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-xl text-white/90 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-[#0B111F] transition-all font-bold"
                                         placeholder="Venue name or address"
                                     />
                                 </div>
 
                                 <div>
-                                    <label htmlFor="message" className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 ml-1">
+                                    <label htmlFor="message" className="block text-[10px] font-black uppercase tracking-widest text-white/70 mb-3 ml-1">
                                         Additional Details
                                     </label>
                                     <textarea
@@ -279,7 +279,7 @@ export default function BookingsPage() {
                                         rows={4}
                                         value={formData.message}
                                         onChange={handleChange}
-                                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all font-bold resize-none"
+                                        className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-xl text-white/90 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-[#0B111F] transition-all font-bold resize-none"
                                         placeholder="Tell us about your event, number of guests, special requirements..."
                                     ></textarea>
                                 </div>
@@ -292,7 +292,7 @@ export default function BookingsPage() {
                                     >
                                         {isSubmitting ? 'Processing...' : 'Request Booking'}
                                     </button>
-                                    <p className="text-center text-slate-600 text-[10px] font-black uppercase tracking-widest mt-6">
+                                    <p className="text-center text-white/70 text-[10px] font-black uppercase tracking-widest mt-6">
                                         We&apos;ll get back to you within 24 hours to confirm availability.
                                     </p>
                                 </div>

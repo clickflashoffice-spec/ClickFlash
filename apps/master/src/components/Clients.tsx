@@ -4,6 +4,7 @@ import { useDebounce } from '../hooks/useDebounce.ts';
 import { Order, Photographer } from '../types';
 import { apiService } from '../services/apiService';
 import Spinner from './common/Spinner';
+import { TableRowSkeleton, StatCardSkeleton } from './common/Skeleton';
 import Card from './common/Card';
 import { useCurrency } from './CurrencyContext';
 import ClientDetailsModal from './modals/ClientDetailsModal';
@@ -241,8 +242,29 @@ const Clients: React.FC<ClientsProps> = ({ currentUser, refreshTrigger }) => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-full min-h-[300px]">
-                <Spinner size="large" />
+            <div className="p-6 max-w-7xl mx-auto space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <StatCardSkeleton />
+                    <StatCardSkeleton />
+                    <StatCardSkeleton />
+                </div>
+                <div className="bg-white/5 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-white/5 border-b border-white/10">
+                                <th className="px-6 py-4 text-slate-300">Client Details</th>
+                                <th className="px-6 py-4 text-slate-300">Contact</th>
+                                <th className="px-6 py-4 text-slate-300">Status</th>
+                                <th className="px-6 py-4 text-right text-slate-300">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {[...Array(5)].map((_, i) => (
+                                <TableRowSkeleton key={i} columns={4} />
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         );
     }
@@ -356,10 +378,10 @@ const Clients: React.FC<ClientsProps> = ({ currentUser, refreshTrigger }) => {
                         <button
                             key={status}
                             onClick={() => setStatusFilter(status)}
-                            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                            className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 ${
                                 statusFilter === status
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                    ? 'bg-blue-600/80 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] border border-blue-500/50'
+                                    : 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 hover:text-white'
                             }`}
                         >
                             {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -382,7 +404,7 @@ const Clients: React.FC<ClientsProps> = ({ currentUser, refreshTrigger }) => {
                         placeholder="Search clients by name or email..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        className="w-full pl-10 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all backdrop-blur-md shadow-inner"
                     />
                 </div>
             </div>
@@ -398,7 +420,7 @@ const Clients: React.FC<ClientsProps> = ({ currentUser, refreshTrigger }) => {
             <Card className="!p-0 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
-                        <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                        <thead className="bg-white/5 border-b border-white/10">
                             <tr>
                                 {[
                                     { key: 'name', label: 'Client' },
@@ -430,13 +452,13 @@ const Clients: React.FC<ClientsProps> = ({ currentUser, refreshTrigger }) => {
                                 <th className="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                        <tbody className="divide-y divide-white/5">
                             {filteredAndSortedClients.map((client) => {
                                 const status = getClientStatus(client.orders.length);
                                 return (
                                     <tr
                                         key={client.email}
-                                        className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                                        className="hover:bg-white/5 transition-colors cursor-pointer"
                                         onClick={() => setSelectedClient(client)}
                                     >
                                         <td className="p-4">
@@ -478,8 +500,8 @@ const Clients: React.FC<ClientsProps> = ({ currentUser, refreshTrigger }) => {
 
                 {filteredAndSortedClients.length === 0 && (
                     <div className="text-center py-16">
-                        <div className="bg-slate-100 dark:bg-slate-800 rounded-full p-6 w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="bg-white/5 rounded-full p-6 w-20 h-20 mx-auto mb-4 flex items-center justify-center border border-white/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                         </div>

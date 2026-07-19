@@ -40,7 +40,7 @@ const cleanupProcessing = async () => {
 
 // Run if called directly
 if (require.main === module) {
-    cleanupProcessing().catch(console.error);
+    cleanupProcessing().catch(logger.error);
 }
 
 export default cleanupProcessing;

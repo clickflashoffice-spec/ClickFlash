@@ -77,69 +77,11 @@ jobs:
             apps/installer/release/*.dmg
 
   # ───────────────────────────────────────────
-  # 2. Deploy Cloud Services
-  # ───────────────────────────────────────────
-  deploy-cloud:
-    name: Deploy Cloud Services
-    needs: build-desktop
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Deploy Gallery Worker
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/gallery/backend
-          command: deploy
-
-      - name: Deploy Management Worker
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/management/backend
-          command: deploy
-
-      - name: Deploy MoneyTrash Worker
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/moneytrash/cloudflare
-          command: deploy
-
-      - name: Deploy Website
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/website
-          command: pages deploy out --project-name=clickflash-website --branch=main --commit-dirty=true
-
-  # ───────────────────────────────────────────
-  # 3. Create GitHub Release
+  # 2. Create GitHub Release
   # ───────────────────────────────────────────
   release:
     name: Create Release
-    needs: [build-desktop, deploy-cloud]
+    needs: build-desktop
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -164,13 +164,7 @@ Object.defineProperty(window.URL, "revokeObjectURL", {
 Object.defineProperty(window, "electron", {
   writable: true,
   value: {
-    exitKiosk: vi.fn(),
-    logger: {
-      error: vi.fn(),
-      info: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-    },
+    exitKiosk: vi.fn().mockResolvedValue(false),
     isElectron: false,
   },
 });

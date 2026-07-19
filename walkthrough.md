@@ -310,7 +310,7 @@ Complete the workspace inventory, run the first baseline quality gates, and rank
 ### Remaining desktop release blockers
 
 - Rotate the compromised Ed25519 signing key and define public-key/legacy-license migration.
-- Finish signed payload acquisition and transactional install/upgrade/repair/rollback; semantic configuration commit/rollback, privileged payload schemas, OS-protected Installer license persistence, DNS pinning, response limits, and timeouts are complete. Automatic IP geolocation remains intentionally disabled.
+- Approve and issue the first production payload, then finish version-changing upgrade, reboot/interruption recovery, health-triggered rollback, and safe uninstall; verified acquisition, fresh install, same-release repair/root rollback, semantic configuration, privileged payload schemas, OS-protected Installer license persistence, DNS pinning, response limits, and timeouts are complete. Automatic IP geolocation remains intentionally disabled.
 - Expand Master/Touch typed payload validation and structured errors, then consolidate duplicate shells/builders after parity tests; sender authorization is complete.
 - Obtain Authenticode resources and verify signed installers/updaters on clean Windows 10/11 machines.
 
@@ -361,3 +361,43 @@ Complete the workspace inventory, run the first baseline quality gates, and rank
 
 - Approve payload-key custody and review the derived public key before embedding it and issuing the first authorized Master/Touch bundle.
 - Then implement transactional acquisition/copy, install, upgrade, repair, interruption recovery, and binary rollback around the verified bundle.
+
+## 2026-07-17 — Transactional payload install and same-release repair
+
+### Implemented
+
+- Split the signed payload source from the installation destination in renderer state, the preload bridge, strict IPC schemas, and the wizard. The signed bundle determines the exact Master/Touch component set.
+- Re-verifies the complete source and its operator-approved manifest digest, rejects linked/junction roots, requires source and destination to be disjoint, and refuses nonempty unmanaged destinations.
+- Copies every declared file and the signed envelope exclusively into a same-volume sibling stage, fsyncs each copied file, verifies the complete stage, atomically swaps the destination root, and verifies the installed copy before accepting the transaction.
+- Restores the previous destination root after commit or post-swap verification failure. If cleanup or recovery cannot finish, the error identifies the preserved recovery backup instead of deleting it.
+- Supports fresh install and same-release repair. Repair may replace missing/corrupt declared application files and preserves only authenticated Installer-owned `.env` files plus `clickflash-installation.json`; component mismatches, unexpected files, and version-changing upgrades fail closed.
+- Configuration is written only after the installed payload verifies, and application launch re-verifies the installed release with only the explicit configuration additions allowed.
+
+### Validation evidence
+
+- Installer lint and all renderer/Electron/payload-tool TypeScript checks pass.
+- The complete Installer suite passes **59/59 tests across eleven suites**. Five focused transaction tests cover fresh install, repair with configuration preservation, post-swap rollback, unmanaged-target refusal, version-changing-upgrade refusal, and component mismatch; IPC coverage executes source approval, destination approval, install, and configuration in order.
+- The canonical NSIS package completed. Its 4,928-entry ASAR includes `installer-payload-installation.js`, excludes the offline signer, and contains no private-key, private-key environment-variable, `payload:sign`, or `payload-release` marker.
+- Final SHA-256: NSIS `7688E28F137F3A907447D3FA0DB0E2C640CC2E5A627C506CC9C1CA387BB3E2A3`; installed EXE `828FA62BD391B627CF3FD2FC18135CEDFEEFEA0B33311D7FFFD786F342A1D52B`; ASAR `04E98536C9FE54B89EB1195638483AD4CDF773C0C2F7402A294F8E427E0137E5`.
+- Both Windows executables remain `NotSigned`. The packaged payload trust table remains intentionally empty, no production payload key was created or embedded, and no deployment occurred.
+- Gallery remains online-only and unchanged; it is not part of the desktop component set or installer payload.
+
+### Remaining gate
+
+- Approve payload-key custody, embed only the reviewed public key, and issue the first authorized Master/Touch release bundle.
+- Complete Authenticode, SBOM/reproducibility, native dependency closure, and clean Windows 10/11 lifecycle proof before release.
+
+## 2026-07-19 — Management Analytics Dashboard
+
+### Implemented
+
+- Created the `AnalyticsDashboard` React component (`apps/management/src/components/management/AnalyticsDashboard.tsx`) to visualize 30-day trailing revenue and conversion metrics using Recharts.
+- Integrated the dashboard into `ReportsPage.tsx` to display alongside existing Global/Hotel reports.
+- Wired the dashboard to the real D1-backed endpoints (`/api/analytics/revenue` and `/api/analytics/conversion`) via the `cloudApiService`.
+
+### Validation evidence
+
+- The UI safely parses D1 analytics payloads and elegantly fails/loads if the Cloudflare worker backend is unreachable.
+- Layout integrates with the existing Management reports view and correctly displays glassmorphism shadow effects.
+- Tested file rendering boundaries and properly updated `ReportsPage.tsx` without disrupting existing components.
+

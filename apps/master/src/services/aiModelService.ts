@@ -1,9 +1,8 @@
-// TensorFlow imports are dynamic to avoid pulling ~4MB into the main bundle
-// They are loaded on first use via getTf() and getBlazeFace()
+// TensorFlow and face-api imports are dynamic to avoid pulling large deps into the main bundle
 import { logger } from '../utils/logger';
 
 let _tf: typeof import('@tensorflow/tfjs') | null = null;
-let _blazeface: typeof import('@tensorflow-models/blazeface') | null = null;
+let _faceapi: typeof import('@vladmandic/face-api') | null = null;
 
 async function getTf() {
     if (!_tf) {
@@ -19,11 +18,11 @@ async function getTf() {
     return _tf;
 }
 
-async function getBlazeFace() {
-    if (!_blazeface) {
-        _blazeface = await import('@tensorflow-models/blazeface');
+async function getFaceApi() {
+    if (!_faceapi) {
+        _faceapi = await import('@vladmandic/face-api');
     }
-    return _blazeface;
+    return _faceapi;
 }
 
 interface Face {
@@ -50,32 +49,40 @@ interface ColorStats {
  * Handles lazy loading, caching, and proper tensor disposal for memory safety.
  */
 class AIModelService {
-    private blazefaceModel: any | null = null;
+    private faceApiModel: any | null = null;
     private modelLoadPromise: Promise<any> | null = null;
 
     constructor() {
-        // TensorFlow initialized lazily on first use via getTf()
+        // TensorFlow/face-api initialized lazily on first use
     }
 
     /**
-     * Load BlazeFace model (lazy, cached)
+     * Load face-api model (lazy, cached)
      */
-    async loadBlazeFace(): Promise<any> {
-        if (this.blazefaceModel) {
-            return this.blazefaceModel;
+    async loadFaceApi(): Promise<any> {
+        if (this.faceApiModel) {
+            return this.faceApiModel;
         }
 
         if (this.modelLoadPromise) {
             return this.modelLoadPromise;
         }
 
-        this.modelLoadPromise = getBlazeFace().then(bf => bf.load()).then(model => {
-            this.blazefaceModel = model;
-            logger.info('BlazeFace model loaded successfully');
-            return model;
+        this.modelLoadPromise = getFaceApi().then(async (faceapi) => {
+            await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+            this.faceApiModel = faceapi;
+            logger.info('Face-api tinyFaceDetector loaded successfully');
+            return faceapi;
         });
 
         return this.modelLoadPromise;
+    }
+
+    /**
+     * Backwards compatible alias
+     */
+    async loadBlazeFace(): Promise<any> {
+        return this.loadFaceApi();
     }
 
     /**
@@ -88,19 +95,20 @@ class AIModelService {
         }
 
         try {
-            const model = await this.loadBlazeFace();
-            if (!model || typeof model.estimateFaces !== 'function') {
-                logger.error('BlazeFace model not properly loaded');
+            const faceapi = await this.loadFaceApi();
+            if (!faceapi) {
+                logger.error('Face-api model not properly loaded');
                 return [];
             }
 
-            const predictions = await model.estimateFaces(imageElement, false);
+            const options = new faceapi.TinyFaceDetectorOptions();
+            const detections = await faceapi.detectAllFaces(imageElement, options);
 
-            return (predictions as any[]).map((prediction) => ({
-                topLeft: prediction.topLeft as [number, number],
-                bottomRight: prediction.bottomRight as [number, number],
-                probability: prediction.probability?.[0] || 1.0,
-                landmarks: prediction.landmarks as number[][]
+            return detections.map((detection: any) => ({
+                topLeft: [detection.box.x, detection.box.y] as [number, number],
+                bottomRight: [detection.box.x + detection.box.width, detection.box.y + detection.box.height] as [number, number],
+                probability: detection.score || 1.0,
+                landmarks: []
             }));
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
@@ -173,10 +181,10 @@ class AIModelService {
      * Dispose all loaded models and free memory
      */
     dispose(): void {
-        if (this.blazefaceModel) {
-            this.blazefaceModel = null;
+        if (this.faceApiModel) {
+            this.faceApiModel = null;
             this.modelLoadPromise = null;
-            logger.info('BlazeFace model disposed');
+            logger.info('Face-api model disposed');
         }
     }
 

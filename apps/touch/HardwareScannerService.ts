@@ -1,6 +1,7 @@
 import { SerialPort } from 'serialport';
 import { ReadlineParser } from '@serialport/parser-readline';
 import { BrowserWindow } from 'electron';
+import { logger } from '@clickflash/logger';
 
 export class HardwareScannerService {
   private port: SerialPort | null = null;
@@ -17,7 +18,7 @@ export class HardwareScannerService {
   }
 
   public async initialize() {
-    console.log('[HardwareScanner] Initializing...');
+    logger.info('[HardwareScanner] Initializing...');
     await this.connectToScanner();
   }
 
@@ -35,12 +36,12 @@ export class HardwareScannerService {
       }
 
       if (!targetPort) {
-        console.warn('[HardwareScanner] No suitable scanner found on COM ports.');
+        logger.warn('[HardwareScanner] No suitable scanner found on COM ports.');
         this.scheduleReconnect();
         return;
       }
 
-      console.log(`[HardwareScanner] Connecting to ${targetPort.path}...`);
+      logger.info(`[HardwareScanner] Connecting to ${targetPort.path}...`);
 
       this.port = new SerialPort({
         path: targetPort.path,
@@ -51,29 +52,29 @@ export class HardwareScannerService {
       this.parser = this.port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
 
       this.port.on('open', () => {
-        console.log(`[HardwareScanner] Connected successfully to ${targetPort!.path}`);
+        logger.info(`[HardwareScanner] Connected successfully to ${targetPort!.path}`);
       });
 
       this.parser.on('data', (data: string) => {
         const scanData = data.trim();
-        console.log(`[HardwareScanner] Scan received: ${scanData}`);
+        logger.debug(`[HardwareScanner] Scan received: ${scanData}`);
         if (this.mainWindow) {
           this.mainWindow.webContents.send('scanner:data', scanData);
         }
       });
 
       this.port.on('error', (err) => {
-        console.error(`[HardwareScanner] Error: ${err.message}`);
+        logger.error(`[HardwareScanner] Error: ${err.message}`);
         this.scheduleReconnect();
       });
 
       this.port.on('close', () => {
-        console.log('[HardwareScanner] Connection closed. Attempting to reconnect...');
+        logger.info('[HardwareScanner] Connection closed. Attempting to reconnect...');
         this.scheduleReconnect();
       });
 
     } catch (error) {
-      console.error('[HardwareScanner] Failed to list or connect to ports:', error);
+      logger.error('[HardwareScanner] Failed to list or connect to ports', error instanceof Error ? error : { error: String(error) });
       this.scheduleReconnect();
     }
   }

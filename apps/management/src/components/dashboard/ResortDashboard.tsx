@@ -3,7 +3,8 @@ import {Activity,
   ShieldCheck,
   LayoutDashboard,
   LineChart,
-  HardDrive} from "lucide-react";
+  HardDrive,
+  Cpu} from "lucide-react";
 import { Photographer } from "../../types";
 import { cloudApiService } from "../../services/cloudApiService";
 import { useStation } from "../../context/StationContext";
@@ -12,12 +13,13 @@ import { StationSelector } from "../controls/StationSelector";
 import MasterOverview from "./MasterOverview";
 import BusinessIntelligence, { BusinessChartsData } from "./BusinessIntelligence";
 import ResortIntelligence from "./ResortIntelligence";
+import AISwarmCommandCenter from "../../ai/AISwarmCommandCenter";
 
 interface ResortDashboardProps {
   currentUser: Photographer;
 }
 
-type DashboardTab = "overview" | "bi" | "fleet";
+type DashboardTab = "overview" | "bi" | "fleet" | "swarm";
 
 const ResortDashboard: React.FC<ResortDashboardProps> = ({ currentUser: currentUser }) => {
   const { selectedStationId } = useStation();
@@ -206,6 +208,7 @@ const ResortDashboard: React.FC<ResortDashboardProps> = ({ currentUser: currentU
                 <TabButton id="overview" label="Overview" icon={Activity} />
                 <TabButton id="bi" label="Analytics" icon={LineChart} />
                 <TabButton id="fleet" label="Fleet" icon={HardDrive} />
+                <TabButton id="swarm" label="AI Swarm" icon={Cpu} />
             </div>
             <div className="h-10 w-px bg-slate-800 hidden md:block"></div>
             <StationSelector />
@@ -237,6 +240,7 @@ const ResortDashboard: React.FC<ResortDashboardProps> = ({ currentUser: currentU
                 {activeTab === "overview" && <MasterOverview kpis={kpis} stats={[]} />}
                 {activeTab === "bi" && <BusinessIntelligence chartsData={chartsData} trendData={trendData} />}
                 {activeTab === "fleet" && <ResortIntelligence />}
+                {activeTab === "swarm" && <AISwarmCommandCenter />}
             </>
         )}
       </div>

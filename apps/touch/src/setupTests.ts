@@ -163,13 +163,7 @@ Object.defineProperty(window.URL, "revokeObjectURL", {
 Object.defineProperty(window, "electron", {
   writable: true,
   value: {
-    exitKiosk: jest.fn(),
-    logger: {
-      error: jest.fn(),
-      info: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
-    },
+    exitKiosk: jest.fn().mockResolvedValue(false),
     isElectron: false,
   },
 });

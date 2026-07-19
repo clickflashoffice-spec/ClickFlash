@@ -5,6 +5,10 @@ main = "src/server.ts"
 compatibility_date = "2024-10-01"
 compatibility_flags = [ "nodejs_compat" ]
 
+routes = [
+  { pattern = "hub-api.clicketflash.com/*", custom_domain = true }
+]
+
 [placement]
 mode = "smart"
 
@@ -28,6 +32,7 @@ bucket_name = "clickflash-backups-staging"
 ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:8090"
 FROM_EMAIL = "support@clickflash.com"
 GALLERY_PUBLIC_URL = "http://localhost:5176/gallery/"
+BILLING_RETURN_URL = "https://staging.management-hub.pages.dev/manage"
 DEPLOY_ENV = "staging"
 MAX_REQS_PER_MINUTE = 600
 GEO_RESTRICTED = "false"
@@ -56,14 +61,20 @@ FROM_EMAIL = "support@clickflash.com"
 DEPLOY_ENV = "production"
 FRONTEND_URL = "https://admin.clickflash.com/manage"
 GALLERY_PUBLIC_URL = "https://gallery.clickflash.com/gallery/"
+BILLING_RETURN_URL = "https://admin.clickflash.com/manage"
 
 # Hardened WAF Rate Limiting vars
 MAX_REQS_PER_MINUTE = 60
 GEO_RESTRICTED = "false"
 ALLOWED_COUNTRIES = "MA,TN,FR,US"
 
-# Secrets — set via CLI:
-# wrangler secret put JWT_SECRET --env production
+# Production is the top-level Wrangler environment; select it explicitly.
+# wrangler secret put JWT_SECRET --env=""
+# wrangler secret put PROVISIONING_SECRET --env=""
+# wrangler secret put LICENSE_PRIVATE_KEY --env=""
+# wrangler secret put STRIPE_PRO_PRICE_ID --env=""
+# wrangler secret put STRIPE_SECRET_KEY --env=""
+# wrangler secret put STRIPE_WEBHOOK_SECRET --env=""
 
 [observability]
 enabled = true

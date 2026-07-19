@@ -54,7 +54,10 @@ async function copyAssets() {
         
         if (await fs.pathExists(srcDep)) {
             await fs.ensureDir(localNodeModules);
-            await fs.copy(srcDep, destDep, { overwrite: true });
+            if (await fs.pathExists(destDep)) {
+                await fs.remove(destDep);
+            }
+            await fs.copy(srcDep, destDep, { overwrite: true, dereference: true });
             console.log(`[Assets] Copied ${dep} to local node_modules`);
         } else {
             console.warn(`[Assets] Warning: ${dep} not found in pnpm store`);

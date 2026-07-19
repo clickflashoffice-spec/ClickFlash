@@ -390,6 +390,14 @@ export const ApiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
     details: z.record(z.unknown()).optional(),
   });
 
+export const ApiErrorSchema = z.object({
+  success: z.literal(false),
+  error: z.string(),
+  code: z.string().optional(),
+  details: z.record(z.unknown()).optional(),
+  path: z.string().optional(),
+});
+
 // =============================================================================
 // LICENSE KEY
 // =============================================================================
@@ -427,6 +435,65 @@ export const PosOrderCreateSchema = OrderCreateSchema.extend({
 });
 
 // =============================================================================
+// MOBILE APP
+// =============================================================================
+
+export const MobileLoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+  deviceId: z.string(),
+  deviceModel: z.string().optional(),
+});
+
+export const MobileUploadSchema = z.object({
+  albumId: z.string(),
+  photoCount: z.number().int().positive(),
+  totalSize: z.number().int().positive(),
+});
+
+export const MobileSyncSchema = z.object({
+  lastSyncToken: z.string().optional(),
+  deviceId: z.string(),
+  batteryLevel: z.number().min(0).max(100).optional(),
+});
+
+// =============================================================================
+// FLEET MANAGEMENT
+// =============================================================================
+
+export const FleetHeartbeatSchema = z.object({
+  kioskId: z.string(),
+  status: KioskStatusSchema,
+  uptime: z.number().int().nonnegative(),
+  freeDiskSpace: z.number().int().nonnegative().optional(),
+  printerStatus: z.enum(['Ready', 'PaperLow', 'InkLow', 'Error', 'Offline']).optional(),
+  cameraStatus: z.enum(['Connected', 'Disconnected', 'Error']).optional(),
+  networkLatency: z.number().int().nonnegative().optional(),
+});
+
+export const FleetCommandSchema = z.object({
+  kioskId: z.string(),
+  command: z.enum(['Restart', 'UpdateSoftware', 'LockScreen', 'ClearCache', 'SyncNow']),
+  payload: z.record(z.unknown()).optional(),
+  scheduledFor: z.string().datetime().optional(),
+});
+
+// =============================================================================
+// LICENSE MANAGEMENT (Extended)
+// =============================================================================
+
+export const LicenseValidationSchema = z.object({
+  licenseKey: z.string().min(32),
+  hardwareId: z.string(),
+  version: z.string(),
+});
+
+export const LicenseRevokeSchema = z.object({
+  licenseKey: z.string(),
+  reason: z.string().optional(),
+});
+
+// =============================================================================
 // INFERRED TYPES
 // =============================================================================
 
@@ -459,3 +526,17 @@ export type PermissionString = z.infer<typeof PermissionStringSchema>;
 export type RolePermissions = z.infer<typeof RolePermissionsSchema>;
 export type RfidAuth = z.infer<typeof RfidAuthSchema>;
 export type PosOrderCreate = z.infer<typeof PosOrderCreateSchema>;
+export type ApiError = z.infer<typeof ApiErrorSchema>;
+
+// Mobile
+export type MobileLogin = z.infer<typeof MobileLoginSchema>;
+export type MobileUpload = z.infer<typeof MobileUploadSchema>;
+export type MobileSync = z.infer<typeof MobileSyncSchema>;
+
+// Fleet
+export type FleetHeartbeat = z.infer<typeof FleetHeartbeatSchema>;
+export type FleetCommand = z.infer<typeof FleetCommandSchema>;
+
+// License Extended
+export type LicenseValidation = z.infer<typeof LicenseValidationSchema>;
+export type LicenseRevoke = z.infer<typeof LicenseRevokeSchema>;

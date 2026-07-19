@@ -13,6 +13,8 @@ import exifr from "exifr";
 import { validateImageMagicNumber } from '../services/validateImage';
 import { logger } from '../utils/logger';
 import { AutoEditEngine, ImageStats } from '../services/AutoEditEngine';
+import { BlurhashService } from '../services/blurhashService';
+import { AICullingService } from '../services/aiCullingService';
 
 if (!parentPort) {
   throw new Error("This file must be run as a worker thread");
@@ -38,6 +40,7 @@ interface WorkerJob {
   opacity?: number;
   scale?: number;
   position?: string;
+  iccProfilePath?: string;
 }
 
 parentPort.on("message", async (job: WorkerJob) => {
@@ -65,8 +68,30 @@ parentPort.on("message", async (job: WorkerJob) => {
   }
 });
 
+/**
+ * Phase 4: Aggressive format-specific compression for Master Kiosk ingestion.
+ * Reduces disk footprint and network bandwidth while maintaining perceptual quality.
+ */
+function applyFormatCompression(pipeline: sharp.Sharp, ext: string, mode: 'highres' | 'preview' | 'thumb'): sharp.Sharp {
+  const normalizedExt = ext.toLowerCase();
+  if (normalizedExt === '.jpg' || normalizedExt === '.jpeg') {
+    if (mode === 'highres') {
+      return pipeline.jpeg({ quality: 90, mozjpeg: true, chromaSubsampling: '4:4:4' });
+    } else if (mode === 'preview') {
+      return pipeline.jpeg({ quality: 82, mozjpeg: true });
+    } else {
+      return pipeline.jpeg({ quality: 78, mozjpeg: true });
+    }
+  } else if (normalizedExt === '.webp') {
+    return pipeline.webp({ quality: mode === 'highres' ? 88 : 80, effort: 4 });
+  } else if (normalizedExt === '.png') {
+    return pipeline.png({ compressionLevel: 8, effort: 4 });
+  }
+  return pipeline;
+}
+
 async function handleProcessJob(job: WorkerJob) {
-  const { filepath, outputDir, photoId, ext, mimeType } = job;
+  const { filepath, outputDir, photoId, ext, mimeType, iccProfilePath } = job;
   // Processing ${photoId} from ${filepath}
 
   // Phase 32: Skip processing for placeholder URLs
@@ -161,8 +186,20 @@ async function handleProcessJob(job: WorkerJob) {
         else if (luminance > 225) quality_flags.push("Overexposed");
         if (contrast < 20) quality_flags.push("Flat");
       }
+
+      // 🧠 Run Deep Learning Quality Assessment
+      // Requires raw RGB buffer, which we approximate with sharp() buffer
+      const bufferForAI = await sharp(filepath, { failOnError: false }).resize(224, 224, { fit: 'inside' }).toBuffer();
+      const aiScores = await AICullingService.evaluateImage(bufferForAI, 224, 224);
+      
+      if (aiScores.blurScore > 0.8) quality_flags.push("Blurred");
+      else if (aiScores.blurScore < 0.2) quality_flags.push("Sharp");
+      
+      if (aiScores.closedEyesCount > 0) quality_flags.push("Closed Eyes");
+      if (aiScores.faceCount === 0) quality_flags.push("No Faces");
+
     } catch {
-      logger.warn(`[PhotoWorker] Failed to compute stats for ${photoId}`);
+      logger.warn(`[PhotoWorker] Failed to compute stats/AI culling for ${photoId}`);
     }
 
     let autoEdits: any = null;
@@ -179,20 +216,32 @@ async function handleProcessJob(job: WorkerJob) {
     }
 
     const promises: Promise<any>[] = [
-      // 1. Generate High-Res (Stripped & Corrected orientation)
-      sharp(filepath, { failOnError: false })
-        .rotate()
-        .withMetadata({ exif: Buffer.alloc(0) } as any) // Explicitly clear GPS/sensitive EXIF
-        .toFile(strippedHighResPath),
+      // 1. Generate High-Res (Stripped & Corrected orientation & optional ICC)
+      applyFormatCompression(
+        sharp(filepath, { failOnError: false })
+          .rotate()
+          .withMetadata(
+             iccProfilePath && fs.existsSync(iccProfilePath)
+             ? { icc: iccProfilePath, exif: Buffer.alloc(0) } as any
+             : { exif: Buffer.alloc(0) } as any
+          ),
+        ext,
+        'highres'
+      ).toFile(strippedHighResPath),
 
       // 2. Generate Assets
-      sharp(filepath, { failOnError: false })
-        .resize(400, 400, { fit: "inside", withoutEnlargement: true })
-        .toFile(thumbnailPath),
-      sharp(filepath, { failOnError: false })
-        .resize(2048, 2048, { fit: "inside", withoutEnlargement: true })
-        .jpeg({ quality: 85 })
-        .toFile(previewPath),
+      applyFormatCompression(
+        sharp(filepath, { failOnError: false })
+          .resize(400, 400, { fit: "inside", withoutEnlargement: true }),
+        ext,
+        'thumb'
+      ).toFile(thumbnailPath),
+      applyFormatCompression(
+        sharp(filepath, { failOnError: false })
+          .resize(2048, 2048, { fit: "inside", withoutEnlargement: true }),
+        ext,
+        'preview'
+      ).toFile(previewPath),
       sharp(filepath, { failOnError: false })
         .resize(100, 100, { fit: "inside", withoutEnlargement: true })
         .toFormat("webp", { quality: 80 })
@@ -217,11 +266,14 @@ async function handleProcessJob(job: WorkerJob) {
       baseEditedPipeline = applyPipelineCrop(baseEditedPipeline, autoEdits.crop, currentWidth, currentHeight);
       baseEditedPipeline = applyPipelineEdits(baseEditedPipeline, autoEdits);
       
-      promises.push(baseEditedPipeline.clone().resize(2048, 2048, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 85, mozjpeg: true }).toFile(previewEditedPath));
-      promises.push(baseEditedPipeline.clone().jpeg({ quality: 95, mozjpeg: true }).toFile(highresEditedPath));
+      promises.push(applyFormatCompression(baseEditedPipeline.clone().resize(2048, 2048, { fit: "inside", withoutEnlargement: true }), '.jpg', 'preview').toFile(previewEditedPath));
+      promises.push(applyFormatCompression(baseEditedPipeline.clone(), '.jpg', 'highres').toFile(highresEditedPath));
     }
 
-    await Promise.all(promises);
+    const [blurhash] = await Promise.all([
+      BlurhashService.generateBlurhash(filepath),
+      Promise.all(promises)
+    ]);
 
 
     parentPort!.postMessage({
@@ -229,6 +281,7 @@ async function handleProcessJob(job: WorkerJob) {
       photoId,
       hash: fileHash,
       entaggedBarcode,
+      blurhash: blurhash || undefined,
       metadata: {
         width: metadata.width,
         height: metadata.height,
@@ -257,19 +310,37 @@ async function handleProcessJob(job: WorkerJob) {
         logger.warn(`[PhotoWorker] Corrupt/Partial JPEG detected for ${photoId}. Attempting aggressive repair...`);
         let buffer: Buffer | null = fs.readFileSync(filepath);
 
-        await Promise.all([
-          sharp(buffer, { failOnError: false }).rotate().withMetadata({ exif: Buffer.alloc(0) } as any).toFile(strippedHighResPath),
-          sharp(buffer, { failOnError: false }).resize(400, 400, { fit: "inside", withoutEnlargement: true }).toFile(thumbnailPath),
-          sharp(buffer, { failOnError: false }).resize(2048, 2048, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 85, mozjpeg: true }).toFile(previewPath),
-          sharp(buffer, { failOnError: false }).resize(100, 100, { fit: "inside", withoutEnlargement: true }).toFormat("webp", { quality: 80 }).toFile(tinyPath),
+        const [blurhash, repairMetadata] = await Promise.all([
+          BlurhashService.generateBlurhash(buffer),
+          Promise.all([
+            applyFormatCompression(
+              sharp(buffer, { failOnError: false }).rotate().withMetadata(
+                  job.iccProfilePath && fs.existsSync(job.iccProfilePath)
+                  ? { icc: job.iccProfilePath, exif: Buffer.alloc(0) } as any
+                  : { exif: Buffer.alloc(0) } as any
+              ),
+              job.ext || '.jpg',
+              'highres'
+            ).toFile(strippedHighResPath),
+            applyFormatCompression(
+              sharp(buffer, { failOnError: false }).resize(400, 400, { fit: "inside", withoutEnlargement: true }),
+              job.ext || '.jpg',
+              'thumb'
+            ).toFile(thumbnailPath),
+            applyFormatCompression(
+              sharp(buffer, { failOnError: false }).resize(2048, 2048, { fit: "inside", withoutEnlargement: true }),
+              job.ext || '.jpg',
+              'preview'
+            ).toFile(previewPath),
+            sharp(buffer, { failOnError: false }).resize(100, 100, { fit: "inside", withoutEnlargement: true }).toFormat("webp", { quality: 80, effort: 4 }).toFile(tinyPath),
+          ]).then(() => sharp(buffer!, { failOnError: false }).metadata())
         ]);
-
-        const repairMetadata = await sharp(buffer, { failOnError: false }).metadata();
 
         parentPort!.postMessage({
           success: true,
           photoId,
           hash: job.hash || `repair-${crypto.createHash("md5").update(buffer.slice(0, 1024)).digest("hex")}`,
+          blurhash: blurhash || undefined,
           metadata: {
             width: repairMetadata.width || 0,
             height: repairMetadata.height || 0,

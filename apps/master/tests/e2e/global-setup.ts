@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger';
+
 /**
  * Global setup for E2E tests
  *
@@ -68,13 +70,13 @@ function extractXsrf(cookies: string): string {
 
 async function globalSetup() {
   if (process.env.SKIP_GLOBAL_SETUP === "true") {
-    console.log("[E2E Seed] Skipping global setup (SKIP_GLOBAL_SETUP=true)");
+    logger.info("[E2E Seed] Skipping global setup (SKIP_GLOBAL_SETUP=true)");
     return;
   }
-  console.log("[E2E Seed] Starting global setup...");
+  logger.info("[E2E Seed] Starting global setup...");
 
   // Step 1: Establish a session by hitting health endpoint
-  console.log("[E2E Seed] Establishing session...");
+  logger.info("[E2E Seed] Establishing session...");
   let healthRes: Response | null = null;
   for (let i = 0; i < 30; i++) {
     try {
@@ -87,15 +89,15 @@ async function globalSetup() {
   }
 
   if (!healthRes || !healthRes.ok) {
-    console.warn(`[E2E Seed] Health check failed (${healthRes?.status || "ECONNREFUSED"}) — seeding skipped`);
+    logger.warn(`[E2E Seed] Health check failed (${healthRes?.status || "ECONNREFUSED"}) — seeding skipped`);
     return;
   }
   let cookies = extractCookies(healthRes);
   let xsrf = extractXsrf(cookies);
-  console.log(`[E2E Seed] Session established, XSRF token: ${xsrf ? "OK" : "MISSING"}`);
+  logger.info(`[E2E Seed] Session established, XSRF token: ${xsrf ? "OK" : "MISSING"}`);
 
   // Step 2: Login to get JWT
-  console.log("[E2E Seed] Authenticating...");
+  logger.info("[E2E Seed] Authenticating...");
   const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
     method: "POST",
     headers: {
@@ -111,7 +113,7 @@ async function globalSetup() {
 
   if (!loginRes.ok) {
     const body = await loginRes.text().catch(() => "");
-    console.warn(`[E2E Seed] Login failed (${loginRes.status}): ${body} — seeding skipped`);
+    logger.warn(`[E2E Seed] Login failed (${loginRes.status}): ${body} — seeding skipped`);
     return;
   }
 
@@ -122,7 +124,7 @@ async function globalSetup() {
 
   const loginBody = await loginRes.json();
   const token = loginBody.token ?? loginBody.accessToken ?? loginBody.jwt;
-  console.log(`[E2E Seed] Login successful, JWT: ${token ? "OK" : "MISSING"}`);
+  logger.info(`[E2E Seed] Login successful, JWT: ${token ? "OK" : "MISSING"}`);
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -134,40 +136,40 @@ async function globalSetup() {
   }
 
   // Step 3: Create album
-  console.log("[E2E Seed] Creating test album...");
+  logger.info("[E2E Seed] Creating test album...");
   const albumRes = await fetch(`${BASE_URL}/api/collections/albums/records`, {
     method: "POST",
     headers,
     body: JSON.stringify(TEST_ALBUM),
   });
   if (albumRes.ok) {
-    console.log("[E2E Seed] Album created");
+    logger.info("[E2E Seed] Album created");
   } else if (albumRes.status === 409) {
-    console.log("[E2E Seed] Album already exists");
+    logger.info("[E2E Seed] Album already exists");
   } else {
     const body = await albumRes.text().catch(() => "");
-    console.warn(`[E2E Seed] Album creation returned ${albumRes.status}: ${body}`);
+    logger.warn(`[E2E Seed] Album creation returned ${albumRes.status}: ${body}`);
   }
 
   // Step 4: Create photos
   for (const photo of TEST_PHOTOS) {
-    console.log(`[E2E Seed] Creating photo ${photo.id}...`);
+    logger.info(`[E2E Seed] Creating photo ${photo.id}...`);
     const photoRes = await fetch(`${BASE_URL}/api/collections/photos/records`, {
       method: "POST",
       headers,
       body: JSON.stringify(photo),
     });
     if (photoRes.ok) {
-      console.log(`[E2E Seed] Photo ${photo.id} created`);
+      logger.info(`[E2E Seed] Photo ${photo.id} created`);
     } else if (photoRes.status === 409) {
-      console.log(`[E2E Seed] Photo ${photo.id} already exists`);
+      logger.info(`[E2E Seed] Photo ${photo.id} already exists`);
     } else {
       const body = await photoRes.text().catch(() => "");
-      console.warn(`[E2E Seed] Photo ${photo.id} returned ${photoRes.status}: ${body}`);
+      logger.warn(`[E2E Seed] Photo ${photo.id} returned ${photoRes.status}: ${body}`);
     }
   }
 
-  console.log("[E2E Seed] Global setup complete");
+  logger.info("[E2E Seed] Global setup complete");
 }
 
 /** Merge two cookie strings, with newer values overriding older ones */

@@ -85,36 +85,30 @@ interface OrderConfigurationScreenProps {
     onCheckoutSuccess: () => void;
 }
 
+import { usePricingStore } from '../../store/PricingStore';
+
 const OrderConfigurationScreen: React.FC<OrderConfigurationScreenProps> = ({ cart, onUpdateCart, onBack, onCheckoutSuccess }) => {
     const { formatCurrency } = useCurrency();
-    const [discountCode, setDiscountCode] = useState('');
-    const [appliedDiscount, setAppliedDiscount] = useState(0);
+    const { discountCode, setDiscountCode, calculateTotals } = usePricingStore();
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [keyboardVisible, setKeyboardVisible] = useState(false);
+    const [localCodeInput, setLocalCodeInput] = useState('');
 
-    const subtotal = useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart]);
-    const total = subtotal - appliedDiscount;
+    // Calculate dynamic totals
+    const { subtotal, discount, total, appliedRule } = calculateTotals(cart);
     const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
     const handleApplyDiscount = () => {
-        if (discountCode.toUpperCase() === 'SAVE10') {
-            setAppliedDiscount(subtotal * 0.1);
-        } else {
-            alert('Invalid discount code.');
-        }
+        setDiscountCode(localCodeInput);
         setKeyboardVisible(false);
     };
 
     const handleUpdateQuantity = (item: CartItem, change: number) => {
-        const newQuantity = item.quantity + change;
+        const newQuantity = Math.max(0, item.quantity + change);
         onUpdateCart({ ...item, quantity: newQuantity });
     };
 
     const handleUpdateDeliveryType = (item: CartItem, newType: 'digital' | 'print' | 'both') => {
-        // When changing delivery type, we might want to update the ID as well if it's used for uniqueness
-        // But the onUpdateCart in App.tsx usually handles replacement based on item.id
-        // Since deliveryType is part of the ID in PhotoPreviewScreen, we should preserve that logic if needed
-        // However, here we are editing an EXISTING cart item.
         onUpdateCart({ ...item, deliveryType: newType });
     };
 
@@ -126,14 +120,13 @@ const OrderConfigurationScreen: React.FC<OrderConfigurationScreenProps> = ({ car
 
     const handleAddPhotobook = () => {
         alert("Photobook builder launched! (Feature Coming Soon)");
-        // Logic to add photobook product to cart would go here
     };
 
     if (isCheckingOut) {
         return <CheckoutScreen
             cart={cart}
             total={total}
-            appliedDiscount={appliedDiscount}
+            appliedDiscount={discount}
             onBack={() => setIsCheckingOut(false)}
             onCheckoutSuccess={onCheckoutSuccess}
         />
@@ -205,12 +198,69 @@ const OrderConfigurationScreen: React.FC<OrderConfigurationScreenProps> = ({ car
                         )}
                     </AnimatePresence>
                 </div>
-                <aside className="bg-slate-100 dark:bg-slate-800 p-6 rounded-lg flex flex-col">
-                    <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
-                    <div className="space-y-2">
-                        <div className="flex justify-between text-lg"><span>Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
-                        <div className="flex justify-between text-lg text-green-500 dark:text-green-400"><span>Discount</span><span>-{formatCurrency(appliedDiscount)}</span></div>
-                        <div className="flex justify-between text-2xl font-bold mt-4 pt-4 border-t border-slate-200 dark:border-slate-700"><span>Total</span><span>{formatCurrency(total)}</span></div>
+                <aside className="bg-slate-100 dark:bg-slate-800 p-6 rounded-lg flex flex-col relative overflow-hidden">
+                    {/* Background decoration for active rule */}
+                    <AnimatePresence>
+                        {appliedRule && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                className="absolute -top-10 -right-10 w-40 h-40 bg-green-500/10 dark:bg-green-400/10 rounded-full blur-2xl pointer-events-none"
+                            />
+                        )}
+                    </AnimatePresence>
+
+                    <h2 className="text-2xl font-bold mb-4 relative z-10">Order Summary</h2>
+                    <div className="space-y-2 relative z-10">
+                        <div className="flex justify-between text-lg">
+                            <span>Subtotal</span>
+                            <motion.span
+                                key={`subtotal-${subtotal}`}
+                                initial={{ y: -10, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                            >
+                                {formatCurrency(subtotal)}
+                            </motion.span>
+                        </div>
+                        
+                        <AnimatePresence mode="wait">
+                            {discount > 0 && (
+                                <motion.div
+                                    key="discount-row"
+                                    initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                    animate={{ opacity: 1, height: 'auto', marginBottom: 8 }}
+                                    exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                    className="flex justify-between text-lg text-green-600 dark:text-green-400 font-medium"
+                                >
+                                    <div className="flex flex-col">
+                                        <span>Discount</span>
+                                        {appliedRule && <span className="text-xs text-green-500">{appliedRule.description}</span>}
+                                    </div>
+                                    <motion.span
+                                        key={`discount-${discount}`}
+                                        initial={{ scale: 0.8 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                                    >
+                                        -{formatCurrency(discount)}
+                                    </motion.span>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                        
+                        <div className="flex justify-between text-2xl font-black mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                            <span>Total</span>
+                            <motion.span
+                                key={`total-${total}`}
+                                initial={{ scale: 1.2, color: '#10b981' }}
+                                animate={{ scale: 1, color: 'inherit' }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                            >
+                                {formatCurrency(total)}
+                            </motion.span>
+                        </div>
                     </div>
                     {cart.length > 0 && (
                         <div className="text-center mt-4">
@@ -223,17 +273,32 @@ const OrderConfigurationScreen: React.FC<OrderConfigurationScreenProps> = ({ car
                             </button>
                         </div>
                     )}
-                    <div className="mt-6 flex space-x-2">
-                        <input type="text" value={discountCode} readOnly onFocus={() => setKeyboardVisible(true)} placeholder="Discount Code" className="flex-1 bg-white dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 rounded-lg p-3" />
+                    <div className="mt-6 flex space-x-2 relative z-10">
+                        <input 
+                            type="text" 
+                            value={localCodeInput} 
+                            readOnly 
+                            onFocus={() => setKeyboardVisible(true)} 
+                            placeholder="Promo Code" 
+                            className="flex-1 bg-white dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 rounded-lg p-3 uppercase font-bold" 
+                        />
                         <button
                             onClick={handleApplyDiscount}
-                            className="min-w-[44px] min-h-[44px] bg-slate-500 text-white font-semibold py-3 px-6 rounded-lg touch-manipulation focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+                            className="min-w-[44px] min-h-[44px] bg-slate-500 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-lg touch-manipulation focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors"
                             aria-label="Apply discount code"
                         >
                             Apply
                         </button>
                     </div>
-                    <div className="mt-4 flex-grow">{keyboardVisible && <OnScreenKeyboard value={discountCode} onChange={setDiscountCode} onClose={() => setKeyboardVisible(false)} />}</div>
+                    <div className="mt-4 flex-grow relative z-10">
+                        {keyboardVisible && (
+                            <OnScreenKeyboard 
+                                value={localCodeInput} 
+                                onChange={setLocalCodeInput} 
+                                onClose={() => setKeyboardVisible(false)} 
+                            />
+                        )}
+                    </div>
                     <button
                         onClick={() => setIsCheckingOut(true)}
                         disabled={cart.length === 0}

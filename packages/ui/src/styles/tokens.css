@@ -43,30 +43,30 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222 47% 8%; /* #0B111F Tactical Canvas */
     --foreground: 210 40% 98%;
 
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 189 94% 43%; /* #06B6D4 Cyan */
+    --primary-foreground: 222 47% 8%;
 
-    --secondary: 226 71% 50%;
+    --secondary: 258 90% 66%; /* #8B5CF6 Violet */
     --secondary-foreground: 210 40% 98%;
 
-    --accent: 263.4 70% 50.4%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 189 94% 43%;
+    --accent-foreground: 222 47% 8%;
 
-    --muted: 217.2 32.6% 17.5%;
+    --muted: 222 44% 13%; /* #131C31 Surface */
     --muted-foreground: 215 20.2% 65.1%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 47% 8%;
     --popover-foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 222 44% 13%; /* #131C31 Surface */
     --card-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --border: 222 44% 20%;
+    --input: 222 44% 20%;
+    --ring: 189 94% 43%;
   }
 }
 

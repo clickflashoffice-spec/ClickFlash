@@ -18,7 +18,6 @@ export default defineConfig({
     exclude: [
       '**/node_modules/**',
       'dist/**',
-      'electron-new/**',
       'backend/**',
       'e2e/**',
       'tests/e2e/**',

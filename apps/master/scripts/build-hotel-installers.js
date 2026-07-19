@@ -94,7 +94,7 @@ function runCommand(command, options = {}) {
       stdio: "pipe",
       ...options,
     });
-    return output.trim();
+    return output ? output.trim() : "";
   } catch (error) {
     logError(`Command failed: ${command}`);
     if (error.stdout) log(error.stdout, "red");
@@ -156,15 +156,16 @@ copyright: ${hotel.copyright}
 directories:
   output: release_${hotel.id}
   buildResources: build
-  files:
-    - dist/**/*
-    - package.json
-    - "!pb_data/**/*"
-    - "!storage/**/*"
-    - "!node_modules/**/*"
-    - electron-main.js
-    - .env.production.${hotel.id}
-    - configs/hotel-configs/${hotel.id}.json
+
+files:
+  - dist/**/*
+  - package.json
+  - "!pb_data/**/*"
+  - "!storage/**/*"
+  - "!node_modules/**/*"
+  - electron-main.js
+  - .env.production.${hotel.id}
+  - configs/hotel-configs/${hotel.id}.json
 
 extraResources:
   - from: pb_data
@@ -273,6 +274,9 @@ function buildHotelInstaller(hotel) {
 
     // Build backend
     runCommand("npm run build:backend", { stdio: "inherit" });
+
+    // Build electron main process
+    runCommand("npm run build:electron", { stdio: "inherit" });
 
     // Package with electron-builder
     runCommand(

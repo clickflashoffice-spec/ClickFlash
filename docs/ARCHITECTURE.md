@@ -82,7 +82,7 @@ ClickFlash/
 ├── install-all.bat      # Install all local dependencies
 ├── clean-all.bat        # Remove build artifacts
 ├── status.bat           # Check service status
-└── deploy_ecosystem.ps1 # Deploy cloud apps to Cloudflare
+└── scripts/deploy-cloud.ps1 # Validate and deploy canonical Cloudflare services
 ```
 
 ## API Routes
@@ -190,9 +190,9 @@ ClickFlash/
 ### Cloud Deployment
 
 ```powershell
-.\deploy_ecosystem.ps1
-# Deploys: Management Worker, Gallery Worker, Website Pages
-# Configures: D1 database, R2 bucket, schema migrations
+.\scripts\deploy-cloud.ps1 -Environment production -WhatIf
+# Validates: Gallery, Management, MoneyTrash, and Update Workers plus Pages builds
+# Applies: binding-specific D1 migrations only after explicit deployment approval
 ```
 
 ## Database

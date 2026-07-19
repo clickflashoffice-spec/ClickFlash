@@ -22,7 +22,8 @@ export async function createCheckoutSession(
   successUrl: string,
   cancelUrl: string,
   clientReferenceId: string,
-  customerEmail?: string
+  customerEmail: string,
+  idempotencyKey: string,
 ) {
   const stripe = getStripe(env);
 
@@ -38,13 +39,23 @@ export async function createCheckoutSession(
     success_url: successUrl,
     cancel_url: cancelUrl,
     client_reference_id: clientReferenceId,
+    metadata: {
+      source: 'clickflash_management',
+      plan: 'pro',
+      studioId: clientReferenceId,
+    },
+    subscription_data: {
+      metadata: {
+        source: 'clickflash_management',
+        plan: 'pro',
+        studioId: clientReferenceId,
+      },
+    },
   };
 
-  if (customerEmail) {
-    params.customer_email = customerEmail;
-  }
+  params.customer_email = customerEmail;
 
-  const session = await stripe.checkout.sessions.create(params);
+  const session = await stripe.checkout.sessions.create(params, { idempotencyKey });
   return session;
 }
 

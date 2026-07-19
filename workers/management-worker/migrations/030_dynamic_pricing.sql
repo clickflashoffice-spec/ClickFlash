@@ -37,6 +37,3 @@ CREATE TABLE IF NOT EXISTS seasonal_rates (
 
 CREATE INDEX idx_seasonal_rates_dates ON seasonal_rates(start_date, end_date);
 CREATE INDEX idx_seasonal_rates_hotel ON seasonal_rates(hotel_id);
-
--- Insert migration record
-INSERT INTO migrations (version, applied_at) VALUES (30, datetime('now'));

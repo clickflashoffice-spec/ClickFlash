@@ -9,7 +9,7 @@ interface NumericKeypadProps {
 const Key: React.FC<{ value: string; onClick: (value: string) => void; className?: string, small?: boolean }> = ({ value, onClick, className, small }) => (
     <button
         onClick={() => onClick(value)}
-        className={`w-full rounded-lg text-white flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${className} ${small ? 'h-12 text-2xl bg-slate-600 hover:bg-slate-500' : 'h-20 text-4xl font-light bg-slate-700 hover:bg-slate-600'}`}
+        className={`w-full rounded-2xl flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-500/20 active:scale-95 border ${className} ${small ? 'min-h-[64px] text-2xl font-medium bg-slate-900/60 hover:bg-slate-800 border-slate-700/50 text-slate-200' : 'min-h-[96px] text-4xl font-light bg-slate-900/60 hover:bg-slate-800 border-slate-700/50 text-slate-200'}`}
     >
         {value}
     </button>
@@ -24,7 +24,7 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({ onKeyPress, onDelete, sma
 
             <button
                 onClick={onDelete}
-                className={`w-full rounded-lg flex items-center justify-center transition-colors focus:outline-none focus:ring-2 ${small ? 'h-12 bg-red-500/20 text-red-400 hover:bg-red-500/30 ring-red-500' : 'h-20 bg-red-500/20 text-red-400 hover:bg-red-500/30 ring-red-500'}`}
+                className={`w-full rounded-2xl flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-red-500/20 active:scale-95 border ${small ? 'min-h-[64px] bg-red-950/40 text-red-400 hover:bg-red-900/50 border-red-900/50' : 'min-h-[96px] bg-red-950/40 text-red-400 hover:bg-red-900/50 border-red-900/50'}`}
                 aria-label="Delete last character"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className={small ? "h-6 w-6" : "h-8 w-8"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">

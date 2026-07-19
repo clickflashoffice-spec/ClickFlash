@@ -97,13 +97,13 @@ const faqCategories = [
 
 export default function FAQPage() {
     return (
-        <main className="min-h-screen bg-white pt-32 pb-24">
+        <main className="min-h-screen bg-[#0B111F] pt-32 pb-24">
             {/* Hero Section */}
             <section className="max-w-5xl mx-auto px-6 text-center mb-24">
-                <h1 className="text-6xl md:text-8xl font-serif text-slate-900 mb-8 uppercase tracking-tighter">
+                <h1 className="text-6xl md:text-8xl font-serif text-white mb-8 uppercase tracking-tighter">
                     Freq<span className="text-cyan-700">uently</span> <span className="text-cyan-700 italic">Asked</span>
                 </h1>
-                <p className="text-xl text-slate-600 font-medium max-w-2xl mx-auto">
+                <p className="text-xl text-white/70 font-medium max-w-2xl mx-auto">
                     Everything you need to know about our photography services, technology, and delivery.
                 </p>
             </section>
@@ -116,7 +116,7 @@ export default function FAQPage() {
                             {faqCategories.map((category, idx) => (
                                 <button
                                     key={idx}
-                                    className="block w-full text-left px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-cyan-700 hover:bg-white hover:shadow-lg transition-all"
+                                    className="block w-full text-left px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-cyan-700 hover:bg-[#0B111F] hover:shadow-lg transition-all"
                                 >
                                     {category.name}
                                 </button>
@@ -127,18 +127,18 @@ export default function FAQPage() {
                     <div className="lg:col-span-3 space-y-16">
                         {faqCategories.map((category, catIdx) => (
                             <div key={catIdx}>
-                                <h2 className="text-3xl font-serif text-slate-900 mb-8 uppercase tracking-tight flex items-center gap-4">
+                                <h2 className="text-3xl font-serif text-white mb-8 uppercase tracking-tight flex items-center gap-4">
                                     <span className="text-cyan-700">/</span> {category.name}
                                 </h2>
                                 <div className="space-y-4">
                                     {category.faqs.map((faq, idx) => (
                                         <details
                                             key={idx}
-                                            className="group bg-slate-50 border border-slate-100 rounded-3xl overflow-hidden transition-all hover:bg-white hover:shadow-xl hover:shadow-slate-200/50"
+                                            className="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden transition-all hover:bg-[#0B111F] hover:shadow-xl hover:shadow-slate-200/50"
                                         >
-                                            <summary className="flex items-center justify-between p-8 cursor-pointer text-slate-900 font-bold uppercase tracking-tight text-sm hover:text-cyan-700 transition-colors list-none">
+                                            <summary className="flex items-center justify-between p-8 cursor-pointer text-white font-bold uppercase tracking-tight text-sm hover:text-cyan-700 transition-colors list-none">
                                                 <span className="pr-4">{faq.question}</span>
-                                                <div className="w-8 h-8 rounded-full bg-white border border-slate-100 flex items-center justify-center group-open:rotate-180 transition-transform flex-shrink-0 shadow-sm">
+                                                <div className="w-8 h-8 rounded-full bg-[#0B111F] border border-white/10 flex items-center justify-center group-open:rotate-180 transition-transform flex-shrink-0 shadow-sm">
                                                     <svg
                                                         className="w-4 h-4 text-cyan-700"
                                                         fill="none"
@@ -149,7 +149,7 @@ export default function FAQPage() {
                                                     </svg>
                                                 </div>
                                             </summary>
-                                            <div className="px-8 pb-8 text-slate-600 text-sm leading-relaxed font-medium">
+                                            <div className="px-8 pb-8 text-white/70 text-sm leading-relaxed font-medium">
                                                 {faq.answer}
                                             </div>
                                         </details>
@@ -163,15 +163,15 @@ export default function FAQPage() {
 
             {/* Contact CTA */}
             <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="bg-slate-100 rounded-3xl md:rounded-[3rem] p-10 md:p-16 lg:p-24 text-center relative overflow-hidden shadow-xl">
+                <div className="bg-white/10 rounded-3xl md:rounded-[3rem] p-10 md:p-16 lg:p-24 text-center relative overflow-hidden shadow-xl">
                     {/* Decorative Circles */}
                     <div className="absolute top-[-20%] left-[-10%] w-[40%] h-[40%] bg-cyan-700/10 rounded-full blur-[100px]" />
                     <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[100px]" />
 
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif text-slate-900 mb-4 md:mb-6 uppercase tracking-tight relative z-10">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif text-white mb-4 md:mb-6 uppercase tracking-tight relative z-10">
                         Still Have <span className="text-cyan-700 italic">Questions?</span>
                     </h2>
-                    <p className="text-slate-600 mb-8 md:mb-10 text-base md:text-lg font-medium max-w-xl mx-auto relative z-10 px-2">
+                    <p className="text-white/70 mb-8 md:mb-10 text-base md:text-lg font-medium max-w-xl mx-auto relative z-10 px-2">
                         Can&apos;t find what you&apos;re looking for? Our team is ready to help with any custom requests.
                     </p>
                     <Link

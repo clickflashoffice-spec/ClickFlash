@@ -19,6 +19,7 @@ import {
   ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { logger } from '@/utils/logger';
 
 // Test configuration
 const TEST_CONFIG = {
@@ -57,13 +58,13 @@ class R2UploadTester {
   }
 
   async runAllTests(): Promise<void> {
-    console.log(`\n🧪 R2 Upload E2E Tests - Site: ${this.siteId}\n`);
-    console.log("=".repeat(60));
+    logger.info(`\n🧪 R2 Upload E2E Tests - Site: ${this.siteId}\n`);
+    logger.info("=".repeat(60));
 
     // Check credentials
     if (!this.validateCredentials()) {
-      console.error("❌ R2 credentials not configured. Set environment variables:");
-      console.error("   R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ENDPOINT, R2_BUCKET");
+      logger.error("❌ R2 credentials not configured. Set environment variables:");
+      logger.error("   R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ENDPOINT, R2_BUCKET");
       process.exit(1);
     }
 
@@ -122,7 +123,7 @@ class R2UploadTester {
         duration: Date.now() - start,
       });
 
-      console.log("✅ Configuration");
+      logger.info("✅ Configuration");
     } catch (error) {
       this.results.push({
         success: false,
@@ -131,7 +132,7 @@ class R2UploadTester {
         details: "Failed to configure R2",
         error: error instanceof Error ? error.message : String(error),
       });
-      console.log("❌ Configuration");
+      logger.info("❌ Configuration");
     }
   }
 
@@ -167,7 +168,7 @@ class R2UploadTester {
         duration: Date.now() - start,
       });
 
-      console.log("✅ Upload to Site Folder");
+      logger.info("✅ Upload to Site Folder");
     } catch (error) {
       this.results.push({
         success: false,
@@ -176,8 +177,8 @@ class R2UploadTester {
         details: `Key: ${key}`,
         error: error instanceof Error ? error.message : String(error),
       });
-      console.log("❌ Upload to Site Folder");
-      console.error(`   Error: ${error instanceof Error ? error.message : String(error)}`);
+      logger.info("❌ Upload to Site Folder");
+      logger.error(`   Error: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -215,7 +216,7 @@ class R2UploadTester {
         duration: Date.now() - start,
       });
 
-      console.log("✅ Upload with Metadata");
+      logger.info("✅ Upload with Metadata");
     } catch (error) {
       this.results.push({
         success: false,
@@ -224,7 +225,7 @@ class R2UploadTester {
         details: "Metadata upload failed",
         error: error instanceof Error ? error.message : String(error),
       });
-      console.log("❌ Upload with Metadata");
+      logger.info("❌ Upload with Metadata");
     }
   }
 
@@ -262,7 +263,7 @@ class R2UploadTester {
         duration: Date.now() - start,
       });
 
-      console.log("✅ File Exists Check");
+      logger.info("✅ File Exists Check");
     } catch (error) {
       this.results.push({
         success: false,
@@ -271,7 +272,7 @@ class R2UploadTester {
         details: "Existence check failed",
         error: error instanceof Error ? error.message : String(error),
       });
-      console.log("❌ File Exists Check");
+      logger.info("❌ File Exists Check");
     }
   }
 
@@ -300,7 +301,7 @@ class R2UploadTester {
         duration: Date.now() - start,
       });
 
-      console.log(files.length > 0 ? "✅ List Files" : "⚠️  List Files (no files found)");
+      logger.info(files.length > 0 ? "✅ List Files" : "⚠️  List Files (no files found)");
     } catch (error) {
       this.results.push({
         success: false,
@@ -309,7 +310,7 @@ class R2UploadTester {
         details: "List operation failed",
         error: error instanceof Error ? error.message : String(error),
       });
-      console.log("❌ List Files");
+      logger.info("❌ List Files");
     }
   }
 
@@ -348,7 +349,7 @@ class R2UploadTester {
         duration: Date.now() - start,
       });
 
-      console.log(signedUrl ? "✅ Signed URL" : "❌ Signed URL");
+      logger.info(signedUrl ? "✅ Signed URL" : "❌ Signed URL");
     } catch (error) {
       this.results.push({
         success: false,
@@ -357,7 +358,7 @@ class R2UploadTester {
         details: "Signed URL generation failed",
         error: error instanceof Error ? error.message : String(error),
       });
-      console.log("❌ Signed URL");
+      logger.info("❌ Signed URL");
     }
   }
 
@@ -397,7 +398,7 @@ class R2UploadTester {
         duration: Date.now() - start,
       });
 
-      console.log("✅ Storage Stats");
+      logger.info("✅ Storage Stats");
     } catch (error) {
       this.results.push({
         success: false,
@@ -406,7 +407,7 @@ class R2UploadTester {
         details: "Stats retrieval failed",
         error: error instanceof Error ? error.message : String(error),
       });
-      console.log("❌ Storage Stats");
+      logger.info("❌ Storage Stats");
     }
   }
 
@@ -444,7 +445,7 @@ class R2UploadTester {
         duration: Date.now() - start,
       });
 
-      console.log("✅ Delete File");
+      logger.info("✅ Delete File");
     } catch (error) {
       this.results.push({
         success: false,
@@ -453,33 +454,33 @@ class R2UploadTester {
         details: "Delete operation failed",
         error: error instanceof Error ? error.message : String(error),
       });
-      console.log("❌ Delete File");
+      logger.info("❌ Delete File");
     }
   }
 
   private printResults(): void {
-    console.log("\n" + "=".repeat(60));
-    console.log("📊 TEST RESULTS\n");
+    logger.info("\n" + "=".repeat(60));
+    logger.info("📊 TEST RESULTS\n");
 
     const passed = this.results.filter((r) => r.success).length;
     const failed = this.results.filter((r) => !r.success).length;
 
     this.results.forEach((result) => {
       const icon = result.success ? "✅" : "❌";
-      console.log(`${icon} ${result.operation}`);
-      console.log(`   ${result.details}`);
+      logger.info(`${icon} ${result.operation}`);
+      logger.info(`   ${result.details}`);
       if (result.duration) {
-        console.log(`   Duration: ${result.duration}ms`);
+        logger.info(`   Duration: ${result.duration}ms`);
       }
       if (result.error) {
-        console.log(`   Error: ${result.error}`);
+        logger.info(`   Error: ${result.error}`);
       }
-      console.log();
+      logger.info();
     });
 
-    console.log("=".repeat(60));
-    console.log(`Total: ${this.results.length} | ✅ Passed: ${passed} | ❌ Failed: ${failed}`);
-    console.log("=".repeat(60) + "\n");
+    logger.info("=".repeat(60));
+    logger.info(`Total: ${this.results.length} | ✅ Passed: ${passed} | ❌ Failed: ${failed}`);
+    logger.info("=".repeat(60) + "\n");
 
     if (failed > 0) {
       process.exit(1);
@@ -491,6 +492,6 @@ class R2UploadTester {
 const siteId = process.argv[2] || "TN001";
 const tester = new R2UploadTester(siteId);
 tester.runAllTests().catch((error) => {
-  console.error("Test suite failed:", error);
+  logger.error("Test suite failed:", error);
   process.exit(1);
 });

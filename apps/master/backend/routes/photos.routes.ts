@@ -295,6 +295,41 @@ export default function photosRoutes(context: any): Router {
     }
   });
 
+  // GET Teacher Agent Coaching Report
+  router.get("/:id/coach", requirePermission(PERMISSIONS.PHOTO_UPLOAD, context.auditLogger), async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id;
+      const { TeacherAgentService } = require("../services/teacherAgentService");
+      const teacherService = new TeacherAgentService(dbManager);
+      const report = await teacherService.getCoachingReport(id);
+      res.json(report);
+    } catch (err: any) {
+      logger.error(`[TeacherEndpoint] Failed to get coaching report for ${req.params.id}:`, err);
+      res.status(500).json({ error: "COACHING_ERROR", message: err.message });
+    }
+  });
+
+  // POST Trigger Upscale Agent on-demand
+  router.post("/:id/upscale", requirePermission(PERMISSIONS.PHOTO_EDIT, context.auditLogger), async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id;
+      const scaleFactor = Number(req.body?.scaleFactor || 2);
+      const { UpscaleService } = require("../services/upscaleService");
+      const upscaleService = new UpscaleService(dbManager);
+
+      const result = await upscaleService.upscalePhoto(id, scaleFactor);
+      if (!result.success) {
+        return res.status(500).json({ error: "UPSCALE_FAILED", message: result.error });
+      }
+
+      // Optionally record upscaled URL back into photo metadata or return directly
+      res.json(result);
+    } catch (err: any) {
+      logger.error(`[UpscaleEndpoint] Failed to trigger upscale for ${req.params.id}:`, err);
+      res.status(500).json({ error: "INTERNAL_ERROR", message: err.message });
+    }
+  });
+
   // DELETE Photo
   router.delete("/:id", requirePermission(PERMISSIONS.PHOTO_DELETE, context.auditLogger), async (req: Request, res: Response) => {
     try {

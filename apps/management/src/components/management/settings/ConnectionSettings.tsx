@@ -37,7 +37,7 @@ const ConnectionSettings: React.FC = () => {
       const dests = await apiService.getDestinations();
       setSyncedPortals(dests);
     } catch (e) {
-      console.error("Failed to fetch destinations", e);
+      logger.error("Failed to fetch destinations", e);
     } finally {
       setLoadingPortals(false);
     }

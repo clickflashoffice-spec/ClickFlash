@@ -148,3 +148,5 @@ export const VirtualList = React.memo(VirtualListInner) as <T>(
 ) => React.ReactElement | null;
 
 export default VirtualList;
+
+(VirtualList as any).displayName = 'VirtualList';

@@ -65,7 +65,7 @@ export function InstagramGrid() {
                     whileInView={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.05 }}
                     viewport={{ once: true }}
-                    className="relative aspect-square group overflow-hidden bg-slate-100 rounded-lg md:rounded-xl cursor-pointer"
+                    className="relative aspect-square group overflow-hidden bg-white/10 rounded-lg md:rounded-xl cursor-pointer"
                 >
                     <Image
                         src={post.image}

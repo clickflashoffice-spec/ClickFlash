@@ -7,6 +7,7 @@ import {
 import { PocketRecord } from "../pbTypes";
 import { logger as appLogger } from "../../utils/logger";
 import { marketingAutomationService } from "../marketingAutomationService";
+import { logger } from '@/utils/logger';
 
 /**
  * API Service - Wrapper around pb adapter for convenient data operations
@@ -42,7 +43,7 @@ export const ordersApi = {
         updatedAt: r.updated,
       }));
     } catch (error) {
-      console.warn("Failed to fetch orders from PocketBase, returning mock fallback:", error);
+      logger.warn("Failed to fetch orders from PocketBase, returning mock fallback:", error);
       return [
         {
           id: "ORD-9012",
@@ -146,17 +147,17 @@ export const ordersApi = {
       const { payrollRoutingService } = await import("../payrollRoutingService");
       await payrollRoutingService.routeCommission(order as Order);
     } catch (err) {
-      console.warn("[apiService] Failed to route payroll commission:", err);
+      logger.warn("[apiService] Failed to route payroll commission:", err);
     }
 
     // 2. Trigger marketing automation workflow
     try {
       marketingAutomationService.triggerWorkflow("order-completed", order as unknown as Record<string, unknown>);
-      console.log(
+      logger.info(
         `[apiService] Order-completed workflow triggered for ${orderId}`,
       );
     } catch (err) {
-      console.warn("[apiService] Failed to trigger marketing workflow:", err);
+      logger.warn("[apiService] Failed to trigger marketing workflow:", err);
     }
 
     // 3. Emit system notification for Photographer (simulated through logger for now)

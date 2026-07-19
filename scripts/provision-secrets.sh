@@ -1,98 +1,132 @@
 #!/usr/bin/env bash
-# ClickFlash Cloud — Secrets Provisioning Script
-# Run once per environment to set all required Cloudflare Worker secrets.
-#
-# Usage:
-#   ./scripts/provision-secrets.sh              # interactive prompts
-#   ./scripts/provision-secrets.sh --check      # audit which secrets are set
-#
-# Prerequisites:
-#   - wrangler CLI authenticated (`wrangler login`)
-#   - All D1 databases and R2 buckets created (see wrangler.toml files)
+# Audit or provision the secrets consumed by the canonical Cloudflare Workers.
+# Defaults to staging so an unqualified invocation cannot mutate production.
 
 set -euo pipefail
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+MODE="provision"
+ENVIRONMENT="staging"
 
-GALLERY_DIR="apps/gallery/backend"
-MANAGEMENT_DIR="apps/management/backend"
+usage() {
+  echo "Usage: ./scripts/provision-secrets.sh [--check] [--env staging|production]"
+}
 
-# ── Required secrets per worker ──────────────────────────────────────────────
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --check)
+      MODE="check"
+      shift
+      ;;
+    --env)
+      [[ $# -ge 2 ]] || { usage; exit 2; }
+      ENVIRONMENT="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage
+      exit 2
+      ;;
+  esac
+done
+
+if [[ "$ENVIRONMENT" != "staging" && "$ENVIRONMENT" != "production" ]]; then
+  echo "Environment must be staging or production." >&2
+  exit 2
+fi
+
+if [[ "$ENVIRONMENT" == "staging" ]]; then
+  WRANGLER_ENV_ARGS=(--env staging)
+else
+  WRANGLER_ENV_ARGS=(--env=)
+fi
+
 GALLERY_SECRETS=(
-  "JWT_SECRET"
-  "STRIPE_SECRET_KEY"
-  "STRIPE_WEBHOOK_SECRET"
-  "SENTRY_DSN"
+  JWT_SECRET
+  STRIPE_SECRET_KEY
+  STRIPE_WEBHOOK_SECRET
+  RESEND_API_KEY
 )
 
 MANAGEMENT_SECRETS=(
-  "JWT_SECRET"
-  "SENTRY_DSN"
+  JWT_SECRET
+  PROVISIONING_SECRET
+  LICENSE_PRIVATE_KEY
+  STRIPE_PRO_PRICE_ID
+  STRIPE_SECRET_KEY
+  STRIPE_WEBHOOK_SECRET
+  RESEND_API_KEY
 )
 
-check_mode() {
-  echo -e "${YELLOW}Auditing secrets for gallery-backend...${NC}"
-  for secret in "${GALLERY_SECRETS[@]}"; do
-    if wrangler secret list --config "$GALLERY_DIR/wrangler.toml" 2>/dev/null | grep -q "$secret"; then
-      echo -e "  ${GREEN}[SET]${NC} $secret"
-    else
-      echo -e "  ${RED}[MISSING]${NC} $secret"
-    fi
-  done
+MONEYTRASH_SECRETS=(
+  JWT_SECRET
+  MASTER_API_KEY
+  STRIPE_SECRET_KEY
+  STRIPE_WEBHOOK_SECRET
+  WEBHOOK_SECRET
+)
 
-  echo -e "\n${YELLOW}Auditing secrets for management-hub...${NC}"
-  for secret in "${MANAGEMENT_SECRETS[@]}"; do
-    if wrangler secret list --config "$MANAGEMENT_DIR/wrangler.toml" 2>/dev/null | grep -q "$secret"; then
-      echo -e "  ${GREEN}[SET]${NC} $secret"
+secret_list() {
+  local worker_dir=$1
+  (cd "$REPO_ROOT/$worker_dir" && pnpm exec wrangler secret list "${WRANGLER_ENV_ARGS[@]}")
+}
+
+check_worker() {
+  local worker_name=$1
+  local worker_dir=$2
+  shift 2
+  local secrets=("$@")
+  local configured
+
+  echo "Auditing $worker_name ($ENVIRONMENT)..."
+  configured="$(secret_list "$worker_dir")"
+  for secret in "${secrets[@]}"; do
+    if grep -q "\"name\"[[:space:]]*:[[:space:]]*\"$secret\"" <<< "$configured"; then
+      echo "  [SET] $secret"
     else
-      echo -e "  ${RED}[MISSING]${NC} $secret"
+      echo "  [MISSING] $secret"
     fi
   done
 }
 
 provision_worker() {
   local worker_name=$1
-  local config_path=$2
+  local worker_dir=$2
   shift 2
   local secrets=("$@")
 
-  echo -e "\n${YELLOW}Provisioning secrets for ${worker_name}...${NC}"
-
+  echo "Provisioning $worker_name ($ENVIRONMENT)..."
   for secret in "${secrets[@]}"; do
-    echo -n "  Enter value for ${secret} (or press Enter to skip): "
-    read -rs value
-    echo ""
-
-    if [ -n "$value" ]; then
-      echo "$value" | wrangler secret put "$secret" --config "$config_path/wrangler.toml" 2>/dev/null
-      echo -e "  ${GREEN}[SET]${NC} $secret"
-    else
-      echo -e "  ${YELLOW}[SKIPPED]${NC} $secret"
+    local value
+    read -rsp "  Enter $secret (blank skips): " value
+    echo
+    if [[ -z "$value" ]]; then
+      echo "  [SKIPPED] $secret"
+      continue
     fi
+
+    (cd "$REPO_ROOT/$worker_dir" && printf '%s' "$value" | pnpm exec wrangler secret put "$secret" "${WRANGLER_ENV_ARGS[@]}")
+    unset value
+    echo "  [SET] $secret"
   done
 }
 
-# ── Main ─────────────────────────────────────────────────────────────────────
+run_for_all_workers() {
+  local operation=$1
+  "$operation" "gallery-backend" "workers/gallery-worker" "${GALLERY_SECRETS[@]}"
+  "$operation" "management-hub" "workers/management-worker" "${MANAGEMENT_SECRETS[@]}"
+  "$operation" "moneytrash-api" "workers/moneytrash-worker" "${MONEYTRASH_SECRETS[@]}"
+}
 
-if [ "${1:-}" = "--check" ]; then
-  check_mode
-  exit 0
+echo "ClickFlash Cloud secrets: $MODE / $ENVIRONMENT"
+if [[ "$MODE" == "check" ]]; then
+  run_for_all_workers check_worker
+else
+  echo "Secrets are sent directly to Cloudflare and are never written to disk."
+  run_for_all_workers provision_worker
 fi
-
-echo "ClickFlash Cloud — Secrets Provisioning"
-echo "========================================"
-echo ""
-echo "This script sets Cloudflare Worker secrets for gallery-backend and management-hub."
-echo "Values are stored encrypted in Cloudflare and never written to disk."
-echo ""
-echo -e "${RED}WARNING: Do not set secrets in wrangler.toml [vars] — those are plaintext.${NC}"
-echo ""
-
-provision_worker "gallery-backend" "$GALLERY_DIR" "${GALLERY_SECRETS[@]}"
-provision_worker "management-hub" "$MANAGEMENT_DIR" "${MANAGEMENT_SECRETS[@]}"
-
-echo ""
-echo -e "${GREEN}Done. Run './scripts/provision-secrets.sh --check' to verify.${NC}"

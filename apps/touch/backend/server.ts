@@ -37,6 +37,7 @@ import WatcherService from "./services/watcherService";
 import { VectorIndexService } from "./services/VectorIndexService";
 import { FaceIndexingWorker } from "./services/FaceIndexingWorker";
 import { TouchMdnsDiscovery as MdnsDiscovery } from "./services/mdnsDiscovery";
+import { mqttClientService } from "./services/mqttClientService";
 
 import {
   sendError,
@@ -581,6 +582,7 @@ server.listen(PORT, "0.0.0.0", () => {
 
     const shutdownSteps = [
       { name: "watcherService", fn: () => watcherService?.stop?.() },
+      { name: "mqttClientService", fn: () => { mqttClientService.stop(); return Promise.resolve(); } },
     ];
 
     const results = await Promise.allSettled(

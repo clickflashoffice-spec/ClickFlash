@@ -330,3 +330,5 @@ export const VirtualGrid = React.memo(VirtualGridInner) as <T>(
 ) => React.ReactElement | null;
 
 export default VirtualGrid;
+
+(VirtualGrid as any).displayName = 'VirtualGrid';

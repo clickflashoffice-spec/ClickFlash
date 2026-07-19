@@ -51,7 +51,7 @@ export function PortfolioClient() {
         : portfolioItems.filter(item => item.category === activeCategory);
 
     return (
-        <main className="min-h-screen bg-white pt-24 md:pt-28 lg:pt-32 pb-16 md:pb-20 lg:pb-24">
+        <main className="min-h-screen bg-[#0B111F] pt-24 md:pt-28 lg:pt-32 pb-16 md:pb-20 lg:pb-24">
             {/* HERO SECTION */}
             <section className="container mx-auto px-4 sm:px-6 lg:px-8 mb-12 md:mb-16">
                 <div className="max-w-4xl mx-auto text-center">
@@ -61,10 +61,10 @@ export function PortfolioClient() {
                         transition={{ duration: 0.6 }}
                     >
                         <span className="text-cyan-700 font-black uppercase tracking-[0.3em] text-[12px] mb-4 block">Our Portfolio</span>
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 mb-6 md:mb-8 leading-tight tracking-tighter">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-6 md:mb-8 leading-tight tracking-tighter">
                             Gallery of <span className="text-cyan-700">Memories</span>
                         </h1>
-                        <p className="text-slate-600 text-base md:text-lg lg:text-xl leading-relaxed max-w-3xl mx-auto px-2">
+                        <p className="text-white/70 text-base md:text-lg lg:text-xl leading-relaxed max-w-3xl mx-auto px-2">
                             Browse through our curated collection of captured moments from weddings, 
                             resorts, and special events across Tunisia. Each photo tells a unique story.
                         </p>
@@ -82,7 +82,7 @@ export function PortfolioClient() {
                             className={`px-4 md:px-6 py-2 text-xs md:text-sm font-medium transition-all duration-300 border rounded-full ${
                                 activeCategory === category
                                     ? "bg-slate-900 text-white border-slate-900"
-                                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"
+                                    : "bg-[#0B111F] text-white/70 border-white/20 hover:border-slate-400"
                             }`}
                         >
                             {category}
@@ -122,11 +122,11 @@ export function PortfolioClient() {
 
             {/* CTA SECTION */}
             <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-16 md:mt-24 lg:mt-32">
-                <div className="bg-slate-50 rounded-2xl md:rounded-3xl p-8 md:p-12 lg:p-16 text-center">
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 mb-4 md:mb-6 tracking-tighter">
+                <div className="bg-white/5 rounded-2xl md:rounded-3xl p-8 md:p-12 lg:p-16 text-center">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white mb-4 md:mb-6 tracking-tighter">
                         Create Your Own <span className="text-cyan-700">Memories</span>
                     </h2>
-                    <p className="text-slate-600 text-base md:text-lg mb-6 md:mb-8 max-w-2xl mx-auto px-2">
+                    <p className="text-white/70 text-base md:text-lg mb-6 md:mb-8 max-w-2xl mx-auto px-2">
                         Let us capture your special moments with our professional photography services. 
                         Book a session today and create memories that last a lifetime.
                     </p>

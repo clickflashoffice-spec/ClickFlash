@@ -27,4 +27,4 @@ async function check() {
   db.close();
 }
 
-check().catch(console.error);
+check().catch(logger.error);

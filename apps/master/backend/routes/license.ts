@@ -52,7 +52,7 @@ export default function licenseRoutes(context: any): Router {
       
       const setSuccess = await licenseService.setLicenseKey(licenseKey);
       if (!setSuccess) {
-        return res.status(400).json({ success: false, error: "Invalid license checksum format" });
+        return res.status(400).json({ success: false, error: "Invalid signed or hardware-bound license" });
       }
 
       // Automatically trigger a hub sync if configured

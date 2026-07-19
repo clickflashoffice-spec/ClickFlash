@@ -11,6 +11,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/utils/logger';
 import { useManagement } from "../../context/ManagementContext";
 import { HOTELS } from "../../constants";
 import {Globe,
@@ -42,6 +43,7 @@ import {
   UnifiedDashboardData,
   StationDashboard,
 } from "../../services/unifiedDashboardService";
+import AIPulseBanner from "./AIPulseBanner";
 import {
   AreaChart,
   Area,
@@ -129,6 +131,7 @@ const UnifiedMasterDashboard: React.FC = () => {
   const [selectedStation, setSelectedStation] =
     useState<StationDashboard | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>("kpi");
+  const [aiInsights, setAiInsights] = useState<any[]>([]);
   
   // Get the selected context from ManagementContext
   const { selectedContext } = useManagement();
@@ -141,8 +144,26 @@ const UnifiedMasterDashboard: React.FC = () => {
       const dashboardData = await unifiedDashboardService.getDashboardData(selectedContext);
       setData(dashboardData);
       setLastRefresh(new Date().toLocaleTimeString());
+      
+      // Simulate fetching AI Pulse Insights from Backend
+      setAiInsights([
+        {
+          id: "1",
+          type: "anomaly",
+          message: `${contextName} Kiosk #4 has a 20% higher bounce rate than average today.`,
+          actionLabel: "Auto-Recalibrate",
+          onAction: () => alert("Initiating Kiosk #4 recalibration via Orchestrator..."),
+        },
+        {
+          id: "2",
+          type: "warning",
+          message: `Revenue at ${contextName} is trending 15% below the expected run-rate for this volume of guests.`,
+          actionLabel: "Boost Attract Loop",
+          onAction: () => alert("Pushing high-volume attract loop media to displays..."),
+        }
+      ]);
     } catch (err) {
-      console.error("Failed to fetch dashboard data:", err);
+      logger.error("Failed to fetch dashboard data:", err);
       setError("Failed to load dashboard data. Please try again.");
     } finally {
       setLoading(false);
@@ -372,6 +393,9 @@ const UnifiedMasterDashboard: React.FC = () => {
             <span className="text-xs text-slate-500">Live sync active</span>
           </div>
         </div>
+
+        {/* AI Pulse Insights Feed */}
+        <AIPulseBanner insights={aiInsights} />
 
         {/* KPI Cards Grid */}
         <section>

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { isTrustedIpcSender, isTrustedLoopbackRendererUrl } from "../../electron-security";
+import path from "path";
+import {
+    isTrustedIpcSender,
+    isTrustedLoopbackRendererUrl,
+    resolveRendererAssetPath,
+} from "../../electron-security";
 
 describe("Touch Electron security helpers", () => {
     it("accepts only the live top frame of the kiosk window", () => {
@@ -18,5 +23,16 @@ describe("Touch Electron security helpers", () => {
         expect(isTrustedLoopbackRendererUrl("http://192.168.1.50:8001", 8001)).toBe(false);
         expect(isTrustedLoopbackRendererUrl("https://127.0.0.1:8001", 8001)).toBe(false);
         expect(isTrustedLoopbackRendererUrl("http://127.0.0.1:9000", 8001)).toBe(false);
+    });
+
+    it("keeps renderer asset requests inside the packaged asset root", () => {
+        const root = path.resolve("C:/clickflash/touch");
+
+        expect(resolveRendererAssetPath(root, "/assets/app.js?cache=1")).toBe(
+            path.join(root, "assets", "app.js"),
+        );
+        expect(resolveRendererAssetPath(root, "/")).toBe(path.join(root, "index.html"));
+        expect(resolveRendererAssetPath(root, "/..%2F..%2FWindows%2Fwin.ini")).toBeNull();
+        expect(resolveRendererAssetPath(root, "/%E0%A4%A")).toBeNull();
     });
 });

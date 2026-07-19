@@ -3,21 +3,23 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
-import { initTauriApi } from './services/tauriService'
+import { initDesktopApi, isDesktop } from './services/tauriService'
 import { FeatureErrorBoundary } from './components/error-boundaries/FeatureErrorBoundary'
 
-const initTauri = async () => {
-  if (typeof window !== 'undefined' && '__TAURI__' in window) {
+const initializeDesktopRuntime = async () => {
+  if (isDesktop()) {
     try {
-      await initTauriApi();
-      logger.info('[MoneyTrash] Tauri API initialized successfully');
+      await initDesktopApi();
+      logger.info('[MoneyTrash] Desktop API initialized successfully');
     } catch (e) {
-      logger.warn('[MoneyTrash] Tauri API initialization deferred:', e);
+      logger.warn('[MoneyTrash] Desktop API initialization deferred:', e);
     }
   }
 };
 
-initTauri().catch(console.error);
+initializeDesktopRuntime().catch(error => (
+  logger.error('[MoneyTrash] Desktop initialization failed:', error instanceof Error ? error : new Error(String(error)))
+));
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

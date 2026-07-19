@@ -18,6 +18,8 @@ const mockApi = {
   saveConfig: vi.fn(),
   launchApps: vi.fn(),
   selectPayloadBundle: vi.fn(),
+  selectInstallDirectory: vi.fn(),
+  installPayload: vi.fn(),
   getLogs: vi.fn(),
   discoverMasters: vi.fn(),
   scanLan: vi.fn(),

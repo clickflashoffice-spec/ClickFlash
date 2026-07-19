@@ -28,6 +28,7 @@ const App: React.FC = () => {
     prevStep,
     setSelectedApps,
     selectPayloadBundle,
+    selectInstallDirectory,
     setLaunchOnComplete,
     validateLicense,
     requestDeviceCode,
@@ -50,9 +51,11 @@ const App: React.FC = () => {
         return (
           <AppSelectionStep
             selectedApps={state.selectedApps}
+            payloadBundlePath={state.payloadBundlePath}
             installPath={state.installPath}
             payloadBundle={state.payloadBundle}
             onSelectPayloadBundle={selectPayloadBundle}
+            onSelectInstallDirectory={selectInstallDirectory}
             onNext={(selected) => {
               setSelectedApps(selected);
               nextStep();

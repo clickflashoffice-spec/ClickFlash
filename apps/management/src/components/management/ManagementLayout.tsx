@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
-import { ManagementView, HOTELS } from "../../constants.ts";
+import { ManagementView } from "../../constants.ts";
 import { useManagement } from "../../context/ManagementContext.tsx";
 import {
   ManagementErrorBoundary,
@@ -10,6 +10,7 @@ import { orchestrationService } from "../../services/orchestrationService";
 import SimplifiedSidebar from "./SimplifiedSidebar.tsx";
 import CommandBar from "../common/CommandBar.tsx";
 import Breadcrumb from "../common/Breadcrumb.tsx";
+import { GlobalLocationSwitcher } from "../common/GlobalLocationSwitcher.tsx";
 import {
   Menu,
   Bell,
@@ -27,6 +28,7 @@ const FleetMonitorPage = lazy(() => import("./FleetMonitorPage.tsx"));
 const ManagementSettingsPage = lazy(() => import("./ManagementSettingsPage.tsx"));
 const BillingPage = lazy(() => import("./BillingPage.tsx"));
 const Photographers = lazy(() => import("../Photographers.tsx"));
+const WorkforceDashboard = lazy(() => import("./WorkforceDashboard.tsx"));
 const WarehousePage = lazy(() => import("./WarehousePage.tsx"));
 const ReportsPage = lazy(() => import("./ReportsPage.tsx"));
 const SessionTypesSettings = lazy(() => import("./settings/SessionTypesSettings.tsx"));
@@ -38,7 +40,14 @@ const Orders = lazy(() => import("../Orders.tsx"));
 const LicenseManagementPage = lazy(() => import("./LicenseManagementPage.tsx"));
 const EmailCampaigns = lazy(() => import("./EmailCampaigns.tsx"));
 const VolumeExports = lazy(() => import("./VolumeExports.tsx"));
+const AILocationScout = lazy(() => import("./AILocationScout.tsx").then(m => ({ default: m.AILocationScout })));
+const AIManagerWorkspace = lazy(() => import("./AIManagerWorkspace.tsx").then(m => ({ default: m.AIManagerWorkspace })));
+const AICEOWorkspace = lazy(() => import("./AICEOWorkspace.tsx").then(m => ({ default: m.AICEOWorkspace })));
 
+// Phase 6 / Epic 5 Pages
+const FranchiseOnboardingPage = lazy(() => import("./FranchiseOnboardingPage.tsx"));
+const WhiteLabelSettingsPage = lazy(() => import("./WhiteLabelSettingsPage.tsx"));
+const SLAMonitoringPage = lazy(() => import("./SLAMonitoringPage.tsx"));
 const PageLoader = () => (
   <div className="flex items-center justify-center h-64">
     <Spinner size="lg" />
@@ -240,6 +249,13 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
             </Suspense>
           );
 
+        case "workforce_dashboard":
+          return (
+            <Suspense fallback={<PageLoader />}>
+              <WorkforceDashboard />
+            </Suspense>
+          );
+
         case "session_types":
           return (
             <Suspense fallback={<PageLoader />}>
@@ -258,6 +274,48 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
           return (
             <Suspense fallback={<PageLoader />}>
               <EmailCampaigns />
+            </Suspense>
+          );
+
+        case "ai_location_scout":
+          return (
+            <Suspense fallback={<PageLoader />}>
+              <AILocationScout />
+            </Suspense>
+          );
+
+        case "ai_manager_workspace":
+          return (
+            <Suspense fallback={<PageLoader />}>
+              <AIManagerWorkspace />
+            </Suspense>
+          );
+
+        case "ai_ceo_workspace":
+          return (
+            <Suspense fallback={<PageLoader />}>
+              <AICEOWorkspace />
+            </Suspense>
+          );
+
+        case "franchise_onboarding":
+          return (
+            <Suspense fallback={<PageLoader />}>
+              <FranchiseOnboardingPage />
+            </Suspense>
+          );
+
+        case "white_label_settings":
+          return (
+            <Suspense fallback={<PageLoader />}>
+              <WhiteLabelSettingsPage />
+            </Suspense>
+          );
+
+        case "sla_monitoring":
+          return (
+            <Suspense fallback={<PageLoader />}>
+              <SLAMonitoringPage />
             </Suspense>
           );
 
@@ -346,42 +404,11 @@ const ManagementLayout: React.FC<ManagementLayoutProps> = ({
           </div>
 
           <div className="flex items-center gap-2 lg:gap-6">
-            {/* Context Selector (Global vs Hotel) */}
-            <div className="flex items-center gap-1 lg:gap-2 bg-white/5 backdrop-blur-md p-1 rounded-lg border border-white/10 shadow-inner">
-              <button
-                className={`px-2 lg:px-4 py-1.5 rounded-md text-xs lg:text-sm font-medium transition-colors ${
-                  selectedContext === "global"
-                    ? "bg-white/10 text-blue-400 shadow-sm border border-white/5"
-                    : "text-slate-400 hover:text-white"
-                }`}
-                onClick={() => setSelectedContext("global")}
-              >
-                Global
-              </button>
-              <select
-                title="Select Hotel Context"
-                className={`px-1 lg:px-3 py-1.5 rounded-md text-xs lg:text-sm font-medium transition-colors bg-transparent border border-transparent outline-none cursor-pointer max-w-[80px] lg:max-w-none ${
-                  selectedContext !== "global"
-                    ? "bg-white/10 text-blue-400 shadow-sm border-white/5"
-                    : "text-slate-400 hover:text-white"
-                }`}
-                value={selectedContext !== "global" ? selectedContext : ""}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setSelectedContext(e.target.value);
-                  }
-                }}
-              >
-                <option value="" disabled className="text-slate-400">
-                  Site...
-                </option>
-                {HOTELS.map((hotel) => (
-                  <option key={hotel.id} value={hotel.id}>
-                    {hotel.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Context Selector (Global vs Hotel - 100+ Master Locations Scale) */}
+            <GlobalLocationSwitcher 
+              selectedContext={selectedContext}
+              onContextChange={(context) => setSelectedContext(context)}
+            />
 
             <div className="h-8 w-px bg-white/10 hidden lg:block"></div>
 

@@ -192,7 +192,7 @@ if ($Execute) {
 
     Write-Host ""
     Write-Host "  Running Pass 1: Replace inline secrets..." -ForegroundColor Yellow
-    git filter-repo --replace-text $replacementsFile --force
+    python -m git_filter_repo --replace-text $replacementsFile --force
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Pass 1 failed. Restore from backup branch: git checkout $backupBranch"
         exit 1
@@ -201,12 +201,12 @@ if ($Execute) {
 
     Write-Host ""
     Write-Host "  Running Pass 2: Remove secret-bearing files..." -ForegroundColor Yellow
-    $filterArgs = @("filter-repo", "--invert-paths", "--force")
+    $filterArgs = @("-m", "git_filter_repo", "--invert-paths", "--force")
     foreach ($p in $pathsToRemove) {
         $filterArgs += "--path"
         $filterArgs += $p
     }
-    & git @filterArgs
+    & python @filterArgs
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Pass 2 failed. Restore from backup branch: git checkout $backupBranch"
         exit 1

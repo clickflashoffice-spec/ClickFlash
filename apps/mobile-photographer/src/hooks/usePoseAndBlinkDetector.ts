@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Vibration, Alert } from 'react-native';
+import { logger } from "@/utils/logger";
 
 export interface PoseBlinkAnalysis {
   photoUri: string;
@@ -19,7 +20,7 @@ export function usePoseAndBlinkDetector() {
   const analyzeCapture = useCallback(async (photoUri: string, filename: string): Promise<PoseBlinkAnalysis> => {
     setIsAnalyzing(true);
     try {
-      console.log('[PoseBlinkDetector] Running real-time ML inference on:', filename);
+      logger.info('[PoseBlinkDetector] Running real-time ML inference on:', filename);
       // Simulate ultra-lightweight edge inference delay (150ms)
       await new Promise(resolve => setTimeout(resolve, 150));
 
@@ -60,10 +61,10 @@ export function usePoseAndBlinkDetector() {
       };
 
       setLastAnalysis(analysis);
-      console.log('[PoseBlinkDetector] Analysis Complete:', analysis);
+      logger.info('[PoseBlinkDetector] Analysis Complete:', analysis);
       return analysis;
     } catch (err) {
-      console.error('[PoseBlinkDetector] Inference Error:', err);
+      logger.error('[PoseBlinkDetector] Inference Error:', err);
       return {
         photoUri,
         filename,

@@ -140,7 +140,7 @@ export default function faceRoutes(context: FacesContext): Router {
         }
 
         // 3. Login Success
-        const session = (req as any).session;
+        const session = req.session;
         if (session) {
           session.user = {
             id: matchedUser.id,
@@ -198,7 +198,7 @@ export default function faceRoutes(context: FacesContext): Router {
    * @description Register face for current user or a targeted user (Admin/Team Leader only)
    */
   router.post("/register", strictRateLimiter, requirePermission(PERMISSIONS.PHOTO_VIEW), (req: Request, res: Response) => {
-    const sessionUser = (req as any).session ? (req as any).session.user : null;
+    const sessionUser = req.session ? req.session.user : null;
     if (!sessionUser) return sendAuthError(res, "Not authenticated");
 
     const form = formidable({

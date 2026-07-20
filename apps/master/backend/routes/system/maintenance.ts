@@ -146,7 +146,7 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
    */
   router.post("/reset", strictRateLimiter, (req: Request, res: Response) => {
     try {
-      const user = (req as any).user;
+      const user = req.user;
       if (!user || user.role !== "Admin") {
         return res.status(403).json({ error: "Unauthorized" });
       }
@@ -171,7 +171,7 @@ export default function maintenanceRoutes(context: MaintenanceContext): Router {
    */
   router.post("/erase-customer-data", (req: Request, res: Response) => {
     try {
-      const user = (req as any).user;
+      const user = req.user;
       if (!user || user.role !== "Admin") {
         return res.status(403).json({ error: "Unauthorized — admin only" });
       }

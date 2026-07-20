@@ -67,8 +67,8 @@ export class ConnectionManager {
       }
 
       return response.json() as Promise<T>;
-    } catch (err: any) {
-      if (err.name === "TypeError" && err.message === "Failed to fetch" && retries > 0) {
+    } catch (err: unknown) {
+      if (err instanceof TypeError && err.message === "Failed to fetch" && retries > 0) {
         // Network error (offline), retry with backoff
         logger.warn(`Network error connecting to ${endpoint}, retrying...`);
         await new Promise((res) => setTimeout(res, 2000 * (4 - retries)));
@@ -82,7 +82,7 @@ export class ConnectionManager {
     return this.request<T>(endpoint, { method: "GET", headers });
   }
 
-  public async post<T>(endpoint: string, body: any, headers?: HeadersInit): Promise<T> {
+  public async post<T>(endpoint: string, body: unknown, headers?: HeadersInit): Promise<T> {
     return this.request<T>(endpoint, {
       method: "POST",
       body: JSON.stringify(body),
@@ -90,7 +90,7 @@ export class ConnectionManager {
     });
   }
 
-  public async put<T>(endpoint: string, body: any, headers?: HeadersInit): Promise<T> {
+  public async put<T>(endpoint: string, body: unknown, headers?: HeadersInit): Promise<T> {
     return this.request<T>(endpoint, {
       method: "PUT",
       body: JSON.stringify(body),
@@ -110,7 +110,7 @@ export const api = new ConnectionManager(
 export class SSEManager {
   private url: string;
   private eventSource: EventSource | null = null;
-  private listeners: Map<string, Array<(data: any) => void>> = new Map();
+  private listeners: Map<string, Array<(data: unknown) => void>> = new Map();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
 

@@ -30,7 +30,7 @@ export default function healthRoutes(context: HealthContext): Router {
         ip: req.socket.remoteAddress,
         host: req.headers.host,
         networkThroughput: context.networkMonitor?.getStats().throughput || 0,
-        csrfToken: (req.session as any)?.csrfToken || null,
+        csrfToken: req.session?.csrfToken || null,
       },
     });
   });

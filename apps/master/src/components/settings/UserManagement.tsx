@@ -7,9 +7,10 @@ import UserEditModal from '../modals/UserEditModal';
 import WorkingTimeModal from '../photographers/WorkingTimeModal';
 import ObjectivesModal from '../photographers/ObjectivesModal';
 import ConnexionHistoryModal from '../photographers/ConnexionHistoryModal';
+import ShiftLogsModal from '../photographers/ShiftLogsModal';
 import Spinner from '../common/Spinner';
 import { usePermissions } from '../../hooks/usePermissions';
-import { Clock, Target, History } from 'lucide-react';
+import { Clock, Target, History, ClipboardList } from 'lucide-react';
 import { logger } from '@/utils/logger';
 
 interface UserManagementProps {
@@ -21,7 +22,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
     const [destinations, setDestinations] = useState<Destination[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [modalType, setModalType] = useState<'edit' | 'workingTime' | 'objectives' | 'history' | null>(null);
+    const [modalType, setModalType] = useState<'edit' | 'workingTime' | 'objectives' | 'history' | 'shifts' | null>(null);
     const [selectedUser, setSelectedUser] = useState<Photographer | null>(null);
     const [userToEdit, setUserToEdit] = useState<Photographer | null>(null);
     const { can } = usePermissions(currentUser);
@@ -47,7 +48,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
         fetchUsers();
     }, [fetchUsers]);
 
-    const handleOpenModal = (type: 'edit' | 'workingTime' | 'objectives' | 'history', user: Photographer | null = null) => {
+    const handleOpenModal = (type: 'edit' | 'workingTime' | 'objectives' | 'history' | 'shifts', user: Photographer | null = null) => {
         setSelectedUser(user);
         setModalType(type);
         if (type === 'edit') {
@@ -185,6 +186,13 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                                             >
                                                 <History size={16} />
                                             </button>
+                                            <button
+                                                onClick={() => handleOpenModal('shifts', user)}
+                                                className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded transition-colors"
+                                                title="Shift Logs"
+                                            >
+                                                <ClipboardList size={16} />
+                                            </button>
                                         </div>
                                     </td>
                                     <td className="p-4 text-center space-x-2">
@@ -228,6 +236,11 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                     />
                     <ConnexionHistoryModal
                         isOpen={modalType === 'history'}
+                        onClose={handleCloseModal}
+                        photographer={selectedUser}
+                    />
+                    <ShiftLogsModal
+                        isOpen={modalType === 'shifts'}
                         onClose={handleCloseModal}
                         photographer={selectedUser}
                     />

@@ -1,18 +1,26 @@
 import { logger } from "@clickflash/logger";
 
-/**
- * Simple Error Logger - Free alternative to Sentry
- * Logs errors to console and local storage for debugging
- */
-
-interface ErrorContext {
-  [key: string]: any;
+export interface ErrorContext {
+  [key: string]: unknown;
 }
 
-class SimpleErrorLogger {
+export class SimpleErrorLogger {
   private static instance: SimpleErrorLogger;
   private errors: Array<{ timestamp: string; error: string; context?: ErrorContext }> = [];
-  private maxErrors = 100;
+  private maxErrors = 50;
+
+  private constructor() {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const stored = localStorage.getItem('clickflash_errors');
+        if (stored) {
+          this.errors = JSON.parse(stored);
+        }
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
 
   static getInstance(): SimpleErrorLogger {
     if (!SimpleErrorLogger.instance) {
@@ -38,7 +46,9 @@ class SimpleErrorLogger {
 
     // Store in localStorage for persistence
     try {
-      localStorage.setItem('clickflash_errors', JSON.stringify(this.errors));
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('clickflash_errors', JSON.stringify(this.errors));
+      }
     } catch (e) {
       // localStorage might be full
     }
@@ -51,7 +61,9 @@ class SimpleErrorLogger {
   clearErrors(): void {
     this.errors = [];
     try {
-      localStorage.removeItem('clickflash_errors');
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('clickflash_errors');
+      }
     } catch (e) {
       // Ignore
     }
@@ -61,20 +73,22 @@ class SimpleErrorLogger {
 export const errorLogger = SimpleErrorLogger.getInstance();
 
 export function initErrorLogger(): void {
-  // Set up global error handler
-  window.addEventListener('error', (event) => {
-    errorLogger.logError(event.error || event.message, {
-      filename: event.filename,
-      lineno: event.lineno,
-      colno: event.colno,
+  if (typeof window !== 'undefined') {
+    // Set up global error handler
+    window.addEventListener('error', (event) => {
+      errorLogger.logError(event.error || event.message, {
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+      });
     });
-  });
 
-  window.addEventListener('unhandledrejection', (event) => {
-    errorLogger.logError('Unhandled Promise Rejection', {
-      reason: event.reason?.message || event.reason,
+    window.addEventListener('unhandledrejection', (event) => {
+      errorLogger.logError('Unhandled Promise Rejection', {
+        reason: event.reason?.message || event.reason,
+      });
     });
-  });
+  }
 
   logger.info(String('[ErrorLogger] Initialized - free error tracking active'));
 }

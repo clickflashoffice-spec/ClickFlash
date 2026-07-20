@@ -1,4 +1,4 @@
-# ClickFlash v5.1.0 — Deployment Guide (Phase 20)
+# ClickFlash v2.0.0 — Deployment Guide (Phase 20)
 
 > **One-click installer generation & full ecosystem deployment**
 
@@ -52,9 +52,9 @@ pnpm --filter clickflash-installer run payload:sign -- `
   --bundle ./build/payload `
   --private-key C:\ClickFlash-Secrets\payload-signing-key.pem `
   --key-id prod-2026-07 `
-  --release-id v5.1.0 `
-  --version 5.1.0 `
-  --min-installer-version 5.0.0 `
+  --release-id v2.0.0 `
+  --version 2.0.0 `
+  --min-installer-version 2.0.0 `
   --created-at 2026-07-19T00:00:00Z
 ```
 
@@ -65,7 +65,7 @@ pnpm --filter clickflash-installer run payload:sign -- `
 ## Step 4 — Upload Payload Bundle to R2
 
 ```pwsh
-wrangler r2 object put clickflash-releases/v5.1.0/payload.zip `
+wrangler r2 object put clickflash-releases/v2.0.0/payload.zip `
   --file ./build/payload.zip `
   --content-type application/zip
 ```
@@ -78,7 +78,7 @@ wrangler r2 object put clickflash-releases/v5.1.0/payload.zip `
 pnpm --filter clickflash-installer run package:installer
 ```
 
-Output: `apps/installer/release/ClickFlash-Studio-Setup-5.1.0-x64.exe`
+Output: `apps/installer/release/ClickFlash-Studio-Setup-5.0.0-x64.exe`
 
 ---
 
@@ -90,7 +90,7 @@ cd apps/cloud-backend
 wrangler d1 migrations apply clickflash-db --remote
 wrangler deploy
 
-# Update server (v5.1.0 manifests)
+# Update server (v2.0.0 manifests)
 cd workers/update-server
 wrangler deploy
 ```
@@ -116,11 +116,11 @@ git push origin main
 
 ## Step 8 — Publish GitHub Release
 
-1. `git tag v5.1.0 && git push --tags`
-2. Upload `ClickFlash-Studio-Setup-5.1.0-x64.exe` to GitHub Release
+1. `git tag v2.0.0 && git push --tags`
+2. Upload `ClickFlash-Studio-Setup-5.0.0-x64.exe` to GitHub Release
 3. Get SHA-256 of the .exe:
    ```pwsh
-   (Get-FileHash ".\apps\installer\release\ClickFlash-Studio-Setup-5.1.0-x64.exe" -Algorithm SHA256).Hash
+   (Get-FileHash ".\apps\installer\release\ClickFlash-Studio-Setup-5.0.0-x64.exe" -Algorithm SHA256).Hash
    ```
 4. Update `signature` in `workers/update-server/index.ts`, then redeploy.
 
@@ -140,7 +140,7 @@ npm run test:all
 - [ ] Complete 9-step installer wizard
 - [ ] Master PC biometric clock-in prompt appears
 - [ ] Management → Workforce Dashboard shows real-time shifts
-- [ ] Existing v4.x install is offered v5.1.0 update
+- [ ] Existing v1.x install is offered v2.0.0 update
 
 ---
 
@@ -155,10 +155,10 @@ D1 migrations are additive-only — no DB rollback needed.
 
 ```
 Developer Machine
-  ├── pnpm run package:installer → ClickFlash-Studio-Setup-5.1.0-x64.exe
+  ├── pnpm run package:installer → ClickFlash-Studio-Setup-5.0.0-x64.exe
   └── wrangler deploy
         ├── apps/cloud-backend   (D1 + R2 + Stripe)
-        ├── workers/update-server (auto-update manifests v5.1.0)
+        ├── workers/update-server (auto-update manifests v2.0.0)
         ├── apps/management      (Cloudflare Pages — Workforce Dashboard)
         └── apps/gallery         (Cloudflare Pages — guest photo delivery)
 

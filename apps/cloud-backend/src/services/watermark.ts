@@ -1,3 +1,5 @@
+import { logger } from "@/utils/logger";
+
 /**
  * WatermarkService
  * Applies visible adaptive watermarks and invisible forensic tracking (LSB).
@@ -20,7 +22,7 @@ export class WatermarkService {
    * Processes an image to add both visible and invisible watermarks.
    */
   static async applyWatermarks(request: WatermarkRequest): Promise<WatermarkResponse> {
-    console.log(`[WatermarkService] Applying watermarks for ${request.imageUrl} (Viewer: ${request.viewerId})`);
+    logger.info(`[WatermarkService] Applying watermarks for ${request.imageUrl} (Viewer: ${request.viewerId})`);
     
     try {
       // In a real implementation we would:
@@ -33,7 +35,7 @@ export class WatermarkService {
       // Simulating image processing delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      console.log(`[WatermarkService] Successfully embedded invisible tracking ID: ${request.viewerId}`);
+      logger.info(`[WatermarkService] Successfully embedded invisible tracking ID: ${request.viewerId}`);
       
       // Simulate success by appending a query param
       const fakeUrl = `${request.imageUrl}?watermarked=true&v=${request.viewerId}`;
@@ -43,7 +45,7 @@ export class WatermarkService {
         watermarkedUrl: fakeUrl
       };
     } catch (err) {
-      console.error('[WatermarkService] Failed to apply watermarks', err);
+      logger.error('[WatermarkService] Failed to apply watermarks', err);
       return {
         success: false,
         error: err instanceof Error ? err.message : 'Unknown watermark error'
@@ -56,7 +58,7 @@ export class WatermarkService {
    * This is used by admins to track leaked photos.
    */
   static async extractForensicPayload(imageBuffer: Buffer): Promise<string | null> {
-    console.log('[WatermarkService] Extracting forensic LSB payload...');
+    logger.info('[WatermarkService] Extracting forensic LSB payload...');
     // Simulate extraction delay
     await new Promise(resolve => setTimeout(resolve, 800));
     

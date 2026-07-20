@@ -16,76 +16,76 @@ interface ReleaseInfo {
   };
 }
 
-// Release database — bump to v5.1.0 (Phase 19: Biometric Security & Workforce Management)
+// Release database — bump to v2.0.0 (Phase 19: Biometric Security & Workforce Management)
 const RELEASES: ReleaseInfo = {
   'clickflash-master': {
     latest: {
-      version: '5.1.0',
+      version: '2.0.0',
       releaseDate: '2026-07-19',
-      url: 'https://github.com/clickflash/releases/download/v5.1.0/ClickFlash-Master-5.1.0.exe',
+      url: 'https://github.com/clickflash/releases/download/v2.0.0/ClickFlash-Master-2.0.0.exe',
       signature: 'sha256:pending-sign...',
       size: 203_000_000,
       releaseNotes: 'Phase 19: Face biometric clock-in, LAN proxy for face enrollment, shift audit logs, workforce health endpoints',
-      minimumVersion: '5.0.0',
+      minimumVersion: '1.0.0',
       forceUpdate: false
     },
     versions: [
       {
-        version: '4.2.0',
+        version: '1.0.0',
         releaseDate: '2026-06-13',
-        url: 'https://github.com/clickflash/releases/download/v4.2.0/ClickFlash-Master-4.2.0.exe',
+        url: 'https://github.com/clickflash/releases/download/v1.0.0/ClickFlash-Master-1.0.0.exe',
         signature: 'sha256:abc123...',
         size: 198_118_215,
         releaseNotes: 'Fixed backend auto-start, port conflicts, and .trie file issues',
-        minimumVersion: '4.0.0',
+        minimumVersion: '1.0.0',
         forceUpdate: false
       }
     ]
   },
   'clickflash-touch': {
     latest: {
-      version: '5.1.0',
+      version: '2.0.0',
       releaseDate: '2026-07-19',
-      url: 'https://github.com/clickflash/releases/download/v5.1.0/ClickFlash-Touch-5.1.0.exe',
+      url: 'https://github.com/clickflash/releases/download/v2.0.0/ClickFlash-Touch-2.0.0.exe',
       signature: 'sha256:pending-sign...',
       size: 131_000_000,
       releaseNotes: 'Phase 19: Biometric verification display on kiosk, improved LAN stability',
-      minimumVersion: '5.0.0',
+      minimumVersion: '1.0.0',
       forceUpdate: false
     },
     versions: [
       {
-        version: '4.2.0',
+        version: '1.0.0',
         releaseDate: '2026-06-13',
-        url: 'https://github.com/clickflash/releases/download/v4.2.0/ClickFlash-Touch-4.2.0.exe',
+        url: 'https://github.com/clickflash/releases/download/v1.0.0/ClickFlash-Touch-1.0.0.exe',
         signature: 'sha256:def456...',
         size: 127_350_304,
         releaseNotes: 'Kiosk pairing improvements and stability fixes',
-        minimumVersion: '4.0.0',
+        minimumVersion: '1.0.0',
         forceUpdate: false
       }
     ]
   },
   'clickflash-installer': {
     latest: {
-      version: '5.1.0',
+      version: '5.0.0',
       releaseDate: '2026-07-19',
-      url: 'https://github.com/clickflash/releases/download/v5.1.0/ClickFlash-Studio-Setup-5.1.0-x64.exe',
+      url: 'https://github.com/clickflash/releases/download/v5.0.0/ClickFlash-Studio-Setup-5.0.0-x64.exe',
       signature: 'sha256:pending-sign...',
       size: 102_000_000,
       releaseNotes: 'Phase 19+20: All-in-one installer now includes biometric workforce management integration',
-      minimumVersion: '5.0.0',
+      minimumVersion: '4.0.0',
       forceUpdate: false
     },
     versions: [
       {
-        version: '5.0.0',
+        version: '4.0.0',
         releaseDate: '2026-06-13',
-        url: 'https://github.com/clickflash/releases/download/v5.0.0/ClickFlash-Studio-5.0.0.exe',
+        url: 'https://github.com/clickflash/releases/download/v4.0.0/ClickFlash-Studio-4.0.0.exe',
         signature: 'sha256:ghi789...',
         size: 98_413_921,
         releaseNotes: 'All-in-one installer with Master + Touch',
-        minimumVersion: '5.0.0',
+        minimumVersion: '4.0.0',
         forceUpdate: false
       }
     ]

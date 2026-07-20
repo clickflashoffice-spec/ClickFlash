@@ -297,7 +297,7 @@ export default function operationsRoutes(context: OperationsContext): Router {
         context.auditLogger.log("GDPR_ERASURE", {
           email: normalizedEmail,
           deleted,
-          actor: (req as any).user?.email ?? "system",
+          actor: req.user?.email ?? "system",
         });
       }
 

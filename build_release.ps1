@@ -115,6 +115,16 @@ Set-Content -Path "$releaseDir\05_Manuals\README.md" -Value "# ClickFlash v2.0.0
 
 Write-Host "  -> Assembly complete."
 
+# ── Step 6.5: Code Signing ──
+Write-Host ""
+Write-Host "[Signing] Authenticode signing all executables..."
+if (Test-Path "scripts\sign-release.ps1") {
+    .\scripts\sign-release.ps1 -TargetDirectory $releaseDir
+    if ($LASTEXITCODE -ne 0) { Write-Host "ERROR: Code signing failed!" ; exit 1 }
+} else {
+    Write-Host "WARNING: sign-release.ps1 not found, skipping code signing." -ForegroundColor Yellow
+}
+
 # ── Step 7: Create Zip ──
 Write-Host ""
 Write-Host "Creating final archive: ClickFlash_v2.0.0-production.zip..."

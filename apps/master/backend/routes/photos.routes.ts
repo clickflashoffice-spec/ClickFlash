@@ -160,7 +160,7 @@ export default function photosRoutes(context: any): Router {
       // ──────────────────────────────────────────────────────────────────────
 
 
-      const auditUser = (req as any).session?.user || (req as any).user;
+      const auditUser = req.session?.user || req.user;
       auditLogger.logDataAccess(
         auditUser?.id || "unknown",
         auditUser?.email || "unknown",
@@ -227,7 +227,7 @@ export default function photosRoutes(context: any): Router {
         saved = dbManager.get(`SELECT * FROM ${table} WHERE id = ?`, [id]);
       }
 
-      const auditUser = (req as any).session?.user || (req as any).user;
+      const auditUser = req.session?.user || req.user;
       auditLogger.logDataAccess(
         auditUser?.id || "unknown",
         auditUser?.email || "unknown",
@@ -341,7 +341,7 @@ export default function photosRoutes(context: any): Router {
 
       dbManager.run(`DELETE FROM ${table} WHERE id = ?`, [id]);
 
-      const auditUser = (req as any).session?.user || (req as any).user;
+      const auditUser = req.session?.user || req.user;
       auditLogger.logDataAccess(
         auditUser?.id || "unknown",
         auditUser?.email || "unknown",

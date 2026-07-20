@@ -1,0 +1,2 @@
+ALTER TABLE photos ADD COLUMN quality_score INTEGER;
+ALTER TABLE photos ADD COLUMN curation_status TEXT DEFAULT 'PENDING';

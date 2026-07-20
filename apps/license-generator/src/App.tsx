@@ -2,10 +2,13 @@ import React, { useState, useCallback } from 'react';
 import { GeneratorForm } from './components/GeneratorForm';
 import { KeyList } from './components/KeyList';
 import { Validator } from './components/Validator';
+import { AuditLog } from './components/AuditLog';
+import { HardwareFingerprint } from './components/HardwareFingerprint';
 import { LicenseKeyData } from './types/license';
 import './styles.css';
 
 function App() {
+  const [activeTab, setActiveTab] = useState<'generator' | 'audit' | 'fingerprint'>('generator');
   const [generatedKeys, setGeneratedKeys] = useState<LicenseKeyData[]>([]);
   const [notification, setNotification] = useState<string | null>(null);
   const [signingKeyLabel, setSigningKeyLabel] = useState<string | null>(null);
@@ -88,30 +91,67 @@ function App() {
       <header className="app-header">
         <h1>🔑 ClickFlash License Generator</h1>
         <p>Generate and validate license keys for ClickFlash Studio</p>
+        <div className="tabs">
+          <button 
+            className={activeTab === 'generator' ? 'active' : ''} 
+            onClick={() => setActiveTab('generator')}
+          >
+            Generator
+          </button>
+          <button 
+            className={activeTab === 'audit' ? 'active' : ''} 
+            onClick={() => setActiveTab('audit')}
+          >
+            Audit Log & Revocations
+          </button>
+          <button 
+            className={activeTab === 'fingerprint' ? 'active' : ''} 
+            onClick={() => setActiveTab('fingerprint')}
+          >
+            Hardware Fingerprint
+          </button>
+        </div>
       </header>
 
       <main className="app-main">
-        <section className="section">
-          <h2>Generate Keys</h2>
-          <GeneratorForm
-            signingKeyLabel={signingKeyLabel}
-            onSelectSigningKey={handleSelectSigningKey}
-            onClearSigningKey={handleClearSigningKey}
-            onGenerate={handleGenerate}
-          />
-        </section>
+        {activeTab === 'generator' && (
+          <>
+            <section className="section">
+              <h2>Generate Keys</h2>
+              <GeneratorForm
+                signingKeyLabel={signingKeyLabel}
+                onSelectSigningKey={handleSelectSigningKey}
+                onClearSigningKey={handleClearSigningKey}
+                onGenerate={handleGenerate}
+              />
+            </section>
 
-        {generatedKeys.length > 0 && (
+            {generatedKeys.length > 0 && (
+              <section className="section">
+                <h2>Generated Keys ({generatedKeys.length})</h2>
+                <KeyList keys={generatedKeys} onExport={handleExport} onCopy={handleCopy} />
+              </section>
+            )}
+
+            <section className="section">
+              <h2>Validate Key</h2>
+              <Validator onValidate={handleValidate} />
+            </section>
+          </>
+        )}
+
+        {activeTab === 'audit' && (
           <section className="section">
-            <h2>Generated Keys ({generatedKeys.length})</h2>
-            <KeyList keys={generatedKeys} onExport={handleExport} onCopy={handleCopy} />
+            <h2>Audit Log & Revocations</h2>
+            <AuditLog />
           </section>
         )}
 
-        <section className="section">
-          <h2>Validate Key</h2>
-          <Validator onValidate={handleValidate} />
-        </section>
+        {activeTab === 'fingerprint' && (
+          <section className="section">
+            <HardwareFingerprint />
+          </section>
+        )}
       </main>
 
       {notification && (

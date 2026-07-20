@@ -74,6 +74,28 @@ export default function shiftRoutes(context: any) {
     }
   });
 
+  // GET /api/shifts/proxy
+  // Retrieves proxy queue events, optionally filtered by photographerId
+  router.get("/proxy", async (req: Request, res: Response) => {
+    try {
+      const photographerId = req.query.photographerId as string;
+      
+      let query = `SELECT * FROM shifts_proxy_queue ORDER BY timestamp DESC LIMIT 50`;
+      let params: any[] = [];
+      
+      if (photographerId) {
+        query = `SELECT * FROM shifts_proxy_queue WHERE photographer_id = ? ORDER BY timestamp DESC LIMIT 50`;
+        params = [photographerId];
+      }
+
+      const rows = dbManager.all(query, params);
+      return res.status(200).json(rows);
+    } catch (error: any) {
+      logger.error("[ShiftRoutes] Error fetching shift proxy logs", error);
+      return res.status(500).json({ error: "Failed to fetch shift logs" });
+    }
+  });
+
   return router;
 }
 

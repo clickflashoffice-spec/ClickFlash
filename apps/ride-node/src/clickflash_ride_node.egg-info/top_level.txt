@@ -1,0 +1,5 @@
+camera
+diagnostics
+optical_flow
+trigger_mqtt
+uploader

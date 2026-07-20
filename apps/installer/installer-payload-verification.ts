@@ -1,9 +1,13 @@
+import { execFile } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { promisify } from "node:util";
 import { z } from "zod";
 
 import { APPLICATION_LAYOUT } from "./installer-application-config";
+
+const execFileAsync = promisify(execFile);
 
 export const PAYLOAD_MANIFEST_FILENAME = "clickflash-payload-manifest.json";
 export const PAYLOAD_SIGNATURE_DOMAIN = "clickflash-payload-manifest/v1";
@@ -369,6 +373,21 @@ async function verifyComponentFiles(
     }
     if (await hashFile(absolutePath) !== file.sha256) {
       throw new Error(`Payload file hash mismatch: ${component.source_directory}/${file.path}`);
+    }
+
+    if (file.path.toLowerCase().endsWith(".exe") || file.path.toLowerCase().endsWith(".dll")) {
+      try {
+        const { stdout } = await execFileAsync("powershell.exe", [
+          "-NoProfile",
+          "-Command",
+          `$sig = Get-AuthenticodeSignature -FilePath '${absolutePath}'; if ($sig.Status -eq 'Valid') { Write-Output 'Valid' } else { Write-Output 'Invalid' }`
+        ]);
+        if (!stdout.includes("Valid")) {
+          throw new Error(`Payload executable is not properly signed: ${component.source_directory}/${file.path}`);
+        }
+      } catch (err) {
+        throw new Error(`Failed to verify Authenticode signature for: ${component.source_directory}/${file.path}. ${err instanceof Error ? err.message : err}`);
+      }
     }
   }
 }

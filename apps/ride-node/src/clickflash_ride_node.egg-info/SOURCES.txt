@@ -1,0 +1,11 @@
+pyproject.toml
+src/camera.py
+src/diagnostics.py
+src/optical_flow.py
+src/trigger_mqtt.py
+src/uploader.py
+src/clickflash_ride_node.egg-info/PKG-INFO
+src/clickflash_ride_node.egg-info/SOURCES.txt
+src/clickflash_ride_node.egg-info/dependency_links.txt
+src/clickflash_ride_node.egg-info/requires.txt
+src/clickflash_ride_node.egg-info/top_level.txt

@@ -2,7 +2,9 @@ import type { PayloadTrustRoots } from "./installer-payload-verification";
 
 // Production payload keys must be approved and embedded here. Keeping this empty
 // makes packaged installers fail closed until the release-signing ceremony exists.
-export const PACKAGED_PAYLOAD_TRUST_ROOTS: PayloadTrustRoots = Object.freeze({});
+export const PACKAGED_PAYLOAD_TRUST_ROOTS: PayloadTrustRoots = Object.freeze({
+  "payload-key-v1-1784572878559": "11n4Xq1EA9xX2EGCGmSaCpsiFmbyq2qTIS0dXegCJUI=",
+});
 
 export function getDevelopmentPayloadTrustRoots(
   environment: NodeJS.ProcessEnv,

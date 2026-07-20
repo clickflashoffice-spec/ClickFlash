@@ -54,7 +54,8 @@ win:
   requestedExecutionLevel: requireAdministrator
   forceCodeSigning: false
   signAndEditExecutable: false
-  sign: "../../scripts/ev-sign.js"
+
+sign: "../../scripts/ev-sign.js"
 
 compression: maximum
 

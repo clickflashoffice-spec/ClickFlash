@@ -17,6 +17,7 @@ import {
   Sliders,
   FolderOpen,
 } from 'lucide-react';
+import { logger } from "@/utils/logger";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
 
@@ -201,7 +202,7 @@ export function Uploader({
             return;
           }
         } catch (err) {
-          console.warn('Edge AI grading error, proceeding with upload:', err);
+          logger.warn('Edge AI grading error, proceeding with upload:', err);
         }
       }
 

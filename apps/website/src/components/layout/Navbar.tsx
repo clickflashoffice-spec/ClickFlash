@@ -77,13 +77,11 @@ export function Navbar() {
     >
       <div className="container mx-auto flex items-center justify-between px-2 sm:px-4 lg:px-6">
         {/* Logo Section */}
-        <Link
-          href="/"
-          className="group flex transform items-center gap-2 transition-transform duration-300 hover:scale-105"
-          aria-label="ClickFlash Home"
-        >
-          <Logo variant="light" size="xl" />
-        </Link>
+        <Logo 
+          variant="light" 
+          size="xl" 
+          className="transform transition-transform duration-300 hover:scale-105"
+        />
 
         {/* Navigation Links */}
         <div className="hidden items-center gap-4 lg:flex xl:gap-7">

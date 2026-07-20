@@ -443,7 +443,7 @@ export default function orderRoutes(context: OrdersContext): Router {
         );
 
         // Audit Log Data Access (P1)
-        const auditUser = (req as any).session?.user || (req as any).user;
+        const auditUser = req.session?.user || req.user;
         auditLogger.logDataAccess(
           auditUser?.id || "unknown",
           auditUser?.email || "unknown",

@@ -10,6 +10,7 @@ import { Colors, Spacing, MaxContentWidth, Typography } from '@/constants/theme'
 import { useColorScheme } from 'react-native';
 import { faceBiometricService } from '@/services/FaceBiometricService';
 import { syncService } from '@/services/SyncService';
+import { logger } from "@/utils/logger";
 
 export default function EnrollFaceScreen() {
   const scheme = useColorScheme();
@@ -77,7 +78,7 @@ export default function EnrollFaceScreen() {
       setStatusText(`VECTOR READY (${result.vector.length} DIMENSIONS) - CONFIDENCE: ${(result.confidence * 100).toFixed(1)}%`);
       setIsProcessing(false);
     } catch (e: any) {
-      console.error('[EnrollFace] Error:', e);
+      logger.error('[EnrollFace] Error:', e);
       Alert.alert('Error', e.message || 'Face extraction error.');
       setStatusText('ERROR IN PROCESSING');
       setIsProcessing(false);

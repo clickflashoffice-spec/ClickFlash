@@ -9,7 +9,12 @@ export default defineConfig({
   testMatch: [
     'tests/ecosystem/**/*.spec.ts',
     'apps/master/tests/e2e/**/*.spec.ts',
-    'apps/touch/tests/e2e/**/*.spec.ts'
+    'apps/touch/tests/e2e/**/*.spec.ts',
+    'e2e/comprehensive-flows.spec.ts',
+    'e2e/accessibility/**/*.spec.ts',
+    'e2e/visual-regression/**/*.spec.ts',
+    'e2e/integration/**/*.spec.ts',
+    'e2e/resilience/**/*.spec.ts'
   ],
   testIgnore: [
     '**/.claude/**',

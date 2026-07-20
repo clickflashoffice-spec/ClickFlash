@@ -3,6 +3,7 @@ import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { syncService, type PhotoAsset } from '../services/SyncService';
 import * as FileSystem from 'expo-file-system/legacy';
 import { usePoseAndBlinkDetector, type PoseBlinkAnalysis } from './usePoseAndBlinkDetector';
+import { logger } from "@/utils/logger";
 
 export function useAutoEditor() {
     const [isEditing, setIsEditing] = useState(false);
@@ -13,7 +14,7 @@ export function useAutoEditor() {
     const processPhoto = useCallback(async (rawPhotoUri: string, filename: string, voiceTags: string[] = []) => {
         setIsEditing(true);
         try {
-            console.log('[AutoEditor] Starting real-time pose/blink check and AI enhancement for:', filename);
+            logger.info('[AutoEditor] Starting real-time pose/blink check and AI enhancement for:', filename);
             
             // 1. Run real-time edge pose quality & blink validation right away
             const poseAnalysis = await analyzeCapture(rawPhotoUri, filename);
@@ -49,7 +50,7 @@ export function useAutoEditor() {
                 }
             };
 
-            console.log('[AutoEditor] Enhancement complete. Queuing for sync with AI metadata:', photoAsset.filename);
+            logger.info('[AutoEditor] Enhancement complete. Queuing for sync with AI metadata:', photoAsset.filename);
             
             setLastEditedPhoto(photoAsset);
             
@@ -58,7 +59,7 @@ export function useAutoEditor() {
 
             return photoAsset;
         } catch (error) {
-            console.error('[AutoEditor] Failed to process photo:', error);
+            logger.error('[AutoEditor] Failed to process photo:', error);
             throw error;
         } finally {
             setIsEditing(false);

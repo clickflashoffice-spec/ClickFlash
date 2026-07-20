@@ -42,7 +42,7 @@ export function createMutationAuditMiddleware(auditLogger: AuditLogger): Request
 
             // Resolve user context — session user takes precedence over JWT user
             // eslint-disable-next-line @typescript-eslint/no-explicit-any -- session typing is loose by design
-            const user = (req.session as any)?.user ?? (req as any).user;
+            const user = req.session?.user ?? req.user;
             const userId: string | number = user?.id ?? 'anonymous';
             const email: string = user?.email ?? 'anonymous';
 

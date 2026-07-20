@@ -385,3 +385,67 @@ body {
     flex-direction: column;
   }
 }
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.tabs button {
+  padding: 0.5rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  cursor: pointer;
+  border-radius: 4px;
+}
+.tabs button.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+.audit-log-container .toolbar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.table-container {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  text-align: left;
+}
+th {
+  background: var(--bg-card);
+}
+tr.revoked-row {
+  opacity: 0.6;
+}
+.status.revoked {
+  color: #ff4444;
+  font-weight: bold;
+}
+.status.active {
+  color: #00C851;
+  font-weight: bold;
+}
+.revoke-action {
+  display: flex;
+  gap: 0.5rem;
+}
+.fingerprint-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border-radius: 4px;
+}
+

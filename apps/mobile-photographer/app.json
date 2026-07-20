@@ -51,7 +51,8 @@
           "locationWhenInUsePermission": "Location access is required in order to accept payments.",
           "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported card readers."
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Vibration } from 'react-native';
+import { logger } from "@/utils/logger";
 
 export interface VoiceTagSession {
   isListening: boolean;
@@ -27,7 +28,7 @@ export function useVoiceTagging() {
     setIsListening(true);
     try {
       Vibration.vibrate(50);
-      console.log('[VoiceTagging] Listening for hands-free headset speech... say "Tag: [keywords]"');
+      logger.info('[VoiceTagging] Listening for hands-free headset speech... say "Tag: [keywords]"');
     } catch {
       // ignore
     }
@@ -50,10 +51,10 @@ export function useVoiceTagging() {
 
       const extracted = extractTagsFromSpeech(speech);
       setActiveVoiceTags(extracted);
-      console.log('[VoiceTagging] Extracted tags from voice:', extracted);
+      logger.info('[VoiceTagging] Extracted tags from voice:', extracted);
       return extracted;
     } catch (err) {
-      console.error('[VoiceTagging] Error processing speech:', err);
+      logger.error('[VoiceTagging] Error processing speech:', err);
       return activeVoiceTags;
     }
   }, [activeVoiceTags]);

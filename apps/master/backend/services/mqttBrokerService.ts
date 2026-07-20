@@ -11,11 +11,26 @@ export class MQTTBrokerService {
   public static start(): void {
     if (this.broker) return;
 
+    const AedesClass = (aedesModule as any).Aedes;
+    if (AedesClass && typeof AedesClass.createBroker === 'function') {
+      AedesClass.createBroker().then((broker: any) => {
+        this.broker = broker;
+        this.setupServer();
+      }).catch((err: any) => {
+        logger.error('[MQTT] Failed to create broker', err);
+      });
+      return;
+    }
+
     // @ts-ignore - aedes has varied export styles depending on version
     this.broker = typeof Aedes === 'function' ? new (Aedes as any)() : new (Aedes as any).default();
+    this.setupServer();
+  }
+
+  private static setupServer(): void {
     this.server = net.createServer(this.broker.handle);
 
-    this.server.listen(this.PORT, () => {
+    this.server?.listen(this.PORT, () => {
       logger.info(`[MQTT Broker] Listening on port ${this.PORT}`);
     });
 

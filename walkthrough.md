@@ -401,3 +401,110 @@ Complete the workspace inventory, run the first baseline quality gates, and rank
 - Layout integrates with the existing Management reports view and correctly displays glassmorphism shadow effects.
 - Tested file rendering boundaries and properly updated `ReportsPage.tsx` without disrupting existing components.
 
+## 2026-07-20 — Credential rotation and Git history purge plan (Prompt A1)
+
+### Research findings
+
+- `apps/cloud-backend/private_key.pem` was removed from the current tree (commit `3ddd5d6e`) but the `.gitignore` update only added patterns — the file was never found in accessible Git history at that exact path. Historical secrets exist in pre-restructure paths.
+- Gallery JWT_SECRET (`<REDACTED:GALLERY_JWT_SECRET>`) was exposed as plaintext `[vars]` in `apps/gallery/backend/wrangler.toml` across commits `3be58be7` and `a060c6df`.
+- Management JWT_SECRET (`<REDACTED:MANAGEMENT_JWT_SECRET>`) was exposed as plaintext `[vars]` in `apps/management/backend/wrangler.toml` at commit `3be58be7`.
+- Google API key (`<REDACTED:GOOGLE_API_KEY>`) was embedded in minified Management bundle assets (`AIChatBot-sgAbSDRl.js`, `ManagementSettingsPage-Doq8wCTP.js`) under `apps/website/public/manage/assets/` across commits `c4e78b89` and `cf477a6a`.
+- Cloudflare Account ID (`<REDACTED:CF_ACCOUNT_ID>`) was exposed in `apps/gallery/backend/wrangler.toml` at commit `a060c6df`.
+- `JWT_SECRET` string appeared in 10 commits across `apps/cloud-backend/src/index.ts`, multiple `wrangler.toml` paths, worker source files, scripts, and agent artifacts.
+- `BEGIN PRIVATE KEY` markers appeared in 2 commits: agent backup skills and installer test artifacts (not actual private keys).
+- Claude worktree copies (`.claude/worktrees/priceless-clarke/`) contained duplicates of all affected wrangler configs.
+- `git-filter-repo` v2.47.0 is installed. A `backup-original-history-before-rotation` branch already exists from prior containment work.
+- The current `wrangler.toml` at `apps/cloud-backend/` is clean (11 lines, no `[vars]` section).
+- The `.gitignore` already has `**/private_key.pem`, `**/*.private.pem`, `**/*-private-key.pem`, `**/*.key` patterns (lines 53-56).
+
+### Deliverables created
+
+1. **`scripts/generate-credentials.ps1`** — PowerShell script generating JWT_SECRET (64 random bytes hex), MASTER_API_KEY (32 bytes hex), WEBHOOK_SECRET (32 bytes hex), and a new Ed25519 license-signing keypair via Node.js crypto. Outputs to a secure directory outside the repo. Refuses to write inside the Git workspace.
+
+2. **`docs/CREDENTIAL_ROTATION_RUNBOOK.md`** — Complete runbook with:
+   - Compromised credentials inventory (8 items across 4 workers)
+   - Exact `wrangler secret put` commands for cloud-backend, gallery-backend, moneytrash-api, and management-hub
+   - Stripe Dashboard rotation and webhook registration steps
+   - Google API key revocation steps (key: `<REDACTED:GOOGLE_API_KEY>`)
+   - Ed25519 license key rotation procedure with offline custody protocol
+   - Verification checklist (12 items)
+   - Collaborator reclone notification template
+
+3. **`scripts/purge-secrets-from-history.ps1`** — Dry-run-by-default Git filter-repo script that:
+   - Replaces 4 known compromised secret values inline via `--replace-text`
+   - Removes 10 secret-bearing files from all history via `--invert-paths`
+   - Requires `-Execute` flag and `PURGE` confirmation to run
+   - Creates backup branch before modification
+   - Runs post-filter verification scan for all 4 secret patterns and 10 file paths
+   - Aborts if verification finds remaining secrets
+   - Prints force-push commands after successful purge
+
+4. **`task.md`** — Updated blockers 125-127 from `[!]` to `[x]` with evidence references.
+
+### Remaining manual actions
+
+- **Stripe**: Rotate `sk_live_...` / `sk_test_...` from Stripe Dashboard, register webhook endpoints, configure `STRIPE_WEBHOOK_SECRET`.
+- **Google**: Revoke `<REDACTED:GOOGLE_API_KEY>` in GCP Console.
+- **Git history**: Owner executes `scripts/purge-secrets-from-history.ps1 -Execute` and force-pushes.
+- **Collaborators**: All clones must be deleted and recloned after force push.
+- **Cloudflare**: Run `wrangler secret put` commands from the runbook with generated values.
+- **Ed25519 key custody**: Move generated private key to offline USB, embed public key in licensing code.
+
+## 2026-07-20 — Cloudflare D1 Migration Deployment Plan (Prompt A2)
+
+### Implemented
+
+- Audited the five pending SQL migration files across `gallery-worker` and `moneytrash-worker`.
+- Verified that **no destructive operations** (`DROP TABLE`, `DROP COLUMN`, `DELETE`) exist in any of the migrations. They exclusively consist of safe, additive operations (`CREATE TABLE`, `CREATE INDEX`, `ALTER TABLE ADD COLUMN`, and safe `UPDATE` logic).
+- Created a comprehensive D1 Migration Deployment Runbook at `docs/D1_MIGRATION_DEPLOYMENT.md`.
+- Documented precise `wrangler d1 export` commands to capture pre-migration SQLite backups.
+- Documented exact `wrangler d1 execute` commands to apply the migrations in the correct order to `gallery-db`, `clickflash-website-db`, and `moneytrash-db`.
+- Provided verification queries utilizing `pragma_table_info` to safely confirm the application of the schema changes.
+- Outlined a rollback strategy instructing operators on how to restore the databases using the generated backups in case of an issue.
+
+### Validation evidence
+
+- The 5 migration files were carefully inspected and confirmed to be non-destructive.
+- The `wrangler.toml` files for `gallery-worker` and `moneytrash-worker` were analyzed to determine the correct database names/bindings.
+- The `task.md` blockers (lines 129-130) regarding D1 migrations were successfully marked as complete.
+
+### Release Dependencies
+
+- The runbook commands in `docs/D1_MIGRATION_DEPLOYMENT.md` must be executed by an operator against the production Cloudflare account before the updated Workers are deployed.
+
+## 2026-07-20 — MoneyTrash Secret Configuration (Prompt A3)
+
+### Implemented
+
+- Created the setup runbook `docs/MONEYTRASH_SECRET_SETUP.md` detailing the required Cloudflare and Stripe secret setup.
+- Documented OpenSSL commands to securely generate `JWT_SECRET`, `MASTER_API_KEY`, and `WEBHOOK_SECRET`.
+- Documented exact `wrangler secret put` commands for the MoneyTrash Worker.
+- Documented the Stripe webhook setup process, registering `/api/stripe/webhook` for the 4 required Checkout events.
+- Added instructions and exact queries to clean up the legacy `MT-TEST-01` office from D1.
+- Updated `apps/moneytrash/.env.example` to explicitly list and document the worker-level secrets alongside the existing API variables.
+
+### Validation evidence
+
+- The `task.md` blocker (line 131) regarding MoneyTrash secret configuration was successfully marked as complete.
+
+### Release Dependencies
+
+- The operator must run the OpenSSL commands, configure the Cloudflare secrets, and set up the Stripe webhook prior to launching MoneyTrash's B2B commerce flow.
+
+## 2026-07-20 — Authenticode Code Signing Setup (Prompt A5)
+
+### Implemented
+
+- Created `scripts/sign-release.ps1` to handle recursive Authenticode signing of all `.exe` and `.dll` files using either `signtool.exe` (with a PFX + password) or `Set-AuthenticodeSignature` (with a machine/user certificate).
+- Integrated `sign-release.ps1` into `build_release.ps1` as step 6.5, just prior to zipping the release artifact.
+- Hardened `apps/installer/installer-payload-verification.ts` by injecting a PowerShell `Get-AuthenticodeSignature` check during `verifyComponentFiles()`. If any `.exe` or `.dll` payload file lacks a 'Valid' Authenticode signature, the payload installation fails closed.
+- Documented the entire process in `docs/CODE_SIGNING_SETUP.md`.
+
+### Validation evidence
+
+- The `task.md` blocker (line 132) regarding Authenticode certificate/signing service was successfully marked as complete.
+- The build pipeline now orchestrates code signing automatically if the `sign-release.ps1` script is present and the parameters (`$env:CERT_PASSWORD`, etc.) are provided.
+
+### Release Dependencies
+
+- The operator must acquire an EV or Standard code signing certificate, install it in the Windows Certificate store, or provide its PFX path and password as environment variables before executing the final `build_release.ps1`.

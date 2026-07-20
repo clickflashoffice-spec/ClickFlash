@@ -10,7 +10,7 @@ const GlobalFeatureSettings: React.FC = () => {
 
   // State tracks feature flags for each destination ID
   const [featureFlags, setFeatureFlags] = useState<
-    Record<string, { ai: boolean; face: boolean; watermark: boolean }>
+    Record<string, { ai: boolean; face: boolean; watermark: boolean; biometric_enforcement?: boolean }>
   >({});
 
   useEffect(() => {
@@ -20,9 +20,9 @@ const GlobalFeatureSettings: React.FC = () => {
         setDestinations(dests);
 
         // Initialize flags from API data
-        const flags: Record<string, { ai: boolean; face: boolean; watermark: boolean }> = {};
+        const flags: Record<string, { ai: boolean; face: boolean; watermark: boolean; biometric_enforcement?: boolean }> = {};
         dests.forEach((d) => {
-          flags[d.id] = d.features || { ai: true, face: true, watermark: true };
+          flags[d.id] = d.features || { ai: true, face: true, watermark: true, biometric_enforcement: true };
         });
         setFeatureFlags(flags);
       } finally {
@@ -34,7 +34,7 @@ const GlobalFeatureSettings: React.FC = () => {
 
   const toggleFeature = (
     destId: string,
-    feature: "ai" | "face" | "watermark",
+    feature: "ai" | "face" | "watermark" | "biometric_enforcement",
   ) => {
     setFeatureFlags((prev) => ({
       ...prev,
@@ -148,6 +148,21 @@ const GlobalFeatureSettings: React.FC = () => {
                 </label>
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
                   Dynamic Watermark
+                </span>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={featureFlags[dest.id]?.biometric_enforcement}
+                    onChange={() => toggleFeature(dest.id, "biometric_enforcement")}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                </label>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  Biometric Enforcement
                 </span>
               </div>
             </div>

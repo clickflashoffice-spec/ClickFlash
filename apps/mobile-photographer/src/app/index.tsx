@@ -11,6 +11,7 @@ import { useAutoEditor } from '../hooks/useAutoEditor';
 import { useVoiceTagging } from '../hooks/useVoiceTagging';
 import { meshSyncService } from '../services/MeshSyncService';
 import * as FileSystem from 'expo-file-system/legacy';
+import { logger } from "@/utils/logger";
 
 export default function StudioScreen() {
   const scheme = useColorScheme();
@@ -56,7 +57,7 @@ export default function StudioScreen() {
       setPhotoCount(prev => prev + 1);
     } catch (err) {
       Alert.alert('Error', 'Failed to simulate DSLR capture');
-      console.error(err);
+      logger.error(err);
     }
   };
 

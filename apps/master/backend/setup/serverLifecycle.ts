@@ -107,7 +107,9 @@ export function startServer(
       });
 
       // Start UDP auto-discovery for Touch pairing
-      udpDiscoveryService.start();
+      if (udpDiscoveryService) {
+        udpDiscoveryService.start();
+      }
 
       // Fire off background services
       await initializeEcosystem(context);

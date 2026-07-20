@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createPageMetadata } from "../../metadata";
 import { blogPosts, getPostBySlug, getRelatedPosts } from "@/data/blogPosts";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 interface Props {
     params: Promise<{ slug: string }>;
@@ -135,7 +136,7 @@ export default async function BlogPostPage({ params }: Props) {
                     // The CMS must strip <script>, <iframe>, event handlers (onerror, onclick),
                     // and javascript: URLs. If CMS sanitization is not yet implemented,
                     // add DOMPurify here: DOMPurify.sanitize(post.content).
-                    dangerouslySetInnerHTML={{ __html: post.content }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
                 />
 
                 {/* Tags */}

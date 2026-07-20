@@ -55,6 +55,8 @@
     "test:e2e:web": "pnpm --filter main-website run test:e2e && pnpm --filter star-master-customer run test:e2e && pnpm --filter star-master-management run test:e2e && pnpm --filter moneytrash-uploader run test:e2e",
     "test:prod": "npx tsx tests/ecosystem/reset.ts && npx playwright test --config=playwright.prod.config.ts",
     "test:prod:all": "pnpm run test:prod",
+    "test:mobile": "maestro test apps/mobile-photographer/.maestro/",
+    "test:e2e:full": "bash scripts/boot-emulator.sh && concurrently \"pnpm run test:e2e\" \"pnpm run test:mobile\" --success first --kill-others",
     "test:report": "npx playwright show-report",
     "lint:all": "pnpm --filter clickflash-master run lint && pnpm --filter clickflash-touch run lint && pnpm --filter star-master-management run lint && pnpm --filter star-master-customer run lint && pnpm --filter main-website run lint && pnpm --filter moneytrash-uploader run lint && pnpm --filter clickflash-installer run lint && pnpm --filter clickflash-license-generator run lint && pnpm --filter mobile run lint",
     "typecheck:all": "pnpm --filter clickflash-master run typecheck:ci && pnpm --filter clickflash-touch run typecheck && pnpm --filter star-master-management run typecheck && pnpm --filter star-master-customer run typecheck && pnpm --filter main-website run typecheck && pnpm --filter moneytrash-uploader run typecheck && pnpm --filter clickflash-installer run typecheck && pnpm --filter clickflash-license-generator run typecheck && pnpm --filter mobile run typecheck",

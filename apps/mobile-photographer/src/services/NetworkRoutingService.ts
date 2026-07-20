@@ -1,6 +1,7 @@
 import { discoveryService } from './discoveryService';
 import { meshSyncService } from './MeshSyncService';
 import { offlineQueueService } from './OfflineQueueService';
+import { logger } from "@/utils/logger";
 
 export type ConnectionTier = 
   | 'ONLINE_HYBRID'      // Both LAN Master PC and Cloud Edge reachable
@@ -33,6 +34,7 @@ export class NetworkRoutingService {
   private pingIntervalId: ReturnType<typeof setInterval> | null = null;
   private listeners: Set<NetworkStatusListener> = new Set();
   private isFlushingQueue: boolean = false;
+  private pendingOfflineCount: number = 0;
 
   private constructor() {
     this.startPingLoop();
@@ -63,7 +65,7 @@ export class NetworkRoutingService {
       masterLatencyMs: this.masterLatencyMs,
       cloudLatencyMs: this.cloudLatencyMs,
       meshPeersCount: meshSyncService.getDiscoveredPeers().length,
-      pendingOfflineCount: offlineQueueService.getQueueSize(),
+      pendingOfflineCount: this.pendingOfflineCount,
       lastChecked: Date.now()
     };
   }
@@ -131,9 +133,11 @@ export class NetworkRoutingService {
     const isNowOnline = this.currentTier === 'ONLINE_HYBRID' || this.currentTier === 'ONLINE_MASTER_ONLY' || this.currentTier === 'ONLINE_CLOUD_ONLY';
     
     if (wasOffline && isNowOnline) {
-      console.log(`[NetworkRoutingService] Transitioned to ${this.currentTier}. Flushing offline queue...`);
+      logger.info(`[NetworkRoutingService] Transitioned to ${this.currentTier}. Flushing offline queue...`);
       this.flushOfflineQueue();
     }
+
+    this.pendingOfflineCount = await offlineQueueService.getQueueSize();
 
     this.notifyListeners();
     return this.getStatusSnapshot();
@@ -205,32 +209,70 @@ export class NetworkRoutingService {
         return { processed: 0, failed: 0 };
       }
 
-      console.log(`[NetworkRoutingService] Flushing ${items.length} items from offline queue...`);
+      logger.info(`[NetworkRoutingService] Flushing ${items.length} items from offline queue...`);
 
       for (const item of items) {
         const targetUrl = this.resolveTargetUrl(item.endpoint, true);
         if (!targetUrl) {
-          console.log(`[NetworkRoutingService] No route available right now during flush. Pausing.`);
+          if (this.currentTier === 'OFFLINE_MESH' && item.type === 'PHOTO_SYNC') {
+             const payloadData = item.payload as any;
+             const relayed = await meshSyncService.queueForPeerRelay({
+                id: item.id,
+                uri: payloadData.uri, 
+                filename: payloadData.filename, 
+                aiMetadata: payloadData.aiMetadata,
+                mediaType: 'photo',
+                creationTime: item.timestamp,
+                width: 0, height: 0, fileSize: 0
+             });
+             if (relayed) {
+               await offlineQueueService.dequeue(item.id);
+               processed++;
+               continue;
+             }
+          }
+          logger.info(`[NetworkRoutingService] No route available right now during flush. Pausing.`);
           break;
         }
 
         try {
+          let headers: Record<string, string> = { 'Content-Type': 'application/json' };
+          let body: any = item.payload ? JSON.stringify(item.payload) : undefined;
+
+          if (item.type === 'PHOTO_SYNC') {
+            const formData = new FormData();
+            const payloadData = item.payload as any;
+            formData.append('photo', {
+                uri: payloadData.uri,
+                name: payloadData.filename,
+                type: 'image/jpeg',
+            } as any);
+
+            if (payloadData.aiMetadata) {
+                formData.append('aiMetadata', JSON.stringify(payloadData.aiMetadata));
+            }
+            body = formData;
+            headers = {
+                'Accept': 'application/json',
+            };
+          }
+
           const res = await fetch(targetUrl, {
             method: item.method,
-            headers: { 'Content-Type': 'application/json' },
-            body: item.payload ? JSON.stringify(item.payload) : undefined
+            headers,
+            body
           });
 
           if (res.ok) {
             await offlineQueueService.dequeue(item.id);
             processed++;
-            console.log(`[NetworkRoutingService] ✔ Flushed offline item ${item.id} (${item.type})`);
+            logger.info(`[NetworkRoutingService] ✔ Flushed offline item ${item.id} (${item.type})`);
           } else {
             await offlineQueueService.incrementRetry(item.id);
             failed++;
           }
         } catch (err) {
-          console.error(`[NetworkRoutingService] Failed to flush item ${item.id}:`, err);
+          logger.error(`[NetworkRoutingService] Failed to flush item ${item.id}:`, err);
           await offlineQueueService.incrementRetry(item.id);
           failed++;
           break;

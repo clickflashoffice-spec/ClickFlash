@@ -149,7 +149,8 @@ function createHotelConfig(hotel) {
 function createElectronBuilderConfig(hotel) {
   const configPath = path.join(ROOT_DIR, `electron-builder-${hotel.id}.yml`);
 
-  const config = `appId: ${hotel.appId}
+  const config = `extends: electron-builder.yml
+appId: ${hotel.appId}
 productName: ${hotel.productName}
 copyright: ${hotel.copyright}
 
@@ -157,49 +158,14 @@ directories:
   output: release_${hotel.id}
   buildResources: build
 
-files:
-  - dist/**/*
-  - package.json
-  - "!pb_data/**/*"
-  - "!storage/**/*"
-  - "!node_modules/**/*"
-  - electron-main.js
-  - .env.production.${hotel.id}
-  - configs/hotel-configs/${hotel.id}.json
-
 extraResources:
-  - from: pb_data
-    to: pb_data
-    filter:
-      - "!**/*.db"
-      - "!**/*.log"
-      - "!**/uploads/**"
-  - from: backend
-    to: backend
-    filter:
-      - "**/*"
-  - from: helper_scripts
-    to: helper_scripts
-
-win:
-  target: nsis
-  icon: build/icon.ico
-  requestedExecutionLevel: requireAdministrator
-  forceCodeSigning: false
-  signAndEditExecutable: false
+  - from: .env.production.${hotel.id}
+    to: .env.production
+  - from: configs/hotel-configs/${hotel.id}.json
+    to: configs/hotel-configs/${hotel.id}.json
 
 nsis:
-  oneClick: false
-  perMachine: true
-  deleteAppDataOnUninstall: true
-  allowToChangeInstallationDirectory: true
-  createDesktopShortcut: true
-  runAfterFinish: true
   shortcutName: ${hotel.productName}
-  installerIcon: build/icon.ico
-  uninstallerIcon: build/icon.ico
-  installerHeaderIcon: build/icon.ico
-  license: LICENSE
 `;
 
   fs.writeFileSync(configPath, config);

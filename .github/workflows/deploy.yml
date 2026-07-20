@@ -14,9 +14,7 @@ on:
         type: choice
         options:
           - all
-          - gallery
-          - management
-          - moneytrash
+          - cloud-backend
           - update-server
 
 concurrency:
@@ -39,15 +37,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - id: gallery
-            name: Gallery Worker
-            path: workers/gallery-worker
-          - id: management
-            name: Management Worker
-            path: workers/management-worker
-          - id: moneytrash
-            name: MoneyTrash Worker
-            path: workers/moneytrash-worker
+          - id: cloud-backend
+            name: Cloud Backend
+            path: apps/cloud-backend
           - id: update-server
             name: Update Server
             path: workers/update-server
@@ -73,41 +65,14 @@ jobs:
         if: inputs.worker == 'all' || inputs.worker == matrix.id
         run: pnpm install --frozen-lockfile
 
-      - name: Apply Gallery DB migrations
-        if: matrix.id == 'gallery' && (inputs.worker == 'all' || inputs.worker == 'gallery')
+      - name: Apply ClickFlash DB migrations
+        if: matrix.id == 'cloud-backend' && (inputs.worker == 'all' || inputs.worker == 'cloud-backend')
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: workers/gallery-worker
-          command: d1 migrations apply gallery-db --remote
-
-      - name: Apply Website DB migrations
-        if: matrix.id == 'gallery' && (inputs.worker == 'all' || inputs.worker == 'gallery')
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: workers/gallery-worker
-          command: d1 migrations apply clickflash-website-db --remote
-
-      - name: Apply Management DB migrations
-        if: matrix.id == 'management' && (inputs.worker == 'all' || inputs.worker == 'management')
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: workers/management-worker
-          command: d1 migrations apply management-db --remote
-
-      - name: Apply MoneyTrash DB migrations
-        if: matrix.id == 'moneytrash' && (inputs.worker == 'all' || inputs.worker == 'moneytrash')
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: workers/moneytrash-worker
-          command: d1 migrations apply moneytrash-db --remote
+          workingDirectory: apps/cloud-backend
+          command: d1 migrations apply clickflash-db --remote
 
       - name: Deploy Worker
         if: inputs.worker == 'all' || inputs.worker == matrix.id

@@ -214,7 +214,7 @@ export async function createPayloadManifest(
     components,
   });
   if (!parsed.success) {
-    throw new Error("Release metadata or component layout is invalid");
+    throw new Error(`Release metadata or component layout is invalid: ${parsed.error.message}`);
   }
   return { directory, manifest: parsed.data };
 }

@@ -64,6 +64,25 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Verify Authenticode Signatures
+        if: matrix.os == 'windows-latest'
+        run: |
+          $executables = Get-ChildItem -Path . -Recurse -Filter *.exe | Where-Object { $_.FullName -match 'release' }
+          $failed = $false
+          foreach ($exe in $executables) {
+            $sig = Get-AuthenticodeSignature $exe.FullName
+            if ($sig.Status -ne 'Valid') {
+              Write-Error "Signature invalid or missing for $($exe.FullName)"
+              $failed = $true
+            } else {
+              Write-Host "Valid signature for $($exe.FullName)"
+            }
+          }
+          if ($failed) {
+            exit 1
+          }
+        shell: pwsh
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -77,11 +96,85 @@ jobs:
             apps/installer/release/*.dmg
 
   # ───────────────────────────────────────────
-  # 2. Create GitHub Release
+  # 2. Build Web Apps
+  # ───────────────────────────────────────────
+  build-web:
+    name: Build & Deploy Web Apps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Build Web Apps
+        run: |
+          pnpm --filter main-website run build
+          pnpm --filter star-master-gallery run build
+          pnpm --filter star-master-management run build
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: clickflash-web
+          directory: apps/website/.next
+
+  # ───────────────────────────────────────────
+  # 3. Build Mobile Apps (EAS)
+  # ───────────────────────────────────────────
+  build-mobile:
+    name: Build Mobile Apps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Build Mobile Photographer
+        run: pnpm --filter mobile-photographer exec eas build --platform all --profile production --non-interactive
+      - name: Build Mobile Customer
+        run: pnpm --filter mobile-customer exec eas build --platform all --profile production --non-interactive
+
+  # ───────────────────────────────────────────
+  # 4. Build Shared Packages
+  # ───────────────────────────────────────────
+  build-packages:
+    name: Build Packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Build all packages
+        run: pnpm run build --filter "./packages/*"
+
+  # ───────────────────────────────────────────
+  # 5. Create GitHub Release
   # ───────────────────────────────────────────
   release:
     name: Create Release
-    needs: build-desktop
+    needs: [build-desktop, build-web, build-mobile, build-packages]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -97,6 +190,17 @@ jobs:
         with:
           name: desktop-mac
           path: ./artifacts/mac
+
+      - name: Verify Artifacts and Generate Checksums
+        run: |
+          if [ ! -d "./artifacts/win" ] || [ -z "$(ls -A ./artifacts/win 2>/dev/null)" ]; then
+            echo "Error: No Windows artifacts found!"
+            exit 1
+          fi
+          cd artifacts
+          sha256sum win/**/*.exe mac/**/*.dmg > checksums.txt || echo "Hashes generated for existing files"
+          cat checksums.txt
+        shell: bash
 
       - name: Generate changelog
         id: changelog
@@ -117,7 +221,6 @@ jobs:
           files: |
             ./artifacts/win/**/*.exe
             ./artifacts/mac/**/*.dmg
+            ./artifacts/checksums.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Sentry notification removed — error tracking handled by custom logger

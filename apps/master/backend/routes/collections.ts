@@ -120,7 +120,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
   const checkSensitiveFields = (req: Request, table: string, data: any) => {
     // Prevent modification of sensitive fields by non-admins
     if (table === "users") {
-      const user = (req as any).session?.user || (req as any).user;
+      const user = req.session?.user || req.user;
       const isAdmin = user?.role === "Admin" || user?.role === "CEO";
 
       // Non-admins cannot change roles or permissions
@@ -505,7 +505,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
       }
 
       // Audit Log Data Access (P1)
-      const auditUser = (req as any).session?.user || (req as any).user;
+      const auditUser = req.session?.user || req.user;
       auditLogger.logDataAccess(
         auditUser?.id || "unknown",
         auditUser?.email || "unknown",
@@ -737,7 +737,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
         (req as CollectionRequest).collection = collection as string;
 
         // --- SECURITY HARDENING: Role-Based Access Control ---
-        const user = (req as any).session?.user || (req as any).user;
+        const user = req.session?.user || req.user;
         const userRole = user?.role || "Photographer";
 
         // 1. Sensitive Table Protection
@@ -972,7 +972,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
       };
 
       // Audit Log Data Access (P1)
-      const auditUser = (req as any).session?.user || (req as any).user;
+      const auditUser = req.session?.user || req.user;
       auditLogger.logDataAccess(
         auditUser?.id || "unknown",
         auditUser?.email || "unknown",
@@ -984,7 +984,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
       res.writeHead(200, cacheHeaders);
       if (table === "users") {
         logger.info(
-          `[Debug] User records fetch for role: ${(req as any).session?.user?.role || "Guest"}`,
+          `[Debug] User records fetch for role: ${req.session?.user?.role || "Guest"}`,
           { counts: parsedRows.length },
         );
         if (parsedRows.length > 0) {
@@ -1188,7 +1188,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
               .then(() => {
                 if (table === "photos" && data.id && data.storagePath) {
                   const { AICullingService } = require('../services/aiCullingService');
-                  const aiCulling = new AICullingService(req.app.locals.dbManager || (req as any).dbManager);
+                  const aiCulling = new AICullingService(req.app.locals.dbManager || req.dbManager);
                   aiCulling.analyzePhoto(data.id, data.storagePath).catch((e: any) => logger.error(`[Collections] AI Culling failed for ${data.id}:`, e));
                 }
               })

@@ -65,7 +65,7 @@ export default function usersRoutes(context: any): Router {
       if (savedRecord && savedRecord.password) delete savedRecord.password;
 
       // Audit Log
-      const auditUser = (req as any).session?.user || (req as any).user;
+      const auditUser = req.session?.user || req.user;
       auditLogger.logDataAccess(
         auditUser?.id || "unknown",
         auditUser?.email || "unknown",
@@ -122,7 +122,7 @@ export default function usersRoutes(context: any): Router {
       const savedRecord = dbManager.get(`SELECT * FROM ${table} WHERE id = ?`, [id]);
       if (savedRecord && savedRecord.password) delete savedRecord.password;
 
-      const auditUser = (req as any).session?.user || (req as any).user;
+      const auditUser = req.session?.user || req.user;
       auditLogger.logDataAccess(
         auditUser?.id || "unknown",
         auditUser?.email || "unknown",
@@ -153,7 +153,7 @@ export default function usersRoutes(context: any): Router {
 
       dbManager.run(`DELETE FROM ${table} WHERE id = ?`, [id]);
 
-      const auditUser = (req as any).session?.user || (req as any).user;
+      const auditUser = req.session?.user || req.user;
       auditLogger.logDataAccess(
         auditUser?.id || "unknown",
         auditUser?.email || "unknown",

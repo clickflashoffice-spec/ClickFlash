@@ -20,6 +20,16 @@ import {
   isValidSigningKey,
   validateLicenseKey,
 } from './utils/license-key';
+import {
+  initAuditDb,
+  logIssuance,
+  revokeLicense,
+  getAuditLogs,
+  getRevocations,
+  getDbPath,
+  isRevoked
+} from './db/audit-log';
+import systeminformation from 'systeminformation';
 
 const DEVELOPMENT_ORIGIN = 'http://localhost:5176';
 const RENDERER_ENTRY = path.join(__dirname, '../dist/renderer/index.html');
@@ -110,15 +120,85 @@ function setupIpcHandlers(): void {
   registerIpcHandler('license:generate', async (_event, rawRequest: unknown) => {
     const request = generateLicenseRequestSchema.parse(rawRequest);
     if (!signingKeyBytes) throw new Error('Select a private signing-key file first');
-    return generateLicenseKeys(request, signingKeyBytes.toString('base64'));
+    const generated = await generateLicenseKeys(request, signingKeyBytes.toString('base64'));
+    
+    // Log each generated key to the audit database
+    for (const item of generated) {
+      logIssuance({
+        plan: request.plan,
+        maxMasters: request.maxMasters,
+        expiresDays: request.expiresDays,
+        count: request.count,
+        machineId: request.machineId,
+        licenseKey: item.key
+      });
+    }
+
+    return generated;
   });
 
   registerIpcHandler('license:validate', async (_event, rawRequest: unknown) => {
     const request = validateLicenseRequestSchema.parse(rawRequest);
     if (!signingPublicKeyB64) throw new Error('Select the matching signing-key file first');
+    
+    if (isRevoked(request.key)) {
+      return { valid: false, error: 'License key is revoked' };
+    }
+
     return validateLicenseKey(request.key, signingPublicKeyB64, {
       expectedMachineId: request.expectedMachineId,
     });
+  });
+
+  registerIpcHandler('license:get-hardware-fingerprint', async () => {
+    const uuidInfo = await systeminformation.uuid();
+    return uuidInfo.os || uuidInfo.hardware || 'unknown-hardware-id';
+  });
+
+  registerIpcHandler('license:get-audit-logs', () => {
+    return getAuditLogs();
+  });
+
+  registerIpcHandler('license:get-revocations', () => {
+    return getRevocations();
+  });
+
+  registerIpcHandler('license:revoke-key', (_event, key: string, reason: string) => {
+    if (!key || !reason) throw new Error('Key and reason are required to revoke');
+    revokeLicense(key, reason);
+  });
+
+  registerIpcHandler('license:export-revocations', async () => {
+    if (!mainWindow) return;
+    const result = await dialog.showSaveDialog(mainWindow, {
+      title: 'Export Revocation List',
+      defaultPath: 'revocations.json',
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+    });
+    
+    if (result.canceled || !result.filePath) return undefined;
+    
+    const revocations = getRevocations();
+    fs.writeFileSync(result.filePath, JSON.stringify(revocations, null, 2), 'utf8');
+    return result.filePath;
+  });
+
+  registerIpcHandler('license:export-database', async () => {
+    if (!mainWindow) return;
+    const result = await dialog.showSaveDialog(mainWindow, {
+      title: 'Backup Audit Database',
+      defaultPath: 'audit_backup.db',
+      filters: [{ name: 'SQLite DB', extensions: ['db', 'sqlite'] }],
+    });
+    
+    if (result.canceled || !result.filePath) return undefined;
+    
+    const sourceDbPath = getDbPath();
+    if (fs.existsSync(sourceDbPath)) {
+      fs.copyFileSync(sourceDbPath, result.filePath);
+      return result.filePath;
+    }
+    return undefined;
   });
 }
 
@@ -164,7 +244,10 @@ function createWindow(): void {
   });
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  initAuditDb();
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

@@ -65,11 +65,11 @@ export default function settingsRoutes(context: any): Router {
     // Upload new ICC profile
     router.post("/icc-profile", authMiddleware as any, requireRole(['admin', 'manager']), upload.single('profile'), (req: Request, res: Response) => {
         try {
-            if (!(req as any).file) {
+            if (!req.file) {
                 return res.status(400).json({ success: false, error: "No file uploaded" });
             }
 
-            const iccProfilePath = (req as any).file.path;
+            const iccProfilePath = req.file.path;
             const now = new Date().toISOString();
 
             // Check if key exists

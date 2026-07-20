@@ -79,6 +79,8 @@ export const noopLogger: ILogger = {
   },
 };
 
-export function createLogger(config: any): ILogger {
-  return new BrowserLogger(config.serviceName || 'clickflash-client');
+export function createLogger(config: unknown): ILogger {
+  // Try to use a safe parsed config, falling back to an empty object
+  const safeConfig = (config && typeof config === 'object' ? config : {}) as { serviceName?: string };
+  return new BrowserLogger(safeConfig.serviceName || 'clickflash-client');
 }

@@ -6,13 +6,14 @@ import {
     powerSaveBlocker,
     globalShortcut,
     IpcMainInvokeEvent,
+    dialog,
 } from "electron";
 import * as path from "path";
 import * as http from "http";
 import * as fs from "fs";
 import * as os from "os";
 import * as crypto from "crypto";
-import { fork, ChildProcess } from "child_process";
+import { fork, spawn, ChildProcess } from "child_process";
 import Database from "better-sqlite3-multiple-ciphers";
 import { logger } from "@clickflash/logger";
 import { initAutoUpdater } from "./autoUpdater";
@@ -35,7 +36,7 @@ const PIN_LOCKOUT_MS = 60 * 60 * 1000; // 60-minute lockout
 const kioskPasswordAttempts = { count: 0, lockedUntil: 0 };
 const KIOSK_PASSWORD_MAX_ATTEMPTS = 5;
 const KIOSK_PASSWORD_LOCKOUT_MS = 15 * 60 * 1000;
-const ADMIN_SHORTCUT = "CommandOrControl+Alt+Shift+X";
+const ADMIN_SHORTCUT = "CommandOrControl+Alt+Shift+F12";
 
 interface AppConfig {
     appName: string;
@@ -60,6 +61,8 @@ class TouchApp {
     private useViteDevServer: boolean;
     private powerSaveId: number | null;
     private scannerService: HardwareScannerService | null;
+    private isQuitting: boolean = false;
+    private guardianProcess: ChildProcess | null = null;
 
     constructor() {
         this.config = {
@@ -109,6 +112,8 @@ class TouchApp {
         });
 
         app.on("will-quit", () => {
+            this.isQuitting = true;
+            this.killGuardian();
             this.stopBackend();
             if (this.powerSaveId !== null && powerSaveBlocker.isStarted(this.powerSaveId)) {
                 powerSaveBlocker.stop(this.powerSaveId);
@@ -438,6 +443,10 @@ class TouchApp {
 
             this.backendProcess.on("exit", (code, signal) => {
                 logger.info(`[Touch] Backend exited with code ${code} (signal: ${signal})`);
+                if (!this.isQuitting) {
+                    logger.info(`[Touch] Respawning backend in 3s...`);
+                    setTimeout(() => this.startBackend(), 3000);
+                }
             });
         } else {
             logger.error(`[Touch] Backend script not found at: ${serverScript}`);
@@ -449,6 +458,56 @@ class TouchApp {
         if (this.backendProcess) {
             this.backendProcess.kill();
             this.backendProcess = null;
+        }
+    }
+
+    private sha256OfFile(filePath: string): string {
+        const data = fs.readFileSync(filePath);
+        return crypto.createHash("sha256").update(data).digest("hex");
+    }
+
+    private spawnGuardian(): void {
+        if (!app.isPackaged) return;
+        const gPath    = path.join(process.resourcesPath, "helper_scripts", "KioskGuardian.exe");
+        const hashPath = path.join(process.resourcesPath, "helper_scripts", "KioskGuardian.exe.sha256");
+
+        if (!fs.existsSync(gPath)) {
+            logger.warn("[Touch] KioskGuardian.exe not found — OS shortcuts unblocked");
+            return;
+        }
+
+        if (fs.existsSync(hashPath)) {
+            const expectedHash = fs.readFileSync(hashPath, "utf8").trim().toLowerCase();
+            const actualHash   = this.sha256OfFile(gPath);
+            if (actualHash !== expectedHash) {
+                const msg = `[Touch] SECURITY: KioskGuardian.exe hash mismatch!\n  expected: ${expectedHash}\n  actual:   ${actualHash}`;
+                logger.error(msg);
+                dialog.showErrorBox(
+                    "Security Alert",
+                    "KioskGuardian.exe has been tampered with. The application will not enter kiosk mode.\nPlease reinstall ClickFlash Touch."
+                );
+                return;
+            }
+            logger.info("[Touch] KioskGuardian.exe integrity verified ✓");
+        } else {
+            logger.warn("[Touch] KioskGuardian.exe.sha256 not found — skipping integrity check (reinstall recommended)");
+        }
+
+        this.guardianProcess = spawn(gPath, [], { detached: false });
+        this.guardianProcess.on("error", (err: Error) => logger.error(`[Touch] Guardian error: ${err.message}`));
+        this.guardianProcess.on("exit", () => {
+            if (!this.isQuitting && this.mainWindow && !this.mainWindow.isDestroyed() && this.mainWindow.isKiosk()) {
+                logger.warn("[Touch] Guardian exited — respawning in 1s");
+                setTimeout(() => this.spawnGuardian(), 1000);
+            }
+        });
+        logger.info("[Touch] KioskGuardian spawned");
+    }
+
+    private killGuardian(): void {
+        if (this.guardianProcess && !this.guardianProcess.killed) {
+            this.guardianProcess.kill();
+            this.guardianProcess = null;
         }
     }
 
@@ -570,6 +629,10 @@ class TouchApp {
             const e = err instanceof Error ? err : new Error(String(err));
             logger.error(`[HardwareScanner] Failed to initialize: ${e.message}`);
         });
+
+        if (app.isPackaged) {
+            this.spawnGuardian();
+        }
     }
 
     private registerIpcHandler<Args extends unknown[], Result>(
@@ -681,6 +744,7 @@ class TouchApp {
                 this.mainWindow.setKiosk(true);
                 this.mainWindow.setFullScreen(true);
                 this.mainWindow.setAlwaysOnTop(true);
+                this.spawnGuardian();
             }
             return { success: true };
         });
@@ -739,6 +803,7 @@ class TouchApp {
                 this.mainWindow.setKiosk(false);
                 this.mainWindow.setFullScreen(false);
                 this.mainWindow.setAlwaysOnTop(false);
+                this.killGuardian();
             }
             return { success: true };
         });

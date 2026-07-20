@@ -1,4 +1,5 @@
 import { PhotoAsset } from './SyncService';
+import { logger } from "@/utils/logger";
 
 export interface PeerRelayNode {
   nodeId: string;
@@ -13,8 +14,6 @@ export interface PeerRelayNode {
 export class MeshSyncService {
   private static instance: MeshSyncService;
   private peerNodes: PeerRelayNode[] = [];
-  private relayQueue: Array<{ photo: PhotoAsset; targetMasterIp?: string; hopCount: number }> = [];
-  private isRelaying = false;
 
   private constructor() {
     this.startPeerDiscoveryLoop();
@@ -78,52 +77,28 @@ export class MeshSyncService {
   }
 
   /**
-   * Queues a photo for P2P mesh relay when direct Wi-Fi to Master PC is unavailable.
+   * Transmits a photo via P2P mesh relay when direct Wi-Fi to Master PC is unavailable.
    */
-  public async queueForPeerRelay(photo: PhotoAsset): Promise<boolean> {
+  public async queueForPeerRelay(photo: any): Promise<boolean> {
     const bestPeer = this.getBestRelayPeer();
     if (!bestPeer) {
-      console.warn('[MeshSyncService] No peers currently reachable to Master. Buffering locally in offline store.');
-      this.relayQueue.push({ photo, hopCount: 0 });
+      logger.warn('[MeshSyncService] No peers currently reachable to Master. Buffering locally in offline store.');
       return false;
     }
 
-    console.log(`[MeshSyncService] Direct Wi-Fi to Master failed. Chaining P2P relay via ${bestPeer.photographerName} (${bestPeer.signalStrengthRssi} dBm)...`);
-    this.relayQueue.push({ photo, hopCount: 1 });
-    this.processRelayQueue();
-    return true;
-  }
-
-  private async processRelayQueue() {
-    if (this.isRelaying || this.relayQueue.length === 0) return;
-    this.isRelaying = true;
-
-    while (this.relayQueue.length > 0) {
-      const item = this.relayQueue[0];
-      const bestPeer = this.getBestRelayPeer();
-      if (!bestPeer) {
-        console.log('[MeshSyncService] Lost relay peers mid-transfer. Pausing mesh queue.');
-        break;
-      }
-
-      try {
-        console.log(`[MeshSyncService] Transmitting ${item.photo.filename} over Wi-Fi Direct/BLE to ${bestPeer.nodeId} (Hop #${item.hopCount})...`);
-        await new Promise(resolve => setTimeout(resolve, 600)); // Simulate P2P transmission delay
-        console.log(`[MeshSyncService] ✔ Peer ${bestPeer.photographerName} acknowledged packet delivery.`);
-        this.relayQueue.shift();
-      } catch (err) {
-        console.error('[MeshSyncService] Relay transmission error:', err);
-        break;
-      }
+    try {
+      logger.info(`[MeshSyncService] Direct Wi-Fi to Master failed. Chaining P2P relay via ${bestPeer.photographerName} (${bestPeer.signalStrengthRssi} dBm)...`);
+      await new Promise(resolve => setTimeout(resolve, 600)); // Simulate P2P transmission delay
+      logger.info(`[MeshSyncService] ✔ Peer ${bestPeer.photographerName} acknowledged packet delivery.`);
+      return true;
+    } catch (err) {
+      logger.error('[MeshSyncService] Relay transmission error:', err);
+      return false;
     }
-
-    this.isRelaying = false;
   }
 
   public getRelayQueueStatus() {
     return {
-      pendingRelayCount: this.relayQueue.length,
-      isRelaying: this.isRelaying,
       discoveredPeers: this.peerNodes.length,
       connectedPeers: this.peerNodes.filter(p => p.isConnectedToMaster).length
     };

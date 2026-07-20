@@ -276,5 +276,5 @@ export const noopLogger: ILogger = {
   },
 };
 
-export { BrowserLogger } from './browser';
+export { BrowserLogger } from './browser.js';
 

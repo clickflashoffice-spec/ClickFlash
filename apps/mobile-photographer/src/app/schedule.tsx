@@ -10,6 +10,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors, Spacing, MaxContentWidth, BottomTabInset, Typography } from '@/constants/theme';
 import { useColorScheme } from 'react-native';
+import { logger } from "@/utils/logger";
 
 // Haversine formula to calculate distance between two coordinates in meters
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -156,7 +157,7 @@ export default function ScheduleScreen() {
         ]
       );
     } catch (e) {
-      console.warn(e);
+      logger.warn(e);
       Alert.alert("Error", "Biometric authentication error.");
     }
   };

@@ -1,7 +1,17 @@
 import { z, ZodError } from 'zod';
+import type { Request, Response, NextFunction } from 'express';
+
+// Extend the Express Request to include our validated data
+declare global {
+  namespace Express {
+    interface Request {
+      validated?: any;
+    }
+  }
+}
 
 export const validatePayload = (schema: z.ZodSchema) => {
-  return async (req: any, res: any, next: any) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
       // Validate both body and query
       const validatedData = await schema.parseAsync({

@@ -1,4 +1,3 @@
-import { logger } from '@/utils/logger';
 
 /**
  * Global teardown for E2E tests
@@ -13,10 +12,10 @@ const ALBUM_ID = "e2e-test-album-001";
 
 async function globalTeardown() {
   if (process.env.SKIP_GLOBAL_SETUP === "true") {
-    logger.info("[E2E Teardown] Skipping global teardown (SKIP_GLOBAL_SETUP=true)");
+    console.log("[E2E Teardown] Skipping global teardown (SKIP_GLOBAL_SETUP=true)");
     return;
   }
-  logger.info("[E2E Teardown] Starting cleanup...");
+  console.log("[E2E Teardown] Starting cleanup...");
 
   // Login to get JWT
   const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
@@ -29,14 +28,14 @@ async function globalTeardown() {
   });
 
   if (!loginRes.ok) {
-    logger.warn(`[E2E Teardown] Login failed (${loginRes.status}) — cleanup skipped`);
+    console.warn(`[E2E Teardown] Login failed (${loginRes.status}) — cleanup skipped`);
     return;
   }
 
   const loginBody = await loginRes.json();
   const token = loginBody.token ?? loginBody.accessToken ?? loginBody.jwt;
   if (!token) {
-    logger.warn("[E2E Teardown] No token in login response — cleanup skipped");
+    console.warn("[E2E Teardown] No token in login response — cleanup skipped");
     return;
   }
 
@@ -52,11 +51,11 @@ async function globalTeardown() {
       { method: "DELETE", headers },
     );
     if (res.ok) {
-      logger.info(`[E2E Teardown] Deleted photo ${photoId}`);
+      console.log(`[E2E Teardown] Deleted photo ${photoId}`);
     } else if (res.status === 404) {
-      logger.info(`[E2E Teardown] Photo ${photoId} already gone`);
+      console.log(`[E2E Teardown] Photo ${photoId} already gone`);
     } else {
-      logger.warn(`[E2E Teardown] Photo ${photoId} delete returned ${res.status}`);
+      console.warn(`[E2E Teardown] Photo ${photoId} delete returned ${res.status}`);
     }
   }
 
@@ -66,14 +65,14 @@ async function globalTeardown() {
     { method: "DELETE", headers },
   );
   if (albumRes.ok) {
-    logger.info(`[E2E Teardown] Deleted album ${ALBUM_ID}`);
+    console.log(`[E2E Teardown] Deleted album ${ALBUM_ID}`);
   } else if (albumRes.status === 404) {
-    logger.info(`[E2E Teardown] Album ${ALBUM_ID} already gone`);
+    console.log(`[E2E Teardown] Album ${ALBUM_ID} already gone`);
   } else {
-    logger.warn(`[E2E Teardown] Album delete returned ${albumRes.status}`);
+    console.warn(`[E2E Teardown] Album delete returned ${albumRes.status}`);
   }
 
-  logger.info("[E2E Teardown] Global teardown complete");
+  console.log("[E2E Teardown] Global teardown complete");
 }
 
 export default globalTeardown;

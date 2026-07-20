@@ -1,3 +1,5 @@
+import { logger } from "@/utils/logger";
+
 export interface MagicEraserRequest {
   imageUrl: string;
   maskDataUrl: string; // Base64 encoded mask from canvas
@@ -23,11 +25,11 @@ export async function processMagicEraser(
   // 3. Send both to an AI inpainting service (e.g. Stable Diffusion Inpainting API)
   // 4. Upload the resulting image to R2 and return the new URL
 
-  console.log(`[Magic Eraser] Processing image ${request.imageUrl} with mask...`);
+  logger.info(`[Magic Eraser] Processing image ${request.imageUrl} with mask...`);
   
   if (!apiKey && process.env.NODE_ENV !== 'development') {
     // We would normally throw or error here, but we simulate it for now.
-    console.warn("No API key provided, simulating success anyway.");
+    logger.warn("No API key provided, simulating success anyway.");
   }
 
   // Simulate API delay

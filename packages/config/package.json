@@ -10,20 +10,24 @@
     "./prettier": "./prettier.config.js",
     "./tsconfig": "./tsconfig.json",
     "./tailwind": "./tailwind.config.js",
-    "./security-headers": "./src/security-headers.ts",
-    "./error-logger": "./src/error-logger.ts"
+    "./security-headers": "./dist/security-headers.js",
+    "./error-logger": "./dist/error-logger.js"
   },
   "files": [
     "*.js",
     "*.json",
-    "*.ts"
+    "dist"
   ],
   "scripts": {
-    "clean": "rm -rf node_modules/.cache"
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf node_modules/.cache dist"
   },
   "devDependencies": {
     "eslint": "^9.0.0",
     "prettier": "^3.0.0",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@clickflash/logger": "workspace:*"
   }
 }

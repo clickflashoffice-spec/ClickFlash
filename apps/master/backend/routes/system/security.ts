@@ -46,7 +46,7 @@ export default function securityRoutes(context: SecurityContext): Router {
       if (context.auditLogger) {
         context.auditLogger.log("ADMIN_PIN_VERIFY", {
           success: isValid,
-          actor: (req as any).user?.email ?? "system",
+          actor: req.user?.email ?? "system",
         });
       }
 
@@ -54,7 +54,7 @@ export default function securityRoutes(context: SecurityContext): Router {
         res.json({ success: true, message: "PIN verified" });
       } else {
         logger.warn("[Security] Failed admin PIN attempt", { 
-          actor: (req as any).user?.email ?? "system" 
+          actor: req.user?.email ?? "system" 
         });
         sendAuthError(res, "Invalid PIN");
       }
@@ -104,7 +104,7 @@ export default function securityRoutes(context: SecurityContext): Router {
 
       if (context.auditLogger) {
         context.auditLogger.log("ADMIN_PIN_UPDATE", {
-          actor: (req as any).user?.email ?? "system",
+          actor: req.user?.email ?? "system",
         });
       }
 

@@ -18,5 +18,8 @@
     "@clickflash/logger": "workspace:*",
     "@clickflash/shared": "workspace:*",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6"
   }
 }

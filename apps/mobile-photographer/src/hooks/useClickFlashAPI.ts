@@ -8,6 +8,7 @@ import {
   offlineQueueService, 
   QueueItemType 
 } from '../services/OfflineQueueService';
+import { logger } from "@/utils/logger";
 
 export interface ClickFlashRequestOptions extends Omit<RequestInit, 'priority'> {
   preferMaster?: boolean;
@@ -86,7 +87,7 @@ export function useClickFlashAPI() {
           return { error: errorText || `HTTP ${response.status}`, status: response.status, routedVia };
         }
       } catch (networkError) {
-        console.warn(`[useClickFlashAPI] Direct fetch failed to ${targetUrl}. Handling fallback/queue...`);
+        logger.warn(`[useClickFlashAPI] Direct fetch failed to ${targetUrl}. Handling fallback/queue...`);
       }
     }
 

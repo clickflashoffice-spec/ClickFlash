@@ -13,6 +13,7 @@ import { cloudApiService } from './services/cloudApiService';
 import { initTauriApi, isTauri, invoke } from './services/tauriService';
 import { useVRAMProtection } from './hooks/useVRAMProtection';
 import { Analytics } from './components/Analytics';
+import { logger } from "@/utils/logger";
 
 interface UploadFile {
   id: string;
@@ -65,7 +66,7 @@ function App() {
 
   const loadSavedData = async () => {
     if (!isTauri()) {
-      console.log('[MoneyTrash] Not running in Tauri - skipping native data load');
+      logger.info('[MoneyTrash] Not running in Tauri - skipping native data load');
       return;
     }
 
@@ -77,12 +78,12 @@ function App() {
       }
 
       // 2. Load Config (PRE-CONFIGURATION SYNC)
-      console.log('[MoneyTrash] Initializing cloud configuration...');
+      logger.info('[MoneyTrash] Initializing cloud configuration...');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const config = await invoke<any>('load_upload_config');
       
       if (config) {
-        console.log('[MoneyTrash] Pre-configuration found:', config);
+        logger.info('[MoneyTrash] Pre-configuration found:', config);
         
         // Update metadata if present
         if (config.eventName) setEventName(config.eventName);
@@ -106,7 +107,7 @@ function App() {
 
         // Initialize Cloud API Service with loaded credentials
         if (config.apiUrl && config.deskId) {
-          console.log(`[MoneyTrash] Configuring Cloud API Service for: ${config.apiUrl}`);
+          logger.info(`[MoneyTrash] Configuring Cloud API Service for: ${config.apiUrl}`);
           cloudApiService.configure({
             apiUrl: config.apiUrl,
             deskId: config.deskId,
@@ -115,14 +116,14 @@ function App() {
           
           // Background health check
           cloudApiService.healthCheck()
-            .then(health => console.log('[MoneyTrash] Cloud API Health:', health))
-            .catch(err => console.error('[MoneyTrash] Cloud API Connectivity Error:', err));
+            .then(health => logger.info('[MoneyTrash] Cloud API Health:', health))
+            .catch(err => logger.error('[MoneyTrash] Cloud API Connectivity Error:', err));
         }
       } else {
-        console.log('[MoneyTrash] No saved configuration found, using defaults.');
+        logger.info('[MoneyTrash] No saved configuration found, using defaults.');
       }
     } catch (e) {
-      console.error('[MoneyTrash] Error during startup data load:', e);
+      logger.error('[MoneyTrash] Error during startup data load:', e);
     }
   };
 
@@ -154,7 +155,7 @@ function App() {
     try {
       return await getVRAMPreview(id, file);
     } catch (err) {
-      console.warn('[VRAM] Preview generation failed, using fallback:', err);
+      logger.warn('[VRAM] Preview generation failed, using fallback:', err);
       return '';
     }
   };
@@ -229,16 +230,16 @@ function App() {
     }
     
     try {
-      console.log('[MoneyTrash] Opening file picker...');
+      logger.info('[MoneyTrash] Opening file picker...');
       const selectedFiles = await invoke<FileInfo[]>('select_files', { multiple: true });
-      console.log('[MoneyTrash] Selected files:', selectedFiles);
+      logger.info('[MoneyTrash] Selected files:', selectedFiles);
 
       if (selectedFiles && selectedFiles.length > 0) {
-        console.log(`[MoneyTrash] Processing ${selectedFiles.length} files...`);
+        logger.info(`[MoneyTrash] Processing ${selectedFiles.length} files...`);
         // Convert native file paths to File objects using Tauri's fs API
         const newFiles: UploadFile[] = await Promise.all(
           selectedFiles.map(async (fileInfo: FileInfo) => {
-            console.log(`[MoneyTrash] Reading file: ${fileInfo.name} (${fileInfo.size} bytes)`);
+            logger.info(`[MoneyTrash] Reading file: ${fileInfo.name} (${fileInfo.size} bytes)`);
             // Read file data from native path
             const fileData = await invoke<number[]>('read_file', { path: fileInfo.path });
             const blob = new Blob([new Uint8Array(fileData)]);
@@ -256,14 +257,14 @@ function App() {
             };
           })
         );
-        console.log(`[MoneyTrash] Added ${newFiles.length} files to queue`);
+        logger.info(`[MoneyTrash] Added ${newFiles.length} files to queue`);
         setFiles((prev) => [...prev, ...newFiles]);
         setFileSelectionError('');
       } else {
-        console.log('[MoneyTrash] No files selected');
+        logger.info('[MoneyTrash] No files selected');
       }
     } catch (error) {
-      console.error('[MoneyTrash] Error selecting files:', error);
+      logger.error('[MoneyTrash] Error selecting files:', error);
       setFileSelectionError(`Error selecting files: ${error}`);
     }
   };
@@ -284,30 +285,30 @@ function App() {
     }
     
     try {
-      console.log('[MoneyTrash] Opening folder picker...');
+      logger.info('[MoneyTrash] Opening folder picker...');
       setUploadStatus('Scanning folder for images...');
       
       const selectedFiles = await invoke<FileInfo[] | null>('select_folder');
-      console.log('[MoneyTrash] Folder scan result:', selectedFiles);
+      logger.info('[MoneyTrash] Folder scan result:', selectedFiles);
       
       if (selectedFiles === null) {
-        console.log('[MoneyTrash] No folder selected (cancelled)');
+        logger.info('[MoneyTrash] No folder selected (cancelled)');
         setUploadStatus('');
         return;
       }
       
       if (selectedFiles.length === 0) {
-        console.log('[MoneyTrash] Folder selected but no image files found');
+        logger.info('[MoneyTrash] Folder selected but no image files found');
         setFileSelectionError('No image files found in the selected folder. Supported formats: JPEG, PNG, HEIC, WEBP');
         setUploadStatus('');
         return;
       }
       
-      console.log(`[MoneyTrash] Found ${selectedFiles.length} image files in folder`);
+      logger.info(`[MoneyTrash] Found ${selectedFiles.length} image files in folder`);
       // Convert native file paths to File objects using Tauri's fs API
       const newFiles: UploadFile[] = await Promise.all(
         selectedFiles.map(async (fileInfo: FileInfo) => {
-          console.log(`[MoneyTrash] Reading file: ${fileInfo.name} (${fileInfo.size} bytes)`);
+          logger.info(`[MoneyTrash] Reading file: ${fileInfo.name} (${fileInfo.size} bytes)`);
           // Read file data from native path
           const fileData = await invoke<number[]>('read_file', { path: fileInfo.path });
           const blob = new Blob([new Uint8Array(fileData)]);
@@ -325,12 +326,12 @@ function App() {
           };
         })
       );
-      console.log(`[MoneyTrash] Added ${newFiles.length} files to queue`);
+      logger.info(`[MoneyTrash] Added ${newFiles.length} files to queue`);
       setFiles((prev) => [...prev, ...newFiles]);
       setFileSelectionError('');
       setUploadStatus('');
     } catch (error) {
-      console.error('[MoneyTrash] Error selecting folder:', error);
+      logger.error('[MoneyTrash] Error selecting folder:', error);
       setFileSelectionError(`Error reading folder: ${error}`);
       setUploadStatus('');
     }
@@ -360,7 +361,7 @@ function App() {
     setFileSelectionError('');
     setUploadStatus('');
     
-    console.log(`[MoneyTrash] Switched to ${newMode === 'moneytrash' ? 'Gallery' : 'Backup'} mode - form reset`);
+    logger.info(`[MoneyTrash] Switched to ${newMode === 'moneytrash' ? 'Gallery' : 'Backup'} mode - form reset`);
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -483,7 +484,7 @@ function App() {
       }
       setShowSettings(false);
     } catch (error) {
-      console.error('Error saving settings:', error);
+      logger.error('Error saving settings:', error);
     }
   };
 

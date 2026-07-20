@@ -19,6 +19,8 @@ CREATE TABLE photos (
     raw_size INTEGER,
     raw_status TEXT DEFAULT 'pending',
     raw_metadata TEXT,
+    quality_score INTEGER,
+    curation_status TEXT DEFAULT 'PENDING',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (event_id) REFERENCES events(id)
 );

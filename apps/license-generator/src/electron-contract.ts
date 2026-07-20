@@ -22,3 +22,21 @@ export interface SigningKeySelection {
   keyId?: string;
   error?: string;
 }
+
+export interface AuditLogEntry {
+  id: string;
+  issuedAt: string;
+  operatorUser: string;
+  plan: string;
+  maxMasters: number;
+  expiresDays: number;
+  count: number;
+  machineId: string;
+  licenseKey: string;
+}
+
+export interface RevocationEntry {
+  licenseKey: string;
+  revokedAt: string;
+  reason: string;
+}

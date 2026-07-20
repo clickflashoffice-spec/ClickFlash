@@ -95,7 +95,7 @@ export default function authRoutes(context: AppContext) {
 
         // Create session
         if (req.session) {
-          (req.session as any).user = {
+          req.session.user = {
             id: user.id,
             email: user.email,
             role: user.role,
@@ -122,7 +122,7 @@ export default function authRoutes(context: AppContext) {
             [sessionId, user.id, user.email, tokenHash, ua, clientIp, now, now],
           );
           if (req.session) {
-            (req.session as any).sessionId = sessionId;
+            req.session.sessionId = sessionId;
           }
         } catch (sessionErr: any) {
           // Non-fatal — login still succeeds even if session tracking fails
@@ -155,7 +155,7 @@ export default function authRoutes(context: AppContext) {
     "/signup",
     strictRateLimiter,
     (req: Request, res: Response, next: NextFunction) => {
-      const user = (req.session as any)?.user || (req as any).user;
+      const user = req.session?.user || req.user;
       const elevatedRoles = ['Admin', 'CEO', 'Manager'];
       if (!user || !elevatedRoles.includes(user.role)) {
         sendAuthorizationError(res, 'Creating user accounts requires Admin or Manager privileges.');
@@ -237,7 +237,7 @@ export default function authRoutes(context: AppContext) {
    * @access Requires authentication
    */
   router.post("/verify-pin", strictRateLimiter, async (req: Request, res: Response) => {
-    const sessionUser = (req.session as any)?.user || (req as any).user;
+    const sessionUser = req.session?.user || req.user;
     if (!sessionUser?.id) {
       sendAuthError(res, "Not authenticated");
       return;
@@ -277,7 +277,7 @@ export default function authRoutes(context: AppContext) {
    */
   router.post("/logout", (req: Request, res: Response) => {
     // Revoke the tracked session record (Phase 5-D)
-    const trackedSessionId = (req.session as any)?.sessionId;
+    const trackedSessionId = req.session?.sessionId;
     if (trackedSessionId) {
       try {
         dbManager.run(
@@ -311,7 +311,7 @@ export default function authRoutes(context: AppContext) {
    * @access Requires authentication
    */
   router.get("/me", async (req: Request, res: Response) => {
-    const sessionUser = (req.session as any)?.user || (req as any).user;
+    const sessionUser = req.session?.user || req.user;
     if (!sessionUser || !sessionUser.id) {
       sendAuthError(res, "Not authenticated");
       return;
@@ -344,7 +344,7 @@ export default function authRoutes(context: AppContext) {
    * @access Requires authentication
    */
   router.delete("/me", async (req: Request, res: Response) => {
-    const sessionUser = (req.session as any)?.user || (req as any).user;
+    const sessionUser = req.session?.user || req.user;
     if (!sessionUser || !sessionUser.id) {
       sendAuthError(res, "Not authenticated");
       return;
@@ -408,7 +408,7 @@ export default function authRoutes(context: AppContext) {
    * @access Requires authentication
    */
   router.post("/me/export", async (req: Request, res: Response) => {
-    const sessionUser = (req.session as any)?.user || (req as any).user;
+    const sessionUser = req.session?.user || req.user;
     if (!sessionUser || !sessionUser.id) {
       sendAuthError(res, "Not authenticated");
       return;
@@ -474,7 +474,7 @@ export default function authRoutes(context: AppContext) {
    * @access Requires authentication
    */
   router.get("/sessions", (req: Request, res: Response) => {
-    const sessionUser = (req.session as any)?.user ?? (req as any).user;
+    const sessionUser = req.session?.user ?? req.user;
     if (!sessionUser?.id) {
       sendAuthError(res, "Not authenticated");
       return;
@@ -494,7 +494,7 @@ export default function authRoutes(context: AppContext) {
          ORDER BY last_seen DESC`,
         [sessionUser.id],
       );
-      const currentSessionId = (req.session as any)?.sessionId ?? null;
+      const currentSessionId = req.session?.sessionId ?? null;
       res.json({ sessions, currentSessionId });
     } catch (e) {
       sendInternalError(res, e as Error, "sessions list");
@@ -507,7 +507,7 @@ export default function authRoutes(context: AppContext) {
    * @access Requires authentication — users can only revoke their own sessions
    */
   router.delete("/sessions/:id", (req: Request, res: Response) => {
-    const sessionUser = (req.session as any)?.user ?? (req as any).user;
+    const sessionUser = req.session?.user ?? req.user;
     if (!sessionUser?.id) {
       sendAuthError(res, "Not authenticated");
       return;
@@ -548,12 +548,12 @@ export default function authRoutes(context: AppContext) {
    * @access Requires authentication
    */
   router.delete("/sessions", (req: Request, res: Response) => {
-    const sessionUser = (req.session as any)?.user ?? (req as any).user;
+    const sessionUser = req.session?.user ?? req.user;
     if (!sessionUser?.id) {
       sendAuthError(res, "Not authenticated");
       return;
     }
-    const currentSessionId = (req.session as any)?.sessionId ?? null;
+    const currentSessionId = req.session?.sessionId ?? null;
     try {
       const result = dbManager.run(
         `UPDATE user_sessions

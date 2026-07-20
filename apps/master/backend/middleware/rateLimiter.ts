@@ -140,7 +140,7 @@ function createUserRateLimiter(limit: number, windowMs: number) {
         }
 
         // Key by authenticated user id or email; fall back to IP for unauthenticated requests
-        const user = (req as any).user as { id?: string; email?: string } | undefined;
+        const user = req.user as { id?: string; email?: string } | undefined;
         const key: string = user?.id ?? user?.email ?? ip;
 
         const now = Date.now();

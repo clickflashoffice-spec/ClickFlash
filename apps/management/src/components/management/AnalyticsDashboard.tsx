@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { TrendingUp, Users, DollarSign, Activity } from 'lucide-react';
 import { cloudApiService } from '../../services/cloudApiService';
+import { logger } from "@/utils/logger";
 
 interface RevenueData {
   date: string;
@@ -33,7 +34,7 @@ export const AnalyticsDashboard: React.FC = () => {
         if (revPayload?.success) setRevenueData(revPayload.data.reverse()); // Reverse to get chronological order for charts
         if (convPayload?.success) setConversionData(convPayload.data.reverse());
       } catch (error) {
-        console.error('Failed to fetch analytics:', error);
+        logger.error('Failed to fetch analytics:', error);
       } finally {
         setLoading(false);
       }

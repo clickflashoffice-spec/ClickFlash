@@ -1,6 +1,7 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Location from 'expo-location';
 import { syncService } from './SyncService';
+import { logger } from "@/utils/logger";
 
 export interface ShiftEvent {
   id: string;
@@ -36,7 +37,7 @@ export class ShiftService {
     const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
     if (!hasHardware || !isEnrolled) {
-      console.warn('Biometrics not available or not enrolled.');
+      logger.warn('Biometrics not available or not enrolled.');
       return false; // Fallback to unverified if no hardware
     }
 
@@ -132,7 +133,7 @@ export class ShiftService {
           shift.syncStatus = 'SYNCED';
         }
       } catch (err) {
-        console.error('Failed to sync shift event:', err);
+        logger.error('Failed to sync shift event:', err);
       }
     }
     

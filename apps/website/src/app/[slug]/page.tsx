@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { pagesStore } from '@/lib/cmsStore';
 import { createPageMetadata } from '../metadata';
+import { sanitizeHtml } from '@/lib/sanitize';
 
 export function generateStaticParams() {
   return Array.from(pagesStore.keys()).map((slug) => ({ slug }));
@@ -39,7 +40,7 @@ export default async function CMSPage({ params }: { params: Promise<{ slug: stri
       <h1 className="text-4xl font-bold mb-8">{page.title}</h1>
       <div 
         className="prose prose-lg max-w-none"
-        dangerouslySetInnerHTML={{ __html: page.content }} 
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(page.content) }} 
       />
     </main>
   );

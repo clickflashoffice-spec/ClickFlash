@@ -51,6 +51,59 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '10.28.2'
+
+jobs:
+  # ───────────────────────────────────────────
+  # 1. Lint & Typecheck (per-app matrix)
+  # ───────────────────────────────────────────
+  lint-and-typecheck:
+    name: Lint & Typecheck (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: master
+            pkg: clickflash-master
+          - app: touch
+            pkg: clickflash-touch
+          - app: gallery
+            pkg: star-master-customer
+          - app: management
+            pkg: star-master-management
+          - app: moneytrash
+            pkg: moneytrash-uploader
+          - app: website
+            pkg: main-website
+          - app: installer
+            pkg: clickflash-installer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
@@ -59,11 +112,9 @@ jobs:
 
       - name: Lint
         run: pnpm --filter ${{ matrix.pkg }} run lint
-        continue-on-error: true
 
       - name: Typecheck
         run: pnpm --filter ${{ matrix.pkg }} run typecheck
-        continue-on-error: true
 
   # ───────────────────────────────────────────
   # 2. Unit & Integration Tests (per-app matrix)
@@ -190,17 +241,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Audit dependencies (critical + high)
-        run: pnpm audit --audit-level=high
+      - name: Audit dependencies (critical)
+        run: pnpm audit --audit-level=critical
         continue-on-error: true
 
       - name: Lint all
         run: pnpm run lint:all
-        continue-on-error: true
 
       - name: Typecheck all
         run: pnpm run typecheck:all
-        continue-on-error: true
 
       - name: Check for secrets (truffleHog)
         uses: trufflesecurity/trufflehog@main

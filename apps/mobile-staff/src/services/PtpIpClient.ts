@@ -1,5 +1,6 @@
 import TcpSocket from 'react-native-tcp-socket';
 import { EventEmitter } from 'expo';
+import { logger } from "@/utils/logger";
 
 type Buffer = any;
 
@@ -28,7 +29,7 @@ export class PtpIpClient {
         this.commandSocket = TcpSocket.createConnection(
           { port: this.port, host: this.host },
           () => {
-            console.log('Command socket connected');
+            logger.info('Command socket connected');
             this.sendInitCommand();
           }
         );
@@ -42,7 +43,7 @@ export class PtpIpClient {
         });
 
         this.commandSocket.on('close', () => {
-          console.log('Command socket closed');
+          logger.info('Command socket closed');
         });
 
         resolve();
@@ -55,12 +56,12 @@ export class PtpIpClient {
   private sendInitCommand() {
     // Basic PTP/IP Init Command (16 bytes)
     // Needs proper packet construction based on PTP/IP spec.
-    console.log('Sending Init Command...');
+    logger.info('Sending Init Command...');
   }
 
   private handleCommandData(data: Buffer) {
     // Parse PTP/IP Init Reply
-    console.log('Received command data:', data.length, 'bytes');
+    logger.info('Received command data:', data.length, 'bytes');
     // If it's Init Reply, open Event Socket
     this.connectEventSocket();
   }
@@ -69,7 +70,7 @@ export class PtpIpClient {
     this.eventSocket = TcpSocket.createConnection(
       { port: this.port, host: this.host },
       () => {
-        console.log('Event socket connected');
+        logger.info('Event socket connected');
       }
     );
 
@@ -80,7 +81,7 @@ export class PtpIpClient {
 
   private handleEventData(data: Buffer) {
     // Parse Event Data (e.g. ObjectAdded)
-    console.log('Received event data:', data.length, 'bytes');
+    logger.info('Received event data:', data.length, 'bytes');
     // For demo architecture, emit generic object added
     (this.emitter as any).emit('onPhotoReceived', { uri: 'tcp://photo-received' });
   }

@@ -24,9 +24,10 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@clickflash/logger": "workspace:*",
     "@clickflash/licensing": "workspace:*",
+    "@clickflash/logger": "workspace:*",
     "@electron/asar": "3.4.1",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.0.0",

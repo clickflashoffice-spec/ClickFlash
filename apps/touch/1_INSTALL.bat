@@ -1,17 +1,31 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
+
 cd /d "%~dp0"
-echo ==========================================
-echo   TOUCH APP: 1. INSTALLATION
-echo ==========================================
+
+echo ===================================================
+echo   TOUCH KIOSK - Install Dependencies
+echo ===================================================
 echo.
-echo Installing dependencies for Touch App...
-call npm install
-if %errorlevel% neq 0 (
-    echo [ERROR] Installation failed.
+
+where pnpm >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo [ERROR] pnpm not found in PATH. Install via: npm install -g pnpm
     pause
-    exit /b %errorlevel%
+    exit /b 1
 )
+
+echo [INFO] Installing dependencies...
 echo.
-echo [SUCCESS] Dependencies installed.
+pnpm install
+if %ERRORLEVEL% NEQ 0 (
+    echo [ERROR] Installation failed!
+    pause
+    exit /b 1
+)
+
+echo.
+echo ===================================================
+echo   Installation Complete!
+echo ===================================================
 pause

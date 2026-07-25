@@ -8,28 +8,16 @@ echo   MONEY TRASH UPLOADER - Install Dependencies
 echo ===================================================
 echo.
 
-REM Check Node.js
-where node >nul 2>&1
+where pnpm >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Node.js not found. Please install from https://nodejs.org/
-    pause
-    exit /b 1
-)
-
-for /f "tokens=*" %%i in ('node --version') do set NODE_VERSION=%%i
-echo [INFO] Node.js version: %NODE_VERSION%
-
-REM Check npm
-where npm >nul 2>&1
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] npm not found in PATH
+    echo [ERROR] pnpm not found in PATH. Install via: npm install -g pnpm
     pause
     exit /b 1
 )
 
 echo [INFO] Installing dependencies...
 echo.
-npm install
+pnpm install
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Installation failed!
     pause

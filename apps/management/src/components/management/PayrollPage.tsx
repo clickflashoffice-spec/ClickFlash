@@ -48,6 +48,7 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser }) => {
   const [isAdjustmentModalOpen, setIsAdjustmentModalOpen] = useState(false);
   const [photographerForAdjustment, setPhotographerForAdjustment] =
     useState<Photographer | null>(null);
+  const [useTieredCommissions, setUseTieredCommissions] = useState(false);
   const { can } = usePermissions(currentUser);
 
   const fetchData = async () => {
@@ -247,8 +248,6 @@ const PayrollPage: React.FC<PayrollPageProps> = ({ currentUser }) => {
     fetchData(); // Refetch all data to update payroll
     setIsAdjustmentModalOpen(false);
   };
-
-  const [useTieredCommissions, setUseTieredCommissions] = useState(false);
 
   const handleExport = (format: 'ach' | 'sepa' | 'csv') => {
     const content = payrollData.map(p => `${p.id},${p.name},${p.totalPay},${format.toUpperCase()}`).join('\n');

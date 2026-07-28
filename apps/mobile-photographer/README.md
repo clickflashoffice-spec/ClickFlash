@@ -1,56 +1,45 @@
-# Welcome to your Expo app 👋
+# ClickFlash Photographer for Android
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Android-only field application for ClickFlash photographers. It uses an Expo/React Native
+application shell with native Android modules, including the Kotlin Nikon camera-tether
+adapter under `modules/camera-tether`.
 
-## Get started
+## Requirements
 
-1. Install dependencies
+- Windows development workstation with Node.js and pnpm
+- Android SDK 36, Android build tools, NDK 27, CMake, and JDK 17
+- Android 8.0/API 26 or newer device with USB Host/OTG support
+- Data-rated Nikon camera cable and OTG adapter or powered OTG hub
 
-   ```bash
-   npm install
-   ```
+## Development
 
-2. Start the app
+From the repository root:
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```powershell
+pnpm install
+pnpm --filter mobile run android:prebuild
+pnpm --filter mobile run android
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+The app requires a native development build. Expo Go cannot load the `CameraTether`
+module.
 
-### Other setup steps
+## Validation
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```powershell
+pnpm --filter mobile run typecheck
+pnpm --filter mobile run lint
+pnpm --filter mobile run android:apk
+```
 
-## Learn more
+The Android package identity is `com.clickflash.photographer`. Release builds still require
+an organization-controlled signing key, protected CI secret handling, Play/App Distribution
+policy, and physical Nikon D7000 qualification.
 
-To learn more about developing your project with Expo, look at the following resources:
+The debug APK is written to `android/app/build/outputs/apk/debug/app-debug.apk` and includes
+the four development/test ABIs. Production distribution should use a signed Android App
+Bundle so the store can deliver device-specific ABI splits.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+The generated `android/` host remains ignored. `app.json`, config plugins, and
+`modules/camera-tether` are the source of truth and must reproduce it with
+`android:prebuild`.

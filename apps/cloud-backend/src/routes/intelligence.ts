@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { requireServiceAuth } from '../auth';
 import type { AppEnv } from '../types';
 import { 
   analyzeLocationScoutWithGemini, 
@@ -7,6 +8,7 @@ import {
 } from '../services/gemini-intelligence';
 
 const app = new Hono<AppEnv>();
+app.use('*', requireServiceAuth);
 
 app.post('/scout', async (c) => {
   try {

@@ -2467,7 +2467,7 @@ export class CloudSyncService {
       }
 
       this.logger.info(`[CloudSync] Aggressive pre-upload compression for ${path.basename(filePath)} (${(stats.size / 1024 / 1024).toFixed(2)} MB)...`);
-      const pipeline = sharp(filePath, { failOnError: false }).rotate();
+      const pipeline = sharp(filePath, { failOn: 'none' }).rotate();
       if (ext === '.jpg' || ext === '.jpeg') {
         await pipeline.jpeg({ quality: 88, mozjpeg: true, chromaSubsampling: '4:4:4' }).toFile(optimizedPath);
       } else if (ext === '.webp') {

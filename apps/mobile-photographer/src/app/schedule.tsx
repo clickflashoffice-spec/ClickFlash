@@ -80,6 +80,7 @@ const BookingRow = memo(({
     </View>
   );
 });
+BookingRow.displayName = 'BookingRow';
 
 export default function ScheduleScreen() {
   const scheme = useColorScheme();
@@ -263,7 +264,7 @@ export default function ScheduleScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
-            <ThemedText style={styles.timelineHeader}>TODAY'S MISSIONS</ThemedText>
+            <ThemedText style={styles.timelineHeader}>TODAY&apos;S MISSIONS</ThemedText>
           }
         />
 

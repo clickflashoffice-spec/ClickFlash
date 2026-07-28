@@ -14,19 +14,27 @@ export function getRegionalDB(env: Bindings, regionId?: string): D1Database {
 
 export const corsMiddleware = cors({
   origin: [
-    'https://gallery.clicketflash.com', 
-    'https://admin.clicketflash.com', 
-    'https://moneytrash.clicketflash.com', 
-    'https://www.clicketflash.com', 
+    'https://gallery.clickflash.com',
+    'https://admin.clickflash.com',
+    'https://moneytrash.clickflash.com',
+    'https://www.clickflash.com',
     'http://localhost:5173', 
     'http://localhost:5174', 
     'http://localhost:3000', 
     'http://localhost:8090'
+  ],
+  allowHeaders: [
+    'Authorization',
+    'Content-Type',
+    'Stripe-Signature',
+    'X-ClickFlash-Service-Key',
+    'X-Region-ID'
   ]
 });
 
 export const regionRoutingMiddleware = createMiddleware<AppEnv>(async (c, next) => {
-  const regionId = c.req.header('X-Region-ID') || c.req.query('region_id') || 'MENA';
+  const regionId = (c.req.header('X-Region-ID') || c.req.query('region_id') || 'MENA').toUpperCase();
+  c.set('regionId', regionId);
   c.set('DB', getRegionalDB(c.env, regionId));
   await next();
 });

@@ -100,7 +100,7 @@ export default function authRoutes(context: AppContext) {
             email: user.email,
             role: user.role,
             name: user.name,
-          } as Record<string, any>;
+          };
         }
 
         // Generate JWT
@@ -157,7 +157,7 @@ export default function authRoutes(context: AppContext) {
     (req: Request, res: Response, next: NextFunction) => {
       const user = req.session?.user || req.user;
       const elevatedRoles = ['Admin', 'CEO', 'Manager'];
-      if (!user || !elevatedRoles.includes(user.role)) {
+      if (!user?.role || !elevatedRoles.includes(user.role)) {
         sendAuthorizationError(res, 'Creating user accounts requires Admin or Manager privileges.');
         return;
       }

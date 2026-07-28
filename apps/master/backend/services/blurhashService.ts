@@ -20,7 +20,7 @@ export class BlurhashService {
   ): Promise<string | null> {
     try {
       // Resize to max 32x32 preserving aspect ratio, then get raw RGBA pixels
-      const { data, info } = await sharp(input, { failOnError: false })
+      const { data, info } = await sharp(input, { failOn: 'none' })
         .resize(32, 32, { fit: 'inside' })
         .raw()
         .ensureAlpha()

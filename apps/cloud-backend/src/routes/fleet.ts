@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
+import { requireServiceAuth } from '../auth';
 import type { AppEnv } from '../types';
 
 const app = new Hono<AppEnv>();
+app.use('*', requireServiceAuth);
 
 app.post('/masters/heartbeat', async (c) => {
   try {

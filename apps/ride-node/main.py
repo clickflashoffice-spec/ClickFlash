@@ -1,9 +1,9 @@
 import time
 import os
 import threading
-import queue
 from loguru import logger
 import gphoto2 as gp
+from src.uploader import Uploader
 
 try:
     import cv2
@@ -11,9 +11,6 @@ try:
     has_cv = True
 except ImportError:
     has_cv = False
-
-# Queue for images that need to be uploaded
-upload_queue = queue.Queue()
 
 class CameraManager:
     def __init__(self):
@@ -62,26 +59,7 @@ class CameraManager:
         finally:
             self.is_capturing = False
 
-def upload_worker():
-    while True:
-        try:
-            file_path = upload_queue.get()
-            logger.info(f"Starting upload for {file_path} to Cloudflare R2...")
-            
-            # Simulate Boto3 R2 Upload
-            time.sleep(1) 
-            
-            logger.success(f"Upload complete: {file_path}")
-            
-            # Cleanup local file
-            if os.path.exists(file_path):
-                os.remove(file_path)
-            
-            upload_queue.task_done()
-        except Exception as e:
-            logger.error(f"Upload worker error: {e}")
-
-def run_vision_trigger(camera: CameraManager):
+def run_vision_trigger(camera: CameraManager, uploader: Uploader):
     if not has_cv:
         logger.error("OpenCV not installed. Vision trigger cannot run.")
         return
@@ -138,7 +116,7 @@ def run_vision_trigger(camera: CameraManager):
             def trigger_dslr():
                 img_path = camera.capture()
                 if img_path:
-                    upload_queue.put(img_path)
+                    uploader.enqueue(img_path)
             
             threading.Thread(target=trigger_dslr).start()
             
@@ -154,11 +132,11 @@ def main():
     camera = CameraManager()
     camera.connect()
     
-    # Start background uploader
-    threading.Thread(target=upload_worker, daemon=True).start()
+    uploader = Uploader.from_environment()
+    uploader.start()
     
     # Run the OpenCV Vision Trigger on the main thread
-    run_vision_trigger(camera)
+    run_vision_trigger(camera, uploader)
 
 if __name__ == "__main__":
     main()

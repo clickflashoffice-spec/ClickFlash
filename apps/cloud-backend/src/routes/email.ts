@@ -1,8 +1,10 @@
 import { Hono } from 'hono';
 import { Resend } from 'resend';
+import { requireServiceAuth } from '../auth';
 import type { AppEnv } from '../types';
 
 const app = new Hono<AppEnv>();
+app.use('*', requireServiceAuth);
 
 app.post('/notifications/ready', async (c) => {
   try {

@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: path.resolve(import.meta.dirname, "../.."),
+
   // NOTE: output:"export" removed to support API Route Handlers (/api/cms/*).
   // Cloudflare Pages deployment uses @cloudflare/next-on-pages (via `npx @cloudflare/next-on-pages`),
   // which handles edge-compatible output without needing the static export flag.

@@ -6,58 +6,8 @@ on:
   pull_request:
     branches: [main]
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  NODE_VERSION: '20'
-  PNPM_VERSION: '10.28.2'
-
-jobs:
-  # ───────────────────────────────────────────
-  # 1. Lint & Typecheck (per-app matrix)
-  # ───────────────────────────────────────────
-  lint-and-typecheck:
-    name: Lint & Typecheck (${{ matrix.app }})
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - app: master
-            pkg: clickflash-master
-          - app: touch
-            pkg: clickflash-touch
-          - app: gallery
-            pkg: star-master-customer
-          - app: management
-            pkg: star-master-management
-          - app: moneytrash
-            pkg: moneytrash-uploader
-          - app: website
-            pkg: main-website
-          - app: installer
-            pkg: clickflash-installer
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-name: CI
-
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -68,57 +18,111 @@ env:
   PNPM_VERSION: '10.28.2'
 
 jobs:
-  # ───────────────────────────────────────────
-  # 1. Lint & Typecheck (per-app matrix)
-  # ───────────────────────────────────────────
-  lint-and-typecheck:
-    name: Lint & Typecheck (${{ matrix.app }})
+  lint:
+    name: Lint (${{ matrix.app }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
           - app: master
-            pkg: clickflash-master
+            package: clickflash-master
           - app: touch
-            pkg: clickflash-touch
+            package: clickflash-touch
           - app: gallery
-            pkg: star-master-customer
+            package: star-master-customer
           - app: management
-            pkg: star-master-management
+            package: star-master-management
           - app: moneytrash
-            pkg: moneytrash-uploader
+            package: moneytrash-uploader
           - app: website
-            pkg: main-website
+            package: main-website
           - app: installer
-            pkg: clickflash-installer
+            package: clickflash-installer
+          - app: license-generator
+            package: clickflash-license-generator
+          - app: mobile-photographer
+            package: mobile
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         with:
           version: ${{ env.PNPM_VERSION }}
-
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
+          cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
       - name: Lint
-        run: pnpm --filter ${{ matrix.pkg }} run lint
+        run: pnpm --filter ${{ matrix.package }} run lint
 
+  typecheck:
+    name: Typecheck (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: master
+            package: clickflash-master
+            script: typecheck:ci
+          - app: touch
+            package: clickflash-touch
+            script: typecheck:ci
+          - app: gallery
+            package: star-master-customer
+            script: typecheck
+          - app: management
+            package: star-master-management
+            script: typecheck
+          - app: moneytrash
+            package: moneytrash-uploader
+            script: typecheck
+          - app: website
+            package: main-website
+            script: typecheck
+          - app: installer
+            package: clickflash-installer
+            script: typecheck
+          - app: license-generator
+            package: clickflash-license-generator
+            script: typecheck
+          - app: mobile-photographer
+            package: mobile
+            script: typecheck
+          - app: cloud-backend
+            package: cloud-backend
+            script: typecheck
+          - app: gallery-worker
+            package: gallery-backend
+            script: typecheck
+          - app: management-worker
+            package: management-backend
+            script: build
+          - app: moneytrash-worker
+            package: moneytrash-cloudflare-api
+            script: typecheck
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Typecheck
-        run: pnpm --filter ${{ matrix.pkg }} run typecheck
+        run: pnpm --filter ${{ matrix.package }} run ${{ matrix.script }}
 
-  # ───────────────────────────────────────────
-  # 2. Unit & Integration Tests (per-app matrix)
-  # ───────────────────────────────────────────
   test:
     name: Test (${{ matrix.app }})
     runs-on: ubuntu-latest
@@ -127,134 +131,129 @@ jobs:
       matrix:
         include:
           - app: master
-            pkg: clickflash-master
+            package: clickflash-master
+            script: test:ci
           - app: touch
-            pkg: clickflash-touch
+            package: clickflash-touch
+            script: test:ci
           - app: gallery
-            pkg: star-master-customer
+            package: star-master-customer
+            script: test:ci
           - app: management
-            pkg: star-master-management
+            package: star-master-management
+            script: test:ci
           - app: moneytrash
-            pkg: moneytrash-uploader
+            package: moneytrash-uploader
+            script: test:ci
           - app: website
-            pkg: main-website
+            package: main-website
+            script: test:ci
+          - app: installer
+            package: clickflash-installer
+            script: test
+          - app: license-generator
+            package: clickflash-license-generator
+            script: test
+          - app: cloud-backend
+            package: cloud-backend
+            script: test
+          - app: gallery-worker
+            package: gallery-backend
+            script: test
+          - app: management-worker
+            package: management-backend
+            script: test
+          - app: moneytrash-worker
+            package: moneytrash-cloudflare-api
+            script: test
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         with:
           version: ${{ env.PNPM_VERSION }}
-
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
+          cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
       - name: Build shared packages
-        run: pnpm --filter "@clickflash/*" run build
-
+        run: pnpm --filter "@clickflash/*" --if-present run build
       - name: Run tests
-        run: pnpm --filter ${{ matrix.pkg }} run test
+        run: pnpm --filter ${{ matrix.package }} run ${{ matrix.script }}
         env:
           CI: true
           NODE_ENV: test
-
       - name: Upload coverage
         if: matrix.app == 'master'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@04b047e8bb82a0c002c8312c1c880fbc6a999d45 # v5
         with:
-          files: ./apps/${{ matrix.app }}/coverage/lcov.info
+          files: ./apps/master/coverage/lcov.info
           fail_ci_if_error: false
 
-  # ───────────────────────────────────────────
-  # 3. E2E Tests (cross-app)
-  # ───────────────────────────────────────────
   e2e:
-    name: E2E Tests
+    name: Ecosystem E2E
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         with:
           version: ${{ env.PNPM_VERSION }}
-
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
+          cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright browsers
+      - name: Install Playwright
         run: pnpm exec playwright install --with-deps chromium
-
       - name: Build all apps
         run: pnpm run build:all
-
       - name: Run E2E tests
         run: pnpm run test:e2e
         env:
           CI: true
           PLAYWRIGHT_WORKERS: 4
-
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: playwright-report
           path: test-results/
           retention-days: 7
 
-  # ───────────────────────────────────────────
-  # 4. Security Audit
-  # ───────────────────────────────────────────
   security:
-    name: Security Audit
+    name: Security
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      - name: Checkout full history
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         with:
           version: ${{ env.PNPM_VERSION }}
-
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
+          cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Audit dependencies (critical)
+      - name: Audit critical dependencies
         run: pnpm audit --audit-level=critical
-        continue-on-error: true
-
-      - name: Lint all
-        run: pnpm run lint:all
-
-      - name: Typecheck all
-        run: pnpm run typecheck:all
-
-      - name: Check for secrets (truffleHog)
-        uses: trufflesecurity/trufflehog@main
+      - name: Scan repository for verified secrets
+        uses: trufflesecurity/trufflehog@6f3c981e7b77f235fd2702dd74af25fc4b72bf11 # v3.96.0
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
-          extra_args: --debug --only-verified
+          extra_args: --only-verified

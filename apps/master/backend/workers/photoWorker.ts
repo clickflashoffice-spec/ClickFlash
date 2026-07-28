@@ -137,7 +137,7 @@ async function handleProcessJob(job: WorkerJob) {
   const strippedHighResFilename = `${photoId}_highres${ext}`;
   const strippedHighResPath = path.join(outputDir, strippedHighResFilename);
 
-  let imageInstance = sharp(filepath, { failOnError: false });
+  let imageInstance = sharp(filepath, { failOn: 'none' });
   try {
     // 1. Calculate Hash (Stream-based) - Low Memory Footprint
     const fileHash = await new Promise<string>((resolve, reject) => {
@@ -189,7 +189,7 @@ async function handleProcessJob(job: WorkerJob) {
 
       // 🧠 Run Deep Learning Quality Assessment
       // Requires raw RGB buffer, which we approximate with sharp() buffer
-      const bufferForAI = await sharp(filepath, { failOnError: false }).resize(224, 224, { fit: 'inside' }).toBuffer();
+      const bufferForAI = await sharp(filepath, { failOn: 'none' }).resize(224, 224, { fit: 'inside' }).toBuffer();
       const aiScores = await AICullingService.evaluateImage(bufferForAI, 224, 224);
       
       if (aiScores.blurScore > 0.8) quality_flags.push("Blurred");
@@ -218,7 +218,7 @@ async function handleProcessJob(job: WorkerJob) {
     const promises: Promise<any>[] = [
       // 1. Generate High-Res (Stripped & Corrected orientation & optional ICC)
       applyFormatCompression(
-        sharp(filepath, { failOnError: false })
+        sharp(filepath, { failOn: 'none' })
           .rotate()
           .withMetadata(
              iccProfilePath && fs.existsSync(iccProfilePath)
@@ -231,18 +231,18 @@ async function handleProcessJob(job: WorkerJob) {
 
       // 2. Generate Assets
       applyFormatCompression(
-        sharp(filepath, { failOnError: false })
+        sharp(filepath, { failOn: 'none' })
           .resize(400, 400, { fit: "inside", withoutEnlargement: true }),
         ext,
         'thumb'
       ).toFile(thumbnailPath),
       applyFormatCompression(
-        sharp(filepath, { failOnError: false })
+        sharp(filepath, { failOn: 'none' })
           .resize(2048, 2048, { fit: "inside", withoutEnlargement: true }),
         ext,
         'preview'
       ).toFile(previewPath),
-      sharp(filepath, { failOnError: false })
+      sharp(filepath, { failOn: 'none' })
         .resize(100, 100, { fit: "inside", withoutEnlargement: true })
         .toFormat("webp", { quality: 80 })
         .toFile(tinyPath),
@@ -262,7 +262,7 @@ async function handleProcessJob(job: WorkerJob) {
           currentHeight = metadata.width || 0;
       }
       
-      let baseEditedPipeline = sharp(filepath, { failOnError: false }).rotate();
+      let baseEditedPipeline = sharp(filepath, { failOn: 'none' }).rotate();
       baseEditedPipeline = applyPipelineCrop(baseEditedPipeline, autoEdits.crop, currentWidth, currentHeight);
       baseEditedPipeline = applyPipelineEdits(baseEditedPipeline, autoEdits);
       
@@ -314,7 +314,7 @@ async function handleProcessJob(job: WorkerJob) {
           BlurhashService.generateBlurhash(buffer),
           Promise.all([
             applyFormatCompression(
-              sharp(buffer, { failOnError: false }).rotate().withMetadata(
+              sharp(buffer, { failOn: 'none' }).rotate().withMetadata(
                   job.iccProfilePath && fs.existsSync(job.iccProfilePath)
                   ? { icc: job.iccProfilePath, exif: Buffer.alloc(0) } as any
                   : { exif: Buffer.alloc(0) } as any
@@ -323,17 +323,17 @@ async function handleProcessJob(job: WorkerJob) {
               'highres'
             ).toFile(strippedHighResPath),
             applyFormatCompression(
-              sharp(buffer, { failOnError: false }).resize(400, 400, { fit: "inside", withoutEnlargement: true }),
+              sharp(buffer, { failOn: 'none' }).resize(400, 400, { fit: "inside", withoutEnlargement: true }),
               job.ext || '.jpg',
               'thumb'
             ).toFile(thumbnailPath),
             applyFormatCompression(
-              sharp(buffer, { failOnError: false }).resize(2048, 2048, { fit: "inside", withoutEnlargement: true }),
+              sharp(buffer, { failOn: 'none' }).resize(2048, 2048, { fit: "inside", withoutEnlargement: true }),
               job.ext || '.jpg',
               'preview'
             ).toFile(previewPath),
-            sharp(buffer, { failOnError: false }).resize(100, 100, { fit: "inside", withoutEnlargement: true }).toFormat("webp", { quality: 80, effort: 4 }).toFile(tinyPath),
-          ]).then(() => sharp(buffer!, { failOnError: false }).metadata())
+            sharp(buffer, { failOn: 'none' }).resize(100, 100, { fit: "inside", withoutEnlargement: true }).toFormat("webp", { quality: 80, effort: 4 }).toFile(tinyPath),
+          ]).then(() => sharp(buffer!, { failOn: 'none' }).metadata())
         ]);
 
         parentPort!.postMessage({
@@ -423,7 +423,9 @@ function applyPipelineEdits(pipeline: sharp.Sharp, edits: Record<string, any>): 
     if (edits.sepia) pipeline = pipeline.recomb([[0.3588, 0.7044, 0.1368], [0.299, 0.587, 0.114], [0.2392, 0.4696, 0.0912]]);
     if (edits.invert) pipeline = pipeline.negate();
     if (edits.soften && edits.soften > 0) pipeline = pipeline.blur(edits.soften / 5.0);
-    if (edits.clarity && edits.clarity > 0) pipeline = pipeline.sharpen(edits.clarity / 20.0);
+    if (edits.clarity && edits.clarity > 0) {
+      pipeline = pipeline.sharpen({ sigma: edits.clarity / 20.0 });
+    }
     
     return pipeline;
 }
@@ -439,7 +441,7 @@ async function handleApplyEditsJob(job: WorkerJob) {
   let currentBuffer: Buffer | null = null;
   try {
     // 1. Initial Load & Rotation/Straighten
-    let pipeline = sharp(sourcePath, { failOnError: false }).withMetadata();
+    let pipeline = sharp(sourcePath, { failOn: 'none' }).withMetadata();
     const rotVal = (edits.rotate || 0) + (edits.straighten || 0);
     if (rotVal !== 0) {
       pipeline = pipeline.rotate(rotVal);
@@ -615,7 +617,7 @@ async function handleWatermarkJob(job: WorkerJob) {
     gravity = "center";
   }
 
-  await sharp(filepath, { failOnError: false })
+  await sharp(filepath, { failOn: 'none' })
     .resize(2048, 2048, { fit: "inside", withoutEnlargement: true })
     .composite([{ input: compositeInput, gravity: gravity }])
     .toFormat("webp", { quality: 80 })

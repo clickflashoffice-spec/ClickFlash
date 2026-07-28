@@ -1,8 +1,20 @@
 import { Hono } from 'hono';
-import { sign, verify } from 'hono/jwt';
+import {
+  AuthConfigurationError,
+  createGalleryToken,
+  getGalleryPrincipal,
+  requireGalleryAuth,
+  requireServiceAuth,
+  verifyGalleryToken
+} from '../auth';
 import type { AppEnv } from '../types';
 
 const app = new Hono<AppEnv>();
+
+function publicEvent(event: Record<string, unknown>): Record<string, unknown> {
+  const { access_code: _accessCode, ...safeEvent } = event;
+  return safeEvent;
+}
 
 app.post('/login', async (c) => {
   try {
@@ -15,22 +27,31 @@ app.post('/login', async (c) => {
 
     if (!event) return c.json({ error: 'Invalid access code' }, 401);
 
-    const token = await sign({ eventId: event.id, accessCode }, c.env.JWT_SECRET || 'fallback-secret');
+    const eventId = String(event.id);
+    const token = await createGalleryToken(c.env, eventId, c.get('regionId'));
     
     return c.json({
       success: true,
       token,
-      event
+      event: publicEvent(event)
     });
   } catch (error: any) {
+    if (error instanceof AuthConfigurationError) {
+      return c.json({ error: 'Gallery authentication is not configured' }, 503);
+    }
     return c.json({ error: 'Internal Server Error' }, 500);
   }
 });
 
-app.post('/qr/generate', async (c) => {
+app.post('/qr/generate', requireServiceAuth, async (c) => {
   try {
     const { eventId, accessCode } = await c.req.json();
     if (!eventId || !accessCode) return c.json({ error: 'Missing eventId or accessCode' }, 400);
+
+    const event = await c.get('DB').prepare(
+      `SELECT id FROM events WHERE id = ? AND access_code = ?`
+    ).bind(eventId, accessCode).first();
+    if (!event) return c.json({ error: 'Event or access code not found' }, 404);
 
     const token = crypto.randomUUID();
     const expiresAt = Date.now() + 15 * 60 * 1000; 
@@ -68,35 +89,27 @@ app.post('/qr/validate', async (c) => {
       `SELECT * FROM events WHERE id = ?`
     ).bind(record.event_id).first();
 
-    const signedToken = await sign({ eventId: record.event_id, accessCode: record.access_code }, c.env.JWT_SECRET || 'fallback-secret');
+    await c.get('DB').prepare(`DELETE FROM qr_tokens WHERE token = ?`).bind(token).run();
+
+    const eventId = String(record.event_id);
+    const signedToken = await createGalleryToken(c.env, eventId, c.get('regionId'));
 
     return c.json({
       success: true,
       token: signedToken,
-      event: event || { id: record.event_id, access_code: record.access_code, name: 'Event' }
+      event: event ? publicEvent(event) : { id: eventId, name: 'Event' }
     });
   } catch (error: any) {
+    if (error instanceof AuthConfigurationError) {
+      return c.json({ error: 'Gallery authentication is not configured' }, 503);
+    }
     return c.json({ error: 'Failed to validate QR token' }, 500);
   }
 });
 
-app.get('/photos', async (c) => {
+app.get('/photos', requireGalleryAuth, async (c) => {
   try {
-    const authHeader = c.req.header('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
-    
-    const token = authHeader.split(' ')[1];
-    let tokenPayload: any;
-    try {
-      tokenPayload = await verify(token, c.env.JWT_SECRET || 'fallback-secret');
-    } catch {
-      return c.json({ error: 'Invalid token' }, 401);
-    }
-    
-    const eventId = tokenPayload.eventId;
-    if (!eventId) return c.json({ error: 'Invalid token payload' }, 401);
+    const { eventId } = getGalleryPrincipal(c);
 
     const curationStatus = c.req.query('curationStatus');
     
@@ -116,10 +129,9 @@ app.get('/photos', async (c) => {
       title: row.camera_id,
       aiTags: row.ai_tags ? JSON.parse(row.ai_tags) : null,
       size: row.size,
-      rawUrl: row.raw_r2_path ? `https://clickflash-photos.public.r2.dev/${row.raw_r2_path}` : null,
+      rawAvailable: Boolean(row.raw_r2_path),
       rawStatus: row.raw_status || 'pending',
       rawSize: row.raw_size || null,
-      rawMetadata: row.raw_metadata ? JSON.parse(row.raw_metadata) : null,
       qualityScore: row.quality_score || null,
       curationStatus: row.curation_status || 'PENDING'
     }));
@@ -130,18 +142,17 @@ app.get('/photos', async (c) => {
   }
 });
 
-app.get('/photos/:id/download-url', async (c) => {
+app.get('/photos/:id/download-url', requireGalleryAuth, async (c) => {
   try {
     const authHeader = c.req.header('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
-    const token = authHeader.split(' ')[1];
+    const token = authHeader?.split(/\s+/)[1];
+    if (!token) return c.json({ error: 'Unauthorized' }, 401);
+    const { eventId } = getGalleryPrincipal(c);
 
     const photoId = c.req.param('id');
     const photo = await c.get('DB').prepare(
-      `SELECT r2_path FROM photos WHERE id = ?`
-    ).bind(photoId).first();
+      `SELECT r2_path FROM photos WHERE id = ? AND event_id = ?`
+    ).bind(photoId, eventId).first();
 
     if (!photo) return c.json({ error: 'Not found' }, 404);
 
@@ -160,18 +171,23 @@ app.get('/photos/:id/file', async (c) => {
     const token = c.req.query('token');
     if (!token) return c.json({ error: 'Unauthorized' }, 401);
     
-    let decoded: any;
+    let principal;
     try {
-      decoded = await verify(token, c.env.JWT_SECRET || 'fallback-secret');
-    } catch {
+      principal = await verifyGalleryToken(c.env, token);
+    } catch (error) {
+      if (error instanceof AuthConfigurationError) {
+        return c.json({ error: 'Gallery authentication is not configured' }, 503);
+      }
+      throw error;
+    }
+    if (!principal) {
       return c.json({ error: 'Invalid token' }, 401);
     }
-    if (!decoded.eventId) return c.json({ error: 'Invalid token' }, 401);
 
     const photoId = c.req.param('id');
     const photo = await c.get('DB').prepare(
-      `SELECT r2_path FROM photos WHERE id = ?`
-    ).bind(photoId).first();
+      `SELECT r2_path FROM photos WHERE id = ? AND event_id = ?`
+    ).bind(photoId, principal.eventId).first();
 
     if (!photo || !photo.r2_path) return c.json({ error: 'Not found' }, 404);
 
@@ -189,7 +205,7 @@ app.get('/photos/:id/file', async (c) => {
   }
 });
 
-app.post('/photos/raw/export-batch', async (c) => {
+app.post('/photos/raw/export-batch', requireServiceAuth, async (c) => {
   try {
     const { eventId, filterTags } = await c.req.json();
     if (!eventId) return c.json({ error: 'Missing eventId' }, 400);
@@ -228,7 +244,7 @@ app.post('/photos/raw/export-batch', async (c) => {
       items: filteredPhotos.map((p: any) => ({
         id: p.id,
         previewUrl: `/api/photos/${p.id}/download-url`,
-        rawUrl: p.raw_r2_path ? `https://clickflash-photos.public.r2.dev/${p.raw_r2_path}` : null,
+        rawObjectKey: p.raw_r2_path || null,
         rawStatus: p.raw_status || 'pending',
         rawSize: p.raw_size || 0,
         rawMetadata: p.raw_metadata ? JSON.parse(p.raw_metadata) : null,
@@ -249,7 +265,7 @@ app.post('/photos/raw/export-batch', async (c) => {
   }
 });
 
-app.get('/photos/raw/export-jobs', async (c) => {
+app.get('/photos/raw/export-jobs', requireServiceAuth, async (c) => {
   try {
     const { results } = await c.get('DB').prepare(
       `SELECT * FROM raw_export_jobs ORDER BY created_at DESC LIMIT 50`
@@ -260,7 +276,7 @@ app.get('/photos/raw/export-jobs', async (c) => {
   }
 });
 
-app.get('/photos/raw/export-jobs/:id', async (c) => {
+app.get('/photos/raw/export-jobs/:id', requireServiceAuth, async (c) => {
   try {
     const jobId = c.req.param('id');
     const job = await c.get('DB').prepare(
@@ -274,7 +290,7 @@ app.get('/photos/raw/export-jobs/:id', async (c) => {
   }
 });
 
-app.get('/photos/raw/export-jobs/:id/manifest', async (c) => {
+app.get('/photos/raw/export-jobs/:id/manifest', requireServiceAuth, async (c) => {
   try {
     const jobId = c.req.param('id');
     const object = await c.env.PHOTO_BUCKET.get(`exports/manifest-${jobId}.json`);

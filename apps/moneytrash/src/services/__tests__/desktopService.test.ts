@@ -102,6 +102,14 @@ describe('Electron desktop adapter', () => {
     await expect(approveDroppedFile(file)).resolves.toMatchObject({ name: 'photo.jpg' });
     expect(api.files.approveDropped).toHaveBeenCalledWith(file);
   });
+
+  it('forwards upload cancellation to the main process', async () => {
+    const api = createDesktopApi();
+    window.moneytrashDesktop = api;
+
+    await expect(invoke('cancel_upload', { sessionId: 'session-123' })).resolves.toBe(true);
+    expect(api.uploads.cancel).toHaveBeenCalledWith('session-123');
+  });
 });
 
 describe('Electron command contracts', () => {

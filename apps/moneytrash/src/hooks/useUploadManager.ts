@@ -2,10 +2,19 @@ import { useState, useCallback, useEffect } from 'react';
 import { desktopBatchUploadService } from '@/services/desktopBatchUploadService';
 import { env } from '@/utils/env';
 import { cloudApiService } from '@/services/cloudApiService';
-import { initTauriApi, isTauri, invoke } from '@/services/tauriService';
-import { useVRAMProtection } from '@/hooks/useVRAMProtection';
+import { approveDroppedFile, initTauriApi, isTauri, invoke } from '@/services/tauriService';
 import { UploadFile, UploadHistoryItem, AppSettings, FileInfo } from '@/types';
 import { logger } from '@/utils/logger';
+
+const fromNativeFile = (fileInfo: FileInfo): UploadFile => ({
+  id: crypto.randomUUID(),
+  file: new File([], fileInfo.name, { type: fileInfo.mimeType || 'image/jpeg' }),
+  size: fileInfo.size,
+  filePath: fileInfo.path,
+  preview: fileInfo.previewUrl,
+  progress: 0,
+  status: 'pending',
+});
 
 export const useUploadManager = () => {
   const [mode, setMode] = useState<"moneytrash" | "sold">("moneytrash");
@@ -43,26 +52,6 @@ export const useUploadManager = () => {
     autoStartUpload: false,
     saveHistory: true,
   });
-
-  // VRAM protection for preview generation
-  const { getPreview: getVRAMPreview } = useVRAMProtection({
-    maxPreviewsInMemory: 20,
-    previewMaxWidth: 400,
-    previewMaxHeight: 400,
-  });
-
-  // Generate previews with VRAM protection (downsampled)
-  const createPreview = useCallback(async (id: string, file: File): Promise<string> => {
-    if (!file.type.startsWith('image/')) {
-      return '';
-    }
-    try {
-      return await getVRAMPreview(id, file);
-    } catch (err) {
-      logger.warn('[VRAM] Preview generation failed, using fallback:', { error: err instanceof Error ? err.message : String(err) });
-      return '';
-    }
-  }, [getVRAMPreview]);
 
   const loadSavedData = useCallback(async () => {
     if (!isTauri()) {
@@ -140,20 +129,13 @@ export const useUploadManager = () => {
   }, [mode, eventName, accessCode, customerEmail]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const newFiles: UploadFile[] = await Promise.all(
-      acceptedFiles.map(async (file) => {
-        const id = crypto.randomUUID();
-        return {
-          id,
-          file,
-          preview: await createPreview(id, file),
-          progress: 0,
-          status: 'pending' as const
-        };
-      })
-    );
-    setFiles((prev) => [...prev, ...newFiles]);
-  }, [createPreview]);
+    if (!isTauri()) {
+      setFileSelectionError('File drops require the ClickFlash desktop app');
+      return;
+    }
+    const approvedFiles = await Promise.all(acceptedFiles.map(approveDroppedFile));
+    setFiles((prev) => [...prev, ...approvedFiles.map(fromNativeFile)]);
+  }, []);
 
   // Validate required fields before file selection
   const validateForFileSelection = useCallback((): boolean => {
@@ -196,25 +178,7 @@ export const useUploadManager = () => {
 
       if (selectedFiles && selectedFiles.length > 0) {
         logger.info(`[MoneyTrash] Processing ${selectedFiles.length} files...`);
-        const newFiles: UploadFile[] = await Promise.all(
-          selectedFiles.map(async (fileInfo: FileInfo) => {
-            logger.info(`[MoneyTrash] Reading file: ${fileInfo.name} (${fileInfo.size} bytes)`);
-            const fileData = await invoke<number[]>('read_file', { path: fileInfo.path });
-            const blob = new Blob([new Uint8Array(fileData)]);
-            const file = new File([blob], fileInfo.name, {
-              type: fileInfo.mimeType || 'image/jpeg'
-            });
-
-            return {
-              id: crypto.randomUUID(),
-              file,
-              filePath: fileInfo.path,
-              preview: file.type.startsWith('image/') ? await createPreview(crypto.randomUUID(), file) : '',
-              progress: 0,
-              status: 'pending' as const
-            };
-          })
-        );
+        const newFiles = selectedFiles.map(fromNativeFile);
         logger.info(`[MoneyTrash] Added ${newFiles.length} files to queue`);
         setFiles((prev) => [...prev, ...newFiles]);
         setFileSelectionError('');
@@ -225,7 +189,7 @@ export const useUploadManager = () => {
       logger.error('[MoneyTrash] Error selecting files:', error as Error);
       setFileSelectionError(`Error selecting files: ${error}`);
     }
-  }, [validateForFileSelection, createPreview]);
+  }, [validateForFileSelection]);
 
   // Native folder picker for desktop
   const handleNativeFolderSelect = useCallback(async () => {
@@ -262,25 +226,7 @@ export const useUploadManager = () => {
       }
       
       logger.info(`[MoneyTrash] Found ${selectedFiles.length} image files in folder`);
-      const newFiles: UploadFile[] = await Promise.all(
-        selectedFiles.map(async (fileInfo: FileInfo) => {
-          logger.info(`[MoneyTrash] Reading file: ${fileInfo.name} (${fileInfo.size} bytes)`);
-          const fileData = await invoke<number[]>('read_file', { path: fileInfo.path });
-          const blob = new Blob([new Uint8Array(fileData)]);
-          const file = new File([blob], fileInfo.name, {
-            type: fileInfo.mimeType || 'image/jpeg'
-          });
-
-          return {
-            id: crypto.randomUUID(),
-            file,
-            filePath: fileInfo.path,
-            preview: file.type.startsWith('image/') ? await createPreview(crypto.randomUUID(), file) : '',
-            progress: 0,
-            status: 'pending' as const
-          };
-        })
-      );
+      const newFiles = selectedFiles.map(fromNativeFile);
       logger.info(`[MoneyTrash] Added ${newFiles.length} files to queue`);
       setFiles((prev) => [...prev, ...newFiles]);
       setFileSelectionError('');
@@ -290,7 +236,7 @@ export const useUploadManager = () => {
       setFileSelectionError(`Error reading folder: ${error}`);
       setUploadStatus('');
     }
-  }, [validateForFileSelection, createPreview]);
+  }, [validateForFileSelection]);
 
   const removeFile = useCallback((id: string) => {
     setFiles((prev) => prev.filter((f) => f.id !== id));
@@ -337,7 +283,6 @@ export const useUploadManager = () => {
       singlePhotoPrice,
       fullGalleryPrice,
       apiUrl: settings.apiUrl,
-      useNativePaths: isNativeMode,
       nativePaths: files.map(f => f.filePath).filter((p): p is string => !!p)
     });
 
@@ -397,7 +342,7 @@ export const useUploadManager = () => {
         }
       }
     });
-  }, [eventName, accessCode, files, mode, customerEmail, singlePhotoPrice, fullGalleryPrice, settings, isNativeMode, uploadHistory]);
+  }, [eventName, accessCode, files, mode, customerEmail, singlePhotoPrice, fullGalleryPrice, settings, uploadHistory]);
 
   const saveSettings = useCallback(async () => {
     try {

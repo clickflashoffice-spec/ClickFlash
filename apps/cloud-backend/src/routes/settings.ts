@@ -1,8 +1,10 @@
 import { Hono } from 'hono';
+import { requireServiceAuth } from '../auth';
 import type { AppEnv } from '../types';
 import { getRegionalDB } from '../middleware';
 
 const app = new Hono<AppEnv>();
+app.use('*', requireServiceAuth);
 
 app.get('/settings/sync', async (c) => {
   try {

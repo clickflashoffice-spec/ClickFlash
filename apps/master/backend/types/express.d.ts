@@ -1,30 +1,30 @@
 import "express";
 import "express-session";
 
-declare module "express-serve-static-core" {
-  interface Request {
-    user?: {
-      id?: string;
-      email?: string;
-      role?: string;
-      name?: string;
-      [key: string]: any;
-    };
-    dbManager?: any;
-    file?: any;
+interface AuthenticatedUser {
+  id?: string;
+  email?: string;
+  role?: string;
+  name?: string;
+  [key: string]: unknown;
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthenticatedUser;
+      dbManager?: unknown;
+      file?: unknown;
+    }
   }
 }
 
 declare module "express-session" {
   interface SessionData {
-    user?: {
-      id?: string;
-      email?: string;
-      role?: string;
-      name?: string;
-      [key: string]: any;
-    };
+    user?: AuthenticatedUser;
     sessionId?: string;
     csrfToken?: string;
   }
 }
+
+export {};

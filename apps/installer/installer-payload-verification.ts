@@ -1,13 +1,10 @@
-import { execFile } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { promisify } from "node:util";
 import { z } from "zod";
 
 import { APPLICATION_LAYOUT } from "./installer-application-config";
-
-const execFileAsync = promisify(execFile);
+import { verifyAuthenticodeSignature } from "./installer-authenticode";
 
 export const PAYLOAD_MANIFEST_FILENAME = "clickflash-payload-manifest.json";
 export const PAYLOAD_SIGNATURE_DOMAIN = "clickflash-payload-manifest/v1";
@@ -377,12 +374,7 @@ async function verifyComponentFiles(
 
     if (file.path.toLowerCase().endsWith(".exe") || file.path.toLowerCase().endsWith(".dll")) {
       try {
-        const { stdout } = await execFileAsync("powershell.exe", [
-          "-NoProfile",
-          "-Command",
-          `$sig = Get-AuthenticodeSignature -FilePath '${absolutePath}'; if ($sig.Status -eq 'Valid') { Write-Output 'Valid' } else { Write-Output 'Invalid' }`
-        ]);
-        if (!stdout.includes("Valid")) {
+        if (!await verifyAuthenticodeSignature(absolutePath)) {
           throw new Error(`Payload executable is not properly signed: ${component.source_directory}/${file.path}`);
         }
       } catch (err) {

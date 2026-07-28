@@ -3,13 +3,12 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-nat
 
 export default function CoachScreen() {
     const [grading, setGrading] = useState<string | null>(null);
-    const [isConnected, setIsConnected] = useState(false);
+    const isConnected = false;
 
     useEffect(() => {
         // Here we'd connect to the Master PC WebSocket to receive realtime AI coaching tips
         // e.g. discoveryService.getMasterIp().then(ip => connectWebSocket(ip))
-        setIsConnected(true);
-        
+
         // Using a mock interval to simulate real-time AI feedback from a tethered DSLR
         const timer = setInterval(() => {
             setGrading(Math.random() > 0.5 ? 'A+' : 'Needs Improvement');

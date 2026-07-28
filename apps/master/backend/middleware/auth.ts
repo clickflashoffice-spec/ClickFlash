@@ -6,28 +6,12 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { sendAuthError } from '../utils/errorHandler';
 import { JWT_SECRET } from "../config/constants";
 import AuditLogger from '../utils/auditLogger';
-import type { User } from "../types/shared";
 
 // JWT payload type
 interface JwtUserPayload extends JwtPayload {
   id: string;
   email: string;
   role: string;
-}
-
-// Extend Express Request interface to include session and user
-declare module "express-session" {
-  interface SessionData {
-    user: User;
-  }
-}
-
-declare global {
-  namespace Express {
-    interface Request {
-      user?: User | JwtUserPayload;
-    }
-  }
 }
 
 /**

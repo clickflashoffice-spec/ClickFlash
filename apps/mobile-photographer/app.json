@@ -1,16 +1,18 @@
 {
   "expo": {
-    "name": "ClickFlash",
-    "slug": "clickflash",
+    "name": "ClickFlash Photographer",
+    "slug": "clickflash-photographer",
+    "platforms": [
+      "android"
+    ],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "clickflash-photographer",
     "userInterfaceStyle": "automatic",
-    "ios": {
-      "icon": "./assets/expo.icon"
-    },
     "android": {
+      "package": "com.clickflash.photographer",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -18,10 +20,6 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
-    },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -52,6 +50,21 @@
           "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported card readers."
         }
       ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26,
+            "packagingOptions": {
+              "pickFirst": [
+                "**/libworklets.so"
+              ]
+            }
+          }
+        }
+      ],
+      "./plugins/withNativeBuildStaging",
+      "./plugins/withUsbPermissions",
       "expo-sqlite"
     ],
     "experiments": {

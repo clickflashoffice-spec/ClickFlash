@@ -1,0 +1,70 @@
+{
+  "audit": "clickflash-360-execution-addendum",
+  "startedAt": "2026-07-27T13:19:00+01:00",
+  "capturedAt": "2026-07-27T13:26:08+01:00",
+  "repository": "C:\\Users\\alamo\\Desktop\\ClickFlash",
+  "branch": "main",
+  "commit": "00db089af53648c6693ab8b44feddeaa96d9a259",
+  "verdict": "PRODUCTION_NO_GO",
+  "coverage": {
+    "appDirectories": 17,
+    "workers": 4,
+    "sharedPackages": 13,
+    "services": 2,
+    "workflowFiles": 11,
+    "routeLikeMatches": 576,
+    "pageScreenFiles": 65,
+    "testLikeFiles": 371
+  },
+  "typechecks": {
+    "passed": [
+      "touch",
+      "moneytrash",
+      "gallery",
+      "website",
+      "installer",
+      "license-generator",
+      "gallery-worker",
+      "management-worker-no-emit",
+      "moneytrash-worker"
+    ],
+    "failed": [
+      "master",
+      "management",
+      "mobile-photographer",
+      "cloud-backend"
+    ]
+  },
+  "focusedTests": {
+    "passedTestCount": 145,
+    "passedSuitesOrFiles": 29,
+    "surfaces": [
+      "master-electron-security",
+      "touch-electron-security",
+      "moneytrash-desktop-service",
+      "installer-security",
+      "gallery-worker",
+      "management-worker",
+      "moneytrash-worker",
+      "licensing",
+      "license-generator"
+    ]
+  },
+  "workflowParse": {
+    "passed": 10,
+    "failed": 1,
+    "failedFile": ".github/workflows/ci.yml"
+  },
+  "sampledWindowsExecutables": {
+    "count": 4,
+    "signed": 0,
+    "notSigned": 4
+  },
+  "unexpectedTrackedTestOutputs": [
+    "workers/management-worker/logs/.3934dea359fdec266ebbcc763dd16ecedb37bed1-audit.json",
+    "workers/management-worker/logs/.7ac1dc43e2d26ca1f75049e0d5b79d0c16060dc6-audit.json",
+    "workers/moneytrash-worker/logs/.32218f162e13e8793ad28e84f269b7595c34d8b3-audit.json",
+    "workers/moneytrash-worker/logs/.b05ea428a7cf74261f0fde2da162be0d6d3042af-audit.json"
+  ],
+  "fullEvidencePack": "../2026-07-25/README.md"
+}

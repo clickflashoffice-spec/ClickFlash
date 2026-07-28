@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import { DatabaseManager } from '../database/db';
 import { Logger } from '../utils/logger';
-import { redisCache } from './redisCacheService';
 import { UPLOAD_DIR } from '../config/constants';
 
 export interface CachedAsset {

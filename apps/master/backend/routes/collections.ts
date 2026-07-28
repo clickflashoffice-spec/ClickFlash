@@ -1188,7 +1188,7 @@ export default function collectionRoutes(context: CollectionsContext): Router {
               .then(() => {
                 if (table === "photos" && data.id && data.storagePath) {
                   const { AICullingService } = require('../services/aiCullingService');
-                  const aiCulling = new AICullingService(req.app.locals.dbManager || req.dbManager);
+                  const aiCulling = new AICullingService(req.app.locals.dbManager || dbManager);
                   aiCulling.analyzePhoto(data.id, data.storagePath).catch((e: any) => logger.error(`[Collections] AI Culling failed for ${data.id}:`, e));
                 }
               })

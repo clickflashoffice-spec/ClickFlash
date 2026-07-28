@@ -10,22 +10,38 @@ import { desktopBatchUploadService } from './services/desktopBatchUploadService'
 import { UploadHistoryItem, AppSettings } from './types';
 import { env } from '@/utils/env';
 import { cloudApiService } from './services/cloudApiService';
-import { initTauriApi, isTauri, invoke } from './services/tauriService';
-import { useVRAMProtection } from './hooks/useVRAMProtection';
+import { approveDroppedFile, initTauriApi, isTauri, invoke } from './services/tauriService';
 import { Analytics } from './components/Analytics';
 import { logger } from "@/utils/logger";
 
 interface UploadFile {
   id: string;
   file: File;
+  size: number;
   preview?: string;
   progress: number;
-  status: 'pending' | 'uploading' | 'completed' | 'error';
+  status: 'pending' | 'uploading' | 'completed' | 'error' | 'cancelled';
   error?: string;
   filePath?: string; // Native file path for desktop
 }
 
+interface NativeFileInfo {
+  name: string;
+  path: string;
+  size: number;
+  mimeType?: string;
+  previewUrl?: string;
+}
 
+const toUploadFile = (fileInfo: NativeFileInfo): UploadFile => ({
+  id: crypto.randomUUID(),
+  file: new File([], fileInfo.name, { type: fileInfo.mimeType || 'image/jpeg' }),
+  size: fileInfo.size,
+  filePath: fileInfo.path,
+  preview: fileInfo.previewUrl,
+  progress: 0,
+  status: 'pending'
+});
 
 function App() {
   const [mode, setMode] = useState<"moneytrash" | "sold" | "analytics">("moneytrash");
@@ -33,10 +49,10 @@ function App() {
   const [uploading, setUploading] = useState(false);
   const [overallProgress, setOverallProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<string>('');
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [uploadHistory, setUploadHistory] = useState<UploadHistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [isNativeMode, setIsNativeMode] = useState(true); // Desktop native file handling
 
   // Metadata State
   const [eventName, setEventName] = useState("");
@@ -79,7 +95,6 @@ function App() {
 
       // 2. Load Config (PRE-CONFIGURATION SYNC)
       logger.info('[MoneyTrash] Initializing cloud configuration...');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const config = await invoke<any>('load_upload_config');
       
       if (config) {
@@ -140,41 +155,21 @@ function App() {
     setFileSelectionError('');
   }, [mode, eventName, accessCode, customerEmail]);
 
-  // VRAM protection for preview generation
-  const { getPreview: getVRAMPreview } = useVRAMProtection({
-    maxPreviewsInMemory: 20,
-    previewMaxWidth: 400,
-    previewMaxHeight: 400,
-  });
-
-  // Generate previews with VRAM protection (downsampled)
-  const createPreview = async (id: string, file: File): Promise<string> => {
-    if (!file.type.startsWith('image/')) {
-      return '';
-    }
-    try {
-      return await getVRAMPreview(id, file);
-    } catch (err) {
-      logger.warn('[VRAM] Preview generation failed, using fallback:', err);
-      return '';
-    }
-  };
-
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const newFiles: UploadFile[] = await Promise.all(
-      acceptedFiles.map(async (file) => {
-        const id = crypto.randomUUID();
-        return {
-          id,
-          file,
-          preview: await createPreview(id, file),
-          progress: 0,
-          status: 'pending' as const
-        };
-      })
-    );
-    setFiles((prev) => [...prev, ...newFiles]);
-  }, [createPreview]);
+    if (!isTauri()) {
+      setFileSelectionError('File drops require the ClickFlash desktop app');
+      return;
+    }
+
+    try {
+      const approvedFiles = await Promise.all(acceptedFiles.map(approveDroppedFile));
+      setFiles((prev) => [...prev, ...approvedFiles.map(toUploadFile)]);
+      setFileSelectionError('');
+    } catch (error) {
+      logger.error('[MoneyTrash] Failed to approve dropped files:', error);
+      setFileSelectionError('One or more dropped files could not be approved');
+    }
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
     onDrop,
@@ -186,13 +181,6 @@ function App() {
     },
     maxSize: 50 * 1024 * 1024 // 50MB
   });
-
-  interface FileInfo {
-    name: string;
-    path: string;
-    size: number;
-    mime_type?: string;
-  }
 
   // Validate required fields before file selection
   const validateForFileSelection = (): boolean => {
@@ -231,32 +219,12 @@ function App() {
     
     try {
       logger.info('[MoneyTrash] Opening file picker...');
-      const selectedFiles = await invoke<FileInfo[]>('select_files', { multiple: true });
+      const selectedFiles = await invoke<NativeFileInfo[]>('select_files', { multiple: true });
       logger.info('[MoneyTrash] Selected files:', selectedFiles);
 
       if (selectedFiles && selectedFiles.length > 0) {
         logger.info(`[MoneyTrash] Processing ${selectedFiles.length} files...`);
-        // Convert native file paths to File objects using Tauri's fs API
-        const newFiles: UploadFile[] = await Promise.all(
-          selectedFiles.map(async (fileInfo: FileInfo) => {
-            logger.info(`[MoneyTrash] Reading file: ${fileInfo.name} (${fileInfo.size} bytes)`);
-            // Read file data from native path
-            const fileData = await invoke<number[]>('read_file', { path: fileInfo.path });
-            const blob = new Blob([new Uint8Array(fileData)]);
-            const file = new File([blob], fileInfo.name, {
-              type: fileInfo.mime_type || 'image/jpeg'
-            });
-
-            return {
-              id: crypto.randomUUID(),
-              file,
-              filePath: fileInfo.path,
-              preview: file.type.startsWith('image/') ? await createPreview(crypto.randomUUID(), file) : '',
-              progress: 0,
-              status: 'pending' as const
-            };
-          })
-        );
+        const newFiles = selectedFiles.map(toUploadFile);
         logger.info(`[MoneyTrash] Added ${newFiles.length} files to queue`);
         setFiles((prev) => [...prev, ...newFiles]);
         setFileSelectionError('');
@@ -288,7 +256,7 @@ function App() {
       logger.info('[MoneyTrash] Opening folder picker...');
       setUploadStatus('Scanning folder for images...');
       
-      const selectedFiles = await invoke<FileInfo[] | null>('select_folder');
+      const selectedFiles = await invoke<NativeFileInfo[] | null>('select_folder');
       logger.info('[MoneyTrash] Folder scan result:', selectedFiles);
       
       if (selectedFiles === null) {
@@ -305,27 +273,7 @@ function App() {
       }
       
       logger.info(`[MoneyTrash] Found ${selectedFiles.length} image files in folder`);
-      // Convert native file paths to File objects using Tauri's fs API
-      const newFiles: UploadFile[] = await Promise.all(
-        selectedFiles.map(async (fileInfo: FileInfo) => {
-          logger.info(`[MoneyTrash] Reading file: ${fileInfo.name} (${fileInfo.size} bytes)`);
-          // Read file data from native path
-          const fileData = await invoke<number[]>('read_file', { path: fileInfo.path });
-          const blob = new Blob([new Uint8Array(fileData)]);
-          const file = new File([blob], fileInfo.name, {
-            type: fileInfo.mime_type || 'image/jpeg'
-          });
-
-          return {
-            id: crypto.randomUUID(),
-            file,
-            filePath: fileInfo.path,
-            preview: file.type.startsWith('image/') ? await createPreview(crypto.randomUUID(), file) : '',
-            progress: 0,
-            status: 'pending' as const
-          };
-        })
-      );
+      const newFiles = selectedFiles.map(toUploadFile);
       logger.info(`[MoneyTrash] Added ${newFiles.length} files to queue`);
       setFiles((prev) => [...prev, ...newFiles]);
       setFileSelectionError('');
@@ -385,53 +333,67 @@ function App() {
     setOverallProgress(0);
     setUploadStatus('Queueing files...');
 
-    const rawFiles = files.map(f => f.file);
-    desktopBatchUploadService.createJob(rawFiles, {
-      eventName,
-      accessCode,
-      mode: mode === 'analytics' ? 'moneytrash' : mode,
-      customerEmail,
-      singlePhotoPrice,
-      fullGalleryPrice,
-      apiUrl: settings.apiUrl,
-      deskId: settings.deskId,
-      useNativePaths: isNativeMode,
-      nativePaths: files.map(f => f.filePath).filter((p): p is string => !!p)
-    });
+    if (files.some((file) => !file.filePath)) {
+      setUploading(false);
+      setFileSelectionError('Every upload must be selected or approved by the desktop app');
+      return;
+    }
 
+    const rawFiles = files.map(f => f.file);
+    let jobId: string | null = null;
     const unsubscribe = desktopBatchUploadService.subscribe((progress) => {
+      if (!jobId || progress.jobId !== jobId) return;
+
       setOverallProgress(progress.percentage);
-      setUploadStatus(progress.status === 'processing'
-        ? `Uploading: ${progress.currentFile || 'Wait...'}`
-        : progress.status === 'completed'
-          ? 'Finalizing album...'
-          : 'Upload failed'
+      setUploadStatus(
+        progress.status === 'processing'
+          ? `Uploading: ${progress.currentFile || 'Wait...'}`
+          : progress.status === 'completed'
+            ? 'Finalizing album...'
+            : progress.status === 'cancelled'
+              ? 'Upload cancelled'
+              : 'Upload failed'
       );
 
-      // Update individual file progress
-      setFiles(prev => prev.map((f) => {
-        if (progress.currentFile && f.file.name === progress.currentFile) {
-          return { ...f, status: 'uploading' as const };
+      setFiles(prev => prev.map((file) => {
+        if (progress.status === 'completed') {
+          return { ...file, status: 'completed' as const, progress: 100 };
         }
-        return f;
+        if (progress.status === 'failed') {
+          return file.status === 'completed'
+            ? file
+            : { ...file, status: 'error' as const };
+        }
+        if (progress.status === 'cancelled') {
+          return file.status === 'completed'
+            ? file
+            : { ...file, status: 'cancelled' as const };
+        }
+        if (progress.currentFile && file.file.name === progress.currentFile) {
+          return { ...file, status: 'uploading' as const };
+        }
+        return file;
       }));
 
-      if (progress.status === 'completed' || progress.status === 'failed') {
+      if (
+        progress.status === 'completed' ||
+        progress.status === 'failed' ||
+        progress.status === 'cancelled'
+      ) {
         setUploading(false);
+        setActiveJobId(null);
         unsubscribe();
 
         if (progress.status === 'completed') {
           setUploadStatus('Upload complete!');
 
-          // Show notification (only in Tauri)
           if (isTauri()) {
             invoke('show_notification', {
               title: 'Upload Complete',
               body: `Successfully uploaded ${rawFiles.length} files to ${eventName}`
-            }).catch(console.error);
+            }).catch((error) => logger.error('Failed to show upload notification', error));
           }
 
-          // Add to history
           if (settings.saveHistory) {
             const newHistoryItem: UploadHistoryItem = {
               id: crypto.randomUUID(),
@@ -444,13 +406,12 @@ function App() {
             const updatedHistory = [newHistoryItem, ...uploadHistory].slice(0, 10);
             setUploadHistory(updatedHistory);
 
-            // Save to persistent storage (only in Tauri)
             if (isTauri()) {
-              invoke('save_upload_history', { history: updatedHistory }).catch(console.error);
+              invoke('save_upload_history', { history: updatedHistory })
+                .catch((error) => logger.error('Failed to save upload history', error));
             }
           }
 
-          // Clear after delay
           setTimeout(() => {
             setFiles([]);
             setOverallProgress(0);
@@ -459,6 +420,27 @@ function App() {
         }
       }
     });
+
+    jobId = desktopBatchUploadService.createJob(rawFiles, {
+      eventName,
+      accessCode,
+      mode: mode === 'analytics' ? 'moneytrash' : mode,
+      customerEmail,
+      singlePhotoPrice,
+      fullGalleryPrice,
+      apiUrl: settings.apiUrl,
+      deskId: settings.deskId,
+      nativePaths: files.map(f => f.filePath as string)
+    });
+    setActiveJobId(jobId);
+  };
+
+  const handleCancelUpload = async () => {
+    if (!activeJobId) return;
+    const cancelled = await desktopBatchUploadService.cancelJob(activeJobId);
+    if (!cancelled) {
+      setUploadStatus('Upload could not be cancelled because it already finished');
+    }
   };
 
   const saveSettings = async () => {
@@ -646,15 +628,9 @@ function App() {
                   />
                   <span className="text-sm text-slate-300">Save upload history locally</span>
                 </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isNativeMode}
-                    onChange={(e) => setIsNativeMode(e.target.checked)}
-                    className="w-4 h-4 accent-[#06B6D4]"
-                  />
-                  <span className="text-sm text-slate-300">Enable High-Performance Native Picker</span>
-                </label>
+                <p className="text-xs text-slate-400">
+                  Native streaming is always enabled to keep large files out of renderer memory.
+                </p>
               </div>
             </div>
           </div>
@@ -898,7 +874,7 @@ function App() {
               <div className="flex justify-between items-center py-1.5">
                 <span className="text-slate-400">Total Size</span>
                 <span className="text-white font-medium">
-                  {formatFileSize(files.reduce((sum, f) => sum + f.file.size, 0))}
+                  {formatFileSize(files.reduce((sum, file) => sum + file.size, 0))}
                 </span>
               </div>
             </div>
@@ -928,6 +904,16 @@ function App() {
                 />
               )}
             </button>
+
+            {uploading && activeJobId && (
+              <button
+                type="button"
+                onClick={handleCancelUpload}
+                className="w-full mt-3 border border-red-500/50 text-red-300 font-semibold h-10 rounded-xl hover:bg-red-500/10 transition-colors text-sm"
+              >
+                Cancel Upload
+              </button>
+            )}
 
             {uploadStatus && (
               <p className="text-xs text-slate-300 mt-3 text-center">{uploadStatus}</p>
@@ -1110,13 +1096,22 @@ function App() {
                           </div>
                         )}
 
+                        {uploadFile.status === 'cancelled' && (
+                          <div className="absolute inset-0 bg-slate-900/80 flex flex-col items-center justify-center p-2">
+                            <X className="w-6 h-6 text-slate-300 mb-1" />
+                            <span className="text-[10px] text-slate-300 text-center leading-tight">
+                              Cancelled
+                            </span>
+                          </div>
+                        )}
+
                         {/* File Info */}
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-2 pt-6">
                           <p className="text-[10px] text-white truncate leading-tight">
                             {uploadFile.file.name}
                           </p>
                           <p className="text-[9px] text-slate-400">
-                            {formatFileSize(uploadFile.file.size)}
+                            {formatFileSize(uploadFile.size)}
                           </p>
                         </div>
 

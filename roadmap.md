@@ -15,7 +15,8 @@
 - **`@clickflash/ui`**: Consistent Tailwind CSS dark mode & glassmorphism tokens.
 
 ### 2. `apps/master` (Port 8090 | Local Studio Core Electron + React 19)
-- **100% Custom Offline Auto Photo Editor**: Local HTML5 Canvas / WASM image processing engine (auto-exposure, contrast, cropping, before/after slider).
+- **Offline Editor Baseline**: Local Canvas/Sharp/WASM paths provide manual controls, global auto-exposure/contrast/color heuristics, face-aware crop, derivatives, and before/after history.
+- **Flagship Automatic Editor Target**: Consolidate those paths into one color-managed, non-destructive, confidence-gated JPEG/RAW engine with D7000 calibration, session look consistency, protected subject/skin masks, deterministic recipes, quality guards, review, and rollback. See the [Master Automatic Editor and Nikon D7000 Mobile Tether Roadmap](docs/roadmaps/master-auto-editor-nikon-d7000-mobile.md).
 - **Resilience & Operations**: Non-blocking `BackgroundJobRunner`, `ThermalMonitor`, and optimized SQLite queries without N+1 bottlenecks.
 - **Local Network Engine**: High-performance LAN WebSocket server for real-time sync with Touch Kiosks.
 - **Print Layout**: Pixel-perfect `@media print` layouts for customer receipts and photo sheets.
@@ -50,9 +51,60 @@
 - **Customer Mobile**: Expo SDK 51+ `CameraView` with on-device TensorFlow.js 128D face vector extraction.
 - **Staff Mobile**: QR ticket scanner and offline verification.
 
+### 9. `apps/mobile-photographer` (Expo React Native | Android tether target)
+- **Android-Only Product Boundary**: Version 1 targets Android only, uses the stable package identity `com.clickflash.photographer`, requires API 26+, and regenerates its native Android host from source-controlled Expo configuration and Kotlin modules.
+- **Nikon D7000 Cable Import**: Replace the simulated DSLR button with an Android USB Host/PTP native module that detects each new camera object, imports JPEG/NEF safely, pairs RAW+JPEG, survives detach/restart, and never deletes the camera-card original.
+- **Roaming Capture-to-Delivery Automation**: While the photographer moves between shooting spots, resolve event/spot context, run an immediate confidence-gated JPEG quick edit, preserve a deterministic recipe and untouched original, then fan out through independent authenticated Mobile→Kiosk, Mobile→Master, and Mobile/Master→Cloud queues with checksum-bound receipts.
+- **Shooting-Spot Intelligence**: Learn privacy-safe lighting, exposure, quality, edit-delta, routing, and outcome patterns per approved venue spot; provide explainable coaching and signed versioned profiles without using face identity or protected traits.
+- **Execution Program**: Hardware matrix, architecture, UX, security, phases, quality corpus, latency targets, fault injection, and release gates are defined in the [Master Automatic Editor and Nikon D7000 Mobile Tether Roadmap](docs/roadmaps/master-auto-editor-nikon-d7000-mobile.md).
+- **Field Operations Program**: The complete roaming workflow, per-destination ledger, Kiosk/Cloud behavior, spot resolver, learning system, privacy model, pilot, and acceptance gates are defined in the [Roaming Photographer, Shooting-Spot AI, Kiosk, and Cloud Plan](docs/roadmaps/roaming-photographer-spot-ai-kiosk-cloud.md).
+
 ---
 
-## Part 2: Standalone Infrastructure Tools (`apps/installer` + `apps/license-generator`)
+## Part 2: Flagship Automatic Editor and Nikon D7000 Tether Program
+
+The cross-app program joins `apps/mobile-photographer` capture with `apps/master`
+professional development while keeping every camera original immutable:
+
+`D7000 shot → Android PTP detection → verified mobile copy → spot resolution → quick JPEG edit → authorized Kiosk preview + Master/Cloud durable delivery → Master RAW/JPEG develop → quality guard → operator review/gallery/print → controlled spot-profile learning`
+
+Execution order:
+
+1. Prove the D7000 on real Android USB-OTG hardware and freeze the supported matrix.
+2. Build the shared capture/edit/receipt contracts, secure pairing, and durable ingest ledger.
+3. Deliver automatic shot detection and import before adding image intelligence.
+4. Add the bounded Mobile Quick Edit path without delaying or risking capture.
+5. Consolidate Master into one high-bit-depth non-destructive engine and review workflow.
+6. Calibrate quality, run the 1,000-shot durability soak, sign artifacts, and qualify production.
+7. Pilot privacy-safe shooting-spot recommendations and promote only profiles that pass
+   offline evaluation, controlled canary, and rollback gates.
+
+**Implementation checkpoint — 2026-07-28:** The import-only software slice is implemented
+in `apps/mobile-photographer`: an autolinked `camera-tether` Expo module, correct Android
+USB Host/attach configuration, runtime permission flow, serialized MTP access, recursive
+object-delta polling, restart-aware baseline recovery, atomic app-private JPEG/NEF import,
+size/SHA-256 verification, durable SQLite sessions/capture objects, retry/deduplication,
+automatic JPEG editor handoff, RAW retention, and live field-screen tether state. The app
+is now Android-only in Expo configuration with stable package identity
+`com.clickflash.photographer`; direct web dependencies and scripts are removed. TypeScript,
+lint, Expo config introspection, module Kotlin, and host-app Kotlin validation pass. A
+four-ABI debug APK (`arm64-v8a`, `armeabi-v7a`, `x86`, and `x86_64`) assembles after
+relocating Reanimated, Worklets, and Expo Modules Core CMake staging below the Android
+project and selecting the duplicate Worklets JNI input. The inspected artifact targets API
+36 with minimum API 26, contains the camera-tether module and Nikon USB filter, and is
+debug-signed. This is not Phase 0 completion: production signing/AAB distribution,
+physical D7000/phone/cable testing, burst and restart reconciliation, foreground service,
+storage backpressure, RAW+JPEG pairing, real Kiosk/Master/Cloud receipts, and Spot AI remain.
+
+No phase may claim completion from simulation. Hardware evidence, immutable-original proof,
+checksum receipts, blind image review, and recovery tests are mandatory. The detailed plan is
+[here](docs/roadmaps/master-auto-editor-nikon-d7000-mobile.md).
+The roaming delivery and learning extension is
+[here](docs/roadmaps/roaming-photographer-spot-ai-kiosk-cloud.md).
+
+---
+
+## Part 3: Standalone Infrastructure Tools (`apps/installer` + `apps/license-generator`)
 
 ### 1. Offline License Generator (`apps/license-generator`)
 - **Cryptography**: Ed25519 detached digital signatures (`tweetnacl`).
@@ -65,7 +117,7 @@
 
 ---
 
-## Part 3: Desktop Application Audit, Electron Rebuild & Installer Program
+## Part 4: Desktop Application Audit, Electron Rebuild & Installer Program
 
 ### Target inventory
 
@@ -120,7 +172,7 @@
 
 ---
 
-## Part 4: 9-Layer Production QA Gauntlet
+## Part 5: 9-Layer Production QA Gauntlet
 
 - **Layer 1 (Unit & API Integration)**: 100% passing suites (`packages/validation` 44/44, `apps/touch` 95/95).
 - **Layer 2 (Web E2E)**: Playwright verification of Management Hub, Gallery Magic Links, and Website routes.
@@ -134,7 +186,7 @@
 
 ---
 
-## Part 5: DevOps Release & Final Delivery Package (`ClickFlash_Release_v2.0/`)
+## Part 6: DevOps Release & Final Delivery Package (`ClickFlash_Release_v2.0/`)
 
 1. **Build & Typecheck Verification**: 0 warnings/errors across all 6 monorepo apps and standalone tools.
 2. **Handoff Release Package Structure**:

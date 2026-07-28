@@ -14,15 +14,17 @@ export interface FileInfo {
   path: string;
   size: number;
   mimeType?: string;
+  previewUrl?: string;
 }
 
 /** Upload file with UI state */
 export interface UploadFile {
   id: string;
   file: File;
+  size: number;
   preview?: string;
   progress: number;
-  status: 'pending' | 'uploading' | 'completed' | 'error';
+  status: 'pending' | 'uploading' | 'completed' | 'error' | 'cancelled';
   error?: string;
   filePath?: string;
 }
@@ -51,7 +53,7 @@ export interface UploadProgress {
   failed: number;
   percentage: number;
   currentFile?: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
 }
 
 /** Upload job */
@@ -59,7 +61,7 @@ export interface UploadJob {
   id: string;
   files: File[];
   metadata: UploadMetadata;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
   progress: {
     total: number;
     completed: number;

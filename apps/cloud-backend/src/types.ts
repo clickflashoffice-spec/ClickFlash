@@ -8,11 +8,15 @@ export type Bindings = {
   GEMINI_API_KEY: string;
   RESEND_API_KEY: string;
   JWT_SECRET?: string;
+  SERVICE_API_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
 };
 
 export type AppEnv = {
   Bindings: Bindings;
   Variables: {
     DB: D1Database;
+    regionId: string;
+    principal?: import('./auth').Principal;
   };
 };

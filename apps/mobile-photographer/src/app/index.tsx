@@ -1,32 +1,99 @@
-import { StyleSheet, TouchableOpacity, View, Alert, ScrollView } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing, Colors, Typography } from '@/constants/theme';
-import { useColorScheme, ActivityIndicator } from 'react-native';
 import { ShiftService } from '../services/ShiftService';
 import { useAutoEditor } from '../hooks/useAutoEditor';
 import { useVoiceTagging } from '../hooks/useVoiceTagging';
 import { meshSyncService } from '../services/MeshSyncService';
-import * as FileSystem from 'expo-file-system/legacy';
+import { cameraTetherService } from '../services/CameraTetherService';
 import { logger } from "@/utils/logger";
 
 export default function StudioScreen() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'light' ? 'light' : 'dark'];
   const [isClockedIn, setIsClockedIn] = useState(false);
-  const [photoCount, setPhotoCount] = useState(142);
-  const { isEditing, lastEditedPhoto, lastPoseAnalysis, processPhoto } = useAutoEditor();
-  const { isListening, activeVoiceTags, lastTranscript, stopVoiceRecordingAndTag, addTagManually } = useVoiceTagging();
+  const [photoCount, setPhotoCount] = useState(0);
+  const { isEditing, lastPoseAnalysis, processPhoto } = useAutoEditor();
+  const { isListening, activeVoiceTags, lastTranscript, stopVoiceRecordingAndTag } = useVoiceTagging();
   const [meshStatus, setMeshStatus] = useState(meshSyncService.getRelayQueueStatus());
+  const [tetherStatus, setTetherStatus] = useState(cameraTetherService.getStatus());
+  const [tetherError, setTetherError] = useState<string | null>(
+    cameraTetherService.getStatus().lastErrorMessage
+  );
 
   useEffect(() => {
     const interval = setInterval(() => {
       setMeshStatus(meshSyncService.getRelayQueueStatus());
     }, 3000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const importSubscription = cameraTetherService.addImportListener((capture) => {
+      void cameraTetherService.getLedgerCounts().then((counts) => {
+        setPhotoCount(counts.localVerified);
+      });
+
+      if (capture.mediaType !== 'jpeg') {
+        logger.info('[StudioScreen] Nikon RAW capture retained for Master processing.', {
+          filename: capture.filename,
+          sha256: capture.sha256,
+        });
+        return;
+      }
+
+      void processPhoto(capture.localUri, capture.filename, activeVoiceTags).catch((error) => {
+        setTetherError(`Imported ${capture.filename}, but automatic editing failed.`);
+        logger.error('[StudioScreen] Automatic edit failed for imported camera capture.', error);
+      });
+    });
+
+    return () => importSubscription.remove();
+  }, [activeVoiceTags, processPhoto]);
+
+  useEffect(() => {
+    let active = true;
+    const statusSubscription = cameraTetherService.addStatusListener((status) => {
+      if (!active) return;
+      setTetherStatus(status);
+      if (status.phase !== 'ERROR' && status.phase !== 'PERMISSION_REQUIRED') {
+        setTetherError(null);
+      } else if (status.lastErrorMessage) {
+        setTetherError(status.lastErrorMessage);
+      }
+    });
+    const errorSubscription = cameraTetherService.addErrorListener((error) => {
+      if (active) setTetherError(error.message);
+    });
+
+    void cameraTetherService.start()
+      .then(() => cameraTetherService.getLedgerCounts())
+      .then((counts) => {
+        if (active) setPhotoCount(counts.localVerified);
+      })
+      .catch((error) => {
+        if (!active) return;
+        setTetherError(error instanceof Error ? error.message : String(error));
+        logger.error('[StudioScreen] Camera tether startup failed.', error);
+      });
+
+    return () => {
+      active = false;
+      statusSubscription.remove();
+      errorSubscription.remove();
+    };
   }, []);
 
   const handleClockInOut = async () => {
@@ -44,22 +111,41 @@ export default function StudioScreen() {
     }
   };
 
-  const simulateDslrCapture = async () => {
+  const handleTetherPress = async () => {
     try {
-      // 1. Simulate pulling a 12MP raw photo from DSLR over FTP
-      const dummyUri = 'https://picsum.photos/4000/3000';
-      const localUri = FileSystem.cacheDirectory + `dslr_${Date.now()}.jpg`;
-      
-      await FileSystem.downloadAsync(dummyUri, localUri);
-      
-      // 2. Trigger Auto Editor with real-time pose/blink checks + active voice tags
-      await processPhoto(localUri, `DSC_${photoCount + 1}.JPG`, activeVoiceTags);
-      setPhotoCount(prev => prev + 1);
-    } catch (err) {
-      Alert.alert('Error', 'Failed to simulate DSLR capture');
-      logger.error(err);
+      await cameraTetherService.retryConnection();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Camera connection failed.';
+      setTetherError(message);
+      logger.error('[StudioScreen] Camera tether retry failed.', error);
     }
   };
+
+  const isTetherBusy =
+    tetherStatus.phase === 'CONNECTING' || tetherStatus.phase === 'BASELINING';
+  const isMonitoring = tetherStatus.phase === 'MONITORING';
+  const tetherLabel = isEditing
+    ? 'AI ENHANCING...'
+    : tetherStatus.phase === 'MONITORING'
+      ? 'D7000 AUTO CAPTURE'
+      : tetherStatus.phase === 'WAITING_FOR_CAMERA'
+        ? 'CONNECT D7000 + USB'
+        : tetherStatus.phase === 'PERMISSION_REQUIRED'
+          ? 'TAP TO GRANT USB'
+          : tetherStatus.phase === 'CONNECTING'
+            ? 'CAMERA CONNECTING...'
+            : tetherStatus.phase === 'BASELINING'
+              ? 'INDEXING CAMERA...'
+              : tetherStatus.phase === 'UNAVAILABLE'
+                ? 'ANDROID BUILD REQUIRED'
+                : 'TAP TO RETRY CAMERA';
+  const tetherColor = tetherStatus.phase === 'ERROR'
+    ? colors.danger
+    : isEditing
+      ? colors.warning
+      : isMonitoring
+        ? colors.success
+        : colors.tint;
 
   const triggerVoiceTagInput = async () => {
     const extracted = await stopVoiceRecordingAndTag();
@@ -90,29 +176,49 @@ export default function StudioScreen() {
           </View>
         )}
 
+        {tetherError && (
+          <View style={[styles.warningBanner, { backgroundColor: colors.danger + '22', borderColor: colors.danger }]}>
+            <ThemedText style={[styles.warningBannerText, { color: colors.danger }]}>
+              {tetherError}
+            </ThemedText>
+          </View>
+        )}
+
         <ScrollView contentContainerStyle={{ gap: Spacing.three }} showsVerticalScrollIndicator={false}>
           {/* Hero Section: Live Session Photos */}
           <ThemedView style={[styles.heroSection, { backgroundColor: 'transparent', marginVertical: Spacing.two }]}>
             <TouchableOpacity 
-               style={[styles.tetherRing, { borderColor: isEditing ? colors.warning : colors.tint, shadowColor: colors.tint }]}
-               onPress={simulateDslrCapture}
-               disabled={isEditing}
+               style={[styles.tetherRing, { borderColor: tetherColor, shadowColor: tetherColor }]}
+               onPress={handleTetherPress}
+               disabled={isTetherBusy}
             >
-              {isEditing ? (
-                <ActivityIndicator size="large" color={colors.warning} />
+              {isTetherBusy ? (
+                <ActivityIndicator size="large" color={tetherColor} />
               ) : (
-                <ThemedText style={[styles.counterText, { color: colors.tint }]}>
+                <ThemedText style={[styles.counterText, { color: tetherColor }]}>
                   {photoCount}
                 </ThemedText>
               )}
               <ThemedText style={styles.counterLabel}>
-                {isEditing ? 'AI ENHANCING...' : 'TAP FOR DSLR SHOT'}
+                {tetherLabel}
               </ThemedText>
             </TouchableOpacity>
           </ThemedView>
 
           {/* Telemetry Panel / AI Coach & Pose Score */}
           <View style={[styles.telemetryCard, { backgroundColor: colors.surface, borderColor: colors.elevated }]}>
+              <View style={styles.telemetryRow}>
+                  <ThemedText style={styles.telemetryLabel}>CAMERA TETHER</ThemedText>
+                  <ThemedText style={[styles.telemetryValue, { color: isMonitoring ? colors.success : tetherColor }]}>
+                    {tetherStatus.phase.replace(/_/g, ' ')}
+                  </ThemedText>
+              </View>
+              <View style={styles.telemetryRow}>
+                  <ThemedText style={styles.telemetryLabel}>LOCAL LEDGER</ThemedText>
+                  <ThemedText style={[styles.telemetryValue, { color: colors.text }]}>
+                    {photoCount} VERIFIED FILES
+                  </ThemedText>
+              </View>
               <View style={styles.telemetryRow}>
                   <ThemedText style={styles.telemetryLabel}>POSE SCORE</ThemedText>
                   <ThemedText style={[styles.telemetryValue, { color: (lastPoseAnalysis?.poseQualityScore ?? 0.92) > 0.8 ? colors.success : colors.warning }]}>
@@ -148,7 +254,7 @@ export default function StudioScreen() {
                   </TouchableOpacity>
               </View>
               {lastTranscript && (
-                <ThemedText style={styles.transcriptText}>"{lastTranscript}"</ThemedText>
+                <ThemedText style={styles.transcriptText}>&ldquo;{lastTranscript}&rdquo;</ThemedText>
               )}
               <View style={styles.tagContainer}>
                 {activeVoiceTags.map((tag, idx) => (
@@ -338,4 +444,3 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
 });
-

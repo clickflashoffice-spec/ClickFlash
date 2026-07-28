@@ -34,7 +34,7 @@ export default function FranchiseOnboardingPage() {
         alert(`Deployment failed: ${data.error}`);
       }
     } catch (e) {
-      logger.error(e);
+      logger.error('Franchise deployment failed', e);
       alert('Deployment failed. Check console.');
     } finally {
       setIsDeploying(false);

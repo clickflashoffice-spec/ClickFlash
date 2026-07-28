@@ -19,10 +19,9 @@ interface UploadJob {
     fullGalleryPrice?: string;
     apiUrl?: string;
     deskId?: string;
-    useNativePaths?: boolean;
     nativePaths?: string[];
   };
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
   progress: {
     total: number;
     completed: number;
@@ -47,15 +46,20 @@ interface UploadProgress {
 
 const STORAGE_KEY = 'cf_moneytrash_upload_jobs';
 
-class DesktopBatchUploadService {
+export class DesktopBatchUploadService {
   private jobs: Map<string, UploadJob> = new Map();
   private activeJobs: Set<string> = new Set();
+  private nativeSessionsByJob: Map<string, Set<string>> = new Map();
   private maxConcurrentJobs: number = 3;
   private maxConcurrentFiles: number = 5;
   private subscribers: Array<(progress: UploadProgress) => void> = [];
 
   constructor() {
     this.loadJobsFromStorage();
+  }
+
+  private isJobCancelled(jobId: string): boolean {
+    return this.jobs.get(jobId)?.status === 'cancelled';
   }
 
   private loadJobsFromStorage(): void {
@@ -162,16 +166,17 @@ class DesktopBatchUploadService {
       const batches = this.chunkArray(job.files, this.maxConcurrentFiles);
 
       for (const batch of batches) {
+        if (this.isJobCancelled(job.id)) break;
         await this.processBatch(job, batch);
       }
+
+      if (this.isJobCancelled(job.id)) return;
 
       // Mark job as completed if no failures
       if (job.progress.failed === 0) {
         job.status = 'completed';
-      } else if (job.progress.completed === 0) {
-        job.status = 'failed';
       } else {
-        job.status = 'completed'; // Partial success
+        job.status = 'failed';
       }
 
       job.completedAt = new Date();
@@ -192,6 +197,7 @@ class DesktopBatchUploadService {
    * Process a batch of files concurrently
    */
   private async processBatch(job: UploadJob, batch: File[]): Promise<void> {
+    if (this.isJobCancelled(job.id)) return;
     const uploadPromises = batch.map((file) => {
       // Use native path if available
       const nativePath = job.metadata.nativePaths?.[job.files.indexOf(file)];
@@ -204,6 +210,7 @@ class DesktopBatchUploadService {
    * Upload a single file using the native streaming API
    */
   private async uploadFile(job: UploadJob, file: File, nativePath?: string): Promise<void> {
+    if (this.isJobCancelled(job.id)) return;
     if (!isDesktop()) {
       job.progress.failed++;
       job.errors.push({
@@ -215,6 +222,11 @@ class DesktopBatchUploadService {
       return;
     }
 
+    const sessionId = crypto.randomUUID();
+    const sessions = this.nativeSessionsByJob.get(job.id) ?? new Set<string>();
+    sessions.add(sessionId);
+    this.nativeSessionsByJob.set(job.id, sessions);
+
     try {
       job.progress.currentFile = file.name;
       this.notifySubscribers(job.id);
@@ -223,6 +235,7 @@ class DesktopBatchUploadService {
         logger.info(`Starting native upload for ${file.name} at ${nativePath}`);
         
         await invoke('start_native_upload', {
+          sessionId,
           filePath: nativePath,
           apiUrl: job.metadata.apiUrl,
           metadata: {
@@ -240,15 +253,19 @@ class DesktopBatchUploadService {
         throw new Error("Native path is required for MoneyTrash uploads to avoid JS memory overhead.");
       }
 
-      job.progress.completed++;
+      if (!this.isJobCancelled(job.id)) job.progress.completed++;
     } catch (error) {
-      job.progress.failed++;
-      job.errors.push({
-        file: file.name,
-        error: error instanceof Error ? error.message : String(error)
-      });
-      logger.error(`Failed to upload ${file.name}:`, error);
+      if (!this.isJobCancelled(job.id)) {
+        job.progress.failed++;
+        job.errors.push({
+          file: file.name,
+          error: error instanceof Error ? error.message : String(error)
+        });
+        logger.error(`Failed to upload ${file.name}:`, error);
+      }
     } finally {
+      sessions.delete(sessionId);
+      if (sessions.size === 0) this.nativeSessionsByJob.delete(job.id);
       this.notifySubscribers(job.id);
     }
   }
@@ -318,15 +335,23 @@ class DesktopBatchUploadService {
   /**
    * Cancel a job
    */
-  cancelJob(jobId: string): boolean {
+  async cancelJob(jobId: string): Promise<boolean> {
     const job = this.jobs.get(jobId);
-    if (!job || job.status === 'completed' || job.status === 'failed') {
+    if (
+      !job ||
+      job.status === 'completed' ||
+      job.status === 'failed' ||
+      job.status === 'cancelled'
+    ) {
       return false;
     }
 
-    job.status = 'failed';
+    job.status = 'cancelled';
     job.completedAt = new Date();
-    this.activeJobs.delete(jobId);
+    const sessions = [...(this.nativeSessionsByJob.get(jobId) ?? [])];
+    await Promise.allSettled(
+      sessions.map((sessionId) => invoke('cancel_upload', { sessionId }))
+    );
     this.notifySubscribers(jobId);
 
     return true;
@@ -337,7 +362,7 @@ class DesktopBatchUploadService {
    */
   retryJob(jobId: string): boolean {
     const job = this.jobs.get(jobId);
-    if (!job || job.status !== 'failed') {
+    if (!job || (job.status !== 'failed' && job.status !== 'cancelled')) {
       return false;
     }
 
@@ -362,7 +387,7 @@ class DesktopBatchUploadService {
     let cleared = 0;
 
     for (const [id, job] of this.jobs.entries()) {
-      if ((job.status === 'completed' || job.status === 'failed') &&
+      if ((job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled') &&
         job.completedAt &&
         job.completedAt < cutoff) {
         this.jobs.delete(id);

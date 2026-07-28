@@ -1,10 +1,11 @@
-const { withAndroidManifest } = require('@expo/config-plugins');
+const fs = require('node:fs');
+const path = require('node:path');
+const { withAndroidManifest, withDangerousMod } = require('expo/config-plugins');
 
 module.exports = function withUsbPermissions(config) {
-  return withAndroidManifest(config, async (config) => {
-    const androidManifest = config.modResults.manifest;
+  config = withAndroidManifest(config, (manifestConfig) => {
+    const androidManifest = manifestConfig.modResults.manifest;
 
-    // Ensure uses-feature for usb host exists
     const usesFeature = androidManifest['uses-feature'] || [];
     const hasUsbFeature = usesFeature.some(
       (feature) => feature.$['android:name'] === 'android.hardware.usb.host'
@@ -14,22 +15,12 @@ module.exports = function withUsbPermissions(config) {
       usesFeature.push({
         $: {
           'android:name': 'android.hardware.usb.host',
-          'android:required': 'false', 
+          'android:required': 'false',
         },
       });
       androidManifest['uses-feature'] = usesFeature;
     }
 
-    // Ensure uses-permission for USB exists
-    const usesPermission = androidManifest['uses-permission'] || [];
-    if (!usesPermission.some(p => p.$['android:name'] === 'android.permission.USB_PERMISSION')) {
-        usesPermission.push({
-            $: { 'android:name': 'android.permission.USB_PERMISSION' }
-        });
-        androidManifest['uses-permission'] = usesPermission;
-    }
-
-    // Add intent filter to the main activity
     const application = androidManifest.application[0];
     const mainActivity = application.activity.find(
       (activity) =>
@@ -47,13 +38,61 @@ module.exports = function withUsbPermissions(config) {
 
       if (!hasUsbIntent) {
         intentFilters.push({
-          action: [{ $: { 'android:name': 'android.hardware.usb.action.USB_DEVICE_ATTACHED' } }],
-          'meta-data': [{ $: { 'android:name': 'android.hardware.usb.action.USB_DEVICE_ATTACHED', 'android:resource': '@xml/device_filter' } }]
+          action: [
+            {
+              $: {
+                'android:name': 'android.hardware.usb.action.USB_DEVICE_ATTACHED',
+              },
+            },
+          ],
         });
         mainActivity['intent-filter'] = intentFilters;
       }
+
+      const metadata = mainActivity['meta-data'] || [];
+      const hasUsbFilterMetadata = metadata.some(
+        (item) => item.$['android:name'] === 'android.hardware.usb.action.USB_DEVICE_ATTACHED'
+      );
+
+      if (!hasUsbFilterMetadata) {
+        metadata.push({
+          $: {
+            'android:name': 'android.hardware.usb.action.USB_DEVICE_ATTACHED',
+            'android:resource': '@xml/camera_tether_device_filter',
+          },
+        });
+        mainActivity['meta-data'] = metadata;
+      }
     }
 
-    return config;
+    return manifestConfig;
   });
+
+  return withDangerousMod(config, [
+    'android',
+    async (dangerousConfig) => {
+      const xmlDirectory = path.join(
+        dangerousConfig.modRequest.platformProjectRoot,
+        'app',
+        'src',
+        'main',
+        'res',
+        'xml'
+      );
+      await fs.promises.mkdir(xmlDirectory, { recursive: true });
+      await fs.promises.writeFile(
+        path.join(xmlDirectory, 'camera_tether_device_filter.xml'),
+        [
+          '<?xml version="1.0" encoding="utf-8"?>',
+          '<resources>',
+          '  <usb-device vendor-id="1200" />',
+          '  <usb-device class="6" />',
+          '</resources>',
+          '',
+        ].join('\n'),
+        'utf8'
+      );
+      return dangerousConfig;
+    },
+  ]);
 };

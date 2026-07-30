@@ -43,11 +43,17 @@ import bridgeRoutes from "../routes/bridge.routes";
 import settingsRoutes from "../routes/settings.routes";
 import shiftRoutes from "../routes/shifts";
 import photographerRoutes from "../routes/photographers.routes";
+import {
+  mobileCaptureAdminRoutes,
+  mobileCapturePublicRoutes,
+} from "../routes/mobileCapture";
 
 export function mountRoutes(app: Application, context: any) {
   // Specific API routes
   app.use("/api/bridge", bridgeRoutes(context));
   app.use("/api/mobile-share", strictRateLimiter, mobileShareRoutes(context));
+  app.use("/api/mobile-capture", mobileCaptureAdminRoutes(context));
+  app.use("/api/v1/mobile-capture", mobileCapturePublicRoutes(context));
   app.use("/api/entagged", createEntaggedRouter(context));
   app.use("/api/hardware", createHardwareRouter());
   app.use("/api/auth", strictRateLimiter, authRoutes(context));

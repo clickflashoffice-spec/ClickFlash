@@ -79,7 +79,7 @@ Execution order:
 7. Pilot privacy-safe shooting-spot recommendations and promote only profiles that pass
    offline evaluation, controlled canary, and rollback gates.
 
-**Implementation checkpoint — 2026-07-28:** The import-only software slice is implemented
+**Implementation checkpoint — 2026-07-30:** The import-only software slice is implemented
 in `apps/mobile-photographer`: an autolinked `camera-tether` Expo module, correct Android
 USB Host/attach configuration, runtime permission flow, serialized MTP access, recursive
 object-delta polling, restart-aware baseline recovery, atomic app-private JPEG/NEF import,
@@ -87,14 +87,40 @@ size/SHA-256 verification, durable SQLite sessions/capture objects, retry/dedupl
 automatic JPEG editor handoff, RAW retention, and live field-screen tether state. The app
 is now Android-only in Expo configuration with stable package identity
 `com.clickflash.photographer`; direct web dependencies and scripts are removed. TypeScript,
-lint, Expo config introspection, module Kotlin, and host-app Kotlin validation pass. A
+lint, Expo config introspection, module Kotlin, and host-app Kotlin validation pass. After
+USB access, a non-exported Android `connectedDevice` foreground service supplies an ongoing
+notification and tether-scoped partial wake lock, while deterministic detach/failure/stop/
+teardown paths release both and the non-sticky lifecycle avoids false recovery state. A
+two-stage storage-admission gate now preserves a 512 MiB/5% reserve (capped at 2 GiB),
+rechecks at the native copy boundary, records `BLOCKED_STORAGE` without consuming blind
+camera retries, and exposes capacity, blocked count, storage management, and explicit retry
+on the field screen while leaving the D7000 card original untouched. Native policy unit
+tests cover allowed, warning, blocked, and overflow cases. A
+separate durable RAW+JPEG companion ledger now consumes the MTP sequence number and
+64-bit object size, matches normalized Nikon basenames with capture-time safeguards,
+allows late companions after a 60-second standalone transition, and locks ambiguous
+matches for Master review without delaying JPEG quick editing. The Studio screen now
+shows the untouched checksum-verified JPEG before the edit; quick edits leave cache through
+a verified staging copy into app documents and become immutable SHA-256 assets. Separate
+destination-intent and receipt tables create one required pending Master intent per
+verified original, reject unauthenticated or content-mismatched receipts, and reserve
+`READY` for destination-specific durable proof. Thirteen capture/pairing/preview/schema/
+delivery tests cover these contracts. A
 four-ABI debug APK (`arm64-v8a`, `armeabi-v7a`, `x86`, and `x86_64`) assembles after
 relocating Reanimated, Worklets, and Expo Modules Core CMake staging below the Android
 project and selecting the duplicate Worklets JNI input. The inspected artifact targets API
-36 with minimum API 26, contains the camera-tether module and Nikon USB filter, and is
-debug-signed. This is not Phase 0 completion: production signing/AAB distribution,
-physical D7000/phone/cable testing, burst and restart reconciliation, foreground service,
-storage backpressure, RAW+JPEG pairing, real Kiosk/Master/Cloud receipts, and Spot AI remain.
+36 with minimum API 26, contains camera-tether, Expo Crypto, and the Nikon USB filter, and is
+debug-signed. Release hardening is source-controlled: regenerated Android projects replace
+Expo's debug-signed release default with an environment-only keystore contract, reject
+partial signing configuration, and fail every release task when approved signing is absent.
+An `android:aab` command and secret-custody runbook are present, but no release artifact was
+created or signed. The current debug APK is 305,145,843 bytes with SHA-256
+`9A72A08AC99A03B2E2DDA9B613EFBA3B621C60B773FDEBC3ECE0D6005770A03F`.
+This is not Phase 0 completion: approved upload-key custody, signed AAB
+inspection/distribution, physical D7000/phone/cable testing, burst and restart
+reconciliation, screen-off battery/thermal qualification, physical low-storage recovery,
+physical RAW+JPEG pairing/ambiguity proof, authenticated Master transfer/receipt, real
+Kiosk/Cloud delivery lanes, and Spot AI remain.
 
 No phase may claim completion from simulation. Hardware evidence, immutable-original proof,
 checksum receipts, blind image review, and recovery tests are mandatory. The detailed plan is

@@ -6,7 +6,22 @@ export type CameraTetherPhase =
   | 'CONNECTING'
   | 'BASELINING'
   | 'MONITORING'
+  | 'STORAGE_BLOCKED'
   | 'ERROR';
+
+export type CameraStorageLevel = 'OK' | 'WARNING' | 'BLOCKED';
+
+export interface CameraStorageStatus {
+  level: CameraStorageLevel;
+  availableBytes: number;
+  totalBytes: number;
+  safetyReserveBytes: number;
+  pendingObjectBytes: number;
+  requiredAvailableBytes: number;
+  deficitBytes: number;
+  canImport: boolean;
+  checkedAt: number;
+}
 
 export interface CameraTetherStatus {
   isSupported: boolean;
@@ -22,6 +37,7 @@ export interface CameraTetherStatus {
   hasPermission: boolean;
   baselineCount: number;
   pollIntervalMs: number;
+  storage: CameraStorageStatus;
   lastErrorCode: string | null;
   lastErrorMessage: string | null;
 }
@@ -45,6 +61,7 @@ export interface CameraObjectDetectedEvent {
   objectKey: string;
   filename: string;
   mediaType: 'jpeg' | 'raw';
+  sequenceNumber: number;
   byteSize: number;
   cameraCreatedAt: number;
   detectedAt: number;
@@ -59,6 +76,7 @@ export interface CameraImportCompletedEvent {
   objectKey: string;
   filename: string;
   mediaType: 'jpeg' | 'raw';
+  sequenceNumber: number;
   byteSize: number;
   sha256: string;
   localUri: string;

@@ -13,6 +13,7 @@ import { tunnelManager } from "../services/TunnelManager";
 import { MQTTBrokerService } from "../services/mqttBrokerService";
 import { YjsWebsocketServer } from "../services/yjsWebsocketServer";
 import { PORT, WEB_ROOT } from "../config/constants";
+import { MOBILE_CAPTURE_MASTER_ID } from "../services/mobileCaptureProtocol";
 
 /**
  * Sets up static file serving and global error handling fallbacks.
@@ -103,7 +104,13 @@ export function startServer(
         name: "StarMaster",
         type: "http",
         port: PORT,
-        txt: { mode: "master", version: "4.1.0" },
+        txt: {
+          mode: "master",
+          version: "4.1.0",
+          captureProtocol: "CF-MOBILE-V1",
+          masterId: MOBILE_CAPTURE_MASTER_ID,
+          transport: protocol,
+        },
       });
 
       // Start UDP auto-discovery for Touch pairing

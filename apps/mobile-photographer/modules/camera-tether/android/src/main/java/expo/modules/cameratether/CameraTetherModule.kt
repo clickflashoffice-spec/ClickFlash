@@ -1,6 +1,8 @@
 package expo.modules.cameratether
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
+import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -13,6 +15,9 @@ import android.mtp.MtpDevice
 import android.mtp.MtpObjectInfo
 import android.net.Uri
 import android.os.Build
+import android.os.StatFs
+import android.os.storage.StorageManager
+import android.provider.Settings
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -46,6 +51,7 @@ class CameraTetherModule : Module() {
   private var activeSessionId: String? = null
   private var pollIntervalMs = DEFAULT_POLL_INTERVAL_MS
   private var phase = PHASE_STOPPED
+  private var storageSnapshot: CameraStorageSnapshot? = null
   private var lastErrorCode: String? = null
   private var lastErrorMessage: String? = null
 
@@ -57,6 +63,7 @@ class CameraTetherModule : Module() {
       val granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
       if (!granted) {
         currentUsbDevice = device
+        CameraTetherForegroundService.stop(context)
         setPhase(
           PHASE_PERMISSION_REQUIRED,
           "USB_PERMISSION_DENIED",
@@ -71,8 +78,7 @@ class CameraTetherModule : Module() {
       }
 
       if (activeSessionId != null && isSupportedCamera(device)) {
-        setPhase(PHASE_CONNECTING)
-        ioScope.launch { connectAndBaseline(device) }
+        beginConnection(device)
       }
     }
   }
@@ -96,6 +102,7 @@ class CameraTetherModule : Module() {
                 currentUsbDevice = null
                 knownObjects.clear()
               }
+              CameraTetherForegroundService.stop(context)
               setPhase(PHASE_WAITING_FOR_CAMERA)
             }
           }
@@ -117,12 +124,16 @@ class CameraTetherModule : Module() {
     OnCreate {
       val context = appContext.reactContext ?: return@OnCreate
       usbManager = context.getSystemService(Context.USB_SERVICE) as? UsbManager
+      storageSnapshot = readStorageSnapshot(context, 0L)
       registerReceivers(context)
     }
 
     OnDestroy {
       val context = appContext.reactContext
-      if (context != null) unregisterReceivers(context)
+      if (context != null) {
+        unregisterReceivers(context)
+        CameraTetherForegroundService.stop(context)
+      }
       ioScope.cancel()
       mtpDevice?.close()
       mtpDevice = null
@@ -130,6 +141,20 @@ class CameraTetherModule : Module() {
 
     Function("getStatus") {
       statusPayload()
+    }
+
+    Function("getStorageStatus") { requiredBytes: Double ->
+      val context = appContext.reactContext ?: error("React context is unavailable.")
+      refreshStorageStatus(
+        context,
+        requestedByteCount(requiredBytes),
+        publish = true
+      ).payload()
+    }
+
+    Function("openStorageSettings") { requestedBytes: Double ->
+      val context = appContext.reactContext ?: error("React context is unavailable.")
+      openStorageSettings(context, requestedByteCount(requestedBytes))
     }
 
     Function("listDevices") {
@@ -150,11 +175,15 @@ class CameraTetherModule : Module() {
         MIN_POLL_INTERVAL_MS,
         MAX_POLL_INTERVAL_MS
       )
+      appContext.reactContext?.let { context ->
+        storageSnapshot = readStorageSnapshot(context, 0L)
+      }
       lastErrorCode = null
       lastErrorMessage = null
 
       val camera = findPreferredCamera()
       if (camera == null) {
+        appContext.reactContext?.let(CameraTetherForegroundService::stop)
         setPhase(PHASE_WAITING_FOR_CAMERA)
       } else {
         beginConnection(camera)
@@ -173,6 +202,7 @@ class CameraTetherModule : Module() {
           currentUsbDevice = null
           knownObjects.clear()
         }
+        appContext.reactContext?.let(CameraTetherForegroundService::stop)
         setPhase(PHASE_STOPPED)
         promise.resolve(statusPayload())
       }
@@ -190,6 +220,9 @@ class CameraTetherModule : Module() {
           }
           sendEvent(EVENT_IMPORT_COMPLETED, result)
           promise.resolve(result)
+        } catch (error: StorageBackpressureException) {
+          val message = error.message ?: "Camera import paused until phone storage is available."
+          promise.reject("ERR_STORAGE_BACKPRESSURE", message, error)
         } catch (error: Exception) {
           val message = error.message ?: "Camera object import failed"
           sendError("CAMERA_IMPORT_FAILED", message, recoverable = true)
@@ -209,6 +242,18 @@ class CameraTetherModule : Module() {
 
     currentUsbDevice = device
     if (manager.hasPermission(device)) {
+      val foregroundStart = CameraTetherForegroundService.start(
+        context.applicationContext,
+        cameraDisplayName(device)
+      )
+      if (foregroundStart.isFailure) {
+        val error = foregroundStart.exceptionOrNull()
+        val message = error?.message
+          ?: "Android blocked the camera tether foreground service."
+        setPhase(PHASE_ERROR, "FOREGROUND_SERVICE_START_FAILED", message)
+        sendError("FOREGROUND_SERVICE_START_FAILED", message, recoverable = true)
+        return
+      }
       setPhase(PHASE_CONNECTING)
       ioScope.launch { connectAndBaseline(device) }
       return
@@ -230,58 +275,67 @@ class CameraTetherModule : Module() {
   private suspend fun connectAndBaseline(device: UsbDevice) {
     var recoveredObjects = emptyList<CameraObject>()
 
-    mtpMutex.withLock {
-      if (activeSessionId == null) return
-      if (device.deviceId == currentUsbDevice?.deviceId && mtpDevice != null) return
+    try {
+      mtpMutex.withLock {
+        if (activeSessionId == null) return
+        if (device.deviceId == currentUsbDevice?.deviceId && mtpDevice != null) return
 
-      closeCameraLocked()
-      currentUsbDevice = device
+        closeCameraLocked()
+        currentUsbDevice = device
 
-      val manager = usbManager
-        ?: return setPhase(
-          PHASE_UNAVAILABLE,
-          "USB_HOST_UNAVAILABLE",
-          "Android USB Host is unavailable."
-        )
-      val connection = manager.openDevice(device)
-        ?: return setPhase(
-          PHASE_ERROR,
-          "CAMERA_OPEN_FAILED",
-          "Android could not open the camera USB connection."
-        )
-      val candidate = MtpDevice(device)
-      if (!candidate.open(connection)) {
-        connection.close()
-        return setPhase(
-          PHASE_ERROR,
-          "MTP_OPEN_FAILED",
-          "The connected camera did not open as a PTP/MTP device."
-        )
-      }
-
-      mtpDevice = candidate
-      setPhase(PHASE_BASELINING)
-      val allObjects = scanCaptureObjects(candidate)
-      val baselineFile = baselineFile(device, activeSessionId ?: return)
-      knownObjects.clear()
-      if (baselineFile.exists()) {
-        val baselineKeys = runCatching {
-          baselineFile.readLines().filterTo(mutableSetOf()) { it.isNotBlank() }
-        }.getOrElse { error ->
-          sendError(
-            "BASELINE_READ_FAILED",
-            error.message ?: "The persisted camera baseline could not be read.",
-            recoverable = true
+        val manager = usbManager
+          ?: return failConnection(
+            "USB_HOST_UNAVAILABLE",
+            "Android USB Host is unavailable."
           )
-          writeBaselineAtomically(baselineFile, allObjects.map { it.key })
-          allObjects.mapTo(mutableSetOf()) { it.key }
+        val connection = manager.openDevice(device)
+          ?: return failConnection(
+            "CAMERA_OPEN_FAILED",
+            "Android could not open the camera USB connection."
+          )
+        val candidate = MtpDevice(device)
+        if (!candidate.open(connection)) {
+          connection.close()
+          return failConnection(
+            "MTP_OPEN_FAILED",
+            "The connected camera did not open as a PTP/MTP device."
+          )
         }
-        recoveredObjects = allObjects.filter { it.key !in baselineKeys }
-      } else {
-        writeBaselineAtomically(baselineFile, allObjects.map { it.key })
+
+        mtpDevice = candidate
+        setPhase(PHASE_BASELINING)
+        val allObjects = scanCaptureObjects(candidate)
+        val baselineFile = baselineFile(device, activeSessionId ?: return)
+        knownObjects.clear()
+        if (baselineFile.exists()) {
+          val baselineKeys = runCatching {
+            baselineFile.readLines().filterTo(mutableSetOf()) { it.isNotBlank() }
+          }.getOrElse { error ->
+            sendError(
+              "BASELINE_READ_FAILED",
+              error.message ?: "The persisted camera baseline could not be read.",
+              recoverable = true
+            )
+            writeBaselineAtomically(baselineFile, allObjects.map { it.key })
+            allObjects.mapTo(mutableSetOf()) { it.key }
+          }
+          recoveredObjects = allObjects.filter { it.key !in baselineKeys }
+        } else {
+          writeBaselineAtomically(baselineFile, allObjects.map { it.key })
+        }
+        allObjects.forEach { knownObjects.add(it.key) }
+        setPhase(PHASE_MONITORING)
       }
-      allObjects.forEach { knownObjects.add(it.key) }
-      setPhase(PHASE_MONITORING)
+    } catch (error: Exception) {
+      mtpMutex.withLock {
+        closeCameraLocked()
+        knownObjects.clear()
+      }
+      failConnection(
+        "CAMERA_BASELINE_FAILED",
+        error.message ?: "The camera baseline could not be initialized."
+      )
+      return
     }
 
     recoveredObjects.forEach(::emitObjectDetected)
@@ -332,7 +386,8 @@ class CameraTetherModule : Module() {
         "objectKey" to cameraObject.key,
         "filename" to cameraObject.info.name,
         "mediaType" to mediaType(cameraObject.info.name),
-        "byteSize" to cameraObject.info.compressedSize.toLong(),
+        "sequenceNumber" to cameraObject.info.sequenceNumberLong,
+        "byteSize" to cameraObject.info.compressedSizeLong,
         "cameraCreatedAt" to cameraObject.info.dateCreated,
         "detectedAt" to System.currentTimeMillis()
       )
@@ -417,6 +472,12 @@ class CameraTetherModule : Module() {
       val partialFile = File(sessionDirectory, "${finalFile.name}.part")
       if (partialFile.exists()) partialFile.delete()
 
+      val pendingObjectBytes = info.compressedSizeLong.coerceAtLeast(0L)
+      val storage = refreshStorageStatus(context, pendingObjectBytes, publish = true)
+      if (!storage.canImport) {
+        throw StorageBackpressureException(storageMessage(storage))
+      }
+
       try {
         check(device.importFile(objectHandle, partialFile.absolutePath)) {
           "Android MTP import failed."
@@ -424,8 +485,8 @@ class CameraTetherModule : Module() {
         check(partialFile.isFile && partialFile.length() > 0L) {
           "Imported camera file is empty."
         }
-        if (info.compressedSize > 0) {
-          check(partialFile.length() == info.compressedSize.toLong()) {
+        if (info.compressedSizeLong > 0L) {
+          check(partialFile.length() == info.compressedSizeLong) {
             "Imported camera file size does not match camera metadata."
           }
         }
@@ -438,9 +499,19 @@ class CameraTetherModule : Module() {
         partialFile.delete()
         throw error
       }
+    } else {
+      check(finalFile.isFile && finalFile.length() > 0L) {
+        "Existing camera import is empty or invalid."
+      }
+      if (info.compressedSizeLong > 0L) {
+        check(finalFile.length() == info.compressedSizeLong) {
+          "Existing camera import size does not match camera metadata."
+        }
+      }
     }
 
     val sha256 = sha256(finalFile)
+    storageSnapshot = readStorageSnapshot(context, 0L)
     return mapOf(
       "sessionId" to sessionId,
       "cameraKey" to currentUsbDevice?.let(::cameraKey).orEmpty(),
@@ -450,6 +521,7 @@ class CameraTetherModule : Module() {
       "objectKey" to CameraObject(storageId, objectHandle, info).key,
       "filename" to info.name,
       "mediaType" to mediaType(info.name),
+      "sequenceNumber" to info.sequenceNumberLong,
       "byteSize" to finalFile.length(),
       "sha256" to sha256,
       "localUri" to Uri.fromFile(finalFile).toString(),
@@ -496,7 +568,7 @@ class CameraTetherModule : Module() {
   }
 
   private fun isSupportedCapture(info: MtpObjectInfo): Boolean {
-    if (info.compressedSize <= 0) return false
+    if (info.compressedSizeLong <= 0L) return false
     val extension = info.name.substringAfterLast('.', "").lowercase(Locale.US)
     return extension in SUPPORTED_CAPTURE_EXTENSIONS
   }
@@ -526,6 +598,10 @@ class CameraTetherModule : Module() {
 
   private fun statusPayload(): Map<String, Any?> {
     val device = currentUsbDevice
+    val storage = storageSnapshot
+      ?: appContext.reactContext?.let { context -> readStorageSnapshot(context, 0L) }
+      ?: CameraStoragePolicy.evaluate(0L, 0L, 0L)
+    storageSnapshot = storage
     return mapOf(
       "isSupported" to true,
       "phase" to phase,
@@ -540,6 +616,7 @@ class CameraTetherModule : Module() {
       "hasPermission" to (device?.let { usbManager?.hasPermission(it) } ?: false),
       "baselineCount" to knownObjects.size,
       "pollIntervalMs" to pollIntervalMs,
+      "storage" to storage.payload(),
       "lastErrorCode" to lastErrorCode,
       "lastErrorMessage" to lastErrorMessage
     )
@@ -568,11 +645,104 @@ class CameraTetherModule : Module() {
     )
   }
 
+  private fun refreshStorageStatus(
+    context: Context,
+    pendingObjectBytes: Long,
+    publish: Boolean
+  ): CameraStorageSnapshot {
+    val snapshot = readStorageSnapshot(context, pendingObjectBytes)
+    val wasBlocked = phase == PHASE_STORAGE_BLOCKED
+    storageSnapshot = snapshot
+
+    if (!snapshot.canImport && mtpDevice != null) {
+      val message = storageMessage(snapshot)
+      phase = PHASE_STORAGE_BLOCKED
+      lastErrorCode = "STORAGE_BACKPRESSURE"
+      lastErrorMessage = message
+      if (publish) sendEvent(EVENT_CAMERA_STATE, statusPayload())
+      if (!wasBlocked) {
+        sendError("STORAGE_BACKPRESSURE", message, recoverable = true)
+      }
+    } else if (snapshot.canImport && wasBlocked) {
+      phase = if (mtpDevice != null) PHASE_MONITORING else PHASE_WAITING_FOR_CAMERA
+      lastErrorCode = null
+      lastErrorMessage = null
+      if (publish) sendEvent(EVENT_CAMERA_STATE, statusPayload())
+    } else if (publish) {
+      sendEvent(EVENT_CAMERA_STATE, statusPayload())
+    }
+
+    return snapshot
+  }
+
+  private fun readStorageSnapshot(
+    context: Context,
+    pendingObjectBytes: Long
+  ): CameraStorageSnapshot {
+    return runCatching {
+      val stats = StatFs(context.filesDir.absolutePath)
+      CameraStoragePolicy.evaluate(
+        totalBytes = stats.totalBytes,
+        availableBytes = stats.availableBytes,
+        pendingObjectBytes = pendingObjectBytes
+      )
+    }.getOrElse {
+      CameraStoragePolicy.evaluate(
+        totalBytes = 0L,
+        availableBytes = 0L,
+        pendingObjectBytes = pendingObjectBytes
+      )
+    }
+  }
+
+  private fun storageMessage(snapshot: CameraStorageSnapshot): String {
+    val deficitMebibytes = snapshot.deficitBytes / MEBIBYTE_BYTES +
+      if (snapshot.deficitBytes % MEBIBYTE_BYTES == 0L) 0L else 1L
+    return "Free at least ${deficitMebibytes.coerceAtLeast(1L)} MiB on this phone, " +
+      "then retry. The original photo remains safe on the camera card."
+  }
+
+  private fun requestedByteCount(value: Double): Long {
+    require(value.isFinite() && value >= 0.0 && value <= MAX_SAFE_JAVASCRIPT_INTEGER.toDouble()) {
+      "The requested storage byte count must be a non-negative safe integer."
+    }
+    require(value % 1.0 == 0.0) {
+      "The requested storage byte count must be an integer."
+    }
+    return value.toLong()
+  }
+
+  private fun openStorageSettings(context: Context, requestedBytes: Long) {
+    val intent = Intent(StorageManager.ACTION_MANAGE_STORAGE).apply {
+      val storageManager =
+        context.getSystemService(Context.STORAGE_SERVICE) as? StorageManager
+      runCatching { storageManager?.getUuidForPath(context.filesDir) }
+        .getOrNull()
+        ?.let { uuid -> putExtra(StorageManager.EXTRA_UUID, uuid) }
+      putExtra(StorageManager.EXTRA_REQUESTED_BYTES, requestedBytes.coerceAtLeast(1L))
+    }
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    try {
+      context.startActivity(intent)
+    } catch (_: ActivityNotFoundException) {
+      context.startActivity(
+        Intent(Settings.ACTION_INTERNAL_STORAGE_SETTINGS)
+          .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      )
+    }
+  }
+
   private fun closeCameraLocked() {
     monitorJob?.cancel()
     monitorJob = null
     mtpDevice?.close()
     mtpDevice = null
+  }
+
+  private fun failConnection(code: String, message: String) {
+    appContext.reactContext?.let(CameraTetherForegroundService::stop)
+    setPhase(PHASE_ERROR, code, message)
+    sendError(code, message, recoverable = true)
   }
 
   private fun registerReceivers(context: Context) {
@@ -598,6 +768,7 @@ class CameraTetherModule : Module() {
     receiversRegistered = false
   }
 
+  @SuppressLint("UnspecifiedRegisterReceiverFlag")
   @Suppress("DEPRECATION")
   private fun registerReceiverCompat(
     context: Context,
@@ -681,7 +852,7 @@ class CameraTetherModule : Module() {
       storageId,
       handle,
       info.dateCreated,
-      info.compressedSize,
+      info.compressedSizeLong,
       info.name.replace(UNSAFE_FILENAME_CHARS, "_")
     ).joinToString(":")
   }
@@ -695,6 +866,8 @@ class CameraTetherModule : Module() {
     private const val MAX_OBJECTS_PER_SCAN = 100_000
     private const val MAX_FILENAME_LENGTH = 180
     private const val HASH_BUFFER_SIZE = 1024 * 1024
+    private const val MEBIBYTE_BYTES = 1024L * 1024L
+    private const val MAX_SAFE_JAVASCRIPT_INTEGER = 9_007_199_254_740_991L
 
     private const val PHASE_UNAVAILABLE = "UNAVAILABLE"
     private const val PHASE_STOPPED = "STOPPED"
@@ -703,6 +876,7 @@ class CameraTetherModule : Module() {
     private const val PHASE_CONNECTING = "CONNECTING"
     private const val PHASE_BASELINING = "BASELINING"
     private const val PHASE_MONITORING = "MONITORING"
+    private const val PHASE_STORAGE_BLOCKED = "STORAGE_BLOCKED"
     private const val PHASE_ERROR = "ERROR"
 
     private const val EVENT_CAMERA_STATE = "onCameraState"
@@ -715,3 +889,5 @@ class CameraTetherModule : Module() {
     private val SUPPORTED_CAPTURE_EXTENSIONS = setOf("jpg", "jpeg", "nef")
   }
 }
+
+private class StorageBackpressureException(message: String) : Exception(message)

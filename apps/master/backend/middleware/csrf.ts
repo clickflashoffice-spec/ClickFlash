@@ -49,7 +49,9 @@ export const csrfMiddleware = (
     path.startsWith("/api/v1/pairing") ||
     path.startsWith("/v1/pairing") ||
     path.startsWith("/api/v1/kiosks") ||
-    path.startsWith("/v1/kiosks")
+    path.startsWith("/v1/kiosks") ||
+    path.startsWith("/api/v1/mobile-capture") ||
+    path.startsWith("/v1/mobile-capture")
   ) {
     return next();
   }

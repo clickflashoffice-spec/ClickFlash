@@ -1,11 +1,16 @@
+import { logger } from '@/utils/logger';
+
+import { captureDeliveryLedgerService } from './CaptureDeliveryLedgerService';
 import { discoveryService } from './discoveryService';
-import { meshSyncService } from './MeshSyncService';
+import { masterDeliveryWorker } from './MasterDeliveryWorker';
 import { networkRoutingService } from './NetworkRoutingService';
 import { offlineQueueService } from './OfflineQueueService';
-import { logger } from "@/utils/logger";
 
 export interface PhotoAsset {
     id: string;
+    sourceCaptureId: string;
+    sourceSha256: string;
+    sha256: string;
     uri: string;
     filename: string;
     mediaType: 'photo' | 'video';
@@ -40,15 +45,24 @@ export class SyncService {
      * Queues a photo for sync via the offline queue.
      * Called when a new photo is ingested via USB PTP.
      */
-    public async queuePhotoForSync(photo: PhotoAsset) {
-        logger.info(`[SyncService] Enqueueing photo ${photo.filename} to SQLite offline queue.`);
-        await offlineQueueService.enqueue('PHOTO_SYNC', '/api/photos/upload', 'POST', {
-            uri: photo.uri,
-            filename: photo.filename,
-            aiMetadata: photo.aiMetadata
-        }, 'HIGH');
-        // Trigger a background flush attempt
-        networkRoutingService.flushOfflineQueue();
+    public async queuePhotoForSync(photo: PhotoAsset): Promise<void> {
+        await captureDeliveryLedgerService.registerQuickEdit({
+            captureObjectId: photo.sourceCaptureId,
+            sourceSha256: photo.sourceSha256,
+            localUri: photo.uri,
+            byteSize: photo.fileSize,
+            sha256: photo.sha256,
+        });
+        await captureDeliveryLedgerService.createIntent(
+            photo.sourceCaptureId,
+            'MASTER',
+            'QUICK_EDIT',
+            false
+        );
+        void masterDeliveryWorker.drain();
+        logger.info(
+            `[SyncService] Persisted ${photo.filename} in the capture delivery ledger.`
+        );
     }
 
     /**

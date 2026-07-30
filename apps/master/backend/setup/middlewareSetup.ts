@@ -28,7 +28,10 @@ export function setupExpressMiddleware(app: Application, context: any): void {
       return next();
     }
 
-    if (contentType.includes("multipart/form-data")) {
+    if (
+      contentType.includes("multipart/form-data") ||
+      contentType.includes("application/octet-stream")
+    ) {
       next(); // Skip body parsing for formidable
     } else if (contentType.includes("application/json")) {
       jsonParser(req, res, (err) => {
@@ -114,6 +117,7 @@ export function setupExpressMiddleware(app: Application, context: any): void {
     "/pairing",           // kiosk initial pairing handshake
     "/v1/pairing",        // v1 kiosk pairing handshake
     "/v1/kiosks",         // auto-register kiosks
+    "/v1/mobile-capture", // paired Android capture transport (route-level HMAC)
     "/assistance",        // kiosk → master assistance calls
     "/notification",      // kiosk → master notification push
   ];
@@ -140,7 +144,7 @@ export function setupExpressMiddleware(app: Application, context: any): void {
     );
     res.setHeader(
       "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, X-Requested-With, X-CSRF-Token, Cache-Control, X-Kiosk-Id",
+      "Content-Type, Authorization, X-Requested-With, X-CSRF-Token, Cache-Control, X-Kiosk-Id, X-ClickFlash-Device-Id, X-ClickFlash-Timestamp, X-ClickFlash-Nonce, X-ClickFlash-Idempotency-Key, X-ClickFlash-Content-Sha256, X-ClickFlash-Asset-Sha256, X-ClickFlash-Asset-Size, X-ClickFlash-Offset, X-ClickFlash-Asset-Role, X-ClickFlash-Filename, X-ClickFlash-Signature",
     );
 
     if (req.method === "OPTIONS") {

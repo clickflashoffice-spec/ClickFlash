@@ -22,12 +22,12 @@ layer. Kiosk is a constrained display/cache destination, not the owner of origin
 
 | Current component | Current behavior | Required change |
 |---|---|---|
-| `src/app/index.tsx` | Starts the native tether session, displays real state, and reacts to locally verified camera imports without a per-shot tap | Prove the behavior with a D7000 and certified Android/cable matrix |
-| `useAutoEditor.ts` | Pose/blink check plus resize/recompress | Bounded quick analysis, deterministic recipe, confidence gate, and original preservation |
+| `src/app/index.tsx` | Starts native tethering and displays the untouched verified JPEG before a side-by-side durable quick edit without a per-shot tap | Prove preview latency and behavior with a D7000 and certified Android/cable matrix |
+| `useAutoEditor.ts` | Pose/blink plus resize/recompress; promotes cache output into app documents and rereads SHA-256 before registering the quick-edit asset | Bounded quick analysis, deterministic recipe, confidence gate, and color-aware processing |
 | `discoveryService.ts` | Returns a mocked Master IP | Authenticated mDNS discovery with pinned instance identity |
 | `MeshSyncService.ts` | Generates simulated photographers and acknowledgements | Remove from production path until a real transport and threat model pass |
-| `NetworkRoutingService.ts` | Chooses one Master or placeholder Cloud URL | Independent destination policy and outbox state for Master, Kiosk, and Cloud |
-| Capture persistence | SQLite capture sessions/objects now retain object identity, attempts, local URI, byte count, checksum, state, and errors | Add immutable edit assets, independent destination rows, resumable attempts, and Kiosk/Master/Cloud receipts |
+| `NetworkRoutingService.ts` | Legacy generic traffic still chooses one Master or placeholder Cloud URL; camera captures no longer enter its unverified photo-upload path | Replace it for captures with authenticated per-destination workers driven by the new outbox |
+| Capture persistence | SQLite now separates capture objects, RAW+JPEG pairing, immutable original/quick-edit assets, destination intents, attempt state, and authenticated receipt proofs; each verified original creates one required pending Master intent | Add authenticated Master transfer/receipt, then policy-authorized Kiosk and Cloud intents/workers, plus physical recovery proof |
 | `schedule.tsx` | Uses a mock venue and bookings | Real shift/assignment/spot context with consent-aware location handling |
 | `scout.tsx` | Placeholder “AI Heatmaps” screen | Spot intelligence, quality history, recommended positions/settings, and confidence |
 | `kiosks.tsx` | Placeholder “Fleet Health” screen | Authorized Kiosk routing, reachability, queue depth, and delivery receipts |
@@ -37,7 +37,7 @@ layer. Kiosk is a constrained display/cache destination, not the owner of origin
 
 Simulation is not accepted as hardware, network, delivery, or AI evidence.
 
-### Implementation checkpoint — 2026-07-28
+### Implementation checkpoint — 2026-07-30
 
 The first capture-only slice is implemented and compile-validated. Android now autolinks a
 local Expo `camera-tether` module, launches for Nikon/still-image USB attachment, requests
@@ -46,12 +46,43 @@ JPEG/NEF objects by bounded recursive polling, and imports them through an app-p
 temporary file with byte-count, flush, atomic-rename, and SHA-256 verification. A persistent
 session/object ledger deduplicates restart recovery. The field screen auto-starts tethering,
 shows real state, preserves RAW, and sends verified JPEGs to the existing quick editor.
+After USB access, a non-exported Android `connectedDevice` foreground service posts an
+ongoing notification and holds a partial wake lock only for the active tether lifetime, so
+polling remains eligible after the app is backgrounded or the display turns off. Android
+13+ notification permission denial is non-fatal, and the non-sticky service stops on
+detach, connection failure, explicit stop, or module teardown rather than claiming a false
+monitoring state after process death.
+Every copy is now admitted twice—before the JavaScript retry loop and again at the native
+MTP boundary—against a safety reserve of 512 MiB or 5% of phone capacity, capped at 2 GiB.
+Low space moves the object to durable `BLOCKED_STORAGE`, stops blind camera retries, keeps
+the original on the D7000 card, and exposes free-space, blocked-count, Android storage
+management, and explicit retry controls on the field screen.
+Verified files now enter an independent RAW+JPEG companion ledger. Matching prefers an
+equal positive MTP camera sequence and otherwise requires the same normalized Nikon
+basename plus capture times within two seconds. JPEG quick editing remains immediate;
+unmatched files become standalone after 60 seconds but can still pair late, while
+ambiguous candidates are retained for Master review rather than automatically joined.
+The field UI now exposes the untouched checksum-verified JPEG before automatic editing.
+The quick-edit render is copied out of cache through a staging file into app documents,
+reread for SHA-256 and size, atomically promoted, and stored as an immutable asset.
+Verified originals enter an independent delivery outbox with one required pending Master
+intent. The schema supports Master, Kiosk, and Cloud destinations, retry/attention states,
+and authenticated receipt proofs, but only Master intent creation is enabled until real
+assignment policy and device-bound pairing exist. Receipt validation fails closed on
+authentication, destination, idempotency, hash, or size mismatch and requires
+destination-specific persistence/index/publish proof before `READY`.
 The application is now Android-only with package identity `com.clickflash.photographer`.
 A full debug APK assembles with reproducible short native staging paths and Worklets JNI
-packaging; inspection confirms minimum API 26, target API 36, the camera-tether DEX class,
-the Nikon/still-image USB filter, and all four Android ABIs. The artifact remains
-debug-signed. Production signing/AAB distribution, physical D7000 evidence, and every
-delivery/Spot AI phase remain open.
+packaging; inspection confirms minimum API 26, target API 36, camera-tether and foreground
+service DEX classes, the Nikon/still-image USB filter, required foreground/notification/
+wake-lock permissions, the service type, and all four Android ABIs. The artifact remains
+debug-signed. Regenerated release builds now fail closed instead of inheriting the debug
+keystore: signing requires four process-environment inputs, partial configuration is
+rejected, and `android:aab` is prepared for approved secret injection. No release artifact
+was signed or distributed. Upload-key approval, signed AAB inspection/distribution, physical
+D7000 screen-off/battery/thermal, physical RAW+JPEG and low-storage recovery evidence,
+authenticated Master discovery/transfer/receipt, Kiosk/Cloud workers, and every Spot AI
+phase remain open.
 
 ## End-to-end operating model
 
@@ -425,8 +456,8 @@ engine compatibility, hash, signature, owner, expiry, and rollback target.
    D7000 object-list path; prove it on one certified Android device.
 2. `[software complete / hardware open]` Persist a minimal `CaptureObject` ledger; prove
    detach/restart reconciliation with card-versus-ledger evidence.
-3. Copy JPEG first and display an untouched local preview before the current automatic
-   editor result; retain NEF for Master.
+3. `[software complete / device proof open]` Copy JPEG first and display an untouched local
+   preview before the current automatic editor result; retain NEF for Master.
 4. Add a real Master pairing/discovery path and checksum-bound ingest receipt.
 5. Add one authorized Kiosk preview route with a displayable receipt.
 6. Add Cloud resumable upload and verification as an independent destination.

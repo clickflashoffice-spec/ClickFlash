@@ -4,10 +4,20 @@ import type {
   CameraImportCompletedEvent,
   CameraObjectDetectedEvent,
 } from '../../modules/camera-tether';
+import {
+  capturePairingLedgerService,
+  type CapturePairingCounts,
+  type CapturePairingResolution,
+} from './CapturePairingLedgerService';
+import {
+  captureDeliveryLedgerService,
+  type CaptureDeliveryCounts,
+} from './CaptureDeliveryLedgerService';
 
 export type CaptureLedgerState =
   | 'DETECTED'
   | 'IMPORTING'
+  | 'BLOCKED_STORAGE'
   | 'LOCAL_VERIFIED'
   | 'FAILED';
 
@@ -16,12 +26,17 @@ interface CaptureStateRow {
   state: CaptureLedgerState;
 }
 
-export interface CaptureLedgerCounts {
+export interface CaptureLedgerCounts
+  extends CapturePairingCounts,
+    CaptureDeliveryCounts {
   detected: number;
   importing: number;
+  storageBlocked: number;
   localVerified: number;
   failed: number;
 }
+
+export type { CapturePairingResolution } from './CapturePairingLedgerService';
 
 const SESSION_ID_SAFE_CHARS = /[^A-Za-z0-9._-]/g;
 const ERROR_MESSAGE_LIMIT = 1_000;
@@ -159,6 +174,31 @@ class CaptureLedgerService {
     );
   }
 
+  async reconcilePairing(
+    objectId: string,
+    event: CameraObjectDetectedEvent
+  ): Promise<CapturePairingResolution> {
+    return capturePairingLedgerService.reconcile(objectId, event);
+  }
+
+  async ensureOriginalDelivery(objectId: string): Promise<void> {
+    await captureDeliveryLedgerService.ensureOriginal(objectId);
+  }
+
+  async markStorageBlocked(id: string, message: string): Promise<void> {
+    const database = await getDatabase();
+    const now = Date.now();
+    await database.runAsync(
+      `UPDATE capture_objects
+       SET state = CASE WHEN state = 'LOCAL_VERIFIED' THEN state ELSE 'BLOCKED_STORAGE' END,
+           last_error_code = 'STORAGE_BACKPRESSURE',
+           last_error_message = ?,
+           updated_at = ?
+       WHERE id = ?`,
+      [message.slice(0, ERROR_MESSAGE_LIMIT), now, id]
+    );
+  }
+
   async markFailed(id: string, code: string, message: string): Promise<void> {
     const database = await getDatabase();
     const now = Date.now();
@@ -185,17 +225,31 @@ class CaptureLedgerService {
     const counts: CaptureLedgerCounts = {
       detected: 0,
       importing: 0,
+      storageBlocked: 0,
       localVerified: 0,
       failed: 0,
+      pairedSets: 0,
+      awaitingCompanion: 0,
+      standaloneCaptures: 0,
+      ambiguousPairs: 0,
+      masterPending: 0,
+      kioskPending: 0,
+      cloudPending: 0,
+      readyDeliveries: 0,
+      deliveryAttention: 0,
     };
 
     rows.forEach((row) => {
       if (row.state === 'DETECTED') counts.detected = row.count;
       if (row.state === 'IMPORTING') counts.importing = row.count;
+      if (row.state === 'BLOCKED_STORAGE') counts.storageBlocked = row.count;
       if (row.state === 'LOCAL_VERIFIED') counts.localVerified = row.count;
       if (row.state === 'FAILED') counts.failed = row.count;
     });
-    return counts;
+
+    const pairingCounts = await capturePairingLedgerService.getCounts(sessionId);
+    const deliveryCounts = await captureDeliveryLedgerService.getCounts(sessionId);
+    return { ...counts, ...pairingCounts, ...deliveryCounts };
   }
 
   private captureId(event: CameraObjectDetectedEvent): string {

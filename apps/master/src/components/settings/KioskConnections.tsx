@@ -9,6 +9,7 @@ import KioskPairing from './KioskPairing';
 import { pb } from '../../services/pb.ts';
 import Modal from '../common/Modal.tsx';
 import { logger } from '@/utils/logger';
+import MobilePhotographerPairing from './MobilePhotographerPairing';
 
 const KioskConnections: React.FC = () => {
     const [kiosks, setKiosks] = useState<TouchKiosk[]>([]);
@@ -244,6 +245,10 @@ const KioskConnections: React.FC = () => {
             <Card className="mb-6">
                 <h2 className="text-2xl font-bold mb-4">Connect a New Kiosk</h2>
                 <KioskPairing />
+            </Card>
+
+            <Card className="mb-6">
+                <MobilePhotographerPairing />
             </Card>
 
             {isModalOpen && <KioskEditModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveKiosk} kioskToEdit={kioskToEdit} />}

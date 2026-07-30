@@ -22,11 +22,11 @@ defined below.
 | Master coaching | `aiTeacherAgent.ts` checks mean luminance | Blur is explicitly mocked and advice is not tied to camera metadata |
 | Master editor UI | `PhotoEditModal.tsx` has manual controls, history, before/after, crop, effects, and AI affordances | One 900+ line component; automatic decisions are not explainable or confidence-gated |
 | Master tether | `dslrTetherService.ts` starts gphoto2 on Unix or assumes digiCamControl on Windows | No camera capability contract, durable receipt, verified binary lifecycle, or D7000 hardware test |
-| Mobile DSLR flow | `src/app/index.tsx` now starts the tether service, renders live state, and sends locally verified JPEGs to the editor while retaining NEF | Real D7000 cable, burst, detach/restart, background, and card-reconciliation evidence remains |
-| Mobile USB configuration | `modules/camera-tether` is autolinked; the enabled plugin generates USB Host, attach intent, and Nikon/still-image filter; runtime permission and MTP polling are implemented | Foreground service, physical device matrix, PTP event-endpoint benchmark, and hardware soak remain |
-| Mobile capture durability | SQLite capture sessions/objects track detection, attempts, local URI, byte count, SHA-256, errors, and `LOCAL_VERIFIED`; native baselines make restart re-emission idempotent | Storage reservation, RAW+JPEG pairing, destination outboxes/receipts, and real fault-injection proof remain |
-| Mobile automatic edit | `useAutoEditor.ts` checks pose/blink, resizes, recompresses, and queues a JPEG | No exposure/color correction, RAW pairing, deterministic recipe, confidence, or quality fallback |
-| Mobile-to-Master bridge | Upload route accepts large multipart files and calculates a hash | Default bridge-token fallback and whole-file hashing must be removed before camera rollout |
+| Mobile DSLR flow | `src/app/index.tsx` starts tethering, renders live state, displays the untouched checksum-verified JPEG before the quick edit, and retains NEF | Real D7000 cable, burst, detach/restart, screen-off, preview-latency, and card-reconciliation evidence remains |
+| Mobile USB configuration | `modules/camera-tether` is autolinked; the enabled plugin generates USB Host, attach intent, and Nikon/still-image filter; runtime permission, MTP polling, and a connected-device foreground lifecycle are implemented | Physical device matrix, screen-off battery/thermal qualification, PTP event-endpoint benchmark, and hardware soak remain |
+| Mobile capture durability | SQLite tracks imports and RAW+JPEG pairing independently; immutable asset, destination-intent, attempt-state, and authenticated-receipt tables now provide a checksum-bound local outbox | Physical recovery evidence plus authenticated Master/Kiosk/Cloud transports and real destination receipts remain |
+| Mobile automatic edit | `useAutoEditor.ts` checks pose/blink, resizes/recompresses, promotes the cache render into app documents, rereads SHA-256, and persists a content-bound `QUICK_EDIT` asset | No exposure/color correction, deterministic recipe, confidence, or quality fallback |
+| Mobile-to-Master bridge | Every verified original now gets one required idempotent Master intent, and forged/mismatched receipts fail validation | Real device-bound discovery/pairing, streamed transfer, retry worker, server persistence, and authenticated receipt remain |
 
 ## Supported product boundary
 
@@ -96,7 +96,7 @@ libusb/libgphoto2 adapter only if native MTP cannot reliably detect and transfer
 shots. Advanced shutter control, live view, and camera-setting changes are later
 capabilities and must not block the import MVP.
 
-### Implementation checkpoint — 2026-07-28
+### Implementation checkpoint — 2026-07-30
 
 The import-only software slice now exists:
 
@@ -106,35 +106,88 @@ The import-only software slice now exists:
   polls for new JPEG/NEF objects, and recovers session captures after process restart;
 - imports stream through `MtpDevice.importFile` into an app-private `.part` file, enforce
   metadata byte count, flush, atomically rename, and calculate SHA-256;
+- JavaScript admission and a second native check immediately before MTP copy use app-private
+  filesystem capacity and preserve the greater of 512 MiB or 5% free space, capped at
+  2 GiB; a concurrent capacity drop therefore fails before camera bytes are copied;
+- storage pressure is a typed `STORAGE_BLOCKED`/`STORAGE_BACKPRESSURE` condition rather
+  than a generic camera failure: the ledger records `BLOCKED_STORAGE`, automatic retries
+  pause, and the field UI shows free space, blocked-object count, and an explicit
+  storage-settings/retry action;
+- native detection now exposes the MTP camera sequence number and 64-bit object size;
+  after checksum verification, a separate durable pairing ledger matches opposite media
+  types by normalized Nikon basename, preferring an equal positive camera sequence and
+  otherwise requiring capture times within two seconds;
+- pairing never delays the JPEG quick-edit handoff: unmatched files wait for 60 seconds,
+  then become standalone while remaining eligible for a late companion; equally strong
+  matches are locked as `AMBIGUOUS` for Master review instead of guessing;
 - a stable camera/object identity plus SQLite ledger prevents duplicate verified imports;
-- the Studio screen no longer downloads a simulated image and automatically forwards
-  verified JPEGs to the existing quick editor while retaining NEF for Master;
+- the Studio screen publishes the untouched locally verified JPEG first, automatically
+  forwards it to the existing quick editor, retains NEF for Master, and shows the edited
+  comparison only when the quick-edit asset is durably safe;
+- quick edits are promoted from cache into app documents through a content-addressed
+  staging file, reread for SHA-256/size verification, atomically moved, and registered as
+  immutable assets;
+- verified originals, quick edits, destination intents, attempt state, and authenticated
+  receipt proofs have separate SQLite records; each original currently creates one
+  required idempotent Master intent without pretending a network delivery occurred;
+- generic updates cannot enter `RECEIVED`, `VERIFIED`, or `READY`; authenticated receipts
+  must match destination, idempotency key, SHA-256, and byte size, then meet the
+  destination-specific persistence/index/publish proof before `READY`;
+- Android 13+ notification permission is requested without making denial fatal; after USB
+  access is granted, a non-exported `connectedDevice` foreground service posts an ongoing
+  notification and holds a tether-scoped partial wake lock until detach, failure, stop, or
+  module teardown;
+- the foreground service is deliberately non-sticky so a killed process cannot advertise
+  false monitoring; persisted baselines and the ledger provide explicit restart recovery;
 - `expo-camera` is aligned to SDK 57 and Android minimum API 26 satisfies the existing
   Stripe Terminal native dependency.
 
-Evidence gates passed: `tsc --noEmit`, Expo lint with zero errors, Expo config
-introspection, `:camera-tether:compileDebugKotlin`, `:app:compileDebugKotlin`, and full
-`:app:assembleDebug`. The source-controlled Expo plugin relocates Reanimated, Worklets, and
-Expo Modules Core CMake staging to shorter Android-project paths, while Expo build
-properties select the duplicate Worklets JNI input. The resulting 300,697,681-byte APK has
-SHA-256 `A23A3366E716AA69259DE9C5C7092C2914789C0841AC8F6F93A474664038B9D6`,
+Evidence gates passed: `tsc --noEmit`, Expo lint with zero errors, thirteen capture,
+pairing, preview, schema, delivery-state, and receipt tests, clean Expo source regeneration
+and module resolution, four native storage-policy unit tests,
+`:camera-tether:compileDebugKotlin`,
+`:app:compileDebugKotlin`, and full `:app:assembleDebug`. Isolated
+`:camera-tether:lintDebug` reports no issues when the
+third-party `react-native-worklets:lintAnalyzeDebug` task is excluded; the unexcluded
+aggregate analyzer currently crashes with a lint/Kotlin `Cannot find a KaModule` tool error
+and is not claimed as a clean global gate. The source-controlled Expo plugin relocates
+Reanimated, Worklets, and Expo Modules Core CMake staging to shorter Android-project paths, while Expo build
+properties select the duplicate Worklets JNI input. The resulting 305,145,843-byte APK has
+SHA-256 `9A72A08AC99A03B2E2DDA9B613EFBA3B621C60B773FDEBC3ECE0D6005770A03F`,
 uses package identity `com.clickflash.photographer`, minimum API 26 and target API 36,
-contains the Expo camera-tether DEX class and Nikon/still-image USB filter, carries
+contains the Expo camera-tether, storage-policy, and foreground-service DEX classes, the Nikon/still-image
+USB filter, Expo Crypto, the `connectedDevice` service declaration, and foreground-service,
+notification, and wake-lock permissions; it carries
 `arm64-v8a`, `armeabi-v7a`, `x86`, and `x86_64` native libraries, and verifies with APK
-Signature Scheme v2. It remains a debug-signed engineering artifact; organization-controlled
-release signing, Android App Bundle distribution, and physical hardware proof remain open.
+Signature Scheme v2.
+
+Release configuration is also hardened through an idempotent Expo plugin. It removes the
+generated release fallback to `debug.keystore`, reads the keystore path, store password,
+alias, and key password only from process-environment values, rejects partial configuration,
+and rejects any release task when approved signing is absent. The `android:aab` command and
+secret-custody instructions are ready; negative gates for missing and partial signing pass,
+while the four-ABI debug build still passes. No release AAB was created or signed.
+Organization-controlled upload-key approval, signed AAB/certificate inspection, distribution,
+physical D7000/screen-off/low-storage proof, authenticated Master discovery/transfer/receipt,
+and Kiosk/Cloud delivery lanes remain open.
 
 ### Capture durability state machine
 
-Every camera object advances through an idempotent ledger:
+Every camera object advances through an idempotent import ledger:
 
-`DETECTED → COPYING → LOCAL_VERIFIED → PAIRED → QUICK_EDITED → QUEUED → MASTER_ACKED → MASTER_VERIFIED`
+`DETECTED → IMPORTING/BLOCKED_STORAGE → LOCAL_VERIFIED → QUICK_EDITED → QUEUED → MASTER_ACKED → MASTER_VERIFIED`
+
+Pairing is an independent companion state so it cannot delay or downgrade an immutable
+local import:
+
+`WAITING → PAIRED` or `WAITING → STANDALONE`; ambiguous candidates enter `AMBIGUOUS`.
 
 - Identity starts with camera serial, storage ID, object handle, size, filename, and capture
   time; SHA-256 becomes the durable content identity after copy.
 - An object is complete only when size is stable, the copy is flushed, and the checksum
   matches a second local read.
-- RAW+JPEG pairs are associated using camera sequence, EXIF capture time, and basename.
+- RAW+JPEG pairs are associated using MTP camera sequence when available, capture time,
+  and normalized basename; ambiguity is retained for review instead of guessed.
 - Retries resume from the last durable state and cannot create duplicate Master photos.
 - The original is immutable. Mobile cache eviction is allowed only after Master returns a
   checksum-bound durable receipt and retention policy permits eviction.
@@ -335,5 +388,10 @@ Phases may overlap only after the previous phase’s durability and security exi
 - [libgphoto2 supported cameras: Nikon D7000 PTP capture/live view/configuration](https://gphoto.github.io/proj/libgphoto2/support/)
 - [Android USB Host API and attach/permission model](https://developer.android.com/develop/connectivity/usb/host)
 - [Android `MtpDevice` API for connected MTP/PTP devices](https://developer.android.com/reference/android/mtp/MtpDevice.html)
+- [Android `StatFs` app-available storage metrics](https://developer.android.com/reference/android/os/StatFs.html)
+- [Android `StorageManager` storage-management intent](https://developer.android.com/reference/android/os/storage/StorageManager)
+- [Android connected-device foreground service requirements](https://developer.android.com/develop/background-work/services/fgs/service-types#connected-device)
+- [Android notification runtime permission](https://developer.android.com/develop/ui/views/notifications/notification-permission)
+- [Android partial wake-lock guidance](https://developer.android.com/develop/background-work/background-tasks/awake/wakelock/set)
 - [Expo guidance for local native modules and development builds](https://docs.expo.dev/workflow/customizing/)
 - [Current Nikon NX Tether supported-camera list](https://downloadcenter.nikonimglib.com/en/download/sw/276.html)

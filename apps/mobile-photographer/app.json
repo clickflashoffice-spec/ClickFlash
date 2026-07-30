@@ -55,6 +55,7 @@
         {
           "android": {
             "minSdkVersion": 26,
+            "usesCleartextTraffic": true,
             "packagingOptions": {
               "pickFirst": [
                 "**/libworklets.so"
@@ -63,8 +64,10 @@
           }
         }
       ],
+      "./plugins/withAndroidReleaseSigning",
       "./plugins/withNativeBuildStaging",
       "./plugins/withUsbPermissions",
+      "expo-secure-store",
       "expo-sqlite"
     ],
     "experiments": {

@@ -11,7 +11,7 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
     "dev:frontend": "vite",
     "dev:watch": "vite build --watch",
-    "test": "vitest run --pool=threads",
+    "test": "vitest run --pool=forks",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:ci": "vitest run --coverage",

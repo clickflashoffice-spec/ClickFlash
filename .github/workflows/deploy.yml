@@ -45,28 +45,28 @@ jobs:
             path: workers/update-server
     steps:
       - name: Checkout
-        if: inputs.worker == 'all' || inputs.worker == matrix.id
+        if: github.event.inputs.worker == 'all' || github.event.inputs.worker == matrix.id
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        if: inputs.worker == 'all' || inputs.worker == matrix.id
+        if: github.event.inputs.worker == 'all' || github.event.inputs.worker == matrix.id
         uses: pnpm/action-setup@v3
         with:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
-        if: inputs.worker == 'all' || inputs.worker == matrix.id
+        if: github.event.inputs.worker == 'all' || github.event.inputs.worker == matrix.id
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
       - name: Install dependencies
-        if: inputs.worker == 'all' || inputs.worker == matrix.id
+        if: github.event.inputs.worker == 'all' || github.event.inputs.worker == matrix.id
         run: pnpm install --frozen-lockfile
 
       - name: Apply ClickFlash DB migrations
-        if: matrix.id == 'cloud-backend' && (inputs.worker == 'all' || inputs.worker == 'cloud-backend')
+        if: matrix.id == 'cloud-backend' && (github.event.inputs.worker == 'all' || github.event.inputs.worker == 'cloud-backend')
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -75,7 +75,7 @@ jobs:
           command: d1 migrations apply clickflash-db --remote
 
       - name: Deploy Worker
-        if: inputs.worker == 'all' || inputs.worker == matrix.id
+        if: github.event.inputs.worker == 'all' || github.event.inputs.worker == matrix.id
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

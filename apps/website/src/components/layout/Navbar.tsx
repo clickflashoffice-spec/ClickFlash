@@ -104,13 +104,15 @@ export function Navbar() {
               </Link>
             );
           })}
-          <Link
+          <a
             id="nav-book-button"
-            href="/bookings"
+            href="https://www.fotiqo.com/book/v/clickflash"
+            target="_blank"
+            rel="noopener noreferrer"
             className="ml-2 rounded-full bg-cyan-700 px-6 py-2.5 text-[10px] font-black tracking-widest text-white uppercase shadow-lg transition-all hover:scale-105 hover:bg-slate-900 hover:shadow-cyan-400/40 xl:text-[11px]"
           >
             {getTranslation(language, "btn_book")}
-          </Link>
+          </a>
         </div>
 
         {/* Mobile Menu Interaction */}
@@ -151,13 +153,15 @@ export function Navbar() {
                   </Link>
                 ))}
                 <div className="my-2 h-px bg-white/10" />
-                <Link
-                  href="/bookings"
+                <a
+                  href="https://www.fotiqo.com/book/v/clickflash"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-full rounded-2xl bg-cyan-700 py-5 text-center font-black tracking-widest text-white uppercase shadow-xl shadow-cyan-400/30 transition-transform active:scale-95"
                   onClick={() => setIsOpen(false)}
                 >
                   {getTranslation(language, "btn_book")}
-                </Link>
+                </a>
 
               </div>
             </motion.div>

@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite",
     "dev:electron": "concurrently \"pnpm run dev\" \"wait-on http://localhost:5175 && electron .\" --names \"renderer,electron\" --prefix-colors \"green,cyan\" --kill-others-on-fail",
-    "build": "vite build",
+    "build": "npx vite build",
     "build:electron": "rimraf dist/electron && tsc -p tsconfig.electron.json && npx javascript-obfuscator dist/electron/electron-main.js --output dist/electron/electron-main.js --compact true --control-flow-flattening true --dead-code-injection true --string-array true --string-array-encoding base64 --string-array-threshold 1",
     "build:payload-tool": "rimraf dist/payload-tools && tsc -p tsconfig.payload-tools.json",
     "payload:sign": "pnpm run build:payload-tool && node dist/payload-tools/scripts/payload-release.js",

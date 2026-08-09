@@ -40,6 +40,7 @@ import { AutomatedBackupService } from "../services/AutomatedBackupService";
 import { FleetService } from "../services/FleetService";
 import { PredictiveCacheService } from "../services/PredictiveCacheService";
 import { BandwidthShaperService } from "../services/BandwidthShaperService";
+import { udpDiscoveryService } from "../services/udpDiscoveryService";
 
 // Configuration
 import {
@@ -367,7 +368,7 @@ export function setupServices(): SetupServicesResult {
     maintenancePoller,
     fleetService,
     automatedBackupService,
-    udpDiscoveryService: require("../services/udpDiscoveryService").udpDiscoveryService,
+    udpDiscoveryService,
     realtimeService,
   };
 }

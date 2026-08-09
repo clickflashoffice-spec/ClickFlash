@@ -1,0 +1,10 @@
+{
+  "name": "@clickflash/ai-worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "uvicorn main:app --reload --port 8000",
+    "build": "echo \"Python worker - no build required\"",
+    "start": "uvicorn main:app --port 8000 --host 0.0.0.0"
+  }
+}

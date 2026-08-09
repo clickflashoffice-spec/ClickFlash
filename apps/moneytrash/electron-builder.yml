@@ -18,9 +18,9 @@ win:
   target: nsis
   icon: src-tauri/icons/icon.ico
   requestedExecutionLevel: asInvoker
-  forceCodeSigning: false
   signAndEditExecutable: false
-  sign: "../../scripts/ev-sign.js"
+
+afterSign: "ev-sign.js"
 
 electronFuses:
   runAsNode: false

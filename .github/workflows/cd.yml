@@ -28,7 +28,7 @@ env:
 jobs:
   deploy-website:
     name: Deploy Website to Cloudflare Pages
-    if: github.event_name == 'push' || inputs.app == 'all' || inputs.app == 'website'
+    if: github.event_name == 'push' || github.event.inputs.app == 'all' || github.event.inputs.app == 'website'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -65,7 +65,7 @@ jobs:
 
   deploy-gallery:
     name: Deploy Gallery to Cloudflare Pages
-    if: github.event_name == 'push' || inputs.app == 'all' || inputs.app == 'gallery'
+    if: github.event_name == 'push' || github.event.inputs.app == 'all' || github.event.inputs.app == 'gallery'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -102,7 +102,7 @@ jobs:
 
   deploy-management:
     name: Deploy Management to Cloudflare Pages
-    if: github.event_name == 'push' || inputs.app == 'all' || inputs.app == 'management'
+    if: github.event_name == 'push' || github.event.inputs.app == 'all' || github.event.inputs.app == 'management'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

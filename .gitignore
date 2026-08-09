@@ -202,3 +202,12 @@ k6-bin/
 
 # Coverage
 coverage/
+
+# Python
+__pycache__/
+*.py[cod]
+*.class
+.venv/
+
+# PocketBase data
+apps/*/pb_data/

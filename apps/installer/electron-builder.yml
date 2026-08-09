@@ -22,9 +22,8 @@ win:
   target: nsis
   icon: ../management/icon.ico
   requestedExecutionLevel: requireAdministrator
-  forceCodeSigning: false
-  signAndEditExecutable: false
-  sign: "../../scripts/ev-sign.js"
+  
+
 
 nsis:
   oneClick: true
@@ -50,4 +49,6 @@ publish:
   owner: clickflash
   repo: clickflash-installer
   releaseType: release
-  vPrefixedTagName: true
+  signAndEditExecutable: false
+
+afterSign: "ev-sign.js"

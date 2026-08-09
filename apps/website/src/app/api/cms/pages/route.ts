@@ -10,33 +10,7 @@ function sanitizeHtml(html: string): string {
     .replace(/javascript:/gi, '');
 }
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json() as any;
-    const { data } = body;
-    
-    if (!data || !data.slug || !data.content) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-
-    const sanitizedContent = sanitizeHtml(data.content);
-
-    const page = {
-      title: data.title,
-      slug: data.slug,
-      content: sanitizedContent,
-      status: data.status || 'published',
-      createdAt: new Date().toISOString()
-    };
-
-    pagesStore.set(data.slug, page);
-
-    return NextResponse.json({ success: true, page }, { status: 201 });
-  } catch (error) {
-    logger.error('Error creating page:', error as Error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
-}
+export const dynamic = 'force-static';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

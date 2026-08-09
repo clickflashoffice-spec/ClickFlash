@@ -59,10 +59,9 @@
     "target": "nsis",
     "icon": "build/icon.ico",
     "requestedExecutionLevel": "requireAdministrator",
-    "forceCodeSigning": false,
-    "signAndEditExecutable": false,
-    "sign": "../../scripts/ev-sign.js"
+    "signAndEditExecutable": false
   },
+  "afterSign": "ev-sign.js",
   "nsis": {
     "oneClick": true,
     "perMachine": true,

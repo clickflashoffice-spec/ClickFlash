@@ -126,17 +126,15 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
               className="flex flex-col md:flex-row items-center justify-center gap-6 mt-12"
             >
               <div className="flex flex-col items-center gap-3">
-                <a
-                  href="https://www.fotiqo.com/book/v/clickflash"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/bookings"
                   className="group relative px-8 md:px-12 py-4 md:py-5 bg-cyan-700 text-white font-black uppercase tracking-[0.15em] md:tracking-[0.2em] text-[12px] md:text-[13px] rounded-full hover:bg-cyan-700 transition-all duration-300 shadow-2xl shadow-cyan-400/30 focus:outline-none focus:ring-4 focus:ring-cyan-400/50 focus:ring-offset-4 focus:ring-offset-transparent"
                   aria-label="Book a professional photoshoot"
                 >
                   <span className="relative z-10">Book Now</span>
                   {/* Hover effect */}
                   <span className="absolute inset-0 rounded-full bg-[#0B111F]/20 scale-0 group-hover:scale-100 transition-transform duration-300" aria-hidden="true" />
-                </a>
+                </Link>
               </div>
               
               <Link

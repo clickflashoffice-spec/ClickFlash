@@ -91,7 +91,7 @@ describe("Paired Android photographer command center", () => {
     ]) {
       database.exec(
         fs.readFileSync(
-          path.join(__dirname, "..", "database", "migrations", migrationName),
+          path.join(_dirname, "..", "database", "migrations", migrationName),
           "utf8"
         )
       );

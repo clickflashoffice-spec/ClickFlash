@@ -30,7 +30,7 @@ describe("PhotographerEventLedgerService", () => {
     database.exec(
       fs.readFileSync(
         path.join(
-          __dirname,
+          _dirname,
           "..",
           "database",
           "migrations",

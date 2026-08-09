@@ -103,7 +103,7 @@ export function steadyState() {
         try {
           const body = JSON.parse(r.body);
           return body.status === "healthy" || body.status === "degraded";
-        } catch {
+        } catch (e) {
           return false;
         }
       },
@@ -124,7 +124,7 @@ export function steadyState() {
       "albums list returns array": (r) => {
         try {
           return Array.isArray(JSON.parse(r.body));
-        } catch {
+        } catch (e) {
           return false;
         }
       },
@@ -171,7 +171,7 @@ export function steadyState() {
         try {
           const body = JSON.parse(r.body);
           return body.id || body.orderId;
-        } catch {
+        } catch (e) {
           return false;
         }
       },
@@ -304,7 +304,7 @@ export function galleryCheckout() {
         try {
           const body = JSON.parse(r.body);
           return body.sessionId || body.url || body.id;
-        } catch {
+        } catch (e) {
           return false;
         }
       },
@@ -353,7 +353,7 @@ export function cloudSync() {
         try {
           const body = JSON.parse(r.body);
           return body.token || body.desk_id;
-        } catch {
+        } catch (e) {
           return false;
         }
       },

@@ -20,8 +20,8 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { createRequire } from 'module';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
 const require = createRequire(import.meta.url);
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -58,7 +58,7 @@ export interface ReceiptData {
 // ─── Font configuration ───────────────────────────────────────────────────────
 
 const FONTS_DIR = path.resolve(
-  __dirname,
+  _dirname,
   "../../node_modules/pdfmake/build/fonts/Roboto",
 );
 

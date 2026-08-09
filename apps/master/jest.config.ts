@@ -75,6 +75,14 @@ const config: Config = {
               module: 'CommonJS',
               esModuleInterop: true,
             },
+            astTransformers: {
+              before: [
+                {
+                  path: 'ts-jest-mock-import-meta',
+                  options: { metaObjectReplacement: { url: 'file://mock-import-meta-url' } }
+                }
+              ]
+            }
           },
         ],
       },

@@ -1,13 +1,13 @@
 name = "clickflash-website"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = ".vercel/output/static"
+pages_build_output_dir = "out"
 
 # Custom build command: install with ignore-scripts to avoid native module
 # compilation failures (better-sqlite3, onnxruntime-node are Electron-only),
 # then rebuild only the deps that need scripts for the website.
 [build]
-command = "pnpm install --ignore-scripts && npx @cloudflare/next-on-pages"
+command = "pnpm install --ignore-scripts && pnpm run build"
 
 [build.environment]
 NODE_VERSION = "20"

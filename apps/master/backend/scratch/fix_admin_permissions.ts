@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Using __dirname workaround for ES modules if needed, but since it's tsx we can just use process.cwd() or absolute path
+// Using _dirname workaround for ES modules if needed, but since it's tsx we can just use process.cwd() or absolute path
 const dbPath = path.resolve('C:/Users/alamo/Desktop/ClickFlash/apps/master/pb_data/master.db');
 const db = new Database(dbPath);
 

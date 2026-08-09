@@ -114,7 +114,7 @@ export function redactSensitiveFields(obj: unknown, seen = new WeakSet()): unkno
  * Redacted fields: password, token, secret, apiKey, authorization, creditCard, ssn, cookie.
  * Matching is case-insensitive. Works recursively on nested objects and arrays.
  */
-export const redactFormat = winston.format((info) => {
+export const redactFormat = winston.format((info: winston.Logform.TransformableInfo) => {
   // Walk every top-level key in the info object (excluding Winston internals)
   const winstonInternals = new Set(['level', 'message', 'splat', Symbol.for('level'), Symbol.for('splat')]);
 
@@ -143,7 +143,7 @@ export function createLogger(config: LoggerConfig): ILogger {
 
   const { combine, timestamp, printf, colorize, errors, json } = winston.format;
 
-  const customFormat = printf(({ level: lvl, message, timestamp: ts, stack, service }) => {
+  const customFormat = printf(({ level: lvl, message, timestamp: ts, stack, service }: winston.Logform.TransformableInfo) => {
     return `${ts} [${service}] ${lvl}: ${stack || message}`;
   });
 

@@ -2,6 +2,7 @@
   "name": "moneytrash-uploader",
   "version": "2.0.0",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@10.28.2",
   "main": "dist/electron/electron-main.js",
   "scripts": {

@@ -8,14 +8,14 @@ import { dirname } from "path";
 
 import { logger } from "../utils/logger";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
 
 // Load from root env first
-dotenv.config({ path: path.join(__dirname, "../../.env") });
+dotenv.config({ path: path.join(_dirname, "../../.env") });
 
 // Target the CORRECT production database (two levels up from setup/)
-const DB_FILE = path.join(__dirname, "../../pb_data/master.db");
+const DB_FILE = path.join(_dirname, "../../pb_data/master.db");
 
 async function runStress() {
   logger.info("========================================");

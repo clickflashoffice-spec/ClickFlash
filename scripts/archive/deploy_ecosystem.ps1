@@ -67,8 +67,8 @@ Write-Host "`n[BUILD] Sanitizing apps/website for frontend build..." -Foreground
 $originalDir = Get-Location
 try {
     Set-Location "apps/website"
-    Write-Host "Running: npx @cloudflare/next-on-pages" -ForegroundColor Green
-    npx @cloudflare/next-on-pages
+    Write-Host "Running: wsl npx @cloudflare/next-on-pages" -ForegroundColor Green
+    wsl npx @cloudflare/next-on-pages
     $res = $LASTEXITCODE
 } finally {
     Set-Location $originalDir

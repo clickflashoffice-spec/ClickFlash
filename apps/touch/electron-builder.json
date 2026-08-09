@@ -6,7 +6,7 @@
   "compression": "maximum",
   "npmRebuild": false,
   "nodeGypRebuild": false,
-  "afterPack": "./scripts/ensure-native-deps.js",
+  "afterPack": "./scripts/ensure-native-deps.cjs",
   "asar": true,
   "asarUnpack": [
     "node_modules/better-sqlite3-multiple-ciphers/**/*",

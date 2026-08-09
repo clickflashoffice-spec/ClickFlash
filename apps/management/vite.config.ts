@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => ({
   base: "/manage/",
   plugins: [react()],
   server: {
-    port: 5175, // Unified port
+    port: 8092, // Unified port
     strictPort: true,
     proxy: {
       "/api": {
@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   preview: {
-    port: 5175,
+    port: 8092,
     host: true,
     strictPort: true,
   },

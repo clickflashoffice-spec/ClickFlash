@@ -8,6 +8,11 @@ import { Logger } from '../utils/logger';
 import { signFilePath } from '../utils/signedUrls';
 import { walletService } from '../services/WalletService';
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 interface GalleryContext {
     dbManager: DatabaseManager;
     logger: Logger;
@@ -160,7 +165,7 @@ export default function galleryRoutes(context: GalleryContext) {
     // zombie threads (watermarkWorker has no self-exit logic).
     function runWatermarkWorker(job: any): Promise<void> {
         return new Promise((resolve, reject) => {
-            const workerPath = path.resolve(__dirname, '../workers/watermarkWorker.js');
+            const workerPath = path.resolve(_dirname, '../workers/watermarkWorker.js');
             const worker = new Worker(workerPath);
 
             worker.on('message', (result) => {

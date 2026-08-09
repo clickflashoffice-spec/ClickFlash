@@ -3,6 +3,11 @@ import path from 'path';
 import sharp from 'sharp';
 import { createLogger } from '@clickflash/logger';
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 const logger = createLogger({ serviceName: 'UpscaleService' });
 
 export interface UpscaleResult {
@@ -22,7 +27,7 @@ export class UpscaleService {
   constructor(dbManager: any) {
     this.dbManager = dbManager;
     // Check local models path for potential ONNX upscale model
-    this.modelsDir = path.join(__dirname, '..', '..', 'assets', 'models');
+    this.modelsDir = path.join(_dirname, '..', '..', 'assets', 'models');
   }
 
   /**

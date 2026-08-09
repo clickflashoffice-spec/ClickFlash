@@ -3,6 +3,11 @@ import path from 'path';
 import FormData from 'form-data';
 import { logger } from '../utils/logger';
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 // Use standard fetch if available (Node 18+), otherwise need a polyfill or axios.
 // The user environment ran 'npx tsx' which should have fetch.
 
@@ -49,7 +54,7 @@ const main = async () => {
         formData.append('photographerId', "1");
 
         // Create a dummy file if it doesn't exist
-        const dummyPath = path.join(__dirname, 'test_photo.jpg');
+        const dummyPath = path.join(_dirname, 'test_photo.jpg');
         if (!fs.existsSync(dummyPath)) {
             fs.writeFileSync(dummyPath, 'dummy data');
         }

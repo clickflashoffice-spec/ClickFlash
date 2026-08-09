@@ -1,4 +1,9 @@
 import { logger } from "@/utils/logger";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 /**
  * Cloud Bridge Diagnostic Tool
  * 
@@ -16,7 +21,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Load .env if exists
-const envPath = path.join(__dirname, '..', '.env');
+const envPath = path.join(_dirname, '..', '.env');
 if (fs.existsSync(envPath)) {
     const envContent = fs.readFileSync(envPath, 'utf8');
     envContent.split('\n').forEach(line => {
@@ -40,7 +45,7 @@ logger.info('╚═════════════════════�
 // Generate consistent machine ID
 function getMachineId() {
     // Try to read existing machine ID
-    const dataDir = process.env.DATA_DIR || path.join(__dirname, '..', '..', 'pb_data');
+    const dataDir = process.env.DATA_DIR || path.join(_dirname, '..', '..', 'pb_data');
     const machineIdPath = path.join(dataDir, '.machine_id');
     
     if (fs.existsSync(machineIdPath)) {

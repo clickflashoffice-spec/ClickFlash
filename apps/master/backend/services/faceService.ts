@@ -4,6 +4,10 @@ import fs from "fs";
 import { logger } from '../utils/logger';
 import { FaceAnalysis, FaceWorkerResult, FaceWorkerJob } from "../types/face";
 import { WorkerPool } from '../services/WorkerPool';
+import { fileURLToPath } from 'url';
+
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
 
 // Path to models
 const getModelsPath = () => {
@@ -39,10 +43,10 @@ export class FaceService {
   }
 
   private getWorkerScriptPath(): string {
-    const prodPath = path.resolve(__dirname, "../workers/faceWorker.js");
+    const prodPath = path.resolve(_dirname, "../workers/faceWorker.js");
     if (fs.existsSync(prodPath)) return prodPath;
 
-    const devPath = path.resolve(__dirname, "../workers/faceWorker.ts");
+    const devPath = path.resolve(_dirname, "../workers/faceWorker.ts");
     if (fs.existsSync(devPath)) return devPath;
 
     return path.resolve(process.cwd(), "backend/workers/faceWorker.ts");

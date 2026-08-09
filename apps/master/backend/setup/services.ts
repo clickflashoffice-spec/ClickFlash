@@ -59,6 +59,11 @@ import {
 } from "../config/constants";
 import { initCsrfTokenStore } from "../utils/csrfStore";
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 export interface SetupServicesResult {
   dbManager: DatabaseManager;
   logger: Logger;
@@ -107,8 +112,8 @@ export function setupServices(): SetupServicesResult {
     auditLogger = new AuditLogger(DATA_DIR);
     setRateLimiterAuditLogger(auditLogger);
 
-    const SHARED_MIGRATIONS_DIR = path.join(__dirname, "..", "database", "migrations");
-    const BACKEND_MIGRATIONS_DIR = path.join(__dirname, "..", "migrations");
+    const SHARED_MIGRATIONS_DIR = path.join(_dirname, "..", "database", "migrations");
+    const BACKEND_MIGRATIONS_DIR = path.join(_dirname, "..", "migrations");
     dbManager = new DatabaseManager(DB_FILE);
     dbManager.connect(SHARED_MIGRATIONS_DIR);
     dbManager.startIdleWalCheckpointScheduler(30 * 60 * 1000); // Checkpoint WAL every 30 minutes

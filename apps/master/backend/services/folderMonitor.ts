@@ -12,6 +12,11 @@ import RealtimeService from "./realtimeService";
 import AlbumService from "./albumService";
 import { PhotoProcessor } from '../services/photoProcessor';
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 interface FolderMonitorContext {
   dbManager: DatabaseManager;
   logger: Logger;
@@ -26,9 +31,9 @@ const startFolderMonitor = (context: FolderMonitorContext): void => {
   const albumService = new AlbumService({ ...context, bookingService });
 
   // For development (src/backend/services -> src/backend/workers)
-  const devWorkerPath = path.resolve(__dirname, "../workers/folderWorker.ts");
+  const devWorkerPath = path.resolve(_dirname, "../workers/folderWorker.ts");
   // For production (dist/backend/server.js -> dist/backend/workers/)
-  const prodWorkerPath = path.resolve(__dirname, "./workers/folderWorker.js");
+  const prodWorkerPath = path.resolve(_dirname, "./workers/folderWorker.js");
   const actualWorkerPath = fs.existsSync(prodWorkerPath) ? prodWorkerPath : devWorkerPath;
 
   // Configuration for worker

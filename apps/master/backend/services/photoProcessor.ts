@@ -7,6 +7,11 @@ import { DatabaseManager } from '../database/db';
 import sharp from "sharp";
 import { ImageEditRecipeV1Schema } from "@clickflash/types";
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 const logger = new Logger(path.resolve(process.cwd(), "pb_data"));
 
 // Maximum allowed file size (50 MB). Must match formidable's maxFileSize so
@@ -107,20 +112,20 @@ export class PhotoProcessor {
   }
 
   private getWorkerPath(): string {
-    const devPath = path.resolve(__dirname, "../workers/photoWorker.ts");
+    const devPath = path.resolve(_dirname, "../workers/photoWorker.ts");
     if (fs.existsSync(devPath)) return devPath;
 
-    const prodPath = path.resolve(__dirname, "./workers/photoWorker.js");
+    const prodPath = path.resolve(_dirname, "./workers/photoWorker.js");
     if (fs.existsSync(prodPath)) return prodPath;
 
     return path.resolve(process.cwd(), "backend/workers/photoWorker.ts");
   }
 
   private getMLWorkerPath(): string {
-    const devPath = path.resolve(__dirname, "../workers/MLWorker.ts");
+    const devPath = path.resolve(_dirname, "../workers/MLWorker.ts");
     if (fs.existsSync(devPath)) return devPath;
 
-    const prodPath = path.resolve(__dirname, "./workers/MLWorker.js");
+    const prodPath = path.resolve(_dirname, "./workers/MLWorker.js");
     if (fs.existsSync(prodPath)) return prodPath;
 
     return path.resolve(process.cwd(), "backend/workers/MLWorker.ts");

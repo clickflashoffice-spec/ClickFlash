@@ -7,6 +7,9 @@ import path from 'path';
 import { DATA_DIR, SESSION_SECRET } from '../config/constants';
 import { logger } from '../utils/logger';
 
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
 // Require because better-sqlite3-session-store often doesn't have Typescript definitions or default export structure issues
 const SqliteStore = require('better-sqlite3-session-store')(session);
 

@@ -74,7 +74,7 @@ electronVersion: "39.8.7"
 npmRebuild: false
 asar: true
 
-afterPack: scripts/ensure-native-deps.js
+afterPack: scripts/ensure-native-deps.cjs
 
 publish:
   provider: github

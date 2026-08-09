@@ -1,10 +1,15 @@
 import { logger } from "@/utils/logger";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 const Database = require('better-sqlite3');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
 // Connect to DB
-const dbPath = path.join(__dirname, '../../pb_data/master.db');
+const dbPath = path.join(_dirname, '../../pb_data/master.db');
 logger.info('Connecting to database at:', dbPath);
 const db = new Database(dbPath);
 

@@ -7,8 +7,8 @@ import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { logger } from "@clickflash/logger";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
 
 // --- Environment & Port Configuration ---
 // Use BACKEND_PORT (not the generic PORT) so the Vite dev server and preview
@@ -20,7 +20,7 @@ export const isElectron = (process.versions && !!process.versions.electron) || (
 
 // --- Directory Configuration ---
 export const DATA_DIR = process.env.DATA_DIR || (process.env.NODE_ENV !== 'test' && process.argv[2] && !process.argv[2].startsWith('-') ? process.argv[2] : path.join(process.cwd(), 'pb_data'));
-// Note: __dirname in compiled TS might differ if structure changes, but for now assuming output structure mirrors input or using logical paths
+// Note: _dirname in compiled TS might differ if structure changes, but for now assuming output structure mirrors input or using logical paths
 export const DB_FILE = path.join(DATA_DIR, 'master.db');
 export const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
 export const IMPORT_DIR = path.join(DATA_DIR, 'processing'); // Isolated temp storage to prevent clutter
@@ -104,7 +104,7 @@ export const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
 
 // --- Web Root Configuration ---
 // --- Web Root Configuration ---
-const IS_PROD_CHECK = path.basename(path.dirname(path.dirname(__dirname))) === 'resources';
+const IS_PROD_CHECK = path.basename(path.dirname(path.dirname(_dirname))) === 'resources';
 export const IS_PROD = IS_PROD_CHECK;
 
 const resolveWebRoot = () => {
@@ -118,7 +118,7 @@ const resolveWebRoot = () => {
     }
 
     // 1. Production Build (node dist/backend/server.js) -> dist/master
-    const candidate1 = path.join(__dirname, '../master');
+    const candidate1 = path.join(_dirname, '../master');
     logger.info(String(`[WebRoot] Checking candidate 1: ${candidate1}`));
     if (fs.existsSync(path.join(candidate1, 'index.html'))) {
         logger.info(String(`[WebRoot] Found candidate 1`));

@@ -1,0 +1,7 @@
+# Force LF line endings for GitHub Actions workflows
+# Mixed CRLF/LF causes startup_failure on GitHub
+.github/workflows/*.yml text eol=lf
+.github/workflows/*.yaml text eol=lf
+
+# Shell scripts
+*.sh text eol=lf

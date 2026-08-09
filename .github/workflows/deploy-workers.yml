@@ -23,7 +23,7 @@ env:
 jobs:
   deploy-gallery-worker:
     name: Deploy Gallery Worker
-    if: github.event_name == 'push' || github.event.inputs.worker == 'all' || github.event.inputs.worker == 'gallery'
+    if: github.event_name == 'push' || inputs.worker == 'all' || inputs.worker == 'gallery'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -55,7 +55,7 @@ jobs:
 
   deploy-management-worker:
     name: Deploy Management Worker
-    if: github.event_name == 'push' || github.event.inputs.worker == 'all' || github.event.inputs.worker == 'management'
+    if: github.event_name == 'push' || inputs.worker == 'all' || inputs.worker == 'management'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -87,7 +87,7 @@ jobs:
 
   deploy-moneytrash-worker:
     name: Deploy Moneytrash Worker
-    if: github.event_name == 'push' || github.event.inputs.worker == 'all' || github.event.inputs.worker == 'moneytrash'
+    if: github.event_name == 'push' || inputs.worker == 'all' || inputs.worker == 'moneytrash'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

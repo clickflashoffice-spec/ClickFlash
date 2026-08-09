@@ -24,6 +24,22 @@ pnpm --filter mobile run android
 The app requires a native development build. Expo Go cannot load the `CameraTether`
 module.
 
+For an already-installed development APK on the Android emulator, run Metro and the app
+in separate terminals:
+
+```powershell
+# Terminal 1: forces IPv4 localhost so Windows ADB reverse can reach Metro.
+pnpm --filter mobile run start:android
+
+# Terminal 2
+adb reverse tcp:8081 tcp:8081
+adb shell am start -n com.clickflash.photographer/.MainActivity
+```
+
+The Mobile Metro configuration watches only the shared runtime packages declared by this
+app. It must not expand the file map to desktop applications or generated Electron build
+stages.
+
 ## Validation
 
 ```powershell

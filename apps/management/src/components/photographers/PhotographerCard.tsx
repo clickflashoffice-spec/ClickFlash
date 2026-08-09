@@ -1,6 +1,6 @@
 import React from "react";
 import { Photographer } from "../../types.ts";
-import Card from "../common/Card.tsx";
+import { Card } from "@clickflash/ui";
 import { useCurrency } from "../CurrencyContext.tsx";
 
 interface PhotographerCardProps {

@@ -88,13 +88,18 @@ function setOnline(online: boolean) {
     });
 }
 
-function setupCrypto(signBuffer?: ArrayBuffer) {
+function setupCrypto() {
     Object.defineProperty(global, 'crypto', {
         value: {
             randomUUID: vi.fn(() => 'test-id-123'),
+            getRandomValues: vi.fn((arr: Uint8Array) => {
+                arr.fill(1);
+                return arr;
+            }),
             subtle: {
                 importKey: vi.fn(async () => ({ type: 'secret' } as CryptoKey)),
-                sign: vi.fn(async () => signBuffer ?? new Uint8Array([0xab, 0xcd]).buffer)
+                digest: vi.fn(async () => new Uint8Array(32).buffer),
+                encrypt: vi.fn(async () => new Uint8Array(32).buffer)
             }
         },
         writable: true,
@@ -284,7 +289,7 @@ describe('Unified OfflineQueue', () => {
         expect(queueStore).toHaveLength(0);
     });
 
-    it('signs outgoing requests with HMAC when a signing secret is configured', async () => {
+    it('encrypts outgoing requests with AEAD when a signing secret is configured', async () => {
         localStorage.setItem('kioskId', 'kiosk-test');
         localStorage.setItem('signingSecret', 'super-secret');
 
@@ -310,13 +315,15 @@ describe('Unified OfflineQueue', () => {
             '/api/sync/mutation',
             expect.objectContaining({
                 headers: expect.objectContaining({
-                    'x-kiosk-id': 'kiosk-test',
-                    'x-signature': expect.any(String)
+                    'x-kiosk-id': 'kiosk-test'
                 })
             })
         );
-        const headers = mockFetch.mock.calls[0][1].headers;
-        expect(headers['x-signature']).toBe('abcd');
+        const requestBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+        expect(requestBody.kioskId).toBe('kiosk-test');
+        expect(requestBody.iv).toBeDefined();
+        expect(requestBody.ciphertext).toBeDefined();
+        expect(requestBody.tag).toBeDefined();
         expect(logger.error).not.toHaveBeenCalled();
     });
 

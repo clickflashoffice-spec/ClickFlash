@@ -18,7 +18,7 @@ import {
   Search,
   Command as CommandIcon,
 } from "lucide-react";
-import Spinner from "../common/Spinner.tsx";
+import { Spinner } from "@clickflash/ui";
 import { logger } from '@/utils/logger';
 
 const AIChatBot = lazy(() => import("./AIChatBot.tsx"));
@@ -50,7 +50,7 @@ const WhiteLabelSettingsPage = lazy(() => import("./WhiteLabelSettingsPage.tsx")
 const SLAMonitoringPage = lazy(() => import("./SLAMonitoringPage.tsx"));
 const PageLoader = () => (
   <div className="flex items-center justify-center h-64">
-    <Spinner size="lg" />
+    <Spinner size="large" />
   </div>
 );
 

@@ -1,10 +1,11 @@
-import { apiService } from '../apiService';
 import { pb } from "../pb";
 import {
   Destination,
   Currency,
 } from "../../types";
 import { logger } from "@/utils/logger";
+import { getEnv } from "@/utils/env";
+import { usersPhotographersApi } from './usersPhotographersApi';
 
 /**
  * API Service - Wrapper around pb adapter for convenient data operations
@@ -42,13 +43,13 @@ export const initializationApi = {
         return;
       }
 
-      const users = await apiService.getUsers();
+      const users = await usersPhotographersApi.getUsers();
       if (users.length === 0) {
         // Create a default admin user
-        await apiService.createUser({
+        await usersPhotographersApi.createUser({
           name: "Admin",
-          email: "admin@starmaster.local",
-          password: "admin",
+          email: getEnv().VITE_DEFAULT_ADMIN_EMAIL,
+          password: getEnv().VITE_DEFAULT_ADMIN_PASSWORD,
           role: "Admin",
         });
         logger.info("[apiService] Created default admin user");

@@ -1,10 +1,11 @@
+import { Button } from '@clickflash/ui';
 "use client";
 
 import { motion } from "framer-motion";
 import { Monitor, Smartphone, CloudUpload, BarChart3, ShoppingBag, ArrowRight } from "lucide-react";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { Button } from "@/components/ui/Button";
+
 
 const apps = [
     {

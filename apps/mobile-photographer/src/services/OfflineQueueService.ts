@@ -1,5 +1,6 @@
 import { getDatabase } from '../backend/database';
 import { logger } from "@/utils/logger";
+import { appState } from '../store';
 
 export type QueueItemType = 'SHIFT_EVENT' | 'PHOTO_SYNC' | 'FACE_ENROLL' | 'GENERIC_API';
 
@@ -31,6 +32,7 @@ export class OfflineQueueService {
    */
   public async initialize(): Promise<void> {
     await getDatabase();
+    appState.network.offlineQueueSize = await this.getQueueSize();
   }
 
   /**
@@ -55,6 +57,7 @@ export class OfflineQueueService {
     );
 
     logger.info(`[OfflineQueueService] Enqueued ${type} (${endpoint}) into SQLite.`);
+    appState.network.offlineQueueSize = await this.getQueueSize();
     return {
       id,
       type,
@@ -111,6 +114,7 @@ export class OfflineQueueService {
   public async dequeue(itemId: string): Promise<void> {
     const db = await getDatabase();
     await db.runAsync(`DELETE FROM offline_queue WHERE id = ?`, [itemId]);
+    appState.network.offlineQueueSize = await this.getQueueSize();
   }
 
   /**
@@ -127,6 +131,7 @@ export class OfflineQueueService {
   public async clearQueue(): Promise<void> {
     const db = await getDatabase();
     await db.runAsync(`DELETE FROM offline_queue`);
+    appState.network.offlineQueueSize = 0;
   }
 
   public async getQueueSize(): Promise<number> {

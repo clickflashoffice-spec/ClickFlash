@@ -1,6 +1,7 @@
+import { Modal } from "@clickflash/ui";
 import { logger } from '@clickflash/logger';
 import React, { useState, useEffect } from 'react';
-import Modal from './common/Modal';
+
 import { PHOTO_THEMES } from '../constants.ts';
 import { studioIntelligenceService } from '../services/studioIntelligenceService';
 import type { ShootIdea } from '../services/studioIntelligenceService';

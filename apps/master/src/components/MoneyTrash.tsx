@@ -1,7 +1,8 @@
+import { Spinner } from "@clickflash/ui";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { logger } from '../utils/logger.ts';
 import { cloudService } from '../services/api/cloudService';
-import Spinner from './common/Spinner.tsx';
+
 import { UploadErrorBoundary } from './UploadErrorBoundary.tsx';
 import { MoneyTrashHeader } from './moneytrash/MoneyTrashHeader';
 import { MoneyTrashStats } from './moneytrash/MoneyTrashStats';
@@ -344,8 +345,6 @@ const MoneyTrash: React.FC<MoneyTrashProps> = ({ currentUser }) => {
         const date = new Date(dateString);
         return date.toLocaleString();
     };
-
-
 
     if (loading) {
         return (

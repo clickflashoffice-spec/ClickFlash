@@ -1,5 +1,5 @@
 import React from 'react';
-import Card from './Card';
+import { Card } from '@clickflash/ui';
 
 interface AccessDeniedProps {
     permission?: string;

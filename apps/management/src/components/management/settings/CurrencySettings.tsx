@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useCurrency } from "../../CurrencyContext.tsx";
 import { apiService } from "../../../services/apiService.ts";
 import { Currency } from "../../../types.ts";
-import Spinner from "../../common/Spinner.tsx";
+import { Spinner } from "@clickflash/ui";
 import { logger } from "@/utils/logger";
 
 const CurrencySettings: React.FC = () => {

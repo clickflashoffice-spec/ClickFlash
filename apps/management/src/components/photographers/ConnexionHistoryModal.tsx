@@ -1,5 +1,5 @@
 import React from 'react';
-import Modal from '../common/Modal.tsx';
+import { Modal } from "@clickflash/ui";
 import { Photographer } from '../../types.ts';
 import { MOCK_LOGIN_HISTORY } from '../../constants.ts';
 

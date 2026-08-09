@@ -65,19 +65,18 @@ class MoneyTrashSyncService extends EventEmitter {
   }
 
   /**
-   * Sync configuration from Management App (Supabase)
+   * Sync configuration from Management App
    */
   async syncFromManagement(
-    supabaseUrl: string,
+    backendUrl: string,
     apiKey: string,
   ): Promise<boolean> {
     try {
-      // Fetch from Supabase
+      // Fetch from Cloud Backend
       const response = await fetch(
-        `${supabaseUrl}/rest/v1/gallery_settings?setting_key=eq.money_trash_config`,
+        `${backendUrl}/api/settings?setting_key=money_trash_config`,
         {
           headers: {
-            apikey: apiKey,
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
           },

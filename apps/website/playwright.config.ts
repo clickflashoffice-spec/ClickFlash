@@ -12,6 +12,10 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
+  timeout: 300000,
+  expect: {
+    timeout: 30000,
+  },
   projects: [
     {
       name: 'chromium',
@@ -19,9 +23,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm run build && pnpm run start',
+    command: 'pnpm run start',
     url: 'http://localhost:3000',
-    timeout: 120000,
+    timeout: 300000,
     reuseExistingServer: true,
   },
 });

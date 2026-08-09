@@ -8,8 +8,10 @@ import { PrintFulfillmentService } from './print-fulfillment';
 
 const logger = createLogger({ serviceName: 'stripe-webhook' });
 
-// Configure Stripe (fallback to dummy key for typechecking if env is missing)
-const stripeKey = process.env.STRIPE_SECRET_KEY || 'sk_test_123';
+const stripeKey = process.env.STRIPE_SECRET_KEY;
+if (!stripeKey) {
+  throw new Error('STRIPE_SECRET_KEY environment variable is missing');
+}
 const stripe = new Stripe(stripeKey, {
   apiVersion: '2026-06-24.dahlia',
 });

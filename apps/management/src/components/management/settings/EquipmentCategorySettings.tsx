@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { EquipmentCategory } from "../../../types";
 import { apiService } from "../../../services/apiService";
-import Spinner from "../../common/Spinner";
+import { Spinner } from "@clickflash/ui";
 import EquipmentCategoryEditModal from "../modals/EquipmentCategoryEditModal";
 import { logger } from "@/utils/logger";
 

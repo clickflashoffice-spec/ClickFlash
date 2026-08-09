@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
-import Card from "../common/Card.tsx";
+import { Card } from "@clickflash/ui";
 import { Destination, Order, Expense } from "../../types.ts";
 import { apiService } from "../../services/apiService.ts";
-import Spinner from "../common/Spinner.tsx";
+import { Spinner } from "@clickflash/ui";
 import { useCurrency } from "../CurrencyContext.tsx";
 import AddDestinationModal from "./modals/AddDestinationModal.tsx";
 import { useDebounce } from "../../hooks/useDebounce.ts";

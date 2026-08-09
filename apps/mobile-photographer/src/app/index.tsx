@@ -2,25 +2,29 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
-  StyleSheet,
   TouchableOpacity,
-  useColorScheme,
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useSnapshot } from 'valtio';
+import { appState } from '../store';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import MasterConnectionCard from '@/components/MasterConnectionCard';
-import { BottomTabInset, MaxContentWidth, Spacing, Colors, Typography } from '@/constants/theme';
+
+import { logger } from '@/utils/logger';
 import { ShiftService } from '../services/ShiftService';
 import { useAutoEditor } from '../hooks/useAutoEditor';
 import { useVoiceTagging } from '../hooks/useVoiceTagging';
 import { meshSyncService } from '../services/MeshSyncService';
 import { cameraTetherService } from '../services/CameraTetherService';
-import { logger } from "@/utils/logger";
+import {
+  createCameraCapabilityRegistry,
+  summarizeCameraCapabilities,
+} from '../services/CameraCapabilityRegistry';
 
 function formatStorageBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 GiB';
@@ -35,127 +39,45 @@ interface VerifiedCapturePreview {
 }
 
 export default function StudioScreen() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'light' ? 'light' : 'dark'];
-  const [isClockedIn, setIsClockedIn] = useState(false);
-  const [photoCount, setPhotoCount] = useState(0);
-  const [storageBlockedCount, setStorageBlockedCount] = useState(0);
-  const [pairedSetCount, setPairedSetCount] = useState(0);
-  const [awaitingCompanionCount, setAwaitingCompanionCount] = useState(0);
-  const [standaloneCaptureCount, setStandaloneCaptureCount] = useState(0);
-  const [ambiguousPairCount, setAmbiguousPairCount] = useState(0);
-  const [masterPendingCount, setMasterPendingCount] = useState(0);
-  const [readyDeliveryCount, setReadyDeliveryCount] = useState(0);
-  const [deliveryAttentionCount, setDeliveryAttentionCount] = useState(0);
-  const [lastVerifiedPreview, setLastVerifiedPreview] =
-    useState<VerifiedCapturePreview | null>(null);
-  const { isEditing, lastEditedPhoto, lastPoseAnalysis, processPhoto } = useAutoEditor();
-  const { isListening, activeVoiceTags, lastTranscript, stopVoiceRecordingAndTag } = useVoiceTagging();
-  const [meshStatus, setMeshStatus] = useState(meshSyncService.getRelayQueueStatus());
-  const [tetherStatus, setTetherStatus] = useState(cameraTetherService.getStatus());
-  const [tetherError, setTetherError] = useState<string | null>(
-    cameraTetherService.getStatus().lastErrorMessage
-  );
+  const { network, tether, ledger, shift } = useSnapshot(appState);
+  const isClockedIn = shift.isClockedIn;
+  const photoCount = ledger.localVerified;
+  const storageBlockedCount = ledger.storageBlocked;
+  const pairedSetCount = ledger.pairedSets;
+  const awaitingCompanionCount = ledger.awaitingCompanion;
+  const standaloneCaptureCount = ledger.standaloneCaptures;
+  const ambiguousPairCount = ledger.ambiguousPairs;
+  const masterPendingCount = ledger.masterPending;
+  const readyDeliveryCount = ledger.readyDeliveries;
+  const deliveryAttentionCount = ledger.deliveryAttention;
+  const lastVerifiedPreview = tether.lastVerifiedPreview;
+  const meshStatus = network.relayQueueStatus;
+  const tetherStatus = tether.status;
+  const tetherError = tether.error;
+
+  const { isEditing, processPhoto, lastEditedPhoto, lastPoseAnalysis } = useAutoEditor();
+  const { isListening, lastTranscript, activeVoiceTags, stopVoiceRecordingAndTag } = useVoiceTagging();
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setMeshStatus(meshSyncService.getRelayQueueStatus());
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const importSubscription = cameraTetherService.addImportListener((
-      capture,
-      captureObjectId
-    ) => {
-      if (capture.mediaType !== 'jpeg') {
-        logger.info('[StudioScreen] Nikon RAW capture retained for Master processing.', {
-          filename: capture.filename,
-          sha256: capture.sha256,
-        });
-        return;
-      }
-
-      setLastVerifiedPreview({
-        captureObjectId,
-        filename: capture.filename,
-        localUri: capture.localUri,
-        sha256: capture.sha256,
-      });
-      void processPhoto(
-        capture.localUri,
-        capture.filename,
-        captureObjectId,
-        capture.sha256,
+    if (lastVerifiedPreview) {
+      processPhoto(
+        lastVerifiedPreview.localUri,
+        lastVerifiedPreview.filename,
+        lastVerifiedPreview.captureObjectId,
+        lastVerifiedPreview.sha256,
         activeVoiceTags
       ).catch((error) => {
-          setTetherError(`Imported ${capture.filename}, but automatic editing failed.`);
-          logger.error('[StudioScreen] Automatic edit failed for imported camera capture.', error);
-        });
-    });
-
-    return () => importSubscription.remove();
-  }, [activeVoiceTags, processPhoto]);
+        appState.tether.error = `Imported ${lastVerifiedPreview.filename}, but automatic editing failed.`;
+        logger.error('[StudioScreen] Automatic edit failed for imported camera capture.', error);
+      });
+    }
+  }, [lastVerifiedPreview, activeVoiceTags, processPhoto]);
 
   useEffect(() => {
-    let active = true;
-    const statusSubscription = cameraTetherService.addStatusListener((status) => {
-      if (!active) return;
-      setTetherStatus(status);
-      if (
-        status.phase !== 'ERROR' &&
-        status.phase !== 'PERMISSION_REQUIRED' &&
-        status.phase !== 'STORAGE_BLOCKED'
-      ) {
-        setTetherError(null);
-      } else if (status.lastErrorMessage) {
-        setTetherError(status.lastErrorMessage);
-      }
+    cameraTetherService.start().catch((error) => {
+      appState.tether.error = error instanceof Error ? error.message : String(error);
+      logger.error('[StudioScreen] Camera tether startup failed.', error);
     });
-    const errorSubscription = cameraTetherService.addErrorListener((error) => {
-      if (active) setTetherError(error.message);
-    });
-    const ledgerSubscription = cameraTetherService.addLedgerListener((counts) => {
-      if (!active) return;
-      setPhotoCount(counts.localVerified);
-      setStorageBlockedCount(counts.storageBlocked);
-      setPairedSetCount(counts.pairedSets);
-      setAwaitingCompanionCount(counts.awaitingCompanion);
-      setStandaloneCaptureCount(counts.standaloneCaptures);
-      setAmbiguousPairCount(counts.ambiguousPairs);
-      setMasterPendingCount(counts.masterPending);
-      setReadyDeliveryCount(counts.readyDeliveries);
-      setDeliveryAttentionCount(counts.deliveryAttention);
-    });
-
-    void cameraTetherService.start()
-      .then(() => cameraTetherService.getLedgerCounts())
-      .then((counts) => {
-        if (active) {
-          setPhotoCount(counts.localVerified);
-          setStorageBlockedCount(counts.storageBlocked);
-          setPairedSetCount(counts.pairedSets);
-          setAwaitingCompanionCount(counts.awaitingCompanion);
-          setStandaloneCaptureCount(counts.standaloneCaptures);
-          setAmbiguousPairCount(counts.ambiguousPairs);
-          setMasterPendingCount(counts.masterPending);
-          setReadyDeliveryCount(counts.readyDeliveries);
-          setDeliveryAttentionCount(counts.deliveryAttention);
-        }
-      })
-      .catch((error) => {
-        if (!active) return;
-        setTetherError(error instanceof Error ? error.message : String(error));
-        logger.error('[StudioScreen] Camera tether startup failed.', error);
-      });
-
-    return () => {
-      active = false;
-      statusSubscription.remove();
-      errorSubscription.remove();
-      ledgerSubscription.remove();
-    };
   }, []);
 
   const handleClockInOut = async () => {
@@ -166,7 +88,7 @@ export default function StudioScreen() {
     const event = await shiftService.logShift('photo_123', type);
     
     if (event) {
-      setIsClockedIn(!isClockedIn);
+      appState.shift.isClockedIn = !isClockedIn;
       Alert.alert('Success', `Successfully clocked ${isClockedIn ? 'out' : 'in'}.`);
     } else {
       Alert.alert('Verification Failed', 'Biometric verification failed or was cancelled.');
@@ -178,7 +100,7 @@ export default function StudioScreen() {
       await cameraTetherService.retryConnection();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Camera connection failed.';
-      setTetherError(message);
+      appState.tether.error = message;
       logger.error('[StudioScreen] Camera tether retry failed.', error);
     }
   };
@@ -187,14 +109,38 @@ export default function StudioScreen() {
     tetherStatus.phase === 'CONNECTING' || tetherStatus.phase === 'BASELINING';
   const isMonitoring = tetherStatus.phase === 'MONITORING';
   const isStorageBlocked = tetherStatus.phase === 'STORAGE_BLOCKED';
+  const cameraCapabilities = summarizeCameraCapabilities(
+    createCameraCapabilityRegistry(
+      tetherStatus.connected
+        ? {
+            vendorId: tetherStatus.vendorId,
+            productId: tetherStatus.productId,
+            manufacturerName: tetherStatus.manufacturerName,
+            productName: tetherStatus.productName,
+          }
+        : {}
+    )
+  );
+  const isRecognizedD7000 =
+    cameraCapabilities.identity.modelId === 'NIKON_D7000';
+  const cameraProfileLabel = !tetherStatus.connected
+    ? 'NOT CONNECTED'
+    : cameraCapabilities.identity.recognition === 'RECOGNIZED'
+      ? `${cameraCapabilities.identity.displayName.toUpperCase()} · UNVERIFIED`
+      : 'UNKNOWN CAMERA · UNVERIFIED';
+  const remoteControlLabel = cameraCapabilities.allowedRemoteCommands.length > 0
+    ? `${cameraCapabilities.allowedRemoteCommands.length} CERTIFIED COMMANDS`
+    : 'LOCKED · CERT REQUIRED';
   const tetherLabel = isEditing
     ? 'AI ENHANCING...'
     : tetherStatus.phase === 'MONITORING'
-      ? 'D7000 AUTO CAPTURE'
+      ? isRecognizedD7000
+        ? 'D7000 INGEST ACTIVE'
+        : 'WIRED INGEST ACTIVE'
       : tetherStatus.phase === 'STORAGE_BLOCKED'
         ? 'FREE STORAGE + RETRY'
       : tetherStatus.phase === 'WAITING_FOR_CAMERA'
-        ? 'CONNECT D7000 + USB'
+        ? 'CONNECT CAMERA + USB'
         : tetherStatus.phase === 'PERMISSION_REQUIRED'
           ? 'TAP TO GRANT USB'
           : tetherStatus.phase === 'CONNECTING'
@@ -204,15 +150,14 @@ export default function StudioScreen() {
               : tetherStatus.phase === 'UNAVAILABLE'
                 ? 'ANDROID BUILD REQUIRED'
                 : 'TAP TO RETRY CAMERA';
-  const tetherColor = tetherStatus.phase === 'ERROR' || isStorageBlocked
-    ? colors.danger
-    : isEditing
-      ? colors.warning
-      : tetherStatus.storage.level === 'WARNING'
-        ? colors.warning
-      : isMonitoring
-        ? colors.success
-        : colors.tint;
+  const getTetherClasses = () => {
+    if (tetherStatus.phase === 'ERROR' || isStorageBlocked) return 'border-danger text-danger shadow-danger';
+    if (isEditing) return 'border-warning text-warning shadow-warning';
+    if (tetherStatus.storage.level === 'WARNING') return 'border-warning text-warning shadow-warning';
+    if (isMonitoring) return 'border-success text-success shadow-success';
+    return 'border-tint text-tint shadow-tint';
+  };
+  const tetherClasses = getTetherClasses();
   const matchingQuickEdit =
     lastVerifiedPreview &&
     lastEditedPhoto?.sourceCaptureId === lastVerifiedPreview.captureObjectId
@@ -225,15 +170,15 @@ export default function StudioScreen() {
   };
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
-      <SafeAreaView style={styles.safeArea}>
+    <ThemedView className="flex-1 flex-row justify-center bg-background">
+      <SafeAreaView className="flex-1 px-4 gap-3 pt-4 pb-24 w-full max-w-7xl">
         
         {/* Header / Top Glanceable Zone */}
-        <View style={styles.header}>
-          <ThemedText style={styles.headerText}>STUDIO COMMAND</ThemedText>
-          <View style={[styles.statusBadge, { borderColor: isClockedIn ? colors.success : colors.elevated }]}>
-            <View style={[styles.dot, { backgroundColor: isClockedIn ? colors.success : colors.tint }]} />
-            <ThemedText style={[styles.statusText, { color: isClockedIn ? colors.success : colors.tint }]}>
+        <View className="flex-row justify-between items-center py-2">
+          <ThemedText className="font-mono text-sm font-bold tracking-widest text-[#94a3b8]">STUDIO COMMAND</ThemedText>
+          <View className={`flex-row items-center bg-transparent px-3 py-1.5 rounded-2xl border gap-2 ${isClockedIn ? 'border-success' : 'border-elevated'}`}>
+            <View className={`w-2 h-2 rounded-full ${isClockedIn ? 'bg-success' : 'bg-tint'}`} />
+            <ThemedText className={`font-mono text-xs font-bold ${isClockedIn ? 'text-success' : 'text-tint'}`}>
               {isClockedIn ? 'ON SHIFT' : 'OFF SHIFT'}
             </ThemedText>
           </View>
@@ -241,93 +186,85 @@ export default function StudioScreen() {
 
         {/* Real-time Pose & Blink Detection Alert Banner */}
         {lastPoseAnalysis?.summaryWarning && (
-          <View style={[styles.warningBanner, { backgroundColor: colors.danger + '22', borderColor: colors.danger }]}>
-            <ThemedText style={[styles.warningBannerText, { color: colors.danger }]}>
+          <View className="p-3 rounded-[10px] border-[1.5px] items-center bg-danger/15 border-danger">
+            <ThemedText className="text-[13px] font-bold text-center text-danger">
               {lastPoseAnalysis.summaryWarning}
             </ThemedText>
           </View>
         )}
 
         {tetherError && (
-          <View style={[styles.warningBanner, { backgroundColor: colors.danger + '22', borderColor: colors.danger }]}>
-            <ThemedText style={[styles.warningBannerText, { color: colors.danger }]}>
+          <View className="p-3 rounded-[10px] border-[1.5px] items-center bg-danger/15 border-danger">
+            <ThemedText className="text-[13px] font-bold text-center text-danger">
               {tetherError}
             </ThemedText>
           </View>
         )}
 
-        <ScrollView contentContainerStyle={{ gap: Spacing.three }} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={{ gap: 12 }} showsVerticalScrollIndicator={false}>
           <MasterConnectionCard />
 
           {/* Hero Section: Live Session Photos */}
-          <ThemedView style={[styles.heroSection, { backgroundColor: 'transparent', marginVertical: Spacing.two }]}>
+          <ThemedView className="items-center justify-center bg-transparent my-2">
             <TouchableOpacity 
-               style={[styles.tetherRing, { borderColor: tetherColor, shadowColor: tetherColor }]}
+               className={`w-[260px] h-[260px] rounded-full border-4 items-center justify-center bg-[#070a12] shadow-2xl elevation-10 ${tetherClasses}`}
                onPress={handleTetherPress}
                disabled={isTetherBusy}
             >
               {isTetherBusy ? (
-                <ActivityIndicator size="large" color={tetherColor} />
+                <ActivityIndicator size="large" className={tetherClasses} />
               ) : (
-                <ThemedText style={[styles.counterText, { color: tetherColor }]}>
+                <ThemedText className={`text-[76px] font-black font-mono ${tetherClasses}`}>
                   {photoCount}
                 </ThemedText>
               )}
-              <ThemedText style={styles.counterLabel}>
+              <ThemedText className="text-[13px] font-bold text-[#94a3b8] tracking-widest mt-2">
                 {tetherLabel}
               </ThemedText>
             </TouchableOpacity>
           </ThemedView>
 
           {lastVerifiedPreview && (
-            <View
-              style={[
-                styles.previewCard,
-                { backgroundColor: colors.surface, borderColor: colors.elevated },
-              ]}>
-              <View style={styles.previewHeader}>
+            <View className="p-3 rounded-xl border gap-3 bg-surface border-elevated">
+              <View className="flex-row justify-between items-center gap-2">
                 <View>
-                  <ThemedText style={styles.telemetryLabel}>LATEST VERIFIED SHOT</ThemedText>
-                  <ThemedText style={styles.previewFilename}>
+                  <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">LATEST VERIFIED SHOT</ThemedText>
+                  <ThemedText className="text-[15px] font-bold mt-0.5">
                     {lastVerifiedPreview.filename}
                   </ThemedText>
                 </View>
-                <ThemedText style={[styles.previewHash, { color: colors.success }]}>
+                <ThemedText className="font-mono text-[11px] font-bold text-success">
                   {lastVerifiedPreview.sha256.slice(0, 12)}
                 </ThemedText>
               </View>
-              <View style={styles.previewGrid}>
-                <View style={styles.previewPane}>
+              <View className="gap-2">
+                <View className="gap-1">
                   <Image
                     source={lastVerifiedPreview.localUri}
-                    style={styles.capturePreview}
+                    className="w-full aspect-[3/2] rounded-lg bg-[#070a12]"
                     contentFit="contain"
                     transition={100}
                   />
-                  <ThemedText style={[styles.previewLabel, { color: colors.success }]}>
+                  <ThemedText className="font-mono text-[11px] font-extrabold tracking-widest text-center text-success">
                     LOCAL VERIFIED ORIGINAL
                   </ThemedText>
                 </View>
                 {matchingQuickEdit ? (
-                  <View style={styles.previewPane}>
+                  <View className="gap-1">
                     <Image
                       source={matchingQuickEdit.uri}
-                      style={styles.capturePreview}
+                      className="w-full aspect-[3/2] rounded-lg bg-[#070a12]"
                       contentFit="contain"
                       transition={100}
                     />
-                    <ThemedText style={[styles.previewLabel, { color: colors.tint }]}>
+                    <ThemedText className="font-mono text-[11px] font-extrabold tracking-widest text-center text-tint">
                       QUICK EDIT · OUTBOX SAFE
                     </ThemedText>
                   </View>
                 ) : (
-                  <View
-                    style={[
-                      styles.previewPending,
-                      { borderColor: colors.elevated },
-                    ]}>
-                    <ActivityIndicator color={colors.warning} />
-                    <ThemedText style={[styles.previewLabel, { color: colors.warning }]}>
+                  <View className="aspect-[3/2] border border-dashed rounded-lg items-center justify-center gap-2 border-elevated">
+                    <ActivityIndicator className="text-warning" />
+                    <ThemedText className="font-mono text-[11px] font-extrabold tracking-widest text-center text-warning">
                       QUICK EDIT PROCESSING
                     </ThemedText>
                   </View>
@@ -337,125 +274,128 @@ export default function StudioScreen() {
           )}
 
           {/* Telemetry Panel / AI Coach & Pose Score */}
-          <View style={[styles.telemetryCard, { backgroundColor: colors.surface, borderColor: colors.elevated }]}>
-              <View style={styles.telemetryRow}>
-                  <ThemedText style={styles.telemetryLabel}>CAMERA TETHER</ThemedText>
-                  <ThemedText style={[styles.telemetryValue, { color: isMonitoring ? colors.success : tetherColor }]}>
+          <View className="p-4 rounded-xl border gap-2 bg-surface border-elevated">
+              <View className="flex-row justify-between items-center">
+                  <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">CAMERA TETHER</ThemedText>
+                  <ThemedText className={`font-mono text-sm font-bold ${isMonitoring ? 'text-success' : tetherClasses}`}>
                     {tetherStatus.phase.replace(/_/g, ' ')}
                   </ThemedText>
               </View>
-              <View style={styles.telemetryRow}>
-                  <ThemedText style={styles.telemetryLabel}>LOCAL LEDGER</ThemedText>
-                  <ThemedText style={[styles.telemetryValue, { color: colors.text }]}>
+              <View className="flex-row justify-between items-center">
+                  <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">CAMERA PROFILE</ThemedText>
+                  <ThemedText className={`font-mono text-sm font-bold shrink ml-2 text-right text-[11px] ${tetherStatus.connected ? 'text-warning' : 'text-text'}`}>
+                    {cameraProfileLabel}
+                  </ThemedText>
+              </View>
+              <View className="flex-row justify-between items-center">
+                  <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">REMOTE CONTROL</ThemedText>
+                  <ThemedText className="font-mono text-sm font-bold shrink ml-2 text-right text-[11px] text-warning">
+                    {remoteControlLabel}
+                  </ThemedText>
+              </View>
+              <View className="flex-row justify-between items-center">
+                  <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">LOCAL LEDGER</ThemedText>
+                  <ThemedText className="font-mono text-sm font-bold text-text">
                     {photoCount} VERIFIED FILES
                   </ThemedText>
               </View>
-              <View style={styles.telemetryRow}>
-                  <ThemedText style={styles.telemetryLabel}>PHONE STORAGE</ThemedText>
-                  <ThemedText style={[
-                    styles.telemetryValue,
-                    {
-                      color: tetherStatus.storage.level === 'BLOCKED'
-                        ? colors.danger
+              <View className="flex-row justify-between items-center">
+                  <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">PHONE STORAGE</ThemedText>
+                  <ThemedText className={`font-mono text-sm font-bold ${
+                      tetherStatus.storage.level === 'BLOCKED'
+                        ? 'text-danger'
                         : tetherStatus.storage.level === 'WARNING'
-                          ? colors.warning
-                          : colors.success,
-                    },
-                  ]}>
+                          ? 'text-warning'
+                          : 'text-success'
+                    }`}>
                     {formatStorageBytes(tetherStatus.storage.availableBytes)} FREE
                   </ThemedText>
               </View>
-              <View style={styles.telemetryRow}>
-                  <ThemedText style={styles.telemetryLabel}>RAW + JPEG</ThemedText>
-                  <ThemedText style={[
-                    styles.telemetryValue,
-                    {
-                      color: ambiguousPairCount > 0
-                        ? colors.danger
+              <View className="flex-row justify-between items-center">
+                  <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">RAW + JPEG</ThemedText>
+                  <ThemedText className={`font-mono text-sm font-bold ${
+                      ambiguousPairCount > 0
+                        ? 'text-danger'
                         : awaitingCompanionCount > 0
-                          ? colors.warning
-                          : colors.success,
-                    },
-                  ]}>
+                          ? 'text-warning'
+                          : 'text-success'
+                    }`}>
                     {ambiguousPairCount > 0
                       ? `${ambiguousPairCount} AMBIGUOUS`
                       : `${pairedSetCount} PAIRED · ${awaitingCompanionCount} WAITING`}
                   </ThemedText>
               </View>
               {standaloneCaptureCount > 0 && (
-                <View style={styles.telemetryRow}>
-                    <ThemedText style={styles.telemetryLabel}>STANDALONE FILES</ThemedText>
-                    <ThemedText style={[styles.telemetryValue, { color: colors.text }]}>
+                <View className="flex-row justify-between items-center">
+                    <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">STANDALONE FILES</ThemedText>
+                    <ThemedText className="font-mono text-sm font-bold text-text">
                       {standaloneCaptureCount}
                     </ThemedText>
                 </View>
               )}
               {storageBlockedCount > 0 && (
-                <View style={styles.telemetryRow}>
-                    <ThemedText style={styles.telemetryLabel}>WAITING ON STORAGE</ThemedText>
-                    <ThemedText style={[styles.telemetryValue, { color: colors.danger }]}>
+                <View className="flex-row justify-between items-center">
+                    <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">WAITING ON STORAGE</ThemedText>
+                    <ThemedText className="font-mono text-sm font-bold text-danger">
                       {storageBlockedCount} CAMERA FILES
                     </ThemedText>
                 </View>
               )}
-              <View style={styles.telemetryRow}>
-                  <ThemedText style={styles.telemetryLabel}>MASTER OUTBOX</ThemedText>
-                  <ThemedText style={[
-                    styles.telemetryValue,
-                    {
-                      color: deliveryAttentionCount > 0
-                        ? colors.danger
+              <View className="flex-row justify-between items-center">
+                  <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">MASTER OUTBOX</ThemedText>
+                  <ThemedText className={`font-mono text-sm font-bold ${
+                      deliveryAttentionCount > 0
+                        ? 'text-danger'
                         : masterPendingCount > 0
-                          ? colors.warning
-                          : colors.success,
-                    },
-                  ]}>
+                          ? 'text-warning'
+                          : 'text-success'
+                    }`}>
                     {deliveryAttentionCount > 0
                       ? `${deliveryAttentionCount} NEED REVIEW`
                       : `${masterPendingCount} PENDING · ${readyDeliveryCount} READY`}
                   </ThemedText>
               </View>
-              <View style={styles.telemetryRow}>
-                  <ThemedText style={styles.telemetryLabel}>POSE SCORE</ThemedText>
-                  <ThemedText style={[styles.telemetryValue, { color: (lastPoseAnalysis?.poseQualityScore ?? 0.92) > 0.8 ? colors.success : colors.warning }]}>
+              <View className="flex-row justify-between items-center">
+                  <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">POSE SCORE</ThemedText>
+                  <ThemedText className={`font-mono text-sm font-bold ${(lastPoseAnalysis?.poseQualityScore ?? 0.92) > 0.8 ? 'text-success' : 'text-warning'}`}>
                     {lastPoseAnalysis ? `${Math.round(lastPoseAnalysis.poseQualityScore * 100)}% (${lastPoseAnalysis.subjectCount} Subj)` : '92% (READY)'}
                   </ThemedText>
               </View>
-              <View style={styles.telemetryRow}>
-                  <ThemedText style={styles.telemetryLabel}>AUTO-EDIT</ThemedText>
-                  <ThemedText style={[styles.telemetryValue, { color: isEditing ? colors.warning : colors.success }]}>
+              <View className="flex-row justify-between items-center">
+                  <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">AUTO-EDIT</ThemedText>
+                  <ThemedText className={`font-mono text-sm font-bold ${isEditing ? 'text-warning' : 'text-success'}`}>
                     {isEditing ? 'PROCESSING' : 'READY'}
                   </ThemedText>
               </View>
-              <View style={styles.telemetryRow}>
-                  <ThemedText style={styles.telemetryLabel}>MESH RELAY</ThemedText>
-                  <ThemedText style={[styles.telemetryValue, { color: meshStatus.connectedPeers > 0 ? colors.tint : colors.text }]}>
+              <View className="flex-row justify-between items-center">
+                  <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">MESH RELAY</ThemedText>
+                  <ThemedText className={`font-mono text-sm font-bold ${meshStatus.connectedPeers > 0 ? 'text-tint' : 'text-text'}`}>
                     {meshStatus.discoveredPeers} Peers ({meshStatus.connectedPeers} connected to Master)
                   </ThemedText>
               </View>
-              <View style={styles.telemetryRow}>
-                  <ThemedText style={styles.telemetryLabel}>BATTERY</ThemedText>
-                  <ThemedText style={[styles.telemetryValue, { color: colors.text }]}>88%</ThemedText>
+              <View className="flex-row justify-between items-center">
+                  <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">BATTERY</ThemedText>
+                  <ThemedText className="font-mono text-sm font-bold text-text">88%</ThemedText>
               </View>
           </View>
 
           {/* Voice Tagging Panel */}
-          <View style={[styles.telemetryCard, { backgroundColor: colors.surface, borderColor: colors.elevated }]}>
-              <View style={styles.telemetryRow}>
-                  <ThemedText style={styles.telemetryLabel}>🎙️ ACTIVE VOICE TAGS</ThemedText>
-                  <TouchableOpacity onPress={triggerVoiceTagInput} style={styles.voiceBtn}>
-                    <ThemedText style={[styles.voiceBtnText, { color: colors.tint }]}>
+          <View className="p-4 rounded-xl border gap-2 bg-surface border-elevated">
+              <View className="flex-row justify-between items-center">
+                  <ThemedText className="text-[#94a3b8] text-xs font-bold tracking-widest">🎙️ ACTIVE VOICE TAGS</ThemedText>
+                  <TouchableOpacity onPress={triggerVoiceTagInput} className="px-2.5 py-1 rounded-lg bg-sky-400/10">
+                    <ThemedText className="text-xs font-bold font-mono text-tint">
                       {isListening ? 'LISTENING...' : '+ VOICE TAG'}
                     </ThemedText>
                   </TouchableOpacity>
               </View>
               {lastTranscript && (
-                <ThemedText style={styles.transcriptText}>&ldquo;{lastTranscript}&rdquo;</ThemedText>
+                <ThemedText className="text-xs italic text-[#94a3b8]">&ldquo;{lastTranscript}&rdquo;</ThemedText>
               )}
-              <View style={styles.tagContainer}>
+              <View className="flex-row flex-wrap gap-2 mt-1">
                 {activeVoiceTags.map((tag, idx) => (
-                  <View key={idx} style={[styles.tagPill, { backgroundColor: colors.tint + '22', borderColor: colors.tint }]}>
-                    <ThemedText style={[styles.tagText, { color: colors.tint }]}>{tag}</ThemedText>
+                  <View key={idx} className="px-2.5 py-1 rounded-full border bg-tint/10 border-tint">
+                    <ThemedText className="text-xs font-semibold text-tint">{tag}</ThemedText>
                   </View>
                 ))}
               </View>
@@ -463,13 +403,13 @@ export default function StudioScreen() {
         </ScrollView>
 
         {/* Thumb Reach Zone: Primary Action */}
-        <View style={styles.actionContainer}>
+        <View className="py-2">
           <TouchableOpacity 
-            style={[styles.primaryButton, { backgroundColor: isClockedIn ? colors.danger : colors.success }]}
+            className={`h-[60px] rounded-2xl items-center justify-center elevation-5 ${isClockedIn ? 'bg-danger' : 'bg-success'}`}
             activeOpacity={0.8}
             onPress={handleClockInOut}
           >
-            <ThemedText style={styles.primaryButtonText}>
+            <ThemedText className="text-[#070a12] text-lg font-black tracking-widest">
               {isClockedIn ? 'FACE SCAN: CLOCK OUT' : 'FACE SCAN: CLOCK IN'}
             </ThemedText>
           </TouchableOpacity>
@@ -480,213 +420,3 @@ export default function StudioScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.four,
-    paddingTop: Spacing.four,
-    maxWidth: MaxContentWidth,
-    width: '100%',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.two,
-  },
-  headerText: {
-    fontFamily: Typography.fontMono,
-    fontSize: 14,
-    fontWeight: 'bold',
-    letterSpacing: 2,
-    color: '#94a3b8',
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    gap: 8,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statusText: {
-    fontFamily: Typography.fontMono,
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  warningBanner: {
-    padding: Spacing.three,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    alignItems: 'center',
-  },
-  warningBannerText: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tetherRing: {
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    borderWidth: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#070a12',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  counterText: {
-    fontSize: 76,
-    fontWeight: '900',
-    fontFamily: Typography.fontMono,
-    includeFontPadding: false,
-  },
-  counterLabel: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#94a3b8',
-    letterSpacing: 2,
-    marginTop: 8,
-  },
-  telemetryCard: {
-    padding: Spacing.four,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: Spacing.two,
-  },
-  previewCard: {
-    padding: Spacing.three,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: Spacing.three,
-  },
-  previewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  previewFilename: {
-    fontSize: 15,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  previewHash: {
-    fontFamily: Typography.fontMono,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  previewGrid: {
-    gap: Spacing.two,
-  },
-  previewPane: {
-    gap: Spacing.one,
-  },
-  capturePreview: {
-    width: '100%',
-    aspectRatio: 3 / 2,
-    borderRadius: 8,
-    backgroundColor: '#070a12',
-  },
-  previewPending: {
-    aspectRatio: 3 / 2,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.two,
-  },
-  previewLabel: {
-    fontFamily: Typography.fontMono,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 1,
-    textAlign: 'center',
-  },
-  telemetryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  telemetryLabel: {
-    color: '#94a3b8',
-    fontSize: 12,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  telemetryValue: {
-    fontFamily: Typography.fontMono,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  voiceBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: 'rgba(56, 189, 248, 0.1)',
-  },
-  voiceBtnText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    fontFamily: Typography.fontMono,
-  },
-  transcriptText: {
-    fontSize: 12,
-    fontStyle: 'italic',
-    color: '#94a3b8',
-  },
-  tagContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 4,
-  },
-  tagPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  tagText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  actionContainer: {
-    paddingVertical: Spacing.two,
-  },
-  primaryButton: {
-    height: 60, // >= 48dp Fitts' Law
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 5,
-  },
-  primaryButtonText: {
-    color: '#070a12',
-    fontSize: 18,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-});

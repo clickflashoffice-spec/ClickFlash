@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import Card from "../common/Card.tsx";
+import { Card } from "@clickflash/ui";
 import { Photographer, Order, Expense } from "../../types.ts";
 import { useCurrency } from "../CurrencyContext.tsx";
 import { apiService } from "../../services/apiService.ts";
 import { fleetService, MasterStation } from "../../services/fleetService.ts";
-import Spinner from "../common/Spinner.tsx";
+import { Spinner } from "@clickflash/ui";
 import ContributionChart from "./performance/ContributionChart.tsx";
 import PhotographerDetailModal from "./modals/PhotographerDetailModal.tsx";
 import {TrendingUp,

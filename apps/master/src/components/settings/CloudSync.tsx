@@ -1,5 +1,6 @@
+import { Card } from "@clickflash/ui";
 import React, { useState } from "react";
-import Card from "../common/Card.tsx";
+
 import { apiService } from "../../services/apiService.ts";
 import { cloudConfigService } from "../../services/api/cloudConfigService.ts";
 import PageHeader from "../common/PageHeader";

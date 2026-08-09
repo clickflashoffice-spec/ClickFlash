@@ -36,7 +36,7 @@ class CapturePairingLedgerService {
       pairedObjectId: null,
     };
 
-    await database.withExclusiveTransactionAsync(async (transaction) => {
+    await database.withExclusiveTransactionAsync(async (transaction: PairingDatabase) => {
       await this.sweepExpired(transaction, event.sessionId, now);
       const identity: CapturePairingIdentity = {
         objectId,
@@ -272,6 +272,8 @@ interface PairMemberRow {
 
 interface PairingDatabase {
   runAsync(source: string, params: (string | number | null)[]): Promise<unknown>;
+  getFirstAsync<T>(source: string, params: (string | number | null)[]): Promise<T | null>;
+  getAllAsync<T>(source: string, params: (string | number | null)[]): Promise<T[]>;
 }
 
 const PAIR_MEMBER_SELECT = `

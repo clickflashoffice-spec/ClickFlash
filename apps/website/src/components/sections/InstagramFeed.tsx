@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Instagram } from "lucide-react";
-import Script from "next/script";
 import type { WebsiteSettings } from "@/lib/settings";
 
 interface InstagramFeedProps {
@@ -21,7 +20,6 @@ export function InstagramFeed({
   settings = {},
 }: InstagramFeedProps) {
   const {
-    instagramFeedId = "8784e0d6-6996-449c-87b8-5b51dcb30bff",
     socialInstagram = "https://www.instagram.com/clicketflash/",
   } = settings;
 

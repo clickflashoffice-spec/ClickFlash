@@ -1,6 +1,7 @@
+import { Modal } from "@clickflash/ui";
 
 import React, { useState, useEffect } from 'react';
-import Modal from '../common/Modal';
+
 interface CategoryEditModalProps {
     isOpen: boolean;
     onClose: () => void;

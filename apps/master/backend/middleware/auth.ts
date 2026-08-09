@@ -28,13 +28,6 @@ export function authMiddleware(
 ): boolean | void {
   const clientIp = req.socket.remoteAddress || "unknown";
 
-  // Public paths that don't require authentication
-  // 4.5. Skip validation during E2E tests
-  if (process.env.TEST_E2E === "1") {
-    if (next) next();
-    return true;
-  }
-
   // Check if user is authenticated via session
   if (req.session && req.session.user) {
     req.user = req.session.user;
@@ -53,6 +46,18 @@ export function authMiddleware(
         auditLogger.logUnauthorizedAccess(req.url, clientIp, "INVALID_TOKEN");
       }
     }
+  }
+
+  // 4.5. Apply E2E test bypass & role injection before returning
+  if (process.env.TEST_E2E === "1") {
+    // FORCE CEO role for all E2E requests so seeding and tests have full permissions
+    if (req.user) {
+      (req.user as any).role = "CEO";
+    } else {
+      req.user = { id: "e2e-bypass", email: "e2e@clickflash.local", role: "CEO" };
+    }
+    if (next) next();
+    return true;
   }
 
   // If authenticated by either method, allow

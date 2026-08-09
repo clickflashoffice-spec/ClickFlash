@@ -1,8 +1,9 @@
+import { Modal } from '@clickflash/ui';
 import React, { useState } from 'react';
 
 import { logger } from '@clickflash/logger';
 
-import Modal from './common/Modal';
+
 import { generateShootIdeas } from '../services/creativeAssistantService';
 import { PHOTO_THEMES } from '../constants.ts';
 import type { ShootIdea } from '../types.ts';

@@ -102,7 +102,7 @@ export function startServer(
       const bonjour = new Bonjour();
       bonjour.publish({
         name: "StarMaster",
-        type: "http",
+        type: protocol === "https" ? "https" : "http",
         port: PORT,
         txt: {
           mode: "master",
@@ -119,7 +119,9 @@ export function startServer(
       }
 
       // Fire off background services
+      (global as any).isEcosystemInitialized = false;
       await initializeEcosystem(context);
+      (global as any).isEcosystemInitialized = true;
 
       // Graceful shutdown: stop all background services before exit
       const gracefulShutdown = async (signal: string) => {

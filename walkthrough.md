@@ -508,3 +508,10 @@ Complete the workspace inventory, run the first baseline quality gates, and rank
 ### Release Dependencies
 
 - The operator must acquire an EV or Standard code signing certificate, install it in the Windows Certificate store, or provide its PFX path and password as environment variables before executing the final `build_release.ps1`.
+
+## 2026-08-08 — Fix /api/permissions Endpoint 404
+
+### Implemented
+- Created permissions.routes.ts in the Master backend to handle GET and POST requests for role_permissions.
+- Registered the route in setup/routes.ts at /api/permissions.
+- Tested the login flow locally; confirmed /api/permissions now returns 200 OK and the dashboard loads successfully.

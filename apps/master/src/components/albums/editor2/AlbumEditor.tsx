@@ -1,3 +1,4 @@
+import { ErrorBoundary, Spinner } from "@clickflash/ui";
 import React, {
   useEffect,
   useCallback,
@@ -7,7 +8,6 @@ import React, {
   useRef,
   memo,
 } from "react";
-import { ErrorBoundary } from "../../common/ErrorBoundary";
 
 import { usePhotoData } from "./hooks/usePhotoData";
 import { usePhotographers } from "../../../hooks/usePhotographers";
@@ -37,7 +37,7 @@ import {
   Maximize,
   Target,
 } from "lucide-react";
-import Spinner from "../../common/Spinner";
+
 import type { ZoomPanState as ZoomPanStateType } from "./hooks/useZoomPan";
 
 const AlbumAnalytics = lazy(() => import("../components/AlbumAnalytics"));

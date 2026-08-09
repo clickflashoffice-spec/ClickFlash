@@ -142,27 +142,6 @@ export function getAlternateLanguages(path: string): Record<string, string> {
 }
 
 /**
- * Generate image sitemap entries for gallery/SEO
- */
-function getImageSitemap(): MetadataRoute.Sitemap {
-  // Key portfolio images for image SEO
-  const keyImages = [
-    {
-      url: `${baseUrl}/portfolio`,
-      images: [
-        `${baseUrl}/portfolio/hero-wedding.jpg`,
-        `${baseUrl}/portfolio/hero-resort.jpg`,
-        `${baseUrl}/portfolio/hero-event.jpg`,
-      ],
-    },
-  ];
-
-  // Note: Next.js sitemap.ts doesn't support image sitemap directly
-  // For full image sitemap support, use a separate XML route
-  return [];
-}
-
-/**
  * Main sitemap generation function
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

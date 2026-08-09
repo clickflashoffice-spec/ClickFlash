@@ -46,7 +46,7 @@ export interface MasterTransferCandidate {
 class CaptureDeliveryLedgerService {
   async ensureOriginal(captureObjectId: string): Promise<void> {
     const database = await getDatabase();
-    await database.withExclusiveTransactionAsync(async (transaction) => {
+    await database.withExclusiveTransactionAsync(async (transaction: DeliveryDatabase) => {
       const capture = await transaction.getFirstAsync<CaptureObjectRow>(
         `SELECT
            id,
@@ -83,7 +83,7 @@ class CaptureDeliveryLedgerService {
   async registerQuickEdit(input: QuickEditAssetInput): Promise<void> {
     this.assertAsset(input, 'quick-edit JPEG');
     const database = await getDatabase();
-    await database.withExclusiveTransactionAsync(async (transaction) => {
+    await database.withExclusiveTransactionAsync(async (transaction: DeliveryDatabase) => {
       const capture = await transaction.getFirstAsync<{
         sessionId: string;
         importedAt: number;
@@ -128,7 +128,7 @@ class CaptureDeliveryLedgerService {
     required: boolean
   ): Promise<void> {
     const database = await getDatabase();
-    await database.withExclusiveTransactionAsync(async (transaction) => {
+    await database.withExclusiveTransactionAsync(async (transaction: DeliveryDatabase) => {
       const asset = await transaction.getFirstAsync<CaptureAssetRow>(
         `${ASSET_SELECT}
          WHERE capture_object_id = ? AND role = ?`,
@@ -169,6 +169,19 @@ class CaptureDeliveryLedgerService {
     );
   }
 
+  async getNextMasterRetryAt(now = Date.now()): Promise<number | null> {
+    const database = await getDatabase();
+    const row = await database.getFirstAsync<{ nextAttemptAt: number | null }>(
+      `SELECT MIN(next_attempt_at) AS nextAttemptAt
+       FROM capture_delivery_intents
+       WHERE destination = 'MASTER'
+         AND state = 'RETRYABLE'
+         AND next_attempt_at > ?`,
+      [now]
+    );
+    return row?.nextAttemptAt ?? null;
+  }
+
   async transition(
     intentId: string,
     next: CaptureDeliveryState,
@@ -178,7 +191,7 @@ class CaptureDeliveryLedgerService {
       throw new Error(`${next} can only be entered through an authenticated receipt.`);
     }
     const database = await getDatabase();
-    await database.withExclusiveTransactionAsync(async (transaction) => {
+    await database.withExclusiveTransactionAsync(async (transaction: DeliveryDatabase) => {
       const intent = await transaction.getFirstAsync<{ state: CaptureDeliveryState }>(
         `SELECT state FROM capture_delivery_intents WHERE id = ?`,
         [intentId]
@@ -218,7 +231,7 @@ class CaptureDeliveryLedgerService {
     const database = await getDatabase();
     let nextState: CaptureDeliveryState = 'RECEIVED';
 
-    await database.withExclusiveTransactionAsync(async (transaction) => {
+    await database.withExclusiveTransactionAsync(async (transaction: DeliveryDatabase) => {
       const row = await transaction.getFirstAsync<ReceiptExpectationRow>(
         `SELECT
            intent.id,

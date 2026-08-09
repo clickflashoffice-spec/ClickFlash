@@ -1,6 +1,7 @@
+import { Modal } from "@clickflash/ui";
 
 import React from 'react';
-import Modal from '../common/Modal.tsx';
+
 import { Order } from '../../types.ts';
 import { useCurrency } from '../CurrencyContext.tsx';
 

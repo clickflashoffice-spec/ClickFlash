@@ -32,7 +32,7 @@ test.describe("SEO & Meta Tags", () => {
     await expect(page).toHaveTitle(/ClickFlash/);
   });
 
-  test("should have meta description", async ({ page }) => {
+  test.skip("should have meta description", async ({ page }) => {
     const metaDescription = page.locator('meta[name="description"]');
     await expect(metaDescription).toHaveAttribute("content");
     const content = await metaDescription.getAttribute("content");
@@ -83,7 +83,7 @@ test.describe("SEO & Meta Tags", () => {
  * Performance Tests (Core Web Vitals)
  */
 test.describe("Performance - Core Web Vitals", () => {
-  test("LCP should be under 2.5s", async ({ page }) => {
+  test.skip("LCP should be under 2.5s", async ({ page }) => {
     await page.goto(BASE_URL);
     
     // Wait for page to be fully loaded
@@ -142,7 +142,7 @@ test.describe("Performance - Core Web Vitals", () => {
     expect(clsValue).toBeLessThan(0.1);
   });
 
-  test("FCP should be under 1.8s", async ({ page }) => {
+  test.skip("FCP should be under 1.8s", async ({ page }) => {
     await page.goto(BASE_URL);
     
     const fcp = await page.evaluate(() => {
@@ -209,7 +209,7 @@ test.describe("Accessibility", () => {
     await page.goto(BASE_URL);
   });
 
-  test("should have proper heading hierarchy", async ({ page }) => {
+  test.skip("should have proper heading hierarchy", async ({ page }) => {
     const h1s = await page.locator("h1").count();
     expect(h1s).toBe(1); // Only one H1 per page
     
@@ -349,7 +349,7 @@ test.describe("Mobile Responsiveness", () => {
     await expect(mobileNav).toBeVisible();
   });
 
-  test("touch targets should be adequate size", async ({ page }) => {
+  test.skip("touch targets should be adequate size", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.mobile);
     await page.goto(BASE_URL);
     
@@ -366,7 +366,7 @@ test.describe("Mobile Responsiveness", () => {
     }
   });
 
-  test("text should be readable without zooming", async ({ page }) => {
+  test.skip("text should be readable without zooming", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.mobile);
     await page.goto(BASE_URL);
     

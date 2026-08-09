@@ -1,5 +1,5 @@
 import React from "react";
-import Card from "./Card.tsx";
+import { Card } from "@clickflash/ui";
 
 interface StatCardProps {
   title: string;

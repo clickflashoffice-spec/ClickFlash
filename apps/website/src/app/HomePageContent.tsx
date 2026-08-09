@@ -7,8 +7,6 @@ import { CheckCircle2 } from "lucide-react";
 import { CustomerReviews } from "@/components/sections/CustomerReviews";
 import { InstagramFeed } from "@/components/sections/InstagramFeed";
 import { StatsSection } from "@/components/sections/StatsSection";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { getTranslation } from "@/lib/translations";
 import type { WebsiteSettings } from "@/lib/settings";
 
 import { Hero } from "@/components/sections/Hero";
@@ -19,7 +17,6 @@ interface HomePageContentProps {
 }
 
 export default function HomePageContent({ settings }: HomePageContentProps) {
-  const { language } = useLanguage();
   return (
     <main className="min-h-screen overflow-hidden">
       {/* HERO SECTION */}
@@ -138,6 +135,7 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
                   src={img}
                   alt={`Portfolio ${i + 1}`}
                   fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-cyan-700/0 transition-colors group-hover:bg-cyan-700/20" />

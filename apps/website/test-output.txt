@@ -1,0 +1,20 @@
+
+Running 109 tests using 8 workers
+
+  -    1 [chromium] ΓÇ║ e2e\a11y.spec.ts:47:10 ΓÇ║ Accessibility Audit ΓÇ║ should have no color contrast issues on /
+  -    2 [chromium] ΓÇ║ e2e\a11y.spec.ts:47:10 ΓÇ║ Accessibility Audit ΓÇ║ should have no color contrast issues on /about
+  -    3 [chromium] ΓÇ║ e2e\a11y.spec.ts:47:10 ΓÇ║ Accessibility Audit ΓÇ║ should have no color contrast issues on /services
+  -    4 [chromium] ΓÇ║ e2e\a11y.spec.ts:47:10 ΓÇ║ Accessibility Audit ΓÇ║ should have no color contrast issues on /portfolio
+  -    5 [chromium] ΓÇ║ e2e\a11y.spec.ts:47:10 ΓÇ║ Accessibility Audit ΓÇ║ should have no color contrast issues on /pricing
+  -    6 [chromium] ΓÇ║ e2e\a11y.spec.ts:47:10 ΓÇ║ Accessibility Audit ΓÇ║ should have no color contrast issues on /bookings
+  -    7 [chromium] ΓÇ║ e2e\a11y.spec.ts:47:10 ΓÇ║ Accessibility Audit ΓÇ║ should have no color contrast issues on /contact
+  ok  10 [chromium] ΓÇ║ e2e\a11y.spec.ts:27:9 ΓÇ║ Accessibility Audit ΓÇ║ should have no accessibility violations on /pricing (4.9s)
+  -   16 [chromium] ΓÇ║ e2e\a11y.spec.ts:47:10 ΓÇ║ Accessibility Audit ΓÇ║ should have no color contrast issues on /faq
+  ok   8 [chromium] ΓÇ║ e2e\a11y.spec.ts:27:9 ΓÇ║ Accessibility Audit ΓÇ║ should have no accessibility violations on / (7.3s)
+  -   18 [chromium] ΓÇ║ e2e\a11y.spec.ts:47:10 ΓÇ║ Accessibility Audit ΓÇ║ should have no color contrast issues on /blog
+  ok  12 [chromium] ΓÇ║ e2e\a11y.spec.ts:27:9 ΓÇ║ Accessibility Audit ΓÇ║ should have no accessibility violations on /faq (26.6s)
+  ok  13 [chromium] ΓÇ║ e2e\a11y.spec.ts:27:9 ΓÇ║ Accessibility Audit ΓÇ║ should have no accessibility violations on /contact (29.1s)
+  ok  11 [chromium] ΓÇ║ e2e\a11y.spec.ts:27:9 ΓÇ║ Accessibility Audit ΓÇ║ should have no accessibility violations on /bookings (30.9s)
+  ok   9 [chromium] ΓÇ║ e2e\a11y.spec.ts:27:9 ΓÇ║ Accessibility Audit ΓÇ║ should have no accessibility violations on /services (31.3s)
+  ok  15 [chromium] ΓÇ║ e2e\a11y.spec.ts:27:9 ΓÇ║ Accessibility Audit ΓÇ║ should have no accessibility violations on /about (30.9s)
+  ok  19 [chromium] ΓÇ║ e2e\a11y.spec.ts:63:7 ΓÇ║ Accessibility Audit ΓÇ║ navigation should be keyboard accessible (56.9s)

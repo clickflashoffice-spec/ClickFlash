@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
 import { apiService } from "../../services/apiService.ts";
 import { useCurrency } from "../CurrencyContext.tsx";
-import Card from "../common/Card.tsx";
-import Spinner from "../common/Spinner.tsx";
+import { Card } from "@clickflash/ui";
+import { Spinner } from "@clickflash/ui";
 import { HOTELS } from "../../constants.ts";
 import { logger } from "@/utils/logger";
 

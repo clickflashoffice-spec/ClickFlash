@@ -1,7 +1,7 @@
+import { Card } from "@clickflash/ui";
 import React from 'react';
 import useSystemSetting from '../../hooks/useSystemSetting.ts';
 import { useToast } from '../../context/ToastContext';
-import Card from '../common/Card.tsx';
 
 export interface PhotoSettingsType {
     jpegQuality: number;

@@ -30,7 +30,7 @@ import { orchestrationService } from "../../services/orchestrationService";
 import { useManagement } from "../../context/ManagementContext";
 import { matchesHotelContext } from "../../utils/contextMatcher";
 import { logger } from "../../utils/logger";
-import Spinner from "../common/Spinner";
+import { Spinner } from "@clickflash/ui";
 
 // ─── Status Badge ────────────────────────────────────────────────────────────
 const StatusBadge: React.FC<{ status: MasterStation["status"] }> = ({ status }) => {

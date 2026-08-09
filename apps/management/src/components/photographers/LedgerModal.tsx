@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Photographer } from "../../types";
 import { useOrders } from "../../hooks/useOrders";
 import { useCurrency } from "../CurrencyContext";
-import Modal from "../common/Modal";
+import { Modal } from "@clickflash/ui";
 
 interface LedgerModalProps {
   photographer: Photographer;

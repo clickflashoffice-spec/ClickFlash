@@ -24,7 +24,7 @@ export default defineConfig({
   webServer: [
     {
       command: "cd ../../apps/installer && pnpm run dev",
-      url: "http://127.0.0.1:5175",
+      url: "http://localhost:5175",
       reuseExistingServer: !process.env.CI,
       stdout: "pipe",
       stderr: "pipe",

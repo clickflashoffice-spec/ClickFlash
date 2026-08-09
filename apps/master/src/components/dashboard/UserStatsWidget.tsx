@@ -1,9 +1,10 @@
+import { Card } from "@clickflash/ui";
 /**
  * UserStatsWidget — shows per-photographer activity stats for the current period.
  * Counts albums processed and orders fulfilled per photographer.
  */
 import React, { memo, useMemo } from 'react';
-import Card from '../common/Card';
+
 import { Order, Photographer, Album } from '../../types';
 
 interface UserStatsWidgetProps {

@@ -1,7 +1,10 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { syncService } from './SyncService';
 import { logger } from "@/utils/logger";
+
+const PENDING_SHIFTS_KEY = '@ClickFlash:PendingShifts';
 
 export interface ShiftEvent {
   id: string;
@@ -20,13 +23,35 @@ export class ShiftService {
   private static instance: ShiftService;
   private pendingShifts: ShiftEvent[] = [];
 
-  private constructor() {}
+  private constructor() {
+    this.loadPendingShifts();
+  }
 
   public static getInstance(): ShiftService {
     if (!ShiftService.instance) {
       ShiftService.instance = new ShiftService();
     }
     return ShiftService.instance;
+  }
+
+  private async loadPendingShifts() {
+    try {
+      const stored = await AsyncStorage.getItem(PENDING_SHIFTS_KEY);
+      if (stored) {
+        this.pendingShifts = JSON.parse(stored);
+        this.syncShifts(); // Retry sync on load
+      }
+    } catch (e) {
+      logger.error('Failed to load pending shifts', e);
+    }
+  }
+
+  private async savePendingShifts() {
+    try {
+      await AsyncStorage.setItem(PENDING_SHIFTS_KEY, JSON.stringify(this.pendingShifts));
+    } catch (e) {
+      logger.error('Failed to save pending shifts', e);
+    }
   }
 
   /**
@@ -111,6 +136,7 @@ export class ShiftService {
     };
 
     this.pendingShifts.push(event);
+    await this.savePendingShifts();
     
     // Attempt to sync immediately
     this.syncShifts();
@@ -139,6 +165,7 @@ export class ShiftService {
     
     // Clear synced ones
     this.pendingShifts = this.pendingShifts.filter(s => s.syncStatus === 'PENDING');
+    await this.savePendingShifts();
   }
 
   /**

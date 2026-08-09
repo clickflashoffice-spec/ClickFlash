@@ -6,10 +6,10 @@ let stripeInstance: Stripe | null = null;
 const getStripe = () => {
     if (!stripeInstance) {
         const apiKey = process.env.STRIPE_SECRET_KEY;
-        if (!apiKey || apiKey === 'sk_test_placeholder_key_for_dev_backup') {
-            logger.warn('[StripeService] Warning: Using placeholder or missing STRIPE_SECRET_KEY');
+        if (!apiKey) {
+            throw new Error('[StripeService] STRIPE_SECRET_KEY is missing');
         }
-        stripeInstance = new Stripe(apiKey || '', {
+        stripeInstance = new Stripe(apiKey, {
             // @ts-ignore
 apiVersion: "2026-02-25.clover" as any
         });

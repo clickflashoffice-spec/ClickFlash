@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { cloudApiService } from "../../../services/cloudApiService";
 import { apiService } from "../../../services/apiService";
-import Spinner from "../../common/Spinner";
+import { Spinner } from "@clickflash/ui";
 import type { Expense } from "../../../types";
 import { logger } from "@/utils/logger";
 

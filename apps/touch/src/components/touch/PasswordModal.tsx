@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Modal from '../common/Modal.tsx';
+import { Modal } from '@clickflash/ui';
 import { logger } from '../../utils/logger';
 import OnScreenKeyboard from './OnScreenKeyboard';
 

@@ -1,4 +1,4 @@
-import { PermissionsAndroid, Platform } from 'react-native';
+import { PermissionsAndroid, Platform, type EmitterSubscription } from 'react-native';
 
 import { logger } from '@/utils/logger';
 
@@ -16,15 +16,8 @@ import {
 } from './CaptureLedgerService';
 import { PAIR_WAIT_TIMEOUT_MS } from './CapturePairing';
 import { masterDeliveryWorker } from './MasterDeliveryWorker';
+import { appState } from '../store';
 
-type RemovableSubscription = { remove(): void };
-type StatusListener = (status: CameraTetherStatus) => void;
-type ImportListener = (
-  capture: CameraImportCompletedEvent,
-  captureObjectId: string
-) => void;
-type ErrorListener = (error: CameraTetherErrorEvent) => void;
-type LedgerListener = (counts: CaptureLedgerCounts) => void;
 
 const POLL_INTERVAL_MS = 750;
 const MAX_IMPORT_ATTEMPTS = 3;
@@ -61,15 +54,12 @@ const unavailableStatus: CameraTetherStatus = {
 };
 
 class CameraTetherService {
-  private readonly statusListeners = new Set<StatusListener>();
-  private readonly importListeners = new Set<ImportListener>();
-  private readonly errorListeners = new Set<ErrorListener>();
-  private readonly ledgerListeners = new Set<LedgerListener>();
   private readonly inFlightObjects = new Set<string>();
   private readonly storageBlockedObjects = new Map<string, CameraObjectDetectedEvent>();
-  private readonly nativeSubscriptions: RemovableSubscription[] = [];
+  private readonly nativeSubscriptions: { remove: () => void }[] = [];
   private status: CameraTetherStatus;
   private activeSessionId: string | null = null;
+  private startPromise: Promise<CameraTetherStatus> | null = null;
   private notificationPermissionRequested = false;
   private pairingSweepTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -78,13 +68,13 @@ class CameraTetherService {
     if (!cameraTetherModule) return;
 
     this.nativeSubscriptions.push(
-      cameraTetherModule.addListener('onCameraState', (status) => {
+      cameraTetherModule.addListener('onCameraState', (status: CameraTetherStatus) => {
         this.publishStatus(status);
       }),
-      cameraTetherModule.addListener('onObjectDetected', (event) => {
+      cameraTetherModule.addListener('onObjectDetected', (event: CameraObjectDetectedEvent) => {
         void this.handleDetectedObject(event);
       }),
-      cameraTetherModule.addListener('onTetherError', (error) => {
+      cameraTetherModule.addListener('onTetherError', (error: CameraTetherErrorEvent) => {
         this.publishError(error);
       })
     );
@@ -96,7 +86,19 @@ class CameraTetherService {
 
   async start(): Promise<CameraTetherStatus> {
     if (!cameraTetherModule || !this.status.isSupported) return this.status;
+    if (this.startPromise) return this.startPromise;
 
+    const pendingStart = this.startNativeSession();
+    this.startPromise = pendingStart;
+    try {
+      return await pendingStart;
+    } finally {
+      if (this.startPromise === pendingStart) this.startPromise = null;
+    }
+  }
+
+  private async startNativeSession(): Promise<CameraTetherStatus> {
+    if (!cameraTetherModule) return this.status;
     await this.requestForegroundNotificationPermission();
     this.activeSessionId =
       this.activeSessionId ?? (await captureLedgerService.getOrCreateActiveSession());
@@ -150,34 +152,6 @@ class CameraTetherService {
     return captureLedgerService.getCounts(sessionId);
   }
 
-  addStatusListener(listener: StatusListener): RemovableSubscription {
-    this.statusListeners.add(listener);
-    listener(this.status);
-    return { remove: () => this.statusListeners.delete(listener) };
-  }
-
-  addImportListener(listener: ImportListener): RemovableSubscription {
-    this.importListeners.add(listener);
-    return { remove: () => this.importListeners.delete(listener) };
-  }
-
-  addErrorListener(listener: ErrorListener): RemovableSubscription {
-    this.errorListeners.add(listener);
-    return { remove: () => this.errorListeners.delete(listener) };
-  }
-
-  addLedgerListener(listener: LedgerListener): RemovableSubscription {
-    this.ledgerListeners.add(listener);
-    void this.getLedgerCounts()
-      .then((counts) => {
-        listener(counts);
-        if (counts.awaitingCompanion > 0) this.schedulePairingSweep(5_000);
-      })
-      .catch((error) => {
-        logger.warn('[CameraTetherService] Could not read camera ledger counts.', error);
-      });
-    return { remove: () => this.ledgerListeners.delete(listener) };
-  }
 
   private async handleDetectedObject(event: CameraObjectDetectedEvent): Promise<void> {
     const objectKey = [
@@ -220,16 +194,12 @@ class CameraTetherService {
           const pairing = await this.reconcilePairingSafely(ledgerEntry.id, event);
           this.storageBlockedObjects.delete(objectKey);
           await this.publishLedgerCounts();
-          this.importListeners.forEach((listener) => {
-            try {
-              listener(imported, ledgerEntry.id);
-            } catch (error) {
-              logger.error(
-                '[CameraTetherService] A camera import listener failed after verification.',
-                error
-              );
-            }
-          });
+          appState.tether.lastVerifiedPreview = {
+            captureObjectId: event.objectKey,
+            filename: imported.filename,
+            localUri: imported.localUri,
+            sha256: imported.sha256
+          };
           logger.info('[CameraTetherService] Camera capture verified locally.', {
             filename: imported.filename,
             byteSize: imported.byteSize,
@@ -282,7 +252,7 @@ class CameraTetherService {
   private publishStatus(status: CameraTetherStatus): void {
     this.status = status;
     if (status.sessionId) this.activeSessionId = status.sessionId;
-    this.statusListeners.forEach((listener) => listener(status));
+    appState.tether.status = status;
   }
 
   private async blockForStorage(
@@ -315,10 +285,9 @@ class CameraTetherService {
   }
 
   private async publishLedgerCounts(): Promise<void> {
-    if (this.ledgerListeners.size === 0) return;
     try {
       const counts = await this.getLedgerCounts();
-      this.ledgerListeners.forEach((listener) => listener(counts));
+      appState.ledger = counts;
     } catch (error) {
       logger.warn('[CameraTetherService] Could not publish camera ledger counts.', error);
     }
@@ -376,7 +345,7 @@ class CameraTetherService {
       this.pairingSweepTimer = null;
       void this.getLedgerCounts()
         .then((counts) => {
-          this.ledgerListeners.forEach((listener) => listener(counts));
+          appState.ledger = counts;
           if (counts.awaitingCompanion > 0) {
             this.schedulePairingSweep(5_000);
           }
@@ -389,7 +358,7 @@ class CameraTetherService {
 
   private publishError(error: CameraTetherErrorEvent): void {
     logger.error(`[CameraTetherService] ${error.code}`, error);
-    this.errorListeners.forEach((listener) => listener(error));
+    appState.tether.error = error.message;
   }
 
   private async requestForegroundNotificationPermission(): Promise<void> {

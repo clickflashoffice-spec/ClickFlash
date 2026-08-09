@@ -1,3 +1,4 @@
+import { Spinner } from "@clickflash/ui";
 
 import React, { useState, useEffect } from 'react';
 import Chart from 'react-apexcharts';
@@ -5,7 +6,7 @@ import { analyticsService, AnalyticsSummary, HourlyStat, PhotographerStat } from
 import { analyticsExportService } from '../services/api/analyticsExportService';
 import { useCurrency } from './CurrencyContext';
 import { Download, RefreshCw, TrendingUp, Users, Package } from 'lucide-react';
-import Spinner from './common/Spinner';
+
 import PageHeader from './common/PageHeader';
 import { logger } from '@/utils/logger';
 

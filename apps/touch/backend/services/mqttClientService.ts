@@ -3,12 +3,33 @@ import { appLogger as logger } from '../shared/logger';
 
 export class MQTTClientService {
   private client: mqtt.MqttClient | null = null;
-  // TODO: Use mDNS discovery to find Master's IP. Hardcoded for local testing.
-  private readonly brokerUrl = process.env.MASTER_MQTT_URL || 'mqtt://127.0.0.1:1883';
+  private currentBrokerUrl: string | null = null;
   private queuedEvents: { topic: string, payload: any }[] = [];
 
   constructor() {
-    this.client = mqtt.connect(this.brokerUrl, {
+    // If MASTER_MQTT_URL is explicitly set, connect immediately
+    if (process.env.MASTER_MQTT_URL) {
+      this.connectToBroker(process.env.MASTER_MQTT_URL);
+    } else {
+      logger.info('[MQTT Touch] Waiting for mDNS discovery to find Master Broker...');
+    }
+  }
+
+  public connectToBroker(brokerUrl: string) {
+    if (this.currentBrokerUrl === brokerUrl && this.client) {
+      return; // Already connected or connecting to this broker
+    }
+
+    if (this.client) {
+      logger.info(`[MQTT Touch] Disconnecting from old broker ${this.currentBrokerUrl}`);
+      this.client.end(true);
+      this.client = null;
+    }
+
+    this.currentBrokerUrl = brokerUrl;
+    logger.info(`[MQTT Touch] Connecting to Master Broker at ${brokerUrl}`);
+
+    this.client = mqtt.connect(brokerUrl, {
       clientId: `touch-client-${Math.random().toString(16).slice(2, 8)}`,
       reconnectPeriod: 2000,
       clean: false // For resilient messaging

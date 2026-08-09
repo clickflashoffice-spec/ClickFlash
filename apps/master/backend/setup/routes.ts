@@ -24,7 +24,8 @@ import galleryRoutes from "../routes/gallery";
 import galleryAuthRoutes from "../routes/galleryAuth";
 import galleryCheckoutRoutes from "../routes/galleryCheckout";
 import cartRoutes from "../routes/cart";
-import syncRoutes from "../routes/sync";
+import permissionsRoutes from "../routes/permissions.routes";
+// import syncRoutes from "../routes/sync";
 import analyticsRoutes from "../routes/analytics";
 import marketingRoutes from "../routes/marketing";
 import dashboardRoutes from "../routes/dashboard";
@@ -40,7 +41,8 @@ import reelRoutes from "../routes/reels.routes";
 import createEntaggedRouter from "../routes/entagged.routes";
 import mobileShareRoutes from "../routes/mobileShareRoutes";
 import bridgeRoutes from "../routes/bridge.routes";
-import settingsRoutes from "../routes/settings.routes";
+import tlsRoutes from "../routes/tls.routes";
+// import settingsRoutes from "../routes/settings.routes";
 import shiftRoutes from "../routes/shifts";
 import photographerRoutes from "../routes/photographers.routes";
 import {
@@ -62,6 +64,7 @@ export function mountRoutes(app: Application, context: any) {
   app.use("/api/collections/users/records", usersRoutes(context));
   app.use("/api/collections/orders/records", ordersCollectionRoutes(context));
   app.use("/api/collections", collectionRoutes(context));
+  app.use("/api/permissions", permissionsRoutes(context));
   app.use("/api/cloud", cloudRoutes(context));
   app.use("/api/session-types", sessionTypeRoutes(context));
   app.use("/api/culling", cullingRoutes(context));
@@ -75,6 +78,7 @@ export function mountRoutes(app: Application, context: any) {
   app.use("/api/backup", backupRoutes(context));
   app.use("/api/telemetry", telemetryRoutes(context));
   app.use("/api/system/telemetry", telemetryRoutes(context));
+  app.use("/api/tls", tlsRoutes(context));
   
   app.use(
     "/api/resort-analytics",
@@ -92,9 +96,10 @@ export function mountRoutes(app: Application, context: any) {
   app.use("/api/gallery-auth", strictRateLimiter, galleryAuthRoutes(context));
   app.use("/api/gallery-checkout", strictRateLimiter, galleryCheckoutRoutes(context));
   app.use("/api/cart", cartRoutes(context));
-  app.use("/api", syncRoutes(context as any));
+  // Legacy LAN routes disabled as per SEC-007
+  // app.use("/api", syncRoutes(context as any));
   app.use("/api/setup", setupRoutes(context));
-  app.use("/api/settings", settingsRoutes(context));
+  // app.use("/api/settings", settingsRoutes(context));
   app.use("/api/shifts", shiftRoutes(context));
   app.use("/api/photographers", photographerRoutes(context));
   app.use("/api/license", licenseRoutes(context));

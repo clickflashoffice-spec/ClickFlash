@@ -304,3 +304,33 @@ test.describe('Gallery - API', () => {
     expect(response.headers['content-type']).toContain('application/zip');
   });
 });
+
+test.describe('Gallery - Checkout (Stripe)', () => {
+  test('process payment with Stripe test mode', async ({ page }) => {
+    await page.goto('/album/public-album-123');
+    
+    // Select a photo and add to cart
+    await page.click('[data-testid="gallery-photo"]:first-child');
+    await page.click('[data-testid="add-to-cart-button"]');
+    
+    // Go to checkout
+    await page.click('[data-testid="cart-button"]');
+    await page.click('[data-testid="checkout-button"]');
+    
+    // Fill customer info
+    await page.fill('[data-testid="customer-email"]', 'test@example.com');
+    await page.fill('[data-testid="customer-name"]', 'Test Customer');
+    
+    // Fill Stripe test card
+    const stripeFrame = page.frameLocator('[data-testid="stripe-card-element"] iframe');
+    await stripeFrame.locator('[placeholder="Card number"]').fill('4242424242424242');
+    await stripeFrame.locator('[placeholder="MM / YY"]').fill('12/30');
+    await stripeFrame.locator('[placeholder="CVC"]').fill('123');
+    
+    // Submit payment
+    await page.click('[data-testid="submit-payment-button"]');
+    
+    // Wait for success
+    await expect(page.locator('[data-testid="payment-success"]')).toBeVisible({ timeout: 15000 });
+  });
+});

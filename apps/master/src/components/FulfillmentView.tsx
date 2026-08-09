@@ -3,7 +3,7 @@ import { Order, Photographer } from '../types.ts';
 import { useInfiniteOrders, useUpdateOrder } from '../hooks/useOrders';
 import OrdersBoard from './orders/OrdersBoard';
 import { orderService } from '../services/api/orderService';
-import { OrderCardSkeleton } from './common/Skeleton';
+import { OrderCardSkeleton } from './common/AppSkeletons';
 import OrderEditModal from './modals/OrderEditModal';
 
 interface FulfillmentViewProps {

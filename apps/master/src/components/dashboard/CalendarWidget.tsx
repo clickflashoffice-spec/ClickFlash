@@ -1,7 +1,7 @@
+import { Card, Spinner } from "@clickflash/ui";
 import React, { memo, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import Card from '../common/Card';
-import Spinner from '../common/Spinner';
+
 import { bookingService } from '../../services/api/bookingService';
 import { Booking } from '../../types';
 

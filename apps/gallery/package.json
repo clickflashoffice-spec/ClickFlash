@@ -2,6 +2,7 @@
   "name": "star-master-customer",
   "version": "2.0.0",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@10.28.2",
   "scripts": {
     "dev": "vite",
@@ -58,6 +59,7 @@
     "recharts": "^3.7.0",
     "stripe": "^22.3.1",
     "tailwind-merge": "^3.4.0",
+    "web-vitals": "^3.5.0",
     "zod": "^4.1.13",
     "zustand": "^5.0.0"
   },

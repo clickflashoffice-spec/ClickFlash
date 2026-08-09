@@ -19,7 +19,8 @@ export class TouchMdnsDiscovery {
   private masters: DiscoveredMaster[] = []
 
   constructor(logger: Logger) {
-    this.bonjour = new Bonjour();
+    const BonjourClass = (Bonjour as any).default || Bonjour;
+    this.bonjour = new BonjourClass();
     this.logger = logger;
   }
 

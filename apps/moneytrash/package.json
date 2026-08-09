@@ -16,7 +16,7 @@
     "package:dir": "pnpm run build && pnpm run build:electron && pnpm run prepare:electron-stage && pnpm run clean:electron-output && electron-builder --win --dir",
     "package:installer": "pnpm run build && pnpm run build:electron && pnpm run prepare:electron-stage && pnpm run clean:electron-output && electron-builder --win",
     "lint": "eslint",
-    "test": "vitest run",
+    "test": "vitest run --pool=threads",
     "test:watch": "vitest",
     "test:ci": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
@@ -31,6 +31,7 @@
     "@aws-sdk/client-s3": "3.1000.0",
     "@aws-sdk/s3-request-presigner": "3.1000.0",
     "@clickflash/logger": "workspace:*",
+    "@clickflash/ui": "workspace:*",
     "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.50.0",
     "@types/node": "^24.10.2",
@@ -63,5 +64,8 @@
     "vitest": "^3.2.7",
     "wait-on": "^9.0.3",
     "zod": "^4.1.13"
+  },
+  "dependencies": {
+    "@clickflash/ui": "workspace:*"
   }
 }

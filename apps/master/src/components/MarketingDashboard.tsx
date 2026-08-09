@@ -1,7 +1,8 @@
+import { Spinner } from "@clickflash/ui";
 
 import React, { useState, useEffect } from 'react';
 import { logger } from '../utils/logger';
-import Spinner from './common/Spinner';
+
 import PageHeader from './common/PageHeader';
 import { marketingService, Campaign, CampaignAnalytics } from '../services/api/marketingService';
 import { Photographer } from '../types';

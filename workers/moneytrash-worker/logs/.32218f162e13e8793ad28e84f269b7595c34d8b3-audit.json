@@ -6,34 +6,24 @@
     "auditLog": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\moneytrash-worker\\logs\\.32218f162e13e8793ad28e84f269b7595c34d8b3-audit.json",
     "files": [
         {
-            "date": 1784201608891,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\moneytrash-worker\\logs\\clickflash-error-2026-07-16.log",
-            "hash": "2aced6a1b3c57f1e28027c5a7410f49d6c7dc198fb2f5ee69f6e22a03e56b2d7"
-        },
-        {
-            "date": 1784279164279,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\moneytrash-worker\\logs\\clickflash-error-2026-07-17.log",
-            "hash": "471cb748ddc5a51777d91e03e6c40d561db01c541f66117c83aab27cb3b8bf87"
-        },
-        {
-            "date": 1784414061001,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\moneytrash-worker\\logs\\clickflash-error-2026-07-18.log",
-            "hash": "7bf959bc5a2ac0ac08d44c4daff06e9a75e736d546d420cc4736ed3471e35cdb"
-        },
-        {
-            "date": 1784481619700,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\moneytrash-worker\\logs\\clickflash-error-2026-07-19.log",
-            "hash": "64f7d824fc4ad2f6d687753fe1eb1b23547e4c80a4ce5192f156b69f108376c1"
-        },
-        {
-            "date": 1784569073015,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\moneytrash-worker\\logs\\clickflash-error-2026-07-20.log",
-            "hash": "bbd1213c12d3ef8f157d6fdf4a0f6dd1e38b40bed1a54342b1a2093f6e665013"
-        },
-        {
             "date": 1785155000496,
             "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\moneytrash-worker\\logs\\clickflash-error-2026-07-27.log",
             "hash": "7a8ac0036d94fbda09f9ee375810b7acc64418f0beaab046c1c0f48363c9cc7c"
+        },
+        {
+            "date": 1786107825760,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\moneytrash-worker\\logs\\clickflash-error-2026-08-07.log",
+            "hash": "cf0d84e7b736e52c21ace6f03bfcc303650956e8765cc47464ef514d4bda84dc"
+        },
+        {
+            "date": 1786191602749,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\moneytrash-worker\\logs\\clickflash-error-2026-08-08.log",
+            "hash": "cd207feb3d3d2c4282402eecb8d72938a2b03d469066bae8f4acc68810bde3f2"
+        },
+        {
+            "date": 1786230264486,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\moneytrash-worker\\logs\\clickflash-error-2026-08-09.log",
+            "hash": "fd8c5c4e593166f1606a0340a174d0bc19739758fc48fe0f2b9a7d347c6d4c14"
         }
     ],
     "hashType": "sha256"

@@ -1,3 +1,4 @@
+import { ErrorBoundary } from "@clickflash/ui";
 import React from "react";
 import ThermalMonitor from "./components/common/ThermalMonitor";
 import { AuthProvider } from "./context/AuthContext";
@@ -6,8 +7,6 @@ import { ToastProvider } from "./context/ToastContext";
 import { AppRouter } from "./components/AppRouter";
 import { BackgroundJobRunner } from "./components/common/BackgroundJobRunner";
 import { GlobalSearchProvider } from "./context/GlobalSearchContext";
-
-import { ErrorBoundary } from "./components/common/ErrorBoundary";
 
 const App: React.FC = () => {
   const handleExit = React.useCallback(() => {

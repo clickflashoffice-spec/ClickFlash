@@ -2,9 +2,7 @@ import * as Crypto from 'expo-crypto';
 import * as Device from 'expo-device';
 import * as SecureStore from 'expo-secure-store';
 
-import MasterConnectivity, {
-  type MasterDiscoveryResult,
-} from '../../modules/master-connectivity';
+import MasterConnectivity from '../../modules/master-connectivity';
 import {
   MOBILE_CAPTURE_PROTOCOL,
   pairingRequestMessage,
@@ -17,6 +15,7 @@ export interface MasterPairingCredential {
   displayName: string;
   masterId: string;
   baseUrl: string;
+  tlsFingerprint?: string;
   secretBase64: string;
   pairedAt: number;
 }
@@ -24,6 +23,7 @@ export interface MasterPairingCredential {
 interface PairingToken {
   codeId: string;
   code: string;
+  tlsFingerprint?: string;
 }
 
 interface PairingResponse {
@@ -43,15 +43,22 @@ interface HealthResponse {
 const CREDENTIAL_KEY = 'clickflash.mobile-master.credential.v1';
 const DEVICE_ID_KEY = 'clickflash.mobile-master.device-id.v1';
 const PAIRING_TOKEN_PATTERN =
-  /^CF1\.([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\.([A-Za-z0-9_-]{20,64})$/i;
+  /^CF[12]\.([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\.([A-Za-z0-9_-]{20,64})(?:\.([A-Fa-f0-9:]+))?$/i;
 const DEVICE_ID_PATTERN = /^[a-zA-Z0-9._:-]{8,128}$/;
 const SHA256_HMAC_PATTERN = /^[A-Za-z0-9+/]{43}=$/;
 const P256_PUBLIC_KEY_PATTERN = /^[A-Za-z0-9+/]{87}=$/;
+const CANONICAL_ID_PATTERN = /^[^\r\n]{1,255}$/;
 
 class MasterPairingService {
   async pairWithToken(rawToken: string): Promise<MasterPairingCredential> {
     const native = this.requireNativeModule();
     const token = this.parsePairingToken(rawToken);
+    if (token.tlsFingerprint) {
+      native.setPinnedFingerprint(token.tlsFingerprint);
+    } else {
+      native.setPinnedFingerprint(null);
+    }
+
     const deviceId = await this.getOrCreateDeviceId();
     const displayName = (
       Device.deviceName ||
@@ -132,6 +139,7 @@ class MasterPairingService {
           displayName,
           masterId: paired.masterId,
           baseUrl: this.normalizeBaseUrl(candidate.baseUrl),
+          tlsFingerprint: token.tlsFingerprint,
           secretBase64,
           pairedAt: paired.pairedAt,
         };
@@ -166,7 +174,7 @@ class MasterPairingService {
         !DEVICE_ID_PATTERN.test(parsed.deviceId) ||
         typeof parsed.displayName !== 'string' ||
         typeof parsed.masterId !== 'string' ||
-        !parsed.masterId ||
+        !CANONICAL_ID_PATTERN.test(parsed.masterId) ||
         typeof parsed.baseUrl !== 'string' ||
         !/^https?:\/\//.test(parsed.baseUrl) ||
         typeof parsed.secretBase64 !== 'string' ||
@@ -185,24 +193,23 @@ class MasterPairingService {
   async resolveCredential(): Promise<MasterPairingCredential | null> {
     const credential = await this.getCredential();
     if (!credential) return null;
-    const currentHealth = await this.readHealth(credential.baseUrl).catch(
-      () => null
-    );
-    if (
-      currentHealth?.protocol === MOBILE_CAPTURE_PROTOCOL &&
-      currentHealth.masterId === credential.masterId
-    ) {
+    
+    const native = this.requireNativeModule();
+    if (credential.tlsFingerprint) {
+      native.setPinnedFingerprint(credential.tlsFingerprint);
+    } else {
+      native.setPinnedFingerprint(null);
+    }
+
+    const isVerified = await this.verifyCandidateMaster(credential, credential.baseUrl).catch(() => false);
+    if (isVerified) {
       return credential;
     }
 
-    const native = this.requireNativeModule();
     const candidates = await native.discoverMasters(3_000);
     for (const candidate of candidates) {
-      const health = await this.readHealth(candidate.baseUrl).catch(() => null);
-      if (
-        health?.protocol === MOBILE_CAPTURE_PROTOCOL &&
-        health.masterId === credential.masterId
-      ) {
+      const isVerified = await this.verifyCandidateMaster(credential, candidate.baseUrl).catch(() => false);
+      if (isVerified) {
         const refreshed = {
           ...credential,
           baseUrl: this.normalizeBaseUrl(candidate.baseUrl),
@@ -219,7 +226,85 @@ class MasterPairingService {
     );
   }
 
+  private async verifyCandidateMaster(credential: MasterPairingCredential, baseUrl: string): Promise<boolean> {
+    const health = await this.readHealth(baseUrl).catch(() => null);
+    if (
+      !health ||
+      health.protocol !== MOBILE_CAPTURE_PROTOCOL ||
+      health.masterId !== credential.masterId
+    ) {
+      return false;
+    }
+    
+    const native = this.requireNativeModule();
+    const nonce = native.randomNonce(24);
+    const timestamp = String(Date.now());
+    
+    const identity = {
+      masterId: credential.masterId,
+      deviceId: credential.deviceId,
+      encryptionProtocol: "CF-AEAD-V1",
+      keyEpoch: String(credential.pairedAt),
+      timestamp,
+      nonce,
+      period: "TODAY" as const,
+    };
+    
+    const canonicalReq = [
+      "CF-MOBILE-COMMAND-CENTER-REQUEST-V2",
+      "GET",
+      "/api/v1/mobile-capture/photographer/me/command-center",
+      identity.encryptionProtocol,
+      identity.masterId,
+      identity.deviceId,
+      identity.keyEpoch,
+      identity.timestamp,
+      identity.nonce,
+      identity.period,
+    ].join("\\n");
+    
+    const signature = native.hmacSha256Base64(credential.secretBase64, canonicalReq);
+    
+    const response = await this.fetchWithTimeout(
+      `${this.normalizeBaseUrl(baseUrl)}/api/v1/mobile-capture/photographer/me/command-center?period=TODAY`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "X-ClickFlash-Device-Id": identity.deviceId,
+          "X-ClickFlash-Encryption": identity.encryptionProtocol,
+          "X-ClickFlash-Key-Epoch": identity.keyEpoch,
+          "X-ClickFlash-Timestamp": identity.timestamp,
+          "X-ClickFlash-Nonce": identity.nonce,
+          "X-ClickFlash-Signature": signature,
+        },
+      },
+      2_500
+    );
+    
+    if (!response.ok) return false;
+    
+    const responseSignature = response.headers.get("x-clickflash-signature");
+    const declaredSha256 = response.headers.get("x-clickflash-content-sha256");
+    if (!responseSignature || !declaredSha256) return false;
+    
+    const canonicalRes = [
+      "CF-MOBILE-COMMAND-CENTER-ENCRYPTED-RESPONSE-V1",
+      "200",
+      identity.encryptionProtocol,
+      identity.masterId,
+      identity.deviceId,
+      identity.keyEpoch,
+      identity.nonce,
+      declaredSha256.toLowerCase(),
+    ].join("\\n");
+    
+    return native.verifyHmacSha256Base64(credential.secretBase64, canonicalRes, responseSignature);
+  }
+
   async forgetCredential(): Promise<void> {
+    const native = this.requireNativeModule();
+    native.setPinnedFingerprint(null);
     await SecureStore.deleteItemAsync(CREDENTIAL_KEY);
   }
 
@@ -235,11 +320,13 @@ class MasterPairingService {
   private parsePairingToken(rawToken: string): PairingToken {
     const match = PAIRING_TOKEN_PATTERN.exec(rawToken.trim());
     if (!match) {
-      throw new Error(
-        'Enter the complete one-time code generated by ClickFlash Master.'
-      );
+      throw new Error('Invalid or unsupported pairing token format.');
     }
-    return { codeId: match[1], code: match[2] };
+    return {
+      codeId: match[1],
+      code: match[2],
+      tlsFingerprint: match[3],
+    };
   }
 
   private async getOrCreateDeviceId(): Promise<string> {
@@ -275,7 +362,7 @@ class MasterPairingService {
       value === null ||
       (value as PairingResponse).protocol !== MOBILE_CAPTURE_PROTOCOL ||
       typeof (value as PairingResponse).masterId !== 'string' ||
-      !(value as PairingResponse).masterId ||
+      !CANONICAL_ID_PATTERN.test((value as PairingResponse).masterId) ||
       typeof (value as PairingResponse).serverPublicKey !== 'string' ||
       !P256_PUBLIC_KEY_PATTERN.test(
         (value as PairingResponse).serverPublicKey

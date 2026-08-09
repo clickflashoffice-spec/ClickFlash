@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Modal from "../common/Modal.tsx";
+import { Modal } from "@clickflash/ui";
 import {Photographer} from "../../types.ts";
 import { MOCK_OBJECTIVES } from "../../constants.ts";
 

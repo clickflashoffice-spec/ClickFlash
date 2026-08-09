@@ -1,6 +1,7 @@
+import { Spinner } from "@clickflash/ui";
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import DiagnosticMetrics from './dashboard/DiagnosticMetrics';
-import Spinner from './common/Spinner';
+
 import { logger } from '@/utils/logger';
 
 interface AuditLogEntry {

@@ -1,7 +1,6 @@
+import { Card } from "@clickflash/ui";
 import React from 'react';
 import { ImageDown, ScanSearch, Tags } from 'lucide-react';
-
-import Card from '../common/Card';
 
 const LocalIntelligenceSettings: React.FC = () => (
     <div className="space-y-6 animate-fadeIn">

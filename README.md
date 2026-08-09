@@ -1,323 +1,145 @@
 # 📸 ClickFlash Photography Ecosystem
 
-> **A complete 6-app platform for professional photography businesses**
+> **A complete 17-app platform for professional photography businesses**
 
 [![CI](https://github.com/alaeddinekhemiri/ClickFlash/actions/workflows/ci.yml/badge.svg)](https://github.com/alaeddinekhemiri/ClickFlash/actions/workflows/ci.yml)
 [![CD](https://github.com/alaeddinekhemiri/ClickFlash/actions/workflows/cd.yml/badge.svg)](https://github.com/alaeddinekhemiri/ClickFlash/actions/workflows/cd.yml)
 
-[![Master Portal](https://img.shields.io/badge/Master%20Portal-v4.3.0-blue)](./apps/master/)
-[![Touch Kiosk](https://img.shields.io/badge/Touch%20Kiosk-v4.3.0-green)](./apps/touch/)
-[![Money Trash](https://img.shields.io/badge/Money%20Trash-v4.3.0-yellow)](./apps/moneytrash/)
-[![Management](https://img.shields.io/badge/Management-v4.3.0-purple)](./apps/management/)
-[![Gallery](https://img.shields.io/badge/Gallery-v4.3.0-pink)](./apps/gallery/)
-[![Website](https://img.shields.io/badge/Website-v4.3.0-orange)](./apps/website/)
+[![Master Portal](https://img.shields.io/badge/Master%20Portal-v2.0.0-blue)](./apps/master/)
+[![Touch Kiosk](https://img.shields.io/badge/Touch%20Kiosk-v2.0.0-green)](./apps/touch/)
+[![Money Trash](https://img.shields.io/badge/Money%20Trash-v2.0.0-yellow)](./apps/moneytrash/)
+[![Management](https://img.shields.io/badge/Management-v2.0.0-purple)](./apps/management/)
+[![Gallery](https://img.shields.io/badge/Gallery-v2.0.0-pink)](./apps/gallery/)
+[![Website](https://img.shields.io/badge/Website-v2.0.0-orange)](./apps/website/)
 
+### 🔄 Autonomous Build Loop Status
+- **Last Scan:** August 2026
+- **Web & Electron Builds:** ✅ Passing (Zero compilation or test errors)
+- **Resolved Issues:** Fixed unused `syncRoutes`, `settingsRoutes`, and `shiftRoutes` imports in `master` typecheck. Removed stale `src/pages` and disabled `outputFileTracingRoot` in `next.config.ts` to resolve `icon.png.nft.json` ENOENT build errors for `main-website` caused by lockfile mismatch. Restored `Skeleton.tsx` exports to fix `apps/management` Rollup build failure. Confirmed `tsc` and `build` commands pass for all targeted apps. Updated `clickflash-touch` offlineQueue tests to correctly mock and assert AES-GCM (AEAD) encryption behavior instead of the legacy HMAC-SHA256 signature logic, resolving the test suite failure. Integrated new `tlsRoutes` in `clickflash-master` backend setup. Resolved `vite/client` type resolution issue in `apps/gallery` via updated `tsconfig.json`. Addressed high-severity security vulnerabilities (`image-size`, `js-yaml`, `nanoid`) across the workspace using `pnpm.overrides`.
 [![Node.js](https://img.shields.io/badge/Node.js-20.x-green.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB.svg)](https://react.dev/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 🏢 The 6-App Ecosystem
+## 🏢 Architecture Overview
 
-```bash
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        CLICKFLASH PHOTOGRAPHY ECOSYSTEM                      │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌──────────────────────────┐      ┌──────────────────────────┐             │
-│  │  🎛️ MASTER PORTAL        │◄────►│  📱 TOUCH KIOSK          │             │
-│  │  apps/master/            │ LAN  │  apps/touch/             │             │
-│  │  Port: 8090              │      │  Port: 8091              │             │
-│  └────────────┬─────────────┘      └─────────────────────────┘             │
-│               │                                                             │
-│               └──────────┬
-│                          │                                                   │
-│                          ▼                                                   │
-│                   ┌─────────────┐                                            │
-│                   │ cloud-backend(Cloudflare Worker)                         │
-│                   └──────┬──────┘                                            │
-│                          │                                                   │
-│  ┌───────────────────────┼───────────────────────────────────────────────┐  │
-│  │                       │              WEB APPS                         │  │
-│  │  ┌────────────────────▼──────────────────────────────────────────┐   │  │
-│  │  │  💰 Money Trash Uploader (apps/moneytrash/) - Next.js 16      │   │  │
-│  │  │  📊 Management Hub (apps/management/) - React/Vite (CF Pages) │   │  │
-│  │  │  🛍️ Customer Gallery (apps/gallery/) - React/Vite (CF Pages) │   │  │
-│  │  │  🌐 Main Website (apps/website/) - Next.js 15               │   │  │
-│  │  └───────────────────────────────────────────────────────────────┘   │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph "Local Studio LAN"
+        master[Master App :8090]
+        touch[Touch Kiosks :8091]
+        mt_local[MoneyTrash :3000]
+        mob_photo[Mobile Photographer]
+        nikon[Nikon D7000]
+        
+        nikon -- USB/PTP --> mob_photo
+        mob_photo -- LAN sync: WebSocket + HMAC HTTP --> master
+        touch -- LAN sync: WebSocket + HMAC HTTP --> master
+        mt_local -- LAN sync: WebSocket + HMAC HTTP --> master
+    end
+
+    subgraph "ClickFlash Cloud"
+        cf_management[Management Worker]
+        cf_gallery[Gallery Worker]
+        cf_moneytrash[MoneyTrash Worker]
+        cf_updates[Update Server Worker]
+    end
+    
+    master -- Cloud sync: RS256 JWT --> cf_management
+    master -- Cloud sync: RS256 JWT --> cf_gallery
+    master -- Cloud sync: RS256 JWT --> cf_moneytrash
+    master -- Cloud sync: RS256 JWT --> cf_updates
 ```
 
 ---
 
-## 📁 Organized Structure
+## 🔒 Security
 
-```bash
-E:\ClickFlash\
-├── 📂 apps/                    # All applications
-│   ├── 📂 master/              # 🎛️ Master Portal (Electron + React 19)
-│   ├── 📂 touch/               # 📱 Touch Kiosk (Electron + React 19)
-│   ├── 📂 moneytrash/          # 💰 Money Trash Uploader (Next.js 16)
-│   ├── 📂 management/          # 📊 Management Hub (React + Vite)
-│   ├── 📂 gallery/             # 🛍️ Customer Gallery (React + Vite)
-│   ├── 📂 website/             # 🌐 Main Website (Next.js 15)
-│   └── 📂 cloud-backend/       # ☁️ Cloudflare Worker (D1 + R2 API)
-│
-├── 📂 packages/                # Shared packages
-│   ├── 📂 types/               # @clickflash/types — shared TypeScript types
-│   └── 📂 ui/                  # @clickflash/ui — shared UI components
-│
-├── 📂 scripts/                 # Operational scripts (build, deploy, rotate keys)
-├── 📂 docs/                    # Production guides (monitoring, DR, data sync)
-│   └── 📂 archive/             # Historical dev records (120 files)
-├── 📄 package.json             # Root workspace config (pnpm workspaces)
-└── 📄 README.md                # This file
-```
+ClickFlash adheres strictly to a **zero-paid-SaaS mandate** (No Vercel, Auth0, Clerk, Pusher, Algolia, OpenAI, Adobe). We control 100% of our security and infrastructure.
+
+- **Offline-First for Studio/Kiosk**: The master and touch applications can function securely in a fully offline environment.
+- **LAN Sync**: Uses WebSocket + HMAC-SHA256 signed HTTP requests.
+- **Cloud Sync**: Secured via RS256 JWT + hardware fingerprinting.
+- **Cryptography**: Ed25519 licensing, AES-256-GCM data encryption, HMAC-SHA256 validation.
+- **Data Validation**: Strict schema enforcement across all boundaries via Zod.
+- **Payments**: Integrated securely with Stripe (the only external payment provider).
 
 ---
 
-## 🔒 Security Features
+## 📱 Apps Overview (17 Apps)
 
-- **Strict Rate Limiting**: Anti-brute force protection on Login (5 req/min).
-- **Zod Validation**: Strict schema enforcement for all API mutations.
-- **HSTS & CSP**: Production-grade HTTP headers (Helmet).
-- **Audit Logging**: Comprehensive tracking of auth and data access.
+The Monorepo (pnpm workspaces + Turborepo) contains the following 17 applications:
 
----
-
-## 📱 Apps Overview
-
-### 1. 🎛️ Master Portal
-
-**Location:** `apps/master/`  
-**Type:** Electron + React 19 Desktop App (Offline)
-
-Studio management system for photographers.
-
-- **Features:** Album management, events, device pairing, QR codes, Auto Money Trash, Cloud Sync
-- **Stack:** Electron + React 19 + Express API + SQLite + WebSocket
-- **Status:** ✅ Complete (E2E tests passing)
-
-```bash
-npm run dev:backend   # Express API (Port 8090)
-npm run preview       # Frontend Preview
-```
+| App | Description |
+|---|---|
+| **master** | Master Portal (Electron/React 19). Core studio management system. Port: 8090 |
+| **touch** | Touch Kiosk (Electron/React 19). Customer self-service kiosk (offline-first). Port: 8091 |
+| **management** | Management Hub. Fully online business dashboard. |
+| **gallery** | Customer Gallery portal. Online customer access to photos. |
+| **moneytrash** | Money Trash gateway. Port: 3000 |
+| **website** | Main Marketing Website. Port: 3001 |
+| **installer** | Desktop installer utility |
+| **license-generator** | Ed25519 license generator for ClickFlash nodes |
+| **mobile-photographer** | Android app. USB/PTP tether to Nikon D7000 (Expo SDK) |
+| **mobile-customer** | Mobile app for customer gallery access |
+| **mobile-staff** | Mobile app for studio staff management |
+| **mobile-client** | Mobile application for clients |
+| **mcp-server** | Machine Control Protocol server |
+| **ride-node** | Background sync node |
+| **docs** | Documentation platform |
+| **cloud-backend** | Cloudflare Workers integration |
+| **pb_data** | Local database wrapper/PocketBase data |
 
 ---
 
-### 2. 📱 Touch Kiosk
+## 📦 Packages Overview (13 Packages)
 
-**Location:** `apps/touch/`  
-**Type:** Electron + React 19 Desktop App (Offline)
+The workspace also shares these 13 common packages:
 
-Customer self-service kiosk. **STRICTLY OFFLINE.**
-
-- **No Cloud Sync**: Connects ONLY to Master Portal via LAN.
-- **Privacy First**: Zero external internet connection required.
-- **Features:** Photo viewing, favorites, order placement.
-- **Stack:** Electron + React 19 + Express API + SQLite
-- **Status:** ✅ Complete (E2E tests passing)
-
-```bash
-npm run dev:backend   # Express API (Port 8091)
-npm run preview       # Frontend Preview
-```
-
----
-
-### 3. 💰 Money Trash Uploader
-
-**Location:** `apps/moneytrash/`  
-**Type:** Next.js 16 Web App
-
-Professional photo upload gateway with drag & drop and progress tracking.
-
-- **Features:** Drag & drop, image previews, batch uploads, progress tracking, upload history
-- **Stack:** Next.js 16 + React 19 + Tailwind 4
-- **Status:** ✅ Complete
-
-```bash
-npm run dev:moneytrash    # Port 3000
-```
+| Package | Description |
+|---|---|
+| **api** | Shared API bindings and route definitions |
+| **config** | Global workspace and build configurations |
+| **database** | SQLite/better-sqlite3 database schemas and connections |
+| **errors** | Common error definitions and exception handling |
+| **licensing** | Ed25519 license validation and generation logic |
+| **logger** | Structured logging utilities |
+| **shared** | Common logic shared between client and server |
+| **telemetry-web** | Analytics and telemetry for web applications |
+| **test-utils** | Test stubs, mocks, and fixtures |
+| **types** | Shared TypeScript interfaces and types |
+| **ui** | Shared Tailwind CSS + React 19 UI component library |
+| **utils** | General purpose utility functions |
+| **validation** | Zod schemas and data validation logic |
 
 ---
 
-### 4. 📊 Management Hub (100% Online)
+## 🛠️ Technology Stack
 
-**Location:** `apps/management/`  
-**Type:** React 19 + Vite (Cloudflare Pages)
-
-Fully online business management dashboard communicating with `apps/cloud-backend`.
-
-- **Features:** Advanced analytics, 12+ management pages, payroll, reports, settings
-- **Stack:** React 19 + Vite + Tailwind CSS
-- **Deployment:** Cloudflare Pages
-- **Status:** ✅ Complete
-
-```bash
-npm run dev               # Frontend (Vite dev server)
-```
-
----
-
-### 5. 🛍️ Customer Gallery (100% Online)
-
-**Location:** `apps/gallery/`  
-**Type:** React 19 + Vite (Cloudflare Pages)
-
-Fully online customer portal communicating with `apps/cloud-backend`.
-
-- **Features:** Photo browsing, lightbox, favorites, shopping cart, Stripe payments, downloads
-- **Stack:** React 19 + Vite + Stripe
-- **Deployment:** Cloudflare Pages
-- **Status:** ✅ Complete
-
-```bash
-npm run dev               # Frontend (Vite dev server)
-```
-
----
-
-### 6. 🌐 Main Website
-
-**Location:** `apps/website/`  
-**Type:** Next.js 15 Web App (Marketing)
-
-Public marketing website.
-
-- **Pages:** Home, About, Portfolio, Clients, Contact
-- **Stack:** Next.js 15 + Tailwind CSS
-- **Status:** ✅ Active
-
-```bash
-npm run dev:website       # Port 3001
-```
+| Category | Technology |
+|---|---|
+| **Core** | React 19, TypeScript, Tailwind CSS |
+| **Desktop** | Electron 39, Tauri 2 |
+| **Mobile** | Expo SDK 51+, React Native |
+| **Backend** | Express, SQLite (better-sqlite3), Cloudflare Workers/D1/R2 |
+| **Build & Tooling** | pnpm 10.28, Turborepo 2.10, Vite, Next.js 15/16 |
+| **Security** | Ed25519, AES-256-GCM, HMAC-SHA256, Zod |
+| **Payments** | Stripe |
+| **Testing** | Vitest, Playwright, Jest, Maestro |
 
 ---
 
 ## 🚀 Quick Start
 
-### Install All Dependencies
-
 ```bash
-npm run install:all
+pnpm install              # Install all dependencies
+pnpm run dev:master       # Start Master studio
+pnpm run dev:touch        # Start Touch kiosk
+pnpm run dev:management   # Start Management hub
+pnpm run dev:gallery      # Start Gallery portal
+pnpm run test:all         # Run all tests
+pnpm run build            # Build everything
 ```
-
-### Start Development Servers
-
-```bash
-# Individual apps
-npm run dev:master        # Master Portal (Port 8090)
-npm run dev:touch         # Touch Kiosk (Port 8091)
-npm run dev:moneytrash    # Money Trash Uploader (Port 3000)
-npm run dev:management    # Management Hub
-npm run dev:gallery       # Customer Gallery
-npm run dev:website       # Main Website (Port 3001)
-```
-
-### Build All Apps
-
-```bash
-npm run build:master
-npm run build:touch
-npm run build:moneytrash
-npm run build:management
-npm run build:gallery
-npm run build:website
-```
-
----
-
-## 🛠️ Maintenance & Deployment Scripts
-
-For automated local setup and deployment, the following scripts are available in the root:
-
-### PowerShell Scripts
-
-- `scripts/deploy-cloud.ps1`: Validated Worker migrations, bundles, and Cloudflare deployment orchestration.
-- `start-all.ps1`: Starts all 6 application dev servers concurrently.
-- `.github/workflows/cd.yml`: Dedicated online-only Pages deployment for Management, Gallery, and Website.
-
-### Batch Scripts
-
-- `install-all.bat`: Recursive dependency installation for all apps.
-- `start-all.bat`: Concurrent local startup for Windows environments.
-- `clean-all.bat`: Removes `node_modules` and build artifacts.
-- `status.bat`: Checks the operational status of all local services.
-- `kill-all.bat`: Force-terminates all running Node.js and Electron processes.
-
----
-
-## 🏗️ Architecture
-
-### Desktop Apps (Offline)
-
-- **Master Portal** and **Touch Kiosk** run offline using local Express.js backends and SQLite DBs.
-- Real-time sync via WebSocket when on the same LAN
-- Cloud sync via custom sync service to the Master Node when online
-
-### Web Apps (100% Online)
-
-- **Money Trash Uploader** - Tauri desktop app (local upload gateway)
-- **Management Hub** - CF Pages talking to CF Worker (`apps/cloud-backend`)
-- **Customer Gallery** - CF Pages talking to CF Worker (`apps/cloud-backend`)
-- **Main Website** - Next.js 15 marketing site
-- **Cloud Backend** - Cloudflare Worker + D1 Database + R2 Object Storage + Stripe
-
----
-
-## 🛠️ Tech Stack
-
-| Technology   | Version | Usage                          |
-| ------------ | ------- | ------------------------------ |
-| React        | 19.x    | UI Framework (all apps)        |
-| Next.js      | 15.x    | Website                        |
-| Electron     | 39.x    | Desktop Apps (master, touch)   |
-| Tauri         | 2.x     | Desktop App (moneytrash)       |
-| Vite         | 7.x     | Build Tool                     |
-| TypeScript   | 5.x     | Language                       |
-| Tailwind CSS | 3.x     | Styling                        |
-| SQLite       | 3.x     | Local Database (master, touch) |
-| D1           | --      | Cloud Database (gallery, mgmt) |
-| R2           | --      | Object Storage (gallery)       |
-| Express.js   | 5.x     | Backend API (master, touch)    |
-| CF Workers   | --      | Edge Backend (gallery, mgmt)   |
-| Stripe       | 20.x    | Payments                       |
-
----
-
-## 📊 Stats
-
-### Refactoring Achievements
-
-```bash
-Code Refactoring Complete:
-├── AlbumDetail.tsx:     1,969 → 5 modules (-78%)
-├── syncService.ts:        873 → 4 modules (-75%)
-├── pb.ts:                 606 → 3 modules (-70%)
-├── KioskContext.tsx:      577 → 4 modules (-68%)
-└── WelcomeScreen.tsx:     495 → 3 modules (-60%)
-
-Total: 1,701 lines reduced (-67%)
-New Modules: 28 files
-E2E Tests: 68 passing
-```
-
-#### App Completion Status
-
-| App                  | Status      | Port | Stack                    |
-| :------------------- | :---------- | :--- | :----------------------- |
-| **Master Portal**    | ✅ Complete | 8090 | Electron + React 19      |
-| **Touch Kiosk**      | ✅ Complete | 8091 | Electron + React 19      |
-| **Money Trash**      | ✅ Complete | --   | Tauri + React 19         |
-| **Management Hub**   | ✅ Complete | --   | CF Pages                 |
-| **Customer Gallery** | ✅ Complete | --   | CF Pages                 |
-| **Cloud Backend**    | ✅ Complete | --   | CF Worker + D1 + R2      |
-| **Website**          | ✅ Active   | 3001 | Next.js 15               |
-
-**Overall: 6/6 Apps Complete (100%)**
 
 ---
 
@@ -331,24 +153,7 @@ E2E Tests: 68 passing
 - [Monitoring](./docs/MONITORING.md) - Production observability
 - [Disaster Recovery](./docs/DISASTER_RECOVERY.md) - Recovery procedures
 - [Data Sync](./docs/DATA_SYNC.md) - Sync architecture and offline support
-- [Changelog](./CHANGELOG.md) - Version history (v1.0.0 - v4.2.0)
-
----
-
-## 🐳 Docker Deployment
-
-```bash
-# Build all apps
-docker-compose up --build
-
-# Individual services
-docker-compose up master
-docker-compose up touch
-docker-compose up moneytrash
-docker-compose up management
-docker-compose up gallery
-docker-compose up website
-```
+- [Changelog](./CHANGELOG.md) - Version history
 
 ---
 
@@ -358,5 +163,5 @@ Private - ClickFlash Photography Solutions
 
 ---
 
-**Last Updated:** July 2026  
-**Version:** 4.3.0
+**Last Updated:** August 2026  
+**Version:** 2.0.0

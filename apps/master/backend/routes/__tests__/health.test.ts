@@ -23,6 +23,7 @@ describe('Health API Routes', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (globalThis as any).isEcosystemInitialized = true;
     
     app = express();
     // Mount the router

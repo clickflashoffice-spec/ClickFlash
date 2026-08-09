@@ -8,7 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import Card from "../../common/Card";
+import { Card } from "@clickflash/ui";
 import { Order } from "../../../types";
 
 interface SalesChartWidgetProps {

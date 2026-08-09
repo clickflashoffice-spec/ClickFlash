@@ -1,3 +1,4 @@
+import { Spinner, Card } from "@clickflash/ui";
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Product, Pack } from '../../types.ts';
@@ -5,8 +6,7 @@ import ProductEditModal from '../modals/ProductEditModal';
 import PackEditModal from '../modals/PackEditModal';
 import { useCurrency } from '../CurrencyContext';
 import { apiService } from '../../services/apiService.ts';
-import Spinner from '../common/Spinner';
-import Card from '../common/Card';
+
 import { useDebounce } from '../../hooks/useDebounce.ts';
 import { logger } from '@/utils/logger';
 

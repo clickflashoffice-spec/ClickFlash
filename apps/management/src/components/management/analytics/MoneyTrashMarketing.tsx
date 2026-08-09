@@ -7,8 +7,8 @@ import {Recycle,
   Target,
   Mail,
   Zap} from "lucide-react";
-import Card from "../../common/Card.tsx";
-import Spinner from "../../common/Spinner.tsx";
+import { Card } from "@clickflash/ui";
+import { Spinner } from "@clickflash/ui";
 import { apiService } from "../../../services/apiService.ts";
 import { Order, Photographer } from "../../../types.ts";
 import { useCurrency } from "../../CurrencyContext.tsx";

@@ -20,7 +20,7 @@ export const SupportedCurrencies = ['usd', 'eur', 'gbp', 'cad', 'aud'] as const;
  * Currency code validation
  */
 export const currencySchema = z.enum(SupportedCurrencies, {
-  error: 'Invalid currency code',
+  errorMap: () => ({ message: 'Invalid currency code' }),
 });
 
 /**
@@ -31,7 +31,8 @@ export const currencySchema = z.enum(SupportedCurrencies, {
  */
 export const amountSchema = z
   .number({
-    error: 'Amount is required and must be a number',
+    invalid_type_error: 'Amount is required and must be a number',
+    required_error: 'Amount is required and must be a number',
   })
   .positive('Amount must be positive')
   .max(1000000, 'Amount exceeds maximum allowed')

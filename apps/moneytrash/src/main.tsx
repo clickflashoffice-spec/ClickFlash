@@ -1,5 +1,7 @@
+import { ThemeProvider } from '@clickflash/ui';
 import { logger } from '@clickflash/logger';
 import React from 'react'
+
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
@@ -23,8 +25,10 @@ initializeDesktopRuntime().catch(error => (
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <FeatureErrorBoundary featureName="MoneyTrash App" showReset>
-      <App />
-    </FeatureErrorBoundary>
+    <ThemeProvider>
+      <FeatureErrorBoundary featureName="MoneyTrash App" showReset>
+        <App />
+      </FeatureErrorBoundary>
+    </ThemeProvider>
   </React.StrictMode>,
 )

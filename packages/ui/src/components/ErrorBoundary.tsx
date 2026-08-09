@@ -1,3 +1,4 @@
+'use client';
 import { Component, type ReactNode, type ErrorInfo } from 'react';
 import { BrowserLogger } from '@clickflash/logger';
 
@@ -50,6 +51,8 @@ interface ErrorBoundaryProps {
   resetKey?: string | number;
   /** Component name for logging context */
   componentName?: string;
+  /** Callback fired when the error boundary is manually reset */
+  onReset?: () => void;
 }
 
 interface ErrorBoundaryState {
@@ -128,6 +131,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   /** Resets the error state so children re-render */
   handleReset = (): void => {
+    this.props.onReset?.();
     this.setState({ hasError: false, error: null, errorId: null });
   };
 
@@ -304,3 +308,4 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 }
 
 export default ErrorBoundary;
+

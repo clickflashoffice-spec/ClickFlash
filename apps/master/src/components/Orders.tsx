@@ -8,7 +8,7 @@ import { useCurrency } from './CurrencyContext';
 import { usePermissions } from '../hooks/usePermissions';
 import OrdersBoard from './orders/OrdersBoard';
 import { useDebounce } from '../hooks/useDebounce';
-import { OrderCardSkeleton, ListItemSkeleton, StatCardSkeleton } from './common/Skeleton';
+import { OrderCardSkeleton, ListItemSkeleton, StatCardSkeleton } from './common/AppSkeletons';
 import { useInfiniteOrders, useUpdateOrder, useDeleteOrder } from '../hooks/useOrders';
 import { usePhotographers } from '../hooks/usePhotographers';
 import PageHeader from './common/PageHeader';
@@ -20,7 +20,6 @@ import { logger } from '../utils/logger';
 import StatCard from './orders/components/StatCard';
 import FilterPanel from './orders/components/FilterPanel';
 import BulkActionsBar from './orders/components/BulkActionsBar';
-
 
 /**
  * Orders Component Props
@@ -126,9 +125,6 @@ const downloadCSV = (content: string, filename: string): void => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 };
-
-
-
 
 /**
  * Orders Component

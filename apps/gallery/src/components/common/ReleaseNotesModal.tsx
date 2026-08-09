@@ -1,6 +1,6 @@
-
+import { Modal } from '@clickflash/ui';
 import React from 'react';
-import Modal from './Modal';
+
 
 interface ReleaseNotesModalProps {
     isOpen: boolean;

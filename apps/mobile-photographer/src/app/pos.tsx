@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // import { useStripeTerminal } from '@stripe/stripe-terminal-react-native'; // Uncomment when fully integrated
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Colors, Spacing, MaxContentWidth, BottomTabInset, Typography } from '@/constants/theme';
-import { useColorScheme } from 'react-native';
 
 const PACKAGES = [
   { id: 'pkg_10', name: '10 Photos', price: 150, color: '#06b6d4' },
@@ -16,9 +14,6 @@ const PACKAGES = [
 ];
 
 export default function PosScreen() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'light' ? 'light' : 'dark'];
-
   const [cart, setCart] = useState<{ id: string, name: string, price: number, qty: number }[]>([]);
   const [isCollecting, setIsCollecting] = useState(false);
 
@@ -69,56 +64,51 @@ export default function PosScreen() {
   };
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
-      <SafeAreaView style={styles.safeArea}>
+    <ThemedView className="flex-1 flex-row justify-center bg-background">
+      <SafeAreaView className="flex-1 px-4 pt-4 pb-20 max-w-[1024px] w-full">
         
         {/* Header */}
-        <View style={styles.header}>
-          <ThemedText style={styles.headerText}>TERMINAL POS</ThemedText>
+        <View className="flex-row justify-between items-center mb-4">
+          <ThemedText className="font-mono text-sm font-bold tracking-widest text-[#94a3b8]">TERMINAL POS</ThemedText>
           <TouchableOpacity onPress={clearCart}>
-            <ThemedText style={[styles.clearText, { color: colors.danger }]}>CLEAR</ThemedText>
+            <ThemedText className="font-mono text-sm font-bold tracking-widest text-danger">CLEAR</ThemedText>
           </TouchableOpacity>
         </View>
 
         {/* Total Display */}
-        <View style={styles.totalDisplay}>
-          <ThemedText style={styles.currencySymbol}>$</ThemedText>
-          <ThemedText style={styles.totalAmount}>{cartTotal.toFixed(2)}</ThemedText>
+        <View className="flex-row items-start justify-center py-6 mb-4">
+          <ThemedText className="font-mono text-3xl font-black text-[#94a3b8] mt-2 mr-1">$</ThemedText>
+          <ThemedText className="font-mono text-7xl font-black tracking-tighter text-[#f8fafc]">{cartTotal.toFixed(2)}</ThemedText>
         </View>
 
         {/* Package Grid */}
-        <ScrollView style={styles.packageScroll} contentContainerStyle={styles.packageGrid}>
+        <ScrollView className="flex-1" contentContainerClassName="flex-row flex-wrap justify-between gap-4">
           {PACKAGES.map((pkg) => (
             <TouchableOpacity 
               key={pkg.id}
-              style={[styles.packageButton, { backgroundColor: colors.surface, borderColor: pkg.color }]}
+              className="w-[47%] aspect-square rounded-2xl border-2 p-4 justify-between bg-surface"
+              style={{ borderColor: pkg.color }}
               onPress={() => addToCart(pkg)}
               activeOpacity={0.7}
             >
-              <ThemedText style={styles.packageName}>{pkg.name}</ThemedText>
-              <ThemedText style={[styles.packagePrice, { color: pkg.color }]}>${pkg.price}</ThemedText>
+              <ThemedText className="text-xl font-bold">{pkg.name}</ThemedText>
+              <ThemedText className="font-mono text-2xl font-black" style={{ color: pkg.color }}>${pkg.price}</ThemedText>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
         {/* Action Button */}
-        <View style={styles.actionContainer}>
+        <View className="mt-4">
           <TouchableOpacity 
-            style={[
-              styles.tapButton, 
-              { backgroundColor: cartTotal > 0 ? colors.tint : colors.elevated }
-            ]}
+            className={`h-[72px] rounded-2xl items-center justify-center ${cartTotal > 0 ? 'bg-tint' : 'bg-elevated'}`}
             disabled={cartTotal === 0 || isCollecting}
             onPress={handleTapToPay}
             activeOpacity={0.8}
           >
             {isCollecting ? (
-              <ThemedText style={styles.tapButtonText}>PRESENT CARD...</ThemedText>
+              <ThemedText className="font-mono text-xl font-black tracking-widest">PRESENT CARD...</ThemedText>
             ) : (
-              <ThemedText style={[
-                styles.tapButtonText, 
-                { color: cartTotal > 0 ? '#070a12' : colors.textSecondary }
-              ]}>
+              <ThemedText className={`font-mono text-xl font-black tracking-widest ${cartTotal > 0 ? 'text-[#070a12]' : 'text-secondary'}`}>
                 {cartTotal > 0 ? `CHARGE $${cartTotal}` : 'SELECT PACKAGE'}
               </ThemedText>
             )}
@@ -129,101 +119,3 @@ export default function PosScreen() {
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    paddingBottom: BottomTabInset,
-    paddingTop: Spacing.four,
-    maxWidth: MaxContentWidth,
-    width: '100%',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.four,
-  },
-  headerText: {
-    fontFamily: Typography.fontMono,
-    fontSize: 14,
-    fontWeight: 'bold',
-    letterSpacing: 2,
-    color: '#94a3b8',
-  },
-  clearText: {
-    fontFamily: Typography.fontMono,
-    fontSize: 14,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  totalDisplay: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    paddingVertical: Spacing.six,
-    marginBottom: Spacing.four,
-  },
-  currencySymbol: {
-    fontFamily: Typography.fontMono,
-    fontSize: 32,
-    fontWeight: '900',
-    color: '#94a3b8',
-    marginTop: 8,
-    marginRight: 4,
-  },
-  totalAmount: {
-    fontFamily: Typography.fontMono,
-    fontSize: 72,
-    fontWeight: '900',
-    letterSpacing: -2,
-    color: '#f8fafc',
-  },
-  packageScroll: {
-    flex: 1,
-  },
-  packageGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: Spacing.four,
-  },
-  packageButton: {
-    width: '47%',
-    aspectRatio: 1,
-    borderRadius: 16,
-    borderWidth: 2,
-    padding: Spacing.four,
-    justifyContent: 'space-between',
-  },
-  packageName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  packagePrice: {
-    fontFamily: Typography.fontMono,
-    fontSize: 24,
-    fontWeight: '900',
-  },
-  actionContainer: {
-    marginTop: Spacing.four,
-  },
-  tapButton: {
-    height: 72, // Massive Fitts' Law Target
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tapButtonText: {
-    fontFamily: Typography.fontMono,
-    fontSize: 20,
-    fontWeight: '900',
-    letterSpacing: 2,
-  },
-});

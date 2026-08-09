@@ -1,6 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 let db: SQLite.SQLiteDatabase | null = null;
+let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 const SCHEMA_SQL = `
   PRAGMA journal_mode = WAL;
@@ -187,14 +188,77 @@ const SCHEMA_SQL = `
 
   CREATE INDEX IF NOT EXISTS capture_delivery_receipts_intent
     ON capture_delivery_receipts(intent_id, received_at);
+
+  CREATE TABLE IF NOT EXISTS spot_state (
+    id TEXT PRIMARY KEY CHECK (id = 'active'),
+    spot_id TEXT NOT NULL,
+    display_name TEXT NOT NULL,
+    resolution_source TEXT NOT NULL CHECK (
+      resolution_source IN ('ASSIGNMENT', 'MANUAL', 'QR', 'KIOSK', 'GPS', 'LAST_CONFIRMED')
+    ),
+    confidence REAL NOT NULL CHECK (confidence >= 0 AND confidence <= 1),
+    confirmed INTEGER NOT NULL DEFAULT 0 CHECK (confirmed IN (0, 1)),
+    muted INTEGER NOT NULL DEFAULT 0 CHECK (muted IN (0, 1)),
+    updated_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS spot_observations (
+    id TEXT PRIMARY KEY,
+    spot_id TEXT NOT NULL,
+    capture_id TEXT NOT NULL UNIQUE,
+    time_bucket TEXT NOT NULL CHECK (
+      time_bucket IN ('DAWN', 'MORNING', 'MIDDAY', 'AFTERNOON', 'GOLDEN_HOUR', 'EVENING')
+    ),
+    pose_quality_score REAL NOT NULL CHECK (
+      pose_quality_score >= 0 AND pose_quality_score <= 1
+    ),
+    blur_detected INTEGER NOT NULL CHECK (blur_detected IN (0, 1)),
+    blink_detected INTEGER NOT NULL CHECK (blink_detected IN (0, 1)),
+    subject_count INTEGER NOT NULL CHECK (subject_count >= 0),
+    created_at INTEGER NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS spot_observations_profile
+    ON spot_observations(spot_id, time_bucket, created_at);
+
+  CREATE TABLE IF NOT EXISTS spot_feedback (
+    id TEXT PRIMARY KEY,
+    spot_id TEXT NOT NULL,
+    recommendation_id TEXT NOT NULL,
+    action TEXT NOT NULL CHECK (
+      action IN ('ACCEPT', 'DISMISS', 'MUTE', 'WRONG_SPOT', 'GOOD_LOOK', 'BAD_LIGHT')
+    ),
+    created_at INTEGER NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS spot_feedback_profile
+    ON spot_feedback(spot_id, created_at);
 `;
 
 export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
-  if (!db) {
-    db = await SQLite.openDatabaseAsync('clickflash.db');
-    await initSchema(db);
+  if (db) return db;
+
+  if (!dbPromise) {
+    dbPromise = (async () => {
+      const database = await SQLite.openDatabaseAsync('clickflash.db');
+      try {
+        await initSchema(database);
+        db = database;
+        return database;
+      } catch (error) {
+        await database.closeAsync().catch(() => undefined);
+        throw error;
+      }
+    })();
   }
-  return db;
+
+  const pendingDatabase = dbPromise;
+  try {
+    return await pendingDatabase;
+  } catch (error) {
+    if (dbPromise === pendingDatabase) dbPromise = null;
+    throw error;
+  }
 }
 
 export function getDatabaseSync(): SQLite.SQLiteDatabase {

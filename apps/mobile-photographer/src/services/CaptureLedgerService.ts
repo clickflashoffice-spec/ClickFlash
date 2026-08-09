@@ -43,46 +43,61 @@ const ERROR_MESSAGE_LIMIT = 1_000;
 
 class CaptureLedgerService {
   private activeSessionId: string | null = null;
+  private activeSessionPromise: Promise<string> | null = null;
 
   async getOrCreateActiveSession(): Promise<string> {
     if (this.activeSessionId) return this.activeSessionId;
+    if (this.activeSessionPromise) return this.activeSessionPromise;
 
+    this.activeSessionPromise = this.resolveActiveSession();
+    try {
+      return await this.activeSessionPromise;
+    } finally {
+      this.activeSessionPromise = null;
+    }
+  }
+
+  private async resolveActiveSession(): Promise<string> {
     const database = await getDatabase();
-    const existing = await database.getFirstAsync<{ id: string }>(
+    const now = Date.now();
+    const timestamp = new Date(now).toISOString().replace(SESSION_ID_SAFE_CHARS, '');
+    const entropy = Math.random().toString(36).slice(2, 10);
+    const candidateSessionId = `field_${timestamp}_${entropy}`.slice(0, 64);
+    await database.runAsync(
+      `INSERT OR IGNORE INTO capture_sessions (id, state, started_at, updated_at)
+       VALUES (?, 'ACTIVE', ?, ?)`,
+      [candidateSessionId, now, now]
+    );
+
+    const activeSession = await database.getFirstAsync<{ id: string }>(
       `SELECT id FROM capture_sessions
        WHERE state = 'ACTIVE'
        ORDER BY started_at DESC
        LIMIT 1`
     );
-    if (existing) {
-      this.activeSessionId = existing.id;
-      return existing.id;
+    if (!activeSession) {
+      throw new Error('Capture ledger could not establish an active session.');
     }
 
-    const now = Date.now();
-    const timestamp = new Date(now).toISOString().replace(SESSION_ID_SAFE_CHARS, '');
-    const entropy = Math.random().toString(36).slice(2, 10);
-    const sessionId = `field_${timestamp}_${entropy}`.slice(0, 64);
-    await database.runAsync(
-      `INSERT INTO capture_sessions (id, state, started_at, updated_at)
-       VALUES (?, 'ACTIVE', ?, ?)`,
-      [sessionId, now, now]
-    );
-    this.activeSessionId = sessionId;
-    return sessionId;
+    this.activeSessionId = activeSession.id;
+    return activeSession.id;
   }
 
   async closeActiveSession(): Promise<void> {
-    if (!this.activeSessionId) return;
+    const activeSessionId =
+      this.activeSessionId ??
+      (this.activeSessionPromise ? await this.activeSessionPromise : null);
+    if (!activeSessionId) return;
+
     const database = await getDatabase();
     const now = Date.now();
     await database.runAsync(
       `UPDATE capture_sessions
        SET state = 'CLOSED', ended_at = ?, updated_at = ?
        WHERE id = ? AND state = 'ACTIVE'`,
-      [now, now, this.activeSessionId]
+      [now, now, activeSessionId]
     );
-    this.activeSessionId = null;
+    if (this.activeSessionId === activeSessionId) this.activeSessionId = null;
   }
 
   async recordDetected(event: CameraObjectDetectedEvent): Promise<CaptureStateRow> {

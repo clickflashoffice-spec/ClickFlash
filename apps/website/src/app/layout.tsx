@@ -1,3 +1,4 @@
+import { ThemeProvider } from '@clickflash/ui';
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
 import { Navbar } from "@/components/layout/Navbar";
@@ -6,6 +7,7 @@ import { JsonLd, organizationSchema } from "@/components/seo/JsonLd";
 import { FloatingWhatsApp } from "@/components/ui/FloatingWhatsApp";
 import { fetchWebsiteSettings } from "@/lib/settings";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { baseMetadata, viewport as siteViewport } from "./metadata";
 import "./globals.css";
@@ -69,14 +71,16 @@ export default async function RootLayout({
         </a>
 
         <LanguageProvider>
-          <ErrorBoundary>
-            <div id="main-content" className="relative w-full" role="main">
-              {children}
-            </div>
-            <Navbar />
-            <Footer settings={settings} />
-            <FloatingWhatsApp />
-          </ErrorBoundary>
+          <ThemeProvider>
+            <ErrorBoundary>
+              <div id="main-content" className="relative w-full" role="main">
+                {children}
+              </div>
+              <Navbar />
+              <Footer settings={settings} />
+              <FloatingWhatsApp />
+            </ErrorBoundary>
+          </ThemeProvider>
         </LanguageProvider>
 
         {/* Analytics Scripts - Load conditionally in production when GA ID is set */}

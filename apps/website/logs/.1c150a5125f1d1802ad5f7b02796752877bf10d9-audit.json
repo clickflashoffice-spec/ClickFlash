@@ -6,49 +6,24 @@
     "auditLog": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\logs\\.1c150a5125f1d1802ad5f7b02796752877bf10d9-audit.json",
     "files": [
         {
-            "date": 1783969073608,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\logs\\clickflash-combined-2026-07-13.log",
-            "hash": "d92cb0ebac669712b79969e9523182be44c6ebfea3faf087fa503c00dac7b2a7"
-        },
-        {
-            "date": 1784027972961,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\logs\\clickflash-combined-2026-07-14.log",
-            "hash": "ddd37cf48d99bc63bdce8cd0131da3db80fc394416f07d068b43b9c94f6aa95b"
-        },
-        {
-            "date": 1784074268438,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\logs\\clickflash-combined-2026-07-15.log",
-            "hash": "1ea6708a216645f7db357c787dddfc3e5bcd8d0055cd520f2fa539f86d118f2a"
-        },
-        {
-            "date": 1784158622753,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\logs\\clickflash-combined-2026-07-16.log",
-            "hash": "f4e3a859761df6ace366f6db9a4badcedab387301dd0e6d999c70d64c20e489d"
-        },
-        {
-            "date": 1784279188454,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\logs\\clickflash-combined-2026-07-17.log",
-            "hash": "7ca9ffcef1b55bc6f65900bbbe5e20612f8032e84bbc81f2c81528a98b863959"
-        },
-        {
-            "date": 1784414432386,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\logs\\clickflash-combined-2026-07-18.log",
-            "hash": "41986c861ecec33882f85c71278306b1587dfaac5f54605b25b19312a7d6f052"
-        },
-        {
-            "date": 1784481616251,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\logs\\clickflash-combined-2026-07-19.log",
-            "hash": "323fa2ffd783dff97a75829660090f90fe521353560e367adef755da42de5492"
-        },
-        {
-            "date": 1784567278023,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\logs\\clickflash-combined-2026-07-20.log",
-            "hash": "4b3164fc48bb6bf333ddb998536c3412599b5df84b8eedb091a9ca844298de58"
-        },
-        {
             "date": 1785175915810,
             "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\logs\\clickflash-combined-2026-07-27.log",
             "hash": "fd6299c0d628dfb8b1694391a3b06e6c384c75416f113f552b8784fd6af9082f"
+        },
+        {
+            "date": 1786125360913,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\logs\\clickflash-combined-2026-08-07.log",
+            "hash": "12090122c34e7d6202dcce4b4801ca04b8dabfe5bdec0e0c2bdbbd549a2ae918"
+        },
+        {
+            "date": 1786191587894,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\logs\\clickflash-combined-2026-08-08.log",
+            "hash": "7ac38bd9607666c99f850358974e0ef20c21de295c4f840a49c5c5686deb4986"
+        },
+        {
+            "date": 1786230327442,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\website\\logs\\clickflash-combined-2026-08-09.log",
+            "hash": "581c591017a35c426911899fee34b771dffb2053f8968aca354b26526eaead5f"
         }
     ],
     "hashType": "sha256"

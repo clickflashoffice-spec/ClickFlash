@@ -60,7 +60,6 @@ export function Navbar() {
     }
   }, [isOpen]);
 
-  const isHome = pathname === "/" || pathname === "";
   const scrolled = scrollOpacity > 0.05;
 
   return (

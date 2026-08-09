@@ -1,5 +1,4 @@
 import * as tf from '@tensorflow/tfjs';
-import '@tensorflow/tfjs-react-native';
 import { decodeJpeg } from '@tensorflow/tfjs-react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as blazeface from '@tensorflow-models/blazeface';

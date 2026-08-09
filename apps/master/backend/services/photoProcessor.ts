@@ -5,6 +5,7 @@ import { WorkerPool, WorkerJob } from "./WorkerPool";
 import { Logger } from '../utils/logger';
 import { DatabaseManager } from '../database/db';
 import sharp from "sharp";
+import { ImageEditRecipeV1Schema } from "@clickflash/types";
 
 const logger = new Logger(path.resolve(process.cwd(), "pb_data"));
 
@@ -474,9 +475,13 @@ export class PhotoProcessor {
   public async applyEdits(
     photoId: string,
     albumId: string,
-    edits: { retouchActions?: any[]; [key: string]: any },
+    rawEdits: unknown,
   ): Promise<void> {
     if (!photoId || !albumId) throw new Error("Missing params");
+
+    // Enforce ImageEditRecipeV1 schema validation
+    const edits = ImageEditRecipeV1Schema.parse(rawEdits);
+
     const albumDir = path.join(this.uploadDir, albumId);
     const highResDir = path.join(albumDir, "highres");
     const photoFile = fs

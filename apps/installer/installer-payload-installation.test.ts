@@ -7,11 +7,14 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   INSTALLATION_CONFIG_FILENAME,
   installOrRepairPayloadBundle,
+  uninstallPayloadBundle,
+  recoverInterruptedTransaction,
 } from "./installer-payload-installation";
 import {
   createSignedPayloadRelease,
   type PayloadReleaseOptions,
 } from "./installer-payload-release";
+import { loadAndVerifyPayloadBundle } from "./installer-payload-verification";
 
 const createdDirectories: string[] = [];
 const releaseOptions: PayloadReleaseOptions = {
@@ -170,7 +173,7 @@ describe("transactional payload installation", () => {
     expect(transactionEntries(target)).toEqual([]);
   });
 
-  it("blocks version-changing upgrades and component mismatches", async () => {
+  it("allows version-changing upgrades and preserves configuration", async () => {
     const firstSource = createBundle();
     const secondSource = createBundle();
     const target = createTemporaryDirectory("clickflash-upgrade-target-");
@@ -189,20 +192,128 @@ describe("transactional payload installation", () => {
       "5.0.0",
       ["master", "touch"],
     );
+    fs.writeFileSync(path.join(target, "Master", ".env"), "DESK_ID=upgrade\n");
+    
+    // Change a file in second source so we can verify the upgrade
+    fs.writeFileSync(path.join(secondSource, "Master", "ClickFlash Master OS.exe"), "master-release-v2");
+    await signBundle(secondSource, signingKey.privateKey, {
+      ...releaseOptions,
+      releaseId: "release_install_test_2",
+      version: "2.1.0",
+    });
 
-    await expect(installOrRepairPayloadBundle(
+    const result = await installOrRepairPayloadBundle(
       secondSource,
       target,
       trustRoots,
       "5.0.0",
       ["master", "touch"],
-    )).rejects.toThrow("Version-changing upgrades are not enabled");
-    await expect(installOrRepairPayloadBundle(
-      firstSource,
-      createTemporaryDirectory("clickflash-component-target-"),
+    );
+
+    expect(result.mode).toBe("upgrade");
+    expect(fs.readFileSync(path.join(target, "Master", "ClickFlash Master OS.exe"), "utf8"))
+      .toBe("master-release-v2");
+    expect(fs.readFileSync(path.join(target, "Master", ".env"), "utf8"))
+      .toBe("DESK_ID=upgrade\n");
+    expect(transactionEntries(target)).toEqual([]);
+  });
+
+  it("recovers an interrupted transaction when target is missing but backup exists", async () => {
+    const source = createBundle();
+    const target = createTemporaryDirectory("clickflash-recover-target-");
+    const signingKey = createSigningKey();
+    const trustRoots = { payload_install_test: signingKey.publicKeyBase64 };
+    await signBundle(source, signingKey.privateKey);
+    await installOrRepairPayloadBundle(source, target, trustRoots, "5.0.0", ["master", "touch"]);
+
+    // Manually simulate a reboot mid-swap
+    const parent = path.dirname(target);
+    const backupDir = path.join(parent, `.${path.basename(target)}.clickflash-backup-12345678`);
+    const stageDir = path.join(parent, `.${path.basename(target)}.clickflash-stage-12345678`);
+    
+    fs.renameSync(target, backupDir);
+    fs.mkdirSync(stageDir); // Fake stage directory
+
+    await recoverInterruptedTransaction(target);
+
+    // Should have restored target and cleaned up stage
+    expect(fs.existsSync(target)).toBe(true);
+    expect(fs.existsSync(backupDir)).toBe(false);
+    expect(fs.existsSync(stageDir)).toBe(false);
+    expect(fs.readFileSync(path.join(target, "Master", "ClickFlash Master OS.exe"), "utf8"))
+      .toBe("master-release");
+  });
+
+  it("does nothing during recovery if target exists and is valid", async () => {
+    const source = createBundle();
+    const target = createTemporaryDirectory("clickflash-recover-target-noop-");
+    const signingKey = createSigningKey();
+    const trustRoots = { payload_install_test: signingKey.publicKeyBase64 };
+    await signBundle(source, signingKey.privateKey);
+    await installOrRepairPayloadBundle(source, target, trustRoots, "5.0.0", ["master", "touch"]);
+
+    const parent = path.dirname(target);
+    const backupDir = path.join(parent, `.${path.basename(target)}.clickflash-backup-12345678`);
+    fs.mkdirSync(backupDir);
+
+    await recoverInterruptedTransaction(target);
+
+    // Backup should be ignored since target is non-empty
+    expect(fs.existsSync(target)).toBe(true);
+    expect(fs.existsSync(backupDir)).toBe(true);
+    // Cleanup fake backup for next tests
+    fs.rmSync(backupDir, { recursive: true, force: true });
+  });
+});
+
+describe("safe payload uninstallation", () => {
+  it("safely uninstalls a verified payload bundle and cleans up", async () => {
+    const source = createBundle();
+    const target = createTemporaryDirectory("clickflash-uninstall-target-");
+    const signingKey = createSigningKey();
+    const trustRoots = { payload_install_test: signingKey.publicKeyBase64 };
+    await signBundle(source, signingKey.privateKey);
+    await installOrRepairPayloadBundle(source, target, trustRoots, "5.0.0", ["master", "touch"]);
+
+    expect(fs.existsSync(target)).toBe(true);
+    
+    const result = await uninstallPayloadBundle(
+      target,
+      (await loadAndVerifyPayloadBundle(source, trustRoots, "5.0.0", { requiredComponents: ["master", "touch"] })).summary.manifestSha256,
       trustRoots,
       "5.0.0",
-      ["master"],
-    )).rejects.toThrow("exactly match the signed payload bundle");
+      ["master", "touch"],
+    );
+
+    expect(result.directory).toBe(target);
+    expect(result.recoveryBackup).toBeUndefined();
+    expect(fs.existsSync(target)).toBe(false);
+    expect(transactionEntries(target)).toEqual([]);
+  });
+
+  it("refuses to uninstall an unverified directory", async () => {
+    const source = createBundle();
+    const target = createTemporaryDirectory("clickflash-uninstall-unverified-");
+    const signingKey = createSigningKey();
+    const trustRoots = { payload_install_test: signingKey.publicKeyBase64 };
+    await signBundle(source, signingKey.privateKey);
+    
+    // Create an invalid directory instead of a real install
+    fs.writeFileSync(path.join(target, "unrelated.txt"), "preserve me");
+
+    // We need the manifest hash to pass into uninstall, so load the source bundle
+    const sourceBundle = await loadAndVerifyPayloadBundle(source, trustRoots, "5.0.0", { requiredComponents: ["master", "touch"] });
+
+    await expect(uninstallPayloadBundle(
+      target,
+      sourceBundle.summary.manifestSha256,
+      trustRoots,
+      "5.0.0",
+      ["master", "touch"],
+    )).rejects.toThrow("Refused to uninstall an unverified directory");
+    
+    // Directory should remain untouched
+    expect(fs.existsSync(target)).toBe(true);
+    expect(fs.readFileSync(path.join(target, "unrelated.txt"), "utf8")).toBe("preserve me");
   });
 });

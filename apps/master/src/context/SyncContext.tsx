@@ -41,7 +41,8 @@ interface SyncContextType {
   setIsDndMode: (val: boolean) => void;
 }
 
-const SyncContext = createContext<SyncContextType | undefined>(undefined);
+const globalAny = globalThis as any;
+const SyncContext: React.Context<SyncContextType | undefined> = globalAny.__SyncContext || (globalAny.__SyncContext = createContext<SyncContextType | undefined>(undefined));
 
 export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({
   children,

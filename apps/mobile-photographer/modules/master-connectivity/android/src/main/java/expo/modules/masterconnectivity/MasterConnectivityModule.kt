@@ -43,6 +43,10 @@ class MasterConnectivityModule : Module() {
       discoverMasters(context, timeoutMs.coerceIn(500L, 10_000L), promise)
     }
 
+    Function("setPinnedFingerprint") { fingerprint: String? ->
+      MasterOkHttpFactory.pinnedFingerprint = fingerprint
+    }
+
     Function("generatePairingKey") {
       val generator = KeyPairGenerator.getInstance("EC")
       generator.initialize(ECGenParameterSpec("secp256r1"))
@@ -108,6 +112,21 @@ class MasterConnectivityModule : Module() {
         ),
         Base64.NO_WRAP
       )
+    }
+
+    Function("hkdfSha256Base64") { secretBase64: String, info: String ->
+      val secret = Base64.decode(secretBase64, Base64.DEFAULT)
+      require(secret.size == 32) { "Paired-device secret must be 32 bytes." }
+      require(info.isNotEmpty() && info.length <= 2048) {
+        "HKDF context is invalid."
+      }
+      val derived = MasterConnectivityCrypto.hkdfSha256(
+        secret,
+        ByteArray(0),
+        info.toByteArray(StandardCharsets.UTF_8),
+        32
+      )
+      Base64.encodeToString(derived, Base64.NO_WRAP)
     }
 
     Function("verifyHmacSha256Base64") {
@@ -315,4 +334,3 @@ internal object MasterConnectivityCrypto {
     return ByteArray(32 - unsigned.size) + unsigned
   }
 }
-

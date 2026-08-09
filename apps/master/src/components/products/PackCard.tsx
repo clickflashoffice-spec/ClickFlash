@@ -1,6 +1,6 @@
+import { Card } from "@clickflash/ui";
 import React from 'react';
 import { Pack } from '../../types';
-import Card from '../common/Card';
 
 export const PackCard: React.FC<{
     pack: Pack;

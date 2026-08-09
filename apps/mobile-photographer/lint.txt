@@ -1,0 +1,45 @@
+
+> mobile@1.0.0 lint
+> expo lint
+
+
+C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\src\app\approvals.tsx
+  1:22  warning  'View' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\src\app\enroll-face.tsx
+   2:101  warning  'C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\node_modules\react-native\index.js' imported multiple times  import/no-duplicates
+  10:32   warning  'C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\node_modules\react-native\index.js' imported multiple times  import/no-duplicates
+
+C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\src\app\kiosks.tsx
+  1:22  warning  'View' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\src\app\pos.tsx
+  2:71  warning  'C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\node_modules\react-native\index.js' imported multiple times  import/no-duplicates
+  9:32  warning  'C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\node_modules\react-native\index.js' imported multiple times  import/no-duplicates
+
+C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\src\app\schedule.tsx
+   2:69  warning  'C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\node_modules\react-native\index.js' imported multiple times  import/no-duplicates
+   5:13  warning  'LocalAuthentication' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+  12:32  warning  'C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\node_modules\react-native\index.js' imported multiple times  import/no-duplicates
+  89:10  warning  'location' is assigned a value but never used                                                                            @typescript-eslint/no-unused-vars
+
+C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\src\hooks\useClickFlashAPI.ts
+   5:3   warning  'ConnectionTier' is defined but never used  @typescript-eslint/no-unused-vars
+  89:16  warning  'networkError' is defined but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\src\hooks\usePoseAndBlinkDetector.ts
+  2:21  warning  'Alert' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\src\services\FaceBiometricService.ts
+  2:8   warning  'C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\node_modules\@tensorflow\tfjs-react-native\dist\index.js' imported multiple times  import/no-duplicates
+  3:28  warning  'C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\node_modules\@tensorflow\tfjs-react-native\dist\index.js' imported multiple times  import/no-duplicates
+
+C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\src\services\MeshSyncService.ts
+  1:10  warning  'PhotoAsset' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\alamo\Desktop\ClickFlash\apps\mobile-photographer\src\services\ShiftService.ts
+  95:14  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 17 problems (0 errors, 17 warnings)
+  0 errors and 4 warnings potentially fixable with the `--fix` option.
+

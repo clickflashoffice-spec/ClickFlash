@@ -1,6 +1,7 @@
 import { discoveryService } from './discoveryService';
 import { meshSyncService } from './MeshSyncService';
 import { offlineQueueService } from './OfflineQueueService';
+import { appState } from '../store';
 import { logger } from "@/utils/logger";
 
 export type ConnectionTier = 
@@ -32,8 +33,7 @@ export class NetworkRoutingService {
   private cloudLatencyMs: number | null = null;
   private currentTier: ConnectionTier = 'OFFLINE';
   private pingIntervalId: ReturnType<typeof setInterval> | null = null;
-  private listeners: Set<NetworkStatusListener> = new Set();
-  private isFlushingQueue: boolean = false;
+    private isFlushingQueue: boolean = false;
   private pendingOfflineCount: number = 0;
 
   private constructor() {
@@ -47,16 +47,6 @@ export class NetworkRoutingService {
     return NetworkRoutingService.instance;
   }
 
-  public subscribe(listener: NetworkStatusListener): () => void {
-    this.listeners.add(listener);
-    listener(this.getStatusSnapshot());
-    return () => this.listeners.delete(listener);
-  }
-
-  private notifyListeners(): void {
-    const status = this.getStatusSnapshot();
-    this.listeners.forEach(listener => listener(status));
-  }
 
   public getStatusSnapshot(): NetworkStatusSnapshot {
     return {
@@ -139,7 +129,8 @@ export class NetworkRoutingService {
 
     this.pendingOfflineCount = await offlineQueueService.getQueueSize();
 
-    this.notifyListeners();
+    appState.network.status = this.getStatusSnapshot();
+    appState.network.relayQueueStatus = meshSyncService.getRelayQueueStatus();
     return this.getStatusSnapshot();
   }
 
@@ -280,7 +271,8 @@ export class NetworkRoutingService {
       }
     } finally {
       this.isFlushingQueue = false;
-      this.notifyListeners();
+      appState.network.status = this.getStatusSnapshot();
+      appState.network.relayQueueStatus = meshSyncService.getRelayQueueStatus();
     }
 
     return { processed, failed };

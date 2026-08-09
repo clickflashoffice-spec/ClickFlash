@@ -1,5 +1,5 @@
 
-import { ManualEdits, RetouchAction, Annotation } from '../../types/shared';
+import { ManualEdits, RetouchAction, Annotation, ImageEditRecipeV1 } from '../../types/shared';
 
 /**
  * EditEngine
@@ -30,7 +30,7 @@ export class EditEngine {
     /**
      * Renders all edits from the edit list onto the canvas
      */
-    public async render(img: HTMLImageElement | HTMLCanvasElement, edits: ManualEdits) {
+    public async render(img: HTMLImageElement | HTMLCanvasElement, edits: Partial<ImageEditRecipeV1> & Partial<ManualEdits>) {
         const { width, height } = this.ctx.canvas;
 
         // Store natural dimensions for coordinate scaling

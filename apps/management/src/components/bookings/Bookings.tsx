@@ -6,8 +6,8 @@ import {
   BookingStatus,
 } from "../../types.ts";
 import { apiService } from "../../services/apiService.ts";
-import Card from "../common/Card.tsx";
-import Spinner from "../common/Spinner.tsx";
+import { Card } from "@clickflash/ui";
+import { Spinner } from "@clickflash/ui";
 import BookingEditModal from "./BookingEditModal.tsx";
 import BookingCalendar from "./BookingCalendar.tsx";
 import { useDebounce } from "../../hooks/useDebounce.ts";

@@ -1,20 +1,16 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, View, TouchableOpacity, Alert, ActivityIndicator, TextInput, ScrollView } from 'react-native';
+import { View, TouchableOpacity, Alert, ActivityIndicator, TextInput, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Colors, Spacing, MaxContentWidth, Typography } from '@/constants/theme';
-import { useColorScheme } from 'react-native';
 import { faceBiometricService } from '@/services/FaceBiometricService';
 import { syncService } from '@/services/SyncService';
 import { logger } from "@/utils/logger";
 
 export default function EnrollFaceScreen() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'light' ? 'light' : 'dark'];
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
 
@@ -27,22 +23,22 @@ export default function EnrollFaceScreen() {
   const [statusText, setStatusText] = useState('READY TO SCAN');
 
   if (!permission) {
-    return <ThemedView style={styles.container}><ActivityIndicator color={colors.tint} /></ThemedView>;
+    return <ThemedView className="flex-1 justify-center items-center"><ActivityIndicator className="text-tint" /></ThemedView>;
   }
 
   if (!permission.granted) {
     return (
-      <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
-        <SafeAreaView style={styles.safeArea}>
-          <ThemedText style={styles.title}>CAMERA ACCESS REQUIRED</ThemedText>
-          <ThemedText style={[styles.subtitle, { color: colors.textSecondary }]}>
+      <ThemedView className="flex-1 bg-background">
+        <SafeAreaView className="flex-1 px-4 pt-4 w-full max-w-3xl self-center">
+          <ThemedText className="font-mono text-base font-black tracking-widest">CAMERA ACCESS REQUIRED</ThemedText>
+          <ThemedText className="text-sm my-3 text-secondary">
             Biometric enrollment requires camera permissions to capture face vectors.
           </ThemedText>
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: colors.tint }]}
+            className="h-14 rounded-lg items-center justify-center bg-tint"
             onPress={requestPermission}
           >
-            <ThemedText style={styles.actionButtonText}>GRANT PERMISSIONS</ThemedText>
+            <ThemedText className="font-mono text-[15px] font-black text-[#070a12] tracking-wider">GRANT PERMISSIONS</ThemedText>
           </TouchableOpacity>
         </SafeAreaView>
       </ThemedView>
@@ -117,91 +113,91 @@ export default function EnrollFaceScreen() {
   };
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+    <ThemedView className="flex-1 bg-background">
+      <SafeAreaView className="flex-1 px-4 pt-4 w-full max-w-3xl self-center">
+        <ScrollView contentContainerClassName="pb-8 gap-4" showsVerticalScrollIndicator={false}>
           
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <ThemedText style={[styles.backButtonText, { color: colors.tint }]}>← BACK</ThemedText>
+          <View className="flex-row items-center justify-between mb-2">
+            <TouchableOpacity onPress={() => router.back()} className="py-1">
+              <ThemedText className="font-mono text-sm font-bold text-tint">← BACK</ThemedText>
             </TouchableOpacity>
-            <ThemedText style={styles.title}>BIOMETRIC ENROLLMENT</ThemedText>
+            <ThemedText className="font-mono text-base font-black tracking-widest">BIOMETRIC ENROLLMENT</ThemedText>
           </View>
 
           {/* Form Fields */}
-          <View style={[styles.formCard, { backgroundColor: colors.surface, borderColor: colors.elevated }]}>
-            <ThemedText style={styles.label}>PHOTOGRAPHER ID</ThemedText>
+          <View className="p-4 rounded-xl border gap-2 bg-surface border-elevated">
+            <ThemedText className="font-mono text-xs font-bold tracking-widest text-slate-400">PHOTOGRAPHER ID</ThemedText>
             <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.elevated, backgroundColor: colors.background }]}
+              className="h-12 border rounded-lg px-3 text-base mb-2 text-text border-elevated bg-background"
               value={photographerId}
               onChangeText={setPhotographerId}
               placeholder="e.g. PHOTO-101"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor="#94a3b8"
             />
 
-            <ThemedText style={styles.label}>FULL NAME</ThemedText>
+            <ThemedText className="font-mono text-xs font-bold tracking-widest text-slate-400">FULL NAME</ThemedText>
             <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.elevated, backgroundColor: colors.background }]}
+              className="h-12 border rounded-lg px-3 text-base mb-2 text-text border-elevated bg-background"
               value={name}
               onChangeText={setName}
               placeholder="e.g. Alex Miller"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor="#94a3b8"
             />
 
-            <ThemedText style={styles.label}>STATION ID / RESORT</ThemedText>
+            <ThemedText className="font-mono text-xs font-bold tracking-widest text-slate-400">STATION ID / RESORT</ThemedText>
             <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.elevated, backgroundColor: colors.background }]}
+              className="h-12 border rounded-lg px-3 text-base mb-2 text-text border-elevated bg-background"
               value={stationId}
               onChangeText={setStationId}
               placeholder="e.g. RESORT-WEST"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor="#94a3b8"
             />
           </View>
 
           {/* Camera View */}
-          <View style={[styles.cameraContainer, { borderColor: extractedVector ? colors.success : colors.tint }]}>
+          <View className={`h-80 rounded-2xl overflow-hidden border-2 relative ${extractedVector ? 'border-success' : 'border-tint'}`}>
             <CameraView
               ref={cameraRef}
-              style={styles.camera}
+              className="flex-1"
               facing="front"
             />
-            <View style={styles.overlay}>
-              <View style={[styles.faceBox, { borderColor: extractedVector ? colors.success : colors.tint }]} />
+            <View className="absolute inset-0 items-center justify-center">
+              <View className={`w-[200px] h-[240px] border-2 rounded-[120px] border-dashed ${extractedVector ? 'border-success' : 'border-tint'}`} />
             </View>
           </View>
 
           {/* Status Banner */}
-          <View style={[styles.statusBox, { backgroundColor: colors.surface, borderColor: colors.elevated }]}>
-            <ThemedText style={[styles.statusText, { color: extractedVector ? colors.success : colors.tint }]}>
+          <View className="p-3 rounded-lg border items-center bg-surface border-elevated">
+            <ThemedText className={`font-mono text-[13px] font-bold tracking-wider text-center ${extractedVector ? 'text-success' : 'text-tint'}`}>
               {statusText}
             </ThemedText>
-            {isProcessing && <ActivityIndicator size="small" color={colors.tint} style={{ marginTop: 8 }} />}
+            {isProcessing && <ActivityIndicator size="small" className="mt-2 text-tint" />}
           </View>
 
           {/* Actions */}
           {!extractedVector ? (
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: colors.tint, opacity: isProcessing ? 0.6 : 1 }]}
+              className={`h-14 rounded-lg items-center justify-center bg-tint ${isProcessing ? 'opacity-60' : 'opacity-100'}`}
               onPress={handleCaptureAndExtract}
               disabled={isProcessing}
             >
-              <ThemedText style={styles.actionButtonText}>CAPTURE & EXTRACT VECTOR</ThemedText>
+              <ThemedText className="font-mono text-[15px] font-black text-[#070a12] tracking-wider">CAPTURE & EXTRACT VECTOR</ThemedText>
             </TouchableOpacity>
           ) : (
-            <View style={styles.buttonRow}>
+            <View className="flex-row gap-3">
               <TouchableOpacity
-                style={[styles.halfButton, { backgroundColor: colors.elevated }]}
+                className="flex-1 h-14 rounded-lg items-center justify-center bg-elevated"
                 onPress={() => { setExtractedVector(null); setStatusText('READY TO SCAN'); }}
                 disabled={isProcessing}
               >
-                <ThemedText style={[styles.actionButtonText, { color: colors.text }]}>RETAKE</ThemedText>
+                <ThemedText className="font-mono text-[15px] font-black tracking-wider text-text">RETAKE</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.halfButton, { backgroundColor: colors.success }]}
+                className="flex-1 h-14 rounded-lg items-center justify-center bg-success"
                 onPress={handleSaveEnrollment}
                 disabled={isProcessing}
               >
-                <ThemedText style={[styles.actionButtonText, { color: '#070a12' }]}>SAVE ENROLLMENT</ThemedText>
+                <ThemedText className="font-mono text-[15px] font-black text-[#070a12] tracking-wider">SAVE ENROLLMENT</ThemedText>
               </TouchableOpacity>
             </View>
           )}
@@ -211,125 +207,3 @@ export default function EnrollFaceScreen() {
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.four,
-    maxWidth: MaxContentWidth,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  scrollContent: {
-    paddingBottom: Spacing.eight,
-    gap: Spacing.four,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.two,
-  },
-  backButton: {
-    paddingVertical: Spacing.one,
-  },
-  backButtonText: {
-    fontFamily: Typography.fontMono,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  title: {
-    fontFamily: Typography.fontMono,
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: 2,
-  },
-  subtitle: {
-    fontSize: 14,
-    marginVertical: Spacing.three,
-  },
-  formCard: {
-    padding: Spacing.four,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: Spacing.two,
-  },
-  label: {
-    fontFamily: Typography.fontMono,
-    fontSize: 12,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    color: '#94a3b8',
-  },
-  input: {
-    height: 48,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: Spacing.three,
-    fontSize: 16,
-    marginBottom: Spacing.two,
-  },
-  cameraContainer: {
-    height: 320,
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 2,
-    position: 'relative',
-  },
-  camera: {
-    flex: 1,
-  },
-  overlay: {
-    ...(StyleSheet.absoluteFill as any),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  faceBox: {
-    width: 200,
-    height: 240,
-    borderWidth: 2,
-    borderRadius: 120,
-    borderStyle: 'dashed',
-  },
-  statusBox: {
-    padding: Spacing.three,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  statusText: {
-    fontFamily: Typography.fontMono,
-    fontSize: 13,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    textAlign: 'center',
-  },
-  actionButton: {
-    height: 56,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionButtonText: {
-    fontFamily: Typography.fontMono,
-    fontSize: 15,
-    fontWeight: '900',
-    color: '#070a12',
-    letterSpacing: 1,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: Spacing.three,
-  },
-  halfButton: {
-    flex: 1,
-    height: 56,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

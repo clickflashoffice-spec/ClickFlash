@@ -10,7 +10,6 @@ export const metadata: Metadata = createPageMetadata({
   path: "/contact",
 });
 
-export const revalidate = false; // Fully static for Cloudflare Pages
 
 export default async function ContactPage() {
   const settings = await fetchWebsiteSettings();

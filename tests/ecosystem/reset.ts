@@ -16,7 +16,7 @@ async function reset() {
     console.log('--- ClickFlash Ecosystem Reset ---');
 
     // 1. Kill existing processes on standard ports
-    const ports = [8090, 8091, 5173, 5174, 5175, 3000, 3001];
+    const ports = [8090, 8091, 5173, 5174, 5175, 3000, 3001, 1883, 1420];
     console.log(`Checking ports: ${ports.join(', ')}...`);
     
     for (const port of ports) {

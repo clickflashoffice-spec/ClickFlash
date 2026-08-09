@@ -8,7 +8,7 @@ import { safeStorage } from '../utils/safeStorage';
 
 type AuthState = 'unauthenticated' | 'authenticated' | 'loading';
 
-interface AuthContextType {
+export interface AuthContextType {
     user: Photographer | null;
     authState: AuthState;
     login: (user: Photographer) => void;
@@ -17,7 +17,8 @@ interface AuthContextType {
     isAuthenticated: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const globalAny = globalThis as any;
+const AuthContext: React.Context<AuthContextType | undefined> = globalAny.__AuthContext || (globalAny.__AuthContext = createContext<AuthContextType | undefined>(undefined));
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<Photographer | null>(null);

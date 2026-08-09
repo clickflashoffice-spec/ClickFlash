@@ -1,3 +1,4 @@
+import { Card } from "@clickflash/ui";
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Activity,
@@ -14,7 +15,7 @@ import {
   XCircle,
   Zap,
 } from "lucide-react";
-import Card from "../common/Card.tsx";
+
 import { apiService } from "../../services/apiService";
 import { logger } from "../../utils/logger";
 

@@ -125,7 +125,7 @@ const Login: React.FC<LoginProps> = ({
 
           <form onSubmit={handleLogin} className="space-y-8 relative z-10" data-testid="login-form">
             <div className="space-y-3">
-              <label htmlFor="email" className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] ml-1">
+              <label htmlFor="email" className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] ml-1">
                 Access Identifier
               </label>
               <input
@@ -141,7 +141,7 @@ const Login: React.FC<LoginProps> = ({
             </div>
 
             <div className="space-y-3">
-              <label htmlFor="password" className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] ml-1">
+              <label htmlFor="password" className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] ml-1">
                 Security Passphrase
               </label>
               <input
@@ -197,7 +197,7 @@ const Login: React.FC<LoginProps> = ({
         </div>
 
         <div className="text-center mt-12 space-y-4" aria-hidden="true">
-          <p className="text-slate-400 text-[9px] font-bold tracking-[0.8em] uppercase">
+          <p className="text-slate-500 text-[9px] font-bold tracking-[0.8em] uppercase">
             Secure Terminal Link
           </p>
           <div className="flex justify-center gap-1.5">

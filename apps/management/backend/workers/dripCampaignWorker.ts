@@ -3,7 +3,6 @@ import { logger } from '@/utils/logger';
 
 export interface Env {
   DB: D1Database;
-  RESEND_API_KEY: string;
 }
 
 export default {
@@ -43,8 +42,8 @@ async function processAbandonedCarts(env: Env) {
     const { results } = await env.DB.prepare(query).all();
 
     for (const cart of results) {
-      const sent = await sendEmail(
-        env.RESEND_API_KEY,
+      const sent = await queueEmail(
+        env.DB,
         cart.email as string,
         'Did you forget your photos? 📸',
         `<p>Hi there,</p><p>We noticed you left some amazing memories in your cart. <a href="https://clickflash.app/gallery/${cart.gallery_id}">Click here to complete your order!</a></p>`
@@ -67,24 +66,39 @@ async function processGalleryFollowUps(env: Env) {
   logger.info('[DripCampaignWorker] Processing gallery follow-ups...');
 }
 
-async function sendEmail(apiKey: string, to: string, subject: string, html: string): Promise<boolean> {
+async function queueEmail(db: D1Database, to: string, subject: string, html: string): Promise<boolean> {
   try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: 'ClickFlash <hello@clickflash.app>',
-        to: [to],
-        subject,
-        html
-      })
-    });
-    return res.ok;
+    // Ensure table exists (in a real app this is part of migrations)
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS email_outbox (
+        id TEXT PRIMARY KEY,
+        recipient TEXT NOT NULL,
+        sender TEXT NOT NULL,
+        sender_name TEXT NOT NULL,
+        bcc TEXT,
+        subject TEXT NOT NULL,
+        html_content TEXT NOT NULL,
+        text_content TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        sent_at DATETIME,
+        error_log TEXT
+      )
+    `).run();
+
+    const emailId = crypto.randomUUID();
+    const textContent = html.replace(/<[^>]*>?/gm, ' ').trim();
+    const sender = 'hello@clickflash.app';
+    const senderName = 'ClickFlash';
+
+    await db.prepare(`
+      INSERT INTO email_outbox (id, recipient, sender, sender_name, subject, html_content, text_content)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).bind(emailId, to, sender, senderName, subject, html, textContent).run();
+    
+    return true;
   } catch (err) {
-    logger.error('Failed to send email via Resend', err);
+    logger.error('Failed to queue email to D1 Outbox', err);
     return false;
   }
 }

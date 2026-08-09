@@ -67,6 +67,7 @@
       "./plugins/withAndroidReleaseSigning",
       "./plugins/withNativeBuildStaging",
       "./plugins/withUsbPermissions",
+      "./plugins/withOkHttpCertPinner",
       "expo-secure-store",
       "expo-sqlite"
     ],

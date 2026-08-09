@@ -3,9 +3,8 @@ import { requireServiceAuth } from '../auth';
 import type { AppEnv } from '../types';
 
 const app = new Hono<AppEnv>();
-app.use('*', requireServiceAuth);
 
-app.post('/sync/up', async (c) => {
+app.post('/sync/up', requireServiceAuth, async (c) => {
   try {
     const { deskId, payloads } = await c.req.json();
     if (!deskId || !payloads) return c.json({ error: 'Missing deskId or payloads' }, 400);
@@ -70,7 +69,7 @@ app.post('/sync/up', async (c) => {
   }
 });
 
-app.post('/sync/down', async (c) => {
+app.post('/sync/down', requireServiceAuth, async (c) => {
   try {
     const { deskId, lastSyncTimestamp } = await c.req.json();
     if (!deskId) return c.json({ error: 'Missing deskId' }, 400);
@@ -96,7 +95,7 @@ app.post('/sync/down', async (c) => {
   }
 });
 
-app.post('/sessions/sync', async (c) => {
+app.post('/sessions/sync', requireServiceAuth, async (c) => {
   try {
     const { sessions } = await c.req.json();
     if (!Array.isArray(sessions)) return c.json({ error: 'Expected array of sessions' }, 400);

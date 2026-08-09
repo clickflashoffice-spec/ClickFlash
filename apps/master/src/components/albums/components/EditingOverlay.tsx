@@ -1,5 +1,5 @@
+import { Spinner } from "@clickflash/ui";
 import React from 'react';
-import Spinner from '../../common/Spinner';
 
 interface EditingOverlayProps {
     inProgress: boolean;

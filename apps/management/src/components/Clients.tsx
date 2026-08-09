@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useDebounce } from "../hooks/useDebounce.ts";
 import { Order, Photographer } from "../types.ts";
-import Spinner from "./common/Spinner.tsx";
-import Card from "./common/Card.tsx";
+import { Spinner } from "@clickflash/ui";
+import { Card } from "@clickflash/ui";
 import { useCurrency } from "./CurrencyContext.tsx";
 import ClientDetailsModal from "./modals/ClientDetailsModal.tsx";
 import { usePermissions } from "../hooks/usePermissions.ts";

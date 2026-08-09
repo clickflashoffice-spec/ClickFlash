@@ -343,8 +343,8 @@ class OfflineQueueService {
         const kioskId = localStorage.getItem('kioskId') || 'unknown-kiosk';
         const signingSecret = localStorage.getItem('signingSecret');
         const timestamp = Date.now().toString();
-        const body = JSON.stringify(item);
 
+        let body = JSON.stringify(item);
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
             'x-kiosk-id': kioskId,
@@ -353,9 +353,38 @@ class OfflineQueueService {
 
         if (signingSecret) {
             try {
-                headers['x-signature'] = await this.signPayload(kioskId, timestamp, SYNC_ENDPOINT, body, signingSecret);
+                const encoder = new TextEncoder();
+                const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(signingSecret));
+                const cryptoKey = await crypto.subtle.importKey(
+                    'raw',
+                    hashBuffer,
+                    { name: 'AES-GCM' },
+                    false,
+                    ['encrypt']
+                );
+
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+                const encrypted = await crypto.subtle.encrypt(
+                    { name: 'AES-GCM', iv },
+                    cryptoKey,
+                    encoder.encode(body)
+                );
+
+                const encryptedBytes = new Uint8Array(encrypted);
+                const ciphertext = encryptedBytes.slice(0, -16);
+                const tag = encryptedBytes.slice(-16);
+
+                const toHex = (arr: Uint8Array) => Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+
+                body = JSON.stringify({
+                    kioskId,
+                    iv: toHex(iv),
+                    ciphertext: toHex(ciphertext),
+                    tag: toHex(tag)
+                });
             } catch (cryptoErr) {
-                logger.error('[OfflineQueue] HMAC signing failed', cryptoErr as Error);
+                logger.error('[OfflineQueue] AEAD encryption failed', cryptoErr as Error);
+                return false;
             }
         }
 
@@ -377,31 +406,6 @@ class OfflineQueueService {
             logger.error(`[OfflineQueue] Send failed for ${item.id}`, { error: message });
             throw error;
         }
-    }
-
-    private async signPayload(
-        kioskId: string,
-        timestamp: string,
-        endpoint: string,
-        body: string,
-        secret: string
-    ): Promise<string> {
-        const encoder = new TextEncoder();
-        const keyData = encoder.encode(secret);
-        const message = `${kioskId}:${timestamp}:POST:${endpoint}:${body}`;
-        const msgData = encoder.encode(message);
-
-        const cryptoKey = await crypto.subtle.importKey(
-            'raw',
-            keyData,
-            { name: 'HMAC', hash: 'SHA-256' },
-            false,
-            ['sign']
-        );
-
-        const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
-        const signatureArray = Array.from(new Uint8Array(signatureBuffer));
-        return signatureArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 }
 

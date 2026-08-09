@@ -71,6 +71,15 @@ export default (db: DatabaseManager, thermalService: ThermalService, context?: a
 
   // Basic liveness check — used by wait-on, load-balancers, and monitoring
   router.get("/", (_req: Request, res: Response) => {
+    if (!(global as any).isEcosystemInitialized) {
+      return res.status(503).json({
+        status: "initializing",
+        timestamp: new Date().toISOString(),
+        version: process.env.npm_package_version || process.env.APP_VERSION || "unknown",
+        uptime: Math.floor(process.uptime()),
+      });
+    }
+
     res.json({
       status: "ok",
       timestamp: new Date().toISOString(),

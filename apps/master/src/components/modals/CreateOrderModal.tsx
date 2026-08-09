@@ -1,6 +1,7 @@
+import { Modal } from "@clickflash/ui";
 
 import React, { useState, useMemo, useOptimistic } from 'react';
-import Modal from '../common/Modal.tsx';
+
 import { MOCK_PRODUCTS } from '../../constants.ts';
 import { Order, OrderItem, Product, Photographer } from '../../types.ts';
 import { useCurrency } from '../CurrencyContext.tsx';

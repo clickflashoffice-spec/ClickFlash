@@ -53,19 +53,15 @@ export class SharedSeed {
           if (!file.endsWith(".sql") || applied.has(file)) continue;
           
           const content = fs.readFileSync(path.join(dir, file), "utf8").split(/--\s*Down/i)[0];
-          const noComments = content.replace(/--.*$/gm, '');
-          const statements = noComments.split(';').map(s => s.trim()).filter(s => s.length > 0);
-          
           try {
             db.transaction(() => {
-              for (const stmt of statements) {
-                try {
-                  db.exec(stmt);
-                } catch (err: any) {
-                  const msg = err.message || '';
-                  if (msg.includes('duplicate column') || msg.includes('already exists')) {
-                    continue; // Ignore duplicate column errors like production DB manager
-                  }
+              try {
+                db.exec(content);
+              } catch (err: any) {
+                const msg = err.message || '';
+                if (msg.includes('duplicate column') || msg.includes('already exists') || msg.includes('duplicate column name')) {
+                  // Ignore duplicate column errors like production DB manager
+                } else {
                   throw err;
                 }
               }
@@ -92,9 +88,9 @@ export class SharedSeed {
       INSERT OR REPLACE INTO settings (id, key, value) VALUES ('1', 'site_id', 'TN-E2E-TEST');
       INSERT OR REPLACE INTO settings (id, key, value) VALUES ('2', 'desk_id', 'DESK-001');
 
-      INSERT INTO role_permissions (role, permission) VALUES ('Admin', 'manageAllAlbums');
-      INSERT INTO role_permissions (role, permission) VALUES ('Admin', 'viewAlbums');
-      INSERT INTO role_permissions (role, permission) VALUES ('Admin', 'viewDashboard');
+      INSERT OR IGNORE INTO role_permissions (role, permission) VALUES ('Admin', 'manageAllAlbums');
+      INSERT OR IGNORE INTO role_permissions (role, permission) VALUES ('Admin', 'viewAlbums');
+      INSERT OR IGNORE INTO role_permissions (role, permission) VALUES ('Admin', 'viewDashboard');
 
       INSERT OR IGNORE INTO kiosks (id, name, status, signingSecret, created_at, updated_at) 
       VALUES ('test-kiosk-1', 'Test Kiosk 1', 'active', 'test-secret', datetime('now'), datetime('now'));

@@ -6,39 +6,24 @@
     "auditLog": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\management-worker\\logs\\.3934dea359fdec266ebbcc763dd16ecedb37bed1-audit.json",
     "files": [
         {
-            "date": 1784073601886,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\management-worker\\logs\\clickflash-error-2026-07-15.log",
-            "hash": "250f9457d19380aabfd450a1d04f0d7a47c5eb2ce5ecf1fe67d794487a7fb80d"
-        },
-        {
-            "date": 1784186517324,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\management-worker\\logs\\clickflash-error-2026-07-16.log",
-            "hash": "942795683780ae4e54c7c10053a71e50c6efe572328f28a3c215abd95edab9b0"
-        },
-        {
-            "date": 1784279188592,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\management-worker\\logs\\clickflash-error-2026-07-17.log",
-            "hash": "6b4f22a1293ff7e720fcd72f557f455710813803610c421b1b1e27acbb97c48d"
-        },
-        {
-            "date": 1784414263187,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\management-worker\\logs\\clickflash-error-2026-07-18.log",
-            "hash": "8f38ed6026cde2ce3533d90bc84e6699d7ababa7e378960e4159bd3504863c44"
-        },
-        {
-            "date": 1784481637873,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\management-worker\\logs\\clickflash-error-2026-07-19.log",
-            "hash": "5ded02f3e0577e3646e19d1fed53c51240c367b3cefd808072234e3f4093aca2"
-        },
-        {
-            "date": 1784569211950,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\management-worker\\logs\\clickflash-error-2026-07-20.log",
-            "hash": "b92041b75eacf5c37b61d6dc41aa9852e1e1e3b2162ea3e691ea2351874e9c54"
-        },
-        {
             "date": 1785155117885,
             "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\management-worker\\logs\\clickflash-error-2026-07-27.log",
             "hash": "70e16bb9e14978dafa35d4ff9dc509cc188bcd684d37fe677e2f453cbc3b5702"
+        },
+        {
+            "date": 1786108572651,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\management-worker\\logs\\clickflash-error-2026-08-07.log",
+            "hash": "ea9f350cb91459743d0b6b3eb5713fc1406f60319ef0c626a66d359dc9608030"
+        },
+        {
+            "date": 1786191918945,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\management-worker\\logs\\clickflash-error-2026-08-08.log",
+            "hash": "e9db977b062442b53ab197a2c747a3bd7904667c1f8b4ff61be97b6644188e9c"
+        },
+        {
+            "date": 1786230276076,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\management-worker\\logs\\clickflash-error-2026-08-09.log",
+            "hash": "5dcf4bb31e19d3066f9f28ece61abee9f6c4be4068ad7335eac4a41451b9b950"
         }
     ],
     "hashType": "sha256"

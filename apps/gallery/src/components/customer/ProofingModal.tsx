@@ -1,5 +1,6 @@
+import { Modal } from '@clickflash/ui';
 import React, { useState } from 'react';
-import Modal from '../common/Modal';
+
 import { Photo } from '../../types';
 
 interface ProofingModalProps {

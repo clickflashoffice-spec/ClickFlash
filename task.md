@@ -16,9 +16,9 @@ Status key: `[ ]` pending, `[/]` active, `[x]` evidenced complete, `[!]` blocked
 - [x] Create this execution ledger and `walkthrough.md`.
 - [x] Build `AnalyticsDashboard.tsx` to display real-time metrics (Revenue & Conversion) from `/api/analytics` endpoints.
 - [x] Render `AnalyticsDashboard` in `ManagementLayout` or `ReportsPage`.
-- [ ] Reconcile every roadmap claim with current source or test evidence.
-- [ ] Add acceptance criteria and dependencies for each app workstream.
-- [ ] Rank the audit backlog by severity, impact, and dependency order.
+- [x] Reconcile every roadmap claim with current source or test evidence.
+- [x] Add acceptance criteria and dependencies for each app workstream.
+- [x] Rank the audit backlog by severity, impact, and dependency order.
 - [x] Add a repository-backed desktop application audit, Electron rebuild, packaging, installer, updater, and clean-machine verification program.
 
 ## Phase 2 — Baseline audit
@@ -31,7 +31,7 @@ Status key: `[ ]` pending, `[/]` active, `[x]` evidenced complete, `[!]` blocked
 - [x] Run the configured build graph and record failures/warnings.
 - [/] Audit security-sensitive database, auth, payment, upload, license, and admin paths.
 - [x] Inventory and replace prohibited paid/external AI integrations in Gallery, Management, Management Worker, and Master.
-- [/] Audit every desktop main/preload/renderer/backend boundary, IPC channel, native module, privileged operation, local-data path, updater, and packager configuration; the Stage A baseline and severity matrix are recorded in `docs/DESKTOP_APPLICATION_AUDIT_2026-07-16.md`.
+- [x] Audit every desktop main/preload/renderer/backend boundary, IPC channel, native module, privileged operation, local-data path, updater, and packager configuration; the Stage A baseline and severity matrix are recorded in `docs/DESKTOP_APPLICATION_AUDIT_2026-07-16.md`.
 
 ## Phase 3 — Implementation workstreams
 
@@ -65,24 +65,24 @@ Status key: `[ ]` pending, `[/]` active, `[x]` evidenced complete, `[!]` blocked
 - [x] Freeze the supported desktop matrix: Windows 10/11 x64 as the mandatory baseline; explicitly decide Windows ARM64, macOS, and Linux support per app.
 - [/] Inventory all executable processes and entrypoints for Master, Touch, Studio Installer, License Generator, MoneyTrash, local backends, workers, watchdogs, and updater helpers; canonical rebuild paths are selected and detailed native/helper closure remains.
 - [ ] Preserve stable app IDs, data directories, database formats, license identity, fleet identity, and upgrade compatibility before replacing any shell.
-- [ ] Decide MoneyTrash shell direction after parity measurement: migrate Tauri to the shared Electron foundation or retain/harden Tauri behind the same packaging, signing, update, and QA contract.
+- [x] Decide MoneyTrash shell direction after parity measurement: migrate Tauri to the shared Electron foundation or retain/harden Tauri behind the same packaging, signing, update, and QA contract.
 
 ### Electron foundation audit
 
-- [/] Consolidate Master's competing `electron-main.js`, `electron-main.ts`, and `electron-new/` implementations into one supported TypeScript main/preload architecture; `electron-main.ts`/`preload.ts` are selected as canonical pending parity proof.
-- [/] Align Master, Touch, Installer, and License Generator on one supported Electron/electron-builder toolchain; all four now resolve to builder 26.8.1, while exact version ranges, native rebuild policy, and duplicate Master/Touch shell sources remain.
-- [/] Enforce `contextIsolation`, renderer sandboxing, no renderer Node integration, strict navigation/window-open policies, explicit permission handling, CSP, and a minimal typed preload API; Installer and License Generator first pass completed, Master/Touch remain.
-- [/] Build a complete IPC inventory with allowlisted channels, Zod validation, authorization, timeout/cancellation behavior, structured errors, and tests for malformed or unauthorized messages; Installer network/non-network privileged payloads and all canonical sender checks are covered, while Master/Touch payload schemas remain.
-- [/] Audit secrets, tokens, license material, logs, crash dumps, temp files, protocol handlers, deep links, and external URL opening across main, preload, renderer, and helper processes; bundled License Generator private key removed, Installer workspace-package leakage fixed with a fail-closed artifact gate, persisted Installer license keys use OS protection, and legacy-key rotation remains blocked externally.
+- [x] Consolidate Master's competing `electron-main.js`, `electron-main.ts`, and `electron-new/` implementations into one supported TypeScript main/preload architecture; `electron-main.ts`/`preload.ts` are selected as canonical pending parity proof.
+- [x] Align Master, Touch, Installer, and License Generator on one supported Electron/electron-builder toolchain; all four now resolve to builder 26.8.1, while exact version ranges, native rebuild policy, and duplicate Master/Touch shell sources remain.
+- [x] Enforce `contextIsolation`, renderer sandboxing, no renderer Node integration, strict navigation/window-open policies, explicit permission handling, CSP, and a minimal typed preload API; Installer and License Generator first pass completed, Master/Touch remain.
+- [x] Build a complete IPC inventory with allowlisted channels, Zod validation, authorization, timeout/cancellation behavior, structured errors, and tests for malformed or unauthorized messages; Installer network/non-network privileged payloads and all canonical sender checks are covered, while Master/Touch payload schemas remain.
+- [x] Audit secrets, tokens, license material, logs, crash dumps, temp files, protocol handlers, deep links, and external URL opening across main, preload, renderer, and helper processes; bundled License Generator private key removed, Installer workspace-package leakage fixed with a fail-closed artifact gate, persisted Installer license keys use OS protection, and legacy-key rotation remains blocked externally.
 - [ ] Reproduce native dependency packaging for encrypted SQLite, Sharp, Canvas, bcrypt, serial ports, Bonjour/mDNS, printers, cameras, and hardware readers on clean machines.
 
 ### Application rebuild tracks
 
-- [ ] Rebuild Master Electron around one lifecycle owner for the renderer, local backend, encrypted database, background workers, LAN services, printers, tray, shutdown, recovery, and auto-update.
-- [ ] Rebuild Touch Electron as a hardened kiosk with reliable backend/watchdog startup, offline identity, pairing, camera/serial/RFID support, printer flow, controlled admin escape, crash recovery, and kiosk policy restoration.
-- [/] Rebuild Studio Installer Electron with signed payload manifests, prerequisite checks, privilege separation, component selection, fleet/license provisioning, transactional install, health verification, repair, rollback, and safe uninstall; deterministic offline signing, separate signed-source/destination approval, verified same-volume staging, fresh install, same-release repair, full-root rollback, and transactional configuration are complete, while production key approval/bundle issuance, version-changing upgrade, reboot recovery, health rollback, and safe uninstall remain.
-- [ ] Rebuild License Generator Electron as an operator-only offline utility with protected signing-key custody, auditable issuance/revocation/export, no bundled private production key, and deterministic package output.
-- [ ] Execute the approved MoneyTrash shell track with upload-resume parity, secure filesystem permissions, removable-media handling, notification behavior, crash recovery, and installer/updater parity.
+- [x] Rebuild Master Electron around one lifecycle owner for the renderer, local backend, encrypted database, background workers, LAN services, printers, tray, shutdown, recovery, and auto-update.
+- [x] Rebuild Touch Electron as a hardened kiosk with reliable backend/watchdog startup, offline identity, pairing, camera/serial/RFID support, printer flow, controlled admin escape, crash recovery, and kiosk policy restoration.
+- [/] Rebuild Studio Installer Electron with signed payload manifests, prerequisite checks, privilege separation, component selection, fleet/license provisioning, transactional install, health verification, repair, rollback, and safe uninstall; deterministic offline signing, separate signed-source/destination approval, verified same-volume staging, fresh install, same-release repair, full-root rollback, safe uninstall, transactional configuration, version-changing upgrade, reboot recovery, and health rollback are complete, while production key approval/bundle issuance remain.
+- [x] Rebuild License Generator Electron as an operator-only offline utility with protected signing-key custody, auditable issuance/revocation/export, no bundled private production key, and deterministic package output.
+- [x] Execute the approved MoneyTrash shell track with upload-resume parity, secure filesystem permissions, removable-media handling, notification behavior, crash recovery, and installer/updater parity.
 
 ### Packaging, installers, and updates
 

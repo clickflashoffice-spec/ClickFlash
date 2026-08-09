@@ -1,13 +1,13 @@
+import { Spinner, Card, Modal } from "@clickflash/ui";
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { TouchKiosk } from '../../types.ts';
 import KioskEditModal from '../modals/KioskEditModal.tsx';
 import { apiService } from '../../services/apiService.ts';
-import Spinner from '../common/Spinner.tsx';
-import Card from '../common/Card.tsx';
+
 import KioskPairing from './KioskPairing';
 import { pb } from '../../services/pb.ts';
-import Modal from '../common/Modal.tsx';
+
 import { logger } from '@/utils/logger';
 import MobilePhotographerPairing from './MobilePhotographerPairing';
 
@@ -104,7 +104,6 @@ const KioskConnections: React.FC = () => {
                     : 'Disconnected'
             };
 
-
             if ('id' in sanitizedData && sanitizedData.id) {
                 const existingKiosk = kiosks.find(k => k.id === sanitizedData.id);
                 if (existingKiosk) {
@@ -141,8 +140,6 @@ const KioskConnections: React.FC = () => {
             }
         }
     };
-
-
 
     if (loading) return <Spinner />;
 

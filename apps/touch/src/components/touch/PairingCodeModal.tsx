@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import Modal from '../common/Modal.tsx';
+import { Modal } from '@clickflash/ui';
 import OnScreenKeyboard from './OnScreenKeyboard';
 
 interface PairingCodeModalProps {

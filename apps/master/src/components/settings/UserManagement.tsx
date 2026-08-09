@@ -1,3 +1,4 @@
+import { Spinner } from "@clickflash/ui";
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Photographer, Destination } from '../../types';
@@ -8,7 +9,7 @@ import WorkingTimeModal from '../photographers/WorkingTimeModal';
 import ObjectivesModal from '../photographers/ObjectivesModal';
 import ConnexionHistoryModal from '../photographers/ConnexionHistoryModal';
 import ShiftLogsModal from '../photographers/ShiftLogsModal';
-import Spinner from '../common/Spinner';
+
 import { usePermissions } from '../../hooks/usePermissions';
 import { Clock, Target, History, ClipboardList } from 'lucide-react';
 import { logger } from '@/utils/logger';

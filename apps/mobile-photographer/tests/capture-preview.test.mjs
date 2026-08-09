@@ -8,8 +8,8 @@ const studioSource = readFileSync(
 );
 
 test('verified original is published to UI state before automatic editing starts', () => {
-  const previewStateIndex = studioSource.indexOf('setLastVerifiedPreview({');
-  const editorIndex = studioSource.indexOf('void processPhoto(', previewStateIndex);
+  const previewStateIndex = studioSource.indexOf('const lastVerifiedPreview = tether.lastVerifiedPreview;');
+  const editorIndex = studioSource.indexOf('processPhoto(', previewStateIndex);
 
   assert.ok(previewStateIndex >= 0, 'Verified preview state must be populated.');
   assert.ok(editorIndex > previewStateIndex, 'Preview must be populated before the editor starts.');

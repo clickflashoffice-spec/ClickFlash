@@ -1,7 +1,7 @@
+import { Spinner } from "@clickflash/ui";
 import React, { useState, useEffect } from 'react';
 import { logger } from '../utils/logger';
 import { marketingService, CampaignAnalytics } from '../services/api/marketingService';
-import Spinner from './common/Spinner';
 
 /**
  * Marketing Analytics Dashboard

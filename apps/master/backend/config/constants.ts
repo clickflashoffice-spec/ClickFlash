@@ -4,7 +4,11 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs';
 import crypto from 'crypto';
+import { fileURLToPath } from 'url';
 import { logger } from "@clickflash/logger";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // --- Environment & Port Configuration ---
 // Use BACKEND_PORT (not the generic PORT) so the Vite dev server and preview

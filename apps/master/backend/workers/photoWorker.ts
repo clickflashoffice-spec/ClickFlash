@@ -9,6 +9,7 @@ import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
 import exifr from "exifr";
+import { ImageEditRecipeV1 } from "@clickflash/types";
 
 import { validateImageMagicNumber } from '../services/validateImage';
 import { logger } from '../utils/logger';
@@ -34,7 +35,7 @@ interface WorkerJob {
   mimeType?: string;
   sourcePath?: string;
   destPath?: string;
-  edits?: any;
+  edits?: ImageEditRecipeV1;
   hash?: string;
   overlayPath?: string;
   opacity?: number;
@@ -358,6 +359,7 @@ async function handleProcessJob(job: WorkerJob) {
         logger.error(`[PhotoWorker] Aggressive repair failed for ${photoId}`);
       }
     }
+
     throw err;
   } finally {
     // GC Cleanup
@@ -365,30 +367,7 @@ async function handleProcessJob(job: WorkerJob) {
   }
 }
 
-const WORKER_EDIT_RANGES: Record<string, [number, number]> = {
-  exposure: [-100, 100], contrast: [-100, 100], highlights: [-100, 100],
-  shadows: [-100, 100], saturate: [-100, 100], vibrance: [-100, 100],
-  grayscale: [0, 100], sepia: [0, 100], invert: [0, 1],
-  hueRotate: [-180, 180], temperature: [-100, 100], tint: [-100, 100],
-  whites: [-100, 100], blacks: [-100, 100], clarity: [-100, 100],
-  soften: [0, 100], sharpen: [0, 100], vignette: [0, 100],
-  dropShadow: [0, 100], brightness: [-100, 100],
-  rotate: [-360, 360], straighten: [-45, 45],
-  perspectiveX: [-50, 50], perspectiveY: [-50, 50],
-};
-
-function clampEdits(raw: Record<string, any>): Record<string, any> {
-  const out: Record<string, any> = { ...raw };
-  for (const [key, [lo, hi]] of Object.entries(WORKER_EDIT_RANGES)) {
-    if (key in out) {
-      const n = Number(out[key]);
-      out[key] = isFinite(n) ? Math.max(lo, Math.min(hi, n)) : 0;
-    }
-  }
-  return out;
-}
-
-function applyPipelineCrop(pipeline: sharp.Sharp, crop: any, currentWidth: number, currentHeight: number): sharp.Sharp {
+function applyPipelineCrop(pipeline: sharp.Sharp, crop: ImageEditRecipeV1['geometry']['crop'], currentWidth: number, currentHeight: number): sharp.Sharp {
     if (crop && typeof crop === "object") {
       const { x, y, width, height } = crop;
       const safeLeft = Math.max(0, Math.min(currentWidth - 1, Math.round((x / 100) * currentWidth)));
@@ -401,48 +380,51 @@ function applyPipelineCrop(pipeline: sharp.Sharp, crop: any, currentWidth: numbe
     return pipeline;
 }
 
-function applyPipelineEdits(pipeline: sharp.Sharp, edits: Record<string, any>): sharp.Sharp {
-    const exposureFactor = Math.pow(2, (edits.exposure || 0) / 25);
-    const brightnessAdjust = exposureFactor * (1.0 + (edits.brightness || 0) / 100.0);
-    const saturationAdjust = 1.0 + (edits.saturate || 0) / 100.0;
+function applyPipelineEdits(pipeline: sharp.Sharp, color: ImageEditRecipeV1['color']): sharp.Sharp {
+    const exposureFactor = Math.pow(2, (color.exposure || 0) / 25);
+    const brightnessAdjust = exposureFactor * (1.0 + (color.brightness || 0) / 100.0);
+    const saturationAdjust = 1.0 + (color.saturate || 0) / 100.0;
 
-    if (brightnessAdjust !== 1.0 || saturationAdjust !== 1.0 || edits.hueRotate) {
+    if (brightnessAdjust !== 1.0 || saturationAdjust !== 1.0 || color.hueRotate) {
       pipeline = pipeline.modulate({
         brightness: brightnessAdjust,
         saturation: saturationAdjust,
-        hue: edits.hueRotate || 0,
+        hue: color.hueRotate || 0,
       });
     }
 
-    const contrastAdjust = 1.0 + (edits.contrast || 0) / 100.0;
+    const contrastAdjust = 1.0 + (color.contrast || 0) / 100.0;
     if (contrastAdjust !== 1.0) {
       pipeline = pipeline.linear(contrastAdjust, -(128 * contrastAdjust) + 128);
     }
 
-    if (edits.grayscale) pipeline = pipeline.grayscale();
-    if (edits.sepia) pipeline = pipeline.recomb([[0.3588, 0.7044, 0.1368], [0.299, 0.587, 0.114], [0.2392, 0.4696, 0.0912]]);
-    if (edits.invert) pipeline = pipeline.negate();
-    if (edits.soften && edits.soften > 0) pipeline = pipeline.blur(edits.soften / 5.0);
-    if (edits.clarity && edits.clarity > 0) {
-      pipeline = pipeline.sharpen({ sigma: edits.clarity / 20.0 });
+    if (color.grayscale) pipeline = pipeline.grayscale();
+    if (color.sepia) pipeline = pipeline.recomb([[0.3588, 0.7044, 0.1368], [0.299, 0.587, 0.114], [0.2392, 0.4696, 0.0912]]);
+    if (color.invert) pipeline = pipeline.negate();
+    if (color.soften && color.soften > 0) pipeline = pipeline.blur(color.soften / 5.0);
+    if (color.clarity && color.clarity > 0) {
+      pipeline = pipeline.sharpen({ sigma: color.clarity / 20.0 });
     }
     
     return pipeline;
 }
 
 async function handleApplyEditsJob(job: WorkerJob) {
-  const { sourcePath, destPath, photoId } = job;
-  const edits = clampEdits(job.edits || {});
+  const { sourcePath, destPath, photoId, edits } = job;
 
   if (!sourcePath || !fs.existsSync(sourcePath)) {
     throw new Error(`Source file not found: ${sourcePath}`);
   }
 
+  if (sourcePath === destPath) {
+    throw new Error('OVERWRITE_PROHIBITED');
+  }
+
   let currentBuffer: Buffer | null = null;
   try {
     // 1. Initial Load & Rotation/Straighten
-    let pipeline = sharp(sourcePath, { failOn: 'none' }).withMetadata();
-    const rotVal = (edits.rotate || 0) + (edits.straighten || 0);
+    let pipeline = sharp(sourcePath, { failOn: 'none' }).withMetadata({ orientation: 1 });
+    const rotVal = edits ? ((edits.geometry.rotate || 0) + (edits.geometry.straighten || 0)) : 0;
     if (rotVal !== 0) {
       pipeline = pipeline.rotate(rotVal);
     }
@@ -453,7 +435,7 @@ async function handleApplyEditsJob(job: WorkerJob) {
     let currentHeight = metadata.height || 0;
 
     // 2. Retouching (Healing)
-    if (edits.retouchActions && edits.retouchActions.length > 0) {
+    if (edits && edits.retouchActions && edits.retouchActions.length > 0) {
       const retouchedImage = await applyRetouchActions(
         currentBuffer,
         edits.retouchActions,
@@ -470,18 +452,26 @@ async function handleApplyEditsJob(job: WorkerJob) {
     // Reuse buffer for final pipeline
     pipeline = sharp(currentBuffer);
 
-    // 3. Crop (Percentage-based)
-    pipeline = applyPipelineCrop(pipeline, edits.crop, currentWidth, currentHeight);
+    // Enforce consistent color management (sRGB transformation)
+    pipeline = pipeline.toColorspace('srgb');
 
-    // 4. Global Color Adjustments
-    pipeline = applyPipelineEdits(pipeline, edits);
+    if (edits) {
+      // 3. Crop (Percentage-based)
+      pipeline = applyPipelineCrop(pipeline, edits.geometry.crop, currentWidth, currentHeight);
 
-    // 5. Final Output
-    if (destPath) {
-      await pipeline.jpeg({ quality: 95, mozjpeg: true }).toFile(destPath);
+      // 4. Global Color Adjustments
+      pipeline = applyPipelineEdits(pipeline, edits.color);
     }
 
-    parentPort!.postMessage({ success: true, photoId });
+    // 5. Final Output
+    let derivativeHash = undefined;
+    if (destPath) {
+      const outBuffer = await pipeline.jpeg({ quality: 95, mozjpeg: true }).toBuffer();
+      derivativeHash = crypto.createHash('sha256').update(outBuffer).digest('hex');
+      await fs.promises.writeFile(destPath, outBuffer);
+    }
+
+    parentPort!.postMessage({ success: true, photoId, derivativeHash });
   } finally {
     currentBuffer = null; // Memory management: Clear large buffer
   }

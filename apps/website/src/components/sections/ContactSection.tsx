@@ -1,3 +1,4 @@
+import { Button } from '@clickflash/ui';
 "use client";
 
 import { useState } from "react";
@@ -5,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { Button } from "@/components/ui/Button";
+
 import { submitContactForm } from "@/lib/api";
 
 interface FormData {

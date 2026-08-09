@@ -1,8 +1,8 @@
+import { Spinner } from "@clickflash/ui";
 
 import React, { useState, useEffect } from 'react';
 import { marketingService, Campaign } from '../../services/api/marketingService';
 import { logger } from '../../utils/logger';
-import Spinner from '../common/Spinner';
 
 interface CampaignEditorProps {
     campaign: Campaign | null;

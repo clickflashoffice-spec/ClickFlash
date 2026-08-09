@@ -1,9 +1,10 @@
+import { ErrorBoundary } from '@clickflash/ui';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ThemeProvider } from './components/ThemeContext';
 import { CurrencyProvider } from './components/CurrencyContext';
-import ErrorBoundary from './components/common/ErrorBoundary';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './index.css';
 import './i18n';

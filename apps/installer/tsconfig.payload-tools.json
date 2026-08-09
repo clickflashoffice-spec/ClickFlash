@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.electron.json",
   "compilerOptions": {
+    "types": ["node"],
     "outDir": "dist/payload-tools",
     "rootDir": "."
   },

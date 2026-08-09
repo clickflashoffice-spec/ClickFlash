@@ -1,5 +1,5 @@
-// backend/routes/orders.ts
 import express, { Request, Response, Router } from "express";
+import { randomUUID } from "crypto";
 import fs from "fs-extra";
 import path from "path";
 import { DatabaseManager } from '../database/db';
@@ -17,6 +17,7 @@ import { SyncManager } from "../services/SyncManager";
 import { LedgerService } from "../services/LedgerService";
 import { OrderValidationService } from "../services/OrderValidationService";
 import AuditLogger from '../utils/auditLogger';
+import { PhotographerEventLedgerService } from "../services/PhotographerEventLedgerService";
 
 import { strictRateLimiter } from '../middleware/rateLimiter';
 
@@ -30,6 +31,7 @@ interface OrdersContext {
   ledgerService: LedgerService;
   auditLogger: AuditLogger;
   orderValidationService?: OrderValidationService;
+  photographerEventLedgerService: PhotographerEventLedgerService;
 }
 
 export default function orderRoutes(context: OrdersContext): Router {
@@ -458,7 +460,7 @@ export default function orderRoutes(context: OrdersContext): Router {
         // 2. File-based Push (Adheres to Law 07 and User Feedback for Multi-Kiosk)
         await context.fulfillmentService.broadcastStatusToKiosks(orderId);
 
-        // 3. Phase 41: Ledger Entry (Commission)
+        // 3. Phase 41/4: Ledger Entry (Immutable Events)
         if (status === "Completed") {
           try {
             const fullOrder = dbManager.get(
@@ -466,16 +468,51 @@ export default function orderRoutes(context: OrdersContext): Router {
               [orderId],
             );
             if (fullOrder && fullOrder.photographerId) {
-              const photographer = dbManager.get(
-                "SELECT * FROM users WHERE id = ?",
-                [fullOrder.photographerId],
-              );
-              if (photographer) {
-                await context.ledgerService.recordOrderCommission(
-                  fullOrder,
-                  photographer,
-                );
-              }
+              const nowIso = new Date().toISOString();
+              const grossMinor = Math.round((Number(fullOrder.total) || 0) * 100);
+
+              context.photographerEventLedgerService.append({
+                schemaVersion: '1',
+                eventId: randomUUID(),
+                producer: 'MASTER',
+                producerEventId: orderId,
+                photographerId: fullOrder.photographerId,
+                occurredAt: nowIso,
+                recordedAt: nowIso,
+                scope: {
+                  deskId: 'MASTER_DESK',
+                  timezone: 'UTC',
+                },
+                sourceRecordId: orderId,
+                payload: {
+                  kind: 'ORDER_COMPLETED',
+                  orderId: orderId,
+                  gross: { currency: 'USD', currencyExponent: 2, amountMinor: grossMinor },
+                  tips: { currency: 'USD', currencyExponent: 2, amountMinor: 0 },
+                  photoCount: Math.max(1, JSON.parse(fullOrder.items || '[]').length), // Inference fallback
+                }
+              });
+
+              context.photographerEventLedgerService.append({
+                schemaVersion: '1',
+                eventId: randomUUID(),
+                producer: 'MASTER',
+                producerEventId: `${orderId}_attr`,
+                photographerId: fullOrder.photographerId,
+                occurredAt: nowIso,
+                recordedAt: nowIso,
+                scope: {
+                  deskId: 'MASTER_DESK',
+                  timezone: 'UTC',
+                },
+                sourceRecordId: orderId,
+                payload: {
+                  kind: 'ATTRIBUTION_ASSIGNED',
+                  orderId: orderId,
+                  method: 'KIOSK_SESSION',
+                  confidenceBps: 10000,
+                }
+              });
             }
 
             // Phase 46: Automated Fulfillment (Receipts & Emails)
@@ -635,6 +672,58 @@ export default function orderRoutes(context: OrdersContext): Router {
       sendError(res, 500, "Kiosk Order Error", error.message, ERROR_CODES.INTERNAL_ERROR);
     }
   });
+
+  router.post(
+    "/:id/payment",
+    isAdminOrManager,
+    async (req: Request, res: Response) => {
+      const orderId = req.params.id as string;
+      const { amount, method } = req.body;
+
+      if (!amount || !method) {
+        return sendInvalidInputError(res, "Missing amount or method");
+      }
+
+      try {
+        const fullOrder = dbManager.get(
+          "SELECT * FROM orders WHERE id = ?",
+          [orderId],
+        );
+
+        if (!fullOrder || !fullOrder.photographerId) {
+          return sendNotFoundError(res, "Order or photographer not found");
+        }
+
+        const nowIso = new Date().toISOString();
+        const paymentId = randomUUID();
+        const amountMinor = Math.round(amount * 100);
+        
+        context.photographerEventLedgerService.append({
+          schemaVersion: '1',
+          eventId: randomUUID(),
+          producer: 'MASTER',
+          producerEventId: paymentId,
+          photographerId: fullOrder.photographerId,
+          occurredAt: nowIso,
+          recordedAt: nowIso,
+          scope: { deskId: 'MASTER_DESK', timezone: 'UTC' },
+          sourceRecordId: orderId,
+          payload: {
+            kind: 'PAYMENT_CAPTURED',
+            orderId: orderId,
+            paymentId: paymentId,
+            amount: { currency: 'USD', currencyExponent: 2, amountMinor },
+            method: method as any,
+          }
+        });
+
+        res.json({ success: true, paymentId });
+      } catch (error: any) {
+        logger.error("Failed to capture payment", error);
+        sendError(res, 500, "Payment Capture Error", error.message, ERROR_CODES.INTERNAL_ERROR);
+      }
+    }
+  );
 
   return router;
 }

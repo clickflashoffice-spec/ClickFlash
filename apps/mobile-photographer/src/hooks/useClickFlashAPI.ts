@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useSnapshot } from 'valtio';
+import { appState } from '../store';
 import { 
   networkRoutingService, 
   NetworkStatusSnapshot, 
@@ -27,16 +29,9 @@ export interface ClickFlashApiResponse<T = unknown> {
 }
 
 export function useClickFlashAPI() {
-  const [networkStatus, setNetworkStatus] = useState<NetworkStatusSnapshot>(() => 
-    networkRoutingService.getStatusSnapshot()
-  );
+  const { network } = useSnapshot(appState);
+  const networkStatus = network.status;
 
-  useEffect(() => {
-    const unsubscribe = networkRoutingService.subscribe((snapshot) => {
-      setNetworkStatus(snapshot);
-    });
-    return () => unsubscribe();
-  }, []);
 
   /**
    * Executes an API request with dual-layer fallback routing and automatic offline queueing.

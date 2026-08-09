@@ -1,5 +1,6 @@
+import { Card } from '@clickflash/ui';
 import React from 'react';
-import Card from './Card';
+
 
 const AccessDenied: React.FC = () => {
     return (

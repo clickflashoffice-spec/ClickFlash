@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Product, Pack, EcommerceExtension } from "../../types.ts";
 import { apiService } from "../../services/apiService.ts";
-import Card from "../common/Card.tsx";
-import Spinner from "../common/Spinner.tsx";
+import { Card } from "@clickflash/ui";
+import { Spinner } from "@clickflash/ui";
 import { useCurrency } from "../CurrencyContext.tsx";
 import ProductEditModal from "../modals/ProductEditModal.tsx";
 import PackEditModal from "../modals/PackEditModal.tsx";

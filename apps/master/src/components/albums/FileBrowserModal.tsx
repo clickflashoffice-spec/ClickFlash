@@ -1,6 +1,7 @@
+import { Modal } from "@clickflash/ui";
 
 import React, { useState, useMemo } from 'react';
-import Modal from '../common/Modal.tsx';
+
 import { FileSystemItem, Photo } from '../../types.ts';
 import { MOCK_FILE_SYSTEM } from '../../constants.ts';
 import LazyImage from '../common/LazyImage';

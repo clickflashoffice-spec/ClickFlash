@@ -1,3 +1,4 @@
+import { Card } from "@clickflash/ui";
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Shield,
@@ -22,7 +23,7 @@ import {
   Eye,
   Ban,
 } from "lucide-react";
-import Card from "../common/Card";
+
 import { logger } from "../../utils/logger";
 
 interface ConsentStats {

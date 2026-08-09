@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import Card from '../../common/Card.tsx';
+import { Card } from "@clickflash/ui";
 import { Album, Photographer } from '../../../types.ts';
 
 interface AlbumsToProcessWidgetProps {

@@ -65,21 +65,22 @@ async function copyAssets() {
     }
 
     // CRITICAL: Copy .trie files for fontkit (used by PDF generation)
-    const trieFiles = [
-        'node_modules/@foliojs-fork/fontkit/data.trie',
-        'node_modules/@foliojs-fork/fontkit/indic.trie',
-        'node_modules/@foliojs-fork/fontkit/use.trie',
-        'node_modules/@foliojs-fork/linebreak/src/classes.trie',
+    const trieFilesToResolve = [
+        '@foliojs-fork/fontkit/data.trie',
+        '@foliojs-fork/fontkit/indic.trie',
+        '@foliojs-fork/fontkit/use.trie',
+        '@foliojs-fork/linebreak/src/classes.trie',
     ];
     
-    for (const trieFile of trieFiles) {
-        const srcTrie = path.join(ROOT_DIR, trieFile);
-        const destTrie = path.join(DIST_DIR, path.basename(trieFile));
-        if (await fs.pathExists(srcTrie)) {
-            await fs.copy(srcTrie, destTrie);
-            console.log(`[Assets] Copied ${trieFile} to dist/backend/`);
-        } else {
-            console.warn(`[Assets] Warning: ${trieFile} not found`);
+    for (const fileRoute of trieFilesToResolve) {
+        try {
+            // Using require.resolve to find the exact package path in pnpm
+            const resolvedPath = require.resolve(fileRoute);
+            const destTrie = path.join(DIST_DIR, path.basename(fileRoute));
+            await fs.copy(resolvedPath, destTrie);
+            console.log(`[Assets] Copied ${fileRoute} to dist/backend/`);
+        } catch (err) {
+            console.warn(`[Assets] Warning: Failed to resolve or copy ${fileRoute}`);
         }
     }
 

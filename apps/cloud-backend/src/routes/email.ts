@@ -1,5 +1,4 @@
 import { Hono } from 'hono';
-import { Resend } from 'resend';
 import { requireServiceAuth } from '../auth';
 import type { AppEnv } from '../types';
 
@@ -19,13 +18,18 @@ app.post('/notifications/ready', async (c) => {
       return c.json({ error: 'Session not found or missing customer_email' }, 404);
     }
 
-    const resend = new Resend(c.env.RESEND_API_KEY);
-    await resend.emails.send({
-      from: 'ClickFlash <no-reply@clickflash.com>',
-      to: session.customer_email as string,
-      subject: 'Your photos are ready!',
-      html: `<p>Hi ${session.guest_name || 'Guest'},</p><p>Your photos from today's session are now ready to view and download!</p>`
-    });
+    if (c.env.MANAGEMENT_BACKEND_URL) {
+      await fetch(`${c.env.MANAGEMENT_BACKEND_URL}/api/email/relay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: session.customer_email as string,
+          from: 'ClickFlash <no-reply@clickflash.com>',
+          subject: 'Your photos are ready!',
+          html: `<p>Hi ${session.guest_name || 'Guest'},</p><p>Your photos from today's session are now ready to view and download!</p>`
+        })
+      }).catch(() => {});
+    }
 
     if (session.push_token) {
       try {

@@ -113,6 +113,7 @@ export default function PricingPage() {
                                 ? "bg-[#0B111F] border-2 border-cyan-400 shadow-2xl shadow-cyan-500/10"
                                 : "bg-white/5 border border-white/10"
                                 }`}
+                            data-testid="pricing-tier"
                         >
                             {pkg.highlighted && (
                                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-cyan-700 text-white text-[10px] font-black uppercase tracking-[0.2em] px-8 py-2.5 rounded-full shadow-lg shadow-cyan-500/20">
@@ -140,6 +141,7 @@ export default function PricingPage() {
 
                             <Link
                                 href="/signup"
+                                data-testid="pricing-cta"
                                 className={`block w-full text-center py-5 px-8 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all transform active:scale-95 ${pkg.highlighted
                                     ? "bg-cyan-700 text-white hover:bg-slate-900 shadow-lg shadow-cyan-500/20"
                                     : "bg-slate-900 text-white hover:bg-cyan-700 shadow-lg shadow-slate-900/10"

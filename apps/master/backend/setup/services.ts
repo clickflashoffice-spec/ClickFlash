@@ -30,6 +30,7 @@ import { CampaignScheduler } from "../services/campaignScheduler";
 import { InventoryService } from "../services/InventoryService";
 import { VectorIndexService } from "../services/VectorIndexService";
 import { LedgerService } from "../services/LedgerService";
+import { PhotographerEventLedgerService } from "../services/PhotographerEventLedgerService";
 import { MaintenancePoller } from "../services/MaintenancePoller";
 import { ExportService } from "../services/ExportService";
 import { ResortAnalyticsService } from "../services/ResortAnalyticsService";
@@ -172,6 +173,7 @@ export function setupServices(): SetupServicesResult {
   let inventoryService: InventoryService;
   let vectorIndex: VectorIndexService;
   let ledgerService: LedgerService;
+  let photographerEventLedgerService: PhotographerEventLedgerService;
   let exportService: ExportService;
   let resortAnalytics: ResortAnalyticsService;
   let diagnosticSync: DiagnosticSyncService;
@@ -204,6 +206,10 @@ export function setupServices(): SetupServicesResult {
 
     inventoryService = new InventoryService(dbManager, logger);
     ledgerService = new LedgerService(dbManager, logger);
+    photographerEventLedgerService = new PhotographerEventLedgerService(
+      dbManager,
+      logger,
+    );
     vectorIndex = VectorIndexService.getInstance(dbManager, logger);
 
     exportService = new ExportService(logger, dbManager);
@@ -324,6 +330,7 @@ export function setupServices(): SetupServicesResult {
     uploadDir: UPLOAD_DIR,
     vectorIndex,
     ledgerService,
+    photographerEventLedgerService,
     tokenRefreshService,
     networkMonitor,
     exportService,

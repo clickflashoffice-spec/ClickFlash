@@ -8,7 +8,13 @@ import { autoUpdater, UpdateInfo } from 'electron-updater';
 import { logger } from '@clickflash/logger';
 
 // Configure auto-updater
-autoUpdater.logger = console;
+const updaterLogger = {
+  info: (msg: string) => logger.info(msg, { context: 'updater' }),
+  warn: (msg: string) => logger.warn(msg, { context: 'updater' }),
+  error: (msg: string) => logger.error(msg, { context: 'updater' }),
+  debug: (msg: string) => logger.debug(msg, { context: 'updater' }),
+};
+autoUpdater.logger = updaterLogger;
 autoUpdater.autoDownload = false;        // Never download without user confirmation
 autoUpdater.autoInstallOnAppQuit = true;
 // Require code-signing certificate to match publisherName (set in electron-builder.yml)

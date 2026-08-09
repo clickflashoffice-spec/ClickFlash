@@ -4,7 +4,7 @@ const boundedText = (maxLength: number) => z.string()
   .trim()
   .min(1)
   .max(maxLength)
-  .refine((value) => !/[\0\r\n]/.test(value), "Control characters are not allowed");
+  .regex(/^[^\0\r\n]*$/, "Control characters are not allowed");
 
 const identifierSchema = boundedText(64).regex(/^[A-Za-z0-9][A-Za-z0-9_-]*$/);
 const tokenSchema = boundedText(4_096);

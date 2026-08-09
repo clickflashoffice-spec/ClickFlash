@@ -203,8 +203,8 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
               }}
               className={`py-3 px-1 text-[9px] font-black uppercase tracking-[0.1em] rounded-xl transition-all ${
                 mode === "gallery"
-                  ? "bg-white text-cyan-600 shadow-sm border border-slate-200"
-                  : "text-slate-500 hover:text-slate-700"
+                  ? "bg-white text-cyan-800 shadow-sm border border-slate-200"
+                  : "text-slate-700 hover:text-slate-800"
               }`}
             >
               Buy Photos
@@ -217,8 +217,8 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
               }}
               className={`py-3 px-1 text-[9px] font-black uppercase tracking-[0.1em] rounded-xl transition-all ${
                 mode === "order"
-                  ? "bg-white text-cyan-600 shadow-sm border border-slate-200"
-                  : "text-slate-500 hover:text-slate-700"
+                  ? "bg-white text-cyan-800 shadow-sm border border-slate-200"
+                  : "text-slate-700 hover:text-slate-800"
               }`}
             >
               PIN / Email
@@ -231,8 +231,8 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
               }}
               className={`py-3 px-1 text-[9px] font-black uppercase tracking-[0.1em] rounded-xl transition-all ${
                 mode === "magic"
-                  ? "bg-white text-cyan-600 shadow-sm border border-slate-200"
-                  : "text-slate-500 hover:text-slate-700"
+                  ? "bg-white text-cyan-800 shadow-sm border border-slate-200"
+                  : "text-slate-700 hover:text-slate-800"
               }`}
             >
               Magic Token
@@ -246,7 +246,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
               className={`py-3 px-1 text-[9px] font-black uppercase tracking-[0.1em] rounded-xl transition-all flex items-center justify-center gap-1 ${
                 mode === "proximity"
                   ? "bg-cyan-500 text-white shadow-sm font-extrabold"
-                  : "text-cyan-600 hover:text-cyan-700 bg-cyan-50/50"
+                  : "text-cyan-800 hover:text-cyan-800 bg-cyan-50/50"
               }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -259,7 +259,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
               <div className="group">
                 <label
                   htmlFor="accessCode"
-                  className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-600 transition-colors"
+                  className="block text-[10px] font-black text-slate-700 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-800 transition-colors"
                 >
                   B2B Access Code
                 </label>
@@ -267,6 +267,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
                   type="text"
                   id="accessCode"
                   name="accessCode"
+                  data-testid="access-code-input"
                   value={accessPin}
                   onChange={(e) => setAccessPin(e.target.value)}
                   placeholder="e.g. B2B-XXXX-XXXX"
@@ -282,7 +283,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
                 <div className="group">
                   <label
                     htmlFor="accessPin"
-                    className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-600 transition-colors"
+                    className="block text-[10px] font-black text-slate-700 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-800 transition-colors"
                   >
                     6-Digit Access PIN
                   </label>
@@ -301,7 +302,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
                 <div className="group">
                   <label
                     htmlFor="email"
-                    className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-600 transition-colors"
+                    className="block text-[10px] font-black text-slate-700 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-800 transition-colors"
                   >
                     Email Address
                   </label>
@@ -325,7 +326,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
                 <div className="group">
                   <label
                     htmlFor="magicToken"
-                    className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-600 transition-colors"
+                    className="block text-[10px] font-black text-slate-700 uppercase tracking-[0.2em] mb-3 px-1 group-focus-within:text-cyan-800 transition-colors"
                   >
                     Magic Token
                   </label>
@@ -386,14 +387,14 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
                   <div className="flex justify-between items-center mb-3">
                     <label
                       htmlFor="proximityToken"
-                      className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-1 group-focus-within:text-cyan-600 transition-colors"
+                      className="block text-[10px] font-black text-slate-700 uppercase tracking-[0.2em] px-1 group-focus-within:text-cyan-800 transition-colors"
                     >
                       QR Code / Attraction ID
                     </label>
                     <button
                       type="button"
                       onClick={() => setAccessPin("B2B-8841-PASS")}
-                      className="text-[9px] font-black text-cyan-600 hover:underline uppercase tracking-wider"
+                      className="text-[9px] font-black text-cyan-800 hover:underline uppercase tracking-wider"
                     >
                       Quick Fill Demo Pass
                     </button>
@@ -421,6 +422,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
 
             <button
               type="submit"
+              data-testid="submit-code-button"
               disabled={loading}
               className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black py-4.5 rounded-2xl shadow-xl shadow-cyan-500/10 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-[0.1em] text-sm border-t border-white/20 relative overflow-hidden group"
             >

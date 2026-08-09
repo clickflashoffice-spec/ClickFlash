@@ -2,6 +2,7 @@ import fs from 'fs';
 import http from 'http';
 import https from 'https';
 import { logger } from '../utils/logger';
+import { getOrCreateManagedIdentity } from './tlsIdentityService';
 
 export interface ServerConfig {
   port: number;
@@ -27,12 +28,17 @@ export function getTLSConfig(): TLSConfig {
   const keyPath = process.env.TLS_KEY_PATH;
   const certPath = process.env.TLS_CERT_PATH;
 
-  if (keyPath && certPath && fs.existsSync(keyPath) && fs.existsSync(certPath)) {
-    return {
-      enabled: true,
-      keyPath,
-      certPath,
-    };
+  if (keyPath && certPath) {
+    if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
+      return {
+        enabled: true,
+        keyPath,
+        certPath,
+      };
+    } else {
+      logger.error('[TLS] TLS_ENABLED is true but configured certificate files are missing. Fail-closed enforced.');
+      process.exit(1);
+    }
   }
 
   const key = process.env.TLS_KEY;
@@ -46,8 +52,8 @@ export function getTLSConfig(): TLSConfig {
     };
   }
 
-  logger.warn('[TLS] Enabled but no valid configuration found, falling back to HTTP');
-  return { enabled: false };
+  logger.error('[TLS] TLS_ENABLED is true but no valid certificate configuration found. Fail-closed enforced.');
+  process.exit(1);
 }
 
 export function createSecureServer(
@@ -56,10 +62,9 @@ export function createSecureServer(
   host: string
 ): { server: http.Server | https.Server; config: ServerConfig } {
   const tlsConfig = getTLSConfig();
+  let httpsOptions: https.ServerOptions;
 
   if (tlsConfig.enabled) {
-    let httpsOptions: https.ServerOptions;
-
     if (tlsConfig.keyPath && tlsConfig.certPath) {
       httpsOptions = {
         key: fs.readFileSync(tlsConfig.keyPath),
@@ -73,29 +78,45 @@ export function createSecureServer(
     } else {
       throw new Error('TLS enabled but no certificate configuration provided');
     }
-
-    const server = https.createServer(httpsOptions, app);
-    logger.info(`[HTTPS] TLS enabled, server will use HTTPS on port ${port}`);
-
+  } else if (process.env.TEST_E2E !== '1') {
+    // Phase 2: SEC-008 - Fall back to the managed self-signed identity
+    logger.info('[TLS] Using auto-generated managed TLS identity for strict local HTTPS');
+    const managedIdentity = getOrCreateManagedIdentity();
+    httpsOptions = {
+      key: managedIdentity.key,
+      cert: managedIdentity.cert,
+    };
+  } else if (process.env.TEST_E2E === '1') {
+    // E2E Test environment without explicit TLS enabled
+    logger.info('[HTTP] E2E Mode detected, using unencrypted HTTP');
+    const server = http.createServer(app);
     return {
       server,
       config: {
         port,
         host,
-        protocol: 'https',
+        protocol: 'http',
       },
+    };
+  } else {
+    // Phase 2: SEC-008 - Fall back to the managed self-signed identity
+    logger.info('[TLS] Using auto-generated managed TLS identity for strict local HTTPS');
+    const managedIdentity = getOrCreateManagedIdentity();
+    httpsOptions = {
+      key: managedIdentity.key,
+      cert: managedIdentity.cert,
     };
   }
 
-  const server = http.createServer(app);
-  logger.info(`[HTTP] TLS not enabled, using HTTP on port ${port}`);
+  const server = https.createServer(httpsOptions, app);
+  logger.info(`[HTTPS] TLS enabled, server will use HTTPS on port ${port}`);
 
   return {
     server,
     config: {
       port,
       host,
-      protocol: 'http',
+      protocol: 'https',
     },
   };
 }

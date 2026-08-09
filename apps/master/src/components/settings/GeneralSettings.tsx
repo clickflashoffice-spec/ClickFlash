@@ -1,8 +1,9 @@
+import { Spinner } from "@clickflash/ui";
 
 import React, { useEffect, useState } from 'react';
 import { Photographer, Destination } from '../../types.ts';
 import { apiService } from '../../services/apiService.ts';
-import Spinner from '../common/Spinner.tsx';
+
 import useLocalStorage from '../../hooks/useLocalStorage.ts';
 import { safeStorage } from '../../utils/safeStorage';
 import { usePermissions } from '../../hooks/usePermissions.ts';

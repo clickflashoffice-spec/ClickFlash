@@ -1,6 +1,7 @@
+import { Card } from "@clickflash/ui";
 import React, { useState } from 'react';
 import { safeStorage } from '../../utils/safeStorage';
-import Card from '../common/Card';
+
 interface BackupSettingsProps {
     showToast: (message: string) => void;
 }

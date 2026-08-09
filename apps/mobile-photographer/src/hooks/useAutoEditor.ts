@@ -6,6 +6,7 @@ import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { logger } from '@/utils/logger';
 
 import { syncService, type PhotoAsset } from '../services/SyncService';
+import { spotIntelligenceService } from '../services/SpotIntelligenceService';
 import { usePoseAndBlinkDetector, type PoseBlinkAnalysis } from './usePoseAndBlinkDetector';
 
 function bytesToHex(bytes: Uint8Array): string {
@@ -125,6 +126,14 @@ export function useAutoEditor() {
             
             // 4. Persist the quick-edit asset before exposing it as delivery-ready.
             await syncService.queuePhotoForSync(photoAsset);
+            await spotIntelligenceService.recordCaptureObservation({
+                captureId: sourceCaptureId,
+                capturedAt: photoAsset.creationTime,
+                poseQualityScore: poseAnalysis.poseQualityScore,
+                blurDetected: poseAnalysis.blurDetected,
+                blinkDetected: poseAnalysis.blinkDetected,
+                subjectCount: poseAnalysis.subjectCount,
+            });
             setLastEditedPhoto(photoAsset);
 
             return photoAsset;

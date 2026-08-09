@@ -1,5 +1,5 @@
 {
-  "compilerOptions": {
+  "compilerOptions": {`n    "types": [],
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
@@ -14,3 +14,4 @@
   "include": ["*.js", "*.ts"],
   "exclude": ["node_modules"]
 }
+

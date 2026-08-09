@@ -6,24 +6,24 @@
     "auditLog": "C:\\Users\\alamo\\Desktop\\ClickFlash\\packages\\logger\\logs\\.55a5e1f0d9b486ac004855b8d807a479abdee095-audit.json",
     "files": [
         {
-            "date": 1784412603441,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\packages\\logger\\logs\\clickflash-combined-2026-07-18.log",
-            "hash": "10573285126a98fdc644cb4827f396d7bafc08091c26e7c2f7b92e54acc55baf"
-        },
-        {
-            "date": 1784416894294,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\packages\\logger\\logs\\clickflash-combined-2026-07-19.log",
-            "hash": "e8fba915d17ab0a1413f0edbdb17db0e01dc386026c11efb73ba104b569b49c1"
-        },
-        {
-            "date": 1784569073028,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\packages\\logger\\logs\\clickflash-combined-2026-07-20.log",
-            "hash": "c7e5a8c29496a191d1c8232264b25c6e50643fc3936239a54eb2c8fd2bfd7ab5"
-        },
-        {
             "date": 1785174548201,
             "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\packages\\logger\\logs\\clickflash-combined-2026-07-27.log",
             "hash": "5b149a8f828d2f818bede75ec85bbb71ddac7f28b2093a4bc971082cc3955304"
+        },
+        {
+            "date": 1786107815490,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\packages\\logger\\logs\\clickflash-combined-2026-08-07.log",
+            "hash": "a7a93a51be0200c0f2b2fb9b31ee4c3710f6166398b15b39e1fedc638cd0797c"
+        },
+        {
+            "date": 1786191604532,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\packages\\logger\\logs\\clickflash-combined-2026-08-08.log",
+            "hash": "cbf1bb11171e25813e0608677b5034cad91c08e519937de1b837fd442b4d70e6"
+        },
+        {
+            "date": 1786230253375,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\packages\\logger\\logs\\clickflash-combined-2026-08-09.log",
+            "hash": "775a19e7405f001ced6016ab592d2e03089745bb248d5c90d59193b959beccc1"
         }
     ],
     "hashType": "sha256"

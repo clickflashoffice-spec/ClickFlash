@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Play } from "lucide-react";
 
 interface YouTubeEmbedProps {
@@ -17,10 +18,11 @@ export function YouTubeEmbed({ videoId, previewImage, title = "YouTube Video" }:
             {!isPlaying ? (
                 // Preview State
                 <div onClick={() => setIsPlaying(true)} className="relative w-full h-full">
-                    <img
+                    <Image
                         src={previewImage}
                         alt={title}
-                        className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center transition-colors group-hover:bg-slate-900/20">
                         <div className="w-24 h-24 bg-[#0B111F] rounded-full flex items-center justify-center shadow-2xl transition-transform duration-500 group-hover:scale-110">

@@ -19,7 +19,7 @@
     "package:installer": "pnpm run prepare:license-trust && pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && electron-builder build --win",
     "lint": "eslint src installer-payload-installation.ts installer-payload-release.ts installer-payload-verification.ts installer-payload-trust.ts scripts/payload-release.ts --ext .ts,.tsx --max-warnings 50",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.electron.json && tsc --noEmit -p tsconfig.payload-tools.json",
-    "test": "vitest run --pool=threads",
+    "test": "vitest run --pool=forks",
     "clean": "rimraf dist release"
   },
   "dependencies": {

@@ -15,7 +15,7 @@
     "build:electron": "tsc -p tsconfig.electron.json --noEmit && esbuild src/main.ts src/preload.ts --bundle --platform=node --target=node20 --format=cjs --outdir=dist --external:electron --minify",
     "package": "npm run build && electron-builder",
     "package:win": "npm run build && electron-builder --win",
-    "test": "vitest run --pool=threads",
+    "test": "vitest run --pool=forks",
     "lint": "echo \"No lint specified\"",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.electron.json"
   },

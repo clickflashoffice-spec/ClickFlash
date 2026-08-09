@@ -217,7 +217,7 @@ jobs:
           name: ClickFlash ${{ github.ref_name || github.event.inputs.version }}
           body: ${{ steps.changelog.outputs.changelog }}
           draft: true
-          prerelease: ${{ contains(github.ref_name || github.event.inputs.version, 'beta') || contains(github.ref_name || github.event.inputs.version, 'alpha') }}
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.event.inputs.version, 'beta') || contains(github.ref_name, 'alpha') || contains(github.event.inputs.version, 'alpha') }}
           files: |
             ./artifacts/win/**/*.exe
             ./artifacts/mac/**/*.dmg

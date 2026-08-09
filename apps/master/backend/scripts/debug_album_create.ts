@@ -6,6 +6,11 @@ import path from 'path';
 
 import { logger } from "../utils/logger";
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 const API_URL = 'http://localhost:8090';
 
 async function runDebug() {
@@ -51,7 +56,7 @@ async function runDebug() {
         form.append('id', photoId);
 
         // Dummy file
-        const dummyPath = path.join(__dirname, 'dummy.txt');
+        const dummyPath = path.join(_dirname, 'dummy.txt');
         fs.writeFileSync(dummyPath, 'dummy image content');
         form.append('url', fs.createReadStream(dummyPath), 'test.jpg');
 

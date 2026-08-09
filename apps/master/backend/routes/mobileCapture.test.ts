@@ -23,6 +23,11 @@ import {
 } from "../services/mobileCaptureProtocol";
 import type { DatabaseManager } from "../database/db";
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 const mockLogger = {
   info: jest.fn(),
   error: jest.fn(),
@@ -51,7 +56,7 @@ describe("Android mobile capture ingest", () => {
     ]) {
       database.exec(
         fs.readFileSync(
-          path.join(__dirname, "..", "database", "migrations", migrationName),
+          path.join(_dirname, "..", "database", "migrations", migrationName),
           "utf8"
         )
       );

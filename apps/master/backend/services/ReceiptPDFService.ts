@@ -16,6 +16,14 @@ import fs from "fs";
 import path from "path";
 import { Logger } from '../utils/logger';
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import { createRequire } from 'module';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const PdfPrinter = require("pdfmake") as {
   new (fontDescriptors: Record<string, {

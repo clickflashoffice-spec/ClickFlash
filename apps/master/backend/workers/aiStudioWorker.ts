@@ -3,6 +3,11 @@ import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 export type AIStudioAction = 'upscale' | 'remove_object' | 'replace_sky' | 'smart_crop';
 
 export interface AIStudioTask {
@@ -24,7 +29,7 @@ async function processImage(task: AIStudioTask): Promise<void> {
     
     return new Promise((resolve, reject) => {
         // Mock Python script execution
-        const pythonScript = path.join(__dirname, '..', '..', 'scripts', 'ai_studio.py');
+        const pythonScript = path.join(_dirname, '..', '..', 'scripts', 'ai_studio.py');
         
         // Ensure destination dir exists
         const destDir = path.dirname(task.targetPath);

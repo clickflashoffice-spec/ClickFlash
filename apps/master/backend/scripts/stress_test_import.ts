@@ -5,6 +5,11 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from '../utils/logger';
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 const API_URL = 'http://localhost:8090';
 const CONCURRENCY = 100;
 
@@ -44,7 +49,7 @@ async function runStressTest() {
         }
 
         // 2. Prepare Dummy File
-        const dummyPath = path.join(__dirname, 'stress_dummy.txt');
+        const dummyPath = path.join(_dirname, 'stress_dummy.txt');
         fs.writeFileSync(dummyPath, 'stress test content '.repeat(100));
 
         // 3. Batch Uploads
@@ -100,7 +105,7 @@ async function runStressTest() {
         heap: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
     });
 
-    fs.writeFileSync(path.join(__dirname, '../audit_results.json'), JSON.stringify(results, null, 2));
+    fs.writeFileSync(path.join(_dirname, '../audit_results.json'), JSON.stringify(results, null, 2));
 }
 
 runStressTest();

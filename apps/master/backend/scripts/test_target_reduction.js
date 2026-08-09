@@ -1,10 +1,15 @@
 import { logger } from "@/utils/logger";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 const Database = require('better-sqlite3');
 const path = require('path');
 const crypto = require('crypto');
 
 // Configuration
-const DB_FILE = path.join(__dirname, '../data/database.sqlite');
+const DB_FILE = path.join(_dirname, '../data/database.sqlite');
 const db = new Database(DB_FILE);
 
 async function testTargetReduction() {

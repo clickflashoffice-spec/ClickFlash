@@ -1,13 +1,18 @@
 import { logger } from "@/utils/logger";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-const dbPath = path.join(__dirname, '../../pb_data/master.db');
+const dbPath = path.join(_dirname, '../../pb_data/master.db');
 logger.info('Connecting to database at:', dbPath);
 const db = new Database(dbPath);
 
-const migrationPath = path.join(__dirname, '../migrations/fix_login_history_schema.sql');
+const migrationPath = path.join(_dirname, '../migrations/fix_login_history_schema.sql');
 logger.info('Reading migration file:', migrationPath);
 
 try {

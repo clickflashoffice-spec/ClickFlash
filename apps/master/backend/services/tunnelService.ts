@@ -3,6 +3,11 @@ import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 interface TunnelConfig {
   tunnelId: string;
   tunnelToken?: string;
@@ -80,8 +85,8 @@ class TunnelService {
     const possiblePaths = [
       path.join(process.cwd(), 'cloudflared'),
       path.join(process.cwd(), 'cloudflared.exe'),
-      path.join(__dirname, '..', '..', 'cloudflared'),
-      path.join(__dirname, '..', '..', 'cloudflared.exe'),
+      path.join(_dirname, '..', '..', 'cloudflared'),
+      path.join(_dirname, '..', '..', 'cloudflared.exe'),
     ];
 
     for (const p of possiblePaths) {

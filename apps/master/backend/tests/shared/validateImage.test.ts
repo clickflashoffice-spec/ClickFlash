@@ -3,8 +3,13 @@ import fs from 'fs';
 import path from 'path';
 import { validateImageMagicNumber } from '../../services/validateImage';
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 describe('validateImage', () => {
-  const testDir = path.join(__dirname, 'testFiles');
+  const testDir = path.join(_dirname, 'testFiles');
 
   beforeAll(() => {
     if (!fs.existsSync(testDir)) {

@@ -1,8 +1,12 @@
 import fs from 'fs';
-import path from 'path';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
 
 // Set up env BEFORE import so it uses a temp directory
-const TEMP_DIR = path.join(__dirname, 'temp_tls_test_' + Date.now());
+const TEMP_DIR = path.join(_dirname, 'temp_tls_test_' + Date.now());
 process.env.APPDATA = TEMP_DIR;
 process.env.HOME = TEMP_DIR;
 

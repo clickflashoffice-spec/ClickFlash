@@ -100,6 +100,7 @@ const config: Config = {
     '!src/main/**',
     '!src/**/types/**',
     '!src/**/__tests__/**',
+    '!src/components/albums/editor2/**',
     'backend/services/**',
     'backend/routes/**',
     'backend/shared/**',

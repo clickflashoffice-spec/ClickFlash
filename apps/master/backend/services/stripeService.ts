@@ -1,5 +1,4 @@
 import Stripe from 'stripe';
-import { logger } from '../utils/logger';
 
 let stripeInstance: Stripe | null = null;
 

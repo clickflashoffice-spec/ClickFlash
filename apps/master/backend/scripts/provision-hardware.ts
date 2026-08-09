@@ -5,7 +5,12 @@ import path from "path";
 import dotenv from "dotenv";
 import { logger } from '../utils/logger';
 
-const ENV_PATH = path.join(__dirname, "../.env");
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
+const ENV_PATH = path.join(_dirname, "../.env");
 
 async function getMachineId(): Promise<string> {
     try {
@@ -78,7 +83,7 @@ async function runProvisioning() {
     }
 
     // Update settings table if DB exists
-    const DB_PATH = path.join(__dirname, "../data/master.db");
+    const DB_PATH = path.join(_dirname, "../data/master.db");
     if (fs.existsSync(DB_PATH)) {
         try {
             const Database = require("better-sqlite3-multiple-ciphers");

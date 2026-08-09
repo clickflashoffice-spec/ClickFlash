@@ -6,6 +6,11 @@ import path from "path";
 import sharp from "sharp";
 import { logger } from '../utils/logger';
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
 // P0 AI Retouch Safety threshold
 const AREA_THRESHOLD_PERCENT = 0.5;
 
@@ -14,7 +19,7 @@ let modelsLoaded = false;
 async function initModels() {
   if (modelsLoaded) return;
   const modelPath = path.resolve(
-    __dirname,
+    _dirname,
     "../../node_modules/@vladmandic/face-api/model",
   );
 

@@ -502,7 +502,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     </OrderErrorBoundary>
                     )
                   } />
-                  <Route path="printqueue" element={
+                  <Route path="print-queue" element={
                     !can("viewOrders") ? (
                       <AccessDenied
                         permission="viewOrders"

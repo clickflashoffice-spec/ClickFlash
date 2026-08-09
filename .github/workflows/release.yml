@@ -213,11 +213,11 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name || inputs.version }}
-          name: ClickFlash ${{ github.ref_name || inputs.version }}
+          tag_name: ${{ github.ref_name || github.event.inputs.version }}
+          name: ClickFlash ${{ github.ref_name || github.event.inputs.version }}
           body: ${{ steps.changelog.outputs.changelog }}
           draft: true
-          prerelease: ${{ contains(github.ref_name || inputs.version, 'beta') || contains(github.ref_name || inputs.version, 'alpha') }}
+          prerelease: ${{ contains(github.ref_name || github.event.inputs.version, 'beta') || contains(github.ref_name || github.event.inputs.version, 'alpha') }}
           files: |
             ./artifacts/win/**/*.exe
             ./artifacts/mac/**/*.dmg

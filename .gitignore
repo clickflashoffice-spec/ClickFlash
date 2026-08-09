@@ -195,3 +195,10 @@ nul
 # Deployment packages (binary installers + credentials)
 deployment/
 apps/touch/pb_data/*.db-shm
+
+# Executables and Binaries
+*.exe
+k6-bin/
+
+# Coverage
+coverage/

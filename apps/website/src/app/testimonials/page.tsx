@@ -153,7 +153,7 @@ export default function TestimonialsPage() {
                     </p>
                     <div className="flex flex-col sm:flex-row gap-6 justify-center relative z-10">
                         <Link
-                            href="/bookings"
+                            href="https://www.fotiqo.com/book/v/clickflash"
                             className="bg-slate-900 text-white font-black uppercase py-6 px-14 rounded-full hover:bg-cyan-700 transition-all shadow-xl text-[11px] tracking-widest"
                         >
                             Book Your Session

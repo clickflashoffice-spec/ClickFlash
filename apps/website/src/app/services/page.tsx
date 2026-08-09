@@ -21,7 +21,7 @@ const services = [
       "Online gallery",
       "Premium wedding albums",
     ],
-    link: "/bookings",
+    link: "https://www.fotiqo.com/book/v/clickflash",
     reverse: false,
   },
   {
@@ -37,7 +37,7 @@ const services = [
       "Event coverage",
       "Marketing content",
     ],
-    link: "/bookings",
+    link: "https://www.fotiqo.com/book/v/clickflash",
     reverse: true,
   },
   {
@@ -53,7 +53,7 @@ const services = [
       "Creative concepts",
       "Professional retouching",
     ],
-    link: "/bookings",
+    link: "https://www.fotiqo.com/book/v/clickflash",
     reverse: false,
   },
   {
@@ -64,7 +64,7 @@ const services = [
       "From corporate retreats to conferences and team building events, we provide professional photography that captures the essence of your business events. Perfect for marketing, internal communications, and social media.",
     image: "/images/portfolio/9deb28fd-159f-4ad8-b0a6-0eba99a7fdbe.jpg",
     features: ["Event documentation", "Candid moments", "Team photos", "Quick turnaround"],
-    link: "/bookings",
+    link: "https://www.fotiqo.com/book/v/clickflash",
     reverse: true,
   },
 ];
@@ -243,7 +243,7 @@ export default function ServicesPage() {
             Ready to Capture <span className="text-cyan-700 italic">Your Moments?</span>
           </h2>
           <Link
-            href="/bookings"
+            href="https://www.fotiqo.com/book/v/clickflash"
             className="inline-block rounded-full bg-cyan-700 px-8 py-4 text-[10px] font-black tracking-widest text-white uppercase shadow-xl shadow-cyan-500/20 transition-all hover:bg-slate-900 hover:text-white md:px-14 md:py-6 md:text-[11px]"
           >
             Book Now

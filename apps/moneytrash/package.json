@@ -17,7 +17,7 @@
     "package:dir": "pnpm run build && pnpm run build:electron && pnpm run prepare:electron-stage && pnpm run clean:electron-output && electron-builder --win --dir",
     "package:installer": "pnpm run build && pnpm run build:electron && pnpm run prepare:electron-stage && pnpm run clean:electron-output && electron-builder --win",
     "lint": "eslint",
-    "test": "vitest run --pool=threads",
+    "test": "vitest run --pool=forks",
     "test:watch": "vitest",
     "test:ci": "vitest run --coverage",
     "typecheck": "tsc --noEmit",

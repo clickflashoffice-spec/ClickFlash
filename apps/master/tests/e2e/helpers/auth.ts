@@ -7,8 +7,8 @@ import { Page } from "@playwright/test";
 // These must match the DEFAULT_ADMIN_EMAIL / DEFAULT_ADMIN_PASSWORD env vars
 // used by init-default-user.ts when seeding the test database.
 export const TEST_CREDENTIALS = {
-  username: process.env.TEST_ADMIN_EMAIL ?? "admin@clickflash.local",
-  password: process.env.TEST_ADMIN_PASSWORD ?? "ClickFlash2025!",
+  username: process.env.TEST_ADMIN_EMAIL ?? process.env.DEFAULT_ADMIN_EMAIL ?? "admin@clickflash.local",
+  password: process.env.TEST_ADMIN_PASSWORD ?? process.env.DEFAULT_ADMIN_PASSWORD ?? "ClickFlash2025!",
 };
 
 /**
@@ -25,26 +25,19 @@ export async function login(
 
   // Wait for auth check to complete and login form to render.
   // Under concurrent test load, the AuthContext.checkSession() may take longer
-  // than usual — allow up to 30s for the loading spinner to resolve.
-  await page.waitForSelector('[data-testid="username-input"]', { state: "visible", timeout: 30000 });
+  // than usual — allow up to 45s for the loading spinner to resolve.
+  await page.waitForSelector('[data-testid="username-input"]', { state: "visible", timeout: 45000 });
 
   // Fill in credentials
   await page.fill('[data-testid="username-input"]', username);
   await page.fill('[data-testid="password-input"]', password);
 
-  // Click login and wait for navigation away from /login.
-  // Use waitUntil:"commit" — the app has WebSocket + polling that keeps the
-  // network busy indefinitely, which causes the default "load" waitUntil to
-  // time out after 30 s on slow CI runs.
-  await Promise.all([
-    page.waitForURL(/^(?!.*\/login).*$/, { timeout: 30000, waitUntil: "commit" }),
-    page.click('[data-testid="login-button"]'),
-  ]);
+  await page.click('[data-testid="login-button"]');
 
   // Wait for the app to fully render — the sidebar Dashboard button proves
   // that AuthProvider resolved, MainLayout lazy-loaded, and the sidebar rendered.
   // This prevents tests from interacting with elements before the app is ready.
-  await page.waitForSelector('button:has-text("Dashboard")', { state: "visible", timeout: 30000 });
+  await page.waitForSelector('button:has-text("Dashboard")', { state: "visible", timeout: 45000 });
 }
 
 /**

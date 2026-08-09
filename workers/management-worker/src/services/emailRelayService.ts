@@ -12,38 +12,29 @@ export interface RelayEmailOptions {
 }
 
 /**
- * Email Relay Service for Cloudflare Workers
+ * Email Relay Service for Cloudflare Workers (Zero Paid SaaS)
  *
- * Uses MailChannels (Cloudflare's email partner) to send emails.
- * This service acts as a secure proxy for Master Nodes.
+ * Instead of using Resend, this service inserts emails into a D1 `email_outbox` table.
+ * Master Nodes (which have access to Node.js net/tls modules and Nodemailer) 
+ * will poll this table, send the emails via the configured SMTP server, and mark them as sent.
  */
 export default class EmailRelayService {
   private logger: any;
-  private resendApiKey: string;
+  private dbManager: any;
   private defaultSender: string;
   /** Always BCC'd on every outgoing email so the owner stays in the loop. */
   private adminBccEmail: string | undefined;
 
-  constructor(logger: any, resendApiKey?: string, fromEmail?: string, adminBccEmail?: string) {
+  constructor(logger: any, dbManager: any, fromEmail?: string, adminBccEmail?: string) {
     this.logger = logger;
-    this.resendApiKey = resendApiKey || "";
+    this.dbManager = dbManager;
     this.defaultSender = fromEmail || "ClickFlash Support <support@clickflash.com>";
     this.adminBccEmail = adminBccEmail;
   }
 
   async sendEmail(options: RelayEmailOptions): Promise<boolean> {
     try {
-      if (!this.resendApiKey) {
-        this.logger.warn(
-          "[EmailRelay] RESEND_API_KEY is not configured! Mocking email send to:",
-          options.to,
-        );
-        return true;
-      }
-
-      this.logger.info(
-        `[EmailRelay] Sending email via Resend to ${options.to}`,
-      );
+      this.logger.info(`[EmailRelay] Queuing email to ${options.to} in D1 Outbox`);
 
       // Build BCC list: service-level admin + any per-call bcc, deduped, never == to
       const bccSet = new Set<string>();
@@ -54,39 +45,41 @@ export default class EmailRelayService {
         const extra = Array.isArray(options.bcc) ? options.bcc : [options.bcc];
         extra.forEach((b) => { if (b && b !== options.to) bccSet.add(b); });
       }
-      const bcc = bccSet.size ? [...bccSet] : undefined;
+      const bcc = bccSet.size ? [...bccSet].join(",") : null;
 
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.resendApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: options.from || this.defaultSender,
-          to: options.to,
-          ...(bcc ? { bcc } : {}),
-          subject: options.subject,
-          html: options.html,
-          text: options.text || options.html.replace(/<[^>]*>?/gm, " ").trim(),
-        }),
-      });
+      // Ensure table exists
+      await this.dbManager.run(`
+        CREATE TABLE IF NOT EXISTS email_outbox (
+          id TEXT PRIMARY KEY,
+          recipient TEXT NOT NULL,
+          sender TEXT NOT NULL,
+          sender_name TEXT NOT NULL,
+          bcc TEXT,
+          subject TEXT NOT NULL,
+          html_content TEXT NOT NULL,
+          text_content TEXT NOT NULL,
+          status TEXT DEFAULT 'pending',
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          sent_at DATETIME,
+          error_log TEXT
+        )
+      `);
 
-      if (response.ok) {
-        this.logger.info(
-          `[EmailRelay] Email sent successfully to ${options.to}`,
-        );
-        return true;
-      } else {
-        const errorText = await response.text();
-        this.logger.error(
-          `[EmailRelay] Failed to send email via Resend: ${response.status}`,
-          { error: errorText },
-        );
-        return false;
-      }
+      const emailId = crypto.randomUUID();
+      const textContent = options.text || options.html.replace(/<[^>]*>?/gm, " ").trim();
+      const sender = options.from || this.defaultSender;
+      const senderName = options.fromName || "ClickFlash";
+
+      await this.dbManager.run(
+        `INSERT INTO email_outbox (id, recipient, sender, sender_name, bcc, subject, html_content, text_content)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [emailId, options.to, sender, senderName, bcc, options.subject, options.html, textContent]
+      );
+
+      this.logger.info(`[EmailRelay] Email ${emailId} queued successfully for ${options.to}`);
+      return true;
     } catch (error: any) {
-      this.logger.error(`[EmailRelay] Exception during email send`, {
+      this.logger.error(`[EmailRelay] Exception during email queueing`, {
         error: error.message,
       });
       return false;

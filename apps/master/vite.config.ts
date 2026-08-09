@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => ({
   base: '/',
   plugins: [react()],
   server: {
-    port: parseInt(process.env.PORT || "5173"),
+    port: 8090,
     host: true,
     proxy: {
       "/api": {
@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   preview: {
-    port: 5174,
+    port: 8090,
     strictPort: true,
     proxy: {
       "/api": {

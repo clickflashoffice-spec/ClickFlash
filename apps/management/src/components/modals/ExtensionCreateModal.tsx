@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Modal from "../common/Modal";
+import { Modal } from "@clickflash/ui";
 import { EcommerceExtension } from "../../types";
 
 interface ExtensionCreateModalProps {

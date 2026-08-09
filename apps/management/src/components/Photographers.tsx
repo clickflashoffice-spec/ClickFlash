@@ -1,14 +1,14 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { FixedSizeList } from "react-window";
 import { Photographer } from "../types.ts";
-import Card from "./common/Card.tsx";
+import { Card } from "@clickflash/ui";
 import WorkingTimeModal from "./photographers/WorkingTimeModal.tsx";
 import ObjectivesModal from "./photographers/ObjectivesModal.tsx";
 import ConnexionHistoryModal from "./photographers/ConnexionHistoryModal.tsx";
 import LedgerModal from "./photographers/LedgerModal.tsx";
 import MetricsModal from "./photographers/MetricsModal.tsx";
 import UserEditModal from "./modals/UserEditModal.tsx";
-import Spinner from "./common/Spinner.tsx";
+import { Spinner } from "@clickflash/ui";
 import { useCurrency } from "./CurrencyContext.tsx";
 import IncomeByPhotographerChart from "./photographers/IncomeByPhotographerChart.tsx";
 import { usePermissions } from "../hooks/usePermissions.ts";

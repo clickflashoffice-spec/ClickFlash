@@ -1,5 +1,6 @@
+import { Modal, Spinner } from "@clickflash/ui";
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import Modal from '../common/Modal';
+
 import { SliderControl } from '../common/SliderControl';
 import { ManualEdits, Order } from '../../types';
 import { initialEdits } from '../../constants/photoConstants';
@@ -7,7 +8,7 @@ import { getPhotoStyle } from '../../utils/styleUtils';
 import { EditEngine } from '../../utils/canvas/EditEngine';
 import { useHiResLoader } from '../../utils/hiResLoader';
 import { apiService } from '../../services/apiService';
-import Spinner from '../common/Spinner';
+
 import { logger } from '@/utils/logger';
 
 interface ReprocessModalProps {

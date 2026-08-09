@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ExpenseCategory } from "../../../types";
 import { apiService } from "../../../services/apiService";
-import Spinner from "../../common/Spinner";
+import { Spinner } from "@clickflash/ui";
 import ExpenseCategoryEditModal from "../modals/ExpenseCategoryEditModal";
 import { logger } from "@/utils/logger";
 

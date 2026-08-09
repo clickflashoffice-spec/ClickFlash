@@ -1,5 +1,4 @@
 import { Hono } from 'hono';
-import { Resend } from 'resend';
 import { requireServiceAuth } from '../auth';
 import { verifyStripeSignature } from '../stripe';
 import type { AppEnv } from '../types';
@@ -56,28 +55,33 @@ app.post('/webhooks/stripe', async (c) => {
         ).bind(sessionId).first();
 
         if (sessionRow && sessionRow.customer_email) {
-          const resend = new Resend(c.env.RESEND_API_KEY);
-          try {
-            await resend.emails.send({
-              from: 'ClickFlash Orders <orders@clickflash.com>',
-              to: sessionRow.customer_email as string,
-              subject: 'Your ClickFlash Gallery is Ready!',
-              html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-                  <h2>Hi ${escapeHtml(sessionRow.guest_name || 'Guest')},</h2>
-                  <p>Your payment was successful and your digital photo gallery is now unlocked!</p>
-                  <p>You can view and download your high-resolution photos securely using the link below:</p>
-                  <div style="margin: 30px 0;">
-                    <a href="https://gallery.clickflash.com/session/${encodeURIComponent(sessionId)}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-                      View My Gallery
-                    </a>
-                  </div>
-                  <p>Thank you for choosing ClickFlash!</p>
-                </div>
-              `
-            });
-          } catch (emailErr) {
-            // Log silently
+          if (c.env.MANAGEMENT_BACKEND_URL) {
+            try {
+              await fetch(`${c.env.MANAGEMENT_BACKEND_URL}/api/email/relay`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  from: 'ClickFlash Orders <orders@clickflash.com>',
+                  to: sessionRow.customer_email as string,
+                  subject: 'Your ClickFlash Gallery is Ready!',
+                  html: `
+                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                      <h2>Hi ${escapeHtml(sessionRow.guest_name || 'Guest')},</h2>
+                      <p>Your payment was successful and your digital photo gallery is now unlocked!</p>
+                      <p>You can view and download your high-resolution photos securely using the link below:</p>
+                      <div style="margin: 30px 0;">
+                        <a href="https://gallery.clickflash.com/session/${encodeURIComponent(sessionId)}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                          View My Gallery
+                        </a>
+                      </div>
+                      <p>Thank you for choosing ClickFlash!</p>
+                    </div>
+                  `
+                })
+              });
+            } catch (emailErr) {
+              // Log silently
+            }
           }
         }
       }
@@ -126,6 +130,36 @@ app.get('/analytics/conversion', requireServiceAuth, async (c) => {
     return c.json({ success: true, data });
   } catch (error: any) {
     return c.json({ error: 'Failed to fetch conversion analytics' }, 500);
+  }
+});
+
+app.get('/analytics/dashboard', async (c) => {
+  try {
+    const db = c.get('DB');
+    
+    // Fetch read models instead of legacy tables
+    const { results: orderState } = await db.prepare(
+      `SELECT * FROM order_state ORDER BY created_at DESC LIMIT 500`
+    ).all();
+    
+    const { results: paymentState } = await db.prepare(
+      `SELECT * FROM payment_state ORDER BY processed_at DESC LIMIT 500`
+    ).all();
+    
+    const { results: commissionState } = await db.prepare(
+      `SELECT * FROM commission_state`
+    ).all();
+
+    return c.json({ 
+      success: true, 
+      data: {
+        orderState,
+        paymentState,
+        commissionState
+      }
+    });
+  } catch (error: any) {
+    return c.json({ error: 'Failed to fetch dashboard read models' }, 500);
   }
 });
 

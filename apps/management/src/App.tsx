@@ -1,8 +1,9 @@
+import { OfflineScreen } from '@clickflash/ui';
 import React, { useState, useEffect, Suspense } from "react";
 import Login from "./components/Login";
 const ManagementLayout = React.lazy(() => import("./components/management/ManagementLayout"));
 import { Photographer } from "./types";
-import OfflineScreen from "./components/common/OfflineScreen";
+
 import { cloudApiService } from "./services/cloudApiService";
 import { StationProvider } from "./context/StationContext";
 import { ManagementProvider } from "./context/ManagementContext";

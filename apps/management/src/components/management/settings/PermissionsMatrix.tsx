@@ -1,7 +1,7 @@
 import React from 'react';
 import { PERMISSIONS, ALL_PERMISSIONS } from '../../../permissions';
 import { AppRole } from '../../../types';
-import Card from '../../common/Card';
+import { Card } from "@clickflash/ui";
 
 const MANAGEMENT_ROLES: AppRole[] = ['CEO', 'Admin', 'Manager', 'Team Leader'];
 

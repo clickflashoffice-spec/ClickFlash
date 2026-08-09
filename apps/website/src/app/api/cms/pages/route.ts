@@ -2,7 +2,6 @@ import { logger } from '@clickflash/logger';
 import { NextResponse } from 'next/server';
 import { pagesStore } from '@/lib/cmsStore';
 
-export const runtime = 'edge';
 
 function sanitizeHtml(html: string): string {
   return html

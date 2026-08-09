@@ -111,7 +111,8 @@ describe('Gallery Checkout Webhook & Sync', () => {
             dbManager,
             logger: mockLogger as any,
             JWT_SECRET: 'test-secret',
-            syncManager: mockSyncManager
+            syncManager: mockSyncManager,
+            photographerEventLedgerService: { append: jest.fn() } as any
         }));
     });
 

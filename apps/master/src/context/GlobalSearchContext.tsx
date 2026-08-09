@@ -38,9 +38,10 @@ interface GlobalSearchContextType {
   setIsLoading: (loading: boolean) => void;
 }
 
-const GlobalSearchContext = createContext<GlobalSearchContextType | undefined>(
+const globalAny = globalThis as any;
+const GlobalSearchContext: React.Context<GlobalSearchContextType | undefined> = globalAny.__GlobalSearchContext || (globalAny.__GlobalSearchContext = createContext<GlobalSearchContextType | undefined>(
   undefined,
-);
+));
 
 export const GlobalSearchProvider: React.FC<{ children: ReactNode }> = ({
   children,

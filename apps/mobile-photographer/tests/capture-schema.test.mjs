@@ -1,11 +1,19 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
 const databaseSource = readFileSync(
   new URL('../src/backend/database.ts', import.meta.url),
+  'utf8'
+);
+const captureLedgerSource = readFileSync(
+  new URL('../src/services/CaptureLedgerService.ts', import.meta.url),
+  'utf8'
+);
+const cameraTetherSource = readFileSync(
+  new URL('../src/services/CameraTetherService.ts', import.meta.url),
   'utf8'
 );
 const schemaMatch = databaseSource.match(/const SCHEMA_SQL = `([\s\S]*?)`;/);
@@ -16,6 +24,12 @@ test('capture schema creates durable pairing and delivery records', () => {
     process.env.ANDROID_HOME ??
     path.join(process.env.LOCALAPPDATA ?? '', 'Android', 'Sdk');
   const sqlite = path.join(androidHome, 'platform-tools', 'sqlite3.exe');
+  
+  if (!existsSync(sqlite)) {
+    console.warn('Skipping test: sqlite3.exe not found at', sqlite);
+    return;
+  }
+  
   const query = `
     ${schemaMatch[1]}
     SELECT 'COLUMN:' || name
@@ -125,5 +139,45 @@ test('capture schema creates durable pairing and delivery records', () => {
       'DELIVERY_INDEX:capture_delivery_intents_session',
       'DELIVERY_INDEX:capture_delivery_receipts_intent',
     ]
+  );
+});
+
+test('active capture-session startup is coalesced and conflict-safe', () => {
+  assert.match(databaseSource, /let dbPromise: Promise<SQLite\.SQLiteDatabase> \| null/);
+  assert.match(captureLedgerSource, /activeSessionPromise: Promise<string> \| null/);
+  assert.match(cameraTetherSource, /startPromise: Promise<CameraTetherStatus> \| null/);
+  assert.match(captureLedgerSource, /INSERT OR IGNORE INTO capture_sessions/);
+  assert.match(
+    captureLedgerSource,
+    /INSERT OR IGNORE INTO capture_sessions[\s\S]*SELECT id FROM capture_sessions/
+  );
+
+  assert.ok(schemaMatch, 'SCHEMA_SQL must remain extractable for validation.');
+  const androidHome =
+    process.env.ANDROID_HOME ??
+    path.join(process.env.LOCALAPPDATA ?? '', 'Android', 'Sdk');
+  const sqlite = path.join(androidHome, 'platform-tools', 'sqlite3.exe');
+  
+  if (!existsSync(sqlite)) {
+    console.warn('Skipping test: sqlite3.exe not found at', sqlite);
+    return;
+  }
+  
+  const result = spawnSync(sqlite, [':memory:'], {
+    input: `
+      ${schemaMatch[1]}
+      INSERT OR IGNORE INTO capture_sessions (id, state, started_at, updated_at)
+        VALUES ('session-a', 'ACTIVE', 1, 1);
+      INSERT OR IGNORE INTO capture_sessions (id, state, started_at, updated_at)
+        VALUES ('session-b', 'ACTIVE', 2, 2);
+      SELECT id || ':' || state FROM capture_sessions ORDER BY id;
+    `,
+    encoding: 'utf8',
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(
+    result.stdout.trim().split(/\r?\n/).filter((line) => line.includes(':ACTIVE')),
+    ['session-a:ACTIVE']
   );
 });

@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@clickflash/logger": "workspace:*",
+    "@clickflash/ui": "workspace:*",
     "@tailwindcss/postcss": "^4.3.2",
     "@tensorflow-models/blazeface": "^0.1.0",
     "@tensorflow-models/mobilenet": "^2.1.1",

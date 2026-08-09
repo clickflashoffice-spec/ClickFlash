@@ -125,123 +125,128 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
     
-    // Health check endpoint
-    if (pathname === '/health') {
+    const response = await (async () => {
+      // Health check endpoint
+      if (pathname === '/health') {
+        return new Response(JSON.stringify({
+          status: 'ok',
+          service: 'clickflash-update-server',
+          timestamp: new Date().toISOString()
+        }));
+      }
+      
+      // Check for updates: /check?app=clickflash-master&version=4.1.0&platform=win32
+      if (pathname === '/check') {
+        const app = url.searchParams.get('app');
+        const currentVersion = url.searchParams.get('version');
+        const platform = url.searchParams.get('platform') || 'win32';
+        const arch = url.searchParams.get('arch') || 'x64';
+        
+        if (!app || !currentVersion) {
+          return new Response(JSON.stringify({
+            error: 'Missing required parameters: app, version'
+          }), { status: 400 });
+        }
+        
+        if (!isVersionValid(currentVersion)) {
+          return new Response(JSON.stringify({
+            error: 'Invalid version format. Expected: x.x.x'
+          }), { status: 400 });
+        }
+        
+        const release = RELEASES[app];
+        if (!release) {
+          return new Response(JSON.stringify({
+            error: 'App not found',
+            available: Object.keys(RELEASES)
+          }), { status: 404 });
+        }
+        
+        const latest = release.latest;
+        const hasUpdate = compareVersions(currentVersion, latest.version) < 0;
+        const isForced = latest.forceUpdate && 
+                         compareVersions(currentVersion, latest.minimumVersion || '0.0.0') < 0;
+        
+        return new Response(JSON.stringify({
+          upToDate: !hasUpdate,
+          updateAvailable: hasUpdate,
+          forcedUpdate: isForced,
+          currentVersion,
+          latestVersion: latest.version,
+          manifest: hasUpdate ? latest : null,
+          releaseNotes: hasUpdate ? latest.releaseNotes : null,
+          downloadUrl: hasUpdate ? latest.url : null,
+          size: hasUpdate ? latest.size : null,
+          releaseDate: hasUpdate ? latest.releaseDate : null
+        }));
+      }
+      
+      // Get latest release info: /latest?app=clickflash-master
+      if (pathname === '/latest') {
+        const app = url.searchParams.get('app');
+        
+        if (!app) {
+          return new Response(JSON.stringify({
+            error: 'Missing required parameter: app'
+          }), { status: 400 });
+        }
+        
+        const release = RELEASES[app];
+        if (!release) {
+          return new Response(JSON.stringify({
+            error: 'App not found'
+          }), { status: 404 });
+        }
+        
+        return new Response(JSON.stringify({
+          app,
+          latest: release.latest,
+          allVersions: release.versions
+        }));
+      }
+      
+      // List all apps
+      if (pathname === '/apps') {
+        return new Response(JSON.stringify({
+          apps: Object.keys(RELEASES).map(key => ({
+            name: key,
+            latestVersion: RELEASES[key].latest.version,
+            releaseDate: RELEASES[key].latest.releaseDate
+          }))
+        }));
+      }
+      
+      // Default: API documentation
       return new Response(JSON.stringify({
-        status: 'ok',
-        service: 'clickflash-update-server',
-        timestamp: new Date().toISOString()
-      }), { headers: corsHeaders });
-    }
+        service: 'ClickFlash Update Server',
+        version: '1.0.0',
+        endpoints: {
+          '/health': 'Health check',
+          '/check?app=<name>&version=<x.x.x>': 'Check for updates',
+          '/latest?app=<name>': 'Get latest release info',
+          '/apps': 'List all available apps'
+        },
+        supportedApps: Object.keys(RELEASES),
+        documentation: 'https://docs.clickflash.app/update-api'
+      }));
+    })();
     
-    // Check for updates: /check?app=clickflash-master&version=4.1.0&platform=win32
-    if (pathname === '/check') {
-      const app = url.searchParams.get('app');
-      const currentVersion = url.searchParams.get('version');
-      const platform = url.searchParams.get('platform') || 'win32';
-      const arch = url.searchParams.get('arch') || 'x64';
-      
-      if (!app || !currentVersion) {
-        return new Response(JSON.stringify({
-          error: 'Missing required parameters: app, version'
-        }), { 
-          status: 400, 
-          headers: corsHeaders 
-        });
-      }
-      
-      if (!isVersionValid(currentVersion)) {
-        return new Response(JSON.stringify({
-          error: 'Invalid version format. Expected: x.x.x'
-        }), { 
-          status: 400, 
-          headers: corsHeaders 
-        });
-      }
-      
-      const release = RELEASES[app];
-      if (!release) {
-        return new Response(JSON.stringify({
-          error: 'App not found',
-          available: Object.keys(RELEASES)
-        }), { 
-          status: 404, 
-          headers: corsHeaders 
-        });
-      }
-      
-      const latest = release.latest;
-      const hasUpdate = compareVersions(currentVersion, latest.version) < 0;
-      const isForced = latest.forceUpdate && 
-                       compareVersions(currentVersion, latest.minimumVersion || '0.0.0') < 0;
-      
-      return new Response(JSON.stringify({
-        upToDate: !hasUpdate,
-        updateAvailable: hasUpdate,
-        forcedUpdate: isForced,
-        currentVersion,
-        latestVersion: latest.version,
-        manifest: hasUpdate ? latest : null,
-        releaseNotes: hasUpdate ? latest.releaseNotes : null,
-        downloadUrl: hasUpdate ? latest.url : null,
-        size: hasUpdate ? latest.size : null,
-        releaseDate: hasUpdate ? latest.releaseDate : null
-      }), { headers: corsHeaders });
-    }
-    
-    // Get latest release info: /latest?app=clickflash-master
-    if (pathname === '/latest') {
-      const app = url.searchParams.get('app');
-      
-      if (!app) {
-        return new Response(JSON.stringify({
-          error: 'Missing required parameter: app'
-        }), { 
-          status: 400, 
-          headers: corsHeaders 
-        });
-      }
-      
-      const release = RELEASES[app];
-      if (!release) {
-        return new Response(JSON.stringify({
-          error: 'App not found'
-        }), { 
-          status: 404, 
-          headers: corsHeaders 
-        });
-      }
-      
-      return new Response(JSON.stringify({
-        app,
-        latest: release.latest,
-        allVersions: release.versions
-      }), { headers: corsHeaders });
-    }
-    
-    // List all apps
-    if (pathname === '/apps') {
-      return new Response(JSON.stringify({
-        apps: Object.keys(RELEASES).map(key => ({
-          name: key,
-          latestVersion: RELEASES[key].latest.version,
-          releaseDate: RELEASES[key].latest.releaseDate
-        }))
-      }), { headers: corsHeaders });
-    }
-    
-    // Default: API documentation
-    return new Response(JSON.stringify({
-      service: 'ClickFlash Update Server',
-      version: '1.0.0',
-      endpoints: {
-        '/health': 'Health check',
-        '/check?app=<name>&version=<x.x.x>': 'Check for updates',
-        '/latest?app=<name>': 'Get latest release info',
-        '/apps': 'List all available apps'
-      },
-      supportedApps: Object.keys(RELEASES),
-      documentation: 'https://docs.clickflash.app/update-api'
-    }), { headers: corsHeaders });
+    // Apply CORS and security headers
+    const headers = new Headers(response.headers);
+    Object.entries(corsHeaders).forEach(([k, v]) => headers.set(k, v));
+    headers.set("Vary", "Origin");
+
+    headers.set("X-Content-Type-Options", "nosniff");
+    headers.set("X-Frame-Options", "DENY");
+    headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+    headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    headers.set("Content-Security-Policy", "default-src 'none'; img-src * data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
+
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
   }
 };

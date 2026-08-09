@@ -1,7 +1,6 @@
+import { Modal, Button, Input } from "@clickflash/ui";
 import React, { useState } from "react";
-import Modal from "../common/Modal";
-import Button from "../common/Button";
-import Input from "../common/Input";
+
 import { logger } from "../../utils/logger";
 
 interface DailyResortStatsModalProps {

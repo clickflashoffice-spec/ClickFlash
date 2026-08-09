@@ -1,3 +1,4 @@
+import { Card } from "@clickflash/ui";
 import React, { useState, useEffect } from "react";
 import {
   Database,
@@ -9,7 +10,7 @@ import {
   ShieldCheck,
   AlertTriangle
 } from "lucide-react";
-import Card from "../common/Card.tsx";
+
 import { apiService } from "../../services/apiService";
 import { logger } from "../../utils/logger";
 

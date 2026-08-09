@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import Spinner from "../common/Spinner.tsx";
+import { Spinner } from "@clickflash/ui";
 import { apiService } from "../../services/apiService.ts";
 import { Order, Expense, Photographer, Destination } from "../../types.ts";
 import { ManagementContext } from "../../constants.ts";

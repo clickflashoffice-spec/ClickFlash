@@ -16,6 +16,7 @@ export interface AutoEdits {
   saturate: number;
   highlights: number;
   shadows: number;
+  confidence: number;
   crop?: { x: number; y: number; width: number; height: number };
 }
 
@@ -57,12 +58,19 @@ export class AutoEditEngine {
     if (contrastAdjust > 10) saturate = 15;
     else if (exposure > 20) saturate = 20; // Brightening often washes out colors
     
+    // Calculate a basic confidence score based on how "normal" the adjustments are
+    let confidence = 1.0;
+    if (Math.abs(exposure) > 40) confidence -= 0.2;
+    if (Math.abs(contrastAdjust) > 30) confidence -= 0.2;
+    confidence = Math.max(0.1, confidence);
+    
     return {
       exposure,
       contrast: contrastAdjust,
       saturate,
       highlights: exposure > 0 ? -Math.round(exposure * 0.3) : 0, 
       shadows: exposure < 0 ? Math.round(Math.abs(exposure) * 0.3) : 0,
+      confidence
     };
   }
 

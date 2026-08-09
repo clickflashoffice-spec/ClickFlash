@@ -1,3 +1,4 @@
+import { Modal } from '@clickflash/ui';
 import { logger } from '@clickflash/logger';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +8,7 @@ import { config } from '../../utils/env';
 import { getOrCreateCartSessionId } from '../../hooks/useCartSync';
 import { moneyTrashService } from '../../services/moneyTrashService';
 import { cloudApiService } from '../../services/cloudApiService';
-import Modal from '../common/Modal.tsx';
+
 import { useCurrency } from '../CurrencyContext.tsx';
 import UpsellEngine from './UpsellEngine.tsx';
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 
 
 
-import Modal from "../common/Modal.tsx";
+import { Modal } from '@clickflash/ui';
 import { KioskSettings } from "../../types.ts";
 import { useCurrency } from "../CurrencyContext.tsx";
 import { configureConnection } from "../../services/pb.ts";

@@ -1,5 +1,6 @@
+import { Card } from "@clickflash/ui";
 import React from 'react';
-import Card from '../../common/Card.tsx';
+
 import { Order } from '../../../types.ts';
 import { useCurrency } from '../../CurrencyContext.tsx';
 

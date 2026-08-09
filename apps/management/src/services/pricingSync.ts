@@ -1,22 +1,22 @@
-import { supabase } from "./supabase";
 import { Product } from "../types";
 import { logger } from '@/utils/logger';
 
-export const syncPricingToSupabase = async (
+export const syncPricingToCloudBackend = async (
   products: Product[],
   hotelId: string = "global",
 ) => {
   try {
-    if (!supabase) {
+    const backendUrl = import.meta.env.VITE_CLOUD_BACKEND_URL;
+    if (!backendUrl) {
       logger.warn(
-        "[PricingSync] Supabase not configured. Skipping pricing sync.",
+        "[PricingSync] VITE_CLOUD_BACKEND_URL not configured. Skipping pricing sync.",
       );
       return;
     }
 
     const syncKey =
       hotelId === "global" ? "global_pricing" : `pricing_${hotelId}`;
-    logger.info(`Syncing pricing to Supabase [Scope: ${syncKey}]...`, products);
+    logger.info(`Syncing pricing to Cloud Backend [Scope: ${syncKey}]...`, products);
 
     // Transform products if necessary (ensure types match Gallery expectations)
     const pricingConfig = products.map((p) => ({
@@ -28,17 +28,19 @@ export const syncPricingToSupabase = async (
       stock: p.stock,
     }));
 
-    const { error } = await supabase.from("gallery_settings").upsert(
-      {
+    const response = await fetch(`${backendUrl}/api/settings`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
         setting_key: syncKey,
         setting_value: pricingConfig,
-      },
-      { onConflict: "setting_key" },
-    );
+      }),
+    });
 
-    if (error) {
-      logger.error(`Error syncing pricing [${syncKey}] to Supabase:`, error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`Failed with status ${response.status}`);
     }
 
     logger.info(`Pricing [${syncKey}] synced successfully.`);

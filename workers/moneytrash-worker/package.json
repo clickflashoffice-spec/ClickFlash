@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --pool=threads",
     "deploy:dry": "wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
     "deploy:staging": "wrangler deploy --env staging",

@@ -75,6 +75,14 @@ async function verifyLegacySha256Password(password: string, hash: string): Promi
     const data = encoder.encode(password);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const newHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return newHash.toLowerCase() === hash.toLowerCase();
+    const newHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
+    const expectedHash = hash.toLowerCase();
+    
+    if (newHash.length !== expectedHash.length) return false;
+    
+    let result = 0;
+    for (let i = 0; i < newHash.length; i++) {
+        result |= newHash.charCodeAt(i) ^ expectedHash.charCodeAt(i);
+    }
+    return result === 0;
 }

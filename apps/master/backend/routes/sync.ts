@@ -3,12 +3,10 @@ import express, { Request, Response, Router } from "express";
 import { SyncManager } from "../services/SyncManager";
 import { Logger } from '../utils/logger';
 import { sendError, ERROR_CODES } from '../utils/errorHandler';
-import { validate } from "../middleware/validate";
-import { mutationSchema } from "../schemas/auth";
 import { strictRateLimiter } from '../middleware/rateLimiter';
-
 import { DatabaseManager } from '../database/db';
-import { lanSigningMiddleware } from '../middleware/lanSigningMiddleware';
+import { isPrivateIp } from '../utils/ipUtils';
+import crypto from 'crypto';
 
 interface SyncContext {
   syncManager: SyncManager;
@@ -19,26 +17,83 @@ interface SyncContext {
 export default function syncRoutes(context: SyncContext): Router {
   const { syncManager, logger, dbManager } = context;
   const router = express.Router();
-  const verifyLanRequest = lanSigningMiddleware(dbManager, logger);
 
   /**
    * @route POST /sync/mutation
    * @description HTTP Fallback for OfflineQueue mutations (when WebSocket is unstable)
-   * Phase 52: Opt-in HMAC-SHA256 LAN signing — enforced when x-kiosk-id header is present.
+   * Phase 52: AEAD AES-256-GCM encryption
    */
   router.post(
     "/sync/mutation",
     strictRateLimiter,
-    validate(mutationSchema),
-    verifyLanRequest,
 
     async (req: Request, res: Response) => {
       try {
-        const payload = req.body;
-        const clientId =
-          payload.clientId || req.headers["x-client-id"] || "http-fallback";
+        const clientIp = req.ip || req.get('x-forwarded-for') || '';
+        
+        if (!isPrivateIp(clientIp)) {
+          logger.warn(`[Security] Rejected LAN request from non-private IP: ${clientIp}`);
+          return res.status(403).json({
+            error: "Forbidden",
+            message: "LAN requests are only permitted from the local network."
+          });
+        }
+
+        const { iv, ciphertext, tag, kioskId } = req.body;
+
+        if (!iv || !ciphertext || !tag || !kioskId) {
+          logger.warn(`[Security] Rejected unsigned LAN request from ${clientIp}`);
+          return res.status(401).json({
+            error: "Unauthorized",
+            message: "LAN requests must be encrypted."
+          });
+        }
+
+        // 1. Fetch Signing Secret for this Kiosk
+        const kiosk = dbManager.get<{ signingSecret: string }>(
+          "SELECT signingSecret FROM kiosks WHERE id = ?",
+          [kioskId]
+        );
+
+        if (!kiosk || !kiosk.signingSecret) {
+          logger.warn(`[Security] Rejected LAN request from unknown or unconfigured kiosk: ${kioskId}`);
+          return res.status(401).json({
+            error: "Unauthorized",
+            message: "Kiosk not registered or signing secret missing."
+          });
+        }
+
+        // 2. Decrypt Payload
+        const key = crypto.createHash('sha256').update(kiosk.signingSecret).digest();
+        const decipher = crypto.createDecipheriv(
+          'aes-256-gcm',
+          key,
+          Buffer.from(iv, 'hex')
+        );
+        decipher.setAuthTag(Buffer.from(tag, 'hex'));
+
+        let decrypted = decipher.update(ciphertext, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        
+        const payload = JSON.parse(decrypted);
+
+        // 3. Process Payload
+        const clientId = payload.clientId || req.headers["x-client-id"] || kioskId;
         await syncManager.handleMutation(payload, clientId);
-        res.json({ success: true });
+        
+        // 4. Encrypt Response
+        const responsePayload = JSON.stringify({ success: true });
+        const resIv = crypto.randomBytes(12);
+        const cipher = crypto.createCipheriv('aes-256-gcm', key, resIv);
+        let resCiphertext = cipher.update(responsePayload, 'utf8', 'hex');
+        resCiphertext += cipher.final('hex');
+        const resTag = cipher.getAuthTag();
+
+        res.json({
+          iv: resIv.toString('hex'),
+          ciphertext: resCiphertext,
+          tag: resTag.toString('hex')
+        });
       } catch (error: any) {
         logger.error("[SyncRoute] Mutation failed", { error: error.message });
         sendError(

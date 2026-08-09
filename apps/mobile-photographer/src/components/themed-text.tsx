@@ -1,73 +1,52 @@
-import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
-
-import { Typography, ThemeColor } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { Text, type TextProps } from 'react-native';
 
 export type ThemedTextProps = TextProps & {
   type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code';
-  themeColor?: ThemeColor;
+  themeColor?: 'text' | 'textSecondary' | 'tint' | 'success' | 'warning' | 'danger';
 };
 
-export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
-  const theme = useTheme();
+export function ThemedText({ style, className, type = 'default', themeColor, ...rest }: ThemedTextProps) {
+  let typeClassName = '';
+  switch (type) {
+    case 'small':
+      typeClassName = 'text-sm leading-5 font-medium';
+      break;
+    case 'smallBold':
+      typeClassName = 'text-sm leading-5 font-bold';
+      break;
+    case 'title':
+      typeClassName = 'text-[48px] font-semibold leading-[52px]';
+      break;
+    case 'subtitle':
+      typeClassName = 'text-[32px] leading-[44px] font-semibold';
+      break;
+    case 'link':
+      typeClassName = 'text-sm leading-[30px]';
+      break;
+    case 'linkPrimary':
+      typeClassName = 'text-sm leading-[30px] text-cyan-500';
+      break;
+    case 'code':
+      typeClassName = 'font-mono font-medium text-xs android:font-bold';
+      break;
+    case 'default':
+    default:
+      typeClassName = 'text-base leading-6 font-medium';
+      break;
+  }
+
+  let colorClassName = 'text-slate-50';
+  if (themeColor === 'textSecondary') colorClassName = 'text-slate-400';
+  if (themeColor === 'tint') colorClassName = 'text-cyan-500';
+  if (themeColor === 'success') colorClassName = 'text-emerald-500';
+  if (themeColor === 'warning') colorClassName = 'text-amber-500';
+  if (themeColor === 'danger') colorClassName = 'text-red-500';
 
   return (
     <Text
-      style={[
-        { color: theme[themeColor ?? 'text'] },
-        type === 'default' && styles.default,
-        type === 'title' && styles.title,
-        type === 'small' && styles.small,
-        type === 'smallBold' && styles.smallBold,
-        type === 'subtitle' && styles.subtitle,
-        type === 'link' && styles.link,
-        type === 'linkPrimary' && styles.linkPrimary,
-        type === 'code' && styles.code,
-        style,
-      ]}
+      className={`${colorClassName} ${typeClassName} ${className || ''}`}
+      style={style}
       {...rest}
     />
   );
 }
-
-const styles = StyleSheet.create({
-  small: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 500,
-  },
-  smallBold: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 700,
-  },
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: 500,
-  },
-  title: {
-    fontSize: 48,
-    fontWeight: 600,
-    lineHeight: 52,
-  },
-  subtitle: {
-    fontSize: 32,
-    lineHeight: 44,
-    fontWeight: 600,
-  },
-  link: {
-    lineHeight: 30,
-    fontSize: 14,
-  },
-  linkPrimary: {
-    lineHeight: 30,
-    fontSize: 14,
-    color: '#3c87f7',
-  },
-  code: {
-    fontFamily: Typography.fontMono,
-    fontWeight: Platform.select({ android: 700 }) ?? 500,
-    fontSize: 12,
-  },
-});

@@ -1,3 +1,4 @@
+import { Spinner, ErrorBoundary } from "@clickflash/ui";
 import React, {
   useState,
   useMemo,
@@ -21,7 +22,7 @@ import { apiService } from "../../services/apiService.ts";
 import { logger } from "../../utils/logger.ts";
 import { createProxyImage } from "../../utils/imageUtils.ts";
 import { useDebounce } from "../../hooks/useDebounce.ts";
-import Spinner from "../common/Spinner.tsx";
+
 import { usePermissions } from "../../hooks/usePermissions.ts";
 import {
   useAlbums,
@@ -31,8 +32,8 @@ import {
 import { usePhotographers } from "../../hooks/usePhotographers.ts";
 import ConfirmationModal from "../common/ConfirmationModal.tsx";
 import { imageProcessingService } from "../../services/imageProcessingService.ts";
-import ErrorBoundary from "../common/ErrorBoundary.tsx";
-import { AlbumCardSkeleton } from "../common/Skeleton.tsx";
+
+import { AlbumCardSkeleton } from '../common/AppSkeletons.tsx';
 
 import EmptyState from "./components/EmptyState";
 import FilterPanel from "./components/FilterPanel";
@@ -52,9 +53,6 @@ interface AlbumsProps {
   /** Refresh trigger - increments to force data refresh */
   refreshTrigger?: number;
 }
-
-
-
 
 // Styled components for VirtuosoGrid
 const ItemContainer = styled.div`
@@ -115,7 +113,6 @@ const StatBadge: React.FC<{
  * Displays contextual empty state based on current filters and active tab
  */
 
-
 /**
  * Loading Skeleton Grid
  * Displays loading skeletons while data is being fetched
@@ -135,14 +132,10 @@ LoadingSkeletonGrid.displayName = "LoadingSkeletonGrid";
  * Advanced filtering options for albums
  */
 
-
 /**
  * Bulk Selection Toolbar
  * Shows actions for bulk selected albums
  */
-
-
-
 
 /**
  * Custom hook for bulk selection logic

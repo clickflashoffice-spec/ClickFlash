@@ -4,7 +4,7 @@ import AddLoanModal from "./modals/AddLoanModal.tsx";
 import AddLoanPaymentModal from "./modals/AddLoanPaymentModal.tsx";
 import { useCurrency } from "../CurrencyContext.tsx";
 import { apiService } from "../../services/apiService.ts";
-import Spinner from "../common/Spinner.tsx";
+import { Spinner } from "@clickflash/ui";
 import StatCard from "../common/StatCard.tsx";
 import { DollarSign, AlertCircle, CreditCard, Plus } from "lucide-react";
 import { useManagement } from "../../context/ManagementContext.tsx";

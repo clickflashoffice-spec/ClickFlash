@@ -374,8 +374,8 @@ export const systemService = {
             if (users.length === 0) {
                 await authService.createUser({
                     name: 'Admin',
-                    email: 'admin@starmaster.local',
-                    password: 'admin',
+                    email: import.meta.env.VITE_DEFAULT_ADMIN_EMAIL as string,
+                    password: import.meta.env.VITE_DEFAULT_ADMIN_PASSWORD as string,
                     role: 'Admin'
                 });
                 logger.info('[apiService] Created default admin user');

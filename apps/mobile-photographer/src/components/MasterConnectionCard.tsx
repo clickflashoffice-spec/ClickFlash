@@ -2,7 +2,6 @@ import React, { memo, useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  StyleSheet,
   TextInput,
   TouchableOpacity,
   useColorScheme,
@@ -10,8 +9,6 @@ import {
 } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Colors, Spacing, Typography } from '@/constants/theme';
-import { logger } from '@/utils/logger';
 
 import {
   masterDeliveryWorker,
@@ -22,14 +19,21 @@ import {
   type MasterPairingCredential,
 } from '../services/MasterPairingService';
 
+const colors = {
+  text: '#f8fafc',
+  textSecondary: '#94a3b8',
+  background: '#070a12',
+  surface: '#0f172a',
+  elevated: '#1e293b',
+  tint: '#06b6d4',
+  success: '#10b981',
+  warning: '#f59e0b',
+  danger: '#ef4444',
+};
+
 const MasterConnectionCard: React.FC = memo(() => {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'light' ? 'light' : 'dark'];
-  const [credential, setCredential] =
-    useState<MasterPairingCredential | null>(null);
-  const [status, setStatus] = useState<MasterDeliveryStatus>(
-    masterDeliveryWorker.getStatus()
-  );
+  const [credential, setCredential] = useState<MasterPairingCredential | null>(null);
+  const [status, setStatus] = useState<MasterDeliveryStatus>(masterDeliveryWorker.getStatus());
   const [token, setToken] = useState('');
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +80,6 @@ const MasterConnectionCard: React.FC = memo(() => {
         pairingError instanceof Error
           ? pairingError.message
           : 'Master pairing failed.';
-      logger.error('[MasterConnectionCard] Pairing failed.', pairingError);
       setError(message);
     } finally {
       setBusy(false);
@@ -125,57 +128,46 @@ const MasterConnectionCard: React.FC = memo(() => {
         : credential
           ? colors.success
           : colors.tint;
+          
   const progress =
     status.totalBytes > 0
       ? Math.min(100, Math.round((status.bytesSent / status.totalBytes) * 100))
       : 0;
 
   return (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: colors.surface, borderColor: colors.elevated },
-      ]}>
-      <View style={styles.header}>
-        <View style={styles.titleGroup}>
-          <ThemedText style={styles.eyebrow}>MASTER DELIVERY</ThemedText>
-          <ThemedText style={styles.title}>
+    <View className="p-4 rounded-xl border gap-3 bg-slate-900 border-slate-800">
+      <View className="flex-row items-center justify-between">
+        <View className="flex-1 gap-1">
+          <ThemedText className="text-slate-400 font-mono text-[11px] font-extrabold tracking-widest">
+            MASTER DELIVERY
+          </ThemedText>
+          <ThemedText className="text-[17px] font-extrabold">
             {credential ? credential.masterId : 'Pair Android to Master'}
           </ThemedText>
         </View>
-        <View style={[styles.dot, { backgroundColor: statusColor }]} />
+        <View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: statusColor }} />
       </View>
 
       {busy && !credential ? (
         <ActivityIndicator color={colors.tint} />
       ) : credential ? (
         <>
-          <ThemedText style={[styles.message, { color: statusColor }]}>
+          <ThemedText className="text-[13px] leading-5 font-bold" style={{ color: statusColor }}>
             {status.message}
           </ThemedText>
           {status.totalBytes > 0 && (
-            <View
-              style={[styles.progressTrack, { backgroundColor: colors.elevated }]}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { backgroundColor: statusColor, width: `${progress}%` },
-                ]}
-              />
+            <View className="h-1.5 rounded-full overflow-hidden bg-slate-800">
+              <View className="h-1.5 rounded-full" style={{ backgroundColor: statusColor, width: `${progress}%` }} />
             </View>
           )}
-          <View style={styles.actions}>
-            <TouchableOpacity
-              style={[styles.secondaryButton, { borderColor: colors.tint }]}
-              onPress={retry}>
-              <ThemedText style={[styles.buttonText, { color: colors.tint }]}>
+          <View className="flex-row gap-2">
+            <TouchableOpacity className="flex-1 min-h-[44px] border rounded-lg items-center justify-center border-cyan-500" onPress={retry}>
+              <ThemedText className="font-mono text-xs font-extrabold text-cyan-500">
                 SYNC NOW
               </ThemedText>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.secondaryButton, { borderColor: colors.danger }]}
-              onPress={forget}>
-              <ThemedText style={[styles.buttonText, { color: colors.danger }]}>
+            <TouchableOpacity className="flex-1 min-h-[44px] border rounded-lg items-center justify-center border-red-500" onPress={forget}>
+              <ThemedText className="font-mono text-xs font-extrabold text-red-500">
                 FORGET
               </ThemedText>
             </TouchableOpacity>
@@ -183,7 +175,7 @@ const MasterConnectionCard: React.FC = memo(() => {
         </>
       ) : (
         <>
-          <ThemedText style={styles.help}>
+          <ThemedText className="text-slate-400 text-[13px] leading-5">
             Generate a one-use code in Master → Kiosk Connections, then paste it
             here. Discovery and delivery stay on the local network.
           </ThemedText>
@@ -195,30 +187,16 @@ const MasterConnectionCard: React.FC = memo(() => {
             spellCheck={false}
             placeholder="CF1.…"
             placeholderTextColor={colors.textSecondary}
-            style={[
-              styles.input,
-              {
-                color: colors.text,
-                borderColor: colors.elevated,
-                backgroundColor: colors.background,
-              },
-            ]}
+            className="border rounded-lg px-3 py-3 font-mono text-xs text-slate-50 border-slate-800 bg-[#070a12]"
           />
           <TouchableOpacity
-            style={[
-              styles.primaryButton,
-              {
-                backgroundColor: colors.tint,
-                opacity: busy || !token.trim() ? 0.5 : 1,
-              },
-            ]}
+            className={`min-h-[48px] rounded-lg items-center justify-center bg-cyan-500 ${busy || !token.trim() ? 'opacity-50' : 'opacity-100'}`}
             disabled={busy || !token.trim()}
             onPress={pair}>
             {busy ? (
               <ActivityIndicator color={colors.background} />
             ) : (
-              <ThemedText
-                style={[styles.primaryButtonText, { color: colors.background }]}>
+              <ThemedText className="font-mono text-[13px] font-black tracking-widest text-[#070a12]">
                 DISCOVER + PAIR
               </ThemedText>
             )}
@@ -227,7 +205,7 @@ const MasterConnectionCard: React.FC = memo(() => {
       )}
 
       {error && (
-        <ThemedText style={[styles.error, { color: colors.danger }]}>
+        <ThemedText className="text-xs leading-4 font-bold text-red-500">
           {error}
         </ThemedText>
       )}
@@ -238,98 +216,3 @@ const MasterConnectionCard: React.FC = memo(() => {
 MasterConnectionCard.displayName = 'MasterConnectionCard';
 
 export default MasterConnectionCard;
-
-const styles = StyleSheet.create({
-  card: {
-    padding: Spacing.four,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: Spacing.three,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  titleGroup: {
-    flex: 1,
-    gap: Spacing.one,
-  },
-  eyebrow: {
-    color: '#94a3b8',
-    fontFamily: Typography.fontMono,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: '800',
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  help: {
-    color: '#94a3b8',
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.three,
-    fontFamily: Typography.fontMono,
-    fontSize: 12,
-  },
-  primaryButton: {
-    minHeight: 48,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryButtonText: {
-    fontFamily: Typography.fontMono,
-    fontSize: 13,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-  message: {
-    fontSize: 13,
-    lineHeight: 19,
-    fontWeight: '700',
-  },
-  progressTrack: {
-    height: 6,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 6,
-    borderRadius: 3,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-  },
-  secondaryButton: {
-    flex: 1,
-    minHeight: 44,
-    borderWidth: 1,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    fontFamily: Typography.fontMono,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  error: {
-    fontSize: 12,
-    lineHeight: 18,
-    fontWeight: '700',
-  },
-});

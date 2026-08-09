@@ -6,10 +6,12 @@ export type Bindings = {
   DB_APAC: D1Database;
   AI_TAGGER_QUEUE: Queue;
   GEMINI_API_KEY: string;
-  RESEND_API_KEY: string;
+  MANAGEMENT_BACKEND_URL?: string;
   JWT_SECRET?: string;
   SERVICE_API_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_SECRET_KEY?: string;
+  RESEND_API_KEY: string;
 };
 
 export type AppEnv = {

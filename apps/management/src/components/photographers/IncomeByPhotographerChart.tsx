@@ -9,7 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import Card from "../common/Card.tsx";
+import { Card } from "@clickflash/ui";
 import { Order, Photographer } from "../../types.ts";
 import { useTheme } from "../ThemeContext.tsx";
 import { useCurrency } from "../CurrencyContext.tsx";

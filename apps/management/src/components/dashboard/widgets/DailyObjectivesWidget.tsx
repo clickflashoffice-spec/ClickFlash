@@ -1,6 +1,6 @@
 
 import React, { useRef, useLayoutEffect } from 'react';
-import Card from '../../common/Card.tsx';
+import { Card } from "@clickflash/ui";
 import { Photographer, Album } from '../../../types.ts';
 
 interface DailyObjectivesWidgetProps {

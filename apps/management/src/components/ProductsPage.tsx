@@ -4,11 +4,11 @@ import ProductEditModal from "./modals/ProductEditModal.tsx";
 import PackEditModal from "./modals/PackEditModal.tsx";
 import { useCurrency } from "./CurrencyContext.tsx";
 import { apiService } from "../services/apiService.ts";
-import Spinner from "./common/Spinner.tsx";
+import { Spinner } from "@clickflash/ui";
 import { StatCardSkeleton, TableRowSkeleton } from "./common/Skeleton.tsx";
-import Card from "./common/Card.tsx";
+import { Card } from "@clickflash/ui";
 import { useDebounce } from "../hooks/useDebounce.ts";
-import { syncPricingToSupabase } from "../services/pricingSync.ts";
+import { syncPricingToCloudBackend } from "../services/pricingSync.ts";
 import { HOTELS } from "../constants.ts";
 import PricingRulesPanel from "./products/PricingRulesPanel.tsx";
 import { logger } from "@/utils/logger";
@@ -80,13 +80,13 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ context: context }) => {
     // Refresh and Sync
     const updatedProducts = await apiService.getProducts();
     setProducts(updatedProducts);
-    await syncPricingToSupabase(updatedProducts, syncTarget);
+    await syncPricingToCloudBackend(updatedProducts, syncTarget);
   };
 
   const handleManualSync = async () => {
     try {
       setIsSyncing(true);
-      await syncPricingToSupabase(products, syncTarget);
+      await syncPricingToCloudBackend(products, syncTarget);
       alert(
         `Pricing pushed successfully to: ${syncTarget === "global" ? "Global Hub" : syncTarget}`,
       );
@@ -109,7 +109,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({ context: context }) => {
         // Refresh and Sync
         const updatedProducts = await apiService.getProducts();
         setProducts(updatedProducts);
-        await syncPricingToSupabase(updatedProducts, syncTarget);
+        await syncPricingToCloudBackend(updatedProducts, syncTarget);
       } catch (e) {
         logger.error("Failed to delete product", e);
         alert("Failed to delete product. Please try again.");

@@ -1,5 +1,10 @@
 # ClickFlash Photography Ecosystem — 360° Systematic Execution Roadmap
 
+> [!NOTE]  
+> **AI Agent Notice:** This document is the long-term strategic compass. For immediate execution tasks, refer to `task.md` or `.clickflash-plans/`. Do not parse this entire file into your context window unless you are doing architectural planning.
+
+> **2026-08-03 control plane:** Use the [ClickFlash 360° Mega Execution Roadmap](docs/roadmaps/clickflash-mega-execution-roadmap.md) for the consolidated ecosystem plan and the [Mega Task Register](docs/roadmaps/clickflash-mega-task-register.md) for granular app/page/action/mechanism work. This historical roadmap retains specialist detail and prior checkpoints.
+
 > **Architectural & Security Mandate**: 100% Custom / Zero Paid SaaS (No Vercel, Auth0, Clerk, Pusher, Algolia, OpenAI, Adobe, or paid analytics).
 > **Target Version**: `v2.0.0-production`
 > **Execution Status (2026-07-15)**: Started. `task.md` is the live status source and `walkthrough.md` holds reproducible evidence. Existing completion and pass-count statements are provisional until revalidated in this run.

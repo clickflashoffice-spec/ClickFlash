@@ -1,12 +1,12 @@
+import { Card, Button, Modal, Input } from "@clickflash/ui";
 import React, { useState, useEffect } from 'react';
 import { destinationService } from '../services/api/destinationService';
 import { Destination } from '../types';
-import Card from './common/Card';
-import Button from './common/Button';
-import { TableRowSkeleton } from './common/Skeleton';
-import Modal from './common/Modal';
+
+import { TableRowSkeleton } from './common/AppSkeletons';
+
 import FormField from './common/FormField';
-import Input from './common/Input';
+
 import { logger } from '../utils/logger';
 
 const Locations: React.FC = () => {
@@ -231,7 +231,7 @@ const Locations: React.FC = () => {
 
           <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="primary" loading={saving}>
+            <Button type="submit" variant="primary" isLoading={saving}>
               {editingDestination?.id ? 'Update Location' : 'Create Location'}
             </Button>
           </div>

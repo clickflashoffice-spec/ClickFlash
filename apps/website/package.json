@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run",
+    "test": "vitest run --pool=threads",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
@@ -21,8 +21,10 @@
   },
   "dependencies": {
     "@builder.io/partytown": "^0.10.3",
-    "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.6.1",
+    "@clickflash/logger": "workspace:*",
+    "@clickflash/ui": "workspace:*",
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
     "@react-three/postprocessing": "^3.0.4",
     "@swc/helpers": "^0.5.19",
     "caniuse-lite": "^1.0.30001776",
@@ -37,8 +39,7 @@
     "react-dom": "^19.2.0",
     "tailwind-merge": "^3.4.0",
     "three": "^0.185.1",
-    "tweetnacl": "^1.0.3",
-    "@clickflash/logger": "workspace:*"
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
@@ -52,6 +53,7 @@
     "@types/node": "^24.10.2",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.185.4",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.23",
     "cross-env": "^7.0.3",

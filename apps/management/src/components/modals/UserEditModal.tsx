@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import Modal from "../common/Modal.tsx";
+import { Modal } from "@clickflash/ui";
 import { Photographer } from "../../types.ts";
 import { useCurrency } from "../CurrencyContext.tsx";
 import { apiService } from "../../services/apiService.ts";

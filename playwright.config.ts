@@ -160,7 +160,7 @@ export default defineConfig({
       testDir: './test-suite/apps/gallery',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.GALLERY_URL || 'https://gallery-backend.clickflash-office.workers.dev',
+        baseURL: process.env.GALLERY_URL || 'http://localhost:5176/gallery/',
       },
     },
 

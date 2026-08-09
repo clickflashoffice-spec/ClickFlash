@@ -18,4 +18,4 @@ export {
     type ErrorSeverity,
 } from './FeatureErrorBoundary';
 
-export { default as ErrorBoundary } from '../common/ErrorBoundary';
+export { ErrorBoundary } from '@clickflash/ui';

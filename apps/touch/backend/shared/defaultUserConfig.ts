@@ -32,11 +32,11 @@ export function getDefaultUserConfig(): DefaultUserConfig {
         if (isProduction()) {
             throw new Error('FATAL: DEFAULT_ADMIN_PASSWORD environment variable is required in production. Cannot start without secure admin credentials.');
         }
-        logger.warn('[Security] DEFAULT_ADMIN_PASSWORD not set. Using insecure default. This is only acceptable in development.');
+        logger.warn('[Security] DEFAULT_ADMIN_PASSWORD not set. Using auto-generated secure password. This is only acceptable in development.');
         return {
             name: process.env.DEFAULT_ADMIN_NAME || 'Alaeddine',
             email,
-            password: 'DEFAULT_PASSWORD_PLACEHOLDER',
+            password: generateSecurePassword(),
             role: 'Admin',
             password_must_change: 1
         };
@@ -79,7 +79,7 @@ export function validateDefaultUserConfig(config: DefaultUserConfig): Validation
         errors.push('Password must be at least 8 characters');
     }
 
-    if (isProduction() && config.password === 'DEFAULT_PASSWORD_PLACEHOLDER') {
+    if (isProduction() && config.password === 'DevInsecurePassword123!') {
         errors.push('SECURITY WARNING: Default password detected in production!');
     }
 

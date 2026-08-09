@@ -8,7 +8,7 @@ import { autoUpdater } from 'electron-updater';
 import { logger } from "@clickflash/logger";
 
 // Configure auto-updater
-autoUpdater.logger = console;
+autoUpdater.logger = logger;
 autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = true;
 autoUpdater.allowPrerelease = false;

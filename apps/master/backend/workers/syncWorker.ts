@@ -1,5 +1,5 @@
 import { parentPort } from 'worker_threads';
-import Database from 'better-sqlite3';
+import Database from 'better-sqlite3-multiple-ciphers';
 import * as path from 'path';
 import { logger } from '../utils/logger';
 

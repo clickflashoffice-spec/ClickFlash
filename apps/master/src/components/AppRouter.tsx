@@ -1,10 +1,10 @@
+import { Spinner } from "@clickflash/ui";
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSync } from '../context/SyncContext';
 import { apiService } from '../services/apiService';
 import { SystemAudit } from './SystemAudit';
-import Spinner from './common/Spinner';
 
 // Lazy load components
 const Login = React.lazy(() => import('./Login'));

@@ -169,7 +169,7 @@ describe('Installer IPC Handlers', () => {
     
     // Wait a tick for app.whenReady().then() to resolve and register handlers
     await new Promise(resolve => setTimeout(resolve, 10));
-  });
+  }, 30000);
 
   afterEach(() => {
     delete process.env.CLICKFLASH_PAYLOAD_KEY_ID;

@@ -79,11 +79,16 @@ const SENSITIVE_FIELDS = new Set([
  * Recursively redact sensitive fields from an object.
  * Handles nested objects and arrays. Returns a new object — never mutates the input.
  */
-export function redactSensitiveFields(obj: unknown): unknown {
+export function redactSensitiveFields(obj: unknown, seen = new WeakSet()): unknown {
   if (obj === null || obj === undefined) return obj;
 
+  if (typeof obj === 'object' && obj !== null) {
+    if (seen.has(obj)) return '[CIRCULAR]';
+    seen.add(obj);
+  }
+
   if (Array.isArray(obj)) {
-    return obj.map((item) => redactSensitiveFields(item));
+    return obj.map((item) => redactSensitiveFields(item, seen));
   }
 
   if (typeof obj === 'object') {
@@ -92,7 +97,7 @@ export function redactSensitiveFields(obj: unknown): unknown {
       if (SENSITIVE_FIELDS.has(key.toLowerCase())) {
         result[key] = '[REDACTED]';
       } else if (typeof value === 'object' && value !== null) {
-        result[key] = redactSensitiveFields(value);
+        result[key] = redactSensitiveFields(value, seen);
       } else {
         result[key] = value;
       }
@@ -276,5 +281,4 @@ export const noopLogger: ILogger = {
   },
 };
 
-export { BrowserLogger } from './browser.js';
-
+export { BrowserLogger } from './browser';

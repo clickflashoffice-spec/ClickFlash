@@ -1,6 +1,7 @@
+import { Modal } from '@clickflash/ui';
 import React, { useRef, useState, useEffect } from 'react';
 import { Product, Photo } from '../../types';
-import Modal from '../common/Modal.tsx';
+
 
 interface ProductSelectionModalProps {
     product: Product;

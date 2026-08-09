@@ -57,10 +57,9 @@ const isElectron = process.versions && !!process.versions.electron;
 const isWeb = !isElectron;
 logger.info(`[Environment] Running in ${isElectron ? "Electron" : "Web"} mode`);
 
-// Fix for __dirname in ESM (Not needed for CommonJS target, but keeping for reference if we switch)
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
-// For CommonJS output, __dirname is available globally or via wrapper
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load env
 import dotenv from "dotenv";
@@ -470,8 +469,17 @@ try {
 
 try {
   mdnsDiscovery.advertise(kioskId, "4.2.0");
+
+  mdnsDiscovery.browseForMasters((masters) => {
+    if (masters.length > 0) {
+      // Masters are already sorted by lowest latency first
+      const bestMaster = masters[0];
+      const brokerUrl = `mqtt://${bestMaster.host}:1883`;
+      mqttClientService.connectToBroker(brokerUrl);
+    }
+  });
 } catch (e: any) {
-  logger.error("[mDNS] Failed to advertise", e);
+  logger.error("[mDNS] Failed to advertise or discover", e);
 }
 
 try {

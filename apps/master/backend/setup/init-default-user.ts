@@ -12,7 +12,7 @@ export async function initDefaultUser(
     name: process.env.DEFAULT_ADMIN_NAME || "Admin",
     email: process.env.DEFAULT_ADMIN_EMAIL || "admin@clickflash.local",
     password: process.env.DEFAULT_ADMIN_PASSWORD || "ClickFlash2025!",
-    role: "Admin" as const,
+    role: "CEO" as const,
     password_must_change: 1,
   };
 

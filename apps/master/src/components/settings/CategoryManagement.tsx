@@ -1,6 +1,7 @@
+import { Card } from "@clickflash/ui";
 
 import React, { useState } from 'react';
-import Card from '../common/Card';
+
 import useLocalStorage from '../../hooks/useLocalStorage';
 import CategoryEditModal from '../modals/CategoryEditModal';
 

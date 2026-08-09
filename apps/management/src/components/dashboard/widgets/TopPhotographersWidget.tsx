@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import Card from "../../common/Card.tsx";
+import { Card } from "@clickflash/ui";
 import { Order, Photographer } from "../../../types.ts";
 import { useCurrency } from "../../CurrencyContext.tsx";
 

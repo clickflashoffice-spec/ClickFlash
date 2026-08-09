@@ -12,7 +12,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Modal from '../../common/Modal';
+import { Modal } from "@clickflash/ui";
 
 describe('Modal Component', () => {
     const mockOnClose = jest.fn();
@@ -74,10 +74,8 @@ describe('Modal Component', () => {
             </Modal>
         );
         
-        // Click on the backdrop overlay (first child of body that contains the dialog)
-        const backdrop = document.querySelector('[class*="fixed inset-0"]') || 
-                         document.querySelector('[class*="backdrop"]') ||
-                         document.querySelector('[role="dialog"]')?.parentElement;
+        // Click on the backdrop overlay
+        const backdrop = document.querySelector('div.absolute.inset-0');
         if (backdrop) {
             fireEvent.click(backdrop);
             expect(mockOnClose).toHaveBeenCalledTimes(1);

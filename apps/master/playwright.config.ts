@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 import path from "path";
+import dotenv from "dotenv";
+
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const isCI = process.env.CI === "true";
 
@@ -74,6 +77,10 @@ export default defineConfig({
     timeout: 180 * 1000,
     stdout: "pipe",
     stderr: "pipe",
+    env: {
+      ...process.env,
+      TEST_E2E: "1",
+    },
   },
 
   timeout: 60000,

@@ -1,7 +1,8 @@
+import { Card } from "@clickflash/ui";
 import React, { useMemo } from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import Card from '../common/Card.tsx';
+
 import { Order, Photographer } from '../../types.ts';
 import { useTheme } from '../ThemeContext.tsx';
 import { useCurrency } from '../CurrencyContext.tsx';

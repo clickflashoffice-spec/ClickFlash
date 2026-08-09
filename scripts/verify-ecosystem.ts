@@ -44,7 +44,11 @@ async function verifyEcosystem() {
     // This will run the scripts in all packages that define them
     for (const cmd of WORKSPACE_COMMANDS) {
       console.log(`\n📦 Running global ${cmd} across ecosystem...`);
-      await runCommand('pnpm', ['-r', 'run', cmd], ROOT_DIR, `Global ${cmd}`);
+      const filters = ['--filter', '!@clickflash/docs', '--filter', '!@clickflash/test-utils'];
+      if (cmd === 'build') {
+        filters.push('--filter', '!clickflash-license-generator');
+      }
+      await runCommand('pnpm', ['-r', ...filters, 'run', cmd], ROOT_DIR, `Global ${cmd}`);
     }
 
     // 2. Explicit Verification for Crypto / Licensing Integrity

@@ -1,3 +1,4 @@
+'use client';
 import React, { memo, useState, useEffect, useRef, useCallback } from 'react';
 import { decode } from 'blurhash';
 import { clsx } from 'clsx';

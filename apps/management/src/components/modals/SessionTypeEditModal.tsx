@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Modal from '../common/Modal';
+import { Modal } from "@clickflash/ui";
 import { SessionType } from '../../types';
 import { useCurrency } from '../CurrencyContext';
 

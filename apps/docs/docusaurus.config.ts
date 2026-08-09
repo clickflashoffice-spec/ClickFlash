@@ -7,9 +7,6 @@ const config: Config = {
   tagline: 'Documentation for the ClickFlash Photography Studio Ecosystem',
   favicon: 'img/favicon.ico',
 
-  future: {
-    v4: true,
-  },
 
   url: 'https://docs.clickflash.app',
   baseUrl: '/',

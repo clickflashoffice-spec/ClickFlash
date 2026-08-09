@@ -4,6 +4,7 @@
   "description": "ClickFlash Unified 1-Click Installer — Master Portal + Touch Kiosk",
   "author": "ClickFlash Photography",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@10.28.2",
   "main": "dist/electron/electron-main.js",
   "scripts": {
@@ -18,7 +19,7 @@
     "package:installer": "pnpm run prepare:license-trust && pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && electron-builder build --win",
     "lint": "eslint src installer-payload-installation.ts installer-payload-release.ts installer-payload-verification.ts installer-payload-trust.ts scripts/payload-release.ts --ext .ts,.tsx --max-warnings 50",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.electron.json && tsc --noEmit -p tsconfig.payload-tools.json",
-    "test": "vitest run",
+    "test": "vitest run --pool=threads",
     "clean": "rimraf dist release"
   },
   "dependencies": {

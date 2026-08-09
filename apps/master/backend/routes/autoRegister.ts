@@ -20,6 +20,13 @@ export default function createAutoRegisterRouter(
 
     router.post("/auto-register", autoRegisterLimiter as any, async (req, res, next) => {
         try {
+            const authHeader = req.headers.authorization;
+            if (!authHeader || authHeader !== `Bearer ${process.env.SERVICE_SECRET}`) {
+                logger.warn(`Unauthorized auto-registration attempt from ${req.ip}`);
+                res.status(401).json({ error: "Unauthorized: Invalid or missing ecosystem token" });
+                return;
+            }
+
             const { kioskId, hostname, ip } = req.body;
 
             if (!kioskId || !ip) {

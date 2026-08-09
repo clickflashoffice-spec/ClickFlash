@@ -52,18 +52,26 @@ class CameraTriggerService {
         });
     }
 
-    public start(port: number = this.PORT) {
+    public start(port: number = this.PORT, cb?: () => void) {
         try {
-            this.server.bind(port);
+            this.server.bind(port, cb);
         } catch (error) {
             logger.error(`[CameraTriggerService] Failed to bind UDP server on port ${port}`, error);
+            if (cb) cb();
         }
     }
 
-    public stop() {
-        this.server.close(() => {
-            logger.info('[CameraTriggerService] UDP server stopped');
-        });
+    public stop(cb?: () => void) {
+        try {
+            this.server.close(() => {
+                logger.info('[CameraTriggerService] UDP server stopped');
+                if (cb) cb();
+            });
+        } catch (err) {
+            // Might not be running
+            logger.debug('[CameraTriggerService] Stop called but server was not running');
+            if (cb) cb();
+        }
     }
 }
 

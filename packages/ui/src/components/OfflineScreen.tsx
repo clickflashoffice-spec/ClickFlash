@@ -1,3 +1,4 @@
+'use client';
 import React, { memo, useCallback } from 'react';
 
 /**
@@ -151,3 +152,4 @@ export const OfflineScreen: React.FC<OfflineScreenProps> = memo(({
 OfflineScreen.displayName = 'OfflineScreen';
 
 export default OfflineScreen;
+

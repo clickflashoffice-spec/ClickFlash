@@ -1,5 +1,6 @@
+import { Card } from "@clickflash/ui";
 import React, { useState, useEffect } from 'react';
-import Card from '../../common/Card';
+
 import { Photographer, Album, DailyObjective } from '../../../types';
 import { objectiveService } from '../../../services/api/objectiveService';
 
@@ -20,7 +21,6 @@ const DailyObjectivesWidget: React.FC<DailyObjectivesWidgetProps> = ({ currentUs
     };
     fetchObjective();
   }, [currentUser.id, albums]); // Refresh when albums change (import completes)
-
 
   const defaultTarget = currentUser.dailyPhotoTarget || 0;
   // Current target in DB is the REMAINING count

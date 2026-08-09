@@ -5,12 +5,23 @@ export interface MobileCapturePairingCode {
   expiresAt: number;
   masterId: string;
   protocol: "CF-PAIR-V1";
+  photographerId: string;
+  photographerName: string;
+  tlsFingerprint: string;
+}
+
+export interface MobileCapturePhotographer {
+  id: string;
+  name: string;
+  role: string;
 }
 
 export interface MobileCaptureDevice {
   deviceId: string;
   displayName: string;
   masterId: string;
+  photographerId: string | null;
+  photographerName: string | null;
   pairedAt: number;
   lastSeenAt: number | null;
   revokedAt: number | null;
@@ -27,9 +38,21 @@ async function responseJson<T>(response: Response): Promise<T> {
 }
 
 export const mobileCaptureService = {
-  async createPairingCode(): Promise<MobileCapturePairingCode> {
+  async listPhotographers(): Promise<MobileCapturePhotographer[]> {
+    const response = await pb.request("/api/mobile-capture/photographers");
+    const body = await responseJson<{
+      photographers: MobileCapturePhotographer[];
+    }>(response);
+    return body.photographers;
+  },
+
+  async createPairingCode(
+    photographerId: string
+  ): Promise<MobileCapturePairingCode> {
     const response = await pb.request("/api/mobile-capture/pairing-codes", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ photographerId }),
     });
     return responseJson<MobileCapturePairingCode>(response);
   },
@@ -53,4 +76,3 @@ export const mobileCaptureService = {
     }
   },
 };
-

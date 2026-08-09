@@ -1,5 +1,5 @@
+import { Card } from "@clickflash/ui";
 import React from 'react';
-import Card from '../../common/Card';
 
 interface SafetyControlsProps {
     canResetDb: boolean;

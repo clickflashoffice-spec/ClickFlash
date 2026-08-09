@@ -1,5 +1,6 @@
+import { Modal } from "@clickflash/ui";
 import React, { useState, useEffect } from 'react';
-import Modal from '../common/Modal';
+
 import { SessionType } from '../../types';
 import { useCurrency } from '../CurrencyContext';
 

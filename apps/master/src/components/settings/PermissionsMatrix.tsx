@@ -1,10 +1,11 @@
+import { Card } from "@clickflash/ui";
 import React, { useState, useEffect } from "react";
 import {
   PERMISSIONS as STATIC_PERMISSIONS,
   ALL_PERMISSIONS,
 } from "../../permissions";
 import { AppRole, Permission } from "../../types";
-import Card from "../common/Card";
+
 import { apiService } from "../../services/apiService";
 import { logger } from "../../utils/logger";
 

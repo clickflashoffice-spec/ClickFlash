@@ -14,6 +14,10 @@ class MasterConnectivityWebModule
     return [];
   }
 
+  setPinnedFingerprint(_fingerprint: string | null): void {
+    // No-op on web
+  }
+
   generatePairingKey(): PairingKey {
     throw new Error('Master pairing is available only in the Android field app.');
   }
@@ -30,6 +34,10 @@ class MasterConnectivityWebModule
 
   hmacSha256Base64(): string {
     throw new Error('Native HMAC is unavailable on this platform.');
+  }
+
+  hkdfSha256Base64(): string {
+    throw new Error('Native HKDF is unavailable on this platform.');
   }
 
   verifyHmacSha256Base64(): boolean {
@@ -49,4 +57,3 @@ export default registerWebModule(
   MasterConnectivityWebModule,
   'MasterConnectivity'
 );
-

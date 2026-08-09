@@ -77,7 +77,7 @@ async function globalSetup() {
   // Step 1: Establish a session by hitting health endpoint
   console.log("[E2E Seed] Establishing session...");
   let healthRes: Response | null = null;
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 120; i++) {
     try {
       healthRes = await fetch(`${BASE_URL}/api/health`);
       if (healthRes.ok) break;
@@ -97,6 +97,10 @@ async function globalSetup() {
 
   // Step 2: Login to get JWT
   console.log("[E2E Seed] Authenticating...");
+  const email = process.env.DEFAULT_ADMIN_EMAIL || "admin@clickflash.local";
+  const password = process.env.DEFAULT_ADMIN_PASSWORD || "ClickFlash2025!";
+  console.log(`[E2E Seed] Authenticating as ${email}... (Password length: ${password.length})`);
+  
   const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
     method: "POST",
     headers: {
@@ -104,10 +108,7 @@ async function globalSetup() {
       Cookie: cookies,
       "x-csrf-token": xsrf,
     },
-    body: JSON.stringify({
-      email: "admin@clickflash.local",
-      password: "ClickFlash2025!",
-    }),
+    body: JSON.stringify({ email, password }),
   });
 
   if (!loginRes.ok) {

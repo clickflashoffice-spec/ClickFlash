@@ -10,7 +10,7 @@ import {
   ChevronRight,
   CheckCircle2,
 } from "lucide-react";
-import Card from "../common/Card.tsx";
+import { Card } from "@clickflash/ui";
 
 interface DocumentationPageProps {
   currentUser: Photographer;

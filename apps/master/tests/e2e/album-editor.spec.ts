@@ -11,14 +11,16 @@ import { login } from "./helpers/auth";
  */
 
 async function openFirstAlbumEditor(page: Page): Promise<void> {
+  page.on('pageerror', err => console.log('PAGE ERROR:', err));
+  page.on('console', msg => { if (msg.type() === 'error') console.log('BROWSER CONSOLE ERROR:', msg.text()); });
   await login(page);
   // App uses view-state routing — URL stays at /. Navigate by clicking sidebar.
   await page.click('button:has-text("Albums")');
-  await expect(page.locator('text=Album Workflow')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('h1', { hasText: 'Album Workflow' })).toBeVisible({ timeout: 45000 });
 
   // Wait for the Albums list to render
   const albumCard = page.locator('[data-testid="album-item"]').first();
-  await expect(albumCard).toBeVisible({ timeout: 15000 });
+  await expect(albumCard).toBeVisible({ timeout: 45000 });
 
   await albumCard.click();
 

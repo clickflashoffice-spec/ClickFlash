@@ -1,5 +1,6 @@
+import { Card } from "@clickflash/ui";
 import React, { useRef } from 'react';
-import Card from '../common/Card.tsx';
+
 import useSystemSetting from '../../hooks/useSystemSetting.ts';
 import PageHeader from '../common/PageHeader';
 import { logger } from '@/utils/logger';

@@ -1,13 +1,14 @@
+import { Spinner, ErrorBoundary } from '@clickflash/ui';
 import React, { useState, useMemo, Suspense } from 'react';
 const WelcomeScreen = React.lazy(() => import('./components/touch/WelcomeScreen'));
 const PhotoSelectionScreen = React.lazy(() => import('./components/touch/PhotoSelectionScreen'));
 const PhotoPreviewScreen = React.lazy(() => import('./components/touch/PhotoPreviewScreen'));
 const OrderConfigurationScreen = React.lazy(() => import('./components/touch/OrderConfigurationScreen'));
 import DeviceSetup from './components/DeviceSetup';
-import Spinner from './components/common/Spinner';
+
 import { Album, CartItem, Photo, AppMode } from './types';
 import { useKiosk, KioskProvider } from './context/KioskContext';
-import ErrorBoundary from './components/common/ErrorBoundary';
+
 import { logger } from '@/utils/logger';
 import { analytics } from '@/utils/telemetry';
 import { AnimatePresence, motion, Transition } from 'framer-motion';
@@ -301,7 +302,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
                 case 'welcome':
                     content = (
                         <motion.div key="welcome" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-full w-full">
-                            <ErrorBoundary screenName="WelcomeScreen">
+                            <ErrorBoundary>
                                 <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900"><Spinner /></div>}>
                                     <WelcomeScreen
                                         onBrowsePhotos={handleBrowsePhotos}
@@ -321,7 +322,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
                 case 'photos':
                     content = (
                         <motion.div key="photos" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-full w-full">
-                            <ErrorBoundary screenName="PhotoSelectionScreen">
+                            <ErrorBoundary>
                                 <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-slate-900"><Spinner /></div>}>
                                     <PhotoSelectionScreen
                                         albums={displayedKioskAlbums}
@@ -342,7 +343,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
                 case 'photo-detail':
                     content = (
                         <motion.div key="photo-detail" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-full w-full">
-                            <ErrorBoundary screenName="PhotoPreviewScreen">
+                            <ErrorBoundary>
                                 <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-black"><Spinner /></div>}>
                                     {activePhoto && activeAlbum ? <PhotoPreviewScreen
                                         photo={activePhoto}
@@ -362,7 +363,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
                 case 'order-config':
                     content = (
                         <motion.div key="order-config" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-full w-full">
-                            <ErrorBoundary screenName="OrderConfigurationScreen">
+                            <ErrorBoundary>
                                 <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-slate-900"><Spinner /></div>}>
                                     <OrderConfigurationScreen
                                         cart={cart}

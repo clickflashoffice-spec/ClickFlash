@@ -22,15 +22,16 @@ jest.mock('../../utils/logger', () => ({
 describe('CameraTriggerService', () => {
     let client: dgram.Socket;
 
-    beforeAll(() => {
+    beforeAll((done) => {
         // Start the service on a random port for testing
-        cameraTriggerService.start(5556);
+        cameraTriggerService.start(5556, done);
         client = dgram.createSocket('udp4');
     });
 
     afterAll((done) => {
-        cameraTriggerService.stop();
-        client.close(done);
+        cameraTriggerService.stop(() => {
+            client.close(done);
+        });
     });
 
     afterEach(() => {

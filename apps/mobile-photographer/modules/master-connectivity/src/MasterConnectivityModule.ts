@@ -17,6 +17,7 @@ export interface PairingKey {
 
 export declare class MasterConnectivityNativeModule extends NativeModule {
   discoverMasters(timeoutMs: number): Promise<MasterDiscoveryResult[]>;
+  setPinnedFingerprint(fingerprint: string | null): void;
   generatePairingKey(): PairingKey;
   derivePairingSecret(
     keyId: string,
@@ -27,6 +28,7 @@ export declare class MasterConnectivityNativeModule extends NativeModule {
   discardPairingKey(keyId: string): void;
   hmacSha256Base64WithUtf8Key(key: string, message: string): string;
   hmacSha256Base64(secretBase64: string, message: string): string;
+  hkdfSha256Base64(secretBase64: string, info: string): string;
   verifyHmacSha256Base64(
     secretBase64: string,
     message: string,
@@ -43,4 +45,3 @@ export declare class MasterConnectivityNativeModule extends NativeModule {
 export default requireOptionalNativeModule<MasterConnectivityNativeModule>(
   'MasterConnectivity'
 );
-

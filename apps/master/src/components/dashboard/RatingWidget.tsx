@@ -1,10 +1,11 @@
+import { Card } from "@clickflash/ui";
 /**
  * RatingWidget — derives a customer satisfaction score from order data.
  * Completed orders → positive, Cancelled orders → negative.
  * Wires into Dashboard via props passed from the parent query.
  */
 import React, { memo, useMemo } from 'react';
-import Card from '../common/Card';
+
 import { Order } from '../../types';
 
 interface RatingWidgetProps {

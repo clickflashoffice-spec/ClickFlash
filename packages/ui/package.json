@@ -9,6 +9,8 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./tokens/design-tokens.json": "./src/tokens/design-tokens.json",
+    "./src/tokens/design-tokens.json": "./src/tokens/design-tokens.json",
     "./*": {
       "types": "./dist/*.d.ts",
       "default": "./dist/*.js"

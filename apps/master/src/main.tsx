@@ -5,7 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { ThemeProvider } from "./components/ThemeContext";
 import { CurrencyProvider } from "./components/CurrencyContext";
-import GlobalErrorBoundary from "./components/common/GlobalErrorBoundary";
+import { ErrorBoundary } from "@clickflash/ui";
 import { logger } from "./utils/logger";
 import { safeStorage } from "./utils/safeStorage";
 import "./index.css";
@@ -112,7 +112,7 @@ if (!rootElement) {
 
     root.render(
       <React.StrictMode>
-        <GlobalErrorBoundary>
+        <ErrorBoundary>
           <QueryClientProvider client={queryClient}>
             <ThemeProvider>
               <CurrencyProvider>
@@ -122,7 +122,7 @@ if (!rootElement) {
               </CurrencyProvider>
             </ThemeProvider>
           </QueryClientProvider>
-        </GlobalErrorBoundary>
+        </ErrorBoundary>
       </React.StrictMode>,
     );
 

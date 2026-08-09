@@ -1,8 +1,25 @@
+console.log("Starting server.ts...");
 import dotenv from "dotenv";
 dotenv.config();
 
 // Ensure NODE_ENV is always defined — rateLimiter and other middleware depend on it
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
+
+import crypto from "crypto";
+import fs from "fs";
+import path from "path";
+
+if (!process.env.DB_ENCRYPTION_KEY) {
+  const newKey = crypto.randomBytes(32).toString("hex");
+  process.env.DB_ENCRYPTION_KEY = newKey;
+  const envPath = path.resolve(process.cwd(), ".env");
+  try {
+    fs.appendFileSync(envPath, `\nDB_ENCRYPTION_KEY=${newKey}\n`);
+    console.log("[Security] Auto-generated DB_ENCRYPTION_KEY and saved to .env");
+  } catch (err) {
+    console.error("[Security] Failed to save DB_ENCRYPTION_KEY to .env", err);
+  }
+}
 
 import express from "express";
 import { getTLSConfig, createSecureServer } from "./config/tlsConfig";

@@ -1,5 +1,6 @@
+import { Card } from "@clickflash/ui";
 import React, { useMemo } from 'react';
-import Card from '../../common/Card';
+
 import { Order, Album } from '../../../types';
 import { useCurrency } from '../../CurrencyContext';
 import { TrendingUp } from 'lucide-react';

@@ -1,5 +1,6 @@
+import { Card } from '@clickflash/ui';
 import React, { useState } from 'react';
-import Card from '../common/Card.tsx';
+
 import { Order } from '../../types';
 import ConfirmationModal from '../common/ConfirmationModal.tsx';
 

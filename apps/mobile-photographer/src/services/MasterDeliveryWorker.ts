@@ -11,6 +11,9 @@ import {
   bytesToHex,
   canonicalMasterCaptureReceipt,
   canonicalMobileCaptureRequest,
+  canonicalMobileCaptureEncryptionKeyInfo,
+  canonicalMobileCaptureAad,
+  MOBILE_CAPTURE_MASTER_ID,
   EMPTY_SHA256,
   type MasterCaptureReceipt,
   type MobileCaptureOperation,
@@ -20,6 +23,23 @@ import {
   masterPairingService,
   type MasterPairingCredential,
 } from './MasterPairingService';
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+function base64ToBytes(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
 
 export type MasterDeliveryPhase =
   | 'UNPAIRED'
@@ -140,6 +160,15 @@ class MasterDeliveryWorker {
       const candidate =
         await captureDeliveryLedgerService.getNextMasterTransfer();
       if (!candidate) {
+        const retryAt =
+          await captureDeliveryLedgerService.getNextMasterRetryAt();
+        if (retryAt) {
+          this.publishRetry(
+            'A Master delivery is waiting for its retry window.',
+            Math.max(250, retryAt - Date.now())
+          );
+          return;
+        }
         this.publish({
           phase: 'IDLE',
           message: `All captures delivered to ${credential.masterId}.`,
@@ -303,7 +332,7 @@ class MasterDeliveryWorker {
       this.uploadUrl(credential, candidate, 'status'),
       { method: 'GET', headers: this.headers(credential, identity) }
     );
-    const body = await this.responseJson(response);
+    const body = await this.decryptResponseJson(credential, response, identity);
     if (!response.ok) {
       throw new Error(this.responseError(body, response.status));
     }
@@ -326,12 +355,32 @@ class MasterDeliveryWorker {
       digest,
       offset
     );
+    const native = masterPairingService.requireNativeModule();
+    const keyInfo = canonicalMobileCaptureEncryptionKeyInfo(identity, MOBILE_CAPTURE_MASTER_ID, "MOBILE_TO_MASTER");
+    const aad = canonicalMobileCaptureAad(identity, MOBILE_CAPTURE_MASTER_ID, "MOBILE_TO_MASTER");
+    const keyBase64 = native.hkdfSha256Base64(credential.secretBase64, keyInfo);
+    const key = await Crypto.AESEncryptionKey.import(keyBase64, 'base64');
+    const sealed = await Crypto.aesEncryptAsync(bytes, key, {
+      additionalData: new TextEncoder().encode(aad),
+    });
+    
+    const ciphertextResult = typeof sealed.ciphertext === 'function'
+      ? await sealed.ciphertext({ encoding: 'base64' as const })
+      : sealed.ciphertext;
+    const cipherBytes = typeof ciphertextResult === 'string' ? base64ToBytes(ciphertextResult) : (ciphertextResult as unknown as Uint8Array);
+      
+    const ivResult = typeof sealed.iv === 'function' ? await sealed.iv('base64') : sealed.iv;
+    const ivBase64 = typeof ivResult === 'string' ? ivResult : bytesToBase64(ivResult as unknown as Uint8Array);
+    
+    const tagResult = typeof sealed.tag === 'function' ? await sealed.tag('base64') : sealed.tag;
+    const tagBase64 = typeof tagResult === 'string' ? tagResult : bytesToBase64(tagResult as unknown as Uint8Array);
+
     const staging = new File(
       Paths.cache,
       `master-upload-${credential.deviceId}-${Date.now()}-${offset}.chunk`
     );
     staging.create({ overwrite: true });
-    staging.write(bytes);
+    staging.write(cipherBytes);
     try {
       const result = await staging.upload(
         this.uploadUrl(credential, candidate, 'chunks'),
@@ -339,10 +388,16 @@ class MasterDeliveryWorker {
           httpMethod: 'PUT',
           uploadType: UploadType.BINARY_CONTENT,
           mimeType: 'application/octet-stream',
-          headers: this.headers(credential, identity, candidate.filename),
+          headers: this.headers(credential, identity, candidate.filename, ivBase64, tagBase64),
         }
       );
-      const body = this.parseJson(result.body, result.status);
+      
+      let body: unknown = {};
+      if (result.status >= 200 && result.status < 300) {
+        body = await this.decryptResponseString(credential, result.body, result.status, identity);
+      } else {
+        body = this.parseJson(result.body, result.status);
+      }
       if (result.status === 409) {
         const serverOffset = this.readExpectedOffset(body);
         if (
@@ -380,7 +435,7 @@ class MasterDeliveryWorker {
         headers: this.headers(credential, identity),
       }
     );
-    const body = await this.responseJson(response);
+    const body = await this.decryptResponseJson(credential, response, identity);
     if (!response.ok) {
       throw new Error(this.responseError(body, response.status));
     }
@@ -447,13 +502,17 @@ class MasterDeliveryWorker {
       assetByteSize: String(candidate.byteSize),
       offset: String(offset),
       assetRole: candidate.role,
+      encryptionProtocol: "CF-AEAD-V1",
+      keyEpoch: String(credential.pairedAt),
     };
   }
 
   private headers(
     credential: MasterPairingCredential,
     identity: MobileCaptureRequestIdentity,
-    filename?: string
+    filename?: string,
+    ivBase64?: string,
+    tagBase64?: string
   ): Record<string, string> {
     const native = masterPairingService.requireNativeModule();
     const headers: Record<string, string> = {
@@ -462,6 +521,8 @@ class MasterDeliveryWorker {
           ? 'application/octet-stream'
           : 'application/json',
       'X-ClickFlash-Device-Id': identity.deviceId,
+      'X-ClickFlash-Encryption': 'CF-AEAD-V1',
+      'X-ClickFlash-Key-Epoch': String(credential.pairedAt),
       'X-ClickFlash-Timestamp': identity.timestamp,
       'X-ClickFlash-Nonce': identity.nonce,
       'X-ClickFlash-Idempotency-Key': identity.idempotencyKey,
@@ -476,6 +537,8 @@ class MasterDeliveryWorker {
       ),
     };
     if (filename) headers['X-ClickFlash-Filename'] = encodeURIComponent(filename);
+    if (ivBase64) headers['X-ClickFlash-Aead-Iv'] = ivBase64;
+    if (tagBase64) headers['X-ClickFlash-Aead-Tag'] = tagBase64;
     return headers;
   }
 
@@ -546,6 +609,41 @@ class MasterDeliveryWorker {
 
   private async responseJson(response: Response): Promise<unknown> {
     return this.parseJson(await response.text(), response.status);
+  }
+
+  private async decryptResponseJson(
+    credential: MasterPairingCredential,
+    response: Response,
+    identity: MobileCaptureRequestIdentity
+  ): Promise<unknown> {
+    const text = await response.text();
+    if (!response.ok) return this.parseJson(text, response.status);
+    return this.decryptResponseString(credential, text, response.status, identity);
+  }
+
+  private async decryptResponseString(
+    credential: MasterPairingCredential,
+    text: string,
+    status: number,
+    identity: MobileCaptureRequestIdentity
+  ): Promise<unknown> {
+    const envelope = this.parseJson(text, status) as { iv?: string; ciphertext?: string; tag?: string };
+    if (!envelope || !envelope.iv || !envelope.ciphertext || !envelope.tag) {
+      throw new DeliveryIntegrityError('Master returned invalid AEAD envelope.');
+    }
+    const native = masterPairingService.requireNativeModule();
+    const keyInfo = canonicalMobileCaptureEncryptionKeyInfo(identity, MOBILE_CAPTURE_MASTER_ID, "MASTER_TO_MOBILE");
+    const aad = canonicalMobileCaptureAad(identity, MOBILE_CAPTURE_MASTER_ID, "MASTER_TO_MOBILE");
+    const keyBase64 = native.hkdfSha256Base64(credential.secretBase64, keyInfo);
+    
+    const key = await Crypto.AESEncryptionKey.import(keyBase64, 'base64');
+    const sealed = Crypto.AESSealedData.fromParts(envelope.iv, envelope.ciphertext, envelope.tag);
+    const plaintextBytes = await Crypto.aesDecryptAsync(sealed, key, {
+      additionalData: new TextEncoder().encode(aad),
+      output: 'bytes',
+    });
+    const plaintext = new TextDecoder('utf-8', { fatal: true }).decode(plaintextBytes);
+    return this.parseJson(plaintext, status);
   }
 
   private parseJson(body: string, status: number): unknown {

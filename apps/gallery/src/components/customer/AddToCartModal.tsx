@@ -1,5 +1,6 @@
+import { Modal } from '@clickflash/ui';
 import React, { useState, useMemo } from 'react';
-import Modal from '../common/Modal.tsx';
+
 import { Photo, Product } from '../../types.ts';
 import { useCurrency } from '../CurrencyContext.tsx';
 

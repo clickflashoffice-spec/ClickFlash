@@ -40,11 +40,12 @@ export const pbManagement = {
   async testConnection(cloudUrl: string, apiKey: string): Promise<boolean> {
     try {
       // Test connection by attempting to authenticate via API
+      const adminEmail = import.meta.env.VITE_CLOUD_ADMIN_EMAIL || "admin@example.com";
       const response = await fetch(`${cloudUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: "admin@starmaster.cloud",
+          email: adminEmail,
           password: apiKey,
         }),
       });
@@ -348,11 +349,12 @@ export const pbManagement = {
     // 1. Authenticate
     let authToken: string;
     try {
+      const adminEmail = import.meta.env.VITE_CLOUD_ADMIN_EMAIL || "admin@example.com";
       const authResponse = await fetch(`${cloudUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: "admin@starmaster.cloud",
+          email: adminEmail,
           password: apiKey,
         }),
       });
@@ -410,8 +412,8 @@ export const pbManagement = {
                 email: user.email,
                 workingHours: user.workingHours,
                 destinationId: user.destinationId,
-                password: "DEFAULT_PASSWORD_PLACEHOLDER",
-                passwordConfirm: "DEFAULT_PASSWORD_PLACEHOLDER",
+                password: import.meta.env.VITE_DEFAULT_ADMIN_PASSWORD as string,
+                passwordConfirm: import.meta.env.VITE_DEFAULT_ADMIN_PASSWORD as string,
               },
             );
           }

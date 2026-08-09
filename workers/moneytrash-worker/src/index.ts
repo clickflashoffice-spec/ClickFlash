@@ -128,11 +128,17 @@ export default {
     try {
       const response = await router.handle(request, env, ctx);
 
-      // Add CORS headers to all responses
+      // Add CORS and Security headers to all responses
       const newHeaders = new Headers(response.headers);
       Object.entries(corsHeaders).forEach(([key, value]) => {
         newHeaders.set(key, value);
       });
+      newHeaders.set("X-Content-Type-Options", "nosniff");
+      newHeaders.set("X-Frame-Options", "DENY");
+      newHeaders.set("Referrer-Policy", "strict-origin-when-cross-origin");
+      newHeaders.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+      newHeaders.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+      newHeaders.set("Content-Security-Policy", "default-src 'none'; img-src * data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
 
       return new Response(response.body, {
         status: response.status,

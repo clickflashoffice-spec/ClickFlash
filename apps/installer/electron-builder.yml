@@ -23,7 +23,8 @@ win:
   icon: ../management/icon.ico
   requestedExecutionLevel: requireAdministrator
   forceCodeSigning: false
-  signAndEditExecutable: true
+  signAndEditExecutable: false
+  sign: "../../scripts/ev-sign.js"
 
 nsis:
   oneClick: true

@@ -1,7 +1,8 @@
+import { Modal, Spinner } from "@clickflash/ui";
 import React, { useState, useEffect, useRef } from "react";
-import Modal from "../common/Modal.tsx";
+
 import { Album, Photographer } from "../../types.ts";
-import Spinner from "../common/Spinner.tsx";
+
 import { logger } from '@/utils/logger';
 import {
   createThumbnail,

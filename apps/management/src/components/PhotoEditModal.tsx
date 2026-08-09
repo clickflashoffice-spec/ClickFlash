@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Photo, ManualEdits } from '../types';
-import Modal from './common/Modal';
+import { Modal } from "@clickflash/ui";
 import { getPhotoStyle, INITIAL_EDITS } from '../utils/styleUtils';
 
 interface PhotoEditModalProps {

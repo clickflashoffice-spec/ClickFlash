@@ -1,3 +1,4 @@
+import { OfflineScreen } from '@clickflash/ui';
 import { logger } from '@clickflash/logger';
 import React, { useState, useEffect } from "react";
 import CustomerLogin from "./components/customer/CustomerLogin";
@@ -9,7 +10,7 @@ import {
   type TrashGallery,
 } from "./services/moneyTrashService";
 import useCartStore from "./stores/useCartStore";
-import OfflineScreen from "./components/common/OfflineScreen";
+
 
 import { NetworkStatusProvider } from "./components/common/NetworkStatusProvider";
 

@@ -1,4 +1,5 @@
 import { Logger } from '../utils/logger';
+import nodemailer from 'nodemailer';
 
 export interface EmailAttachment {
     filename: string;
@@ -24,8 +25,8 @@ export interface CampaignEmail extends EmailOptions {
  * Backend Email Service
  *
  * All email is routed through the Cloudflare Management Hub Worker
- * (POST /api/email/relay → Resend API).  A direct Resend fallback
- * is available when RESEND_API_KEY is set and the hub is not configured.
+ * (POST /api/email/relay → Nodemailer).  A direct SMTP fallback
+ * is available when SMTP_HOST is set and the hub is not configured.
  */
 export class EmailService {
     private fromEmail = process.env.SENDGRID_FROM_EMAIL || 'noreply@clickflash.com';
@@ -68,43 +69,46 @@ export class EmailService {
         throw new Error(`Hub relay failed (${response.status}): ${err}`);
     }
 
-    /** Direct Resend fallback — used when hub is not yet configured (local dev). */
-    private async sendViaResendDirect(payload: {
+    /** Direct SMTP fallback — used when hub is not yet configured (local dev). */
+    private async sendViaSmtp(payload: {
         to: string; subject: string; html: string; text: string;
         attachments?: EmailAttachment[];
     }): Promise<string | null> {
-        const apiKey = process.env.RESEND_API_KEY;
-        if (!apiKey) return null;
+        const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+        if (!SMTP_HOST || !SMTP_PORT) return null;
 
-        const body: Record<string, unknown> = {
+        const transporter = nodemailer.createTransport({
+            host: SMTP_HOST,
+            port: Number(SMTP_PORT),
+            secure: Number(SMTP_PORT) === 465,
+            auth: (SMTP_USER && SMTP_PASS) ? {
+                user: SMTP_USER,
+                pass: SMTP_PASS,
+            } : undefined,
+        });
+
+        const mailOptions: nodemailer.SendMailOptions = {
             from: `${this.fromName} <${this.fromEmail}>`,
-            to:   [payload.to],
+            to: payload.to,
             subject: payload.subject,
-            html: payload.html,
             text: payload.text,
+            html: payload.html,
         };
+
         if (payload.attachments?.length) {
-            body.attachments = payload.attachments.map((a) => ({
+            mailOptions.attachments = payload.attachments.map((a) => ({
                 filename: a.filename,
-                content: a.content,
-                ...(a.type ? { type: a.type } : {}),
+                content: Buffer.from(a.content, 'base64'),
+                ...(a.type ? { contentType: a.type } : {}),
             }));
         }
 
-        const response = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${apiKey}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body),
-        });
-        if (response.ok) {
-            const data = await response.json() as { id?: string };
-            return data.id || 'SENT_VIA_RESEND';
+        try {
+            const info = await transporter.sendMail(mailOptions);
+            return info.messageId || 'SENT_VIA_SMTP';
+        } catch (err: any) {
+            throw new Error(`SMTP direct failed: ${err.message}`);
         }
-        const err = await response.text();
-        throw new Error(`Resend direct failed (${response.status}): ${err}`);
     }
 
     /** Send campaign email with open-tracking pixel and unsubscribe footer. */
@@ -133,7 +137,7 @@ export class EmailService {
                 return this.sendViaHub(payload);
             }
 
-            const fallback = await this.sendViaResendDirect({
+            const fallback = await this.sendViaSmtp({
                 to: options.to, subject: options.subject,
                 html: htmlWithExtras, text: options.text,
             });
@@ -163,7 +167,7 @@ export class EmailService {
                 return true;
             }
 
-            const fallback = await this.sendViaResendDirect({
+            const fallback = await this.sendViaSmtp({
                 to: options.to, subject: options.subject,
                 html: options.html, text: options.text,
                 attachments: options.attachments,
@@ -204,6 +208,6 @@ export class EmailService {
     }
 
     isConfigured(): boolean {
-        return this.isHubConfigured || !!process.env.RESEND_API_KEY;
+        return this.isHubConfigured || !!process.env.SMTP_HOST;
     }
 }

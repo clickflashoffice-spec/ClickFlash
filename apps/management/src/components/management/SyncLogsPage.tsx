@@ -15,7 +15,7 @@ import {RefreshCw,
     Activity,
     Search} from 'lucide-react';
 import { fleetService, SyncOperation } from '../../services/fleetService';
-import Spinner from '../common/Spinner.tsx';
+import { Spinner } from "@clickflash/ui";
 import { useManagement } from '../../context/ManagementContext';
 import { matchesHotelContext } from '../../utils/contextMatcher';
 import { logger } from '../../utils/logger';

@@ -1,6 +1,7 @@
+import { Modal } from '@clickflash/ui';
 import React, { useState } from 'react';
 import { Product, Photo } from '../../types';
-import Modal from '../common/Modal.tsx';
+
 import { useCurrency } from '../CurrencyContext.tsx';
 
 interface StorePageProps {

@@ -7,7 +7,7 @@ import {
   Destination,
 } from "../../types.ts";
 import { apiService } from "../../services/apiService.ts";
-import Spinner from "../common/Spinner.tsx";
+import { Spinner } from "@clickflash/ui";
 import StatCard from "../common/StatCard.tsx";
 import AddEquipmentModal from "./modals/AddEquipmentModal.tsx";
 import { useManagement } from "../../context/ManagementContext.tsx";

@@ -176,3 +176,39 @@ CREATE TABLE IF NOT EXISTS rosters (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS photographer_events_v1 (
+    id TEXT PRIMARY KEY,
+    aggregate_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    processed INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS order_state (
+    id TEXT PRIMARY KEY,
+    photographer_id TEXT,
+    session_id TEXT,
+    status TEXT,
+    total_amount REAL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS payment_state (
+    id TEXT PRIMARY KEY,
+    order_id TEXT,
+    amount REAL,
+    status TEXT,
+    processed_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS commission_state (
+    id TEXT PRIMARY KEY,
+    photographer_id TEXT,
+    total_commission REAL DEFAULT 0,
+    pending_commission REAL DEFAULT 0,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+

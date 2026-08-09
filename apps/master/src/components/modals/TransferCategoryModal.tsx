@@ -1,6 +1,7 @@
+import { Modal } from "@clickflash/ui";
 
 import React, { useState } from 'react';
-import Modal from '../common/Modal.tsx';
+
 import { PhotoCategory } from '../../constants/photoConstants';
 
 interface TransferCategoryModalProps {

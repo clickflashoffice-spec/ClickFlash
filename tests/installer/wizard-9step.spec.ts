@@ -1,6 +1,9 @@
 import { test, expect, _electron as electron, ElectronApplication, Page } from "@playwright/test";
 import * as http from "http";
 import * as path from "path";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
 
 /**
  * ClickFlash Installer — 9-step E2E smoke test
@@ -116,6 +119,7 @@ function startHubMock(): Promise<string> {
 test.beforeEach(async () => {
   hubBase = await startHubMock();
   app = await electron.launch({
+    executablePath: require("electron"),
     args: [path.join(INSTALLER_ROOT, "dist/electron/electron-main.js")],
     env: {
       ...process.env,

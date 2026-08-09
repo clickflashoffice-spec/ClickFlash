@@ -1,5 +1,6 @@
+import { Modal } from "@clickflash/ui";
 import React, { useState, useEffect } from 'react';
-import Modal from '../common/Modal.tsx';
+
 import { Photographer, WorkingHours, DayOfWeek, DayWorkingHours } from '../../types.ts';
 import { logger } from '@/utils/logger';
 
@@ -62,7 +63,6 @@ const DayRow: React.FC<{
         <ShiftControls shift="shift2" day={day as DayOfWeek} data={hours.shift2} onChange={onChange} />
     </div>
 );
-
 
 const WorkingTimeModal: React.FC<WorkingTimeModalProps> = ({ isOpen, onClose, photographer, onSave }) => {
     const [loading, setLoading] = useState(false);

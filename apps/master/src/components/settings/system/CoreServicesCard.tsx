@@ -1,5 +1,6 @@
+import { Card } from "@clickflash/ui";
 import React, { useState, useEffect, useRef } from 'react';
-import Card from '../../common/Card';
+
 import { StatusIndicator } from './StatusIndicator';
 import type { CloudLinkStatus } from '../../../services/api/diagnosticsService';
 

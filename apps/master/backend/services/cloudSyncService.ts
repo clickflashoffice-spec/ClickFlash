@@ -797,6 +797,7 @@ export class CloudSyncService {
 
       await Promise.allSettled([
         runPipeline('operation_logs', () => this.syncOperationLogs()),
+        runPipeline('photographer_events', () => this.syncPhotographerEvents()),
         runPipeline('ledger', () => this.syncLedgerEntries()),
         runPipeline('expenses', () => this.syncExpenses()),
         runPipeline('inventory', () => this.syncInventory()),
@@ -1005,6 +1006,85 @@ export class CloudSyncService {
         this.logger.warn(`[CloudSync] Logged failure for ${ids.length} operations.`, { error });
     } catch (e: any) {
         this.logger.error(`[CloudSync] Fatal error updating DLQ: ${getErrorMessage(e)}`);
+    }
+  }
+
+  /**
+   * Sync photographer events to Cloud Hub.
+   * Pushes newly appended events from photographer_events_v1.
+   */
+  public async syncPhotographerEvents() {
+    const events = this.dbManager.query(`
+      SELECT e.* FROM photographer_events_v1 e
+      LEFT JOIN sync_idempotency_keys s 
+        ON s.idempotency_key = 'evt_' || e.event_id AND s.pipeline_name = 'photographer_events'
+      WHERE s.idempotency_key IS NULL
+      ORDER BY e.recorded_at ASC
+      LIMIT 100
+    `);
+
+    if (events.length === 0) return;
+
+    this.logger.info(
+      `[CloudSync] Syncing ${events.length} photographer events to Cloud Hub (Desk: ${this.deskId})...`,
+    );
+
+    try {
+      const operations = events.map((entry) => ({
+        id: `evt_${entry.event_id}`,
+        type: "INSERT",
+        table: "photographer_events_v1",
+        record_id: entry.event_id,
+        payload: {
+          event_id: entry.event_id,
+          schema_version: entry.schema_version,
+          producer: entry.producer,
+          producer_event_id: entry.producer_event_id,
+          photographer_id: entry.photographer_id,
+          desk_id: entry.desk_id,
+          tenant_id: entry.tenant_id,
+          timezone: entry.timezone,
+          event_kind: entry.event_kind,
+          occurred_at: entry.occurred_at,
+          recorded_at: entry.recorded_at,
+          source_record_id: entry.source_record_id,
+          correlation_id: entry.correlation_id,
+          causation_event_id: entry.causation_event_id,
+          reversal_of_event_id: entry.reversal_of_event_id,
+          payload_json: entry.payload_json,
+          event_sha256: entry.event_sha256,
+          inserted_at: entry.inserted_at,
+        },
+        timestamp: Date.now(),
+        sequence_number: Date.now(),
+      }));
+
+      const res = await executeWithRetry(async () => {
+        const r = await this.fetchWithFailover(`${this.cloudApiUrl}/api/cloud/sync/operations`, {
+          method: "POST",
+          headers: await this.getHeaders(),
+          body: JSON.stringify({ desk_id: this.deskId, operations }),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r;
+      }, { maxRetries: 3 });
+
+      if (res.ok) {
+        this.dbManager.transaction(() => {
+          const stmt = this.dbManager.prepare(
+            `INSERT INTO sync_idempotency_keys (idempotency_key, desk_id, pipeline_name, created_at)
+             VALUES (?, ?, ?, datetime('now'))`
+          );
+          for (const entry of events) {
+            stmt.run(`evt_${entry.event_id}`, this.deskId, 'photographer_events');
+          }
+        });
+        this.logger.info(
+          `[CloudSync] Successfully synced ${events.length} photographer events to Hub.`,
+        );
+      }
+    } catch (e: any) {
+      this.logger.error(`[CloudSync] Photographer Events Sync Error: ${getErrorMessage(e)}`);
     }
   }
 

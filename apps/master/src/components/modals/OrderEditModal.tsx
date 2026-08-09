@@ -1,6 +1,7 @@
+import { Modal } from "@clickflash/ui";
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import Modal from '../common/Modal.tsx';
+
 import { MOCK_PRODUCTS } from '../../constants.ts';
 import { Order, OrderItem, Product, Photo } from '../../types.ts';
 import { useCurrency } from '../CurrencyContext.tsx';
@@ -96,7 +97,6 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({ isOpen, onClose, order,
       setEditedOrder(prev => ({ ...prev, total: newTotal }));
     }
   }, [subtotal, editedOrder.appliedDiscount, editedOrder.total]);
-
 
   const handleItemChange = (itemId: string, field: keyof OrderItem, value: any) => {
     const updatedItems = editedOrder.items.map(item => {

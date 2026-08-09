@@ -1,5 +1,5 @@
 import React from "react";
-import Card from "../../common/Card.tsx";
+import { Card } from "@clickflash/ui";
 import { Order, Photographer, Expense } from "../../../types.ts";
 import { useCurrency } from "../../CurrencyContext.tsx";
 import {User, Image as  ShoppingCart} from "lucide-react";

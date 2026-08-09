@@ -594,7 +594,10 @@ class TouchApp {
                     this.mainWindow.webContents.send("kiosk:show-unlock-dialog");
                 }
             });
-            for (const sc of ["Alt+Tab", "Super", "Super+D", "Super+Tab", "Super+L", "Super+E"]) {
+            for (const sc of [
+                "Alt+Tab", "Super", "Super+D", "Super+Tab", "Super+L", "Super+E",
+                "CommandOrControl+Alt+Tab", "Esc", "CommandOrControl+Shift+Esc", "Alt+F4"
+            ]) {
                 try {
                     globalShortcut.register(sc, () => false);
                 } catch { /* non-critical */ }

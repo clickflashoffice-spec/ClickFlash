@@ -1,3 +1,4 @@
+'use client';
 import React, { memo, useMemo, useCallback } from 'react';
 import type { Photo as PhotoType, ManualEdits } from '@clickflash/types';
 import { getPhotoStyle } from '../utils/styleUtils';
@@ -96,3 +97,4 @@ export const Photo = memo<PhotoProps>(({
 
 Photo.displayName = 'Photo';
 export default Photo;
+

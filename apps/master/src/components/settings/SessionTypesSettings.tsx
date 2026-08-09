@@ -1,10 +1,11 @@
+import { Spinner, Card } from "@clickflash/ui";
 import React, { useState, useEffect } from "react";
 import { SessionType } from "../../types.ts";
 import { apiService } from "../../services/apiService.ts";
-import Spinner from "../common/Spinner.tsx";
+
 import { useCurrency } from "../CurrencyContext.tsx";
 import SessionTypeEditModal from "../modals/SessionTypeEditModal.tsx";
-import Card from "../common/Card.tsx";
+
 import { logger } from '@/utils/logger';
 
 const SessionTypesSettings: React.FC = () => {

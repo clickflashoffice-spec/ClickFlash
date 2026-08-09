@@ -1,8 +1,8 @@
+import { Card, Spinner } from "@clickflash/ui";
 import React, { useState, useEffect, useMemo } from "react";
 import { Booking, Photographer, SessionType, BookingStatus } from "../../types";
 import { apiService } from "../../services/apiService.ts";
-import Card from "../common/Card.tsx";
-import Spinner from "../common/Spinner.tsx";
+
 import BookingEditModal from "./BookingEditModal";
 import BookingCalendar from "./BookingCalendar";
 import { useDebounce } from "../../hooks/useDebounce.ts";

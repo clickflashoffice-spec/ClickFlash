@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@clickflash/logger": "workspace:*",
+    "@clickflash/ui": "workspace:*",
     "@expo/vector-icons": "^15.1.1",
     "@stripe/stripe-terminal-react-native": "0.0.1-beta.31",
     "@tailwindcss/postcss": "*",

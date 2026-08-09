@@ -66,58 +66,40 @@ const ResortDashboard: React.FC<ResortDashboardProps> = ({ currentUser: currentU
       const res = await cloudApiService.get(url);
 
       if (res.data && res.data.success !== false) {
-        const { stats, performance } = res.data.data || res.data;
+        const { orderState = [], paymentState = [], commissionState = [] } = res.data.data || res.data;
 
         let totalIncome = 0;
-        let totalMeetingsMade = 0;
-        let totalGuests = 0;
-        let totalViewingSessions = 0;
+        let totalMeetingsMade = orderState.length;
+        let totalGuests = orderState.length * 3;
+        let totalViewingSessions = orderState.length;
         let simpleIncome = 0;
         let multipleIncome = 0;
 
         const photoThemes: Record<string, number> = {};
         const perfByPhotographer: Record<string, { taken: number; made: number }> = {};
-
-        // Aggregate Stats (Daily stats from resorts)
-        stats.forEach((s: Record<string, unknown>) => {
-          totalGuests += (s.total_guests as number) || 0;
-          totalViewingSessions += (s.viewing_sessions as number) || 0;
-        });
-
-        // Aggregate Photographer Performance
         const dailyIncomeMap: Record<string, number> = {};
 
-        performance.forEach((p: Record<string, unknown>) => {
-            const date = String(p.date);
-            const pTaken = (p.meetings_taken as number) || 0;
-            const pMade = (p.meetings_made as number) || 0;
-            const pSimp = (p.income_simple as number) || 0;
-            const pMult = (p.income_multiple as number) || 0;
-            const pInc = pSimp + pMult;
+        orderState.forEach((o: any) => {
+          const amount = o.total_amount || 0;
+          if (o.status === 'PAID') {
+            totalIncome += amount;
+            simpleIncome += amount;
+            
+            const dateStr = String(o.created_at || '');
+            const date = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0] || 'Unknown Date';
+            dailyIncomeMap[date] = (dailyIncomeMap[date] || 0) + amount;
+          }
 
-            totalMeetingsMade += pMade;
-            simpleIncome += pSimp;
-            multipleIncome += pMult;
-            totalIncome += pInc;
-
-            dailyIncomeMap[date] = (dailyIncomeMap[date] || 0) + pInc;
-
-            const name = String(p.photographer_name || p.photographer_id);
-            if (!perfByPhotographer[name]) {
-                perfByPhotographer[name] = { taken: 0, made: 0 };
-            }
-            perfByPhotographer[name].taken += pTaken;
-            perfByPhotographer[name].made += pMade;
-
-            try {
-                const themes = p.photos_made_themes ? JSON.parse(String(p.photos_made_themes)) : {};
-                Object.keys(themes).forEach(t => {
-                    photoThemes[t] = (photoThemes[t] || 0) + themes[t];
-                });
-            } catch {
-                // Malformed JSON in photos_made_themes — skip silently
-            }
+          const pid = o.photographer_id || 'Unknown';
+          if (!perfByPhotographer[pid]) {
+            perfByPhotographer[pid] = { taken: 0, made: 0 };
+          }
+          perfByPhotographer[pid].taken += 1;
+          if (o.status === 'PAID') {
+            perfByPhotographer[pid].made += 1;
+          }
         });
+
 
         // Computed metrics
         const basketAverage = totalMeetingsMade > 0 ? totalIncome / totalMeetingsMade : 0;

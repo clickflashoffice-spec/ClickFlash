@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { SessionType } from "../../../types";
 import { apiService } from "../../../services/apiService";
-import Spinner from "../../common/Spinner";
+import { Spinner } from "@clickflash/ui";
 import { useCurrency } from "../../CurrencyContext";
 import SessionTypeEditModal from "../modals/SessionTypeEditModal";
 import { logger } from "@/utils/logger";

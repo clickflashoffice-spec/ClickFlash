@@ -636,6 +636,625 @@ export interface SystemSetting extends BaseRecord {
   description?: string;
 }
 
+const IsoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}, 'Expected a valid ISO 8601 calendar date');
+
+const IsoDateTimeSchema = z.string().datetime({ offset: true });
+const SafeIntegerSchema = z.number().int().min(Number.MIN_SAFE_INTEGER).max(Number.MAX_SAFE_INTEGER);
+const NonNegativeSafeIntegerSchema = SafeIntegerSchema.nonnegative();
+const NullableSafeIntegerSchema = SafeIntegerSchema.nullable();
+const NullableNonNegativeSafeIntegerSchema = NonNegativeSafeIntegerSchema.nullable();
+const NullableBasisPointsSchema = NonNegativeSafeIntegerSchema.max(10_000).nullable();
+const IdentityIdSchema = z.string().trim().min(1).max(255);
+const CurrencyCodeSchema = z.string().regex(/^[A-Z]{3}$/, 'Expected an ISO 4217 currency code');
+const TimezoneSchema = z.string().trim().min(1).max(100).refine((value) => {
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: value }).format();
+    return true;
+  } catch {
+    return false;
+  }
+}, 'Expected a valid IANA timezone');
+
+/**
+ * Self-scoped photographer command-center snapshot.
+ *
+ * Producers must derive photographer, desk, and tenant identity from the
+ * authenticated principal. Callers must not be allowed to select these values.
+ * Money is represented exclusively as signed, safe integer minor units.
+ */
+export const PhotographerCommandCenterV1Schema = z.object({
+  schemaVersion: z.literal('1'),
+  generatedAt: IsoDateTimeSchema,
+  source: z.enum(['MASTER', 'MANAGEMENT_HUB']),
+  scope: z.object({
+    photographerId: IdentityIdSchema,
+    deskId: IdentityIdSchema,
+    tenantId: IdentityIdSchema.optional(),
+    timezone: TimezoneSchema,
+    currency: CurrencyCodeSchema,
+    currencyExponent: NonNegativeSafeIntegerSchema.max(6),
+    from: IsoDateSchema,
+    toExclusive: IsoDateSchema,
+  }).strict(),
+  sync: z.object({
+    sourceWatermark: z.string().trim().min(1).max(255),
+    lastHubSyncAt: IsoDateTimeSchema.nullable(),
+    stale: z.boolean(),
+    pendingEventCount: NonNegativeSafeIntegerSchema,
+  }).strict(),
+  shift: z.object({
+    state: z.enum(['OFF_SHIFT', 'ON_SHIFT', 'UNKNOWN']),
+    clockedInAt: IsoDateTimeSchema.nullable(),
+    workedSecondsToday: NullableNonNegativeSafeIntegerSchema,
+    verification: z.enum(['VERIFIED', 'UNVERIFIED', 'UNAVAILABLE']),
+  }).strict(),
+  activity: z.object({
+    capturesReceived: NullableNonNegativeSafeIntegerSchema,
+    photosCatalogued: NonNegativeSafeIntegerSchema,
+    photosEdited: NullableNonNegativeSafeIntegerSchema,
+    photosDelivered: NullableNonNegativeSafeIntegerSchema,
+    distinctPhotosSold: NonNegativeSafeIntegerSchema,
+    qualityFlagged: NonNegativeSafeIntegerSchema,
+  }).strict(),
+  sales: z.object({
+    completedOrders: NonNegativeSafeIntegerSchema,
+    grossMinor: SafeIntegerSchema,
+    tipsMinor: SafeIntegerSchema,
+    averageOrderMinor: SafeIntegerSchema,
+    settledMinor: NullableSafeIntegerSchema,
+    refundMinor: NullableSafeIntegerSchema,
+    netMinor: NullableSafeIntegerSchema,
+  }).strict(),
+  earnings: z.object({
+    commissionMinor: NullableSafeIntegerSchema,
+    salaryMinor: NullableSafeIntegerSchema,
+    bonusMinor: NullableSafeIntegerSchema,
+    deductionMinor: NullableSafeIntegerSchema,
+    paidOutMinor: NullableSafeIntegerSchema,
+    payableMinor: NullableSafeIntegerSchema,
+  }).strict(),
+  performance: z.object({
+    revenueTargetMinor: NullableSafeIntegerSchema,
+    photoTarget: NullableNonNegativeSafeIntegerSchema,
+    meetingsTaken: NullableNonNegativeSafeIntegerSchema,
+    meetingsMade: NullableNonNegativeSafeIntegerSchema,
+    meetingConversionBps: NullableBasisPointsSchema,
+    photoSellThroughBps: NullableBasisPointsSchema,
+    averageSessionSeconds: NullableNonNegativeSafeIntegerSchema,
+  }).strict(),
+  daily: z.array(z.object({
+    date: IsoDateSchema,
+    grossMinor: SafeIntegerSchema,
+    orders: NonNegativeSafeIntegerSchema,
+    photosCatalogued: NonNegativeSafeIntegerSchema,
+    distinctPhotosSold: NonNegativeSafeIntegerSchema,
+    workedSeconds: NullableNonNegativeSafeIntegerSchema,
+  }).strict()).max(93),
+  completeness: z.object({
+    sales: z.enum(['FINAL', 'PROVISIONAL']),
+    settlement: z.enum(['FINAL', 'UNAVAILABLE']),
+    earnings: z.enum(['FINAL', 'PROVISIONAL', 'UNAVAILABLE']),
+    shifts: z.enum(['FINAL', 'PROVISIONAL', 'UNAVAILABLE']),
+    issues: z.array(z.string().trim().min(1).max(500)).max(100),
+  }).strict(),
+}).strict().superRefine((snapshot, context) => {
+  const fromTimestamp = Date.parse(`${snapshot.scope.from}T00:00:00.000Z`);
+  const toTimestamp = Date.parse(`${snapshot.scope.toExclusive}T00:00:00.000Z`);
+
+  try {
+    const currencyOptions = new Intl.NumberFormat('en', {
+      style: 'currency',
+      currency: snapshot.scope.currency,
+    }).resolvedOptions();
+    if (
+      currencyOptions.minimumFractionDigits !== snapshot.scope.currencyExponent ||
+      currencyOptions.maximumFractionDigits !== snapshot.scope.currencyExponent
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'currencyExponent must match the configured currency minor-unit scale',
+        path: ['scope', 'currencyExponent'],
+      });
+    }
+  } catch {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'currency must have supported minor-unit metadata',
+      path: ['scope', 'currency'],
+    });
+  }
+
+  if (snapshot.scope.from >= snapshot.scope.toExclusive) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'toExclusive must be after from',
+      path: ['scope', 'toExclusive'],
+    });
+  }
+
+  const scopedDays = (toTimestamp - fromTimestamp) / 86_400_000;
+  if (Number.isFinite(scopedDays) && scopedDays > 93) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Scope period must not exceed 93 calendar days',
+      path: ['scope', 'toExclusive'],
+    });
+  }
+
+  const seenDates = new Set<string>();
+  let previousDate: string | undefined;
+  snapshot.daily.forEach((entry, index) => {
+    if (entry.date < snapshot.scope.from || entry.date >= snapshot.scope.toExclusive) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Daily date must be inside the half-open scope period',
+        path: ['daily', index, 'date'],
+      });
+    }
+
+    if (seenDates.has(entry.date)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Daily dates must be unique',
+        path: ['daily', index, 'date'],
+      });
+    }
+
+    if (previousDate !== undefined && entry.date <= previousDate) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Daily dates must be strictly ascending',
+        path: ['daily', index, 'date'],
+      });
+    }
+
+    seenDates.add(entry.date);
+    previousDate = entry.date;
+  });
+});
+
+export type PhotographerCommandCenterV1 = z.infer<typeof PhotographerCommandCenterV1Schema>;
+
+/**
+ * Deterministic Image Edit Recipe Contract
+ * Guarantees immutable provenance, deterministic colors, and exact re-renders.
+ */
+export const ImageEditRecipeV1Schema = z.object({
+  schemaVersion: z.literal('1'),
+  provenance: z.object({
+    authorId: IdentityIdSchema,
+    engineVersion: z.string().trim().min(1),
+    modelVersions: z.record(z.string()).optional(),
+    profileVersions: z.record(z.string()).optional(),
+    confidence: z.number().min(0).max(1).optional(),
+    timestamp: IsoDateTimeSchema,
+    generator: z.enum(['MANUAL', 'AI', 'SYSTEM']),
+  }).strict(),
+  source: z.object({
+    fileHash: z.string().trim().min(1),
+    derivativeHashes: z.record(z.string()).optional(),
+    width: NonNegativeSafeIntegerSchema,
+    height: NonNegativeSafeIntegerSchema,
+  }).strict(),
+  color: z.object({
+    exposure: z.number().min(-100).max(100).default(0),
+    contrast: z.number().min(-100).max(100).default(0),
+    highlights: z.number().min(-100).max(100).default(0),
+    shadows: z.number().min(-100).max(100).default(0),
+    whites: z.number().min(-100).max(100).default(0),
+    blacks: z.number().min(-100).max(100).default(0),
+    temperature: z.number().min(-100).max(100).default(0),
+    tint: z.number().min(-100).max(100).default(0),
+    saturate: z.number().min(-100).max(100).default(0),
+    vibrance: z.number().min(-100).max(100).default(0),
+    clarity: z.number().min(-100).max(100).default(0),
+    soften: z.number().min(0).max(100).default(0),
+    sharpen: z.number().min(0).max(100).default(0),
+    hueRotate: z.number().min(-180).max(180).default(0),
+    grayscale: z.number().min(0).max(100).default(0),
+    sepia: z.number().min(0).max(100).default(0),
+    invert: z.number().min(0).max(1).default(0),
+    brightness: z.number().min(-100).max(100).default(0),
+  }).strict(),
+  geometry: z.object({
+    rotate: z.number().min(-360).max(360).default(0),
+    straighten: z.number().min(-45).max(45).default(0),
+    perspectiveX: z.number().min(-50).max(50).default(0),
+    perspectiveY: z.number().min(-50).max(50).default(0),
+    crop: z.object({
+      x: z.number().min(0).max(100),
+      y: z.number().min(0).max(100),
+      width: z.number().min(0).max(100),
+      height: z.number().min(0).max(100),
+    }).nullable().default(null),
+  }).strict(),
+  retouchActions: z.array(z.object({
+    x: z.number(),
+    y: z.number(),
+    radius: z.number(),
+    sourceX: z.number(),
+    sourceY: z.number(),
+  })).default([]),
+  guard: z.object({
+    safe: z.boolean().default(true),
+    flags: z.array(z.string()).default([]),
+  }).strict().optional(),
+  approvals: z.array(z.object({
+    approverId: IdentityIdSchema,
+    timestamp: IsoDateTimeSchema,
+    decision: z.enum(['APPROVED', 'REJECTED', 'PENDING'])
+  })).default([]),
+  colorProfile: z.object({
+    workingSpace: z.string(),
+    outputSpace: z.string(),
+    depth: z.number()
+  }).strict().optional(),
+}).strict();
+
+export type ImageEditRecipeV1 = z.infer<typeof ImageEditRecipeV1Schema>;
+
+/**
+ * Integer-only money used by immutable photographer events. The currency
+ * exponent is carried with every monetary fact so consumers never guess the
+ * scale (for example TND uses 3 decimal places and JPY uses 0).
+ */
+export const MoneyMinorV1Schema = z.object({
+  amountMinor: SafeIntegerSchema,
+  currency: CurrencyCodeSchema,
+  currencyExponent: NonNegativeSafeIntegerSchema.max(6),
+}).strict().superRefine((money, context) => {
+  try {
+    const options = new Intl.NumberFormat('en', {
+      style: 'currency',
+      currency: money.currency,
+    }).resolvedOptions();
+    if (
+      options.minimumFractionDigits !== money.currencyExponent ||
+      options.maximumFractionDigits !== money.currencyExponent
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'currencyExponent must match the currency minor-unit scale',
+        path: ['currencyExponent'],
+      });
+    }
+  } catch {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'currency must have supported minor-unit metadata',
+      path: ['currency'],
+    });
+  }
+});
+
+const PositiveMoneyMinorV1Schema = MoneyMinorV1Schema.refine(
+  (money) => money.amountMinor > 0,
+  { message: 'amountMinor must be greater than zero', path: ['amountMinor'] },
+);
+
+const NonNegativeMoneyMinorV1Schema = MoneyMinorV1Schema.refine(
+  (money) => money.amountMinor >= 0,
+  { message: 'amountMinor must not be negative', path: ['amountMinor'] },
+);
+
+export const PhotographerEventKindV1Schema = z.enum([
+  'ORDER_COMPLETED',
+  'PAYMENT_CAPTURED',
+  'SETTLEMENT_POSTED',
+  'REFUND_POSTED',
+  'ATTRIBUTION_ASSIGNED',
+  'COMMISSION_ACCRUED',
+  'ADJUSTMENT_POSTED',
+  'PAYOUT_POSTED',
+  'SHIFT_STARTED',
+  'SHIFT_ENDED',
+  'BREAK_STARTED',
+  'BREAK_ENDED',
+  'REVERSAL_POSTED',
+  'RECONCILIATION_APPROVED',
+]);
+
+export type PhotographerEventKindV1 = z.infer<typeof PhotographerEventKindV1Schema>;
+
+const PhotographerEventPayloadV1Schema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('ORDER_COMPLETED'),
+    orderId: IdentityIdSchema,
+    gross: NonNegativeMoneyMinorV1Schema,
+    tips: NonNegativeMoneyMinorV1Schema,
+    photoCount: NonNegativeSafeIntegerSchema,
+  }).strict(),
+  z.object({
+    kind: z.literal('PAYMENT_CAPTURED'),
+    orderId: IdentityIdSchema,
+    paymentId: IdentityIdSchema,
+    amount: PositiveMoneyMinorV1Schema,
+    method: z.enum(['CASH', 'CARD', 'STRIPE', 'OTHER']),
+  }).strict(),
+  z.object({
+    kind: z.literal('SETTLEMENT_POSTED'),
+    orderId: IdentityIdSchema,
+    paymentId: IdentityIdSchema,
+    settlementId: IdentityIdSchema,
+    grossAmount: PositiveMoneyMinorV1Schema,
+    feeAmount: NonNegativeMoneyMinorV1Schema,
+    netAmount: NonNegativeMoneyMinorV1Schema,
+  }).strict(),
+  z.object({
+    kind: z.literal('REFUND_POSTED'),
+    orderId: IdentityIdSchema,
+    paymentId: IdentityIdSchema,
+    refundId: IdentityIdSchema,
+    amount: PositiveMoneyMinorV1Schema,
+    reasonCode: z.string().trim().min(1).max(100),
+  }).strict(),
+  z.object({
+    kind: z.literal('ATTRIBUTION_ASSIGNED'),
+    orderId: IdentityIdSchema,
+    method: z.enum([
+      'DIRECT_CAPTURE',
+      'ALBUM_OWNER',
+      'KIOSK_SESSION',
+      'MANUAL_REVIEW',
+      'SYSTEM_RULE',
+    ]),
+    confidenceBps: NonNegativeSafeIntegerSchema.max(10_000).nullable(),
+    assignedById: IdentityIdSchema.optional(),
+  }).strict(),
+  z.object({
+    kind: z.literal('COMMISSION_ACCRUED'),
+    commissionId: IdentityIdSchema,
+    orderId: IdentityIdSchema,
+    policyId: IdentityIdSchema,
+    policyVersion: z.string().trim().min(1).max(100),
+    basis: NonNegativeMoneyMinorV1Schema,
+    rateBps: NonNegativeSafeIntegerSchema.max(10_000),
+    amount: NonNegativeMoneyMinorV1Schema,
+  }).strict(),
+  z.object({
+    kind: z.literal('ADJUSTMENT_POSTED'),
+    adjustmentId: IdentityIdSchema,
+    direction: z.enum(['CREDIT', 'DEBIT']),
+    amount: PositiveMoneyMinorV1Schema,
+    reasonCode: z.string().trim().min(1).max(100),
+    approvedById: IdentityIdSchema,
+  }).strict(),
+  z.object({
+    kind: z.literal('PAYOUT_POSTED'),
+    payoutId: IdentityIdSchema,
+    reconciliationId: IdentityIdSchema,
+    amount: PositiveMoneyMinorV1Schema,
+    periodFrom: IsoDateSchema,
+    periodToExclusive: IsoDateSchema,
+  }).strict(),
+  z.object({
+    kind: z.literal('SHIFT_STARTED'),
+    shiftId: IdentityIdSchema,
+    stationId: IdentityIdSchema.optional(),
+    verification: z.enum(['BIOMETRIC', 'PIN', 'ADMIN', 'UNVERIFIED']),
+  }).strict(),
+  z.object({
+    kind: z.literal('SHIFT_ENDED'),
+    shiftId: IdentityIdSchema,
+    stationId: IdentityIdSchema.optional(),
+    verification: z.enum(['BIOMETRIC', 'PIN', 'ADMIN', 'UNVERIFIED']),
+  }).strict(),
+  z.object({
+    kind: z.literal('BREAK_STARTED'),
+    shiftId: IdentityIdSchema,
+    breakId: IdentityIdSchema,
+  }).strict(),
+  z.object({
+    kind: z.literal('BREAK_ENDED'),
+    shiftId: IdentityIdSchema,
+    breakId: IdentityIdSchema,
+  }).strict(),
+  z.object({
+    kind: z.literal('REVERSAL_POSTED'),
+    reversesEventId: z.string().uuid(),
+    reasonCode: z.string().trim().min(1).max(100),
+    approvedById: IdentityIdSchema,
+  }).strict(),
+  z.object({
+    kind: z.literal('RECONCILIATION_APPROVED'),
+    reconciliationId: IdentityIdSchema,
+    periodFrom: IsoDateSchema,
+    periodToExclusive: IsoDateSchema,
+    currency: CurrencyCodeSchema,
+    currencyExponent: NonNegativeSafeIntegerSchema.max(6),
+    eventSetHash: z.string().regex(/^[a-f0-9]{64}$/),
+    approvedById: IdentityIdSchema,
+    approvedAt: IsoDateTimeSchema,
+  }).strict(),
+]);
+
+/**
+ * Append-only, source-identifiable photographer fact. This contract contains
+ * no customer PII and does not by itself declare earnings payable.
+ */
+export const PhotographerEventV1Schema = z.object({
+  schemaVersion: z.literal('1'),
+  eventId: z.string().uuid(),
+  producer: z.enum([
+    'MASTER',
+    'GALLERY',
+    'MANAGEMENT_HUB',
+    'CLOUD_BACKEND',
+    'MOBILE_PHOTOGRAPHER',
+    'SYSTEM_IMPORT',
+  ]),
+  producerEventId: IdentityIdSchema,
+  photographerId: IdentityIdSchema,
+  occurredAt: IsoDateTimeSchema,
+  recordedAt: IsoDateTimeSchema,
+  scope: z.object({
+    deskId: IdentityIdSchema,
+    tenantId: IdentityIdSchema.optional(),
+    timezone: TimezoneSchema,
+  }).strict(),
+  sourceRecordId: IdentityIdSchema,
+  correlationId: IdentityIdSchema.optional(),
+  causationEventId: z.string().uuid().optional(),
+  payload: PhotographerEventPayloadV1Schema,
+}).strict().superRefine((event, context) => {
+  const occurredAt = Date.parse(event.occurredAt);
+  const recordedAt = Date.parse(event.recordedAt);
+  if (recordedAt < occurredAt) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'recordedAt must not precede occurredAt',
+      path: ['recordedAt'],
+    });
+  }
+
+  if (event.causationEventId === event.eventId) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'An event cannot cause itself',
+      path: ['causationEventId'],
+    });
+  }
+
+  if (event.payload.kind === 'ORDER_COMPLETED') {
+    const { gross, tips } = event.payload;
+    if (
+      gross.currency !== tips.currency ||
+      gross.currencyExponent !== tips.currencyExponent
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Order gross and tips must use the same currency and exponent',
+        path: ['payload', 'tips'],
+      });
+    }
+  }
+
+  if (event.payload.kind === 'COMMISSION_ACCRUED') {
+    const { basis, amount } = event.payload;
+    if (
+      basis.currency !== amount.currency ||
+      basis.currencyExponent !== amount.currencyExponent
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Commission basis and amount must use the same currency and exponent',
+        path: ['payload', 'amount'],
+      });
+    }
+  }
+
+  if (event.payload.kind === 'SETTLEMENT_POSTED') {
+    const { grossAmount, feeAmount, netAmount } = event.payload;
+    const sameCurrency = [feeAmount, netAmount].every(
+      (money) =>
+        money.currency === grossAmount.currency &&
+        money.currencyExponent === grossAmount.currencyExponent,
+    );
+    if (!sameCurrency) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Settlement gross, fee, and net must use the same currency and exponent',
+        path: ['payload'],
+      });
+    }
+    if (grossAmount.amountMinor - feeAmount.amountMinor !== netAmount.amountMinor) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Settlement net must equal gross minus fee',
+        path: ['payload', 'netAmount', 'amountMinor'],
+      });
+    }
+  }
+
+  if (
+    (event.payload.kind === 'PAYOUT_POSTED' ||
+      event.payload.kind === 'RECONCILIATION_APPROVED') &&
+    event.payload.periodFrom >= event.payload.periodToExclusive
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'periodToExclusive must be after periodFrom',
+      path: ['payload', 'periodToExclusive'],
+    });
+  }
+
+  if (event.payload.kind === 'RECONCILIATION_APPROVED') {
+    try {
+      const options = new Intl.NumberFormat('en', {
+        style: 'currency',
+        currency: event.payload.currency,
+      }).resolvedOptions();
+      if (
+        options.minimumFractionDigits !== event.payload.currencyExponent ||
+        options.maximumFractionDigits !== event.payload.currencyExponent
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'currencyExponent must match the reconciliation currency scale',
+          path: ['payload', 'currencyExponent'],
+        });
+      }
+    } catch {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'currency must have supported minor-unit metadata',
+        path: ['payload', 'currency'],
+      });
+    }
+  }
+});
+
+export type PhotographerEventV1 = z.infer<typeof PhotographerEventV1Schema>;
+
+export const PhotographerReconciliationIssueCodeV1Schema = z.enum([
+  'MISSING_ORDER',
+  'DUPLICATE_ORDER_COMPLETION',
+  'MISSING_PAYMENT_CAPTURE',
+  'MISSING_SETTLEMENT',
+  'MISSING_ATTRIBUTION',
+  'AMBIGUOUS_ATTRIBUTION',
+  'PAYMENT_TOTAL_MISMATCH',
+  'SETTLEMENT_TOTAL_MISMATCH',
+  'REFUND_EXCEEDS_CAPTURE',
+  'REFUND_WITHOUT_PAYMENT',
+  'COMMISSION_WITHOUT_ORDER',
+  'COMMISSION_WITHOUT_ATTRIBUTION',
+  'CURRENCY_MISMATCH',
+  'PAYOUT_WITHOUT_APPROVAL',
+  'STALE_APPROVAL',
+]);
+
+export const PhotographerReconciliationReadinessV1Schema = z.object({
+  schemaVersion: z.literal('1'),
+  status: z.enum(['UNAVAILABLE', 'BLOCKED', 'READY_FOR_REVIEW', 'APPROVED']),
+  scope: z.object({
+    photographerId: IdentityIdSchema,
+    deskId: IdentityIdSchema,
+    tenantId: IdentityIdSchema.optional(),
+    timezone: TimezoneSchema,
+    periodFrom: IsoDateSchema,
+    periodToExclusive: IsoDateSchema,
+    currency: CurrencyCodeSchema,
+    currencyExponent: NonNegativeSafeIntegerSchema.max(6),
+  }).strict(),
+  assessedAt: IsoDateTimeSchema,
+  coveredEventCount: NonNegativeSafeIntegerSchema,
+  eventSetHash: z.string().regex(/^[a-f0-9]{64}$/).nullable(),
+  approvalEventId: z.string().uuid().nullable(),
+  issues: z.array(z.object({
+    code: PhotographerReconciliationIssueCodeV1Schema,
+    eventId: z.string().uuid().optional(),
+    orderId: IdentityIdSchema.optional(),
+  }).strict()).max(1_000),
+}).strict();
+
+export type PhotographerReconciliationReadinessV1 = z.infer<
+  typeof PhotographerReconciliationReadinessV1Schema
+>;
+
 export interface RevenueSnapshot {
   date: string;
   hourlyRevenue: Record<string, number>; // "09:00": 150.00

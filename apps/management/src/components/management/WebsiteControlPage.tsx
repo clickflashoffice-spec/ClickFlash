@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Spinner from "../common/Spinner.tsx";
+import { Spinner } from "@clickflash/ui";
 import {Save,
   Globe,
   LayoutTemplate,
@@ -158,7 +158,7 @@ const WebsiteControlPage: React.FC = () => {
           className="flex items-center gap-2 bg-cyan-500 text-white px-8 py-3 rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-cyan-400 transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50"
         >
           {saving ? (
-            <Spinner size="sm" color="white" />
+            <Spinner size="small" color="white" />
           ) : (
             <Save className="w-4 h-4" />
           )}

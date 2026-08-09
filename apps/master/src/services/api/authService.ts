@@ -96,7 +96,7 @@ export const authService = {
 
       // Perform login with timeout
       const loginController = new AbortController();
-      const loginTimeoutId = setTimeout(() => loginController.abort(), 10000); // 10 second timeout for login
+      const loginTimeoutId = setTimeout(() => loginController.abort(), 30000); // 30 second timeout for login
 
       const loginUrl = `${baseUrl}/api/auth/login`;
       logger.info("[Auth] Attempting login", { url: loginUrl, email });

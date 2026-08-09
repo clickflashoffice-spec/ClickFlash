@@ -28,24 +28,40 @@ export class DatabaseManager {
 
       // Track whether the DB file pre-existed so we know if encryption is safe to apply.
       const dbAlreadyExists = fs.existsSync(this.dbPath);
+      let isPlaintext = false;
+      
+      if (dbAlreadyExists) {
+        try {
+          const fd = fs.openSync(this.dbPath, 'r');
+          const buffer = Buffer.alloc(16);
+          const bytesRead = fs.readSync(fd, buffer, 0, 16, 0);
+          fs.closeSync(fd);
+          if (bytesRead === 16 && buffer.toString('utf8', 0, 16) === 'SQLite format 3\0') {
+            isPlaintext = true;
+          }
+        } catch (e) {
+          // Ignore read errors, assume it might not be plaintext
+        }
+      }
 
       this.db = new Database(this.dbPath);
 
-      // Encryption — enabled when DB_ENCRYPTION_KEY env var is present AND the
-      // database is newly created.  Applying a key to an existing plaintext
-      // SQLite file causes SQLCipher to mis-interpret the data on every read,
-      // which crashes the backend.  Existing databases must be migrated manually
-      // (export → delete → reimport with encryption) to gain at-rest encryption.
+      // Encryption — enabled when DB_ENCRYPTION_KEY env var is present.
+      // If the database already exists and has the plaintext SQLite header,
+      // we skip applying the key to preserve compatibility (it crashes otherwise).
       const encKey = process.env.DB_ENCRYPTION_KEY;
       if (encKey) {
         if (!/^[0-9a-fA-F]{64}$/.test(encKey)) {
           throw new Error('[Database] FATAL: DB_ENCRYPTION_KEY must be 64 hex characters (256-bit).');
         }
-        if (!dbAlreadyExists) {
+        if (!dbAlreadyExists || !isPlaintext) {
           this.db.pragma(`key = "x'${encKey}'"`);
-          logger.info('[Database] Encryption enabled (SQLCipher) — new database.');
+          logger.info(dbAlreadyExists 
+            ? '[Database] Encryption enabled (SQLCipher) — opened existing encrypted database.'
+            : '[Database] Encryption enabled (SQLCipher) — new database.'
+          );
         } else {
-          logger.warn('[Database] DB_ENCRYPTION_KEY set but existing database detected — skipping encryption pragma to preserve compatibility. Delete the database file and restart to enable at-rest encryption.');
+          logger.warn('[Database] DB_ENCRYPTION_KEY set but existing plaintext database detected — skipping encryption pragma to preserve compatibility. Export and re-import to enable at-rest encryption.');
         }
       } else {
         logger.warn('[Database] DB_ENCRYPTION_KEY not set — database is stored unencrypted at rest. Set this in .env for production.');

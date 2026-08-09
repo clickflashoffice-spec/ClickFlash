@@ -18,6 +18,10 @@ The mobile phone is the field capture hub. Master is the local authority and hig
 processing coordinator. Cloud is the durable remote delivery and cross-site synchronization
 layer. Kiosk is a constrained display/cache destination, not the owner of originals.
 
+The larger product portfolio, including the single-app camera remote, professional automatic
+editor, guest delivery, and photographer revenue/payroll/performance command center, is defined
+in [Android Photographer — Competitive Product Roadmap](./android-mobile-photographer-competitive-roadmap.md).
+
 ## Repository reality
 
 | Current component | Current behavior | Required change |
@@ -29,7 +33,7 @@ layer. Kiosk is a constrained display/cache destination, not the owner of origin
 | `NetworkRoutingService.ts` | Legacy generic traffic still chooses one Master or placeholder Cloud URL; camera captures no longer enter its unverified photo-upload path | Replace it for captures with authenticated per-destination workers driven by the new outbox |
 | Capture persistence | SQLite now separates capture objects, RAW+JPEG pairing, immutable original/quick-edit assets, destination intents, attempt state, and authenticated receipt proofs; each verified original creates one required pending Master intent | Add authenticated Master transfer/receipt, then policy-authorized Kiosk and Cloud intents/workers, plus physical recovery proof |
 | `schedule.tsx` | Uses a mock venue and bookings | Real shift/assignment/spot context with consent-aware location handling |
-| `scout.tsx` | Placeholder “AI Heatmaps” screen | Spot intelligence, quality history, recommended positions/settings, and confidence |
+| `scout.tsx` | Privacy-safe local Scout V1: coarse derived spot identity, explicit confirmation, cold-start threshold, explainable quality recommendation, and operator feedback | Add signed assignment/spot catalog context, deterministic light planning, governed profile evaluation, and physical field evidence |
 | `kiosks.tsx` | Placeholder “Fleet Health” screen | Authorized Kiosk routing, reachability, queue depth, and delivery receipts |
 | Master bridge | Multipart upload with a fallback bridge token and whole-file hashing | Device-bound pairing, streamed hashing, idempotency, chunking, and scoped receipts |
 | Touch Kiosk | Receives album updates from Master and caches albums | Add a small authenticated preview lane and explicit displayable receipt |
@@ -82,7 +86,19 @@ rejected, and `android:aab` is prepared for approved secret injection. No releas
 was signed or distributed. Upload-key approval, signed AAB inspection/distribution, physical
 D7000 screen-off/battery/thermal, physical RAW+JPEG and low-storage recovery evidence,
 authenticated Master discovery/transfer/receipt, Kiosk/Cloud workers, and every Spot AI
-phase remain open.
+phase beyond the local Scout V1 foundation remain open.
+
+### Scout V1 checkpoint — 2026-07-31
+
+Mobile now persists a single confirmed derived spot and privacy-filtered observations in local
+SQLite. Coarse location is rounded before a device-salted identifier is derived; raw precise
+coordinates, customer identity, room number, and face embeddings are not stored by this
+feature. GPS-only candidates are confidence-capped and require explicit photographer
+confirmation. Recommendations remain in cold start until the minimum sample threshold, expose
+reason/confidence/sample count, and prioritize deterministic blur/blink/pose guardrails. The
+verified quick-edit path records one idempotent observation per capture. TypeScript, 21 focused
+mobile tests, and lint with zero errors pass; physical venue validation, signed spot catalogs,
+profile promotion, and production learning remain open.
 
 ## End-to-end operating model
 

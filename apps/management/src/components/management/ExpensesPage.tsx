@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import Card from "../common/Card.tsx";
+import { Card } from "@clickflash/ui";
 import {
   Expense,
   Destination,
@@ -9,7 +9,7 @@ import {
 import AddExpenseModal from "./modals/AddExpenseModal.tsx";
 import { useCurrency } from "../CurrencyContext.tsx";
 import { apiService } from "../../services/apiService.ts";
-import Spinner from "../common/Spinner.tsx";
+import { Spinner } from "@clickflash/ui";
 import ExpensePieChart from "./reports/ExpensePieChart.tsx";
 
 import StatCard from "../common/StatCard.tsx";

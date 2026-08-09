@@ -1,11 +1,12 @@
+import { Spinner, Card } from "@clickflash/ui";
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useDebounce } from '../hooks/useDebounce.ts';
 import { Order, Photographer } from '../types';
 import { apiService } from '../services/apiService';
-import Spinner from './common/Spinner';
-import { TableRowSkeleton, StatCardSkeleton } from './common/Skeleton';
-import Card from './common/Card';
+
+import { TableRowSkeleton, StatCardSkeleton } from './common/AppSkeletons';
+
 import { useCurrency } from './CurrencyContext';
 import ClientDetailsModal from './modals/ClientDetailsModal';
 import { usePermissions } from '../hooks/usePermissions';

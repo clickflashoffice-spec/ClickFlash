@@ -1,6 +1,7 @@
+import { Photo } from '@clickflash/ui';
 import React from 'react';
 import { Photo as PhotoType } from '../../types.ts';
-import { Photo } from '@clickflash/ui';
+
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface PhotoCardProps {

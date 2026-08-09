@@ -1,17 +1,16 @@
+import { Card, Button, Input } from "@clickflash/ui";
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useInfinitePhotos } from '../hooks/usePhotos';
-import Card from './common/Card';
-import Button from './common/Button';
 
 import LazyImage from './common/LazyImage';
-import Input from './common/Input';
+
 import { FixedSizeGrid } from 'react-window';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import { Sparkles, CheckSquare, Square } from 'lucide-react';
 import AIBatchActions from './common/AIBatchActions';
 import PageHeader from './common/PageHeader';
-import { PhotoGridSkeleton } from './common/Skeleton';
+import { PhotoGridSkeleton } from './common/AppSkeletons';
 
 const SentinelCell = React.memo(({ style, gutter, hasNextPage, isFetchingNextPage, fetchNextPage }: {
   style: React.CSSProperties;

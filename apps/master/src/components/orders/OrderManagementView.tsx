@@ -1,3 +1,4 @@
+import { Toast } from "@clickflash/ui";
 import React, { useState, useMemo, useCallback } from 'react';
 import { Order, OrderItem } from '../../types.ts';
 import { apiService } from '../../services/apiService.ts';
@@ -6,7 +7,7 @@ import OrderPrintCard from './OrderPrintCard';
 import FilterPanel, { FilterOptions } from './FilterPanel';
 import { useDebounce } from '../../hooks/useDebounce';
 import ReprocessModal from './ReprocessModal';
-import Toast from '../common/Toast';
+
 import { logger } from '@/utils/logger';
 
 interface OrderManagementViewProps {

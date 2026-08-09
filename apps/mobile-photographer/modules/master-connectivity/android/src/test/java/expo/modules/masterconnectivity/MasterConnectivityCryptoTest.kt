@@ -19,8 +19,35 @@ class MasterConnectivityCryptoTest {
     )
   }
 
+  @Test
+  fun hkdfMatchesCommandCenterNodeVectorWithEmptySalt() {
+    val input = ByteArray(32) { it.toByte() }
+    val info = (
+      "CF-AEAD-HKDF-SHA256-V1\n" +
+        "COMMAND_CENTER_RESPONSE\n" +
+        "MASTER_TO_MOBILE\n" +
+        "master-test\n" +
+        "android-test\n" +
+        "1770000000000\n" +
+        "1770000000001\n" +
+        "abcdefghijklmnop"
+      ).toByteArray(Charsets.UTF_8)
+
+    val output = MasterConnectivityCrypto.hkdfSha256(
+      input,
+      ByteArray(0),
+      info,
+      32
+    )
+
+    assertEquals(
+      "4fff33790f5f458c8593f3b05244b25c" +
+        "4fe2ad50e812315e09bcd32a68c901c2",
+      output.joinToString("") { "%02x".format(it) }
+    )
+  }
+
   private fun hex(value: String): ByteArray {
     return value.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
   }
 }
-

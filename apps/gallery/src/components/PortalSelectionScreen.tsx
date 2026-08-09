@@ -1,5 +1,6 @@
+import { Modal } from '@clickflash/ui';
 import React, { useState, useEffect } from "react";
-import Modal from "./common/Modal";
+
 import { logger } from "../utils/logger.ts";
 
 interface PortalSelectionScreenProps {

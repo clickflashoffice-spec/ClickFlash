@@ -9,12 +9,14 @@ import { ReceiptPDFService } from "../services/ReceiptPDFService";
 import { DATA_DIR } from "../config/constants";
 import { strictRateLimiter } from '../middleware/rateLimiter';
 import { customRoutesSchemas } from '../utils/validation';
+import { PhotographerEventLedgerService } from "../services/PhotographerEventLedgerService";
 interface GalleryCheckoutContext {
   dbManager: DatabaseManager;
   logger: Logger;
   JWT_SECRET: string;
   syncManager: any;
   emailService?: EmailService;
+  photographerEventLedgerService: PhotographerEventLedgerService;
 }
 
 const FRONTEND_URL = process.env.GALLERY_URL || "http://localhost:5177";
@@ -22,7 +24,7 @@ const FRONTEND_URL = process.env.GALLERY_URL || "http://localhost:5177";
 export default function galleryCheckoutRoutes(
   context: GalleryCheckoutContext,
 ): Router {
-  const { dbManager, logger, JWT_SECRET, syncManager, emailService } = context;
+  const { dbManager, logger, JWT_SECRET, syncManager, emailService, photographerEventLedgerService } = context;
   const receiptPDFService = new ReceiptPDFService(DATA_DIR, logger);
   const router = express.Router();
 
@@ -85,7 +87,7 @@ export default function galleryCheckoutRoutes(
         orderId: galleryOrderId,
         items: items.map((i: any) => ({ photoId: i.id, product: i.title, quantity: i.quantity, price: i.price })),
         customerEmail: payload.customerEmail,
-        successUrl: `${FRONTEND_URL}/gallery/${token}/success?session_id={CHECKOUT_SESSION_ID}`,
+        successUrl: `${FRONTEND_URL}/gallery/${token}/success`,
         cancelUrl: `${FRONTEND_URL}/gallery/${token}`,
         tipAmount: payload.tipAmount || 0,
       });
@@ -306,24 +308,69 @@ export default function galleryCheckoutRoutes(
               ],
             );
 
-            // Add Gratuity to Ledger if applicable
-            if (tipAmount > 0 && tokenRecord.photographerId) {
-              const ledgerId = `LDG_${randomUUID().replace(/-/g, "").substring(0, 12)}`;
-              dbManager.run(
-                `INSERT INTO photographer_ledger (
-                   id, photographer_id, order_id, type, amount, description, date
-                 ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                [
-                  ledgerId,
-                  tokenRecord.photographerId,
-                  mainOrderId,
-                  'Bonus',
-                  tipAmount,
-                  'Gratuity from Gallery Order',
-                  today
-                ]
-              );
-              logger.info(`[GalleryCheckout] Gratuity of ${tipAmount} added to photographer ${tokenRecord.photographerId}`);
+            // Emit Immutable Events (Phase 4)
+            const nowIso = new Date().toISOString();
+            const grossMinor = Math.round(galleryOrder.total * 100);
+            const tipMinor = Math.round(tipAmount * 100);
+            const paymentId = randomUUID();
+
+            if (tokenRecord.photographerId) {
+              photographerEventLedgerService.append({
+                schemaVersion: '1',
+                eventId: randomUUID(),
+                producer: 'GALLERY',
+                producerEventId: mainOrderId,
+                photographerId: tokenRecord.photographerId,
+                occurredAt: nowIso,
+                recordedAt: nowIso,
+                scope: { deskId: 'GALLERY_WEB', timezone: 'UTC' },
+                sourceRecordId: mainOrderId,
+                payload: {
+                  kind: 'ORDER_COMPLETED',
+                  orderId: mainOrderId,
+                  gross: { currency: 'USD', currencyExponent: 2, amountMinor: grossMinor },
+                  tips: { currency: 'USD', currencyExponent: 2, amountMinor: tipMinor },
+                  photoCount: 1, 
+                }
+              });
+
+              photographerEventLedgerService.append({
+                schemaVersion: '1',
+                eventId: randomUUID(),
+                producer: 'GALLERY',
+                producerEventId: mainOrderId,
+                photographerId: tokenRecord.photographerId,
+                occurredAt: nowIso,
+                recordedAt: nowIso,
+                scope: { deskId: 'GALLERY_WEB', timezone: 'UTC' },
+                sourceRecordId: mainOrderId,
+                payload: {
+                  kind: 'ATTRIBUTION_ASSIGNED',
+                  orderId: mainOrderId,
+                  method: 'ALBUM_OWNER',
+                  confidenceBps: 10000,
+                }
+              });
+
+              photographerEventLedgerService.append({
+                schemaVersion: '1',
+                eventId: randomUUID(),
+                producer: 'GALLERY',
+                producerEventId: paymentIntentId,
+                photographerId: tokenRecord.photographerId,
+                occurredAt: nowIso,
+                recordedAt: nowIso,
+                scope: { deskId: 'GALLERY_WEB', timezone: 'UTC' },
+                sourceRecordId: mainOrderId,
+                payload: {
+                  kind: 'PAYMENT_CAPTURED',
+                  orderId: mainOrderId,
+                  paymentId: paymentId,
+                  amount: { currency: 'USD', currencyExponent: 2, amountMinor: grossMinor + tipMinor },
+                  method: 'STRIPE',
+                }
+              });
+              logger.info(`[GalleryCheckout] Appended ORDER, ATTRIBUTION, PAYMENT events for ${mainOrderId}`);
             }
 
             logger.info(
@@ -416,6 +463,91 @@ export default function galleryCheckoutRoutes(
               })();
             }
           });
+        } else if (event.type === "charge.refunded") {
+          const stripeEventId = event.id;
+          
+          const isProcessed = dbManager.get(
+            "SELECT id FROM processed_stripe_events WHERE id = ?",
+            [stripeEventId]
+          );
+
+          if (isProcessed) {
+            return res.json({ received: true, status: "already_processed" });
+          }
+
+          const charge = event.data.object as any;
+          const paymentIntentId = charge.payment_intent;
+          const amountRefundedMinor = charge.amount_refunded; // Stripe amounts are in minor units (cents)
+
+          // Find the corresponding order
+          const mainOrder = dbManager.get(
+            "SELECT id, albumId FROM orders WHERE paymentIntentId = ?",
+            [paymentIntentId]
+          );
+
+          if (mainOrder) {
+            dbManager.transaction(() => {
+              dbManager.run(
+                `INSERT INTO processed_stripe_events (id, type) VALUES (?, ?)`,
+                [stripeEventId, event.type]
+              );
+
+              // Find photographerId via albumId
+              const tokenRecord = dbManager.get(
+                "SELECT photographerId FROM albums WHERE id = ?",
+                [mainOrder.albumId]
+              );
+
+              if (tokenRecord && tokenRecord.photographerId) {
+                const nowIso = new Date().toISOString();
+                photographerEventLedgerService.append({
+                  schemaVersion: '1',
+                  eventId: randomUUID(),
+                  producer: 'GALLERY',
+                  producerEventId: stripeEventId,
+                  photographerId: tokenRecord.photographerId,
+                  occurredAt: nowIso,
+                  recordedAt: nowIso,
+                  scope: { deskId: 'GALLERY_WEB', timezone: 'UTC' },
+                  sourceRecordId: mainOrder.id,
+                  payload: {
+                    kind: 'REFUND_POSTED',
+                    orderId: mainOrder.id,
+                    paymentId: paymentIntentId,
+                    refundId: charge.id,
+                    amount: { currency: 'USD', currencyExponent: 2, amountMinor: amountRefundedMinor },
+                    reasonCode: charge.refunds?.data?.[0]?.reason || 'requested_by_customer',
+                  }
+                });
+                logger.info(`[GalleryCheckout] Appended REFUND_POSTED for ${mainOrder.id}`);
+              }
+            });
+          }
+          return res.json({ received: true });
+        } else if (event.type === "payout.paid") {
+          const stripeEventId = event.id;
+          
+          const isProcessed = dbManager.get(
+            "SELECT id FROM processed_stripe_events WHERE id = ?",
+            [stripeEventId]
+          );
+
+          if (isProcessed) {
+            return res.json({ received: true, status: "already_processed" });
+          }
+
+          dbManager.transaction(() => {
+            dbManager.run(
+              `INSERT INTO processed_stripe_events (id, type) VALUES (?, ?)`,
+              [stripeEventId, event.type]
+            );
+          });
+          // Note: Payout reconciliation requires iterating through payout balance transactions
+          // to emit SETTLEMENT_POSTED for individual orders, which requires calling Stripe API.
+          // For now, we just mark it received. A worker should do the reconciliation.
+          logger.info(`[GalleryCheckout] Payout paid: ${event.data.object.id}`);
+
+          return res.json({ received: true });
         }
 
         res.json({ received: true });

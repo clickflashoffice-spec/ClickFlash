@@ -31,6 +31,10 @@ exports.default = async function(configuration) {
       process.exit(1);
     }
   } else {
-    console.warn(`[EV-SIGN] Skipping signing: No EV signing credentials provided (AZURE_KEY_VAULT_URI or EV_SIGNING_CERT_PATH).`);
+    if (process.env.NODE_ENV === 'production' || process.env.CI) {
+      console.error(`[EV-SIGN] FATAL: Skipping signing: No EV signing credentials provided, but required for production builds.`);
+      process.exit(1);
+    } else {
+      console.warn(`[EV-SIGN] Skipping signing: No EV signing credentials provided (AZURE_KEY_VAULT_URI or EV_SIGNING_CERT_PATH).`);
+    }
   }
-};

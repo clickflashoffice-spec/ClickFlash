@@ -1,11 +1,12 @@
+import { Toast } from "@clickflash/ui";
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
-import Toast from '../components/common/Toast';
 
 interface ToastContextType {
     showToast: (message: string) => void;
 }
 
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
+const globalAny = globalThis as any;
+const ToastContext: React.Context<ToastContextType | undefined> = globalAny.__ToastContext || (globalAny.__ToastContext = createContext<ToastContextType | undefined>(undefined));
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [toastMessage, setToastMessage] = useState<string | null>(null);

@@ -1,3 +1,4 @@
+import { ErrorBoundary } from "@clickflash/ui";
 import React, {
   useState,
   useMemo,
@@ -21,7 +22,7 @@ import { dashboardService } from "../services/api/dashboardService";
 import { useQueryClient, QueryErrorResetBoundary } from "@tanstack/react-query";
 import { orderKeys } from "../hooks/useOrders";
 import AnalyticsView from "./AnalyticsView";
-import { ErrorBoundary } from "./common/ErrorBoundary";
+
 import { DashboardViewportSkeleton } from "./dashboard/StatCard";
 
 // Lazy load widgets for better performance

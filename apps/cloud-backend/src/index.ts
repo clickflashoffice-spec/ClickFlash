@@ -14,6 +14,8 @@ import settingsRoutes from './routes/settings';
 import intelligenceRoutes from './routes/intelligence';
 import emailRoutes from './routes/email';
 import healthRoutes from './routes/health';
+import stripeWebhooksRoutes from './routes/stripeWebhooks';
+import paymentsRoutes from './routes/payments';
 
 const app = new Hono<AppEnv>();
 
@@ -22,6 +24,7 @@ app.use('*', regionRoutingMiddleware);
 
 app.get('/', (c) => c.text('ClickFlash Cloud Backend API is running!'));
 
+app.route('/api/payments', paymentsRoutes);
 app.route('/api/gallery-auth', galleryRoutes);
 app.route('/api', galleryRoutes); // qr, photos
 app.route('/api/ingest', ingestRoutes);
@@ -33,6 +36,7 @@ app.route('/api', settingsRoutes); // settings, cloud/sync, cloud/config, franch
 app.route('/api/ai', intelligenceRoutes);
 app.route('/api', emailRoutes); // notifications, push-token
 app.route('/api/health', healthRoutes);
+app.route('/api/stripe-webhooks', stripeWebhooksRoutes);
 
 export default {
   fetch: app.fetch,

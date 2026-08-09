@@ -1,9 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AlbumHelper } from './helpers/album';
-import { PhotoHelper } from './helpers/photo';
-import { OrderHelper } from './helpers/order';
-import { CloudHelper } from './helpers/cloud';
-import { TouchHelper } from './helpers/touch';
+import { AlbumHelper, PhotoHelper, OrderHelper, CloudHelper, TouchHelper } from './helpers';
 
 const TEST_ALBUM_PATH = 'C:/Users/alamo/Desktop/album';
 const TEST_ALBUM_NAME = 'Production Test Album - June 2026';

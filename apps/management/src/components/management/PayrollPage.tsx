@@ -3,7 +3,7 @@ import { Photographer, Order, Adjustment } from "../../types.ts";
 import { useCurrency } from "../CurrencyContext.tsx";
 import { useManagement } from "../../context/ManagementContext.tsx";
 import { apiService } from "../../services/apiService.ts";
-import Spinner from "../common/Spinner.tsx";
+import { Spinner } from "@clickflash/ui";
 import StatCard from "../common/StatCard.tsx";
 import PayrollDetailsModal from "./modals/PayrollDetailsModal.tsx";
 import { usePermissions } from "../../hooks/usePermissions.ts";

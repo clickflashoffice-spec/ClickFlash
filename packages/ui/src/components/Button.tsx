@@ -102,9 +102,14 @@ export const Button = memo(
       },
       ref
     ) => {
+      // Enforce mandatory aria-label for icon-only buttons
+      if (size === 'icon' && !props['aria-label'] && !props['aria-labelledby']) {
+        console.warn('Accessibility Error: Icon-only buttons must provide an `aria-label` for screen readers.');
+      }
+
       const baseStyles = `
         inline-flex items-center justify-center gap-2.5
-        rounded-xl
+        rounded-xl min-h-[44px]
         transition-all duration-300 ease-out
         focus:outline-none focus:ring-4 focus:ring-primary/30
         disabled:cursor-not-allowed disabled:opacity-50

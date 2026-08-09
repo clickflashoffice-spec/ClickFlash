@@ -1,5 +1,6 @@
+import { Modal } from '@clickflash/ui';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import Modal from './common/Modal';
+
 import { Photo, ManualEdits } from '../types';
 
 const initialEdits: ManualEdits = {

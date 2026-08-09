@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { apiService } from "../../../services/apiService";
 import { Destination } from "../../../types";
-import Spinner from "../../common/Spinner";
+import { Spinner } from "@clickflash/ui";
 import { logger } from "@/utils/logger";
 
 const GlobalFeatureSettings: React.FC = () => {

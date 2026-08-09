@@ -1,3 +1,4 @@
+import { Card } from "@clickflash/ui";
 /**
  * ChartPlaceholder — a lightweight SVG sparkline showing order volume trend.
  * Uses local order data — no additional API call required.
@@ -5,7 +6,7 @@
  * inline sparkline suitable for tight dashboard grids.
  */
 import React, { memo, useMemo } from 'react';
-import Card from '../common/Card';
+
 import { Order } from '../../types';
 
 interface ChartPlaceholderProps {

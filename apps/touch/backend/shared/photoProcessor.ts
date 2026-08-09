@@ -3,6 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseManager } from './db';
 import { Worker } from 'node:worker_threads';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 interface PhotoMetadata {
     url: string;

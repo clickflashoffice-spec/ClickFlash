@@ -1,3 +1,4 @@
+import { Spinner } from "@clickflash/ui";
 import React, { useState, useEffect } from "react";
 import Chart from "react-apexcharts";
 import { analyticsService } from "../../../services/api/analyticsService";
@@ -10,7 +11,6 @@ import {
   Percent,
   Award,
 } from "lucide-react";
-import Spinner from "../../common/Spinner";
 
 interface AlbumAnalyticsProps {
   albumId: string;

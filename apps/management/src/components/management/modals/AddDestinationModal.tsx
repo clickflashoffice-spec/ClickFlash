@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Modal from '../../common/Modal.tsx';
+import { Modal } from "@clickflash/ui";
 import { Destination } from '../../../types.ts';
 
 interface AddDestinationModalProps {

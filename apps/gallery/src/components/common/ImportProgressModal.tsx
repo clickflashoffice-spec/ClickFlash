@@ -1,5 +1,6 @@
+import { Modal } from '@clickflash/ui';
 import React from 'react';
-import Modal from './Modal.tsx';
+
 
 interface ImportProgressModalProps {
   isOpen: boolean;

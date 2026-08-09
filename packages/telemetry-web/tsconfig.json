@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": [],
     "target": "ES2020",
     "module": "ESNext",
     "moduleResolution": "Node",
@@ -17,3 +18,4 @@
   "include": ["src"],
   "exclude": ["src/**/*.test.ts", "src/**/__tests__"]
 }
+

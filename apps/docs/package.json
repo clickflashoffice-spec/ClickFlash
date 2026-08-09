@@ -17,6 +17,7 @@
     "lint": "echo \"No linting required for docs\" && exit 0"
   },
   "dependencies": {
+    "@clickflash/logger": "workspace:*",
     "@docusaurus/core": "3.10.1",
     "@docusaurus/faster": "3.10.1",
     "@docusaurus/preset-classic": "3.10.1",
@@ -24,8 +25,7 @@
     "clsx": "^2.0.0",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "@clickflash/logger": "workspace:*"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.10.1",

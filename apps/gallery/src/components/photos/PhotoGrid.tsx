@@ -1,8 +1,9 @@
+import { PhotoCard } from '@clickflash/ui';
 'use client';
 
 import React, { memo, useCallback, useMemo, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { PhotoCard } from '@clickflash/ui';
+
 import type { Photo } from '@clickflash/types';
 
 interface PhotoGridProps {

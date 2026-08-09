@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Booking, Photographer, SessionType, BookingStatus } from "../../types";
-import Card from "../common/Card";
+import { Card } from "@clickflash/ui";
 
 interface BookingCalendarProps {
   bookings: Booking[];

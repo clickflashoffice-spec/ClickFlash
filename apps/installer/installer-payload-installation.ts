@@ -20,7 +20,7 @@ const COMPONENT_CONFIGURATION_EXTRAS = {
 } as const;
 const MAX_ENVELOPE_BYTES = 6 * 1024 * 1024;
 
-export type PayloadInstallationMode = "install" | "repair";
+export type PayloadInstallationMode = "install" | "repair" | "upgrade";
 
 export interface PayloadInstallationHooks {
   expectedManifestSha256?: string;
@@ -208,7 +208,8 @@ async function inspectRepairCandidate(
   trustRoots: PayloadTrustRoots,
   installerVersion: string,
   requiredComponents: PayloadComponentId[],
-): Promise<void> {
+  allowUpgrade: boolean = true,
+): Promise<PayloadInstallationMode> {
   const rootEntries = await fs.promises.readdir(targetDirectory, { withFileTypes: true });
   const allowedRootEntries = new Set([
     "Master",
@@ -234,10 +235,13 @@ async function inspectRepairCandidate(
     throw new Error("Installed payload manifest is invalid");
   }
   const installed = verifyPayloadEnvelope(envelope, trustRoots, installerVersion);
-  if (installed.summary.manifestSha256 !== sourceManifestSha256) {
+  const isUpgrade = installed.summary.manifestSha256 !== sourceManifestSha256;
+  if (isUpgrade && !allowUpgrade) {
     throw new Error("Version-changing upgrades are not enabled; select the installed release for repair");
   }
-  assertSelectedComponentsMatch(requiredComponents, installed.summary.components);
+  if (!isUpgrade) {
+    assertSelectedComponentsMatch(requiredComponents, installed.summary.components);
+  }
 
   for (const component of installed.manifest.components) {
     const componentDirectory = path.join(targetDirectory, component.source_directory);
@@ -257,6 +261,8 @@ async function inspectRepairCandidate(
       }
     }
   }
+
+  return isUpgrade ? "upgrade" : "repair";
 }
 
 async function getInstallationMode(
@@ -270,12 +276,13 @@ async function getInstallationMode(
   if (entries.length === 0) return "install";
 
   try {
-    await inspectRepairCandidate(
+    return await inspectRepairCandidate(
       targetDirectory,
       sourceManifestSha256,
       trustRoots,
       installerVersion,
       requiredComponents,
+      true, // allowUpgrade
     );
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("Version-changing upgrades")) {
@@ -283,7 +290,6 @@ async function getInstallationMode(
     }
     throw new Error("Installation destination is not empty or a verified ClickFlash installation");
   }
-  return "repair";
 }
 
 export async function installOrRepairPayloadBundle(
@@ -337,7 +343,7 @@ export async function installOrRepairPayloadBundle(
   let replacementMoved = false;
   try {
     copyVerifiedPayloadToStage(source.directory, stageDirectory, source.manifest);
-    if (mode === "repair") {
+    if (mode === "repair" || mode === "upgrade") {
       copyPreservedConfiguration(targetDirectory, stageDirectory, selectedComponents);
     }
     const staged = await verifyInstalledPayload(
@@ -405,5 +411,117 @@ export async function installOrRepairPayloadBundle(
       removeTransactionDirectory(stageDirectory, targetDirectory);
     }
     throw error;
+  }
+}
+
+export async function uninstallPayloadBundle(
+  targetDirectoryInput: string,
+  sourceManifestSha256: string,
+  trustRoots: PayloadTrustRoots,
+  installerVersion: string,
+  selectedComponents: PayloadComponentId[],
+): Promise<{ directory: string; recoveryBackup?: string }> {
+  const targetInputStats = await fs.promises.lstat(targetDirectoryInput);
+  if (!targetInputStats.isDirectory() || targetInputStats.isSymbolicLink()) {
+    throw new Error("Installation destination must be a regular directory");
+  }
+  const targetDirectory = await fs.promises.realpath(targetDirectoryInput);
+  const targetStats = await fs.promises.lstat(targetDirectory);
+  if (!targetStats.isDirectory() || targetStats.isSymbolicLink()) {
+    throw new Error("Installation destination must be a regular directory");
+  }
+
+  // Verify the directory is actually a valid ClickFlash installation
+  try {
+    await inspectRepairCandidate(
+      targetDirectory,
+      sourceManifestSha256,
+      trustRoots,
+      installerVersion,
+      selectedComponents,
+      true, // allowUpgrade during uninstall to uninstall any version safely
+    );
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("Version-changing upgrades")) {
+      throw error;
+    }
+    throw new Error("Refused to uninstall an unverified directory");
+  }
+
+  const transactionId = crypto.randomBytes(8).toString("hex");
+  const backupDirectory = getTransactionDirectory(targetDirectory, "backup", transactionId);
+  
+  if (fs.existsSync(backupDirectory)) {
+    throw new Error("Payload transaction path already exists");
+  }
+
+  // Move the installation out of the way transactionally
+  fs.renameSync(targetDirectory, backupDirectory);
+
+  let recoveryBackup: string | undefined;
+  try {
+    removeTransactionDirectory(backupDirectory, targetDirectory);
+  } catch {
+    // If we fail to remove it, leave it as a backup
+    recoveryBackup = backupDirectory;
+  }
+
+  return {
+    directory: targetDirectory,
+    ...(recoveryBackup ? { recoveryBackup } : {}),
+  };
+}
+
+export async function recoverInterruptedTransaction(
+  targetDirectoryInput: string,
+): Promise<void> {
+  const targetDirectory = path.resolve(targetDirectoryInput);
+  const parent = path.dirname(targetDirectory);
+  const targetName = path.basename(targetDirectory);
+
+  if (fs.existsSync(targetDirectory)) {
+    const stats = await fs.promises.lstat(targetDirectory);
+    if (stats.isDirectory() && (await fs.promises.readdir(targetDirectory)).length > 0) {
+      // It's a non-empty directory, nothing to recover here.
+      return;
+    }
+  }
+
+  const entries = await fs.promises.readdir(parent, { withFileTypes: true });
+  const backups = entries
+    .filter((e) => e.isDirectory() && e.name.startsWith(`.${targetName}.clickflash-backup-`))
+    .map((e) => e.name);
+
+  if (backups.length === 0) return;
+
+  // Find the most recent backup
+  let latestBackup = "";
+  let latestMtime = -1;
+  for (const backup of backups) {
+    const backupPath = path.join(parent, backup);
+    const mtime = (await fs.promises.lstat(backupPath)).mtimeMs;
+    if (mtime > latestMtime) {
+      latestMtime = mtime;
+      latestBackup = backup;
+    }
+  }
+
+  // Restore it
+  const backupToRestore = path.join(parent, latestBackup);
+  if (fs.existsSync(targetDirectory)) {
+    fs.rmSync(targetDirectory, { recursive: true, force: true });
+  }
+  fs.renameSync(backupToRestore, targetDirectory);
+
+  // Clean up any other stages or backups
+  for (const entry of entries) {
+    if (entry.isDirectory() && entry.name !== latestBackup) {
+      if (
+        entry.name.startsWith(`.${targetName}.clickflash-backup-`) ||
+        entry.name.startsWith(`.${targetName}.clickflash-stage-`)
+      ) {
+        fs.rmSync(path.join(parent, entry.name), { recursive: true, force: true });
+      }
+    }
   }
 }

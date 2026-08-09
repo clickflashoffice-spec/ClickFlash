@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import Card from '../../common/Card.tsx';
-import Spinner from '../../common/Spinner.tsx';
+import { Card } from "@clickflash/ui";
+import { Spinner } from "@clickflash/ui";
 import { Plus, Trash2, Edit2, Image as ImageIcon, X, Check } from 'lucide-react';
 import { apiService } from '../../../services/apiService';
 import { logger } from '../../../utils/logger';
@@ -276,7 +276,7 @@ const PortfolioManager: React.FC = () => {
                                     disabled={saving}
                                     className="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-cyan-500 transition-colors flex items-center gap-2 disabled:opacity-50"
                                 >
-                                    {saving ? <Spinner size="sm" color="white" /> : <Check className="w-4 h-4" />}
+                                    {saving ? <Spinner size="small" color="white" /> : <Check className="w-4 h-4" />}
                                     {saving ? 'Saving...' : 'Save Item'}
                                 </button>
                             </div>

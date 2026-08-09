@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, memo } from 'react';
-import { StyleSheet, View, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, FlatList, TouchableOpacity, Alert, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -8,8 +8,7 @@ import { ShiftService } from '@/services/ShiftService';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Colors, Spacing, MaxContentWidth, BottomTabInset, Typography } from '@/constants/theme';
-import { useColorScheme } from 'react-native';
+
 import { logger } from "@/utils/logger";
 
 // Haversine formula to calculate distance between two coordinates in meters
@@ -44,36 +43,28 @@ const MOCK_BOOKINGS = [
 // React.memo for high performance FlatList rendering
 const BookingRow = memo(({ 
   item, 
-  canCheckIn, 
-  colors 
+  canCheckIn
 }: { 
   item: typeof MOCK_BOOKINGS[0], 
-  canCheckIn: boolean,
-  colors: typeof Colors.dark 
+  canCheckIn: boolean
 }) => {
   return (
-    <View style={[styles.bookingCard, { backgroundColor: colors.surface, borderColor: colors.elevated }]}>
-      <View style={styles.bookingHeader}>
-        <ThemedText style={[styles.bookingTime, { color: colors.tint }]}>{item.time}</ThemedText>
-        <ThemedText style={styles.bookingPackage}>{item.package}</ThemedText>
+    <View className="p-4 rounded-xl border gap-3 bg-surface border-elevated">
+      <View className="flex-row justify-between items-center">
+        <ThemedText className="font-mono text-base font-black text-tint">{item.time}</ThemedText>
+        <ThemedText className="font-mono text-xs font-bold text-slate-400 tracking-widest uppercase">{item.package}</ThemedText>
       </View>
-      <View style={styles.bookingBody}>
-        <ThemedText style={styles.bookingGuest}>{item.guest}</ThemedText>
-        <ThemedText style={styles.bookingRoom}>RM: {item.room}</ThemedText>
+      <View className="flex-row justify-between items-end">
+        <ThemedText className="text-xl font-bold text-slate-50">{item.guest}</ThemedText>
+        <ThemedText className="font-mono text-sm font-bold text-slate-400">RM: {item.room}</ThemedText>
       </View>
       
       <TouchableOpacity 
-        style={[
-          styles.checkInButton, 
-          { backgroundColor: canCheckIn ? colors.success : colors.elevated }
-        ]}
+        className={`h-14 rounded-lg items-center justify-center mt-2 ${canCheckIn ? 'bg-success' : 'bg-elevated'}`}
         disabled={!canCheckIn}
         activeOpacity={0.8}
       >
-        <ThemedText style={[
-          styles.checkInButtonText, 
-          { color: canCheckIn ? '#070a12' : colors.textSecondary }
-        ]}>
+        <ThemedText className={`font-mono text-base font-black tracking-widest ${canCheckIn ? 'text-[#070a12]' : 'text-slate-400'}`}>
           {canCheckIn ? 'CHECK IN NOW' : 'OUT OF RANGE / OFF SHIFT'}
         </ThemedText>
       </TouchableOpacity>
@@ -83,9 +74,6 @@ const BookingRow = memo(({
 BookingRow.displayName = 'BookingRow';
 
 export default function ScheduleScreen() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'light' ? 'light' : 'dark'];
-  
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
@@ -94,34 +82,55 @@ export default function ScheduleScreen() {
   const [isShiftActive, setIsShiftActive] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('GPS Permission Denied');
-        return;
-      }
+    let active = true;
+    let subscription: Location.LocationSubscription | null = null;
 
-      // Initial fetch
-      let loc = await Location.getCurrentPositionAsync({});
-      setLocation(loc);
-
-      // Subscribe to location updates
-      const subscription = await Location.watchPositionAsync(
-        { accuracy: Location.Accuracy.Balanced, timeInterval: 5000, distanceInterval: 10 },
-        (newLoc) => {
-          setLocation(newLoc);
-          const d = getDistance(
-            newLoc.coords.latitude, 
-            newLoc.coords.longitude, 
-            TARGET_LOCATION.latitude, 
-            TARGET_LOCATION.longitude
-          );
-          setDistance(d);
+    const initializeLocation = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (!active) return;
+        if (status !== 'granted') {
+          setErrorMsg('GPS permission is off. Schedule remains available.');
+          return;
         }
-      );
 
-      return () => subscription.remove();
-    })();
+        const servicesEnabled = await Location.hasServicesEnabledAsync();
+        if (!active) return;
+        if (!servicesEnabled) {
+          setErrorMsg('Android location services are off. Schedule remains available.');
+          return;
+        }
+
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        if (!active) return;
+        setLocation(loc);
+
+        subscription = await Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.Balanced, timeInterval: 5000, distanceInterval: 10 },
+          (newLoc) => {
+            if (!active) return;
+            setLocation(newLoc);
+            setDistance(getDistance(
+              newLoc.coords.latitude,
+              newLoc.coords.longitude,
+              TARGET_LOCATION.latitude,
+              TARGET_LOCATION.longitude
+            ));
+          }
+        );
+        if (!active) subscription.remove();
+      } catch {
+        if (active) setErrorMsg('A location fix is unavailable. Schedule remains available.');
+      }
+    };
+
+    void initializeLocation();
+    return () => {
+      active = false;
+      subscription?.remove();
+    };
   }, []);
 
   const handleClockIn = async () => {
@@ -185,67 +194,60 @@ export default function ScheduleScreen() {
   const canPerformCheckIn = isWithinRange && isShiftActive;
 
   const renderItem = useCallback(({ item }: { item: typeof MOCK_BOOKINGS[0] }) => (
-    <BookingRow item={item} canCheckIn={canPerformCheckIn} colors={colors} />
-  ), [canPerformCheckIn, colors]);
+    <BookingRow item={item} canCheckIn={canPerformCheckIn} />
+  ), [canPerformCheckIn]);
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
-      <SafeAreaView style={styles.safeArea}>
+    <ThemedView className="flex-1 flex-row justify-center">
+      <SafeAreaView className="flex-1 px-4 pb-4 pt-4 w-full max-w-xl">
         
         {/* Biometric Shift Widget */}
-        <View style={[styles.shiftWidget, { backgroundColor: colors.surface, borderColor: colors.elevated }]}>
-          <View style={styles.geoFenceHeader}>
-            <ThemedText style={styles.geoFenceTitle}>SHIFT STATUS</ThemedText>
-            <View style={[styles.statusDot, { backgroundColor: isShiftActive ? colors.success : colors.danger }]} />
+        <View className="p-4 rounded-xl border mb-4 bg-surface border-elevated">
+          <View className="flex-row justify-between items-center mb-2">
+            <ThemedText className="font-mono text-xs font-bold tracking-widest text-slate-400">SHIFT STATUS</ThemedText>
+            <View className={`w-2.5 h-2.5 rounded-full ${isShiftActive ? 'bg-success' : 'bg-danger'}`} />
           </View>
           
-          <ThemedText style={[styles.geoFenceText, { color: isShiftActive ? colors.success : colors.danger }]}>
+          <ThemedText className={`font-mono text-lg font-black tracking-widest ${isShiftActive ? 'text-success' : 'text-danger'}`}>
             {isShiftActive ? 'ON SHIFT' : 'OFF DUTY'}
           </ThemedText>
 
           {!isShiftActive ? (
             <>
               <TouchableOpacity 
-                style={[styles.clockButton, { backgroundColor: colors.tint, marginTop: Spacing.four }]}
+                className="h-14 rounded-lg items-center justify-center mt-4 bg-tint"
                 onPress={handleClockIn}
                 activeOpacity={0.8}
               >
-                <ThemedText style={styles.clockButtonText}>CLOCK IN (FACE SCAN)</ThemedText>
+                <ThemedText className="font-mono text-base font-black tracking-widest text-[#070a12]">CLOCK IN (FACE SCAN)</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.enrollLinkButton, { borderColor: colors.elevated, marginTop: Spacing.two }]}
+                className="h-10 rounded-lg border items-center justify-center mt-2 border-elevated"
                 onPress={() => router.push('/enroll-face')}
                 activeOpacity={0.8}
               >
-                <ThemedText style={[styles.enrollLinkText, { color: colors.textSecondary }]}>ENROLL BIOMETRIC PROFILE →</ThemedText>
+                <ThemedText className="font-mono text-xs font-bold tracking-widest text-slate-400">ENROLL BIOMETRIC PROFILE →</ThemedText>
               </TouchableOpacity>
             </>
           ) : (
             <TouchableOpacity 
-              style={[styles.clockButton, { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.danger, marginTop: Spacing.four }]}
+              className="h-14 rounded-lg items-center justify-center mt-4 bg-transparent border border-danger"
               onPress={handleClockOut}
               activeOpacity={0.8}
             >
-              <ThemedText style={[styles.clockButtonText, { color: colors.danger }]}>CLOCK OUT</ThemedText>
+              <ThemedText className="font-mono text-base font-black tracking-widest text-danger">CLOCK OUT</ThemedText>
             </TouchableOpacity>
           )}
         </View>
 
         {/* Geo-Fence Widget */}
-        <View style={[styles.geoFenceWidget, { 
-            backgroundColor: colors.surface, 
-            borderColor: isWithinRange ? colors.success : (errorMsg ? colors.danger : colors.elevated) 
-          }]}>
-          <View style={styles.geoFenceHeader}>
-            <ThemedText style={styles.geoFenceTitle}>LOCATION STATUS</ThemedText>
-            <View style={[styles.statusDot, { 
-                backgroundColor: isWithinRange ? colors.success : (errorMsg ? colors.danger : colors.warning) 
-              }]} />
+        <View className={`p-4 rounded-xl border mb-4 bg-surface ${isWithinRange ? 'border-success' : (errorMsg ? 'border-danger' : 'border-elevated')}`}>
+          <View className="flex-row justify-between items-center mb-2">
+            <ThemedText className="font-mono text-xs font-bold tracking-widest text-slate-400">LOCATION STATUS</ThemedText>
+            <View className={`w-2.5 h-2.5 rounded-full ${isWithinRange ? 'bg-success' : (errorMsg ? 'bg-danger' : 'bg-yellow-500')}`} />
           </View>
           
-          <ThemedText style={[styles.geoFenceText, { 
-              color: isWithinRange ? colors.success : (errorMsg ? colors.danger : colors.textSecondary) 
-            }]}>
+          <ThemedText className={`font-mono text-lg font-black tracking-widest ${isWithinRange ? 'text-success' : (errorMsg ? 'text-danger' : 'text-slate-400')}`}>
             {errorMsg 
               ? errorMsg 
               : distance === null 
@@ -259,12 +261,12 @@ export default function ScheduleScreen() {
         {/* Timeline List */}
         <FlatList
           data={MOCK_BOOKINGS}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item: typeof MOCK_BOOKINGS[0]) => item.id}
           renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={{ paddingBottom: 32, gap: 16 }}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
-            <ThemedText style={styles.timelineHeader}>TODAY&apos;S MISSIONS</ThemedText>
+            <ThemedText className="font-mono text-sm font-bold tracking-widest text-slate-400 mb-4">TODAY&apos;S MISSIONS</ThemedText>
           }
         />
 
@@ -272,146 +274,3 @@ export default function ScheduleScreen() {
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    paddingBottom: BottomTabInset,
-    paddingTop: Spacing.four,
-    maxWidth: MaxContentWidth,
-    width: '100%',
-  },
-  shiftWidget: {
-    padding: Spacing.four,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: Spacing.four,
-  },
-  clockButton: {
-    height: 56, // Fitts' law compliant
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  clockButtonText: {
-    fontFamily: Typography.fontMono,
-    fontSize: 16,
-    fontWeight: '900',
-    color: '#070a12',
-    letterSpacing: 1,
-  },
-  geoFenceWidget: {
-    padding: Spacing.four,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: Spacing.four,
-  },
-  geoFenceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.two,
-  },
-  geoFenceTitle: {
-    fontFamily: Typography.fontMono,
-    fontSize: 12,
-    fontWeight: 'bold',
-    letterSpacing: 2,
-    color: '#94a3b8',
-  },
-  statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  geoFenceText: {
-    fontFamily: Typography.fontMono,
-    fontSize: 18,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-  timelineHeader: {
-    fontFamily: Typography.fontMono,
-    fontSize: 14,
-    fontWeight: 'bold',
-    letterSpacing: 2,
-    color: '#94a3b8',
-    marginBottom: Spacing.four,
-  },
-  listContent: {
-    paddingBottom: Spacing.eight,
-    gap: Spacing.four,
-  },
-  bookingCard: {
-    padding: Spacing.four,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: Spacing.three,
-  },
-  bookingHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  bookingTime: {
-    fontFamily: Typography.fontMono,
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  bookingPackage: {
-    fontFamily: Typography.fontMono,
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#94a3b8',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  bookingBody: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  bookingGuest: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#f8fafc',
-  },
-  bookingRoom: {
-    fontFamily: Typography.fontMono,
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#94a3b8',
-  },
-  checkInButton: {
-    height: 56, // >= 48dp Fitts' Law
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: Spacing.two,
-  },
-  checkInButtonText: {
-    fontFamily: Typography.fontMono,
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: 2,
-  },
-  enrollLinkButton: {
-    height: 40,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  enrollLinkText: {
-    fontFamily: Typography.fontMono,
-    fontSize: 12,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-});

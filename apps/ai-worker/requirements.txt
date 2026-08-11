@@ -1,4 +1,6 @@
 fastapi==0.111.0
+numpy==2.4.6
+opencv-python-headless==4.13.0.92
 uvicorn==0.29.0
 pydantic==2.7.1
 rembg==2.0.56

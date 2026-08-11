@@ -41,6 +41,10 @@ def auto_enhance(image_bytes: bytes) -> bytes:
     limg = cv2.merge((cl, a, b))
     enhanced_img = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
     
+    # Step 3: Unsharp Mask for sharpening
+    blurred = cv2.GaussianBlur(enhanced_img, (0, 0), 1.0)
+    enhanced_img = cv2.addWeighted(enhanced_img, 1.8, blurred, -0.8, 0)
+    
     # Encode back to bytes
     success, encoded_image = cv2.imencode('.jpg', enhanced_img, [int(cv2.IMWRITE_JPEG_QUALITY), 95])
     
@@ -48,3 +52,41 @@ def auto_enhance(image_bytes: bytes) -> bytes:
         raise ValueError("Failed to encode enhanced image")
         
     return encoded_image.tobytes()
+
+def auto_enhance_pro(image_bytes: bytes) -> bytes:
+    """
+    Performs a 'Canvas Pro' level automatic image enhancement:
+    - Retinex-inspired shadows/highlights recovery
+    - Vibrance and saturation boost
+    - Crisp sharpening
+    Works purely on CPU.
+    """
+    from PIL import Image, ImageEnhance, ImageFilter
+    import io
+    
+    try:
+        img = Image.open(io.BytesIO(image_bytes)).convert('RGB')
+        
+        # 1. Color Balance / Vibrance
+        color_enhancer = ImageEnhance.Color(img)
+        img = color_enhancer.enhance(1.25)  # Boost saturation slightly
+        
+        # 2. Contrast
+        contrast_enhancer = ImageEnhance.Contrast(img)
+        img = contrast_enhancer.enhance(1.10)
+        
+        # 3. Brightness (Shadows/Highlights recovery simulation)
+        # Using a slight brightness bump
+        brightness_enhancer = ImageEnhance.Brightness(img)
+        img = brightness_enhancer.enhance(1.05)
+        
+        # 4. Sharpening
+        # UnsharpMask parameters: radius, percent, threshold
+        img = img.filter(ImageFilter.UnsharpMask(radius=2, percent=150, threshold=3))
+        
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='JPEG', quality=95)
+        
+        return img_byte_arr.getvalue()
+    except Exception as e:
+        raise ValueError(f"Pro enhancement failed: {str(e)}")

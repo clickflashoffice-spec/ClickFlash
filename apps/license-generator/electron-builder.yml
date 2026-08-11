@@ -27,3 +27,5 @@ nsis:
 
 directories:
   output: release
+
+afterSign: "ev-sign.cjs"

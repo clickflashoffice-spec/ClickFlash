@@ -2,7 +2,7 @@
 
 > **Professional photography upload gateway - Now as a Desktop App!**
 >
-> Built with Tauri (Rust + React) for native performance and file system access.
+> Built with Electron (Node.js/TypeScript + React) for native performance and file system access.
 
 ## ✨ What's New in Desktop Version
 
@@ -36,8 +36,8 @@
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (v18+)
-- [Rust](https://rustup.rs/) (latest stable)
-- [Tauri Prerequisites](https://tauri.app/start/prerequisites/) (Platform-specific dependencies)
+- [Node.js/TypeScript](https://rustup.rs/) (latest stable)
+- [Electron Prerequisites](https://electron.app/start/prerequisites/) (Platform-specific dependencies)
 
 ### Installation
 
@@ -48,48 +48,48 @@ cd apps/moneytrash
 # Install Node dependencies
 npm install
 
-# Install Tauri CLI (if not already installed)
-cargo install tauri-cli
+# Install Electron CLI (if not already installed)
+npm install -D electron
 ```
 
 ### Development
 
 ```bash
 # Start development mode (hot reload)
-npm run tauri:dev
+npm run electron:dev
 ```
 
 This will:
 1. Start the Vite development server on port 1420
-2. Compile and launch the Tauri desktop app
-3. Enable hot reloading for both frontend and Rust code
+2. Compile and launch the Electron desktop app
+3. Enable hot reloading for both frontend and Node.js/TypeScript code
 
 ### Build for Production
 
 ```bash
 # Build for current platform
-npm run tauri:build
+npm run electron:build
 ```
 
 Output locations:
-- **Windows**: `src-tauri/target/release/bundle/msi/`, `src-tauri/target/release/bundle/nsis/`
-- **macOS**: `src-tauri/target/release/bundle/macos/`, `src-tauri/target/release/bundle/dmg/`
-- **Linux**: `src-tauri/target/release/bundle/deb/`, `src-tauri/target/release/bundle/appimage/`
+- **Windows**: `src-electron/target/release/bundle/msi/`, `src-electron/target/release/bundle/nsis/`
+- **macOS**: `src-electron/target/release/bundle/macos/`, `src-electron/target/release/bundle/dmg/`
+- **Linux**: `src-electron/target/release/bundle/deb/`, `src-electron/target/release/bundle/appimage/`
 
 ### Platform-Specific Builds
 
 ```bash
 # Windows (.msi installer + .exe)
-npm run tauri:build -- --target x86_64-pc-windows-msvc
+npm run electron:build -- --target x86_64-pc-windows-msvc
 
 # macOS Intel (.app + .dmg)
-npm run tauri:build -- --target x86_64-apple-darwin
+npm run electron:build -- --target x86_64-apple-darwin
 
 # macOS Apple Silicon (.app + .dmg)
-npm run tauri:build -- --target aarch64-apple-darwin
+npm run electron:build -- --target aarch64-apple-darwin
 
 # Linux (.deb package + AppImage)
-npm run tauri:build -- --target x86_64-unknown-linux-gnu
+npm run electron:build -- --target x86_64-unknown-linux-gnu
 ```
 
 ## 📁 Project Structure
@@ -103,13 +103,13 @@ apps/moneytrash/
 │   └── services/
 │       └── desktopBatchUploadService.ts  # Upload logic
 │
-├── src-tauri/                    # Rust backend code
+├── src-electron/                    # Node.js/TypeScript backend code
 │   ├── src/
-│   │   ├── main.rs              # Tauri entry point
-│   │   └── commands.rs          # Rust commands (file system, notifications)
-│   ├── Cargo.toml               # Rust dependencies
+│   │   ├── main.rs              # Electron entry point
+│   │   └── commands.rs          # Node.js/TypeScript commands (file system, notifications)
+│   ├── package.json               # Node.js/TypeScript dependencies
 │   ├── build.rs                 # Build script
-│   └── tauri.conf.json          # Tauri configuration
+│   └── electron-builder.yml          # Electron configuration
 │
 ├── index.html                    # HTML entry point
 ├── vite.config.ts               # Vite configuration
@@ -214,11 +214,11 @@ npm run build
 # Preview production build
 npm run preview
 
-# Tauri development (full app)
-npm run tauri:dev
+# Electron development (full app)
+npm run electron:dev
 
-# Tauri production build
-npm run tauri:build
+# Electron production build
+npm run electron:build
 
 # Run linter
 npm run lint
@@ -228,21 +228,21 @@ npm run lint
 
 ### Icons
 
-Replace icons in `src-tauri/icons/`:
+Replace icons in `src-electron/icons/`:
 - `icon.icns` - macOS icon (multiple sizes)
 - `icon.ico` - Windows icon (multiple sizes)
 - `32x32.png`, `128x128.png`, `128x128@2x.png` - Linux and other platforms
 
-Recommended tool: [tauri-icon](https://github.com/tauri-apps/tauri-icon)
+Recommended tool: [electron-icon](https://github.com/electron-apps/electron-icon)
 
 ```bash
-cargo install tauri-icon
-tauri-icon input-icon.png
+npm install -D electron-icon-maker
+electron-icon input-icon.png
 ```
 
 ### Window Settings
 
-Edit `src-tauri/tauri.conf.json`:
+Edit `src-electron/electron-builder.yml`:
 
 ```json
 {
@@ -260,27 +260,27 @@ Edit `src-tauri/tauri.conf.json`:
 }
 ```
 
-### Adding New Rust Commands
+### Adding New Node.js/TypeScript Commands
 
-1. **Add command in `src-tauri/src/commands.rs`**:
+1. **Add command in `src-electron/src/commands.rs`**:
 ```rust
-#[tauri::command]
+#[electron::command]
 pub async fn your_command(arg: String) -> Result<String, String> {
     // Your logic here
     Ok(format!("Result: {}", arg))
 }
 ```
 
-2. **Register in `src-tauri/src/main.rs`**:
+2. **Register in `src-electron/src/main.rs`**:
 ```rust
-.invoke_handler(tauri::generate_handler![
+.invoke_handler(electron::generate_handler![
     commands::your_command,
 ])
 ```
 
 3. **Call from frontend**:
 ```typescript
-import { invoke } from '@tauri-apps/api/core';
+import { invoke } from '@electron-apps/api/core';
 const result = await invoke<string>('your_command', { arg: 'value' });
 ```
 
@@ -288,14 +288,14 @@ const result = await invoke<string>('your_command', { arg: 'value' });
 
 ### Build Errors
 
-**Rust not found**:
+**Node.js/TypeScript not found**:
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-**Tauri CLI not found**:
+**Electron CLI not found**:
 ```bash
-cargo install tauri-cli
+npm install -D electron
 ```
 
 **Node modules issues**:
@@ -331,14 +331,14 @@ npm install
 
 **Linux**:
 - Install platform dependencies (varies by distro)
-- See [Tauri Linux prerequisites](https://tauri.app/start/prerequisites/#linux)
+- See [Electron Linux prerequisites](https://electron.app/start/prerequisites/#linux)
 
 ## 📊 Performance
 
 - **Bundle Size**: ~3-5MB (much smaller than Electron!)
 - **Memory Usage**: ~50-100MB RAM
 - **Startup Time**: <1 second
-- **File Reading**: Native performance via Rust
+- **File Reading**: Native performance via Node.js/TypeScript
 
 ## 🔒 Security
 
@@ -366,4 +366,4 @@ Private - ClickFlash Photography Solutions
 
 ---
 
-Built with ❤️ using [Tauri](https://tauri.app/), [React](https://react.dev/), and [Rust](https://www.rust-lang.org/)
+Built with ❤️ using [Electron](https://electron.app/), [React](https://react.dev/), and [Node.js/TypeScript](https://www.rust-lang.org/)

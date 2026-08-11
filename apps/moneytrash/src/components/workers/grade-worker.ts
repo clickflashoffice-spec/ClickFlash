@@ -1,3 +1,10 @@
+import {
+  calculateLaplacianVariance,
+  extractEmbeddedJpeg,
+  findSkinBounds,
+} from './grade-core';
+import { calculateWasmLaplacianVariance } from './wasm-sharpness';
+
 export type AIGrade = 'A+' | 'A' | 'B' | 'REJECT';
 
 export interface EdgeAIGradingResult {
@@ -9,75 +16,133 @@ export interface EdgeAIGradingResult {
 }
 
 export interface WorkerGradeRequest {
-    type: 'GRADE_FILE';
-    file: File;
-    id: string;
+  type: 'GRADE_FILE';
+  file: File;
+  id: string;
 }
 
 export interface WorkerGradeResponse {
-    type: 'GRADE_RESULT';
-    id: string;
-    result: EdgeAIGradingResult;
+  type: 'GRADE_RESULT';
+  id: string;
+  result: EdgeAIGradingResult;
 }
 
-self.onmessage = async (e: MessageEvent<WorkerGradeRequest>) => {
-  if (e.data.type === 'GRADE_FILE') {
-    const { file, id } = e.data;
+const MAX_RAW_BYTES = 256 * 1024 * 1024;
+
+self.onmessage = async (event: MessageEvent<WorkerGradeRequest>) => {
+  if (event.data.type !== 'GRADE_FILE') return;
+  const { file, id } = event.data;
+  try {
     const result = await performLocalEdgeAIGrading(file);
-    self.postMessage({ type: 'GRADE_RESULT', id, result } as WorkerGradeResponse);
+    self.postMessage({ type: 'GRADE_RESULT', id, result } satisfies WorkerGradeResponse);
+  } catch (error: unknown) {
+    self.postMessage({
+      type: 'GRADE_RESULT',
+      id,
+      result: {
+        grade: 'REJECT',
+        sharpnessScore: 0,
+        exposureScore: 0,
+        faceCount: 0,
+        reason: `Error processing file: ${error instanceof Error ? error.message : String(error)}`,
+      },
+    } satisfies WorkerGradeResponse);
   }
 };
 
-async function performLocalEdgeAIGrading(file: File): Promise<EdgeAIGradingResult> {
-  // Simulate rapid local neural/heuristic processing time (50-150ms per frame)
-  // In a native Tauri or WebGPU/ONNX runtime, this delegates directly to local tensor kernels.
-  
-  // No DOM access in Web Worker, perfect for WebGPU / WASM ONNX execution.
-  await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
+async function decodeBitmap(file: File): Promise<ImageBitmap> {
+  try {
+    return await createImageBitmap(file);
+  } catch (originalError: unknown) {
+    if (file.size > MAX_RAW_BYTES) {
+      throw new Error('RAW file exceeds the 256 MiB local grading limit');
+    }
 
-  if (!file.type.startsWith('image/') && !file.name.match(/\.(jpg|jpeg|png|webp)$/i)) {
-    return {
-      grade: 'A',
-      sharpnessScore: 92,
-      exposureScore: 88,
-      faceCount: 2,
-      reason: 'RAW frame accepted for server processing',
-    };
+    const jpeg = extractEmbeddedJpeg(await file.arrayBuffer());
+    if (!jpeg) {
+      throw new Error(
+        `No embedded JPEG preview found in ${file.name || 'RAW file'}: ${
+          originalError instanceof Error ? originalError.message : String(originalError)
+        }`,
+      );
+    }
+    const ownedPreview = new Uint8Array(jpeg.byteLength);
+    ownedPreview.set(jpeg);
+    return createImageBitmap(
+      new Blob([ownedPreview.buffer], { type: 'image/jpeg' }),
+    );
+  }
+}
+
+export async function performLocalEdgeAIGrading(
+  file: File,
+): Promise<EdgeAIGradingResult> {
+  const bitmap = await decodeBitmap(file);
+  const scale = Math.min(1, 512 / bitmap.width);
+  const width = Math.max(3, Math.floor(bitmap.width * scale));
+  const height = Math.max(3, Math.floor(bitmap.height * scale));
+  const canvas = new OffscreenCanvas(width, height);
+  const context = canvas.getContext('2d');
+  if (!context) {
+    bitmap.close();
+    throw new Error('Could not create the local grading canvas');
   }
 
-  const hash = Array.from(file.name).reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const sharpnessScore = Math.min(99, Math.max(35, 75 + ((hash % 30) - 15) + (file.size > 2_000_000 ? 10 : 0)));
-  const exposureScore = Math.min(99, Math.max(40, 80 + ((hash % 24) - 12)));
-  const faceCount = (hash % 4) + 1;
+  context.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close();
+  const rgba = context.getImageData(0, 0, width, height).data;
+  const grayscale = new Uint8Array(width * height);
+  let underExposedPixels = 0;
+  let overExposedPixels = 0;
 
-  if (sharpnessScore < 50 || exposureScore < 48) {
-    return {
-      grade: 'REJECT',
-      sharpnessScore,
-      exposureScore,
-      faceCount: 0,
-      reason: sharpnessScore < 50 ? 'Motion blur / out of focus detected' : 'Severe underexposure detected',
-    };
-  } else if (sharpnessScore >= 88 && exposureScore >= 82) {
-    return {
-      grade: 'A+',
-      sharpnessScore,
-      exposureScore,
-      faceCount,
-    };
-  } else if (sharpnessScore >= 74) {
-    return {
-      grade: 'A',
-      sharpnessScore,
-      exposureScore,
-      faceCount,
-    };
-  } else {
-    return {
-      grade: 'B',
-      sharpnessScore,
-      exposureScore,
-      faceCount,
-    };
+  for (let offset = 0, pixel = 0; offset < rgba.length; offset += 4, pixel++) {
+    const luminance =
+      0.299 * rgba[offset] + 0.587 * rgba[offset + 1] + 0.114 * rgba[offset + 2];
+    grayscale[pixel] = luminance;
+    if (luminance < 20) underExposedPixels++;
+    if (luminance > 235) overExposedPixels++;
   }
+
+  const { bounds, skinPixels } = findSkinBounds(rgba, width, height);
+  const roiWidth = Math.max(0, bounds.endX - bounds.startX);
+  const roiHeight = Math.max(0, bounds.endY - bounds.startY);
+  const roiPixels = new Uint8Array(roiWidth * roiHeight);
+  for (let y = 0; y < roiHeight; y++) {
+    const sourceStart = (bounds.startY + y) * width + bounds.startX;
+    roiPixels.set(grayscale.subarray(sourceStart, sourceStart + roiWidth), y * roiWidth);
+  }
+  const wasmVariance = await calculateWasmLaplacianVariance(
+    roiPixels,
+    roiWidth,
+    roiHeight,
+  );
+  const laplacianVariance =
+    wasmVariance ?? calculateLaplacianVariance(grayscale, width, height, bounds);
+  const totalPixels = width * height;
+  const sharpnessScore = Math.min(
+    99,
+    Math.max(10, Math.floor(laplacianVariance / 12)),
+  );
+  const clippedRatio = (underExposedPixels + overExposedPixels) / totalPixels;
+  const exposureScore = Math.min(
+    99,
+    Math.max(10, Math.floor(100 - clippedRatio * 150)),
+  );
+  const faceCount = Math.min(10, Math.floor(skinPixels / totalPixels / 0.015));
+
+  let grade: AIGrade = 'B';
+  let reason: string | undefined;
+  if (sharpnessScore < 45 || exposureScore < 45) {
+    grade = 'REJECT';
+    reason =
+      sharpnessScore < 45
+        ? 'Motion blur / out of focus detected'
+        : 'Severe exposure clipping detected';
+  } else if (sharpnessScore >= 85 && exposureScore >= 80) {
+    grade = 'A+';
+  } else if (sharpnessScore >= 70) {
+    grade = 'A';
+  }
+
+  return { grade, sharpnessScore, exposureScore, faceCount, reason };
 }

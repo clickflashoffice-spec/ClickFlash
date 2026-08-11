@@ -103,13 +103,13 @@ export function CustomReviewList({ source }: CustomReviewListProps) {
             {/* Mobile Interaction Hint */}
             <div className="flex lg:hidden justify-center gap-2 mt-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-cyan-700 animate-pulse" />
-                <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-                <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
             </div>
 
             {/* Visual indicator for swiping on desktop/tablet if needed */}
-            <div className="hidden md:block lg:hidden absolute -right-4 top-1/2 -translate-y-1/2 bg-[#0B111F]/50 backdrop-blur-md p-2 rounded-full shadow-lg opacity-0 group-hover/list:opacity-100 transition-opacity">
-                <div className="w-6 h-6 border-r-2 border-t-2 border-white/30 rotate-45 translate-x-1" />
+            <div className="hidden md:block lg:hidden absolute -right-4 top-1/2 -translate-y-1/2 bg-white/50 backdrop-blur-md p-2 rounded-full shadow-lg opacity-0 group-hover/list:opacity-100 transition-opacity">
+                <div className="w-6 h-6 border-r-2 border-t-2 border-slate-300 rotate-45 translate-x-1" />
             </div>
         </div>
     );

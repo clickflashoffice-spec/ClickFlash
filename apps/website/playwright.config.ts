@@ -23,7 +23,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm run start',
+    command: 'npx serve -s out -l 3000',
     url: 'http://localhost:3000',
     timeout: 300000,
     reuseExistingServer: true,

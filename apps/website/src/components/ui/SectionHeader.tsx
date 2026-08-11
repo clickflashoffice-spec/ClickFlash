@@ -24,7 +24,7 @@ export function SectionHeader({ title, subtitle, pillText, align = "center", lig
                 </motion.span>
             )}
             {subtitle && pillText && (
-                <p className={`text-sm md:text-base mt-2 ${light ? "text-white/70" : "text-white/70"}`}>
+                <p className={`text-sm md:text-base mt-2 ${light ? "text-slate-600" : "text-slate-600"}`}>
                     {subtitle}
                 </p>
             )}
@@ -33,7 +33,7 @@ export function SectionHeader({ title, subtitle, pillText, align = "center", lig
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
-                className={`text-4xl md:text-5xl font-serif font-medium tracking-tight ${light ? "text-white" : "text-white"}`}
+                className={`text-4xl md:text-5xl font-serif font-medium tracking-tight ${light ? "text-slate-900" : "text-slate-900"}`}
             >
                 {title}
             </motion.h2>

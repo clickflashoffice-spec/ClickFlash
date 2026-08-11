@@ -23,12 +23,12 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0B111F] px-6 text-center">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-white px-6 text-center">
       <div className="max-w-md">
-        <h1 className="mb-4 text-4xl font-semibold text-white" style={{ fontFamily: 'var(--font-cormorant)' }}>
+        <h1 className="mb-4 text-4xl font-semibold text-slate-900" style={{ fontFamily: 'var(--font-cormorant)' }}>
           Something went wrong
         </h1>
-        <p className="mb-8 text-white/70">
+        <p className="mb-8 text-slate-600">
           We encountered an unexpected error. Please try again, or contact us if the problem persists.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
@@ -40,7 +40,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           </button>
           <Link
             href="/"
-            className="rounded-lg border border-white/20 px-6 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-white/5"
+            className="rounded-lg border border-slate-200 px-6 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
           >
             Return home
           </Link>

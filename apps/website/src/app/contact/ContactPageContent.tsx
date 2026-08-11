@@ -47,13 +47,13 @@ export default function ContactPageContent({ settings }: ContactPageContentProps
     } = settings;
 
     return (
-        <main className="min-h-screen bg-[#0B111F] pt-20 md:pt-24 pb-16 md:pb-24">
+        <main className="min-h-screen bg-white pt-20 md:pt-24 pb-16 md:pb-24">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
                 <div className="text-center mb-12 md:mb-16 lg:mb-24">
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-serif text-white mb-6 md:mb-8 uppercase tracking-tighter">
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-serif text-slate-900 mb-6 md:mb-8 uppercase tracking-tighter">
                         Get in <span className="text-cyan-700 font-sans">Touch</span>
                     </h1>
-                    <p className="text-white/70 text-base md:text-lg max-w-2xl mx-auto font-light leading-relaxed px-4">
+                    <p className="text-slate-600 text-base md:text-lg max-w-2xl mx-auto font-light leading-relaxed px-4">
                         We&apos;re here to help you capture your most precious moments.
                         Reach out to our team for bookings, inquiries, or just to say hello.
                     </p>
@@ -68,26 +68,26 @@ export default function ContactPageContent({ settings }: ContactPageContentProps
                         className="space-y-12"
                     >
                         <div>
-                            <h2 className="text-2xl md:text-3xl font-serif text-white mb-6 md:mb-8">Contact Info</h2>
+                            <h2 className="text-2xl md:text-3xl font-serif text-slate-900 mb-6 md:mb-8">Contact Info</h2>
                             <div className="space-y-6 md:space-y-8">
                                 <a href={`mailto:${contactEmail}`} className="flex items-start gap-6 group">
-                                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white/70 group-hover:bg-cyan-700 group-hover:text-white transition-all duration-300">
+                                    <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 group-hover:bg-cyan-700 group-hover:text-white transition-all duration-300">
                                         <Mail className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <h3 className="text-sm font-bold uppercase tracking-widest text-white mb-1">Email Us</h3>
-                                        <p className="text-white/70 text-sm mb-1">{contactEmail}</p>
+                                        <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-1">Email Us</h3>
+                                        <p className="text-slate-600 text-sm mb-1">{contactEmail}</p>
                                         <p className="text-cyan-700 text-xs font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0">Send Email →</p>
                                     </div>
                                 </a>
 
                                 <a href={`tel:${contactPhone}`} className="flex items-start gap-6 group">
-                                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white/70 group-hover:bg-cyan-700 group-hover:text-white transition-all duration-300">
+                                    <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 group-hover:bg-cyan-700 group-hover:text-white transition-all duration-300">
                                         <Phone className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <h3 className="text-sm font-bold uppercase tracking-widest text-white mb-1">Call Us</h3>
-                                        <p className="text-white/70 text-sm mb-1">{contactPhone}</p>
+                                        <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-1">Call Us</h3>
+                                        <p className="text-slate-600 text-sm mb-1">{contactPhone}</p>
                                         <p className="text-cyan-700 text-xs font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0">Call Now →</p>
                                     </div>
                                 </a>
@@ -95,24 +95,24 @@ export default function ContactPageContent({ settings }: ContactPageContentProps
                                 {/* WhatsApp */}
                                 {contactWhatsapp && (
                                     <a href={`https://wa.me/${contactWhatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-start gap-6 group">
-                                        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white/70 group-hover:bg-[#25D366] group-hover:text-white transition-all duration-300">
+                                        <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 group-hover:bg-[#25D366] group-hover:text-white transition-all duration-300">
                                             <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" /></svg>
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-bold uppercase tracking-widest text-white mb-1">Text Us</h3>
-                                            <p className="text-white/70 text-sm mb-1">WhatsApp Available</p>
+                                            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-1">Text Us</h3>
+                                            <p className="text-slate-600 text-sm mb-1">WhatsApp Available</p>
                                             <p className="text-[#25D366] text-xs font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0">Chat Now →</p>
                                         </div>
                                     </a>
                                 )}
 
                                 <div className="flex items-start gap-6 group">
-                                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white/70 group-hover:bg-cyan-700 group-hover:text-white transition-all duration-300">
+                                    <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 group-hover:bg-cyan-700 group-hover:text-white transition-all duration-300">
                                         <MapPin className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <h3 className="text-sm font-bold uppercase tracking-widest text-white mb-1">Location</h3>
-                                        <p className="text-white/70 text-sm mb-1 whitespace-pre-line">{contactAddress}</p>
+                                        <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-1">Location</h3>
+                                        <p className="text-slate-600 text-sm mb-1 whitespace-pre-line">{contactAddress}</p>
                                         <p className="text-cyan-700 text-xs font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0">View Map →</p>
                                     </div>
                                 </div>
@@ -120,7 +120,7 @@ export default function ContactPageContent({ settings }: ContactPageContentProps
 
                             {/* Map Embed */}
                             {contactMapUrl && (
-                                <div className="mt-12 rounded-3xl overflow-hidden shadow-lg border border-white/10 h-[300px]">
+                                <div className="mt-12 rounded-3xl overflow-hidden shadow-lg border border-slate-100 h-[300px]">
                                     <iframe
                                         src={contactMapUrl}
                                         width="100%"
@@ -140,13 +140,13 @@ export default function ContactPageContent({ settings }: ContactPageContentProps
                         initial={{ opacity: 0, x: 30 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.4 }}
-                        className="bg-white/5/50 p-6 md:p-10 lg:p-12 rounded-3xl md:rounded-[40px] border border-white/10"
+                        className="bg-slate-50/50 p-6 md:p-10 lg:p-12 rounded-3xl md:rounded-[40px] border border-slate-100"
                     >
-                        <h2 className="text-2xl md:text-3xl font-serif text-white mb-6 md:mb-8">Send Message</h2>
+                        <h2 className="text-2xl md:text-3xl font-serif text-slate-900 mb-6 md:mb-8">Send Message</h2>
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label htmlFor="name-input" className="text-[11px] font-black uppercase tracking-widest text-white/70">Your Name</label>
+                                    <label htmlFor="name-input" className="text-[11px] font-black uppercase tracking-widest text-slate-600">Your Name</label>
                                     <input
                                         id="name-input"
                                         data-testid="name-input"
@@ -154,14 +154,14 @@ export default function ContactPageContent({ settings }: ContactPageContentProps
                                         required
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full bg-[#0B111F] border border-white/20 p-4 rounded-2xl text-[14px] font-medium text-white/90 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all"
+                                        className="w-full bg-white border border-slate-200 p-4 rounded-2xl text-[14px] font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all"
                                         placeholder="John Doe"
                                         disabled={isSubmitting}
                                     />
                                     {status === "error" && !formData.name && <span data-testid="name-error" className="text-red-500 text-xs">Name is required</span>}
                                 </div>
                                 <div className="space-y-2">
-                                    <label htmlFor="email-input" className="text-[11px] font-black uppercase tracking-widest text-white/70">Email Address</label>
+                                    <label htmlFor="email-input" className="text-[11px] font-black uppercase tracking-widest text-slate-600">Email Address</label>
                                     <input
                                         id="email-input"
                                         data-testid="email-input"
@@ -169,7 +169,7 @@ export default function ContactPageContent({ settings }: ContactPageContentProps
                                         required
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full bg-[#0B111F] border border-white/20 p-4 rounded-2xl text-[14px] font-medium text-white/90 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all"
+                                        className="w-full bg-white border border-slate-200 p-4 rounded-2xl text-[14px] font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all"
                                         placeholder="john@example.com"
                                         disabled={isSubmitting}
                                     />
@@ -178,13 +178,13 @@ export default function ContactPageContent({ settings }: ContactPageContentProps
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="service-input" className="text-[11px] font-black uppercase tracking-widest text-white/70">Service Type</label>
+                                <label htmlFor="service-input" className="text-[11px] font-black uppercase tracking-widest text-slate-600">Service Type</label>
                                 <select
                                     id="service-input"
                                     data-testid="service-input"
                                     value={formData.service}
                                     onChange={(e) => setFormData({ ...formData, service: e.target.value })}
-                                    className="w-full bg-[#0B111F] border border-white/20 p-4 rounded-2xl text-[14px] font-medium text-white/90 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all cursor-pointer"
+                                    className="w-full bg-white border border-slate-200 p-4 rounded-2xl text-[14px] font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all cursor-pointer"
                                     disabled={isSubmitting}
                                 >
                                     <option value="">Select a service...</option>
@@ -196,14 +196,14 @@ export default function ContactPageContent({ settings }: ContactPageContentProps
                                 </select>
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="message-input" className="text-[11px] font-black uppercase tracking-widest text-white/70">Message</label>
+                                <label htmlFor="message-input" className="text-[11px] font-black uppercase tracking-widest text-slate-600">Message</label>
                                 <textarea
                                     id="message-input"
                                     data-testid="message-input"
                                     required
                                     value={formData.message}
                                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                    className="w-full bg-[#0B111F] border border-white/20 p-4 rounded-2xl text-[14px] font-medium text-white/90 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all min-h-[150px] resize-none"
+                                    className="w-full bg-white border border-slate-200 p-4 rounded-2xl text-[14px] font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all min-h-[150px] resize-none"
                                     placeholder="Tell us about your event..."
                                     disabled={isSubmitting}
                                 />

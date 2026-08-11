@@ -14,7 +14,7 @@ export function YouTubeEmbed({ videoId, previewImage, title = "YouTube Video" }:
     const [isPlaying, setIsPlaying] = useState(false);
 
     return (
-        <div className="relative aspect-video max-w-4xl mx-auto rounded-[3.5rem] overflow-hidden shadow-2xl group cursor-pointer mb-14 bg-white/10">
+        <div className="relative aspect-video max-w-4xl mx-auto rounded-[3.5rem] overflow-hidden shadow-2xl group cursor-pointer mb-14 bg-slate-100">
             {!isPlaying ? (
                 // Preview State
                 <div onClick={() => setIsPlaying(true)} className="relative w-full h-full">
@@ -25,7 +25,7 @@ export function YouTubeEmbed({ videoId, previewImage, title = "YouTube Video" }:
                         className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center transition-colors group-hover:bg-slate-900/20">
-                        <div className="w-24 h-24 bg-[#0B111F] rounded-full flex items-center justify-center shadow-2xl transition-transform duration-500 group-hover:scale-110">
+                        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl transition-transform duration-500 group-hover:scale-110">
                             <Play className="fill-red-600 text-red-600 w-8 h-8 ml-1" />
                         </div>
                     </div>

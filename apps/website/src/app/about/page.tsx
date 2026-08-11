@@ -6,7 +6,7 @@ import { CheckCircle2, Award, Users, Globe } from "lucide-react";
 
 export default function AboutPage() {
     return (
-        <main className="min-h-screen bg-[#0B111F] pt-24 md:pt-28 lg:pt-32 pb-16 md:pb-20 lg:pb-24">
+        <main className="min-h-screen bg-white pt-24 md:pt-28 lg:pt-32 pb-16 md:pb-20 lg:pb-24">
             {/* HERO SECTION */}
             <section className="container mx-auto px-4 sm:px-6 lg:px-8 mb-16 md:mb-24 lg:mb-32">
                 <div className="max-w-4xl mx-auto text-center">
@@ -16,10 +16,10 @@ export default function AboutPage() {
                         transition={{ duration: 0.6 }}
                     >
                         <span className="text-cyan-700 font-black uppercase tracking-[0.3em] text-[12px] mb-4 block">About Us</span>
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-6 md:mb-8 leading-tight tracking-tighter">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 mb-6 md:mb-8 leading-tight tracking-tighter">
                             Creating Smiles and Memories <span className="text-cyan-700">Since 2008</span>
                         </h1>
-                        <p className="text-white/70 text-base md:text-lg lg:text-xl leading-relaxed max-w-3xl mx-auto px-2">
+                        <p className="text-slate-600 text-base md:text-lg lg:text-xl leading-relaxed max-w-3xl mx-auto px-2">
                             ClickFlash, established in 2008, specializes in resort and wedding photography. 
                             We capture unique moments and emotions in Tunisia and worldwide. Our growing 
                             team ensures every memory is unforgettable with high-quality services, products, 
@@ -60,8 +60,8 @@ export default function AboutPage() {
                             <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-cyan-50 flex items-center justify-center mx-auto mb-4 md:mb-6">
                                 <feature.icon className="w-7 h-7 md:w-8 md:h-8 text-cyan-700" />
                             </div>
-                            <h3 className="text-lg md:text-xl font-black text-white mb-3 md:mb-4">{feature.title}</h3>
-                            <p className="text-white/70 text-sm md:text-base leading-relaxed">{feature.desc}</p>
+                            <h3 className="text-lg md:text-xl font-black text-slate-900 mb-3 md:mb-4">{feature.title}</h3>
+                            <p className="text-slate-600 text-sm md:text-base leading-relaxed">{feature.desc}</p>
                         </motion.div>
                     ))}
                 </div>
@@ -89,16 +89,16 @@ export default function AboutPage() {
                         viewport={{ once: true }}
                     >
                         <span className="text-cyan-700 font-black uppercase tracking-[0.3em] text-[11px] md:text-[12px] mb-4 block">Our Story</span>
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white mb-6 md:mb-8 tracking-tighter">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 mb-6 md:mb-8 tracking-tighter">
                             A Journey of Passion and Excellence
                         </h2>
-                        <p className="text-white/70 text-base md:text-lg leading-relaxed mb-4 md:mb-6">
+                        <p className="text-slate-600 text-base md:text-lg leading-relaxed mb-4 md:mb-6">
                             What started as a small photography studio in Sousse, Tunisia, has grown into 
                             a trusted name in professional photography. Over the years, we've had the 
                             privilege of capturing thousands of special moments - from intimate weddings 
                             to grand resort openings.
                         </p>
-                        <p className="text-white/70 text-base md:text-lg leading-relaxed mb-6 md:mb-8">
+                        <p className="text-slate-600 text-base md:text-lg leading-relaxed mb-6 md:mb-8">
                             Our commitment to excellence and our passion for storytelling through images 
                             has earned us the trust of clients across Tunisia and beyond. We believe 
                             every moment deserves to be remembered beautifully.
@@ -110,7 +110,7 @@ export default function AboutPage() {
                                 "100,000+ happy clients",
                                 "Coverage across Tunisia and international destinations"
                             ].map((item, i) => (
-                                <li key={i} className="flex items-center gap-3 text-white/90 font-bold">
+                                <li key={i} className="flex items-center gap-3 text-slate-800 font-bold">
                                     <CheckCircle2 className="text-cyan-700 w-5 h-5" />
                                     {item}
                                 </li>
@@ -121,14 +121,14 @@ export default function AboutPage() {
             </section>
 
             {/* CREATIVITY SECTION */}
-            <section className="py-16 md:py-24 lg:py-32 bg-white/5">
+            <section className="py-16 md:py-24 lg:py-32 bg-slate-50">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto text-center px-2">
                         <span className="text-cyan-700 font-black uppercase tracking-[0.3em] text-[11px] md:text-[12px] mb-4 block">Our Creativity</span>
-                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-6 md:mb-8 tracking-tighter">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 mb-6 md:mb-8 tracking-tighter">
                             Immortalizing Memories
                         </h2>
-                        <p className="text-white/70 text-base md:text-lg leading-relaxed mb-8 md:mb-12">
+                        <p className="text-slate-600 text-base md:text-lg leading-relaxed mb-8 md:mb-12">
                             Through our creativity, we aim to immortalize tourists' festive and cherished 
                             moments at the best locations. This has earned us an unrivaled reputation and 
                             confidence within hotels, holiday clubs, and resorts across Tunisia.
@@ -142,7 +142,7 @@ export default function AboutPage() {
                             ].map((stat, i) => (
                                 <div key={i} className="text-center">
                                     <div className="text-3xl sm:text-4xl md:text-5xl font-black text-cyan-700 mb-2">{stat.number}</div>
-                                    <div className="text-white/70 text-xs md:text-sm font-bold uppercase tracking-wider">{stat.label}</div>
+                                    <div className="text-slate-600 text-xs md:text-sm font-bold uppercase tracking-wider">{stat.label}</div>
                                 </div>
                             ))}
                         </div>
@@ -154,7 +154,7 @@ export default function AboutPage() {
             <section className="py-16 md:py-24 lg:py-32 container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12 md:mb-16 lg:mb-20">
                     <span className="text-cyan-700 font-black uppercase tracking-[0.3em] text-[11px] md:text-[12px] mb-4 block">Our Team</span>
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tighter">
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">
                         Meet Our Expert Photographers
                     </h2>
                 </div>
@@ -175,10 +175,10 @@ export default function AboutPage() {
                                 className="text-center"
                             >
                                 <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 mx-auto mb-4 md:mb-6 rounded-full bg-cyan-700 flex items-center justify-center">
-                                    <span className="text-white font-black text-3xl sm:text-4xl md:text-5xl tracking-tight">{initials}</span>
+                                    <span className="text-slate-900 font-black text-3xl sm:text-4xl md:text-5xl tracking-tight">{initials}</span>
                                 </div>
-                                <h3 className="text-lg md:text-xl font-black text-white mb-1 md:mb-2">{member.name}</h3>
-                                <p className="text-white/70 text-sm md:text-base">{member.role}</p>
+                                <h3 className="text-lg md:text-xl font-black text-slate-900 mb-1 md:mb-2">{member.name}</h3>
+                                <p className="text-slate-600 text-sm md:text-base">{member.role}</p>
                             </motion.div>
                         );
                     })}

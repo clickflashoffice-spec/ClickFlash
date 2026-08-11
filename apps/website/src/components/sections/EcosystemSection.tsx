@@ -52,7 +52,7 @@ const apps = [
 
 export function EcosystemSection() {
     return (
-        <section id="ecosystem" className="py-16 md:py-24 lg:py-32 bg-white/5 overflow-hidden">
+        <section id="ecosystem" className="py-16 md:py-24 lg:py-32 bg-slate-50 overflow-hidden">
             <div className="container mx-auto px-6">
                 <SectionHeader
                     title="The ClickFlash Protocol"
@@ -71,19 +71,19 @@ export function EcosystemSection() {
                         >
                             <GlassPanel className="h-full flex flex-col group p-6 md:p-8">
                                 <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br ${app.color} flex items-center justify-center mb-6 md:mb-10 border border-white/5 shadow-2xl shadow-white/5 group-hover:scale-110 group-hover:rotate-6 transition-all duration-700`}>
-                                    <app.icon className="w-7 h-7 text-white" />
+                                    <app.icon className="w-7 h-7 text-slate-900" />
                                 </div>
 
                                 <div className="flex-grow">
-                                    <h3 className="text-xl md:text-2xl font-serif font-medium text-white mb-2">{app.title}</h3>
+                                    <h3 className="text-xl md:text-2xl font-serif font-medium text-slate-900 mb-2">{app.title}</h3>
                                     <p className="text-cyan-700 text-xs uppercase tracking-widest font-bold mb-4">{app.subtitle}</p>
-                                    <p className="text-white/70 text-sm leading-relaxed mb-6">
+                                    <p className="text-slate-600 text-sm leading-relaxed mb-6">
                                         {app.description}
                                     </p>
 
                                     <ul className="space-y-3 mb-8">
                                         {app.features.map(feature => (
-                                            <li key={feature} className="flex items-center gap-2 text-xs text-white/70">
+                                            <li key={feature} className="flex items-center gap-2 text-xs text-slate-600">
                                                 <div className="w-1 h-1 bg-cyan-700 rounded-full" />
                                                 {feature}
                                             </li>
@@ -109,9 +109,9 @@ export function EcosystemSection() {
                         transition={{ delay: 5 * 0.1 }}
                     >
                         <div className="h-full bg-cyan-700 rounded-2xl p-6 md:p-8 flex flex-col justify-center items-center text-center group cursor-pointer hover:bg-slate-800 transition-all duration-500 hover:scale-105 active:scale-95 shadow-xl shadow-cyan-500/20">
-                            <h3 className="text-2xl md:text-3xl font-serif font-medium text-white mb-4 transition-transform group-hover:text-cyan-700">Ready to Scale?</h3>
-                            <p className="text-white/60 text-sm mb-8">Deploy the complete ClickFlash ecosystem to your business today.</p>
-                            <div className="w-16 h-16 bg-[#0B111F] rounded-full flex items-center justify-center text-cyan-700 group-hover:scale-110 transition-transform">
+                            <h3 className="text-2xl md:text-3xl font-serif font-medium text-slate-900 mb-4 transition-transform group-hover:text-cyan-700">Ready to Scale?</h3>
+                            <p className="text-slate-500 text-sm mb-8">Deploy the complete ClickFlash ecosystem to your business today.</p>
+                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-cyan-700 group-hover:scale-110 transition-transform">
                                 <ArrowRight className="w-8 h-8" />
                             </div>
                         </div>

@@ -37,7 +37,7 @@ export function CustomerReviews({ settings = {} }: CustomerReviewsProps) {
   }, []);
 
   return (
-    <section className="relative overflow-hidden bg-white/5 py-32">
+    <section className="relative overflow-hidden bg-slate-50 py-32">
       {/* World Map Background (Abstract) */}
       <div className="pointer-events-none absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg')] bg-contain bg-center bg-no-repeat opacity-[0.03]" />
 
@@ -51,7 +51,7 @@ export function CustomerReviews({ settings = {} }: CustomerReviewsProps) {
           <span className="mb-4 block text-[13px] font-bold tracking-[0.4em] text-cyan-700 uppercase">
             Customer Experience
           </span>
-          <h2 className="mb-8 text-4xl leading-tight font-black tracking-tighter text-white md:text-6xl">
+          <h2 className="mb-8 text-4xl leading-tight font-black tracking-tighter text-slate-900 md:text-6xl">
             Loved by <span className="text-cyan-700">{manualReviewCount}+</span> customers with a{" "}
             <span className="text-cyan-700">{manualReviewRating}</span> rating
           </h2>

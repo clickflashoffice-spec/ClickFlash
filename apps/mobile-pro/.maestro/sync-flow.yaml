@@ -1,0 +1,37 @@
+appId: com.clickflash.mobile
+---
+- launchApp:
+    clearState: true
+
+# Wait for the app to fully load
+- extendedWaitUntil:
+    visible: "Login"
+    timeout: 10000
+
+# Mock login
+- tapOn: "Email"
+- inputText: "test@clickflash.com"
+- tapOn: "Password"
+- inputText: "password123"
+- tapOn: "Login"
+
+# Wait for the dashboard
+- extendedWaitUntil:
+    visible: "Dashboard"
+    timeout: 10000
+
+# Navigate to Offline Queue
+- tapOn: "Offline Queue"
+
+# Wait for the queue screen
+- extendedWaitUntil:
+    visible: "Queue Status"
+    timeout: 5000
+
+# Tap the 'Sync Now' button
+- tapOn: "Sync Now"
+
+# Assert the queue reaches 0
+- extendedWaitUntil:
+    visible: "0 items in queue"
+    timeout: 15000

@@ -38,6 +38,9 @@ contextBridge.exposeInMainWorld("electron", {
     getPrinters: () => ipcRenderer.invoke("printing:getPrinters"),
     print: (options: PrintOptions) => ipcRenderer.invoke("printing:print", options),
   },
+  api: {
+    invoke: (path: string, options: any) => ipcRenderer.invoke("api:request", { path, options }),
+  },
   updater: {
     check: () => ipcRenderer.invoke("updater:check"),
     download: () => ipcRenderer.invoke("updater:download"),

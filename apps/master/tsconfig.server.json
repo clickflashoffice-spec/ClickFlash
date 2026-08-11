@@ -2,17 +2,21 @@
     "compilerOptions": {
     "types": ["node"],
         "target": "ES2022",
-        "module": "CommonJS",
-        "moduleResolution": "node",
+        "module": "ES2022",
+        "moduleResolution": "bundler",
         "outDir": "./dist/backend",
-        "rootDir": "./backend",
+        "rootDir": "../../",
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "allowJs": true,
-        "checkJs": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "paths": {
+            "@clickflash/types": ["../../packages/types/src/index.ts"],
+            "@clickflash/ai-core": ["../../packages/ai-core/src/index.ts"],
+            "@clickflash/ai-core/*": ["../../packages/ai-core/src/*"]
+        }
     },
     "include": [
         "backend/**/*"

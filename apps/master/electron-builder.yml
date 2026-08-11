@@ -54,7 +54,7 @@ win:
   requestedExecutionLevel: requireAdministrator
   signAndEditExecutable: false
 
-afterSign: "ev-sign.js"
+afterSign: "ev-sign.cjs"
 
 compression: maximum
 

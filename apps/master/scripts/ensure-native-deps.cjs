@@ -136,7 +136,7 @@ function rebuildForElectron(modulePath, electronVersion, arch) {
       'npx', '@electron/rebuild',
       '--force',
       '--module-dir', `"${modulePath}"`,
-      '--electron-version', electronVersion,
+      '-v', electronVersion,
       '--arch', arch,
     ].join(' ');
     

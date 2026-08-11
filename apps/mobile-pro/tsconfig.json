@@ -1,0 +1,30 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "types": [
+      "node"
+    ],
+    "strict": true,
+    "paths": {
+      "@/assets/*": [
+        "./assets/*"
+      ],
+      "@/*": [
+        "./src/*"
+      ],
+      "@clickflash/ai-core": [
+        "../../packages/ai-core/src"
+      ],
+      "@clickflash/*": [
+        "../../packages/*/src"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
+  ]
+}

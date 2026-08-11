@@ -1,14 +1,15 @@
 /**
  * Local Face Fingerprinting Service
  * 
- * Provides client-side face biometric authentication using TensorFlow.js
- * and face-api.js for local face recognition without server-side processing.
+ * Provides client-side face biometric authentication using the local Python AI worker
+ * for face recognition without heavy browser-side ML models.
  */
 
 import { logger } from '@/utils/logger';
+import { aiClient } from './aiClient';
 
 export interface FaceDescriptor {
-    descriptor: Float32Array;
+    descriptor: number[];
     hash: string;
 }
 
@@ -20,24 +21,20 @@ export interface FaceMatchResult {
 }
 
 export interface LocalFaceServiceConfig {
-    modelUrl?: string;
     threshold?: number;
     maxDescriptorAge?: number;
 }
 
 const DEFAULT_CONFIG: Required<LocalFaceServiceConfig> = {
-    modelUrl: 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model',
-    threshold: 0.6,
+    threshold: 0.6, // Euclidean distance threshold
     maxDescriptorAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
 class LocalFaceService {
     private static instance: LocalFaceService;
-    private modelsLoaded = false;
-    private loadingPromise: Promise<void> | null = null;
     private faceDescriptors: Map<string, FaceDescriptor> = new Map();
     private config: Required<LocalFaceServiceConfig>;
-    private faceapi: typeof import('@vladmandic/face-api') | null = null;
+    private modelsLoaded = true; // Always true now since we use the Python worker
 
     private constructor(config: LocalFaceServiceConfig = {}) {
         this.config = { ...DEFAULT_CONFIG, ...config };
@@ -51,50 +48,16 @@ class LocalFaceService {
     }
 
     /**
-     * Load face-api.js models for local face recognition
+     * Load models (No-op now, kept for backward compatibility)
      */
     public async loadModels(): Promise<void> {
-        if (this.modelsLoaded) return;
-        if (this.loadingPromise) return this.loadingPromise;
-
-        this.loadingPromise = (async () => {
-            try {
-                logger.info('[LocalFaceService] Loading face recognition models...');
-
-                // Dynamically import face-api.js
-                this.faceapi = await import('@vladmandic/face-api');
-
-                // Set model path
-                const modelPath = this.config.modelUrl;
-
-                // Load required models
-                await Promise.all([
-                    this.faceapi!.nets.ssdMobilenetv1.loadFromUri(modelPath),
-                    this.faceapi!.nets.faceLandmark68Net.loadFromUri(modelPath),
-                    this.faceapi!.nets.faceRecognitionNet.loadFromUri(modelPath),
-                ]);
-
-                this.modelsLoaded = true;
-                logger.info('[LocalFaceService] Face recognition models loaded successfully');
-            } catch (error) {
-                logger.error('[LocalFaceService] Failed to load models', error);
-                throw error;
-            } finally {
-                this.loadingPromise = null;
-            }
-        })();
-
-        return this.loadingPromise;
+        return Promise.resolve();
     }
 
     /**
-     * Extract face descriptor from an image
+     * Extract face descriptor from an image using the local AI worker
      */
     public async getFaceDescriptor(image: HTMLImageElement | HTMLCanvasElement | ImageData): Promise<FaceDescriptor | null> {
-        if (!this.faceapi || !this.modelsLoaded) {
-            await this.loadModels();
-        }
-
         try {
             if (!image) {
                 logger.warn('[LocalFaceService] Image is null or undefined');
@@ -106,26 +69,19 @@ class LocalFaceService {
                 return null;
             }
 
-            const detection = await this.faceapi!.detectSingleFace(image as any)
-                .withFaceLandmarks()
-                .withFaceDescriptor();
+            const response = await aiClient.getFaceDescriptor(image);
 
-            if (!detection) {
-                logger.debug('[LocalFaceService] No face detected in image');
+            if (!response.success || !response.descriptor || !response.hash) {
+                logger.debug(`[LocalFaceService] Failed to extract descriptor: ${response.error}`);
                 return null;
             }
 
-            const descriptor = detection.descriptor;
-            const hash = this.hashDescriptor(descriptor);
-
-            return { descriptor, hash };
+            return {
+                descriptor: response.descriptor,
+                hash: response.hash
+            };
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            if (message.includes('does not support image input') || message.includes('Cannot read image')) {
-                logger.warn('[LocalFaceService] Face detection skipped: model does not support this image type');
-            } else {
-                logger.error('[LocalFaceService] Failed to extract face descriptor', error);
-            }
+            logger.error('[LocalFaceService] Failed to extract face descriptor', error);
             return null;
         }
     }
@@ -151,10 +107,6 @@ class LocalFaceService {
      * Authenticate a user using face recognition
      */
     public async authenticate(image: HTMLImageElement | HTMLCanvasElement | ImageData): Promise<FaceMatchResult> {
-        if (!this.faceapi || !this.modelsLoaded) {
-            await this.loadModels();
-        }
-
         try {
             const currentDescriptor = await this.getFaceDescriptor(image);
 
@@ -176,10 +128,7 @@ class LocalFaceService {
                     continue;
                 }
 
-                const distance = (this.faceapi as any).matchFaceDistance(
-                    currentDescriptor.descriptor,
-                    stored.descriptor
-                );
+                const distance = this.euclideanDistance(currentDescriptor.descriptor, stored.descriptor);
 
                 if (distance < this.config.threshold) {
                     if (!bestMatch || distance < bestMatch.distance) {
@@ -189,7 +138,8 @@ class LocalFaceService {
             }
 
             if (bestMatch) {
-                const confidence = 1 - bestMatch.distance;
+                // Confidence can be scaled based on distance (0 distance = 100% confidence)
+                const confidence = Math.max(0, 1 - bestMatch.distance);
                 logger.info(`[LocalFaceService] Face matched for user ${bestMatch.userId} with confidence ${confidence}`);
                 return {
                     matched: true,
@@ -224,18 +174,26 @@ class LocalFaceService {
     }
 
     /**
-     * Check if models are loaded
+     * Check if models are loaded (always true for API-based extraction)
      */
     public isReady(): boolean {
         return this.modelsLoaded;
     }
 
     /**
-     * Hash a face descriptor for quick comparison
+     * Compute Euclidean distance between two vectors
      */
-    private hashDescriptor(descriptor: Float32Array): string {
-        const key = Array.from(descriptor.slice(0, 8)).join(',');
-        return btoa(key);
+    private euclideanDistance(vec1: number[], vec2: number[]): number {
+        if (vec1.length !== vec2.length) {
+            logger.warn('[LocalFaceService] Vector length mismatch');
+            return Infinity;
+        }
+        let sum = 0;
+        for (let i = 0; i < vec1.length; i++) {
+            const diff = vec1[i] - vec2[i];
+            sum += diff * diff;
+        }
+        return Math.sqrt(sum);
     }
 
     /**
@@ -254,7 +212,7 @@ class LocalFaceService {
         try {
             const data = Array.from(this.faceDescriptors.entries()).map(([userId, fd]) => ({
                 userId,
-                descriptor: Array.from(fd.descriptor),
+                descriptor: fd.descriptor,
                 hash: fd.hash,
             }));
             localStorage.setItem('faceDescriptors', JSON.stringify(data));
@@ -274,7 +232,7 @@ class LocalFaceService {
             const parsed = JSON.parse(data);
             for (const item of parsed) {
                 this.faceDescriptors.set(item.userId, {
-                    descriptor: new Float32Array(item.descriptor),
+                    descriptor: item.descriptor,
                     hash: item.hash,
                 });
             }
@@ -293,7 +251,8 @@ class LocalFaceService {
             throw new Error('Video is not playing');
         }
 
-        return this.getFaceDescriptor(video as any);
+        const canvas = LocalFaceService.createCanvasFromVideo(video);
+        return this.getFaceDescriptor(canvas);
     }
 
     /**

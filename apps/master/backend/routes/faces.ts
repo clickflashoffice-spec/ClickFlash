@@ -338,8 +338,8 @@ export default function faceRoutes(context: FacesContext): Router {
     try {
       const { descriptor } = req.body;
       
-      if (!descriptor || !Array.isArray(descriptor) || descriptor.length !== 128) {
-        return sendInvalidInputError(res, "Invalid or missing 128D face descriptor");
+      if (!descriptor || !Array.isArray(descriptor) || (descriptor.length !== 128 && descriptor.length !== 512)) {
+        return sendInvalidInputError(res, "Invalid or missing 128D/512D face descriptor");
       }
 
       // Search using Vector Index

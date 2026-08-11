@@ -1,9 +1,7 @@
 import fs from 'fs';
-import path, { dirname } from 'path';
-import { fileURLToPath } from 'url';
+import path from 'path';
 
-const _filename = fileURLToPath(import.meta.url);
-const _dirname = dirname(_filename);
+const _dirname = __dirname;
 
 // Set up env BEFORE import so it uses a temp directory
 const TEMP_DIR = path.join(_dirname, 'temp_tls_test_' + Date.now());

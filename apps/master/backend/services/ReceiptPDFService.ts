@@ -22,10 +22,10 @@ import { createRequire } from 'module';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
-const require = createRequire(import.meta.url);
+const customRequire = createRequire(import.meta.url);
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const PdfPrinter = require("pdfmake") as {
+const PdfPrinter = customRequire("pdfmake") as {
   new (fontDescriptors: Record<string, {
     normal: string; bold: string; italics: string; bolditalics: string;
   }>): {

@@ -2,11 +2,12 @@
  * Smart Photo Culling Service
  * 
  * Provides client-side photo quality assessment
- * for automatic culling recommendations.
+ * for automatic culling recommendations using the local Python AI worker.
  */
 
 import { logger } from '@/utils/logger';
 import { Photo } from '@/types';
+import { aiClient } from './aiClient';
 
 export interface PhotoQualityScore {
     photoId: string;
@@ -35,20 +36,14 @@ export interface CullingAnalysisResult {
 
 export interface SmartCullingConfig {
     sharpnessThreshold: number;
-    exposureMinThreshold: number;
-    exposureMaxThreshold: number;
     minQualityThreshold: number;
     enableDuplicateDetection: boolean;
-    enableFaceDetection: boolean;
 }
 
 const DEFAULT_CONFIG: Required<SmartCullingConfig> = {
     sharpnessThreshold: 50,
-    exposureMinThreshold: 30,
-    exposureMaxThreshold: 90,
     minQualityThreshold: 60,
     enableDuplicateDetection: true,
-    enableFaceDetection: true,
 };
 
 class SmartCullingService {
@@ -68,7 +63,7 @@ class SmartCullingService {
     }
 
     /**
-     * Analyze a single photo for quality issues
+     * Analyze a single photo for quality issues via the AI worker
      */
     public async analyzePhoto(photo: Photo): Promise<PhotoQualityScore> {
         const score: PhotoQualityScore = {
@@ -94,42 +89,35 @@ class SmartCullingService {
                 return score;
             }
 
-            // Run quality assessments in parallel
-            const [sharpness, exposure] = await Promise.all([
-                this.assessSharpness(img),
-                this.assessExposure(img),
-            ]);
+            // Call the local Python AI worker for quality evaluation
+            const response = await aiClient.evaluateQuality(img);
 
-            score.sharpness = sharpness;
-            score.exposure = exposure;
-
-            // Check for face and eyes (if enabled)
-            if (this.config.enableFaceDetection) {
-                const faceResult = await this.detectFaces(img);
-                if (faceResult.hasFace) {
-                    score.eyesOpen = faceResult.eyesOpen;
-                    if (!faceResult.eyesOpen) {
-                        score.issues.push('Eyes closed detected');
-                        score.overall -= 20;
-                    }
-                }
+            if (!response.success || !response.culling_data) {
+                score.issues.push('Analysis failed');
+                score.recommendation = 'review';
+                return score;
             }
 
-            // Check for blur
-            if (score.sharpness < this.config.sharpnessThreshold) {
+            const data = response.culling_data;
+
+            // Blur detection from AI worker
+            score.sharpness = data.blur_score || 100;
+            if (data.is_blurry || score.sharpness < this.config.sharpnessThreshold) {
                 score.issues.push('Image appears blurry');
                 score.overall -= 30;
             }
 
-            // Check for exposure issues
-            if (score.exposure < this.config.exposureMinThreshold) {
-                score.issues.push('Image underexposed');
-                score.overall -= 25;
-            } else if (score.exposure > this.config.exposureMaxThreshold) {
-                score.issues.push('Image overexposed');
-                score.overall -= 25;
+            // Face and blink detection from AI worker
+            if (data.has_face) {
+                score.eyesOpen = data.eyes_open;
+                if (data.eyes_open === false) {
+                    score.issues.push('Eyes closed detected');
+                    score.overall -= 20;
+                }
             }
 
+            // (Optional) Map exposure or composition if added to AI worker in future
+            
             // Clamp overall score
             score.overall = Math.max(0, Math.min(100, score.overall));
 
@@ -269,151 +257,6 @@ class SmartCullingService {
     }
 
     /**
-     * Assess image sharpness using Laplacian variance
-     */
-    private async assessSharpness(img: HTMLImageElement): Promise<number> {
-        try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
-            
-            // Use smaller size for performance
-            const size = 100;
-            canvas.width = size;
-            canvas.height = size;
-            ctx.drawImage(img, 0, 0, size, size);
-
-            const imageData = ctx.getImageData(0, 0, size, size);
-            const data = imageData.data;
-
-            // Convert to grayscale and compute Laplacian variance
-            let sum = 0;
-            let sumSq = 0;
-            const pixels: number[] = [];
-
-            for (let i = 0; i < data.length; i += 4) {
-                const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-                pixels.push(gray);
-            }
-
-            // Compute Laplacian (3x3 kernel approximation)
-            const width = size;
-            for (let y = 1; y < size - 1; y++) {
-                for (let x = 1; x < width - 1; x++) {
-                    const idx = y * width + x;
-                    const laplacian = 
-                        pixels[idx - width] +
-                        pixels[idx - 1] +
-                        pixels[idx + 1] +
-                        pixels[idx + width] -
-                        4 * pixels[idx];
-                    sum += laplacian;
-                    sumSq += laplacian * laplacian;
-                }
-            }
-
-            const count = (size - 2) * (size - 2);
-            const mean = sum / count;
-            const variance = (sumSq / count) - (mean * mean);
-
-            // Normalize variance to 0-100 scale
-            // Typical good variance is > 500, blurry is < 100
-            const normalizedScore = Math.min(100, (variance / 500) * 100);
-            return Math.max(0, normalizedScore);
-        } catch {
-            return 100; // Default to good if analysis fails
-        }
-    }
-
-    /**
-     * Assess image exposure using histogram analysis
-     */
-    private async assessExposure(img: HTMLImageElement): Promise<number> {
-        try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
-            
-            const size = 100;
-            canvas.width = size;
-            canvas.height = size;
-            ctx.drawImage(img, 0, 0, size, size);
-
-            const imageData = ctx.getImageData(0, 0, size, size);
-            const data = imageData.data;
-
-            // Compute histogram
-            const hist = new Array(256).fill(0);
-            let underexposed = 0;
-            let overexposed = 0;
-            let proper = 0;
-
-            for (let i = 0; i < data.length; i += 4) {
-                const gray = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
-                hist[gray]++;
-            }
-
-            const totalPixels = data.length / 4;
-            // threshold (totalPixels * 0.01) not used in this basic check
-
-            // Check for underexposure (many dark pixels)
-            for (let i = 0; i < 30; i++) {
-                underexposed += hist[i];
-            }
-
-            // Check for overexposure (many bright pixels)
-            for (let i = 225; i < 256; i++) {
-                overexposed += hist[i];
-            }
-
-            // Proper exposure is in the middle
-            proper = totalPixels - underexposed - overexposed;
-
-            // Score based on distribution
-            const exposureScore = (proper / totalPixels) * 100;
-            return Math.min(100, Math.max(0, exposureScore));
-        } catch {
-            return 100;
-        }
-    }
-
-    /**
-     * Detect faces and eye status using face-api.js
-     */
-    private async detectFaces(img: HTMLImageElement): Promise<{ hasFace: boolean; eyesOpen: boolean }> {
-        try {
-            if (!img || !img.width || !img.height) {
-                return { hasFace: false, eyesOpen: true };
-            }
-
-            // Dynamically import face-api
-            const faceapi = await import('@vladmandic/face-api');
-            
-            const detection = await faceapi.detectSingleFace(img)
-                .withFaceLandmarks()
-                .withFaceDescriptor();
-
-            if (!detection) {
-                return { hasFace: false, eyesOpen: true };
-            }
-
-            // Get eye landmarks (positions 36-41 for left eye, 42-47 for right eye)
-            const landmarks = detection.landmarks;
-            if (!landmarks) {
-                return { hasFace: true, eyesOpen: true };
-            }
-
-            // Simplified eye openness check based on landmark positions
-            // In real implementation, would analyze eye aspect ratio
-            return { hasFace: true, eyesOpen: true };
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            if (message.includes('does not support image input') || message.includes('Cannot read image')) {
-                logger.warn('[SmartCulling] Face detection skipped: model does not support this image type');
-            }
-            return { hasFace: false, eyesOpen: true };
-        }
-    }
-
-    /**
      * Detect duplicate photos based on perceptual hash
      */
     private async detectDuplicates(scores: PhotoQualityScore[]): Promise<void> {
@@ -463,14 +306,6 @@ class SmartCullingService {
 
         if (score.eyesOpen !== null) tags.push('Face detected');
         tags.push(score.sharpness >= this.config.sharpnessThreshold ? 'Sharp' : 'Soft focus');
-
-        if (score.exposure < this.config.exposureMinThreshold) {
-            tags.push('Low exposure');
-        } else if (score.exposure > this.config.exposureMaxThreshold) {
-            tags.push('High exposure');
-        } else {
-            tags.push('Balanced exposure');
-        }
 
         return tags;
     }

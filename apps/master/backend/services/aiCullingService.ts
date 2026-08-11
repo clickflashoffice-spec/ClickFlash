@@ -94,15 +94,23 @@ export class AICullingService {
       
       const scores = await AICullingService.evaluateImage(imageBuffer, 224, 224);
       
-      const aiScore = 100 - (scores.blurScore * 100);
+      const aiScore = Math.max(0, Math.min(100, Math.round(100 - (scores.blurScore * 100))));
       const isRejected = aiScore < 40 ? 1 : 0;
       
+      // Auto-Star rating (1-5 stars)
+      let starRating = 3;
+      if (aiScore >= 85) starRating = 5;
+      else if (aiScore >= 70) starRating = 4;
+      else if (aiScore >= 50) starRating = 3;
+      else if (aiScore >= 30) starRating = 2;
+      else starRating = 1;
+
       if (this.dbManager) {
         this.dbManager.run(
-          `UPDATE photos SET ai_score = ?, is_rejected = ? WHERE id = ?`,
-          [aiScore, isRejected, photoId]
+          `UPDATE photos SET ai_score = ?, is_rejected = ?, star_rating = ? WHERE id = ?`,
+          [aiScore, isRejected, starRating, photoId]
         );
-        logger.info(`[AICullingService] Updated AI scores for photo ${photoId}: score=${aiScore}, rejected=${isRejected}`);
+        logger.info(`[AICullingService] Updated AI scores for photo ${photoId}: score=${aiScore}, stars=${starRating}, rejected=${isRejected}`);
       }
     } catch (err) {
       logger.error(`[AICullingService] Failed to analyze photo ${photoId}:`, err);

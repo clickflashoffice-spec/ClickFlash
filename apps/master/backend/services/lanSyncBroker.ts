@@ -14,7 +14,7 @@ export interface KioskStationInfo {
 }
 
 export interface SyncMessage {
-  type: 'REGISTER' | 'HEARTBEAT' | 'PHOTO_INGESTED' | 'ORDER_STATE_CHANGED' | 'RECONCILE_REQUEST' | 'RECONCILE_RESPONSE' | 'BROADCAST_EVENT';
+  type: 'REGISTER' | 'HEARTBEAT' | 'PHOTO_INGESTED' | 'ORDER_STATE_CHANGED' | 'RECONCILE_REQUEST' | 'RECONCILE_RESPONSE' | 'BROADCAST_EVENT' | 'WEBRTC_OFFER' | 'WEBRTC_ANSWER' | 'WEBRTC_ICE';
   senderId: string;
   timestamp: number;
   payload: any;
@@ -188,6 +188,39 @@ export class LanSyncBroker extends EventEmitter {
         break;
       }
 
+      case 'WEBRTC_OFFER':
+      case 'WEBRTC_ANSWER':
+      case 'WEBRTC_ICE': {
+        const registeredSender = this.getClientIdForSocket(ws);
+        const targetId = payload?.targetId;
+        if (!registeredSender || registeredSender !== senderId || typeof targetId !== 'string') {
+          logger.warn('[LanSyncBroker] Rejected unauthenticated or malformed WebRTC signal');
+          break;
+        }
+
+        const target = this.connectedClients.get(targetId);
+        if (!target || target.ws.readyState !== WebSocket.OPEN) {
+          this.sendMessageToClient(ws, {
+            type: 'BROADCAST_EVENT',
+            senderId: 'master',
+            timestamp: Date.now(),
+            payload: {
+              event: 'WEBRTC_PEER_UNAVAILABLE',
+              targetId,
+              transferId: payload.transferId
+            }
+          });
+          break;
+        }
+
+        this.sendMessageToClient(target.ws, {
+          ...message,
+          senderId: registeredSender,
+          timestamp: Date.now()
+        });
+        break;
+      }
+
       default:
         logger.debug(`[LanSyncBroker] Unhandled message type: ${type}`);
     }
@@ -259,6 +292,13 @@ export class LanSyncBroker extends EventEmitter {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(message));
     }
+  }
+
+  private getClientIdForSocket(ws: WebSocket): string | null {
+    for (const [kioskId, client] of this.connectedClients.entries()) {
+      if (client.ws === ws) return kioskId;
+    }
+    return null;
   }
 
   private handleClientDisconnect(ws: WebSocket): void {

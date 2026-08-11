@@ -89,7 +89,7 @@ export function ContactSection() {
   };
 
   return (
-    <section id="contact" className="py-16 md:py-24 lg:py-32 bg-white/5">
+    <section id="contact" className="py-16 md:py-24 lg:py-32 bg-slate-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeader
           title="Let's Build Your Vision"
@@ -100,8 +100,8 @@ export function ContactSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 max-w-6xl mx-auto">
           {/* Info */}
           <div>
-            <h3 className="text-2xl md:text-3xl font-serif font-medium text-white mb-6 md:mb-8">Get in Touch</h3>
-            <p className="text-white/70 mb-12 leading-relaxed">
+            <h3 className="text-2xl md:text-3xl font-serif font-medium text-slate-900 mb-6 md:mb-8">Get in Touch</h3>
+            <p className="text-slate-600 mb-12 leading-relaxed">
               Whether you&apos;re a luxury wedding photographer or a high-volume event agency,
               our ecosystem is built to handle your scale. Contact our sales team for
               a private demo of the ClickFlash protocol.
@@ -149,8 +149,8 @@ export function ContactSection() {
                   className="flex flex-col items-center justify-center py-12 text-center"
                 >
                   <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
-                  <h3 className="text-2xl font-serif text-white mb-2">Message Sent!</h3>
-                  <p className="text-white/70">{submitMessage}</p>
+                  <h3 className="text-2xl font-serif text-slate-900 mb-2">Message Sent!</h3>
+                  <p className="text-slate-600">{submitMessage}</p>
                   <Button
                     variant="outline"
                     className="mt-6"
@@ -169,12 +169,12 @@ export function ContactSection() {
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-[10px] uppercase tracking-widest text-white/70 font-bold">Full Name</label>
+                      <label className="text-[10px] uppercase tracking-widest text-slate-600 font-bold">Full Name</label>
                       <input
                         type="text"
                         value={formData.name}
                         onChange={(e) => handleChange("name", e.target.value)}
-                        className={`w-full bg-[#0B111F] border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors ${errors.name ? "border-red-500" : "border-white/20"
+                        className={`w-full bg-white border rounded-lg px-4 py-3 text-slate-900 focus:border-cyan-500 outline-none transition-colors ${errors.name ? "border-red-500" : "border-slate-200"
                           }`}
                         placeholder="John Doe"
                       />
@@ -183,12 +183,12 @@ export function ContactSection() {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] uppercase tracking-widest text-white/70 font-bold">Business Email</label>
+                      <label className="text-[10px] uppercase tracking-widest text-slate-600 font-bold">Business Email</label>
                       <input
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleChange("email", e.target.value)}
-                        className={`w-full bg-[#0B111F] border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors ${errors.email ? "border-red-500" : "border-white/20"
+                        className={`w-full bg-white border rounded-lg px-4 py-3 text-slate-900 focus:border-cyan-500 outline-none transition-colors ${errors.email ? "border-red-500" : "border-slate-200"
                           }`}
                         placeholder="john@example.com"
                       />
@@ -202,12 +202,12 @@ export function ContactSection() {
                     <select
                       value={formData.service}
                       onChange={(e) => handleChange("service", e.target.value)}
-                      className="w-full bg-[#0B111F] border border-white/20 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors appearance-none"
+                      className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-slate-900 focus:border-cyan-500 outline-none transition-colors appearance-none"
                     >
-                      <option className="bg-[#0B111F]">Ecosystem Demo</option>
-                      <option className="bg-[#0B111F]">Luxury Wedding Photography</option>
-                      <option className="bg-[#0B111F]">High-Volume Events</option>
-                      <option className="bg-[#0B111F]">Custom Implementation</option>
+                      <option className="bg-white">Ecosystem Demo</option>
+                      <option className="bg-white">Luxury Wedding Photography</option>
+                      <option className="bg-white">High-Volume Events</option>
+                      <option className="bg-white">Custom Implementation</option>
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -215,7 +215,7 @@ export function ContactSection() {
                     <textarea
                       value={formData.message}
                       onChange={(e) => handleChange("message", e.target.value)}
-                      className={`w-full bg-[#0B111F] border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors min-h-[150px] ${errors.message ? "border-red-500" : "border-white/20"
+                      className={`w-full bg-white border rounded-lg px-4 py-3 text-slate-900 focus:border-cyan-500 outline-none transition-colors min-h-[150px] ${errors.message ? "border-red-500" : "border-slate-200"
                         }`}
                       placeholder="Tell us about your photography scale..."
                     />

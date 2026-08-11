@@ -65,7 +65,7 @@ export function InstagramGrid() {
                     whileInView={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.05 }}
                     viewport={{ once: true }}
-                    className="relative aspect-square group overflow-hidden bg-white/10 rounded-lg md:rounded-xl cursor-pointer"
+                    className="relative aspect-square group overflow-hidden bg-slate-100 rounded-lg md:rounded-xl cursor-pointer"
                 >
                     <Image
                         src={post.image}
@@ -77,18 +77,18 @@ export function InstagramGrid() {
 
                     {/* Overlay */}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-6">
-                        <div className="flex items-center gap-2 text-white font-bold">
+                        <div className="flex items-center gap-2 text-slate-900 font-bold">
                             <Heart className="w-5 h-5 fill-current" />
                             <span>{post.likes}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-white font-bold">
+                        <div className="flex items-center gap-2 text-slate-900 font-bold">
                             <MessageCircle className="w-5 h-5 fill-current" />
                             <span>{post.comments}</span>
                         </div>
                     </div>
 
                     {/* Mobile Touch Indicator */}
-                    <div className="absolute bottom-2 right-2 md:hidden bg-black/20 backdrop-blur-md p-1 rounded-full text-white/80">
+                    <div className="absolute bottom-2 right-2 md:hidden bg-black/20 backdrop-blur-md p-1 rounded-full text-slate-900/80">
                         <Image src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" width={14} height={14} alt="Instagram" className="opacity-80" />
                     </div>
                 </motion.div>

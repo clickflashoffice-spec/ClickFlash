@@ -125,12 +125,12 @@ export function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
         </div>
 
         {/* Title */}
-        <h2 className="text-2xl font-bold text-white">
+        <h2 className="text-2xl font-bold text-slate-900">
           {isWebGLError ? "Graphics Error" : "Something went wrong"}
         </h2>
 
         {/* Description */}
-        <p className="text-white/70">
+        <p className="text-slate-600">
           {isWebGLError
             ? "Your browser or device may not support the required graphics features. Try updating your browser or using a different device."
             : "We apologize for the inconvenience. The application encountered an unexpected error."}
@@ -138,7 +138,7 @@ export function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
 
         {/* Error Details (Development Only) */}
         {process.env.NODE_ENV === "development" && error && (
-          <div className="text-left bg-white/10 rounded-lg p-4 overflow-auto max-h-40">
+          <div className="text-left bg-slate-100 rounded-lg p-4 overflow-auto max-h-40">
             <p className="text-sm font-mono text-red-600 break-all">
               {error.toString()}
             </p>
@@ -158,7 +158,7 @@ export function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
           )}
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/10 text-slate-700 font-semibold rounded-lg hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
           >
             <Home className="w-4 h-4" />
             Go Home
@@ -166,7 +166,7 @@ export function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
         </div>
 
         {/* Support Link */}
-        <p className="text-sm text-white/70">
+        <p className="text-sm text-slate-600">
           Need help?{" "}
           <Link href="/contact" className="text-cyan-700 hover:underline">
             Contact our support team
@@ -215,13 +215,13 @@ function ThreeDFallback() {
 
       {/* Content */}
       <div className="relative z-10 text-center p-8">
-        <div className="w-16 h-16 mx-auto mb-4 bg-[#0B111F]/10 backdrop-blur-sm rounded-full flex items-center justify-center">
+        <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 backdrop-blur-sm rounded-full flex items-center justify-center">
           <AlertTriangle className="w-8 h-8 text-amber-400" />
         </div>
-        <h3 className="text-xl font-bold text-white mb-2">
+        <h3 className="text-xl font-bold text-slate-900 mb-2">
           3D View Unavailable
         </h3>
-        <p className="text-white/70 max-w-xs mx-auto text-sm">
+        <p className="text-slate-600 max-w-xs mx-auto text-sm">
           Your device doesn&apos;t support WebGL, or 3D graphics are disabled.
           The content is still accessible without 3D visualization.
         </p>
@@ -265,7 +265,7 @@ function ThreeDLoadingFallback() {
     <div className="w-full h-full min-h-[400px] bg-slate-900 flex items-center justify-center">
       <div className="text-center">
         <div className="w-12 h-12 mx-auto mb-4 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
-        <p className="text-white/70 text-sm">Loading 3D Experience...</p>
+        <p className="text-slate-600 text-sm">Loading 3D Experience...</p>
       </div>
     </div>
   );

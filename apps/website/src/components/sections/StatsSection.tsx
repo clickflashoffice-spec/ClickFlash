@@ -15,11 +15,11 @@ const DEFAULT_STATS = [
 
 export function StatsSection({ stats = DEFAULT_STATS }: StatsSectionProps) {
   return (
-    <section className="bg-[#0B111F] py-20">
+    <section className="bg-white py-20">
       <div className="container mx-auto px-6">
         <div className="flex flex-col items-center justify-between gap-10 text-center md:flex-row md:items-start">
           <div className="text-left md:w-1/4">
-            <h2 className="mb-2 font-sans text-4xl font-bold text-white md:text-5xl">
+            <h2 className="mb-2 font-sans text-4xl font-bold text-slate-900 md:text-5xl">
               A Unique Story in <br />
               <span className="border-b-4 border-cyan-200 text-cyan-700">Every Number</span>
             </h2>
@@ -35,8 +35,8 @@ export function StatsSection({ stats = DEFAULT_STATS }: StatsSectionProps) {
                 transition={{ delay: index * 0.1 }}
                 className="flex max-w-[200px] flex-col items-center"
               >
-                <span className="mb-2 text-5xl font-bold text-white/90">{stat.value}</span>
-                <p className="text-sm leading-relaxed font-medium text-white/70">{stat.label}</p>
+                <span className="mb-2 text-5xl font-bold text-slate-800">{stat.value}</span>
+                <p className="text-sm leading-relaxed font-medium text-slate-600">{stat.label}</p>
               </motion.div>
             ))}
           </div>

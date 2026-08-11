@@ -60,7 +60,7 @@ export default async function RootLayout({
         <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
       </head>
       <body
-        className={`${outfit.variable} ${cormorant.variable} min-h-screen bg-[#0B111F] text-white antialiased`}
+        className={`${outfit.variable} ${cormorant.variable} min-h-screen bg-white text-slate-900 antialiased`}
       >
         {/* Skip to main content link for accessibility */}
         <a
@@ -71,7 +71,7 @@ export default async function RootLayout({
         </a>
 
         <LanguageProvider>
-          <ThemeProvider>
+          <ThemeProvider defaultTheme="light">
             <ErrorBoundary>
               <div id="main-content" className="relative w-full" role="main">
                 {children}

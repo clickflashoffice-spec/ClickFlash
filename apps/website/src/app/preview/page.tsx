@@ -167,16 +167,16 @@ const PremiumViewfinderUI = () => {
       </div>
 
       {/* Cinematic HUD Info */}
-      <div className="absolute bottom-12 left-12 text-white/80 font-mono text-[10px] tracking-[0.3em] space-y-2 uppercase">
+      <div className="absolute bottom-12 left-12 text-slate-900/80 font-mono text-[10px] tracking-[0.3em] space-y-2 uppercase">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></div>
           <p>SYSTEM.ONLINE</p>
         </div>
         <p id="hud-status" className="text-cyan-400 font-bold">AWAITING TARGET</p>
-        <p>AI_CORE: <span className="text-white/50">ACTIVE</span></p>
+        <p>AI_CORE: <span className="text-slate-900/50">ACTIVE</span></p>
       </div>
       
-      <div className="absolute top-12 right-12 text-white/80 font-mono text-[10px] tracking-[0.3em] text-right uppercase space-y-2">
+      <div className="absolute top-12 right-12 text-slate-900/80 font-mono text-[10px] tracking-[0.3em] text-right uppercase space-y-2">
         <p>TRACKING ALGORITHM V4.2</p>
         <p>EXPOSURE: AUTO</p>
         <p className="text-cyan-400">APERTURE: F/1.2</p>
@@ -190,10 +190,10 @@ const PremiumViewfinderUI = () => {
             <span className="mb-4 block text-[10px] font-black tracking-[0.4em] text-cyan-400 uppercase">
               The Hardware
             </span>
-            <h1 className="text-4xl md:text-6xl font-light tracking-tight mb-6 text-white">
+            <h1 className="text-4xl md:text-6xl font-light tracking-tight mb-6 text-slate-900">
               Automated <br/><span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-blue-500">Capture Systems</span>
             </h1>
-            <p className="text-lg text-white/60 font-light">Precision engineering meets artificial intelligence. Perfect shots, zero human intervention.</p>
+            <p className="text-lg text-slate-500 font-light">Precision engineering meets artificial intelligence. Perfect shots, zero human intervention.</p>
           </div>
         </section>
 
@@ -202,10 +202,10 @@ const PremiumViewfinderUI = () => {
             <span className="mb-4 block text-[10px] font-black tracking-[0.4em] text-[#00ffff] uppercase">
               Attractions & Parks
             </span>
-            <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6 text-white">
+            <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6 text-slate-900">
               High-Speed <span className="font-bold">Action</span>
             </h2>
-            <p className="text-lg text-white/60 font-light">Freezing thrill moments at 1/8000th of a second. Engineered for extreme environments.</p>
+            <p className="text-lg text-slate-500 font-light">Freezing thrill moments at 1/8000th of a second. Engineered for extreme environments.</p>
           </div>
         </section>
 
@@ -214,10 +214,10 @@ const PremiumViewfinderUI = () => {
             <span className="mb-4 block text-[10px] font-black tracking-[0.4em] text-[#ff0055] uppercase">
               Resort & Portraits
             </span>
-            <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6 text-white">
+            <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6 text-slate-900">
               Intelligent <span className="font-bold">Association</span>
             </h2>
-            <p className="text-lg text-white/60 font-light">Advanced facial recognition instantly groups families together for frictionless gallery delivery.</p>
+            <p className="text-lg text-slate-500 font-light">Advanced facial recognition instantly groups families together for frictionless gallery delivery.</p>
           </div>
         </section>
 
@@ -226,10 +226,10 @@ const PremiumViewfinderUI = () => {
             <span className="mb-6 block text-[10px] font-black tracking-[0.4em] text-cyan-400 uppercase">
               The Ecosystem
             </span>
-            <h2 className="text-5xl md:text-7xl font-light tracking-tighter text-white mb-8">
+            <h2 className="text-5xl md:text-7xl font-light tracking-tighter text-slate-900 mb-8">
               Proprietary <span className="font-bold">Software</span>
             </h2>
-            <p className="text-xl text-white/60 font-light mb-12 max-w-xl mx-auto">
+            <p className="text-xl text-slate-500 font-light mb-12 max-w-xl mx-auto">
               From capture to cloud. Images are processed by our AI and beamed instantly to your Master Portal and Touch Kiosks.
             </p>
             <button className="px-10 py-5 bg-white text-black font-bold tracking-[0.2em] uppercase text-xs rounded-full hover:scale-105 hover:bg-cyan-400 transition-all duration-300">

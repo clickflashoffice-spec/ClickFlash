@@ -108,7 +108,7 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
             <motion.h1
               id="hero-title"
               variants={itemVariants}
-              className="text-5xl sm:text-7xl md:text-9xl lg:text-[10rem] xl:text-[12rem] font-sans font-black text-white mb-6 md:mb-10 leading-[0.85] tracking-tighter drop-shadow-2xl px-2 uppercase mix-blend-overlay"
+              className="text-5xl sm:text-7xl md:text-9xl lg:text-[10rem] xl:text-[12rem] font-sans font-black text-white mb-6 md:mb-10 leading-[0.85] tracking-tighter drop-shadow-[0_10px_10px_rgba(0,0,0,0.4)] px-2 uppercase"
             >
               {title ? (
                 // SECURITY: title comes from CMS/build-time config, not user input.
@@ -127,19 +127,21 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
             >
               <div className="flex flex-col items-center gap-3">
                 <Link
-                  href="/bookings"
+                  href="https://www.fotiqo.com/book/v/clickflash"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="group relative px-8 md:px-12 py-4 md:py-5 bg-cyan-700 text-white font-black uppercase tracking-[0.15em] md:tracking-[0.2em] text-[12px] md:text-[13px] rounded-full hover:bg-cyan-700 transition-all duration-300 shadow-2xl shadow-cyan-400/30 focus:outline-none focus:ring-4 focus:ring-cyan-400/50 focus:ring-offset-4 focus:ring-offset-transparent"
                   aria-label="Book a professional photoshoot"
                 >
                   <span className="relative z-10">Book Now</span>
                   {/* Hover effect */}
-                  <span className="absolute inset-0 rounded-full bg-[#0B111F]/20 scale-0 group-hover:scale-100 transition-transform duration-300" aria-hidden="true" />
+                  <span className="absolute inset-0 rounded-full bg-slate-200 scale-0 group-hover:scale-100 transition-transform duration-300" aria-hidden="true" />
                 </Link>
               </div>
               
               <Link
                 href="/portfolio"
-                className="group px-8 md:px-12 py-4 md:py-5 bg-[#0B111F]/10 backdrop-blur-md border-2 border-white/20 text-white font-black uppercase tracking-[0.15em] md:tracking-[0.2em] text-[12px] md:text-[13px] rounded-full hover:bg-[#0B111F] hover:text-[#0B111F] transition-all duration-300 shadow-2xl focus:outline-none focus:ring-4 focus:ring-white/50 focus:ring-offset-4 focus:ring-offset-transparent"
+                className="group px-8 md:px-12 py-4 md:py-5 bg-slate-100 backdrop-blur-md border-2 border-slate-200 text-white font-black uppercase tracking-[0.15em] md:tracking-[0.2em] text-[12px] md:text-[13px] rounded-full hover:bg-white hover:text-[#0B111F] transition-all duration-300 shadow-2xl focus:outline-none focus:ring-4 focus:ring-white/50 focus:ring-offset-4 focus:ring-offset-transparent"
                 aria-label="View our photography portfolio"
               >
                 Portfolio
@@ -162,7 +164,7 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
               transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
               className="w-6 h-10 rounded-full border-2 border-white/40 flex items-start justify-center p-2"
             >
-              <motion.div className="w-1.5 h-2.5 bg-[#0B111F]/60 rounded-full" />
+              <motion.div className="w-1.5 h-2.5 bg-white/60 rounded-full" />
             </motion.div>
           </motion.div>
         )}

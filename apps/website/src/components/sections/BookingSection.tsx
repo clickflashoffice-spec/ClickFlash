@@ -149,7 +149,7 @@ export function BookingSection() {
                 className="text-center py-16"
               >
                 <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
-                <h3 className="text-3xl font-serif text-white mb-4">Booking Request Submitted!</h3>
+                <h3 className="text-3xl font-serif text-slate-900 mb-4">Booking Request Submitted!</h3>
                 {bookingId && (
                   <p className="text-cyan-700 text-lg mb-4">Reference: {bookingId}</p>
                 )}
@@ -171,7 +171,7 @@ export function BookingSection() {
                   <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Personal Information */}
                     <div className="space-y-6">
-                      <h3 className="text-lg font-serif text-white mb-6 flex items-center gap-2">
+                      <h3 className="text-lg font-serif text-slate-900 mb-6 flex items-center gap-2">
                         <span className="w-8 h-8 rounded-full bg-cyan-700/20 flex items-center justify-center text-cyan-700 text-sm">1</span>
                         Personal Information
                       </h3>
@@ -183,7 +183,7 @@ export function BookingSection() {
                             type="text"
                             value={formData.name}
                             onChange={(e) => handleChange("name", e.target.value)}
-                            className={`w-full bg-[#0B111F]/5 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors ${errors.name ? "border-red-500" : "border-white/10"
+                            className={`w-full bg-slate-50 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors ${errors.name ? "border-red-500" : "border-slate-100"
                               }`}
                             placeholder="John Doe"
                           />
@@ -196,7 +196,7 @@ export function BookingSection() {
                             type="email"
                             value={formData.email}
                             onChange={(e) => handleChange("email", e.target.value)}
-                            className={`w-full bg-[#0B111F]/5 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors ${errors.email ? "border-red-500" : "border-white/10"
+                            className={`w-full bg-slate-50 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors ${errors.email ? "border-red-500" : "border-slate-100"
                               }`}
                             placeholder="john@example.com"
                           />
@@ -210,15 +210,15 @@ export function BookingSection() {
                           type="tel"
                           value={formData.phone}
                           onChange={(e) => handleChange("phone", e.target.value)}
-                          className="w-full bg-[#0B111F]/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
+                          className="w-full bg-slate-50 border border-slate-100 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
                           placeholder="+1 (555) 123-4567"
                         />
                       </div>
                     </div>
 
                     {/* Event Details */}
-                    <div className="space-y-6 pt-6 border-t border-white/10">
-                      <h3 className="text-lg font-serif text-white mb-6 flex items-center gap-2">
+                    <div className="space-y-6 pt-6 border-t border-slate-100">
+                      <h3 className="text-lg font-serif text-slate-900 mb-6 flex items-center gap-2">
                         <span className="w-8 h-8 rounded-full bg-cyan-700/20 flex items-center justify-center text-cyan-700 text-sm">2</span>
                         Event Details
                       </h3>
@@ -233,7 +233,7 @@ export function BookingSection() {
                             type="date"
                             value={formData.event_date}
                             onChange={(e) => handleChange("event_date", e.target.value)}
-                            className="w-full bg-[#0B111F]/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
+                            className="w-full bg-slate-50 border border-slate-100 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
                           />
                         </div>
 
@@ -246,7 +246,7 @@ export function BookingSection() {
                             type="text"
                             value={formData.event_location}
                             onChange={(e) => handleChange("event_location", e.target.value)}
-                            className="w-full bg-[#0B111F]/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
+                            className="w-full bg-slate-50 border border-slate-100 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
                             placeholder="City, Venue"
                           />
                         </div>
@@ -262,7 +262,7 @@ export function BookingSection() {
                             type="number"
                             value={formData.guest_count}
                             onChange={(e) => handleChange("guest_count", e.target.value)}
-                            className="w-full bg-[#0B111F]/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
+                            className="w-full bg-slate-50 border border-slate-100 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors"
                             placeholder="Approximate number"
                             min="1"
                           />
@@ -276,7 +276,7 @@ export function BookingSection() {
                           <select
                             value={formData.budget_range}
                             onChange={(e) => handleChange("budget_range", e.target.value)}
-                            className="w-full bg-[#0B111F]/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors appearance-none"
+                            className="w-full bg-slate-50 border border-slate-100 rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors appearance-none"
                           >
                             {budgetOptions.map(option => (
                               <option key={option.value} value={option.value} className="bg-zinc-900">
@@ -289,8 +289,8 @@ export function BookingSection() {
                     </div>
 
                     {/* Service Selection */}
-                    <div className="space-y-6 pt-6 border-t border-white/10">
-                      <h3 className="text-lg font-serif text-white mb-6 flex items-center gap-2">
+                    <div className="space-y-6 pt-6 border-t border-slate-100">
+                      <h3 className="text-lg font-serif text-slate-900 mb-6 flex items-center gap-2">
                         <span className="w-8 h-8 rounded-full bg-cyan-700/20 flex items-center justify-center text-cyan-700 text-sm">3</span>
                         Service Selection
                       </h3>
@@ -300,7 +300,7 @@ export function BookingSection() {
                         <select
                           value={formData.service_type}
                           onChange={(e) => handleChange("service_type", e.target.value)}
-                          className={`w-full bg-[#0B111F]/5 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors appearance-none ${errors.service_type ? "border-red-500" : "border-white/10"
+                          className={`w-full bg-slate-50 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors appearance-none ${errors.service_type ? "border-red-500" : "border-slate-100"
                             }`}
                         >
                           {serviceOptions.map(option => (
@@ -317,7 +317,7 @@ export function BookingSection() {
                         <textarea
                           value={formData.message}
                           onChange={(e) => handleChange("message", e.target.value)}
-                          className={`w-full bg-[#0B111F]/5 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors min-h-[150px] ${errors.message ? "border-red-500" : "border-white/10"
+                          className={`w-full bg-slate-50 border rounded-lg px-4 py-3 text-white focus:border-cyan-500 outline-none transition-colors min-h-[150px] ${errors.message ? "border-red-500" : "border-slate-100"
                             }`}
                           placeholder="Tell us about your vision, specific requirements, or any questions you have..."
                         />

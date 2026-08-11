@@ -35,7 +35,7 @@ const projects = [
 
 export function PortfolioPreview() {
   return (
-    <section className="py-32 bg-[#0B111F] relative overflow-hidden">
+    <section className="py-32 bg-white relative overflow-hidden">
       <div className="container mx-auto px-6 relative z-10">
         <SectionHeader
           title="Our Portfolio"
@@ -70,12 +70,12 @@ export function PortfolioPreview() {
                 <span className="text-cyan-700 text-[10px] font-black uppercase tracking-[0.4em] mb-3">
                   {project.category}
                 </span>
-                <h3 className="text-2xl font-black text-white/90 mb-6 tracking-tight">
+                <h3 className="text-2xl font-black text-slate-800 mb-6 tracking-tight">
                   {project.title}
                 </h3>
                 <Link
                   href="/portfolio"
-                  className="flex items-center gap-2 text-white/70 font-bold text-sm group/link"
+                  className="flex items-center gap-2 text-slate-600 font-bold text-sm group/link"
                 >
                   View Details <ArrowRight size={16} className="transition-transform group-hover/link:translate-x-1" />
                 </Link>

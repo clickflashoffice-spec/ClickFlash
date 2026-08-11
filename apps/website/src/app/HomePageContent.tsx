@@ -40,10 +40,10 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
             <span className="mb-4 block text-[12px] font-black tracking-[0.3em] text-cyan-700 uppercase">
               Who We Are
             </span>
-            <h2 className="mb-6 text-3xl leading-tight font-black tracking-tighter text-white sm:text-4xl md:mb-8 md:text-5xl lg:text-6xl">
+            <h2 className="mb-6 text-3xl leading-tight font-black tracking-tighter text-slate-900 sm:text-4xl md:mb-8 md:text-5xl lg:text-6xl">
               {settings.aboutTitle || "Creating Smiles and Memories Since 2008"}
             </h2>
-            <p className="mb-8 max-w-xl text-base leading-relaxed text-white/70 md:mb-10 md:text-lg">
+            <p className="mb-8 max-w-xl text-base leading-relaxed text-slate-600 md:mb-10 md:text-lg">
               {settings.aboutText ||
                 "ClickFlash, established in 2008, specializes in hotel and resort photography. We capture unique moments and emotions in Tunisia and worldwide. Our growing team ensures every memory is unforgettable with high-quality services, products, and the latest technology at top destinations."}
             </p>
@@ -56,7 +56,7 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
                     "Customized and Personalized Services",
                   ]
               ).map((item) => (
-                <li key={item} className="flex items-center gap-3 font-bold text-white/80">
+                <li key={item} className="flex items-center gap-3 font-bold text-slate-900/80">
                   <CheckCircle2 className="h-6 w-6 text-cyan-700" />
                   {item}
                 </li>
@@ -73,7 +73,7 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="relative h-[350px] overflow-hidden rounded-2xl bg-[#0B111F]/5 shadow-2xl sm:h-[400px] md:h-[500px] md:rounded-3xl lg:h-[600px]"
+            className="relative h-[350px] overflow-hidden rounded-2xl bg-slate-50 shadow-2xl sm:h-[400px] md:h-[500px] md:rounded-3xl lg:h-[600px]"
           >
             <Image
               src={
@@ -104,7 +104,7 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
       <FeaturesBento settings={settings} />
 
       {/* PORTFOLIO PREVIEW */}
-      <section className="bg-white/5 py-16 text-white md:py-24 lg:py-32">
+      <section className="bg-slate-50 py-16 text-white md:py-24 lg:py-32">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center md:mb-16 lg:mb-20">
             <span className="mb-4 block text-[11px] font-black tracking-[0.3em] text-cyan-700 uppercase md:text-[12px]">
@@ -113,7 +113,7 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
             <h2 className="mb-4 text-3xl leading-tight font-black tracking-tighter sm:text-4xl md:mb-6 md:text-5xl lg:text-6xl">
               Gallery of Memories
             </h2>
-            <p className="mx-auto max-w-2xl px-4 text-base text-white/70 md:text-lg">
+            <p className="mx-auto max-w-2xl px-4 text-base text-slate-600 md:text-lg">
               Browse through our collection of captured moments from weddings, resorts, and special
               events around Tunisia.
             </p>
@@ -160,28 +160,28 @@ export default function HomePageContent({ settings }: HomePageContentProps) {
           <span className="mb-4 block text-[11px] font-black tracking-[0.3em] text-cyan-700 uppercase md:text-[12px]">
             Our Vision
           </span>
-          <h2 className="mb-6 text-3xl leading-tight font-black tracking-tighter text-white sm:text-4xl md:mb-8 md:text-5xl lg:text-6xl">
+          <h2 className="mb-6 text-3xl leading-tight font-black tracking-tighter text-slate-900 sm:text-4xl md:mb-8 md:text-5xl lg:text-6xl">
             {settings.visionTitle || "Creating Smiles Worldwide"}
           </h2>
           <div className="mb-8 flex flex-wrap justify-center gap-4 md:mb-10 md:gap-8">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-cyan-700" />
-              <span className="font-bold text-white/90">Capture Special Moments</span>
+              <span className="font-bold text-slate-800">Capture Special Moments</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-cyan-700" />
-              <span className="font-bold text-white/90">Share Global Adventures</span>
+              <span className="font-bold text-slate-800">Share Global Adventures</span>
             </div>
           </div>
-          <p className="mb-6 px-2 text-base leading-relaxed text-white/70 md:mb-8 md:text-lg">
+          <p className="mb-6 px-2 text-base leading-relaxed text-slate-600 md:mb-8 md:text-lg">
             {settings.visionText1 ||
               "At ClickFlash, our vision is to create more and more smiles by giving people the opportunity to save and share their special moments, feelings, dreams, experiences, and adventures."}
           </p>
-          <p className="mb-8 px-2 text-base leading-relaxed text-white/70 md:mb-10 md:text-lg">
+          <p className="mb-8 px-2 text-base leading-relaxed text-slate-600 md:mb-10 md:text-lg">
             {settings.visionText2 ||
               "By preserving these cherished memories, we help individuals relive their happiest moments and share their joy with loved ones across the globe."}
           </p>
-          <p className="px-2 text-lg font-medium text-white md:text-xl">
+          <p className="px-2 text-lg font-medium text-slate-900 md:text-xl">
             {settings.visionText3 || "Your moments, our passion –"}{" "}
             <span className="text-cyan-700">let's create memories</span> together.
           </p>

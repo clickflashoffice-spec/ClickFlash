@@ -41,25 +41,25 @@ export default function ClientGateway() {
     };
 
     return (
-        <main className="min-h-screen bg-white/5 flex items-center justify-center p-6 relative overflow-hidden">
+        <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6 relative overflow-hidden">
             {/* Background Ambience */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-100/30 blur-[150px] rounded-full" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-white/20/30 blur-[150px] rounded-full" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-slate-200/30 blur-[150px] rounded-full" />
             </div>
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
-                className="relative z-10 w-full max-w-md bg-[#0B111F] border border-white/20 p-10 rounded-[2.5rem] shadow-2xl shadow-cyan-900/5 transition-all hover:shadow-cyan-900/10"
+                className="relative z-10 w-full max-w-md bg-white border border-slate-200 p-10 rounded-[2.5rem] shadow-2xl shadow-cyan-900/5 transition-all hover:shadow-cyan-900/10"
             >
                 <div className="text-center mb-10">
                     <div className="inline-flex items-center justify-center mb-10 transform hover:scale-110 transition-transform">
                         <Logo size="2xl" />
                     </div>
-                    <h1 className="text-3xl font-black text-white mb-3 tracking-tighter uppercase">Client Access</h1>
-                    <p className="text-white/70 font-medium text-sm leading-relaxed">
+                    <h1 className="text-3xl font-black text-slate-900 mb-3 tracking-tighter uppercase">Client Access</h1>
+                    <p className="text-slate-600 font-medium text-sm leading-relaxed">
                         Enter your unique session code to access <br /> your private digital gallery.
                     </p>
                 </div>
@@ -75,13 +75,13 @@ export default function ClientGateway() {
                             <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <CheckCircle className="w-10 h-10 text-emerald-500" />
                             </div>
-                            <h2 className="text-2xl font-black text-white mb-2">Access Granted!</h2>
+                            <h2 className="text-2xl font-black text-slate-900 mb-2">Access Granted!</h2>
                             {galleryInfo && (
-                                <p className="text-white/70 font-bold mb-2">
+                                <p className="text-slate-600 font-bold mb-2">
                                     Welcome, {galleryInfo.client_name}
                                 </p>
                             )}
-                            <p className="text-sm text-white/70 font-medium italic mt-4">
+                            <p className="text-sm text-slate-600 font-medium italic mt-4">
                                 Preparing your high-resolution memories...
                             </p>
                         </motion.div>
@@ -107,8 +107,8 @@ export default function ClientGateway() {
                                             setError("");
                                         }}
                                         placeholder="e.g. VIP-2026-CH"
-                                        className={`w-full bg-white/5 border-2 rounded-2xl px-6 py-5 pl-14 text-white placeholder:text-slate-300 
-                                            focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-mono font-bold tracking-wider text-xl ${error ? "border-red-500 bg-red-50/50" : "border-white/10"
+                                        className={`w-full bg-slate-50 border-2 rounded-2xl px-6 py-5 pl-14 text-white placeholder:text-slate-300 
+                                            focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-mono font-bold tracking-wider text-xl ${error ? "border-red-500 bg-red-50/50" : "border-slate-100"
                                             }`}
                                         autoFocus
                                     />
@@ -137,7 +137,7 @@ export default function ClientGateway() {
                                 className="w-full bg-slate-900 text-white font-black h-16 rounded-2xl hover:bg-cyan-700 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:hover:scale-100 flex items-center justify-center gap-3 group text-[13px] uppercase tracking-[0.2em] shadow-xl hover:shadow-cyan-400/20"
                             >
                                 {loading ? (
-                                    <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                                    <div className="w-6 h-6 border-3 border-slate-300 border-t-white rounded-full animate-spin" />
                                 ) : (
                                     <>
                                         Authorize Portal
@@ -150,8 +150,8 @@ export default function ClientGateway() {
                 </AnimatePresence>
 
                 <div className="mt-12 pt-8 border-t border-slate-50 text-center">
-                    <p className="text-[11px] font-bold text-white/70 uppercase tracking-widest">
-                        Having issues? <Link href="/contact" className="text-cyan-700 hover:text-white underline underline-offset-4 transition-colors">Contact Expert Advisor</Link>
+                    <p className="text-[11px] font-bold text-slate-600 uppercase tracking-widest">
+                        Having issues? <Link href="/contact" className="text-cyan-700 hover:text-slate-900 underline underline-offset-4 transition-colors">Contact Expert Advisor</Link>
                     </p>
                 </div>
             </motion.div>

@@ -4,8 +4,14 @@ import { pagesStore } from '@/lib/cmsStore';
 import { createPageMetadata } from '../metadata';
 import { sanitizeHtml } from '@/lib/sanitize';
 
-export function generateStaticParams() {
-  return Array.from(pagesStore.keys()).map((slug) => ({ slug }));
+export async function generateStaticParams() {
+  const slugs = Array.from(pagesStore.keys()).map((slug) => ({ slug }));
+  // Next.js static export requires at least one path if there are no dynamic params, 
+  // or it complains that generateStaticParams is missing when it evaluates to empty.
+  if (slugs.length === 0) {
+    return [{ slug: "_empty" }];
+  }
+  return slugs;
 }
 
 export const revalidate = false;

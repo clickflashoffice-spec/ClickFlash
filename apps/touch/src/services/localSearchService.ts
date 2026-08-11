@@ -10,6 +10,7 @@
 
 import { logger } from '@/utils/logger';
 import { Photo } from '@/types';
+import { aiClient } from './aiClient';
 
 export interface SearchResult {
     photo: Photo;
@@ -59,9 +60,6 @@ class LocalAISearchService {
         return LocalAISearchService.instance;
     }
 
-    /**
-     * Initialize the search service and load models
-     */
     public async initialize(): Promise<void> {
         if (this.isInitialized) return;
         if (this.modelLoadingPromise) return this.modelLoadingPromise;
@@ -69,18 +67,6 @@ class LocalAISearchService {
         this.modelLoadingPromise = (async () => {
             try {
                 logger.info('[LocalSearch] Initializing AI search models...');
-
-                // Load face-api.js models
-                const faceapi = await import('@vladmandic/face-api');
-                
-                const modelUrl = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model';
-                
-                await Promise.all([
-                    faceapi.nets.ssdMobilenetv1.loadFromUri(modelUrl),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl),
-                    faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl),
-                    faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl),
-                ]);
 
                 // Load MobileNet for visual embeddings
                 // Using a pre-trained model for image features
@@ -134,21 +120,19 @@ class LocalAISearchService {
      */
     private async extractFaceEmbedding(photoId: string, img: HTMLImageElement): Promise<void> {
         try {
-            const faceapi = await import('@vladmandic/face-api');
-            
-            const detection = await faceapi.detectSingleFace(img)
-                .withFaceLandmarks()
-                .withFaceDescriptor();
+            const response = await aiClient.getFaceDescriptor(img);
 
-            if (detection) {
+            if (response.success && response.descriptor) {
                 this.faceEmbeddings.set(photoId, {
                     photoId,
-                    embedding: detection.descriptor,
+                    embedding: new Float32Array(response.descriptor),
                     faceCount: 1,
                 });
+            } else {
+                logger.debug(`[LocalSearch] No face found in photo ${photoId}`);
             }
         } catch (error) {
-            logger.debug(`[LocalSearch] No face found in photo ${photoId}`);
+            logger.debug(`[LocalSearch] Failed to extract face from photo ${photoId}`);
         }
     }
 
@@ -212,19 +196,14 @@ class LocalAISearchService {
             await this.initialize();
         }
 
-        const faceapi = await import('@vladmandic/face-api');
+        const response = await aiClient.getFaceDescriptor(queryImage);
 
-        // Get query face descriptor — requires the landmark step before
-        // descriptor extraction per face-api's task chain.
-        const queryDetection = await faceapi
-            .detectSingleFace(queryImage as Parameters<typeof faceapi.detectSingleFace>[0])
-            .withFaceLandmarks()
-            .withFaceDescriptor();
-
-        if (!queryDetection) {
+        if (!response.success || !response.descriptor) {
             logger.debug('[LocalSearch] No face detected in query image');
             return [];
         }
+        
+        const queryEmbedding = new Float32Array(response.descriptor);
 
         const results: SearchResult[] = [];
 
@@ -232,19 +211,17 @@ class LocalAISearchService {
             const stored = this.faceEmbeddings.get(photo.id);
             if (!stored) continue;
 
-            // Note: matchFaceDistance does not exist on face-api — euclideanDistance
-            // is the correct function for comparing two descriptor vectors.
-            const distance = faceapi.euclideanDistance(
-                queryDetection.descriptor as unknown as number[],
+            const similarity = this.cosineSimilarity(
+                queryEmbedding,
                 stored.embedding
             );
 
-            if (distance < 1 - this.config.similarityThreshold) {
+            if (similarity > this.config.similarityThreshold) {
                 results.push({
                     photo,
-                    score: 1 - distance,
+                    score: similarity,
                     matchType: 'face',
-                    matchReason: `Face similarity: ${((1 - distance) * 100).toFixed(1)}%`,
+                    matchReason: `Face similarity: ${(similarity * 100).toFixed(1)}%`,
                 });
             }
         }

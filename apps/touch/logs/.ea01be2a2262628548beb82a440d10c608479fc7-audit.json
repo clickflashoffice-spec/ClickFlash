@@ -6,11 +6,6 @@
     "auditLog": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\touch\\logs\\.ea01be2a2262628548beb82a440d10c608479fc7-audit.json",
     "files": [
         {
-            "date": 1785175960755,
-            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\touch\\logs\\clickflash-error-2026-07-27.log",
-            "hash": "0921dcb4384a95c75cc481029b657573958b908e12861bfc7f970da242b9fc03"
-        },
-        {
             "date": 1786109010599,
             "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\touch\\logs\\clickflash-error-2026-08-07.log",
             "hash": "29c1354ab0a1c5b4b23962f51dac45e30953d41b97c47b09c4e5911277f1c0c4"
@@ -24,6 +19,16 @@
             "date": 1786230321477,
             "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\touch\\logs\\clickflash-error-2026-08-09.log",
             "hash": "b91cc3efaf45543c076fd2679e590385e487d1fba339608217bbb6d283e3c058"
+        },
+        {
+            "date": 1786317567119,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\touch\\logs\\clickflash-error-2026-08-10.log",
+            "hash": "b961a445555caa0627a43f86ec4ee94898c787e3ec459ad58b833b58d7ff7c21"
+        },
+        {
+            "date": 1786472393928,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\apps\\touch\\logs\\clickflash-error-2026-08-11.log",
+            "hash": "0f323cbd80b212692be6887320ab8b85ca45056873a23d020913bc1ae42edfe8"
         }
     ],
     "hashType": "sha256"

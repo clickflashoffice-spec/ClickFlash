@@ -4,9 +4,13 @@
 
 import { offlineQueue, QueueItem } from '../OfflineQueue';
 import { logger } from '../../utils/logger';
-import { TextEncoder } from 'util';
+import util from 'util';
 
-(global as any).TextEncoder = TextEncoder;
+const TextEncoderClass = util.TextEncoder || (globalThis as any).TextEncoder;
+(globalThis as any).TextEncoder = TextEncoderClass;
+if (typeof window !== 'undefined') {
+    (window as any).TextEncoder = TextEncoderClass;
+}
 
 const mockFetch = vi.fn();
 (global as any).fetch = mockFetch;
@@ -89,22 +93,23 @@ function setOnline(online: boolean) {
 }
 
 function setupCrypto() {
-    Object.defineProperty(global, 'crypto', {
-        value: {
-            randomUUID: vi.fn(() => 'test-id-123'),
-            getRandomValues: vi.fn((arr: Uint8Array) => {
-                arr.fill(1);
-                return arr;
-            }),
-            subtle: {
-                importKey: vi.fn(async () => ({ type: 'secret' } as CryptoKey)),
-                digest: vi.fn(async () => new Uint8Array(32).buffer),
-                encrypt: vi.fn(async () => new Uint8Array(32).buffer)
-            }
-        },
-        writable: true,
-        configurable: true
-    });
+    const mockCrypto = {
+        randomUUID: vi.fn(() => 'test-id-123'),
+        getRandomValues: vi.fn((arr: Uint8Array) => {
+            arr.fill(1);
+            return arr;
+        }),
+        subtle: {
+            importKey: vi.fn(async () => ({ type: 'secret' } as CryptoKey)),
+            digest: vi.fn(async () => new Uint8Array(32).buffer),
+            encrypt: vi.fn(async () => new Uint8Array(32).buffer)
+        }
+    };
+    Object.defineProperty(global, 'crypto', { value: mockCrypto, writable: true, configurable: true });
+    Object.defineProperty(globalThis, 'crypto', { value: mockCrypto, writable: true, configurable: true });
+    if (typeof window !== 'undefined') {
+        Object.defineProperty(window, 'crypto', { value: mockCrypto, writable: true, configurable: true });
+    }
 }
 
 describe('Unified OfflineQueue', () => {

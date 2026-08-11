@@ -1,12 +1,33 @@
 import { useState, useEffect, useCallback } from 'react';
 import { logger } from '@/utils/logger';
 
+export type VoiceCommand = 'SHOW_PHOTOS' | 'SEARCH_FACE' | 'CHECKOUT' | 'HELP' | 'UNKNOWN';
+
 interface VoiceState {
   isListening: boolean;
   transcript: string;
+  command: VoiceCommand | null;
   isSpeaking: boolean;
   error: string | null;
 }
+
+const detectCommand = (transcript: string): VoiceCommand => {
+    const text = transcript.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    
+    if (/show photos|open gallery|mostrar fotos|abrir galeria|montrer photos|galerie|fotos zeigen|mostra foto|galleria|عرض الصور|المعرض/.test(text)) {
+        return 'SHOW_PHOTOS';
+    }
+    if (/search face|buscar cara|chercher visage|gesicht suchen|cerca viso|buscar rosto|البحث بالوجه/.test(text)) {
+        return 'SEARCH_FACE';
+    }
+    if (/checkout|pay|pagar|payer|kasse|cassa|الدفع/.test(text)) {
+        return 'CHECKOUT';
+    }
+    if (/help|ayuda|aide|hilfe|aiuto|ajuda|مساعدة/.test(text)) {
+        return 'HELP';
+    }
+    return 'UNKNOWN';
+};
 
 /**
  * Hook for Pillar 1: Hybrid Physical Layer (Voice UI)
@@ -19,6 +40,7 @@ export const useVoiceAssistant = () => {
   const [state, setState] = useState<VoiceState>({
     isListening: false,
     transcript: '',
+    command: null,
     isSpeaking: false,
     error: null,
   });
@@ -37,10 +59,10 @@ export const useVoiceAssistant = () => {
     const recognitionInstance = new SpeechRecognition();
     recognitionInstance.continuous = false; // Stop after a single utterance
     recognitionInstance.interimResults = false;
-    recognitionInstance.lang = 'en-US';
+    // Leaving lang unspecified allows browser to fallback gracefully to system/default or handle some mixed content
 
     recognitionInstance.onstart = () => {
-      setState(s => ({ ...s, isListening: true, error: null }));
+      setState(s => ({ ...s, isListening: true, error: null, command: null, transcript: '' }));
       logger.info('[VoiceAssistant] Listening started...');
     };
 
@@ -48,11 +70,10 @@ export const useVoiceAssistant = () => {
       const current = event.resultIndex;
       const transcriptStr = event.results[current][0].transcript;
       
-      logger.info(`[VoiceAssistant] Heard: "${transcriptStr}"`);
-      setState(s => ({ ...s, transcript: transcriptStr }));
+      const detected = detectCommand(transcriptStr);
+      logger.info(`[VoiceAssistant] Heard: "${transcriptStr}", Command: ${detected}`);
       
-      // In a real implementation, we would route this transcript
-      // to an LLM or command parser to trigger UI state changes.
+      setState(s => ({ ...s, transcript: transcriptStr, command: detected }));
     };
 
     recognitionInstance.onerror = (event: any) => {

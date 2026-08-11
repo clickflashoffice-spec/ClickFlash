@@ -51,7 +51,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
 
     // Pillar 1: Hybrid Physical Layer (Optional Zero-Touch)
     const { startScanning, detectedGuestId } = useProximityAuth();
-    const { listen, transcript, speak, isListening, isSpeaking } = useVoiceAssistant();
+    const { listen, transcript, command, speak, isListening, isSpeaking } = useVoiceAssistant();
 
     React.useEffect(() => {
         // Auto-start proximity scanning if hardware allows
@@ -69,16 +69,29 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
     }, [detectedGuestId, resetIdleTimer, speak, showToast]);
 
     React.useEffect(() => {
-        if (!transcript) return;
-        const lower = transcript.toLowerCase();
-        if (lower.includes('show photos') || lower.includes('open gallery')) {
-             setTouchView('photos');
-             speak("Opening your photos.");
-        } else if (lower.includes('checkout') || lower.includes('pay')) {
-             setTouchView('order-config');
-             speak("Opening the checkout screen.");
+        if (!command) return;
+        
+        switch(command) {
+            case 'SHOW_PHOTOS':
+                setTouchView('photos');
+                speak("Opening your photos.");
+                break;
+            case 'CHECKOUT':
+                setTouchView('order-config');
+                speak("Opening the checkout screen.");
+                break;
+            case 'SEARCH_FACE':
+                showToast("Face search coming soon!");
+                speak("Face search feature coming soon.");
+                break;
+            case 'HELP':
+                showToast("Please ask a staff member for assistance.");
+                speak("Please ask a staff member for assistance.");
+                break;
+            case 'UNKNOWN':
+                break;
         }
-    }, [transcript, speak]);
+    }, [command, speak, showToast]);
 
     // Rule 22: Smart-Sync Reconciliation (Persistence)
     React.useEffect(() => {

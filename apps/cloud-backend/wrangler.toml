@@ -3,8 +3,42 @@ main = "src/index.ts"
 compatibility_date = "2024-10-01"
 compatibility_flags = [ "nodejs_compat" ]
 
+[[r2_buckets]]
+binding = "PHOTO_BUCKET"
+bucket_name = "clickflash-photos"
+
+# Local development creates a persisted preview namespace automatically.
+# Production deployment must supply the provisioned namespace ID explicitly.
+[[kv_namespaces]]
+binding = "SESSION_KV"
+
+[[queues.producers]]
+queue = "ai-tagger-queue"
+binding = "AI_TAGGER_QUEUE"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "clickflash-db"
 database_id = "74b44376-3e3b-4f94-8ddd-61bf30dffa5d"
 migrations_dir = "migrations"
+
+[[d1_databases]]
+binding = "DB_MENA"
+database_name = "clickflash-db-mena"
+database_id = "74b44376-3e3b-4f94-8ddd-61bf30dffa5d"
+
+[[d1_databases]]
+binding = "DB_EU"
+database_name = "clickflash-db-eu"
+database_id = "74b44376-3e3b-4f94-8ddd-61bf30dffa5d"
+
+[[d1_databases]]
+binding = "DB_AMER"
+database_name = "clickflash-db-amer"
+database_id = "74b44376-3e3b-4f94-8ddd-61bf30dffa5d"
+
+[[d1_databases]]
+binding = "DB_APAC"
+database_name = "clickflash-db-apac"
+database_id = "74b44376-3e3b-4f94-8ddd-61bf30dffa5d"
+

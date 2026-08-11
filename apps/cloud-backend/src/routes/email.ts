@@ -18,19 +18,43 @@ app.post('/notifications/ready', async (c) => {
       return c.json({ error: 'Session not found or missing customer_email' }, 404);
     }
 
-    if (c.env.MANAGEMENT_BACKEND_URL) {
+    const emailSubject = 'Your photos are ready! 📸';
+    const emailHtml = `<div style="font-family: sans-serif; padding: 20px;">
+      <h2>Hi ${session.guest_name || 'Guest'},</h2>
+      <p>Your photos from today's session are now ready to view and download!</p>
+      <p><a href="https://gallery.clicketflash.com/session/${session.id}" style="background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Your Gallery</a></p>
+    </div>`;
+
+    // 1. Direct Resend API Delivery
+    if (c.env.RESEND_API_KEY) {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${c.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'ClickFlash <no-reply@clicketflash.com>',
+          to: [session.customer_email as string],
+          subject: emailSubject,
+          html: emailHtml,
+        }),
+      }).catch(() => {});
+    } else if (c.env.MANAGEMENT_BACKEND_URL) {
+      // 2. Management Backend Relay Fallback
       await fetch(`${c.env.MANAGEMENT_BACKEND_URL}/api/email/relay`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: session.customer_email as string,
-          from: 'ClickFlash <no-reply@clickflash.com>',
-          subject: 'Your photos are ready!',
-          html: `<p>Hi ${session.guest_name || 'Guest'},</p><p>Your photos from today's session are now ready to view and download!</p>`
-        })
+          from: 'ClickFlash <no-reply@clicketflash.com>',
+          subject: emailSubject,
+          html: emailHtml,
+        }),
       }).catch(() => {});
     }
 
+    // 3. Expo Push Notification
     if (session.push_token) {
       try {
         await fetch('https://exp.host/--/api/v2/push/send', {
@@ -38,10 +62,10 @@ app.post('/notifications/ready', async (c) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             to: session.push_token,
-            title: 'Your photos are ready! 📸',
+            title: emailSubject,
             body: 'Tap here to view and download your memories.',
-            data: { sessionId: session.id }
-          })
+            data: { sessionId: session.id },
+          }),
         });
       } catch (e) {
         // Log silently

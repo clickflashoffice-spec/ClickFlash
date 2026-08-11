@@ -1,9 +1,9 @@
 // @ts-nocheck
-import * as faceapi from "@vladmandic/face-api";
 import { Photo } from "../types.ts";
 import { logger } from "../utils/logger";
 import { pb } from "./api/core";
 import { apiService } from "./apiService";
+import { aiClient } from "./aiClient";
 
 export interface IdentifiedUser {
   id: string;
@@ -24,50 +24,20 @@ export interface FaceSearchResult {
   message: string;
 }
 
-// Configuration for face-api (Client-side detection only)
-const MODEL_URL = "/models";
-
 export const faceRecognitionService = {
-  isLoaded: false,
+  isLoaded: true, // We don't load local models anymore, always ready via AI worker
   loadPromise: null as Promise<void> | null,
 
   async loadModels(): Promise<void> {
-    if (this.isLoaded) return;
-    if (this.loadPromise) return this.loadPromise;
-
-    this.loadPromise = (async () => {
-      try {
-        logger.info("[FaceRecognition] Loading Edge AI models...");
-        await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-
-        this.isLoaded = true;
-        logger.info("[FaceRecognition] Edge AI models loaded successfully");
-      } catch (error) {
-        logger.error(
-          "[FaceRecognition] Failed to load models",
-          error instanceof Error ? error : undefined,
-        );
-        throw error;
-      } finally {
-        this.loadPromise = null;
-      }
-    })();
-
-    return this.loadPromise;
+    return Promise.resolve();
   },
 
   async detectFace(imageBlob: Blob): Promise<boolean> {
     if (!imageBlob || imageBlob.size === 0) return false;
 
     try {
-      if (!this.isLoaded) await this.loadModels();
-
-      const img = await faceapi.bufferToImage(imageBlob);
-      const detection = await faceapi.detectSingleFace(img).withFaceLandmarks();
-
-      return !!detection;
+      const response = await aiClient.getFaceDescriptor(imageBlob);
+      return response.success && !!response.descriptor;
     } catch (error) {
       logger.error(
         "[FaceRecognition] Error in face detection",
@@ -79,25 +49,23 @@ export const faceRecognitionService = {
 
   /**
    * Search for faces in the local photo database
-   * Returns photos that match the scanned face using sub-2-second Edge AI mapping
+   * Returns photos that match the scanned face using AI Worker vector matching
    */
   async searchFaces(imageBlob: Blob): Promise<Photo[]> {
     try {
-      logger.info("[FaceRecognition] Computing face vector on Edge...");
+      logger.info("[FaceRecognition] Computing face vector on Edge Worker...");
       
-      if (!this.isLoaded) await this.loadModels();
-      const img = await faceapi.bufferToImage(imageBlob);
-      const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+      const response = await aiClient.getFaceDescriptor(imageBlob);
 
-      if (!detection) {
-        logger.warn("[FaceRecognition] No face detected on Edge");
+      if (!response.success || !response.descriptor) {
+        logger.warn("[FaceRecognition] No face detected on Edge Worker");
         return [];
       }
 
-      logger.info("[FaceRecognition] Transmitting 128D vector to Master...");
-      const descriptorArray = Array.from(detection.descriptor);
+      logger.info("[FaceRecognition] Transmitting vector to Master...");
+      const descriptorArray = response.descriptor;
 
-      const response = await fetch(`${pb.baseUrl}/api/faces/search-vector`, {
+      const fetchResponse = await fetch(`${pb.baseUrl}/api/faces/search-vector`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
@@ -106,11 +74,11 @@ export const faceRecognitionService = {
         body: JSON.stringify({ descriptor: descriptorArray }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Face vector search failed: ${response.statusText}`);
+      if (!fetchResponse.ok) {
+        throw new Error(`Face vector search failed: ${fetchResponse.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await fetchResponse.json();
       
       if (!data.matches || data.matches.length === 0) {
         return [];

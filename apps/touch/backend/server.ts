@@ -57,7 +57,6 @@ const isElectron = process.versions && !!process.versions.electron;
 const isWeb = !isElectron;
 logger.info(`[Environment] Running in ${isElectron ? "Electron" : "Web"} mode`);
 
-import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 

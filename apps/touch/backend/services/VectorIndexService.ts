@@ -1,6 +1,6 @@
 // backend/services/VectorIndexService.ts
-import { DatabaseManager } from "../shared/db";
-import { Logger } from "../shared/logger";
+import type { DatabaseManager } from "../shared/db";
+import type { Logger } from "../shared/logger";
 import path from "path";
 import fs from "fs";
 
@@ -10,8 +10,14 @@ const BINARY_INDEX_FILE = path.join(DATA_DIR, "face_vectors.bin");
 const JSON_INDEX_FILE = path.join(DATA_DIR, "face_vectors.json");
 
 const MAGIC_BYTES = Buffer.from("CFVI"); // ClickFlash Vector Index
-const VERSION = 1;
+const VERSION = 2;
 const VECTOR_DIM = 128;
+
+interface VectorIndexItem {
+  id: string;
+  title: string;
+  vector: Float32Array;
+}
 
 class VPTreeNode {
   constructor(
@@ -61,33 +67,19 @@ export class VectorIndexService {
         this.loadBinary();
         this.isInitialized = true;
       } else if (fs.existsSync(JSON_INDEX_FILE)) {
-        this.logger.info("[VectorIndex] Migrating JSON index to binary...");
-        const data = JSON.parse(fs.readFileSync(JSON_INDEX_FILE, "utf8"));
-        this.root = this.hydrateFromJson(data);
-        this.isInitialized = true;
-        this.isDirty = true;
-        this.save(); // Convert to binary immediately
+        this.logger.info(
+          "[VectorIndex] Legacy JSON index detected; rebuilding normalized index from database...",
+        );
+        await this.rebuildFromDb();
       } else {
         await this.rebuildFromDb();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error("[VectorIndex] Initialization failed. Rebuilding...", {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
       await this.rebuildFromDb();
     }
-  }
-
-  private hydrateFromJson(node: any): VPTreeNode | null {
-    if (!node) return null;
-    return new VPTreeNode(
-      new Float32Array(node.pivot),
-      node.id,
-      node.title,
-      node.radius,
-      this.hydrateFromJson(node.inside),
-      this.hydrateFromJson(node.outside),
-    );
   }
 
   public async rebuildFromDb(): Promise<void> {
@@ -102,11 +94,21 @@ export class VectorIndexService {
         descriptor: string;
       }>("SELECT id, photoId, descriptor FROM photo_faces");
 
-      const items = faces.map((f) => ({
-        id: f.photoId,
-        title: f.id,
-        vector: new Float32Array(JSON.parse(f.descriptor)),
-      }));
+      const items = faces.map((face): VectorIndexItem => {
+        const parsedDescriptor: unknown = JSON.parse(face.descriptor);
+        if (
+          !Array.isArray(parsedDescriptor) ||
+          !parsedDescriptor.every((value): value is number => typeof value === "number")
+        ) {
+          throw new Error(`Face ${face.id} has an invalid descriptor`);
+        }
+
+        return {
+          id: face.photoId,
+          title: face.id,
+          vector: VectorIndexService.normalizeL2(parsedDescriptor),
+        };
+      });
 
       this.root = this.buildVPTree(items);
       this.isInitialized = true;
@@ -115,13 +117,14 @@ export class VectorIndexService {
         `[VectorIndex] Rebuilt index with ${items.length} faces.`,
       );
       this.save();
-    } catch (e: any) {
-      this.logger.warn(`[VectorIndex] Could not rebuild from DB: ${e.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`[VectorIndex] Could not rebuild from DB: ${message}`);
       this.isInitialized = true; // Still marked as initialized to prevent constant retries if table is missing
     }
   }
 
-  private buildVPTree(items: any[]): VPTreeNode | null {
+  private buildVPTree(items: VectorIndexItem[]): VPTreeNode | null {
     if (items.length === 0) return null;
 
     const index = Math.floor(Math.random() * items.length);
@@ -137,8 +140,8 @@ export class VectorIndexService {
     );
     const median = this.getMedian(distances);
 
-    const insideItems: any[] = [];
-    const outsideItems: any[] = [];
+    const insideItems: VectorIndexItem[] = [];
+    const outsideItems: VectorIndexItem[] = [];
 
     for (let i = 0; i < items.length; i++) {
       if (distances[i] < median) {
@@ -158,17 +161,46 @@ export class VectorIndexService {
     );
   }
 
+  public static normalizeL2(
+    vector: number[] | Float32Array,
+    expectedDim: number = VECTOR_DIM,
+    epsilon: number = 1e-12,
+  ): Float32Array {
+    if (expectedDim !== VECTOR_DIM || vector.length !== expectedDim) {
+      throw new RangeError(
+        `Expected a ${VECTOR_DIM}D face vector, received ${vector.length}D`,
+      );
+    }
+
+    let squaredNorm = 0;
+    for (let index = 0; index < expectedDim; index++) {
+      const value = vector[index];
+      if (!Number.isFinite(value)) {
+        throw new TypeError(`Face vector contains a non-finite value at index ${index}`);
+      }
+      squaredNorm += value * value;
+    }
+
+    const norm = Math.sqrt(squaredNorm);
+    if (!Number.isFinite(norm) || norm <= epsilon) {
+      throw new RangeError("Face vector must have a finite, non-zero L2 norm");
+    }
+
+    const normalized = new Float32Array(expectedDim);
+    for (let index = 0; index < expectedDim; index++) {
+      normalized[index] = vector[index] / norm;
+    }
+    return normalized;
+  }
+
   public search(
     queryVector: number[] | Float32Array,
     limit: number = 20,
-    threshold: number = 0.6,
+    threshold: number = 0.8366,
   ): string[] {
     if (!this.root) return [];
 
-    const typedQuery =
-      queryVector instanceof Float32Array
-        ? queryVector
-        : new Float32Array(queryVector);
+    const typedQuery = VectorIndexService.normalizeL2(queryVector);
 
     // Max-priority queue for top K results
     const results = new MaxHeap<{ id: string; distance: number }>(
@@ -220,8 +252,13 @@ export class VectorIndexService {
   }
 
   private euclideanDistance(v1: Float32Array, v2: Float32Array): number {
+    if (v1.length !== v2.length) {
+      throw new RangeError(
+        `Cannot compare ${v1.length}D and ${v2.length}D face vectors`,
+      );
+    }
     let sum = 0;
-    for (let i = 0; i < VECTOR_DIM; i++) {
+    for (let i = 0; i < v1.length; i++) {
       const diff = v1[i] - v2[i];
       sum += diff * diff;
     }
@@ -239,8 +276,7 @@ export class VectorIndexService {
     faceId: string,
     vector: number[] | Float32Array,
   ): void {
-    const typedVector =
-      vector instanceof Float32Array ? vector : new Float32Array(vector);
+    const typedVector = VectorIndexService.normalizeL2(vector);
     const newNode = new VPTreeNode(typedVector, photoId, faceId, 0);
     if (!this.root) {
       this.root = newNode;
@@ -287,9 +323,9 @@ export class VectorIndexService {
     try {
       this.saveBinary();
       this.isDirty = false;
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error("[VectorIndex] Failed to save", {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }

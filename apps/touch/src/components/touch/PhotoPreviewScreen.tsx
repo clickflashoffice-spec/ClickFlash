@@ -51,6 +51,8 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
     const imageContainerRef = useRef<HTMLDivElement>(null);
     const editorRef = useRef<AutoEditorCanvasRef>(null);
     const [autoEnhance, setAutoEnhance] = useState(false);
+    const [isAiProcessing, setIsAiProcessing] = useState(false);
+    const [showEnhanced, setShowEnhanced] = useState(true);
 
     const [watermarkSettings] = useLocalStorage<WatermarkSettingsType>('watermarkSettings', {
         enabled: false,
@@ -72,6 +74,8 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
         setZoomLevel(1);
         setPan({ x: 0, y: 0 });
         setAutoEnhance(false);
+        setIsAiProcessing(false);
+        setShowEnhanced(true);
     }, [photo, products, selectedSize]);
 
     // Handle initial selection if not set
@@ -224,35 +228,65 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
                             )}
 
                             {/* The Photo */}
-                            {!autoEnhance ? (
-                                <motion.img
-                                    layoutId={`photo-img-${photo.id}`}
-                                    src={displayUrl}
-                                    alt={photo.title}
-                                    className="max-w-full max-h-full object-contain shadow-2xl transition-transform duration-100 select-none"
-                                    style={{
-                                        transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoomLevel})`,
-                                        cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
-                                    }}
-                                    draggable={false}
-                                />
-                            ) : (
+                            <motion.img
+                                layoutId={`photo-img-${photo.id}`}
+                                src={displayUrl}
+                                alt={photo.title}
+                                className="max-w-full max-h-full object-contain shadow-2xl transition-transform duration-100 select-none"
+                                style={{
+                                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoomLevel})`,
+                                    cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
+                                    display: (!autoEnhance || !showEnhanced) ? 'block' : 'none',
+                                }}
+                                draggable={false}
+                            />
+                            
+                            {autoEnhance && (
                                 <motion.div
-                                    layoutId={`photo-img-${photo.id}`}
+                                    layoutId={`photo-img-enhanced-${photo.id}`}
                                     className="max-w-full max-h-full shadow-2xl transition-transform duration-100 select-none flex items-center justify-center"
                                     style={{
                                         transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoomLevel})`,
                                         cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
                                         width: '100%',
-                                        height: '100%'
+                                        height: '100%',
+                                        display: showEnhanced ? 'flex' : 'none',
                                     }}
                                 >
                                     <AutoEditorCanvas
                                         ref={editorRef}
                                         imageUrl={displayUrl}
-                                        options={{ autoEnhance }}
+                                        options={{ autoEnhance: true }}
+                                        onProcessingStart={() => setIsAiProcessing(true)}
+                                        onProcessingComplete={() => setIsAiProcessing(false)}
                                     />
                                 </motion.div>
+                            )}
+
+                            {/* Optimistic Loading Overlay */}
+                            {isAiProcessing && (
+                                <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
+                                    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4"></div>
+                                    <p className="text-white font-bold text-xl drop-shadow-md">AI Optimizing Lighting & Color...</p>
+                                </div>
+                            )}
+
+                            {/* AI Toggle / Before-After Pill */}
+                            {autoEnhance && (
+                                <div className="absolute top-6 left-1/2 -translate-x-1/2 flex items-center bg-black/80 backdrop-blur-md rounded-full p-1 z-30 shadow-2xl border border-white/20">
+                                    <button
+                                        onClick={() => setShowEnhanced(false)}
+                                        className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${!showEnhanced ? 'bg-white text-black' : 'text-white hover:bg-white/20'}`}
+                                    >
+                                        Before
+                                    </button>
+                                    <button
+                                        onClick={() => setShowEnhanced(true)}
+                                        className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${showEnhanced ? 'bg-purple-600 text-white' : 'text-white hover:bg-white/20'}`}
+                                    >
+                                        After
+                                    </button>
+                                </div>
                             )}
                         </div>
 
@@ -282,6 +316,16 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
                                 aria-label="Reset zoom to 100%"
                             >
                                 Reset
+                            </button>
+                            <div className="w-px h-6 bg-white/20 mx-2" aria-hidden="true"></div>
+                            <button
+                                onClick={() => {
+                                    setAutoEnhance(!autoEnhance);
+                                    if (!autoEnhance) setShowEnhanced(true);
+                                }}
+                                className={`flex items-center space-x-2 px-3 py-2 rounded-full text-sm font-bold transition-all ${autoEnhance ? 'bg-purple-600 text-white' : 'text-white hover:text-purple-400'}`}
+                            >
+                                <span>✨ AI Magic Enhance</span>
                             </button>
                         </div>
 
@@ -314,7 +358,7 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
                                     className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all ${autoEnhance ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-500 ring-1 ring-purple-500 shadow-md text-purple-700 dark:text-purple-300' : 'bg-slate-50 dark:bg-slate-800 border-transparent hover:border-slate-300 dark:hover:border-slate-600'}`}
                                 >
                                     <div className="flex justify-between items-center">
-                                        <span className="font-bold">✨ Magic Auto-Enhance</span>
+                                        <span className="font-bold">✨ AI Magic Enhance</span>
                                         <span className="font-bold text-xs uppercase bg-purple-100 dark:bg-purple-800 px-2 py-1 rounded-md">Offline</span>
                                     </div>
                                 </button>

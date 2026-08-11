@@ -35,11 +35,23 @@ export const VoiceAssistantWidget: React.FC<VoiceAssistantWidgetProps> = ({
 
                 {/* Pulse Ring when Active */}
                 {isActive && (
-                    <motion.div
-                        className="absolute inset-0 rounded-full border-2 border-cyan-500"
-                        animate={{ scale: [1, 1.5], opacity: [0.8, 0] }}
-                        transition={{ repeat: Infinity, duration: 1.5, ease: "easeOut" }}
-                    />
+                    <>
+                        <motion.div
+                            className="absolute inset-0 rounded-full border-2 border-cyan-500"
+                            animate={{ scale: [1, 1.5], opacity: [0.8, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.5, ease: "easeOut" }}
+                        />
+                        <motion.div
+                            className="absolute inset-0 rounded-full border-2 border-cyan-400"
+                            animate={{ scale: [1, 1.8], opacity: [0.6, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.5, delay: 0.5, ease: "easeOut" }}
+                        />
+                        <motion.div
+                            className="absolute inset-0 rounded-full border-2 border-cyan-300"
+                            animate={{ scale: [1, 2.1], opacity: [0.4, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.5, delay: 1.0, ease: "easeOut" }}
+                        />
+                    </>
                 )}
             </motion.button>
 

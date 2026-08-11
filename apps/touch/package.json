@@ -47,7 +47,6 @@
     "@tensorflow-models/hand-pose-detection": "^2.0.1",
     "@tensorflow/tfjs": "^4.22.0",
     "@types/react-window": "^1.8.8",
-    "@vladmandic/face-api": "^1.7.15",
     "bcrypt": "^5.1.0",
     "better-sqlite3-multiple-ciphers": "^12.8.0",
     "bindings": "^1.5.0",

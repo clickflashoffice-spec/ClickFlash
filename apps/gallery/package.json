@@ -6,7 +6,7 @@
   "packageManager": "pnpm@10.28.2",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node -e \"require('fs').copyFileSync('service-worker.js', 'dist/service-worker.js')\"",
+    "build": "vite build && node -e \"import('fs').then(fs => fs.copyFileSync('service-worker.js', 'dist/service-worker.js'))\"",
     "preview": "vite preview",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -64,6 +64,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@clickflash/config": "workspace:*",
     "@eslint/js": "^9.39.4",
     "@jest/globals": "^29.7.0",
     "@playwright/test": "^1.58.2",

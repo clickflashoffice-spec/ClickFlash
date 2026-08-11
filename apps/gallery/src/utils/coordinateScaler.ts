@@ -51,7 +51,7 @@ export function scaleRetouchActions(
 
     return {
         ...edits,
-        retouchActions: edits.retouchActions.map(action =>
+        retouchActions: edits.retouchActions.map((action: any) =>
             scaleRetouchAction(action, context)
         )
     };

@@ -19,9 +19,7 @@ export const SupportedCurrencies = ['usd', 'eur', 'gbp', 'cad', 'aud'] as const;
 /**
  * Currency code validation
  */
-export const currencySchema = z.enum(SupportedCurrencies, {
-  errorMap: () => ({ message: 'Invalid currency code' }),
-});
+export const currencySchema = z.enum(SupportedCurrencies);
 
 /**
  * Amount validation schema
@@ -30,10 +28,7 @@ export const currencySchema = z.enum(SupportedCurrencies, {
  * - Supports 2 decimal places
  */
 export const amountSchema = z
-  .number({
-    invalid_type_error: 'Amount is required and must be a number',
-    required_error: 'Amount is required and must be a number',
-  })
+  .number()
   .positive('Amount must be positive')
   .max(1000000, 'Amount exceeds maximum allowed')
   .transform((val) => Math.round(val * 100) / 100); // Round to 2 decimal places

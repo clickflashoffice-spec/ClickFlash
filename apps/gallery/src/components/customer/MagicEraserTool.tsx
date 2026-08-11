@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-
+import { cloudApiService } from '../../services/cloudApiService';
+import { binarizeMaskPixels } from '../../utils/maskUtils';
 interface MagicEraserToolProps {
   imageUrl: string;
   onSuccess: (processedUrl: string) => void;
@@ -39,8 +40,8 @@ export const MagicEraserTool: React.FC<MagicEraserToolProps> = ({ imageUrl, onSu
         drawHeight = drawWidth / imgRatio;
       }
 
-      canvas.width = drawWidth;
-      canvas.height = drawHeight;
+      canvas.width = Math.max(1, Math.round(drawWidth));
+      canvas.height = Math.max(1, Math.round(drawHeight));
       
       // We draw the image as a background in CSS, and the canvas only holds the mask
       canvas.style.backgroundImage = `url(${imageUrl})`;
@@ -55,15 +56,25 @@ export const MagicEraserTool: React.FC<MagicEraserToolProps> = ({ imageUrl, onSu
     img.src = imageUrl;
   }, [imageUrl]);
 
+  const getCanvasPoint = (
+    event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>,
+    canvas: HTMLCanvasElement,
+  ) => {
+    const rect = canvas.getBoundingClientRect();
+    const clientPoint = 'touches' in event ? event.touches[0] : event;
+    return {
+      x: (clientPoint.clientX - rect.left) * (canvas.width / rect.width),
+      y: (clientPoint.clientY - rect.top) * (canvas.height / rect.height),
+    };
+  };
+
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = ('touches' in e) ? e.touches[0].clientX - rect.left : e.nativeEvent.offsetX;
-    const y = ('touches' in e) ? e.touches[0].clientY - rect.top : e.nativeEvent.offsetY;
+    const { x, y } = getCanvasPoint(e, canvas);
 
     ctx.beginPath();
     ctx.moveTo(x, y);
@@ -77,9 +88,7 @@ export const MagicEraserTool: React.FC<MagicEraserToolProps> = ({ imageUrl, onSu
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = ('touches' in e) ? e.touches[0].clientX - rect.left : e.nativeEvent.offsetX;
-    const y = ('touches' in e) ? e.touches[0].clientY - rect.top : e.nativeEvent.offsetY;
+    const { x, y } = getCanvasPoint(e, canvas);
 
     // Draw the mask in red with some transparency
     ctx.lineWidth = brushSize;
@@ -100,25 +109,39 @@ export const MagicEraserTool: React.FC<MagicEraserToolProps> = ({ imageUrl, onSu
     setError(null);
 
     try {
-      // In a real app, we would send this dataURL to our cloud-backend Magic Eraser service
-      const maskDataUrl = canvas.toDataURL('image/png');
-      
-      // Simulate calling the backend API
-      const response = await fetch('/api/magic-eraser', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageUrl,
-          maskDataUrl
-        })
+      // Create offscreen canvas at full native image resolution to binarize mask
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = imageUrl;
       });
 
-      // Since we are mocking, we might not have the actual route setup in the frontend proxy yet.
-      // We simulate the delay instead to show the UI
-      await new Promise(resolve => setTimeout(resolve, 3500));
+      const nativeWidth = img.naturalWidth || canvas.width;
+      const nativeHeight = img.naturalHeight || canvas.height;
+
+      const maskCanvas = document.createElement('canvas');
+      maskCanvas.width = nativeWidth;
+      maskCanvas.height = nativeHeight;
+      const mCtx = maskCanvas.getContext('2d');
+      if (!mCtx) throw new Error('Unable to create the native-resolution mask');
+
+      // Preserve stroke alpha while scaling, then apply sigma(z) >= 0.5 as an
+      // 8-bit binary threshold. The CSS background image is never part of the mask.
+      mCtx.clearRect(0, 0, nativeWidth, nativeHeight);
+      mCtx.drawImage(canvas, 0, 0, nativeWidth, nativeHeight);
+      const imgData = mCtx.getImageData(0, 0, nativeWidth, nativeHeight);
+      const { selectedPixels } = binarizeMaskPixels(imgData.data, 0.5);
+      if (selectedPixels === 0) {
+        throw new Error('Brush over at least one area before processing');
+      }
+      mCtx.putImageData(imgData, 0, 0);
+
+      const maskDataUrl = maskCanvas.toDataURL('image/png');
+      const processedUrl = await cloudApiService.processMagicEraser(imageUrl, maskDataUrl);
       
-      // Pretend success
-      onSuccess(`${imageUrl}?magic=erased&timestamp=${Date.now()}`);
+      onSuccess(processedUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to process image');
     } finally {

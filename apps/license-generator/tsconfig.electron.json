@@ -3,13 +3,17 @@
     "types": ["node"],
     "target": "ES2020",
     "module": "commonjs",
+    "moduleResolution": "node",
     "outDir": "dist",
-    "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@clickflash/*": ["../../packages/*/src"]
+    }
   },
-  "include": ["src/main.ts", "src/preload.ts"]
+  "include": ["src/main.ts", "src/preload.ts", "src/**/*.ts"]
 }

@@ -13,6 +13,8 @@ import { SliderControl as SharedSlider } from "./albums/editor2/controls/SliderC
 import { GridOverlay as EditorGrid } from "./albums/editor2/canvas/GridOverlay";
 import { useImageSpace } from "../hooks/useImageSpace";
 import { Photo as SharedPhoto } from "@clickflash/ui";
+import { EditorService } from "../services/editorService";
+import { MagicEraserOverlay } from "./MagicEraserOverlay";
 import {
   Layers,
   Sun,
@@ -81,6 +83,14 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
 
   const [isUpscaling, setIsUpscaling] = useState(false);
   const [upscaleMessage, setUpscaleMessage] = useState<string | null>(null);
+  
+  // Auto Enhance State
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [enhancedUrl, setEnhancedUrl] = useState<string | null>(null);
+  
+  const [isRemovingBg, setIsRemovingBg] = useState(false);
+  const [isMagicEraserMode, setIsMagicEraserMode] = useState(false);
+  const [isMagicEraserProcessing, setIsMagicEraserProcessing] = useState(false);
 
   // Refs
   const historyTimeoutRef = useRef<number | null>(null);
@@ -113,6 +123,8 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
       setShowBeforeAfter(false);
       setZoom(1);
       setPan({ x: 0, y: 0 });
+      setEnhancedUrl(null);
+      setIsMagicEraserMode(false);
 
       // Lock body scroll
       document.body.style.overflow = "hidden";
@@ -178,6 +190,68 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
       setUpscaleMessage(`Local ${scale}x enhancement complete.`);
     } finally {
       setIsUpscaling(false);
+    }
+  };
+
+  const handleAutoEnhance = async (proMode: boolean = false) => {
+    if (!photo?.url || isEnhancing) return;
+    setIsEnhancing(true);
+    setUpscaleMessage(proMode ? "Running Canvas Pro Auto-Enhance..." : "Running local CPU auto-enhance (Lighting + Contrast)...");
+    try {
+      const res = await fetch(photo.url);
+      const blob = await res.blob();
+      const newUrl = proMode 
+        ? await EditorService.autoEnhanceProImage(blob)
+        : await EditorService.autoEnhanceImage(blob);
+      setEnhancedUrl(newUrl);
+      setUpscaleMessage(proMode ? "Pro Auto-Enhance complete!" : "Auto-Enhance complete!");
+    } catch (error) {
+      logger.error("Auto enhance failed", error);
+      setUpscaleMessage("Auto-Enhance failed.");
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  const handleRemoveBg = async () => {
+    if (!photo?.url || isRemovingBg) return;
+    setIsRemovingBg(true);
+    setUpscaleMessage("Running Background Removal (U^2-Net)...");
+    try {
+      const res = await fetch(photo.url);
+      const blob = await res.blob();
+      const newUrl = await EditorService.removeBackground(blob);
+      setEnhancedUrl(newUrl);
+      setUpscaleMessage("Background Removed!");
+    } catch (error) {
+      logger.error("Remove bg failed", error);
+      setUpscaleMessage("Background Removal failed.");
+    } finally {
+      setIsRemovingBg(false);
+    }
+  };
+
+  const handleMagicEraserApply = async (maskBlob: Blob) => {
+    if (!photo?.url || isMagicEraserProcessing) return;
+    setIsMagicEraserProcessing(true);
+    setUpscaleMessage("Running Magic Eraser (SimpleLama)...");
+    
+    try {
+      // Use the currently displayed image (could be already enhanced)
+      const currentUrl = displayPhoto.url;
+      const res = await fetch(currentUrl);
+      const imageBlob = await res.blob();
+      
+      const newUrl = await EditorService.magicEraser(imageBlob, maskBlob);
+      
+      setEnhancedUrl(newUrl);
+      setUpscaleMessage("Object Removed successfully!");
+      setIsMagicEraserMode(false);
+    } catch (error) {
+      logger.error("Magic eraser failed", error);
+      setUpscaleMessage("Magic Eraser failed.");
+    } finally {
+      setIsMagicEraserProcessing(false);
     }
   };
 
@@ -356,6 +430,12 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
 
   if (!isOpen || !photo) return null;
 
+  const displayPhoto = {
+    ...photo,
+    photographerId: photo.photographerId || 0,
+    ...(enhancedUrl ? { url: enhancedUrl, previewUrl: enhancedUrl } : {})
+  };
+
   return (
     <div className="fixed inset-0 z-[100] bg-slate-950 text-white flex flex-col overflow-hidden animate-in fade-in duration-300">
       {/* Top Bar - Professional Toolbar */}
@@ -437,7 +517,7 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
                 </div>
                 <div className="w-full h-full p-4 pointer-events-none opacity-80">
                   <SharedPhoto
-                    photo={{ ...photo, photographerId: photo.photographerId || 0 } as any}
+                    photo={photo as any}
                     manualEdits={originalEdits}
                     showWatermark={false}
                     extraTransform={`translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`}
@@ -452,7 +532,7 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
                 </div>
                 <div className="w-full h-full p-4 pointer-events-none">
                   <SharedPhoto
-                    photo={{ ...photo, photographerId: photo.photographerId || 0 } as any}
+                    photo={displayPhoto as any}
                     manualEdits={edits}
                     showWatermark={false}
                     extraTransform={`translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`}
@@ -465,7 +545,7 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
             <div className="w-full h-full flex items-center justify-center p-8">
               <div className="w-full h-full relative" ref={imageRef}>
                 <SharedPhoto
-                  photo={{ ...photo, photographerId: photo.photographerId || 0 } as any}
+                  photo={displayPhoto as any}
                   manualEdits={edits}
                   showWatermark={false}
                   extraTransform={`translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`}
@@ -474,6 +554,16 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
               </div>
               <EditorGrid visible={showGrid} />
             </div>
+          )}
+
+          {/* Magic Eraser Overlay renders on top of everything if active */}
+          {isMagicEraserMode && (
+            <MagicEraserOverlay 
+              photoUrl={displayPhoto.url || ""} 
+              onApply={handleMagicEraserApply}
+              onCancel={() => setIsMagicEraserMode(false)}
+              isProcessing={isMagicEraserProcessing}
+            />
           )}
 
           {/* Floating Zoom Controls (Bottom Right of Canvas Area) */}
@@ -810,6 +900,47 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
                     )}
                   </div>
 
+                  {/* Canvas Pro Magic Tools */}
+                  <div className="bg-slate-950/80 rounded-2xl border border-white/10 p-4 shadow-xl">
+                    <div className="flex items-center gap-2 pb-3 border-b border-white/10 mb-3">
+                      <Sparkles className="w-5 h-5 text-indigo-400" />
+                      <div>
+                        <span className="text-xs font-black uppercase tracking-wider text-white block">
+                          Canvas Pro Tools
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium">
+                          Free, CPU-Only Local Magic
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => handleAutoEnhance(true)}
+                        disabled={isEnhancing}
+                        className="py-3 px-4 bg-gradient-to-r from-orange-600/80 to-red-600/80 hover:from-orange-600 hover:to-red-600 disabled:opacity-50 text-white font-bold text-[10px] rounded-xl shadow-lg transition-all flex flex-col items-center justify-center gap-1 border border-orange-400/30"
+                      >
+                        {isEnhancing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        Pro Enhance
+                      </button>
+                      <button
+                        onClick={handleRemoveBg}
+                        disabled={isRemovingBg}
+                        className="py-3 px-4 bg-gradient-to-r from-blue-600/80 to-cyan-600/80 hover:from-blue-600 hover:to-cyan-600 disabled:opacity-50 text-white font-bold text-[10px] rounded-xl shadow-lg transition-all flex flex-col items-center justify-center gap-1 border border-blue-400/30"
+                      >
+                        {isRemovingBg ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />}
+                        Remove Bg
+                      </button>
+                      <button
+                        onClick={() => setIsMagicEraserMode(!isMagicEraserMode)}
+                        className={`col-span-2 py-3 px-4 ${isMagicEraserMode ? 'bg-indigo-600' : 'bg-slate-800 hover:bg-slate-700'} text-white font-bold text-[10px] rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 border border-white/10`}
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        {isMagicEraserMode ? 'Cancel Magic Eraser' : 'Magic Eraser (Brush)'}
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Local CPU Upscaling Card */}
                   <div className="bg-slate-950/80 rounded-2xl border border-white/10 p-4 shadow-xl">
                     <div className="flex items-center gap-2 pb-3 border-b border-white/10 mb-3">
@@ -825,6 +956,14 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => handleAutoEnhance()}
+                        disabled={isEnhancing}
+                        className="col-span-2 py-3 px-4 bg-gradient-to-r from-emerald-600/80 to-teal-600/80 hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 border border-emerald-400/30"
+                      >
+                        {isEnhancing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        Auto Enhance (AI)
+                      </button>
                       <button
                         onClick={() => handleUpscale(2)}
                         disabled={isUpscaling}

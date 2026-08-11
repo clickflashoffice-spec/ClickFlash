@@ -36,7 +36,7 @@ const PrintSettings: React.FC = () => {
                 // Check if we're in Electron environment
                 if (isElectron() && window.electron) {
                     const printers = await window.electron.printing.getPrinters();
-                    setInstalledPrinters(printers.map((printer) => printer.name));
+                    setInstalledPrinters(printers.map((printer: any) => printer.name));
                 } else {
                     // Fallback: Use Backend API
                     const response = await fetch('/api/printers');
@@ -87,7 +87,7 @@ const PrintSettings: React.FC = () => {
         try {
             if (isElectron() && window.electron) {
                 const printers = await window.electron.printing.getPrinters();
-                setInstalledPrinters(printers.map((printer) => printer.name));
+                setInstalledPrinters(printers.map((printer: any) => printer.name));
             } else {
                 // Backend API Fallback
                 const response = await fetch('/api/printers');

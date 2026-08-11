@@ -1,7 +1,7 @@
-const sharedConfig = require("@clickflash/config/tailwind");
+import sharedConfig from "../../packages/config/tailwind.config.js";
 
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
     presets: [sharedConfig],
     content: [
         "./index.html",

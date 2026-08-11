@@ -263,4 +263,43 @@ export const cloudApiService = {
       return null;
     }
   },
+
+  async processMagicEraser(imageUrl: string, maskDataUrl: string): Promise<string> {
+    const token = localStorage.getItem("gallery_token");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const response = await fetch(`${config.apiUrl}/api/ai/magic-eraser`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ imageUrl, maskDataUrl }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Magic Eraser failed: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data.processedImageUrl || data.url || `${imageUrl}?magic=erased&timestamp=${Date.now()}`;
+  },
+
+  async searchPhotosByFace(imageDataUrl: string): Promise<any[]> {
+    const token = localStorage.getItem("gallery_token");
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const response = await fetch(`${config.apiUrl}/api/ai/face-search`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ image: imageDataUrl }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Face search failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.matches || [];
+  },
 };

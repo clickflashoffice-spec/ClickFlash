@@ -162,8 +162,8 @@ function VirtualGridInner<T>({
         rowCount: gridDimensions.rowCount,
         rowHeight: gridDimensions.rowHeight,
         width: safeWidth,
-        overscanRowCount: safeOverscan,
-        overscanColumnCount: safeOverscan
+        overscanRowCount: typeof overscanCount === 'number' && overscanCount >= 0 ? overscanCount : 2,
+        overscanColumnCount: 0
     };
 
     // Validate all props are valid numbers

@@ -294,7 +294,7 @@ const PhotoEditModal: React.FC<PhotoEditModalProps> = ({ isOpen, onClose, photo,
     };
 
     const handleEditChange = (updates: Partial<ManualEdits>) => {
-        setEdits(prev => ({ ...prev, ...updates }));
+        setEdits((prev: any) => ({ ...prev, ...updates }));
     };
 
     const handleSave = () => {

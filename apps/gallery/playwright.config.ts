@@ -45,12 +45,20 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: "pnpm run dev",
-    url: process.env.TEST_BASE_URL || "http://localhost:5176",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  webServer: [
+    {
+      command: "pnpm run dev",
+      url: process.env.TEST_BASE_URL || "http://localhost:5176",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120000,
+    },
+    {
+      command: "pnpm --filter cloud-backend run dev --port 8787",
+      url: "http://localhost:8787",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120000,
+    },
+  ],
 
   timeout: 120000, // Longer timeout for payment flows
   expect: {

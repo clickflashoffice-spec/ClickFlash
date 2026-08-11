@@ -1,0 +1,15 @@
+[package]
+name = "clickflash-wasm-sharpness"
+version = "0.1.0"
+edition = "2021"
+description = "Dependency-free ClickFlash image resize and sharpness WebAssembly kernels"
+license = "UNLICENSED"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+lto = true
+opt-level = 3
+codegen-units = 1
+panic = "abort"

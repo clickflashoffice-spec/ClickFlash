@@ -70,11 +70,11 @@ export const aiIntelligenceService = {
 
     return [
       {
-        zoneId: "pool-b",
-        zoneName: "Pool Area B",
+        zoneId: "poolside",
+        zoneName: "Poolside",
         profitabilityScore: 94,
         revenuePerHour: 4250,
-        recommendationText: "\"Pool Area B\" is currently generating 3x standard hourly revenue. We recommend redeploying 2 photographers from the lobby immediately.",
+        recommendationText: "\"Poolside\" is currently generating 3x standard hourly revenue. We recommend redeploying 2 photographers from the lobby immediately.",
         actionType: "REDEPLOY",
         priority: "HIGH",
       },
@@ -88,11 +88,20 @@ export const aiIntelligenceService = {
         priority: "MEDIUM",
       },
       {
-        zoneId: "central-gdn",
-        zoneName: "Central Garden",
+        zoneId: "beach-pier",
+        zoneName: "Beach Pier",
+        profitabilityScore: 88,
+        revenuePerHour: 2100,
+        recommendationText: "Zone Beach Pier is under-staffed during peak hours (+€450 potential revenue)",
+        actionType: "REDEPLOY",
+        priority: "HIGH",
+      },
+      {
+        zoneId: "main-lobby",
+        zoneName: "Main Lobby",
         profitabilityScore: 68,
         revenuePerHour: 950,
-        recommendationText: "Current fleet distribution is 85% optimal. Moving one unit from North Wing to Central Garden will increase projected revenue by 8%.",
+        recommendationText: "Current fleet distribution is 85% optimal. Moving one unit from Main Lobby to Central Garden will increase projected revenue by 8%.",
         actionType: "MAINTAIN",
         priority: "LOW",
       },
@@ -171,8 +180,8 @@ export const aiIntelligenceService = {
       pricingSuggestions: [
         {
           id: "ps1",
-          trigger: "Peak Hours (14:00-17:00) detected",
-          suggestion: "Increase Digital Album from EUR 85 → EUR 99",
+          trigger: "Sunset Peak Demand",
+          suggestion: "Increase package prices by 15% between 5 PM - 7 PM",
           impact: "+18% projected revenue",
           confidence: 92,
           color: "emerald",

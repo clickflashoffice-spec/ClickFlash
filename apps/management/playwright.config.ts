@@ -21,7 +21,7 @@ export default defineConfig({
   ],
 
   use: {
-    baseURL: process.env.TEST_BASE_URL || "http://localhost:5175",
+    baseURL: process.env.TEST_BASE_URL || "http://localhost:8092",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "on-first-retry",
@@ -48,8 +48,8 @@ export default defineConfig({
   webServer: process.env.SKIP_WEB_SERVER
     ? undefined
     : {
-        command: "npm run dev",
-        url: "http://localhost:5175",
+        command: "pnpm exec vite --port 8092",
+        url: "http://localhost:8092",
         reuseExistingServer: !process.env.CI,
         timeout: 120000,
       },

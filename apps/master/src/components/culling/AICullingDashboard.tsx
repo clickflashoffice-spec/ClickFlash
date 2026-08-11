@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { cullingService, AICullingResult } from '../../services/api/cullingService';
 import { useParams } from 'react-router-dom';
 import { Photo } from '../../types';
 import { logger } from '@/utils/logger';
+import { smartCullingService, CullingAnalysisResult } from '../../services/smartCullingService';
+import { photoService } from '../../services/api/photoService';
 
 export const AICullingDashboard: React.FC = () => {
     const { albumId } = useParams<{ albumId: string }>();
-    const [results, setResults] = useState<AICullingResult[]>([]);
+    const [analysisResult, setAnalysisResult] = useState<CullingAnalysisResult | null>(null);
+    const [albumPhotos, setAlbumPhotos] = useState<Photo[]>([]);
     const [loading, setLoading] = useState(false);
     const [analyzing, setAnalyzing] = useState(false);
 
@@ -18,8 +20,15 @@ export const AICullingDashboard: React.FC = () => {
         if (!albumId) return;
         setLoading(true);
         try {
-            const data = await cullingService.getResults(albumId);
-            setResults(data);
+            // Fetch photos
+            const paginatedPhotos = await photoService.getPhotosPaginated(1, 1000, albumId);
+            setAlbumPhotos(paginatedPhotos.items);
+
+            // Check cache
+            const cached = smartCullingService.getCachedAnalysis(albumId);
+            if (cached) {
+                setAnalysisResult(cached);
+            }
         } catch (error) {
             logger.error('Failed to load culling results', error);
         } finally {
@@ -31,8 +40,15 @@ export const AICullingDashboard: React.FC = () => {
         if (!albumId) return;
         setAnalyzing(true);
         try {
-            await cullingService.analyzeAlbum(albumId);
-            await loadResults();
+            let photosToAnalyze = albumPhotos;
+            if (photosToAnalyze.length === 0) {
+                const paginatedPhotos = await photoService.getPhotosPaginated(1, 1000, albumId);
+                photosToAnalyze = paginatedPhotos.items;
+                setAlbumPhotos(photosToAnalyze);
+            }
+
+            const result = await smartCullingService.analyzeAlbum(albumId, photosToAnalyze);
+            setAnalysisResult(result);
         } catch (error) {
             logger.error('Analysis failed', error);
         } finally {
@@ -41,13 +57,26 @@ export const AICullingDashboard: React.FC = () => {
     };
 
     const handleConfirm = async () => {
-        if (!albumId) return;
+        if (!albumId || !analysisResult || albumPhotos.length === 0) return;
         if (!confirm('Are you sure you want to apply AI suggestions? Rejected photos will be archived.')) return;
 
         setLoading(true);
         try {
-            await cullingService.confirmCulling(albumId, { mode: 'archive' });
-            await loadResults();
+            const updatedPhotos = albumPhotos.map(photo => {
+                const score = analysisResult.scores.find(s => s.photoId === photo.id);
+                if (score) {
+                    return {
+                        ...photo,
+                        cullingStatus: (score.recommendation === 'keep' ? 'Selected' : 'Rejected') as 'Selected' | 'Rejected',
+                        overallScore: score.overall / 100,
+                        sharpnessScore: score.sharpness / 100
+                    };
+                }
+                return photo;
+            });
+
+            await photoService.batchSavePhotos(updatedPhotos);
+            setAlbumPhotos(updatedPhotos as Photo[]);
             alert('Culling applied successfully!');
         } catch (error) {
             logger.error('Failed to confirm culling', error);
@@ -58,18 +87,22 @@ export const AICullingDashboard: React.FC = () => {
 
     if (!albumId) return <div className="p-20 text-center text-slate-400">Album context not found.</div>;
 
-    // Groups are returned, flat map their photos for the simple dashboard
-    const allPhotos = results.flatMap(g => g.photos).filter((p): p is Photo => typeof p !== 'string');
-    const bestPhotos = allPhotos.filter(p => p.cullingStatus === 'Selected');
-    const rejectedPhotos = allPhotos.filter(p => p.cullingStatus === 'Rejected');
+    const bestPhotos = albumPhotos.filter(p => {
+        const score = analysisResult?.scores.find(s => s.photoId === p.id);
+        return score?.recommendation === 'keep';
+    });
+    
+    const rejectedPhotos = albumPhotos.filter(p => {
+        const score = analysisResult?.scores.find(s => s.photoId === p.id);
+        return score?.recommendation === 'reject';
+    });
 
-    // Statistics
-    const totalPhotos = allPhotos.length;
-    const avgScore = totalPhotos > 0
-        ? allPhotos.reduce((acc, p) => acc + (p.overallScore || 0), 0) / totalPhotos
+    const totalPhotos = albumPhotos.length;
+    const avgScore = totalPhotos > 0 && analysisResult
+        ? analysisResult.scores.reduce((acc, s) => acc + (s.overall / 100), 0) / analysisResult.scores.length
         : 0;
-    const avgSharpness = totalPhotos > 0
-        ? allPhotos.reduce((acc, p) => acc + (p.sharpnessScore || 0), 0) / totalPhotos
+    const avgSharpness = totalPhotos > 0 && analysisResult
+        ? analysisResult.scores.reduce((acc, s) => acc + (s.sharpness / 100), 0) / analysisResult.scores.length
         : 0;
 
     return (
@@ -88,8 +121,8 @@ export const AICullingDashboard: React.FC = () => {
                 <div className="flex space-x-4">
                     <button
                         onClick={handleAnalyze}
-                        disabled={analyzing || loading}
-                        className={`flex items-center space-x-2 px-8 py-4 rounded-2xl font-bold transition-all ${analyzing
+                        disabled={analyzing || loading || totalPhotos === 0}
+                        className={`flex items-center space-x-2 px-8 py-4 rounded-2xl font-bold transition-all ${analyzing || totalPhotos === 0
                             ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
                             : 'bg-white/10 hover:bg-white/20 text-white border border-white/10 hover:scale-105 active:scale-95'
                             }`}
@@ -103,7 +136,7 @@ export const AICullingDashboard: React.FC = () => {
 
                     <button
                         onClick={handleConfirm}
-                        disabled={results.length === 0 || loading}
+                        disabled={!analysisResult || loading}
                         className="px-8 py-4 bg-gradient-to-br from-blue-600 to-purple-700 hover:from-blue-500 hover:to-purple-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-900/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed"
                     >
                         APPLY SUGGESTIONS
@@ -112,7 +145,7 @@ export const AICullingDashboard: React.FC = () => {
             </header>
 
             {/* Statistics Panel */}
-            {results.length > 0 && (
+            {analysisResult && (
                 <div className="grid grid-cols-5 gap-4 mb-6">
                     {/* Total Photos */}
                     <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-5 flex flex-col items-center justify-center shadow-lg hover:bg-white/10 transition-all">
@@ -175,7 +208,7 @@ export const AICullingDashboard: React.FC = () => {
                         <p className="text-slate-400 animate-pulse font-medium tracking-widest">SYNCHRONIZING...</p>
                     </div>
                 </div>
-            ) : results.length === 0 ? (
+            ) : !analysisResult ? (
                 <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-3xl m-10">
                     <div className="p-8 bg-blue-500/10 rounded-full mb-6 text-blue-400">
                         <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,7 +221,8 @@ export const AICullingDashboard: React.FC = () => {
                     </p>
                     <button
                         onClick={handleAnalyze}
-                        className="mt-8 px-10 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-500 transition-colors"
+                        disabled={analyzing || totalPhotos === 0}
+                        className="mt-8 px-10 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-500 transition-colors disabled:opacity-50"
                     >
                         Ignite AI Analysis
                     </button>
@@ -205,19 +239,21 @@ export const AICullingDashboard: React.FC = () => {
                             </h2>
                         </div>
                         <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-4 pr-4 custom-scrollbar">
-                            {bestPhotos.map((photo: any) => (
+                            {bestPhotos.map((photo: any) => {
+                                const score = analysisResult.scores.find(s => s.photoId === photo.id);
+                                return (
                                 <div key={photo.id} className="aspect-square bg-slate-900 rounded-2xl overflow-hidden relative group border border-white/5 shadow-xl transition-all hover:ring-2 hover:ring-blue-500/50">
-                                    <img src={photo.thumbnailUrl} alt="Best" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                    <img src={photo.thumbnailUrl || photo.url} alt="Best" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                                     <div className="absolute top-3 right-3 bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded shadow-lg">
-                                        {Math.round(photo.overallScore * 100)}%
+                                        {score ? Math.round(score.overall) : 0}%
                                     </div>
                                     <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                                         <div className="flex justify-between items-center text-[10px] text-slate-300">
-                                            <span>SHARP: {Math.round(photo.sharpnessScore * 100)}%</span>
+                                            <span>SHARP: {score ? Math.round(score.sharpness) : 0}%</span>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                            )})}
                         </div>
                     </div>
 
@@ -231,14 +267,16 @@ export const AICullingDashboard: React.FC = () => {
                             </h2>
                         </div>
                         <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-4 pr-4 custom-scrollbar grayscale opacity-50 contrast-75">
-                            {rejectedPhotos.map((photo: any) => (
+                            {rejectedPhotos.map((photo: any) => {
+                                const score = analysisResult.scores.find(s => s.photoId === photo.id);
+                                return (
                                 <div key={photo.id} className="aspect-square bg-slate-900 rounded-2xl overflow-hidden relative group border border-white/5 shadow-xl grayscale-0 hover:grayscale-0 transition-all">
-                                    <img src={photo.thumbnailUrl} alt="Reject" className="w-full h-full object-cover opacity-80" />
+                                    <img src={photo.thumbnailUrl || photo.url} alt="Reject" className="w-full h-full object-cover opacity-80" />
                                     <div className="absolute top-3 right-3 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg border border-white/10">
-                                        {Math.round(photo.overallScore * 100)}%
+                                        {score ? Math.round(score.overall) : 0}%
                                     </div>
                                 </div>
-                            ))}
+                            )})}
                         </div>
                     </div>
                 </div>

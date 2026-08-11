@@ -35,7 +35,7 @@ export const UpdateNotification: React.FC = () => {
       updater.onChecking(() => {
         setStatus(prev => ({ ...prev, checking: true }));
       }),
-      updater.onAvailable((info) => {
+      updater.onAvailable((info: any) => {
         setStatus(prev => ({
           ...prev,
           checking: false,
@@ -45,13 +45,13 @@ export const UpdateNotification: React.FC = () => {
         }));
         setIsVisible(true);
       }),
-      updater.onProgress((progress) => {
+      updater.onProgress((progress: any) => {
         setStatus(prev => ({ ...prev, progress: progress.percent ?? 0 }));
       }),
       updater.onDownloaded(() => {
         setStatus(prev => ({ ...prev, downloaded: true, progress: 100 }));
       }),
-      updater.onError((error) => {
+      updater.onError((error: any) => {
         setStatus(prev => ({ ...prev, error: error.message ?? 'Update failed', checking: false }));
       }),
     ];

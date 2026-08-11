@@ -1,5 +1,7 @@
 export type Bindings = {
   PHOTO_BUCKET: R2Bucket;
+  SESSION_KV?: KVNamespace;
+  DB: D1Database;
   DB_MENA: D1Database;
   DB_EU: D1Database;
   DB_AMER: D1Database;

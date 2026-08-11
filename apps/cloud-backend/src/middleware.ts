@@ -4,11 +4,11 @@ import { createMiddleware } from 'hono/factory';
 
 export function getRegionalDB(env: Bindings, regionId?: string): D1Database {
   switch (regionId?.toUpperCase()) {
-    case 'EU': return env.DB_EU;
-    case 'AMER': return env.DB_AMER;
-    case 'APAC': return env.DB_APAC;
-    case 'MENA':
-    default: return env.DB_MENA;
+    case 'EU': return env.DB_EU || env.DB;
+    case 'AMER': return env.DB_AMER || env.DB;
+    case 'APAC': return env.DB_APAC || env.DB;
+    case 'MENA': return env.DB_MENA || env.DB;
+    default: return env.DB;
   }
 }
 

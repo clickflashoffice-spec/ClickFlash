@@ -17,6 +17,9 @@ import healthRoutes from './routes/health';
 import stripeWebhooksRoutes from './routes/stripeWebhooks';
 import paymentsRoutes from './routes/payments';
 
+import deliveryRoutes from './routes/delivery';
+import socialGraphRoutes from './routes/social-graph';
+
 const app = new Hono<AppEnv>();
 
 app.use('*', corsMiddleware);
@@ -24,6 +27,8 @@ app.use('*', regionRoutingMiddleware);
 
 app.get('/', (c) => c.text('ClickFlash Cloud Backend API is running!'));
 
+app.route('/api/delivery', deliveryRoutes);
+app.route('/api/social-graph', socialGraphRoutes);
 app.route('/api/payments', paymentsRoutes);
 app.route('/api/gallery-auth', galleryRoutes);
 app.route('/api', galleryRoutes); // qr, photos

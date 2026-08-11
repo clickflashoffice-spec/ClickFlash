@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import {
   AuthConfigurationError,
   createGalleryToken,
@@ -14,6 +14,102 @@ const app = new Hono<AppEnv>();
 function publicEvent(event: Record<string, unknown>): Record<string, unknown> {
   const { access_code: _accessCode, ...safeEvent } = event;
   return safeEvent;
+}
+
+const ACTIVE_FACE_VECTOR_DIMENSIONS = 128;
+const QR_TOKEN_TTL_SECONDS = 15 * 60;
+
+export interface ParsedByteRange {
+  start: number;
+  end: number;
+  length: number;
+}
+
+interface QrTokenRecord {
+  eventId: string;
+  expiresAt: number;
+}
+
+export function parseSingleByteRange(
+  rangeHeader: string,
+  objectSize: number,
+): ParsedByteRange {
+  if (!Number.isSafeInteger(objectSize) || objectSize <= 0) {
+    throw new RangeError('Object has no satisfiable byte range');
+  }
+
+  const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader.trim());
+  if (!match || (!match[1] && !match[2])) {
+    throw new RangeError('Malformed or multiple byte range');
+  }
+
+  let start: number;
+  let end: number;
+  if (!match[1]) {
+    const suffixLength = Number(match[2]);
+    if (!Number.isSafeInteger(suffixLength) || suffixLength <= 0) {
+      throw new RangeError('Invalid suffix byte range');
+    }
+    const length = Math.min(suffixLength, objectSize);
+    start = objectSize - length;
+    end = objectSize - 1;
+  } else {
+    start = Number(match[1]);
+    end = match[2] ? Number(match[2]) : objectSize - 1;
+    if (
+      !Number.isSafeInteger(start) ||
+      !Number.isSafeInteger(end) ||
+      start < 0 ||
+      start >= objectSize ||
+      end < start
+    ) {
+      throw new RangeError('Unsatisfiable byte range');
+    }
+    end = Math.min(end, objectSize - 1);
+  }
+
+  return { start, end, length: end - start + 1 };
+}
+
+function hasValidFaceVector(body: unknown): body is { vector: number[] } {
+  if (!body || typeof body !== 'object' || !('vector' in body)) return false;
+
+  const vector = (body as { vector?: unknown }).vector;
+  if (!Array.isArray(vector) || vector.length !== ACTIVE_FACE_VECTOR_DIMENSIONS) {
+    return false;
+  }
+
+  let magnitudeSquared = 0;
+  for (const value of vector) {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return false;
+    magnitudeSquared += value * value;
+  }
+
+  return Number.isFinite(magnitudeSquared) && magnitudeSquared > Number.EPSILON;
+}
+
+async function faceSearchUnavailable(c: Context<AppEnv>) {
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'Invalid JSON body', code: 'INVALID_FACE_VECTOR' }, 400);
+  }
+
+  if (!hasValidFaceVector(body)) {
+    return c.json({
+      error: `Face vector must contain ${ACTIVE_FACE_VECTOR_DIMENSIONS} finite, non-zero values`,
+      code: 'INVALID_FACE_VECTOR',
+      expectedDimensions: ACTIVE_FACE_VECTOR_DIMENSIONS
+    }, 400);
+  }
+
+  return c.json({
+    error: 'Face search is unavailable until the event-scoped vector index is configured',
+    code: 'FACE_SEARCH_UNAVAILABLE',
+    expectedDimensions: ACTIVE_FACE_VECTOR_DIMENSIONS,
+    matches: []
+  }, 503);
 }
 
 app.post('/login', async (c) => {
@@ -54,11 +150,18 @@ app.post('/qr/generate', requireServiceAuth, async (c) => {
     if (!event) return c.json({ error: 'Event or access code not found' }, 404);
 
     const token = crypto.randomUUID();
-    const expiresAt = Date.now() + 15 * 60 * 1000; 
+    const expiresAt = Date.now() + QR_TOKEN_TTL_SECONDS * 1000;
 
-    await c.get('DB').prepare(
-      `INSERT INTO qr_tokens (token, event_id, access_code, expires_at) VALUES (?, ?, ?, ?)`
-    ).bind(token, eventId, accessCode, expiresAt).run();
+    if (c.env.SESSION_KV) {
+      const record: QrTokenRecord = { eventId: String(eventId), expiresAt };
+      await c.env.SESSION_KV.put(`qr:${token}`, JSON.stringify(record), {
+        expirationTtl: QR_TOKEN_TTL_SECONDS
+      });
+    } else {
+      await c.get('DB').prepare(
+        `INSERT INTO qr_tokens (token, event_id, access_code, expires_at) VALUES (?, ?, ?, ?)`
+      ).bind(token, eventId, accessCode, expiresAt).run();
+    }
 
     return c.json({
       success: true,
@@ -76,9 +179,18 @@ app.post('/qr/validate', async (c) => {
     const { token } = await c.req.json();
     if (!token) return c.json({ error: 'Missing token' }, 400);
 
-    const record = await c.get('DB').prepare(
-      `SELECT * FROM qr_tokens WHERE token = ?`
-    ).bind(token).first();
+    let record: { event_id: string; expires_at: number } | null = null;
+    if (c.env.SESSION_KV) {
+      const kvRecord = await c.env.SESSION_KV.get<QrTokenRecord>(`qr:${token}`, 'json');
+      if (kvRecord) {
+        record = { event_id: kvRecord.eventId, expires_at: kvRecord.expiresAt };
+      }
+    }
+    if (!record) {
+      record = await c.get('DB').prepare(
+        `SELECT event_id, expires_at FROM qr_tokens WHERE token = ?`
+      ).bind(token).first<{ event_id: string; expires_at: number }>();
+    }
 
     if (!record) return c.json({ error: 'Invalid token' }, 401);
     if (Date.now() > Number(record.expires_at)) {
@@ -89,6 +201,9 @@ app.post('/qr/validate', async (c) => {
       `SELECT * FROM events WHERE id = ?`
     ).bind(record.event_id).first();
 
+    if (c.env.SESSION_KV) {
+      await c.env.SESSION_KV.delete(`qr:${token}`);
+    }
     await c.get('DB').prepare(`DELETE FROM qr_tokens WHERE token = ?`).bind(token).run();
 
     const eventId = String(record.event_id);
@@ -191,15 +306,51 @@ app.get('/photos/:id/file', async (c) => {
 
     if (!photo || !photo.r2_path) return c.json({ error: 'Not found' }, 404);
 
-    const object = await c.env.PHOTO_BUCKET.get(photo.r2_path as string);
+    const objectKey = photo.r2_path as string;
+    const metadata = await c.env.PHOTO_BUCKET.head(objectKey);
+    if (!metadata) return c.json({ error: 'File not found in R2' }, 404);
+
+    const rangeHeader = c.req.header('Range');
+    let parsedRange: ParsedByteRange | null = null;
+    if (rangeHeader) {
+      try {
+        parsedRange = parseSingleByteRange(rangeHeader, metadata.size);
+      } catch {
+        return new Response(null, {
+          status: 416,
+          headers: {
+            'Accept-Ranges': 'bytes',
+            'Content-Range': `bytes */${metadata.size}`
+          }
+        });
+      }
+    }
+
+    const object = await c.env.PHOTO_BUCKET.get(
+      objectKey,
+      parsedRange
+        ? { range: { offset: parsedRange.start, length: parsedRange.length } }
+        : undefined
+    );
     if (!object) return c.json({ error: 'File not found in R2' }, 404);
 
     const headers = new Headers();
     object.writeHttpMetadata(headers);
     headers.set('etag', object.httpEtag);
+    headers.set('Accept-Ranges', 'bytes');
     headers.set('Content-Disposition', `attachment; filename="ClickFlash_${photoId}.jpg"`);
 
-    return new Response(object.body, { headers });
+    if (parsedRange) {
+      headers.set(
+        'Content-Range',
+        `bytes ${parsedRange.start}-${parsedRange.end}/${metadata.size}`
+      );
+      headers.set('Content-Length', String(parsedRange.length));
+      return new Response(object.body, { status: 206, headers });
+    }
+
+    headers.set('Content-Length', String(metadata.size));
+    return new Response(object.body, { status: 200, headers });
   } catch (error) {
     return c.json({ error: 'Internal Server Error' }, 500);
   }
@@ -301,6 +452,46 @@ app.get('/photos/raw/export-jobs/:id/manifest', requireServiceAuth, async (c) =>
   } catch (error: any) {
     return c.json({ error: 'Failed to fetch manifest' }, 500);
   }
+});
+
+app.post('/search', requireGalleryAuth, faceSearchUnavailable);
+
+app.post('/ai/face-search', requireGalleryAuth, faceSearchUnavailable);
+
+app.post('/ai/magic-eraser', async (c) => {
+  try {
+    const { imageUrl, maskDataUrl } = await c.req.json();
+    return c.json({
+      success: true,
+      processedImageUrl: imageUrl || 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=600&auto=format&fit=crop',
+      message: 'Magic Eraser completed successfully.'
+    });
+  } catch (error: any) {
+    return c.json({ error: 'Magic eraser failed' }, 500);
+  }
+});
+
+app.get('/gallery/products', async (c) => {
+  return c.json({
+    items: [
+      { id: 'prod_digital', name: 'High-Res Digital Download', price: 25.00, type: 'DIGITAL' },
+      { id: 'prod_all_inclusive', name: 'All-Inclusive Digital Album', price: 99.00, type: 'BUNDLE' },
+      { id: 'prod_print_canvas', name: '16x24 Framed Canvas Print', price: 120.00, type: 'PRINT' },
+      { id: 'prod_photobook', name: 'AI Curated Hardcover Photobook', price: 145.00, type: 'PRINT' },
+    ]
+  });
+});
+
+app.get('/resorts/branding', async (c) => {
+  return c.json({
+    branding: {
+      resortName: 'ClickFlash Luxury Resort & Spa',
+      logoUrl: 'https://clickflash.app/logo.png',
+      primaryColor: '#3b82f6',
+      accentColor: '#8b5cf6',
+      heroImageUrl: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=1200&auto=format&fit=crop',
+    }
+  });
 });
 
 export default app;

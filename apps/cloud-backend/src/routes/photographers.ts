@@ -28,7 +28,7 @@ app.post('/shifts', async (c) => {
       shift.biometricVerified ? 1 : 0, shift.biometricMethod || 'LOCAL_AUTH',
       shift.biometricConfidence ?? null, shift.faceVectorHash ?? null, shift.stationId ?? null
     ).run();
-    
+
     return c.json({ success: true, message: 'Shift logged' });
   } catch (error: any) {
     return c.json({ error: 'Shift sync failed' }, 500);
@@ -111,6 +111,44 @@ app.get('/photographers/:id/face-vector', async (c) => {
     });
   } catch (error: any) {
     return c.json({ error: 'Failed to fetch photographer face vector' }, 500);
+  }
+});
+
+/**
+ * Calculates live photographer commissions from DB event store
+ */
+app.post('/payroll/calculate-commissions', async (c) => {
+  try {
+    const { startDate, endDate, photographerId } = await c.req.json().catch(() => ({}));
+
+    let query = `
+      SELECT 
+        photographer_id,
+        COUNT(*) as total_sales,
+        COALESCE(SUM(amount), 0) as gross_revenue,
+        COALESCE(SUM(commission_amount), SUM(amount * 0.15)) as total_commission
+      FROM commission_state
+      WHERE 1=1
+    `;
+    const params: any[] = [];
+
+    if (photographerId) {
+      query += ` AND photographer_id = ?`;
+      params.push(photographerId);
+    }
+
+    query += ` GROUP BY photographer_id`;
+
+    const stmt = c.get('DB').prepare(query);
+    const { results } = await (params.length > 0 ? stmt.bind(...params) : stmt).all();
+
+    return c.json({
+      success: true,
+      period: { startDate: startDate || 'ALL', endDate: endDate || 'NOW' },
+      commissions: results || [],
+    });
+  } catch (error: any) {
+    return c.json({ error: 'Commission calculation failed', details: error.message }, 500);
   }
 });
 

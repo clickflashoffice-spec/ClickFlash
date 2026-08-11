@@ -17,7 +17,7 @@
     "clean": "pnpm exec rimraf dist release",
     "build:wasm": "pnpm exec asc src/wasm/photoEditor.ts --target release -O3 --runtime stub -o public/wasm/photoEditor.wasm",
     "build": "pnpm run build:wasm && vite build",
-    "build:backend": "esbuild \"server=backend/server.ts\" \"workers/photoWorker=backend/workers/photoWorker.ts\" \"workers/folderWorker=backend/workers/folderWorker.ts\" \"main/autoUpdater=src/main/autoUpdater.ts\" \"main/backupService=src/main/backupService.ts\" --bundle --minify --platform=node --target=node20 --outdir=dist/backend --external:electron --external:electron-updater --external:better-sqlite3-multiple-ciphers --external:sharp --external:@napi-rs/canvas --external:onnxruntime-node --external:multer --drop:debugger && tsx scripts/copy-assets.ts",
+    "build:backend": "node ../../node_modules/esbuild/bin/esbuild \"server=backend/server.ts\" \"workers/photoWorker=backend/workers/photoWorker.ts\" \"workers/folderWorker=backend/workers/folderWorker.ts\" \"main/autoUpdater=src/main/autoUpdater.ts\" \"main/backupService=src/main/backupService.ts\" --bundle --minify --platform=node --target=node20 --outdir=dist/backend --external:electron --external:electron-updater --external:better-sqlite3-multiple-ciphers --external:sharp --external:@napi-rs/canvas --external:onnxruntime-node --external:multer --drop:debugger && tsx scripts/copy-assets.ts",
     "prepare:license-trust": "node ../../scripts/prepare-license-trust.cjs build/generated/license-public-key.txt",
     "package": "pnpm run clean && pnpm run prepare:license-trust && pnpm run build && pnpm run build:backend && pnpm run build:electron && pnpm exec electron-builder build --win --dir",
     "package:installer": "pnpm run clean && pnpm run prepare:license-trust && pnpm run build && pnpm run build:backend && pnpm run build:electron && pnpm exec electron-builder build --win",
@@ -49,6 +49,7 @@
     "build:hotel": "node scripts/build-hotel-installers.js"
   },
   "dependencies": {
+    "@clickflash/ai-core": "workspace:*",
     "@clickflash/logger": "workspace:*",
     "@clickflash/types": "workspace:*",
     "@clickflash/ui": "workspace:*",
@@ -197,7 +198,7 @@
     "electron": "^39.8.7",
     "electron-builder": "^26.15.7",
     "electron-updater": "^6.3.9",
-    "esbuild": "^0.27.4",
+    "esbuild": "^0.28.2",
     "eslint": "^9.39.4",
     "eslint-plugin-react": "^7.34.0",
     "eslint-plugin-react-hooks": "^5.0.0",
@@ -213,6 +214,7 @@
     "supertest": "^7.2.2",
     "tailwindcss": "^3.4.18",
     "ts-jest": "^29.4.6",
+    "ts-jest-mock-import-meta": "^1.3.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",

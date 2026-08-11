@@ -47,6 +47,10 @@ import {
   parsePrintOptions,
   parseSaveFileOptions,
 } from "./ipc-validation";
+import { createRepositories, type Repositories } from "./backend/repositories/RepositoryFactory";
+import { DatabaseManager } from "./backend/database/db";
+import { RepoRequest } from "./ipc-schemas";
+import { backgroundRemovalService } from "./backend/services/backgroundRemovalService";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -121,6 +125,8 @@ class MasterApp {
   private tray: Tray | null = null;
   private verifiedLicensePublicKey: string | null = null;
   private pinAttempts = { count: 0, lockedUntil: 0 };
+  private repos: Repositories | null = null;
+  private localDb: DatabaseManager | null = null;
   private initAutoUpdater: ((win: BrowserWindow) => void) | null = null;
 
   constructor() {
@@ -743,7 +749,151 @@ class MasterApp {
     });
   }
 
+  private initLocalDb(): void {
+    if (this.localDb) return;
+    try {
+      const dataDir = getDataDir();
+      const dbPath = path.join(dataDir, "master.db");
+      this.localDb = new DatabaseManager(dbPath);
+      this.localDb.connect();
+      this.repos = createRepositories(this.localDb);
+      logger.info(String("[IPC] Local DB + Repository layer initialized for direct IPC access"));
+    } catch (err: any) {
+      logger.error(`[IPC] Failed to initialize local DB: ${err.message}`);
+      this.repos = null;
+    }
+  }
+
   private setupIpc(): void {
+    // ─── Direct Repository IPC (bypasses Express) ────────────────────────
+    this.registerIpcHandler("repo:request", async (_e: IpcMainInvokeEvent, rawReq: unknown) => {
+      try {
+        // Lazy-init the local DB connection on first repo:request
+        if (!this.repos) this.initLocalDb();
+        if (!this.repos) {
+          return { ok: false, status: 503, data: { error: "Repository layer not available" } };
+        }
+
+        const parsed = RepoRequest.safeParse(rawReq);
+        if (!parsed.success) {
+          return { ok: false, status: 400, data: { error: "Invalid request", details: parsed.error.issues } };
+        }
+
+        const { collection, action, params } = parsed.data;
+        const repo = this.repos[collection] as any;
+        if (!repo || typeof repo[action] !== "function") {
+          return { ok: false, status: 404, data: { error: `Unknown action: ${collection}.${action}` } };
+        }
+
+        // Map params to function arguments based on action
+        let result: any;
+        switch (action) {
+          case "findById":
+            result = repo.findById(params?.id);
+            break;
+          case "findAll":
+            result = repo.findAll();
+            break;
+          case "findByKey":
+            result = repo.findByKey(params?.key);
+            break;
+          case "findByStatus":
+            result = repo.findByStatus(params?.status);
+            break;
+          case "findByAlbumId":
+            result = repo.findByAlbumId(params?.albumId);
+            break;
+          case "findByPhotographerId":
+            result = repo.findByPhotographerId(params?.photographerId);
+            break;
+          case "findByRole":
+            result = repo.findByRole(params?.role);
+            break;
+          case "findByEmail":
+            result = repo.findByEmail(params?.email);
+            break;
+          case "findByCategory":
+            result = repo.findByCategory(params?.category);
+            break;
+          case "findFeatured":
+            result = repo.findFeatured();
+            break;
+          case "create":
+            result = repo.create(params?.data || params);
+            break;
+          case "update":
+            result = repo.update(params?.id, params?.data || params);
+            break;
+          case "delete":
+            result = repo.delete(params?.id);
+            break;
+          case "upsert":
+            result = repo.upsert(params?.key, params?.value);
+            break;
+          default:
+            return { ok: false, status: 400, data: { error: `Unhandled action: ${action}` } };
+        }
+
+        return { ok: true, status: 200, data: result };
+      } catch (err: any) {
+        logger.error(`[IPC Repo] Request failed: ${err.message}`);
+        return { ok: false, status: 500, data: { error: err.message } };
+      }
+    });
+
+    // ─── Legacy HTTP Proxy IPC (for kiosk routes and backward compat) ───
+    this.registerIpcHandler("api:request", async (_e: IpcMainInvokeEvent, req: any) => {
+      try {
+        const { path: apiPath, options } = req;
+        const url = `http://127.0.0.1:${BACKEND_PORT}${apiPath}`;
+        
+        let body: any = options.body;
+        
+        if (options.isFormData && body) {
+          const formData = new FormData();
+          for (const key of Object.keys(body)) {
+            const field = body[key];
+            if (field && typeof field === 'object' && field.type === 'file') {
+              const buffer = fs.readFileSync(field.path);
+              const blob = new Blob([buffer], { type: field.mime });
+              formData.append(key, blob, field.name);
+            } else if (field && typeof field === 'object' && field.type === 'blob') {
+              const blob = new Blob([field.buffer], { type: field.mime });
+              formData.append(key, blob, field.name);
+            } else {
+              formData.append(key, field);
+            }
+          }
+          options.body = formData;
+          if (options.headers) {
+             delete options.headers['Content-Type'];
+             delete options.headers['content-type'];
+          }
+        } else if (body && typeof body === 'object') {
+          options.body = JSON.stringify(body);
+        }
+        
+        const response = await fetch(url, options as RequestInit);
+        const dataText = await response.text();
+        let data;
+        try {
+           data = JSON.parse(dataText);
+        } catch {
+           data = dataText;
+        }
+        
+        return {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+          data
+        };
+      } catch (err: any) {
+        logger.error(`[IPC API] Request failed: ${err.message}`);
+        return { status: 500, ok: false, statusText: "Internal Server Error", data: { error: err.message } };
+      }
+    });
+
     this.registerIpcHandler("kiosk:unlock", (_e: IpcMainInvokeEvent, rawPin: unknown) => {
       const expected = ADMIN_PIN ?? (!app.isPackaged ? "000000" : null);
 
@@ -849,6 +999,24 @@ class MasterApp {
     this.registerIpcHandler("printing:getPrinters", async () => {
       if (!this.mainWindow) return [];
       return this.mainWindow.webContents.getPrintersAsync();
+    });
+
+    this.registerIpcHandler("ai:remove-background", async (_e: IpcMainInvokeEvent, args: unknown) => {
+      try {
+        const { inputPath, outputPath } = args as { inputPath: string; outputPath?: string };
+        if (!inputPath) {
+          return { success: false, error: "inputPath is required" };
+        }
+        
+        // If no outputPath provided, modify the file name
+        const finalOutputPath = outputPath || inputPath.replace(/(\.[^.]+)$/, '-nobg.png');
+        
+        const result = await backgroundRemovalService.removeBackground(inputPath, finalOutputPath);
+        return result;
+      } catch (err: any) {
+        logger.error(`[IPC] ai:remove-background error: ${err.message}`);
+        return { success: false, error: err.message };
+      }
     });
 
     this.registerIpcHandler("printing:print", (_e: IpcMainInvokeEvent, rawOptions: unknown) => {

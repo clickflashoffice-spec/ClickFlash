@@ -45,6 +45,7 @@ import tlsRoutes from "../routes/tls.routes";
 // import settingsRoutes from "../routes/settings.routes";
 import shiftRoutes from "../routes/shifts";
 import photographerRoutes from "../routes/photographers.routes";
+import insuranceRoutes from "../routes/insurance.routes";
 import {
   mobileCaptureAdminRoutes,
   mobileCapturePublicRoutes,
@@ -52,6 +53,7 @@ import {
 
 export function mountRoutes(app: Application, context: any) {
   // Specific API routes
+  app.use("/api/insurance", insuranceRoutes);
   app.use("/api/bridge", bridgeRoutes(context));
   app.use("/api/mobile-share", strictRateLimiter, mobileShareRoutes(context));
   app.use("/api/mobile-capture", mobileCaptureAdminRoutes(context));

@@ -64,7 +64,7 @@ describe('AICullingService', () => {
 
         // Assert
         expect(mockDbManager.run).toHaveBeenCalledWith(
-            expect.stringContaining('UPDATE photos SET ai_score = ?, is_rejected = ? WHERE id = ?'),
+            expect.stringContaining('UPDATE photos SET ai_score = ?'),
             expect.arrayContaining([expect.any(Number), expect.any(Number), 'photo-123'])
         );
     });

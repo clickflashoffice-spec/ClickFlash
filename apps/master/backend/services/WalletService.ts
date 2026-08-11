@@ -1,4 +1,4 @@
-import { PKPass } from 'passkit-generator';
+import { PKPass, type Barcode, type OverridablePassProps } from 'passkit-generator';
 import fs from 'fs-extra';
 // import path from 'path';
 import { logger } from '../utils/logger';
@@ -11,6 +11,19 @@ export interface WalletPassParams {
     galleryUrl: string;
     primaryPhotoUrl?: string;
     date: string;
+}
+
+export function createWalletBarcodes(params: WalletPassParams): Barcode[] {
+    const shared = {
+        message: params.galleryUrl,
+        messageEncoding: 'utf-8',
+        altText: params.token
+    };
+    return [
+        { ...shared, format: 'PKBarcodeFormatQR' },
+        { ...shared, format: 'PKBarcodeFormatPDF417' },
+        { ...shared, format: 'PKBarcodeFormatAztec' }
+    ];
 }
 
 export class WalletService {
@@ -32,7 +45,7 @@ export class WalletService {
         this.checkConfiguration();
     }
 
-    private checkConfiguration() {
+    private checkConfiguration(): void {
         if (!this.certPath || !this.keyPath || !this.wwdrPath || !this.teamIdentifier) {
             logger.warn('[WalletService] Apple Wallet is not fully configured. Will generate mock passes.');
             this.isConfigured = false;
@@ -60,62 +73,49 @@ export class WalletService {
                 return Buffer.from('MOCK_PASS_DATA');
             }
 
-            // Real generation logic using passkit-generator
-            // @ts-ignore
+            const props: OverridablePassProps = {
+                passTypeIdentifier: this.passTypeIdentifier,
+                teamIdentifier: this.teamIdentifier,
+                organizationName: 'ClickFlash',
+                description: 'ClickFlash Gallery Access Pass',
+                serialNumber: params.albumId,
+                logoText: 'ClickFlash',
+                foregroundColor: 'rgb(255, 255, 255)',
+                backgroundColor: 'rgb(15, 23, 42)',
+                labelColor: 'rgb(148, 163, 184)'
+            };
             const pass = new PKPass(
-                ({
-                    "passTypeIdentifier": this.passTypeIdentifier,
-                    "teamIdentifier": this.teamIdentifier,
-                    "organizationName": "ClickFlash",
-                    "description": "ClickFlash Gallery Access Pass",
-                    "logoText": "ClickFlash",
-                    "foregroundColor": "rgb(255, 255, 255)",
-                    "backgroundColor": "rgb(15, 23, 42)", // Slate-900 equivalent
-                    "labelColor": "rgb(148, 163, 184)",
-                    "eventTicket": {
-                        "primaryFields": [
-                            {
-                                "key": "album",
-                                "label": "GALLERY",
-                                "value": params.clientName || 'Your Photos'
-                            }
-                        ],
-                        "secondaryFields": [
-                            {
-                                "key": "date",
-                                "label": "DATE",
-                                "value": params.date
-                            }
-                        ],
-                        "auxiliaryFields": [
-                            {
-                                "key": "access",
-                                "label": "TOKEN",
-                                "value": params.token.substring(0, 8)
-                            }
-                        ]
-                    },
-                    "barcode": {
-                        "message": params.galleryUrl,
-                        "format": "PKBarcodeFormatQR",
-                        "messageEncoding": "iso-8859-1",
-                        "altText": params.token
-                    }
-                } as any),
+                {},
                 {
-                    cert: fs.readFileSync(this.certPath),
-                    key: fs.readFileSync(this.keyPath),
-                    wwdr: fs.readFileSync(this.wwdrPath),
-                } as any
+                    signerCert: fs.readFileSync(this.certPath),
+                    signerKey: fs.readFileSync(this.keyPath),
+                    wwdr: fs.readFileSync(this.wwdrPath)
+                },
+                props
             );
+
+            pass.type = 'eventTicket';
+            pass.primaryFields.push({
+                key: 'album',
+                label: 'GALLERY',
+                value: params.clientName || 'Your Photos'
+            });
+            pass.secondaryFields.push({ key: 'date', label: 'DATE', value: params.date });
+            pass.auxiliaryFields.push({
+                key: 'access',
+                label: 'TOKEN',
+                value: params.token.substring(0, 8)
+            });
+            pass.setBarcodes(...createWalletBarcodes(params));
 
             // Add assets if available
             // Note: in a real implementation, you would add logo.png, icon.png from local paths
             // pass.addBuffer('logo.png', logoBuffer);
 
             return pass.getAsBuffer();
-        } catch (error: any) {
-            logger.error(`[WalletService] Failed to generate pass: ${error.message}`);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error);
+            logger.error(`[WalletService] Failed to generate pass: ${message}`);
             throw error;
         }
     }

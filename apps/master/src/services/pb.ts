@@ -170,6 +170,55 @@ class CustomPocketBaseAdapter {
         }
       }
 
+      // [IPC BRIDGE INTERCEPTION]
+      // Route through Electron IPC if available, avoiding local network stack
+      if (typeof window !== "undefined" && (window as any).electron?.api?.invoke) {
+        let ipcBody = fetchOptions.body;
+        let isFormData = false;
+        
+        if (ipcBody instanceof FormData) {
+           isFormData = true;
+           const formDataObj: any = {};
+           for (const [key, value] of (ipcBody as any).entries()) {
+              if (value instanceof File && (value as any).path) {
+                 formDataObj[key] = { type: 'file', path: (value as any).path, name: value.name, mime: value.type };
+              } else if (value instanceof Blob) {
+                 const arrayBuffer = await value.arrayBuffer();
+                 formDataObj[key] = { type: 'blob', buffer: new Uint8Array(arrayBuffer), name: (value as any).name || 'blob.jpg', mime: value.type };
+              } else {
+                 formDataObj[key] = value;
+              }
+           }
+           ipcBody = formDataObj;
+        }
+
+        const ipcOptions = {
+           method: fetchOptions.method || "GET",
+           headers: {
+             ...authHeaders,
+             ...additionalHeaders,
+             ...fetchOptions.headers,
+           },
+           body: ipcBody,
+           isFormData
+        };
+        
+        const ipcResult = await (window as any).electron.api.invoke(path, ipcOptions);
+        
+        clearTimeout(timeoutId);
+
+        if (ipcResult.status === 401) {
+           this.logout().catch(e => logger.warn('Logout failed on 401', e));
+        }
+
+        // Return a mock Response object matching standard fetch API
+        return new Response(typeof ipcResult.data === 'string' ? ipcResult.data : JSON.stringify(ipcResult.data), {
+           status: ipcResult.status,
+           statusText: ipcResult.statusText || (ipcResult.ok ? 'OK' : 'Error')
+        });
+      }
+
+      // Fallback: Standard fetch
       const response = await fetch(url, {
         ...fetchOptions,
         headers: {

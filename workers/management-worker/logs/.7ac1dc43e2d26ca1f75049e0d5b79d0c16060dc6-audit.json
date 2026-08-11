@@ -24,6 +24,11 @@
             "date": 1786230276073,
             "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\management-worker\\logs\\clickflash-combined-2026-08-09.log",
             "hash": "4525f4d0c6d31c4ef91eff7b9450e6a0dd300fc2806c4201e34da866cf911e1c"
+        },
+        {
+            "date": 1786351502868,
+            "name": "C:\\Users\\alamo\\Desktop\\ClickFlash\\workers\\management-worker\\logs\\clickflash-combined-2026-08-10.log",
+            "hash": "3e2fd04a6a5cdf00c7f4a67cf8c841d13b23d2817066f08473da3f425c05071a"
         }
     ],
     "hashType": "sha256"

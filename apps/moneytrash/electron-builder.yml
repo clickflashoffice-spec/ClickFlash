@@ -20,7 +20,7 @@ win:
   requestedExecutionLevel: asInvoker
   signAndEditExecutable: false
 
-afterSign: "ev-sign.js"
+afterSign: "ev-sign.cjs"
 
 electronFuses:
   runAsNode: false

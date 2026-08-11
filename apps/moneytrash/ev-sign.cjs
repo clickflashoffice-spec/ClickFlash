@@ -38,3 +38,4 @@ exports.default = async function(configuration) {
       console.warn(`[EV-SIGN] Skipping signing: No EV signing credentials provided (AZURE_KEY_VAULT_URI or EV_SIGNING_CERT_PATH).`);
     }
   }
+};

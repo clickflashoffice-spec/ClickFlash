@@ -43,29 +43,18 @@ database.sqlite-wal
 *.env
 **/.env
 **/*.env
-# Keep .env.example templates but exclude backend .env files with secrets
-**/backend/.env*
-!**/backend/.env.example
-# Allow app-level .env.example files
-!apps/**/.env.example
-
-# Private keys and signing material
-**/private_key.pem
-**/*.private.pem
-**/*-private-key.pem
-**/*.key
-
-# Logs and debug artifacts (Master App hygiene)
-*.log
-check_*.js
-debug_*.js
-verify_*.js
 crash.log
 tsc_errors.log
 build_master_exe_retry.log
 server_prod_test.log
 auth_test.log
 KioskGuardian.exe
+
+# Generated private signing keys (public keys and certificates remain trackable)
+**/payload-private-key.pem
+**/*-private-key.pem
+**/private_key.pem
+**/*.private.pem
 
 # IDEs
 .vscode/*

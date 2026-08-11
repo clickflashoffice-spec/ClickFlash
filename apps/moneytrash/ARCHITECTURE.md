@@ -1,13 +1,13 @@
 # MoneyTrash Uploader - Architecture Documentation
 
-> **Tauri v2 Desktop Application for Secure Photo Uploads**
+> **Electron 39 Desktop Application for Secure Photo Uploads**
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [System Architecture](#system-architecture)
 - [Frontend Architecture](#frontend-architecture)
-- [Backend (Rust) Architecture](#backend-rust-architecture)
+- [Backend (Node.js/TypeScript) Architecture](#backend-rust-architecture)
 - [Data Flow](#data-flow)
 - [Error Handling](#error-handling)
 - [Offline Support](#offline-support)
@@ -16,14 +16,14 @@
 
 ## Overview
 
-The MoneyTrash Uploader is a Tauri v2 desktop application that provides secure, resumable photo uploads to the ClickFlash cloud platform. It features offline queue management, progress persistence, and robust error handling.
+The MoneyTrash Uploader is a Electron 39 desktop application that provides secure, resumable photo uploads to the ClickFlash cloud platform. It features offline queue management, progress persistence, and robust error handling.
 
 ### Key Features
 
 - **Chunked Uploads**: Files are split into 1MB chunks for reliability
 - **Offline Queue**: Uploads queue when offline and resume automatically
 - **Progress Persistence**: Upload state survives app restarts
-- **Native File Access**: Direct file system access via Tauri APIs
+- **Native File Access**: Direct file system access via Electron APIs
 - **Retry Logic**: Exponential backoff for failed uploads
 
 ## System Architecture
@@ -31,11 +31,11 @@ The MoneyTrash Uploader is a Tauri v2 desktop application that provides secure, 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     MoneyTrash Uploader                         │
-│                      (Tauri v2 Application)                      │
+│                      (Electron 39 Application)                      │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌─────────────────┐      ┌─────────────────┐                  │
 │  │   Frontend      │      │   Backend       │                  │
-│  │   (React 18)    │◄────►│   (Rust)        │                  │
+│  │   (React 18)    │◄────►│   (Node.js/TypeScript)        │                  │
 │  │                 │ IPC  │                 │                  │
 │  │ • Components    │      │ • Commands      │                  │
 │  │ • Services      │      │ • State Mgmt    │                  │
@@ -70,7 +70,7 @@ src/
 │   ├── uploadQueue.ts                # Offline upload queue management
 │   ├── progressStorage.ts            # IndexedDB persistence layer
 │   ├── batchUploadService.ts         # Web-based batch uploads
-│   ├── desktopBatchUploadService.ts  # Tauri-native batch uploads
+│   ├── desktopBatchUploadService.ts  # Electron-native batch uploads
 │   └── s3StorageService.ts           # S3-compatible storage
 ├── utils/
 │   └── logger.ts                     # Structured logging utility
@@ -160,13 +160,13 @@ logger.error('Upload failed', error, { fileId });
 - Provides reset/retry options
 - Logs errors automatically
 
-## Backend (Rust) Architecture
+## Backend (Node.js/TypeScript) Architecture
 
 ### Directory Structure
 
 ```
-src-tauri/src/
-├── main.rs           # Application entry & Tauri setup
+src-electron/src/
+├── main.rs           # Application entry & Electron setup
 ├── errors.rs         # Error types and handling
 ├── state.rs          # Application state management
 └── commands/
@@ -179,7 +179,7 @@ src-tauri/src/
 
 ### Error Handling (`errors.rs`)
 
-Structured error types for Rust/JS boundary:
+Structured error types for Node.js/TypeScript/JS boundary:
 
 ```rust
 #[derive(Error, Debug, Clone, Serialize, Deserialize)]
@@ -229,7 +229,7 @@ pub struct UploadState {
 Core upload functionality with chunked transfers:
 
 ```rust
-#[tauri::command]
+#[electron::command]
 pub async fn upload_file_chunk(
     state: State<'_, UploadState>,
     session_id: String,
@@ -239,10 +239,10 @@ pub async fn upload_file_chunk(
     // ...
 ) -> CommandResult<UploadProgress>
 
-#[tauri::command]
+#[electron::command]
 pub async fn finalize_upload(
     state: State<'_, UploadState>,
-    app_handle: tauri::AppHandle,
+    app_handle: electron::AppHandle,
     session_id: String,
     api_url: Option<String>,
     metadata: UploadMetadata,
@@ -260,13 +260,13 @@ pub async fn finalize_upload(
 Secure file system operations:
 
 ```rust
-#[tauri::command]
+#[electron::command]
 pub async fn select_files(...) -> CommandResult<Vec<FileInfo>>
 
-#[tauri::command]
+#[electron::command]
 pub async fn select_folder(...) -> CommandResult<Option<Vec<FileInfo>>>
 
-#[tauri::command]
+#[electron::command]
 pub async fn read_file(path: String) -> CommandResult<Vec<u8>>
 ```
 
@@ -291,14 +291,14 @@ pub async fn read_file(path: String) -> CommandResult<Vec<u8>>
    └─► uploadQueue.processQueue()
 
 4. File read (native path or File object)
-   └─► read_file() [Tauri] or file.arrayBuffer()
+   └─► read_file() [Electron] or file.arrayBuffer()
 
-5. Chunked upload to Rust backend
-   └─► upload_file_chunk() [Tauri command]
+5. Chunked upload to Node.js/TypeScript backend
+   └─► upload_file_chunk() [Electron command]
    └─► Chunks saved to temp directory
 
 6. Finalization
-   └─► finalize_upload() [Tauri command]
+   └─► finalize_upload() [Electron command]
    └─► File reassembled
    └─► Uploaded to API
    └─► Temp files cleaned up
@@ -347,7 +347,7 @@ Upload fails
 
 ## Error Handling
 
-### Rust Side
+### Node.js/TypeScript Side
 
 1. **Error Types**: Structured `AppError` enum with serde serialization
 2. **CommandResult**: Wrapper type for consistent response format
@@ -391,7 +391,7 @@ Upload fails
 
 - **IndexedDB**: Progress, queue state, history
 - **localStorage**: Configuration, logs
-- **File System**: Temp chunks (Rust-managed)
+- **File System**: Temp chunks (Node.js/TypeScript-managed)
 
 ### Recovery on Restart
 
@@ -425,7 +425,7 @@ Upload fails
 
 ## Testing Strategy
 
-### Rust Tests
+### Node.js/TypeScript Tests
 
 ```rust
 #[cfg(test)]
@@ -533,9 +533,9 @@ npm install
 # Build frontend
 npm run build
 
-# Build Tauri app
-cd src-tauri
-cargo build --release
+# Build Electron app
+cd src-electron
+npm run build
 ```
 
 ### Distribution

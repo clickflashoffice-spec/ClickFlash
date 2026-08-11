@@ -8,10 +8,12 @@
   ],
   "main": "./dist/index.js",
   "browser": "./dist/browser.js",
+  "react-native": "./dist/browser.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "react-native": "./dist/browser.js",
       "node": "./dist/index.js",
       "edge-light": "./dist/browser.js",
       "browser": "./dist/browser.js",

@@ -6,4 +6,4 @@ bucket = "./dist"
 
 [env.production]
 name = "clickflash-management-prod"
-route = { pattern = "manage.clickflash.com/*", zone_name = "clickflash.com" }
+route = { pattern = "manage.clicketflash.com/*", zone_name = "clicketflash.com" }

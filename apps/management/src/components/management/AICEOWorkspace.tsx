@@ -4,15 +4,17 @@ import {
   BarChart3, Zap, Globe, Calendar, ChevronUp, ChevronDown, Target, RefreshCw, Sparkles, CheckCircle2
 } from "lucide-react";
 import { aiIntelligenceService, CEOInsightsResponse, PricingSuggestion } from "@/services/aiIntelligenceService";
+import { ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
 const MONTHLY_REVENUE = [
-  { month: "Jan", revenue: 18400, target: 20000 },
-  { month: "Feb", revenue: 21200, target: 20000 },
-  { month: "Mar", revenue: 19800, target: 22000 },
-  { month: "Apr", revenue: 26500, target: 22000 },
-  { month: "May", revenue: 31200, target: 28000 },
-  { month: "Jun", revenue: 29800, target: 30000 },
-  { month: "Jul", revenue: 34100, target: 32000 },
+  { month: "Jan", revenue: 18400, target: 20000, forecast: null },
+  { month: "Feb", revenue: 21200, target: 20000, forecast: null },
+  { month: "Mar", revenue: 19800, target: 22000, forecast: null },
+  { month: "Apr", revenue: 26500, target: 22000, forecast: null },
+  { month: "May", revenue: 31200, target: 28000, forecast: null },
+  { month: "Jun", revenue: 29800, target: 30000, forecast: null },
+  { month: "Jul", revenue: 34100, target: 32000, forecast: null },
+  { month: "Aug", revenue: null, target: 34000, forecast: 38500 },
 ];
 
 const INITIAL_PRICING_SUGGESTIONS: PricingSuggestion[] = [
@@ -49,7 +51,7 @@ const SUGGESTION_COLOR_MAP: Record<string, { border: string; bg: string; text: s
   purple:  { border: "border-purple-500/40",  bg: "bg-purple-500/10",  text: "text-purple-400",  buttonBg: "bg-purple-500/20 text-purple-300 border-purple-500/40"  },
 };
 
-const maxRevenue = Math.max(...MONTHLY_REVENUE.map(d => Math.max(d.revenue, d.target)));
+const maxRevenue = Math.max(...MONTHLY_REVENUE.map(d => Math.max(d.revenue ?? 0, d.target)));
 
 export const AICEOWorkspace: React.FC = () => {
   const [activePricing, setActivePricing] = useState<string | null>(null);
@@ -76,7 +78,7 @@ export const AICEOWorkspace: React.FC = () => {
     setTimeout(() => setPushedGlobal(false), 3500);
   };
 
-  const totalRevenue = MONTHLY_REVENUE.reduce((sum, d) => sum + d.revenue, 0);
+  const totalRevenue = MONTHLY_REVENUE.reduce((sum, d) => sum + (d.revenue ?? 0), 0);
   const totalTarget = MONTHLY_REVENUE.reduce((sum, d) => sum + d.target, 0);
   const variance = ((totalRevenue - totalTarget) / totalTarget) * 100;
   const isPositive = variance >= 0;
@@ -166,66 +168,40 @@ export const AICEOWorkspace: React.FC = () => {
         </div>
       </div>
 
-      {/* Revenue Chart */}
+      {/* Live Revenue Forecast Card (30-day projection chart using Recharts) */}
       <div className="bg-[#131C31] border border-white/10 rounded-2xl p-6 shadow-2xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h3 className="text-lg font-black text-white flex items-center gap-2.5">
               <BarChart3 className="w-5 h-5 text-cyan-400" />
-              <span>Revenue vs Target Telemetry</span>
+              <span>Live Revenue Forecast & Telemetry</span>
             </h3>
-            <p className="text-slate-400 text-xs mt-1">Monthly actuals compared against seasonal target trajectory and Gemini AI August projection</p>
+            <p className="text-slate-400 text-xs mt-1">Monthly actuals compared against seasonal target trajectory and Gemini AI August 30-day projection</p>
           </div>
           <div className="flex items-center gap-4 text-xs font-bold">
             <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-cyan-500 inline-block" /> Actual</span>
             <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-white/20 inline-block" /> Target</span>
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-purple-500/70 inline-block border border-purple-400 border-dashed" /> AI Forecast</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-purple-500 inline-block" /> AI Forecast</span>
           </div>
         </div>
 
-        {/* Bar chart */}
-        <div className="flex items-end gap-3 h-48 pt-4">
-          {MONTHLY_REVENUE.map((d) => {
-            const revenueH = (d.revenue / maxRevenue) * 100;
-            const targetH = (d.target / maxRevenue) * 100;
-            return (
-              <div key={d.month} className="flex-1 flex flex-col items-center gap-1.5">
-                <div className="w-full flex items-end gap-1 h-40">
-                  <div
-                    className="flex-1 bg-cyan-500/80 hover:bg-cyan-400 rounded-t-lg transition-all relative group shadow-lg"
-                    style={{ height: `${revenueH}%` }}
-                  >
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#0B111F] border border-white/15 rounded-lg px-2.5 py-1 text-xs font-black text-white whitespace-nowrap shadow-2xl z-10">
-                      €{d.revenue.toLocaleString()}
-                    </div>
-                  </div>
-                  <div
-                    className="flex-1 bg-white/10 rounded-t-lg transition-all"
-                    style={{ height: `${targetH}%` }}
-                  />
-                </div>
-                <span className="text-xs font-black text-slate-400">{d.month}</span>
-              </div>
-            );
-          })}
-          {/* August AI Forecast */}
-          <div className="flex-1 flex flex-col items-center gap-1.5">
-            <div className="w-full flex items-end gap-1 h-40">
-              <div
-                className="flex-1 bg-purple-500/40 border-2 border-purple-400 border-dashed rounded-t-lg shadow-lg relative group"
-                style={{ height: `${(38000 / maxRevenue) * 100}%` }}
-              >
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#0B111F] border border-purple-500 rounded-lg px-2.5 py-1 text-xs font-black text-purple-300 whitespace-nowrap shadow-2xl z-10">
-                  Forecast: €38,000
-                </div>
-              </div>
-              <div
-                className="flex-1 bg-white/10 rounded-t-lg"
-                style={{ height: `${(34000 / maxRevenue) * 100}%` }}
+        {/* 30-day projection chart using Recharts */}
+        <div className="h-64 pt-4 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={MONTHLY_REVENUE} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff15" vertical={false} />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} tickFormatter={(val) => `€${val/1000}k`} />
+              <Tooltip
+                contentStyle={{ backgroundColor: '#0B111F', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}
+                itemStyle={{ fontWeight: 700 }}
+                formatter={(value: any) => [`€${(value || 0).toLocaleString()}`, '']}
               />
-            </div>
-            <span className="text-xs font-black text-purple-400">Aug*</span>
-          </div>
+              <Bar dataKey="target" fill="rgba(255,255,255,0.1)" radius={[4, 4, 0, 0]} barSize={24} />
+              <Bar dataKey="revenue" fill="#06b6d4" radius={[4, 4, 0, 0]} barSize={24} />
+              <Line type="monotone" dataKey="forecast" stroke="#a855f7" strokeWidth={3} strokeDasharray="5 5" dot={{ r: 5, fill: '#a855f7' }} activeDot={{ r: 8 }} />
+            </ComposedChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
@@ -271,10 +247,10 @@ export const AICEOWorkspace: React.FC = () => {
                       {activePricing === suggestion.id ? (
                         <>
                           <CheckCircle2 className="w-4 h-4" />
-                          <span>Applied to Fleet</span>
+                          <span>Applied AI Pricing Strategy</span>
                         </>
                       ) : (
-                        <span>Apply Suggestion</span>
+                        <span>Apply AI Pricing Strategy</span>
                       )}
                     </button>
                   </div>

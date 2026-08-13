@@ -1,9 +1,9 @@
 {
-  "timestamp": "",
-  "commit": "",
+  "timestamp": "2026-08-13T20:07:00.000Z",
+  "commit": "1d4583a4",
   "results": {
-    "ipc": { "p50": 0, "p95": 0, "p99": 0, "passed": false },
-    "aiScoring": { "p50": 0, "p95": 0, "p99": 0, "passed": false },
-    "faceSearch": { "p50": 0, "p95": 0, "p99": 0, "passed": false }
+    "ipc": { "p50": 15.44, "p95": 15.98, "p99": 16.11, "target": "< 100ms", "passed": true },
+    "aiScoring": { "p50": 1.36, "p95": 2.55, "p99": 3.60, "target": "< 500ms", "passed": true },
+    "faceSearch": { "p50": 2.53, "p95": 3.59, "p99": 4.23, "target": "< 2000ms", "indexSize": 10000, "passed": true }
   }
 }

@@ -1,11 +1,10 @@
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import AIDemandForecasting from '../AIDemandForecasting';
 
 // Mock Recharts
-vi.mock('recharts', () => {
-  const Original = vi.importActual('recharts');
+jest.mock('recharts', () => {
+  const Original = jest.requireActual('recharts');
   return {
     ...Original,
     ResponsiveContainer: ({ children }: any) => <div>{children}</div>,

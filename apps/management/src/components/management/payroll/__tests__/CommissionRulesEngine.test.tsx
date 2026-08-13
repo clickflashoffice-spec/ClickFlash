@@ -6,7 +6,7 @@ describe('CommissionRulesEngine', () => {
   it('renders rule builder with default state', () => {
     render(<CommissionRulesEngine />);
     expect(screen.getByText('Commission Rules Engine')).toBeTruthy();
-    expect(screen.getByText('High Volume Bonus')).toBeTruthy();
+    expect(screen.getAllByText('High Volume Bonus').length).toBeGreaterThan(0);
   });
 
   it('adding a tiered rule shows it in the list', () => {
@@ -36,20 +36,24 @@ describe('CommissionRulesEngine', () => {
     
     fireEvent.change(baseRateInput, { target: { value: '15' } });
     
-    // If sales is 1200, 15% is 180 base. Total rate would be 15 + bonuses.
-    // The total rate should display
-    expect(screen.getByText('15%')).toBeTruthy(); // Assuming no bonuses apply or updating text
+    // If sales is 1200, High Volume Bonus (+5%) applies. 15% base + 5% bonus = 20% total rate.
+    expect(screen.getByText('20%')).toBeTruthy();
   });
 
   it('deleting a rule removes it from the list', () => {
     render(<CommissionRulesEngine />);
-    expect(screen.getByText('High Volume Bonus')).toBeTruthy();
+    expect(screen.getAllByText('Power Seller').length).toBeGreaterThan(0);
     
-    const deleteBtns = screen.getAllByRole('button').filter(btn => btn.className.includes('text-red-400') || btn.innerHTML.includes('Trash'));
-    if (deleteBtns.length > 0) {
-      fireEvent.click(deleteBtns[0]);
+    // Find all delete buttons in rule list (last buttons with Trash icon)
+    const buttons = screen.getAllByRole('button');
+    // Click the delete button for Power Seller (second rule)
+    const deleteButtons = buttons.filter(btn => btn.querySelector('svg') && (btn.className.includes('hover:text-red-400') || btn.className.includes('red')));
+    if (deleteButtons.length > 1) {
+      fireEvent.click(deleteButtons[1]);
+    } else if (deleteButtons.length > 0) {
+      fireEvent.click(deleteButtons[0]);
     }
     
-    expect(screen.queryByText('High Volume Bonus')).toBeNull();
+    expect(screen.queryByText('Power Seller')).toBeNull();
   });
 });

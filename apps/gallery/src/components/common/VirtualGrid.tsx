@@ -119,7 +119,7 @@ function VirtualGridInner<T>({
   minColumns = 1,
   maxColumns,
 }: VirtualGridProps<T>): React.ReactElement | null {
-  const items = Array.isArray(itemsProp) ? itemsProp : [];
+  const items = itemsProp;
   const containerHeight = normalizePositiveNumber(containerHeightProp, 600);
   const validItemWidth = normalizePositiveNumber(itemWidth, 200);
   const validItemHeight = normalizePositiveNumber(itemHeight, 200);

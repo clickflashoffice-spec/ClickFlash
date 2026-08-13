@@ -8,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as FileSystem from 'expo-file-system/legacy';
 import { router } from 'expo-router';
 import { logger } from '@clickflash/logger';
 import { extractActiveFaceDescriptor } from '../lib/faceExtraction';
@@ -18,6 +19,7 @@ import {
 import {
   clearGalleryToken,
   getGalleryToken,
+  setFaceSearchMatches,
 } from '../lib/gallerySession';
 
 export default function SelfieScreen() {
@@ -59,10 +61,12 @@ export default function SelfieScreen() {
       return;
     }
 
+    let capturedPhotoUri: string | null = null;
     try {
       setIsProcessing(true);
       const photo = await cameraRef.current.takePictureAsync();
       if (!photo) throw new Error('Failed to take picture');
+      capturedPhotoUri = photo.uri;
 
       const descriptor = await extractActiveFaceDescriptor(photo.uri);
       const result = await searchGalleryWithDescriptor(
@@ -81,14 +85,8 @@ export default function SelfieScreen() {
       logger.info('Face search completed', {
         args: [{ matchCount: result.matches.length }],
       });
-      Alert.alert(
-        result.matches.length === 0 ? 'No matches yet' : 'Photos found',
-        result.matches.length === 0
-          ? 'No matching photos were returned for this event.'
-          : `${result.matches.length} matching photo${
-              result.matches.length === 1 ? '' : 's'
-            } found.`,
-      );
+      setFaceSearchMatches(result.matches);
+      router.replace('/(tabs)/gallery');
     } catch (error: unknown) {
       logger.error('Error during selfie search:', { args: [error] });
       if (
@@ -114,6 +112,15 @@ export default function SelfieScreen() {
         );
       }
     } finally {
+      if (capturedPhotoUri) {
+        try {
+          await FileSystem.deleteAsync(capturedPhotoUri, { idempotent: true });
+        } catch (cleanupError: unknown) {
+          logger.warn('Unable to delete the temporary selfie capture.', {
+            args: [cleanupError],
+          });
+        }
+      }
       setIsProcessing(false);
     }
   };

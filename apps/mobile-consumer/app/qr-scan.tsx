@@ -35,7 +35,7 @@ export default function QRScanScreen() {
     setIsProcessing(true);
 
     try {
-      logger.info('Scanned QR Data:', { args: [data] });
+      logger.info('Kiosk QR code scanned; validating token.');
       // Extract token from URL or raw string
       let token = data;
       if (data.includes('token=')) {

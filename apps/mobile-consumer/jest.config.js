@@ -10,7 +10,6 @@ module.exports = {
     '^@clickflash/ai-core$': '<rootDir>/../../packages/ai-core/src',
     '^@clickflash/(.*)$': '<rootDir>/../../packages/$1/src',
   },
-  setupFilesAfterFramework: [],
   testMatch: ['**/__tests__/**/*.{ts,tsx}', '**/*.test.{ts,tsx}'],
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts'],
 };

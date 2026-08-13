@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-react-native';
 import { decodeJpeg } from '@tensorflow/tfjs-react-native';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as blazeface from '@tensorflow-models/blazeface';
 import * as mobilenet from '@tensorflow-models/mobilenet';
 import { toByteArray } from 'base64-js';
@@ -69,8 +69,12 @@ export async function extractActiveFaceDescriptor(
     logger.info('Estimating faces...');
     const predictions = await blazeFaceModel.estimateFaces(imageTensor, false);
 
-    if (predictions.length === 0) {
-      throw new Error('No face detected');
+    if (predictions.length !== 1) {
+      throw new Error(
+        predictions.length === 0
+          ? 'No face detected'
+          : 'Exactly one face must be visible in the selfie',
+      );
     }
 
     logger.info('Face detected, cropping...');

@@ -49,7 +49,12 @@ const PhotoCard: React.FC<{
     onDownloadHighRes?: () => void;
     isOrderPaid?: boolean;
 }> = ({ photo, isFavorite, onToggleFavorite, onAddToCart, onClick, isSelectionMode, isSelected, onToggleSelection, onDownloadHighRes, isOrderPaid }) => {
-    const editStyle = photo.manualEdits ? getPhotoStyle(photo.manualEdits) : { filter: undefined, transform: undefined };
+    const editStyle = useMemo(
+        () => photo.manualEdits
+            ? getPhotoStyle(photo.manualEdits)
+            : { filter: undefined, transform: undefined },
+        [photo.manualEdits],
+    );
     const overlayRef = useRef<HTMLDivElement>(null);
     const imgRef = useRef<HTMLImageElement>(null);
 
@@ -419,7 +424,7 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
                     gap={24}
                     minColumns={2}
                     maxColumns={4}
-                    renderItem={(photo, index, style) => (
+                    renderItem={(photo, _index, _style) => (
                         <PhotoCard
                             key={photo.id}
                             photo={photo}

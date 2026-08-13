@@ -598,6 +598,15 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
           cart={activeCart}
           total={cartTotal}
           onUpdateQuantity={handleUpdateCartQuantity}
+          onPaymentComplete={() => {
+            clearCart();
+            void markCartRecovered();
+            setCheckoutNotice({
+              tone: "success",
+              message: "Payment confirmed. Your purchase is ready.",
+            });
+            setIsCheckoutModalOpen(false);
+          }}
           albumId={order?.albumId || photosInOrder[0]?.albumId || ""}
           moneyTrashGalleryId={trashGallery?.id}
           moneyTrashPurchaseToken={trashGallery?.purchaseToken}

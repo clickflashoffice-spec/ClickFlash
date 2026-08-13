@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run typecheck and lint on changed files only (fast)
+npx turbo run typecheck lint --filter='...[HEAD~1]' --continue

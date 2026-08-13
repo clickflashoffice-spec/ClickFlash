@@ -1,3 +1,4 @@
+/* global RTCPeerConnection, RTCDataChannel, RTCIceCandidateInit */
 import { Bonjour } from 'bonjour-service';
 
 import { logger } from '@/utils/logger';

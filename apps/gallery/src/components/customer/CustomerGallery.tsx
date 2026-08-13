@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
-import VirtualGrid from '../common/VirtualGrid';
-import BulkActionsBar from './BulkActionsBar';
-import { Photo } from '../../types.ts';
-import { getPhotoStyle } from '../../utils/styleUtils';
+import VirtualGrid from '@/components/common/VirtualGrid';
+import BulkActionsBar from '@/components/customer/BulkActionsBar';
+import type { Photo } from '@/types.ts';
+import { getPhotoStyle } from '@/utils/styleUtils';
 
 const VIRTUAL_SCROLL_THRESHOLD = 100;
 
@@ -21,7 +21,21 @@ interface CustomerGalleryProps {
     onOpenProofing?: () => void;
     onDownloadHighRes?: (photo: Photo) => void;
     isOrderPaid?: boolean;
+    isLoading?: boolean;
 }
+
+export const PhotoCardSkeleton: React.FC = () => (
+    <div
+        className="relative h-[350px] overflow-hidden rounded-2xl border border-white/5 bg-slate-900"
+        aria-hidden="true"
+    >
+        <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-white/10 via-white/[0.03] to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 space-y-3 bg-gradient-to-t from-slate-950 p-5 pt-20">
+            <div className="h-3 w-2/3 animate-pulse rounded-full bg-white/10" />
+            <div className="h-2 w-1/3 animate-pulse rounded-full bg-cyan-400/10" />
+        </div>
+    </div>
+);
 
 const PhotoCard: React.FC<{
     photo: Photo;
@@ -160,7 +174,8 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
     onBulkShare,
     onOpenProofing,
     onDownloadHighRes,
-    isOrderPaid
+    isOrderPaid,
+    isLoading = false,
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerHeight, setContainerHeight] = useState(window.innerHeight - 300);
@@ -260,6 +275,15 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
     const PHOTO_CARD_WIDTH = 280;
     const PHOTO_CARD_HEIGHT = 350;
 
+    const hasActiveFilters = searchTerm.length > 0 || filter !== 'all' || sortOption !== 'date-desc';
+    const resetFilters = () => {
+        setSearchTerm('');
+        setDebouncedSearchTerm('');
+        setFilter('all');
+        setSortOption('date-desc');
+        setSelectedPhotoIds(new Set());
+    };
+
     return (
         <main ref={containerRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-32">
             {/* Cinematic Floating Toolbar */}
@@ -349,11 +373,41 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
                 </div>
             </div>
 
-            {filteredAndSortedPhotos.length === 0 ? (
-                <div className="text-center py-32 glass-panel rounded-3xl border-dashed border-2">
-                    <p className="text-slate-500 font-bold uppercase tracking-widest text-xs italic">
-                        {searchTerm ? "Zero matches found in cloud repository." : "This gallery contains no assets yet."}
+            {isLoading ? (
+                <div
+                    className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-4"
+                    role="status"
+                    aria-label="Loading gallery photos"
+                    aria-busy="true"
+                >
+                    {Array.from({ length: 8 }, (_, index) => (
+                        <PhotoCardSkeleton key={`photo-skeleton-${index}`} />
+                    ))}
+                </div>
+            ) : filteredAndSortedPhotos.length === 0 ? (
+                <div className="glass-panel rounded-3xl border-2 border-dashed border-white/10 px-6 py-24 text-center">
+                    <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-500">
+                        <svg viewBox="0 0 24 24" fill="none" className="h-8 w-8" aria-hidden="true">
+                            <path d="m3 3 18 18M10.5 6H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-4.5M14 6h4a2 2 0 0 1 2 2v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                    </div>
+                    <h3 className="text-sm font-black uppercase tracking-[0.25em] text-white">
+                        {hasActiveFilters ? 'No matching photos' : 'Gallery coming soon'}
+                    </h3>
+                    <p className="mx-auto mt-3 max-w-md text-xs font-bold uppercase tracking-widest text-slate-500">
+                        {hasActiveFilters
+                            ? 'Try a broader search or restore the full gallery view.'
+                            : 'Your resort photos will appear here as soon as they are synced.'}
                     </p>
+                    {hasActiveFilters && (
+                        <button
+                            type="button"
+                            onClick={resetFilters}
+                            className="mt-8 min-h-[48px] rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-6 py-3 text-xs font-black uppercase tracking-widest text-cyan-300 transition hover:bg-cyan-500/20"
+                        >
+                            Reset filters
+                        </button>
+                    )}
                 </div>
             ) : useVirtualScrolling ? (
                 <VirtualGrid

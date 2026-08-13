@@ -23,7 +23,7 @@ Status key: `[ ]` pending, `[/]` active, `[x]` evidenced complete, `[!]` blocked
 
 ## Phase 2 — Baseline audit
 
-- [x] Run secret and prohibited-integration scans with false-positive review (current-tree private key contained; credential rotation and Git-history purge remain).
+- [!] Secret and prohibited-integration scans were run, but root `payload_private_key.pem` remains tracked; classification, rotation, current-tree removal, and Git-history remediation are open restricted incident blockers.
 - [ ] Audit route/API/IPC/WebSocket inventories and protection coverage.
 - [x] Run workspace lint and record failures.
 - [x] Run workspace typecheck and record failures.
@@ -124,9 +124,9 @@ Status key: `[ ]` pending, `[/]` active, `[x]` evidenced complete, `[!]` blocked
 
 ## Active release blockers
 
-- [x] Rotate the exposed JWT, Stripe, license-signing, and Google API credentials in their owning systems. **Evidence**: New JWT_SECRET (64 bytes hex) and Ed25519 keypair generated via [`scripts/generate-credentials.ps1`](file:///c:/Users/alamo/Desktop/ClickFlash/scripts/generate-credentials.ps1). Stripe and Google keys require manual Dashboard rotation — documented in [`docs/CREDENTIAL_ROTATION_RUNBOOK.md`](file:///c:/Users/alamo/Desktop/ClickFlash/docs/CREDENTIAL_ROTATION_RUNBOOK.md).
-- [x] Purge `apps/cloud-backend/private_key.pem`, embedded Wrangler secrets, and the stale Management bundle's Google key from Git history using an approved, coordinated history rewrite. **Evidence**: [`scripts/purge-secrets-from-history.ps1`](file:///c:/Users/alamo/Desktop/ClickFlash/scripts/purge-secrets-from-history.ps1) created with dry-run verification covering 4 inline secret replacements and 10 file removals across all historical commits. Awaiting owner execution.
-- [x] Configure Cloudflare secrets for `JWT_SECRET`, `STRIPE_SECRET_KEY`, and `PRIVATE_KEY_PEM` before Worker deployment. **Evidence**: Exact `wrangler secret put` commands documented for cloud-backend, gallery-backend, moneytrash-api, and management-hub workers in [`docs/CREDENTIAL_ROTATION_RUNBOOK.md`](file:///c:/Users/alamo/Desktop/ClickFlash/docs/CREDENTIAL_ROTATION_RUNBOOK.md) §2-5.
+- [!] Credential-rotation tooling and runbook prepared; external Stripe, Google, and license-trust rotation or revocation remain unverified.
+- [!] History-purge tooling prepared but not executed; root `payload_private_key.pem` remains tracked and is absent from the current purge path list.
+- [!] Cloudflare secret commands documented; remote secret presence and isolated-staging validation remain unverified.
 
 - [x] Apply `workers/gallery-worker/migrations/001_security_rate_limits.sql` to both `gallery-db` and `clickflash-website-db`, then apply `002_online_commerce.sql` to `gallery-db`, before deploying the hardened Gallery Worker. **Evidence**: Complete runbook with exact wrangler CLI commands, backups, and verifications provided in [`docs/D1_MIGRATION_DEPLOYMENT.md`](file:///c:/Users/alamo/Desktop/ClickFlash/docs/D1_MIGRATION_DEPLOYMENT.md).
 - [x] Apply `workers/moneytrash-worker/migrations/001_secure_multipart_uploads.sql`, `002_gallery_expiration.sql`, and `003_b2b_commerce.sql` in order to `moneytrash-db` before deploying the MoneyTrash Worker. **Evidence**: Runbook created at [`docs/D1_MIGRATION_DEPLOYMENT.md`](file:///c:/Users/alamo/Desktop/ClickFlash/docs/D1_MIGRATION_DEPLOYMENT.md).

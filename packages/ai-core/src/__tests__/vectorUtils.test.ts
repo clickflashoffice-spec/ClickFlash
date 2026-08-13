@@ -7,8 +7,17 @@ import {
   isHighQualitySmile, 
   calculateQualityRating 
 } from '../vectorUtils';
+import { AI_CONFIG } from '../constants';
 
 describe('VectorUtils & AI Math Engine', () => {
+  it('keeps the indexed face contract at 128D until the 512D migration', () => {
+    expect(AI_CONFIG.FACE_VECTOR_DIMENSION_ACTIVE).toBe(128);
+    expect(AI_CONFIG.FACE_VECTOR_DIMENSION_TARGET).toBe(512);
+    expect(AI_CONFIG.FACE_VECTOR_DIMENSION_ACTIVE).not.toBe(
+      AI_CONFIG.FACE_VECTOR_DIMENSION_TARGET,
+    );
+  });
+
   it('should compute exact cosine similarity for identical 512D vectors', () => {
     const vecA = new Array(512).fill(0.5);
     const vecB = new Array(512).fill(0.5);

@@ -17,8 +17,8 @@ From the repository root:
 
 ```powershell
 pnpm install
-pnpm --filter mobile run android:prebuild
-pnpm --filter mobile run android
+pnpm --filter @clickflash/mobile-pro run android:prebuild
+pnpm --filter @clickflash/mobile-pro run android
 ```
 
 The app requires a native development build. Expo Go cannot load the `CameraTether`
@@ -29,11 +29,11 @@ in separate terminals:
 
 ```powershell
 # Terminal 1: forces IPv4 localhost so Windows ADB reverse can reach Metro.
-pnpm --filter mobile run start:android
+pnpm --filter @clickflash/mobile-pro run start:android
 
 # Terminal 2
 adb reverse tcp:8081 tcp:8081
-adb shell am start -n com.clickflash.photographer/.MainActivity
+adb shell am start -n com.clickflash.pro/.MainActivity
 ```
 
 The Mobile Metro configuration watches only the shared runtime packages declared by this
@@ -43,16 +43,16 @@ stages.
 ## Validation
 
 ```powershell
-pnpm --filter mobile run typecheck
-pnpm --filter mobile run lint
-pnpm --filter mobile run test
-Push-Location apps/mobile-photographer/android
+pnpm --filter @clickflash/mobile-pro run typecheck
+pnpm --filter @clickflash/mobile-pro run lint
+pnpm --filter @clickflash/mobile-pro run test
+Push-Location apps/mobile-pro/android
 .\gradlew.bat :camera-tether:testDebugUnitTest
 Pop-Location
-pnpm --filter mobile run android:apk
+pnpm --filter @clickflash/mobile-pro run android:apk
 ```
 
-The Android package identity is `com.clickflash.photographer`. Release builds still require
+The Android package identity is `com.clickflash.pro`. Release builds still require
 an organization-controlled signing key, protected CI secret handling, Play/App Distribution
 policy, and physical Nikon D7000 qualification.
 
@@ -134,7 +134,7 @@ the approved CI or workstation secret manager:
 - `CLICKFLASH_ANDROID_KEY_PASSWORD`
 
 Do not save these values in committed Gradle files, shell history, CI logs, or a repository
-`.env` file. After secure injection, run `pnpm --filter mobile run android:aab`. If none or
+`.env` file. After secure injection, run `pnpm --filter @clickflash/mobile-pro run android:aab`. If none or
 only some values are present, every release task fails closed. The expected output is
 `android/app/build/outputs/bundle/release/app-release.aab`; verify its certificate against
 the approved upload-key fingerprint before distribution.

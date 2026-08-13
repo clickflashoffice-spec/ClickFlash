@@ -16,7 +16,9 @@
 
 # --- Generated Private Signing Keys (never commit) ---
 payload-private-key.pem
+payload_private_key.pem
 *-private-key.pem
+*_private_key.pem
 private_key.pem
 *.private.pem
 

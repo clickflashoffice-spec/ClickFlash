@@ -8,6 +8,10 @@ jest.mock('@clickflash/ui', () => ({
     isOpen ? <div>{children}</div> : null,
 }));
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
+
 jest.mock('@/components/CurrencyContext.tsx', () => ({
   useCurrency: () => ({
     currency: { code: 'EUR' },

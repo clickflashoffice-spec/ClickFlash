@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { smartCullingService } from '../src/services/SmartCullingService.ts';
+import smartCullingModule from '../src/services/SmartCullingService.ts';
+
+const { smartCullingService } = smartCullingModule;
 
 const smartCullingSource = readFileSync(
   new URL('../src/services/SmartCullingService.ts', import.meta.url),
@@ -50,11 +52,15 @@ test('contains no random or model-readiness fallback scoring', () => {
   assert.equal(smartCullingSource.includes('@tensorflow'), false);
 });
 
-test('verified camera ingest schedules optional culling outside its retry path', () => {
+test('post-import verification and optional culling are outside the camera import retry loop', () => {
   const handlerStart = cameraTetherSource.indexOf('private async handleDetectedObject');
   const helperStart = cameraTetherSource.indexOf('private async evaluateCullingSafely');
   const handlerBody = cameraTetherSource.slice(handlerStart, helperStart);
+  const retryLoopStart = handlerBody.indexOf(
+    'for (let attempt = 1; attempt <= MAX_IMPORT_ATTEMPTS',
+  );
   const verifiedIndex = handlerBody.indexOf('await captureLedgerService.markVerified');
+  const retryLoopBody = handlerBody.slice(retryLoopStart, verifiedIndex);
   const deliveryIndex = handlerBody.indexOf(
     'await this.ensureOriginalDeliverySafely',
     verifiedIndex
@@ -74,11 +80,15 @@ test('verified camera ingest schedules optional culling outside its retry path',
 
   assert.ok(handlerStart >= 0, 'The camera ingest handler must exist.');
   assert.ok(helperStart > handlerStart, 'The safe culling helper must follow the ingest handler.');
+  assert.ok(retryLoopStart >= 0, 'The bounded camera import retry loop must exist.');
   assert.ok(verifiedIndex >= 0, 'The imported original must be verified first.');
   assert.ok(deliveryIndex > verifiedIndex, 'Original delivery must be retained after verification.');
   assert.ok(pairingIndex > deliveryIndex, 'RAW/JPEG pairing must remain in the verified flow.');
   assert.ok(previewIndex > pairingIndex, 'The verified preview must be published before culling.');
   assert.ok(cullingIndex > previewIndex, 'Culling must run only after verified ingest is published.');
+  assert.equal(retryLoopBody.includes('markVerified'), false);
+  assert.equal(retryLoopBody.includes('ensureOriginalDeliverySafely'), false);
+  assert.equal(retryLoopBody.includes('evaluateCullingSafely'), false);
   assert.equal(handlerBody.includes('await smartCullingService.evaluatePhoto'), false);
 
   const helperEnd = cameraTetherSource.indexOf('\n  private ', helperStart + 1);

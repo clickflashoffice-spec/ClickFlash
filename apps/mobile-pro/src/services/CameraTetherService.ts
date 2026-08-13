@@ -182,35 +182,16 @@ class CameraTetherService {
       }
 
       let lastError: unknown = null;
+      let imported: CameraImportCompletedEvent | null = null;
       for (let attempt = 1; attempt <= MAX_IMPORT_ATTEMPTS; attempt += 1) {
         try {
           await captureLedgerService.markImporting(ledgerEntry.id);
-          const imported = await cameraTetherModule.importObject(
+          imported = await cameraTetherModule.importObject(
             event.sessionId,
             event.storageId,
             event.objectHandle
           );
-          await captureLedgerService.markVerified(ledgerEntry.id, imported);
-
-          await this.ensureOriginalDeliverySafely(ledgerEntry.id);
-          const pairing = await this.reconcilePairingSafely(ledgerEntry.id, event);
-          this.storageBlockedObjects.delete(objectKey);
-          await this.publishLedgerCounts();
-          appState.tether.lastVerifiedPreview = {
-            captureObjectId: event.objectKey,
-            filename: imported.filename,
-            localUri: imported.localUri,
-            sha256: imported.sha256
-          };
-          logger.info('[CameraTetherService] Camera capture verified locally.', {
-            filename: imported.filename,
-            byteSize: imported.byteSize,
-            sha256: imported.sha256,
-            pairingState: pairing?.state ?? 'UNAVAILABLE',
-            pairId: pairing?.pairId ?? null,
-          });
-          void this.evaluateCullingSafely(imported.localUri, imported.filename);
-          return;
+          break;
         } catch (error) {
           if (this.isStorageBackpressure(error)) {
             await this.blockForStorage(
@@ -229,9 +210,34 @@ class CameraTetherService {
         }
       }
 
-      throw lastError instanceof Error
-        ? lastError
-        : new Error('Camera import failed after retrying.');
+      if (!imported) {
+        throw lastError instanceof Error
+          ? lastError
+          : new Error('Camera import failed after retrying.');
+      }
+
+      // The native camera import retry boundary ends above. Once an import
+      // completes, ledger verification and every optional post-import action
+      // run exactly once and can never trigger another camera-card read.
+      await captureLedgerService.markVerified(ledgerEntry.id, imported);
+      await this.ensureOriginalDeliverySafely(ledgerEntry.id);
+      const pairing = await this.reconcilePairingSafely(ledgerEntry.id, event);
+      this.storageBlockedObjects.delete(objectKey);
+      await this.publishLedgerCounts();
+      appState.tether.lastVerifiedPreview = {
+        captureObjectId: event.objectKey,
+        filename: imported.filename,
+        localUri: imported.localUri,
+        sha256: imported.sha256
+      };
+      logger.info('[CameraTetherService] Camera capture verified locally.', {
+        filename: imported.filename,
+        byteSize: imported.byteSize,
+        sha256: imported.sha256,
+        pairingState: pairing?.state ?? 'UNAVAILABLE',
+        pairId: pairing?.pairId ?? null,
+      });
+      void this.evaluateCullingSafely(imported.localUri, imported.filename);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       if (ledgerId) {

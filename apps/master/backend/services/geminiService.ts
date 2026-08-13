@@ -196,38 +196,46 @@ Return ONLY valid JSON, no markdown.`,
     return results;
   }
 
-  /**
-   * Generate tags for a photo using Gemini Vision.
-   */
   async generateTags(
     imageBuffer: Buffer,
-    mimeType: string = "image/jpeg"
+    mimeType: string = "image/jpeg",
+    retries = 1
   ): Promise<string[]> {
     if (!this.isReady()) throw new Error("Gemini not initialized");
 
     const base64 = imageBuffer.toString("base64");
-
-    const response = await genaiClient.models.generateContent({
-      model: this.config!.flashModel,
-      contents: [
-        {
-          parts: [
-            { inlineData: { mimeType, data: base64 } },
+    
+    let attempt = 0;
+    while (attempt <= retries) {
+      try {
+        const response = await genaiClient.models.generateContent({
+          model: this.config!.flashModel,
+          contents: [
             {
-              text: `Tag this photo with 8-15 descriptive keywords for a photography studio library. Include: subjects, setting, mood, activity, time of day, colors. Return ONLY a JSON array of strings, no markdown.`,
+              parts: [
+                { inlineData: { mimeType, data: base64 } },
+                {
+                  text: `Tag this photo with 8-15 descriptive keywords for a photography studio library. Include: subjects, setting, mood, activity, time of day, colors. Return ONLY a JSON array of strings, no markdown.`,
+                },
+              ],
             },
           ],
-        },
-      ],
-    });
+        });
 
-    try {
-      const text = response.text?.trim() || "[]";
-      const cleaned = text.replace(/^```json?\n?/i, "").replace(/\n?```$/i, "");
-      return JSON.parse(cleaned) as string[];
-    } catch {
-      return [];
+        const text = response.text?.trim() || "[]";
+        const cleaned = text.replace(/^```json?\n?/i, "").replace(/\n?```$/i, "");
+        return JSON.parse(cleaned) as string[];
+      } catch (err: any) {
+        if (err.status === 429 && attempt < retries) {
+          attempt++;
+          const delay = 1000 * attempt + Math.random() * 500; // jitter
+          await new Promise(res => setTimeout(res, delay));
+          continue;
+        }
+        return [];
+      }
     }
+    return [];
   }
 
   /**

@@ -20,7 +20,8 @@
     "test": {
       "dependsOn": ["build"],
       "inputs": ["$TURBO_DEFAULT$", ".env.*local"],
-      "outputs": []
+      "outputs": [],
+      "cache": false
     },
     "lint": {
       "dependsOn": ["^build"],
@@ -28,9 +29,10 @@
       "outputs": []
     },
     "typecheck": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env.*local"],
-      "outputs": []
+      "dependsOn": [],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": [],
+      "cache": true
     },
     "dev": {
       "cache": false,

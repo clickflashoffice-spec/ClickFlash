@@ -191,9 +191,7 @@ class CameraTetherService {
             event.objectHandle
           );
           await captureLedgerService.markVerified(ledgerEntry.id, imported);
-          
-          const cullingResult = await smartCullingService.evaluatePhoto(imported.localUri);
-          
+
           await this.ensureOriginalDeliverySafely(ledgerEntry.id);
           const pairing = await this.reconcilePairingSafely(ledgerEntry.id, event);
           this.storageBlockedObjects.delete(objectKey);
@@ -210,8 +208,8 @@ class CameraTetherService {
             sha256: imported.sha256,
             pairingState: pairing?.state ?? 'UNAVAILABLE',
             pairId: pairing?.pairId ?? null,
-            culling: cullingResult,
           });
+          void this.evaluateCullingSafely(imported.localUri, imported.filename);
           return;
         } catch (error) {
           if (this.isStorageBackpressure(error)) {
@@ -251,6 +249,21 @@ class CameraTetherService {
       });
     } finally {
       this.inFlightObjects.delete(objectKey);
+    }
+  }
+
+  private async evaluateCullingSafely(localUri: string, filename: string): Promise<void> {
+    try {
+      const culling = await smartCullingService.evaluatePhoto(localUri);
+      logger.info('[CameraTetherService] Optional culling completed.', {
+        filename,
+        culling,
+      });
+    } catch (error) {
+      logger.warn(
+        '[CameraTetherService] Capture is locally verified; optional culling is unavailable.',
+        { filename, error }
+      );
     }
   }
 

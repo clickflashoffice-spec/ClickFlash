@@ -13,6 +13,7 @@
     "build": "vite build",
     "build:electron": "rimraf dist/electron && tsc -p tsconfig.electron.json && npx javascript-obfuscator dist/electron/electron-main.js --output dist/electron/electron-main.js --compact true --control-flow-flattening true --dead-code-injection true --string-array true --string-array-encoding base64 --string-array-threshold 1",
     "build:payload-tool": "rimraf dist/payload-tools && tsc -p tsconfig.payload-tools.json",
+    "payload:key:generate": "node scripts/generate-payload-key.mjs",
     "payload:sign": "pnpm run build:payload-tool && node dist/payload-tools/scripts/payload-release.js",
     "prepare:license-trust": "node ../../scripts/prepare-license-trust.cjs build/generated/license-public-key.txt",
     "package": "pnpm run prepare:license-trust && pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && electron-builder build --win --dir",

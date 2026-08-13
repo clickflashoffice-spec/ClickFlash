@@ -38,7 +38,11 @@ unsafe fn accumulate_simd_row(
 ) -> (f64, f64) {
     use core::arch::wasm32::*;
 
-    let load = |offset: usize| u16x8_extend_low_u8x16(v128_load64_zero(grayscale.as_ptr().add(offset) as *const v128));
+    let load = |offset: usize| {
+        u16x8_extend_low_u8x16(v128_load64_zero(
+            grayscale.as_ptr().add(offset) as *const u64
+        ))
+    };
     let row = y * width;
     let centre = load(row + start_x);
     let mut sum = load(row - width + start_x - 1);
@@ -80,8 +84,7 @@ fn laplacian_variance_slice(grayscale: &[u8], width: usize, height: usize) -> f6
         #[cfg(target_arch = "wasm32")]
         unsafe {
             while x + 8 <= width - 1 {
-                let (block_sum, block_squared_sum) =
-                    accumulate_simd_row(grayscale, width, y, x);
+                let (block_sum, block_squared_sum) = accumulate_simd_row(grayscale, width, y, x);
                 sum += block_sum;
                 squared_sum += block_squared_sum;
                 count += 8;
@@ -167,14 +170,15 @@ fn resize_bicubic_rgba_slice(
                     let weight_y = cubic_weight(source_y - (base_y + sample_y) as f64);
                     for sample_x in -1..=2 {
                         let x = clamp_index(base_x + sample_x, source_width);
-                        let weight =
-                            weight_y * cubic_weight(source_x - (base_x + sample_x) as f64);
-                        weighted_sum += source[(y * source_width + x) * 4 + channel] as f64 * weight;
+                        let weight = weight_y * cubic_weight(source_x - (base_x + sample_x) as f64);
+                        weighted_sum +=
+                            source[(y * source_width + x) * 4 + channel] as f64 * weight;
                         weight_total += weight;
                     }
                 }
-                destination[output + channel] =
-                    (weighted_sum / weight_total.max(f64::EPSILON)).round().clamp(0.0, 255.0) as u8;
+                destination[output + channel] = (weighted_sum / weight_total.max(f64::EPSILON))
+                    .round()
+                    .clamp(0.0, 255.0) as u8;
             }
         }
     }
@@ -190,7 +194,10 @@ pub unsafe extern "C" fn resize_bicubic_rgba(
     destination_width: usize,
     destination_height: usize,
 ) -> i32 {
-    let source_length = match source_width.checked_mul(source_height).and_then(|v| v.checked_mul(4)) {
+    let source_length = match source_width
+        .checked_mul(source_height)
+        .and_then(|v| v.checked_mul(4))
+    {
         Some(length) => length,
         None => return 0,
     };
@@ -234,9 +241,18 @@ mod tests {
 
     #[test]
     fn bicubic_resize_preserves_a_uniform_rgba_image() {
-        let source = [20, 40, 60, 255, 20, 40, 60, 255, 20, 40, 60, 255, 20, 40, 60, 255];
+        let source = [
+            20, 40, 60, 255, 20, 40, 60, 255, 20, 40, 60, 255, 20, 40, 60, 255,
+        ];
         let mut destination = [0; 16];
-        assert!(resize_bicubic_rgba_slice(&source, 2, 2, &mut destination, 2, 2));
+        assert!(resize_bicubic_rgba_slice(
+            &source,
+            2,
+            2,
+            &mut destination,
+            2,
+            2
+        ));
         assert_eq!(destination, source);
     }
 }

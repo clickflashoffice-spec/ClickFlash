@@ -73,4 +73,15 @@ export class PhotoRepo {
     this.dbManager.run(`DELETE FROM photos WHERE id = ?`, [id]);
     return true;
   }
+
+  public search(query: string) {
+    if (!query || query.trim() === '') {
+      return this.dbManager.all(`SELECT * FROM photos ORDER BY created_at DESC`);
+    }
+    const sanitizedQuery = query.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+    return this.dbManager.all(
+      `SELECT * FROM photos WHERE id IN (SELECT id FROM photos_fts WHERE photos_fts MATCH ?)`,
+      [sanitizedQuery + '*']
+    );
+  }
 }

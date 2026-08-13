@@ -1,6 +1,9 @@
 export const AI_CONFIG = {
-  FACE_VECTOR_DIMENSION_DEFAULT: 512, // InsightFace ArcFace benchmark
-  FACE_VECTOR_DIMENSION_LEGACY: 128,  // MobileNet fallback
+  // Active legacy/indexed contract. Changing this requires a separate
+  // storage/index migration and backfill.
+  FACE_VECTOR_DIMENSION_ACTIVE: 128 as const,
+  // Intended future width; it is not active or indexed yet.
+  FACE_VECTOR_DIMENSION_TARGET: 512 as const,
   SIMILARITY_THRESHOLD_DEFAULT: 0.68,
   BLUR_LAPLACIAN_THRESHOLD: 100.0,
   EAR_BLINK_THRESHOLD: 0.20,

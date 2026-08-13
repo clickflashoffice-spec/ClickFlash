@@ -1,4 +1,4 @@
-appId: com.clickflash.mobile
+appId: com.clickflash.pro
 ---
 - launchApp:
     clearState: true

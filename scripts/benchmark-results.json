@@ -1,0 +1,9 @@
+{
+  "timestamp": "",
+  "commit": "",
+  "results": {
+    "ipc": { "p50": 0, "p95": 0, "p99": 0, "passed": false },
+    "aiScoring": { "p50": 0, "p95": 0, "p99": 0, "passed": false },
+    "faceSearch": { "p50": 0, "p95": 0, "p99": 0, "passed": false }
+  }
+}

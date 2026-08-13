@@ -2,7 +2,12 @@ import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
-import { logger } from "@clickflash/logger";
+import { logger } from '@clickflash/logger';
+import { setGalleryToken } from '../lib/gallerySession';
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 export default function QRScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -49,15 +54,31 @@ export default function QRScanScreen() {
         throw new Error(`Validation failed with status ${response.status}`);
       }
 
-      const result = await response.json();
-      if (result.success && result.token) {
-        logger.info('QR Code validated successfully for event:', { args: [result.event?.name] });
+      const result: unknown = await response.json();
+      if (
+        isRecord(result) &&
+        result.success === true &&
+        typeof result.token === 'string'
+      ) {
+        setGalleryToken(result.token);
+        const eventName =
+          isRecord(result.event) && typeof result.event.name === 'string'
+            ? result.event.name
+            : 'Event';
+        logger.info('QR Code validated successfully for event:', {
+          args: [eventName],
+        });
         router.replace('/(tabs)/gallery');
       } else {
-        throw new Error(result.error || 'Invalid QR code');
+        const message =
+          isRecord(result) && typeof result.error === 'string'
+            ? result.error
+            : 'Invalid QR code';
+        throw new Error(message);
       }
-    } catch (error: any) {
-      logger.error('QR Validation Error:', { args: [error.message || error] });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error('QR Validation Error:', { args: [message] });
       Alert.alert('Invalid or Expired QR Code', 'Could not connect to the kiosk session. Please try scanning again.', [
         { text: 'Try Again', onPress: () => { scannedRef.current = false; setIsProcessing(false); } },
         { text: 'Cancel', onPress: () => router.replace('/') }

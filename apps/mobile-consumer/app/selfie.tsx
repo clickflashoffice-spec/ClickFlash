@@ -1,9 +1,24 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
-import { extractFaceVector, searchGalleryWithVector } from '../lib/faceExtraction';
-import { logger } from "@clickflash/logger";
+import { logger } from '@clickflash/logger';
+import { extractActiveFaceDescriptor } from '../lib/faceExtraction';
+import {
+  FaceSearchClientError,
+  searchGalleryWithDescriptor,
+} from '../lib/faceSearchClient';
+import {
+  clearGalleryToken,
+  getGalleryToken,
+} from '../lib/gallerySession';
 
 export default function SelfieScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -28,25 +43,76 @@ export default function SelfieScreen() {
   const takePictureAndSearch = async () => {
     if (!cameraRef.current || isProcessing) return;
 
+    const galleryToken = getGalleryToken();
+    if (!galleryToken) {
+      Alert.alert(
+        'Connect to an event first',
+        'Scan the event QR code before searching for your photos.',
+        [
+          {
+            text: 'Scan QR code',
+            onPress: () => router.push('/qr-scan'),
+          },
+          { text: 'Cancel', style: 'cancel' },
+        ],
+      );
+      return;
+    }
+
     try {
       setIsProcessing(true);
-      const photo = await cameraRef.current.takePictureAsync({ base64: true });
+      const photo = await cameraRef.current.takePictureAsync();
       if (!photo) throw new Error('Failed to take picture');
 
-      // 1. Extract vector on device
-      const vector = await extractFaceVector(photo.uri);
+      const descriptor = await extractActiveFaceDescriptor(photo.uri);
+      const result = await searchGalleryWithDescriptor(
+        descriptor,
+        galleryToken,
+      );
 
-      // 2. Search Cloudflare Vectorize (mocking desk_id for now)
-      const deskId = 'test-desk-123';
-      const results = await searchGalleryWithVector(vector, deskId);
-      
-      // In a real app we would pass these results to the gallery page via state/store
-      // For now we just route back or to gallery
-      logger.info('Found photos:', { args: [results.length] });
-      router.replace('/(tabs)/gallery');
-    } catch (error) {
+      if (result.status === 'unavailable') {
+        Alert.alert(
+          'Face search unavailable',
+          'Face search is temporarily unavailable for this event. No photos were returned.',
+        );
+        return;
+      }
+
+      logger.info('Face search completed', {
+        args: [{ matchCount: result.matches.length }],
+      });
+      Alert.alert(
+        result.matches.length === 0 ? 'No matches yet' : 'Photos found',
+        result.matches.length === 0
+          ? 'No matching photos were returned for this event.'
+          : `${result.matches.length} matching photo${
+              result.matches.length === 1 ? '' : 's'
+            } found.`,
+      );
+    } catch (error: unknown) {
       logger.error('Error during selfie search:', { args: [error] });
-      alert('Failed to find photos. Try again.');
+      if (
+        error instanceof FaceSearchClientError &&
+        error.code === 'UNAUTHORIZED'
+      ) {
+        clearGalleryToken();
+        Alert.alert(
+          'Event session expired',
+          'Scan the event QR code again before searching.',
+          [
+            {
+              text: 'Scan QR code',
+              onPress: () => router.push('/qr-scan'),
+            },
+            { text: 'Cancel', style: 'cancel' },
+          ],
+        );
+      } else {
+        Alert.alert(
+          'Unable to search',
+          'No photos were returned. Check the selfie and try again.',
+        );
+      }
     } finally {
       setIsProcessing(false);
     }

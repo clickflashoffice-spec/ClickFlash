@@ -5,7 +5,12 @@ import * as FileSystem from 'expo-file-system';
 import * as blazeface from '@tensorflow-models/blazeface';
 import * as mobilenet from '@tensorflow-models/mobilenet';
 import { toByteArray } from 'base64-js';
-import { logger } from "@clickflash/logger";
+import { AI_CONFIG, l2Normalize } from '@clickflash/ai-core';
+import { logger } from '@clickflash/logger';
+import {
+  ACTIVE_FACE_DESCRIPTOR_ALGORITHM,
+  type ActiveFaceDescriptor,
+} from './faceSearchClient';
 
 let blazeFaceModel: blazeface.BlazeFaceModel | null = null;
 let mobilenetModel: mobilenet.MobileNet | null = null;
@@ -29,105 +34,100 @@ async function initModels() {
   }
 }
 
-export async function extractFaceVector(imageUri: string): Promise<number[]> {
+/**
+ * Produces the active legacy 128D descriptor entirely on device.
+ *
+ * This is a generic MobileNet feature descriptor from a detected face crop.
+ * It is deliberately not represented as ArcFace, FaceNet, or another biometric
+ * embedding model.
+ */
+export async function extractActiveFaceDescriptor(
+  imageUri: string,
+): Promise<ActiveFaceDescriptor> {
   await initModels();
-  
+
   if (!blazeFaceModel || !mobilenetModel) {
     throw new Error('Models not loaded');
   }
 
   logger.info('Reading image for extraction...', { args: [imageUri] });
-  // 1. Load image and decode to tensor
   const imgB64 = await FileSystem.readAsStringAsync(imageUri, {
     encoding: FileSystem.EncodingType.Base64,
   });
-  
+
   const bytes = toByteArray(imgB64);
   const imageTensor = decodeJpeg(bytes);
+  let batchedImage: tf.Tensor4D | null = null;
+  let boxes: tf.Tensor2D | null = null;
+  let boxIndices: tf.Tensor1D | null = null;
+  let cropped: tf.Tensor4D | null = null;
+  let features: tf.Tensor | null = null;
+  let flatFeatures: tf.Tensor1D | null = null;
+  let descriptorSlice: tf.Tensor1D | null = null;
 
-  logger.info('Estimating faces...');
-  // 2. Run blazeFace
-  const predictions = await blazeFaceModel.estimateFaces(imageTensor, false);
-  
-  if (predictions.length === 0) {
+  try {
+    logger.info('Estimating faces...');
+    const predictions = await blazeFaceModel.estimateFaces(imageTensor, false);
+
+    if (predictions.length === 0) {
+      throw new Error('No face detected');
+    }
+
+    logger.info('Face detected, cropping...');
+    const face = predictions[0];
+    const topLeft = face.topLeft as [number, number];
+    const bottomRight = face.bottomRight as [number, number];
+
+    const y = topLeft[1];
+    const x = topLeft[0];
+    const height = bottomRight[1] - y;
+    const width = bottomRight[0] - x;
+    const [imgHeight, imgWidth] = imageTensor.shape;
+
+    const y1 = Math.max(0, y / imgHeight);
+    const x1 = Math.max(0, x / imgWidth);
+    const y2 = Math.min(1, (y + height) / imgHeight);
+    const x2 = Math.min(1, (x + width) / imgWidth);
+
+    batchedImage = imageTensor.expandDims(0) as tf.Tensor4D;
+    boxes = tf.tensor2d([[y1, x1, y2, x2]]);
+    boxIndices = tf.tensor1d([0], 'int32');
+    cropped = tf.image.cropAndResize(
+      batchedImage,
+      boxes,
+      boxIndices,
+      [224, 224],
+    );
+
+    logger.info('Extracting generic MobileNet face-crop features...');
+    features = mobilenetModel.infer(cropped, true);
+    flatFeatures = features.flatten();
+    descriptorSlice = flatFeatures.slice(
+      [0],
+      [AI_CONFIG.FACE_VECTOR_DIMENSION_ACTIVE],
+    );
+
+    const vector = l2Normalize(Array.from(descriptorSlice.dataSync()));
+    if (vector.length !== AI_CONFIG.FACE_VECTOR_DIMENSION_ACTIVE) {
+      throw new Error('Active face descriptor has an invalid dimension');
+    }
+
+    logger.info(
+      `Successfully extracted ${AI_CONFIG.FACE_VECTOR_DIMENSION_ACTIVE}D active face descriptor.`,
+    );
+    return {
+      algorithm: ACTIVE_FACE_DESCRIPTOR_ALGORITHM,
+      dimensions: AI_CONFIG.FACE_VECTOR_DIMENSION_ACTIVE,
+      vector,
+    };
+  } finally {
+    descriptorSlice?.dispose();
+    flatFeatures?.dispose();
+    features?.dispose();
+    cropped?.dispose();
+    boxIndices?.dispose();
+    boxes?.dispose();
+    batchedImage?.dispose();
     imageTensor.dispose();
-    throw new Error('No face detected');
   }
-
-  logger.info('Face detected, cropping...');
-  const face = predictions[0];
-  const topLeft = face.topLeft as [number, number];
-  const bottomRight = face.bottomRight as [number, number];
-  
-  const y = topLeft[1];
-  const x = topLeft[0];
-  const height = bottomRight[1] - y;
-  const width = bottomRight[0] - x;
-
-  // 3. Crop the tensor to the face
-  // The cropAndResize function expects normalized coordinates (0 to 1)
-  const [imgHeight, imgWidth] = imageTensor.shape;
-  
-  const y1 = Math.max(0, y / imgHeight);
-  const x1 = Math.max(0, x / imgWidth);
-  const y2 = Math.min(1, (y + height) / imgHeight);
-  const x2 = Math.min(1, (x + width) / imgWidth);
-
-  // cropAndResize expects a 4D tensor [batch, height, width, channels]
-  const batchedImage = imageTensor.expandDims(0) as tf.Tensor4D;
-  const boxes = tf.tensor2d([[y1, x1, y2, x2]]);
-  const boxIndices = tf.tensor1d([0], 'int32');
-  
-  // MobileNet expects 224x224
-  const cropped = tf.image.cropAndResize(
-    batchedImage,
-    boxes,
-    boxIndices,
-    [224, 224]
-  );
-  
-  logger.info('Extracting features via MobileNet...');
-  // 4. Run MobileNetV2
-  // infer() returns a tensor representing the features
-  const embeddings = mobilenetModel.infer(cropped, true);
-  
-  // 5. Slice to 128D
-  const flatEmbeddings = embeddings.flatten();
-  const slice = flatEmbeddings.slice([0], [128]);
-  
-  const vector = Array.from(slice.dataSync());
-  logger.info('Successfully extracted 128D vector.');
-  
-  // Cleanup tensors
-  imageTensor.dispose();
-  batchedImage.dispose();
-  boxes.dispose();
-  boxIndices.dispose();
-  cropped.dispose();
-  embeddings.dispose();
-  flatEmbeddings.dispose();
-  slice.dispose();
-  
-  return vector;
-}
-
-export async function searchGalleryWithVector(vector: number[], deskId: string): Promise<any[]> {
-  // Hit the Cloudflare Workers endpoint, which queries Vectorize
-  const response = await fetch(`https://hub.clickflash.app/api/gallery/search`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      desk_id: deskId,
-      vector: vector
-    })
-  });
-  
-  if (!response.ok) {
-    throw new Error('Gallery search failed');
-  }
-  
-  const data = await response.json();
-  return data.matches || []; 
 }

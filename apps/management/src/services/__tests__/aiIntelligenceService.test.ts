@@ -1,24 +1,23 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { aiIntelligenceService } from '../aiIntelligenceService';
 import { logger } from '@/utils/logger';
 
 // Mock logger
-vi.mock('@/utils/logger', () => ({
+jest.mock('@/utils/logger', () => ({
   logger: {
-    warn: vi.fn(),
-    info: vi.fn(),
-    error: vi.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    error: jest.fn(),
   }
 }));
 
 describe('aiIntelligenceService', () => {
   beforeEach(() => {
-    global.fetch = vi.fn();
-    vi.clearAllMocks();
+    global.fetch = jest.fn();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('fetchCEOInsights (generateForecast) returns revenue projection and pricing suggestions', async () => {

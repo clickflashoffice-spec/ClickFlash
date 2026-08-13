@@ -33,12 +33,15 @@ export interface CEOInsightsResponse {
   forecastAugust: number;
 }
 
+import { getEnv } from "@/utils/env";
+
 /**
  * Helper to determine the cloud backend URL for AI endpoints.
  */
 function getAICloudUrl(): string {
-  if (import.meta.env.VITE_AI_BACKEND_URL) {
-    return import.meta.env.VITE_AI_BACKEND_URL;
+  const env = getEnv();
+  if (env.VITE_AI_BACKEND_URL) {
+    return env.VITE_AI_BACKEND_URL;
   }
   if (isPublicDomain()) {
     return "https://cloud-backend.public.workers.dev";

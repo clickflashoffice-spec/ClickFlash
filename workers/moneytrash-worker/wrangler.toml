@@ -28,11 +28,11 @@ id = "bdb3683d7add4fd58df28ceebe75adb0"
 # Environment Variables
 [vars]
 ENVIRONMENT = "production"
-GALLERY_APP_URL = "https://gallery.clickflash.com/gallery/"
+GALLERY_APP_URL = "https://gallery.clicketflash.com/gallery/"
 MAX_UPLOAD_SIZE = "524288000" # 500MB
 CHUNK_SIZE = "5242880"        # 5MiB (R2 multipart minimum)
 MAX_CONCURRENT_UPLOADS = "5"
-ALLOWED_ORIGINS = "https://moneytrash.clickflash.com,https://gallery.clickflash.com"
+ALLOWED_ORIGINS = "https://moneytrash.clicketflash.com,https://gallery.clicketflash.com,https://moneytrash.clickflash.com,https://gallery.clickflash.com"
 
 # Secrets (set via: wrangler secret put <name>)
 # JWT_SECRET - For API authentication

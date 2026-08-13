@@ -1,6 +1,5 @@
 import { useCssElement, useNativeVariable } from 'react-native-css';
 import { Link as RouterLink } from 'expo-router';
-import React from 'react';
 import { View as RNView, Text as RNText, Pressable as RNPressable, ScrollView as RNScrollView, TextInput as RNTextInput } from 'react-native';
 
 // @ts-ignore

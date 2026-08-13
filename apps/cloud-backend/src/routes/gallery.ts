@@ -167,7 +167,7 @@ app.post('/qr/generate', requireServiceAuth, async (c) => {
       success: true,
       token,
       expiresAt,
-      url: `https://gallery.clickflash.com/connect?token=${token}`
+      url: `https://gallery.clicketflash.com/connect?token=${token}`
     });
   } catch (error: any) {
     return c.json({ error: 'Failed to generate QR token' }, 500);

@@ -91,7 +91,7 @@ export function calculateQualityRating(signals: {
   const sharpness = Math.max(0, Math.min(100, signals.sharpness));
   const eyesOpenEar = Math.max(0, Math.min(1, signals.eyesOpenEar));
   const smileDegree = Math.max(0, Math.min(1, signals.smileDegree));
-  const exposureScore = Math.max(0, Math.min(100, signals.exposureScore));
+  const exposureScore = signals.exposureScore <= 1.0 ? signals.exposureScore * 100 : Math.min(100, signals.exposureScore);
   const eyeScore = eyesOpenEar >= 0.22 ? 100 : (eyesOpenEar / 0.22) * 80;
   const smileBonus = smileDegree * 20;
   const rawScore = (sharpness * 0.45) + (exposureScore * 0.25) + (eyeScore * 0.20) + (smileBonus * 0.10);

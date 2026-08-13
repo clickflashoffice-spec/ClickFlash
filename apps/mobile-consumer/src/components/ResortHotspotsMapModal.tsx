@@ -133,7 +133,11 @@ export function ResortHotspotsMapModal({
   const savedTranslateX = useSharedValue(0);
   const savedTranslateY = useSharedValue(0);
 
-  useEffect(() => setSpots(initialSpots), [initialSpots]);
+  const [prevInitialSpots, setPrevInitialSpots] = useState(initialSpots);
+  if (initialSpots !== prevInitialSpots) {
+    setPrevInitialSpots(initialSpots);
+    setSpots(initialSpots);
+  }
   useEffect(() => {
     if (!visible || !telemetryUrl) return undefined;
     const socket = new WebSocket(telemetryUrl);

@@ -1,5 +1,5 @@
 import { logger } from '@clickflash/logger';
-import { AlbumCategory, SmartAlbumItem } from '@clickflash/ai-core';
+import { SmartAlbumItem } from '@clickflash/ai-core';
 
 export class SmartAlbumService {
   /**

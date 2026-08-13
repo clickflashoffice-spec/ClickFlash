@@ -61,7 +61,7 @@ app.post('/webhooks/stripe', async (c) => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  from: 'ClickFlash Orders <orders@clickflash.com>',
+                  from: 'ClickFlash Orders <orders@clicketflash.com>',
                   to: sessionRow.customer_email as string,
                   subject: 'Your ClickFlash Gallery is Ready!',
                   html: `
@@ -70,7 +70,7 @@ app.post('/webhooks/stripe', async (c) => {
                       <p>Your payment was successful and your digital photo gallery is now unlocked!</p>
                       <p>You can view and download your high-resolution photos securely using the link below:</p>
                       <div style="margin: 30px 0;">
-                        <a href="https://gallery.clickflash.com/session/${encodeURIComponent(sessionId)}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                        <a href="https://gallery.clicketflash.com/session/${encodeURIComponent(sessionId)}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
                           View My Gallery
                         </a>
                       </div>

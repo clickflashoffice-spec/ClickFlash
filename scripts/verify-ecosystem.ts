@@ -102,7 +102,7 @@ async function verifyEcosystem() {
     const v1 = l2Normalize(Array(512).fill(0.1));
     const v2 = l2Normalize(Array(512).fill(0.1));
     const sim = cosineSimilarity(v1, v2);
-    const score = calculateQualityRating({ sharpness: 150.0, eyesOpenEar: 0.95, smileDegree: 0.85, exposureScore: 0.90 });
+    const score = calculateQualityRating({ sharpness: 100.0, eyesOpenEar: 0.95, smileDegree: 0.85, exposureScore: 0.90 });
     
     const mathPass = Math.abs(sim - 1.0) < 0.001 && score.stars >= 4;
     results.push({

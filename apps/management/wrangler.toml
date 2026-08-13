@@ -5,4 +5,3 @@ pages_build_output_dir = "./dist"
 
 [env.production]
 name = "clickflash-management-prod"
-route = { pattern = "manage.clicketflash.com/*", zone_name = "clicketflash.com" }

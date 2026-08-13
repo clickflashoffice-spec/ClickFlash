@@ -84,8 +84,8 @@ app.post('/create-session', async (c) => {
 
   const params = new URLSearchParams();
   params.append('mode', 'payment');
-  params.append('success_url', 'https://gallery.clickflash.com/success');
-  params.append('cancel_url', 'https://gallery.clickflash.com/cancel');
+  params.append('success_url', 'https://gallery.clicketflash.com/success');
+  params.append('cancel_url', 'https://gallery.clicketflash.com/cancel');
   params.append('line_items[0][price_data][currency]', currency);
   params.append('line_items[0][price_data][unit_amount]', amount.toString());
   params.append('line_items[0][price_data][product_data][name]', 'ClickFlash Order');

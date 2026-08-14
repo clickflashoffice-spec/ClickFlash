@@ -77,8 +77,8 @@ export class PhotoProcessor {
       fs.mkdirSync(processingDir, { recursive: true });
 
     // Use unified WorkerPool
-    this.pool = new WorkerPool(this.getWorkerPath(), logger, 4);
-    this.mlPool = new WorkerPool(this.getMLWorkerPath(), logger, 2); // Less workers for ML to save RAM
+    this.pool = new WorkerPool(this.getWorkerPath(), logger, 2);
+    this.mlPool = new WorkerPool(this.getMLWorkerPath(), logger, 1); // Less workers for ML to save RAM
   }
 
   /** Terminate worker pools on graceful shutdown to prevent thread leaks. */

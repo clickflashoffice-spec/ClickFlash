@@ -42,7 +42,7 @@ module.exports = {
   
   // Module name mapping for path aliases
   moduleNameMapper: {
-    '^@clickflash/(.*)$': '<rootDir>/../../packages/$1/src',
+    '^@clickflash/(.*)$': '<rootDir>/../../../packages/$1/src',
     '^.*utils/env(\\.ts)?$': '<rootDir>/src/__mocks__/envMock.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',

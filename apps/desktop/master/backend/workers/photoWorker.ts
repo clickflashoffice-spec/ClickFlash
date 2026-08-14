@@ -9,13 +9,13 @@ import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
 import exifr from "exifr";
-import { ImageEditRecipeV1 } from "@clickflash/types";
+import type { ImageEditRecipeV1 } from "@clickflash/types";
 
-import { validateImageMagicNumber } from '../services/validateImage';
-import { logger } from '../utils/logger';
-import { AutoEditEngine, ImageStats } from '../services/AutoEditEngine';
-import { BlurhashService } from '../services/blurhashService';
-import { AICullingService } from '../services/aiCullingService';
+import { validateImageMagicNumber } from '../services/validateImage.ts';
+import { logger } from '../utils/logger.ts';
+import { AutoEditEngine, type ImageStats } from '../services/AutoEditEngine.ts';
+import { BlurhashService } from '../services/blurhashService.ts';
+import { AICullingService } from '../services/aiCullingService.ts';
 
 if (!parentPort) {
   throw new Error("This file must be run as a worker thread");
@@ -92,7 +92,11 @@ function applyFormatCompression(pipeline: sharp.Sharp, ext: string, mode: 'highr
 }
 
 async function handleProcessJob(job: WorkerJob) {
-  const { filepath, outputDir, photoId, ext, mimeType, iccProfilePath } = job;
+  const photoId = job.photoId || crypto.randomUUID();
+  const filepath = job.filepath;
+  const outputDir = job.outputDir || (filepath ? path.dirname(filepath) : ".");
+  const ext = job.ext || (filepath ? path.extname(filepath) : ".jpg") || ".jpg";
+  const { mimeType, iccProfilePath } = job;
   // Processing ${photoId} from ${filepath}
 
   // Phase 32: Skip processing for placeholder URLs

@@ -194,7 +194,7 @@ export type TableName = keyof typeof TABLE_MAP;
 export const JSON_COLUMNS: Record<string, string[]> = {
     'users': ['permissions', 'workingHours'],
     'albums': ['categories'],
-    'photos': ['metadata', 'quality_flags', 'autoEdits'],
+    'photos': ['editMetadata', 'manualEdits', 'quality_flags', 'autoEdits'],
     'orders': ['items', 'customer'],
     'settings': [],
     'kiosks': ['lastSync', 'settings'],
@@ -260,7 +260,7 @@ export const COLUMN_MAP: Record<string, Record<string, string>> = {
         'autoEdits': 'autoEdits',
         'editMetadata': 'editMetadata',
         'autoEnhanced': 'autoEnhanced',
-        'metadata': 'metadata',
+        'metadata': 'editMetadata',
         'originalFilename': 'originalFilename',
         'fileSize': 'fileSize',
         'thumbnailUrl': 'thumbnailUrl',

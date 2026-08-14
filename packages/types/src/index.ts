@@ -297,6 +297,8 @@ export interface Order extends BaseRecord , ValidationOrder{
   date: string;
   clientName: string;
   email: string;
+  phone?: string;
+  whatsappOptIn?: boolean;
   status: OrderStatus;
   total: number;
   photographerId: string | number;
@@ -321,6 +323,8 @@ export interface OrderCreateInput {
   date: string;
   clientName: string;
   email: string;
+  phone?: string;
+  whatsappOptIn?: boolean;
   status: OrderStatus;
   total: number;
   photographerId: string | number;
@@ -350,6 +354,8 @@ export interface Album extends BaseRecord , ValidationAlbum{
   eventType?: string;
   status?: AlbumStatus;
   customerEmail?: string;
+  customerPhone?: string;
+  whatsappOptIn?: boolean;
   coverPhotoUrl?: string;
   thumbnailUrl?: string;
   categories?: string[];
@@ -365,6 +371,8 @@ export interface AlbumCreateInput {
   source?: string;
   eventType?: string;
   customerEmail?: string;
+  customerPhone?: string;
+  whatsappOptIn?: boolean;
 }
 
 export interface AlbumUpdateInput extends Partial<Omit<Album, 'id' | 'created' | 'updated'>> { }

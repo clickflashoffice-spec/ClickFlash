@@ -15,7 +15,7 @@
     "build:payload-tool": "rimraf dist/payload-tools && tsc -p tsconfig.payload-tools.json",
     "payload:key:generate": "node scripts/generate-payload-key.mjs",
     "payload:sign": "pnpm run build:payload-tool && node dist/payload-tools/scripts/payload-release.js",
-    "prepare:license-trust": "node ../../scripts/prepare-license-trust.cjs build/generated/license-public-key.txt",
+    "prepare:license-trust": "node ../../../scripts/prepare-license-trust.cjs build/generated/license-public-key.txt",
     "package": "pnpm run prepare:license-trust && pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && pnpm exec electron-builder build --win --dir",
     "package:installer": "pnpm run prepare:license-trust && pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && pnpm exec electron-builder build --win",
     "lint": "eslint src installer-payload-installation.ts installer-payload-release.ts installer-payload-verification.ts installer-payload-trust.ts scripts/payload-release.ts --ext .ts,.tsx --max-warnings 50",

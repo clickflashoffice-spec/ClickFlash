@@ -11,16 +11,45 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock AWS SDK
-vi.mock('@aws-sdk/client-s3', () => ({
-  S3Client: vi.fn().mockImplementation(() => ({
-    send: vi.fn(),
-  })),
-  PutObjectCommand: vi.fn().mockImplementation((params: any) => params),
-  GetObjectCommand: vi.fn().mockImplementation((params: any) => params),
-  DeleteObjectCommand: vi.fn().mockImplementation((params: any) => params),
-  HeadObjectCommand: vi.fn().mockImplementation((params: any) => params),
-  ListObjectsV2Command: vi.fn().mockImplementation((params: any) => params),
-}));
+vi.mock('@aws-sdk/client-s3', () => {
+  const MockS3Client = vi.fn().mockImplementation(function (this: any) {
+    this.send = vi.fn().mockResolvedValue({});
+    return this;
+  });
+  class MockPutObjectCommand {
+    constructor(params: any) {
+      Object.assign(this, params);
+    }
+  }
+  class MockGetObjectCommand {
+    constructor(params: any) {
+      Object.assign(this, params);
+    }
+  }
+  class MockDeleteObjectCommand {
+    constructor(params: any) {
+      Object.assign(this, params);
+    }
+  }
+  class MockHeadObjectCommand {
+    constructor(params: any) {
+      Object.assign(this, params);
+    }
+  }
+  class MockListObjectsV2Command {
+    constructor(params: any) {
+      Object.assign(this, params);
+    }
+  }
+  return {
+    S3Client: MockS3Client,
+    PutObjectCommand: MockPutObjectCommand,
+    GetObjectCommand: MockGetObjectCommand,
+    DeleteObjectCommand: MockDeleteObjectCommand,
+    HeadObjectCommand: MockHeadObjectCommand,
+    ListObjectsV2Command: MockListObjectsV2Command,
+  };
+});
 
 vi.mock('@aws-sdk/s3-request-presigner', () => ({
   getSignedUrl: vi.fn().mockResolvedValue('https://r2.clickflash.ai/signed-url'),

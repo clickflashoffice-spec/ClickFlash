@@ -1,21 +1,17 @@
 import { Card } from "@clickflash/ui";
 import React, { useMemo } from 'react';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
-import { Line } from 'react-chartjs-2';
-
+import { AreaChart } from '@tremor/react';
 import { Order } from '../../../types';
-import { useTheme } from '../../ThemeContext';
-
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
+import { useCurrency } from '../../CurrencyContext';
 
 interface SalesChartWidgetProps {
     orders: Order[];
 }
 
 const SalesChartWidget: React.FC<SalesChartWidgetProps> = React.memo(({ orders }) => {
-    const { theme } = useTheme();
+    const { formatCurrency } = useCurrency();
 
-    const chartConfig = useMemo(() => {
+    const chartData = useMemo(() => {
         const salesByDate = new Map<string, number>();
         orders.forEach(order => {
             if (order.status === 'Completed') {
@@ -23,58 +19,21 @@ const SalesChartWidget: React.FC<SalesChartWidgetProps> = React.memo(({ orders }
             }
         });
 
-        const sortedDates = Array.from(salesByDate.keys()).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+        const sortedDates = Array.from(salesByDate.keys()).sort(
+            (a, b) => new Date(a).getTime() - new Date(b).getTime()
+        );
 
-        const labels = sortedDates.map(dateString => {
+        return sortedDates.map(dateString => {
             const date = new Date(dateString);
-            return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            const formattedDate = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            return {
+                date: formattedDate,
+                Sales: salesByDate.get(dateString) || 0,
+            };
         });
+    }, [orders]);
 
-        const dataValues = sortedDates.map(date => salesByDate.get(date) || 0);
-
-        const data = {
-            labels,
-            datasets: [
-                {
-                    label: 'Sales',
-                    data: dataValues,
-                    borderColor: 'rgb(59, 130, 246)',
-                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                    tension: 0.4,
-                    fill: true,
-                },
-            ],
-        };
-
-        const options = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                title: { display: false },
-            },
-            scales: {
-                y: {
-                    grid: { color: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' },
-                    ticks: {
-                        color: theme === 'dark' ? '#94a3b8' : '#64748b',
-                        font: { size: 10 }
-                    }
-                },
-                x: {
-                    grid: { display: false },
-                    ticks: {
-                        color: theme === 'dark' ? '#94a3b8' : '#64748b',
-                        font: { size: 10 }
-                    }
-                }
-            }
-        };
-
-        return { data, options };
-    }, [orders, theme]);
-
-    if (chartConfig.data.labels.length === 0) {
+    if (chartData.length === 0) {
         return (
             <Card>
                 <h3 className="text-sm sm:text-base md:text-lg font-bold mb-2 sm:mb-3 md:mb-4">Sales Over Time</h3>
@@ -97,7 +56,17 @@ const SalesChartWidget: React.FC<SalesChartWidgetProps> = React.memo(({ orders }
         <Card>
             <h3 className="text-sm sm:text-base md:text-lg font-bold mb-2 sm:mb-3 md:mb-4">Sales Over Time</h3>
             <div className="h-48 sm:h-56 md:h-64">
-                <Line options={chartConfig.options} data={chartConfig.data} />
+                <AreaChart
+                    className="h-full"
+                    data={chartData}
+                    index="date"
+                    categories={['Sales']}
+                    colors={['blue']}
+                    valueFormatter={(number: number) => formatCurrency(number)}
+                    showLegend={false}
+                    showGridLines={false}
+                    startEndOnly={false}
+                />
             </div>
         </Card>
     );

@@ -31,7 +31,7 @@ module.exports = {
         '^(\\.{1,2}/.*)\\.js$': '$1',
         '^@/(.*)$': '<rootDir>/src/$1',
         '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-        '^@clickflash/(.*)$': '<rootDir>/../../packages/$1/src',
+        '^@clickflash/(.*)$': '<rootDir>/../../../packages/$1/src',
         '^utils/logger$': '<rootDir>/src/__mocks__/loggerMock.js',
         '^utils/env$': '<rootDir>/src/__mocks__/envMock.js',
         '^services/pb$': '<rootDir>/src/__mocks__/pbMock.js',

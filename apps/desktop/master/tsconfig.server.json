@@ -12,6 +12,8 @@
         "forceConsistentCasingInFileNames": true,
         "allowJs": true,
         "resolveJsonModule": true,
+        "allowImportingTsExtensions": true,
+        "noEmit": true,
         "paths": {
             "@clickflash/types": ["../../packages/types/src/index.ts"],
             "@clickflash/ai-core": ["../../packages/ai-core/src/index.ts"],

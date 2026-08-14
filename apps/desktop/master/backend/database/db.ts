@@ -182,9 +182,28 @@ export class DatabaseManager {
     }
   }
 
+  public sanitizeParams(params: any[] = []): any[] {
+    if (!Array.isArray(params)) {
+      if (params === undefined) return [];
+      params = [params];
+    }
+    return params.map((val) => {
+      if (val === undefined) return null;
+      if (typeof val === "boolean") return val ? 1 : 0;
+      if (typeof val === "object" && val !== null && !Buffer.isBuffer(val)) {
+        try {
+          return JSON.stringify(val);
+        } catch (_e) {
+          return String(val);
+        }
+      }
+      return val;
+    });
+  }
+
   public query<T = any>(sql: string, params: any[] = []): T[] {
     if (!this.db) throw new Error("Database not connected");
-    return this.db.prepare(sql).all(params) as T[];
+    return this.db.prepare(sql).all(this.sanitizeParams(params)) as T[];
   }
 
   public all<T = any>(sql: string, params: any[] = []): T[] {
@@ -193,12 +212,12 @@ export class DatabaseManager {
 
   public get<T = any>(sql: string, params: any[] = []): T | undefined {
     if (!this.db) throw new Error("Database not connected");
-    return this.db.prepare(sql).get(params) as T | undefined;
+    return this.db.prepare(sql).get(this.sanitizeParams(params)) as T | undefined;
   }
 
   public run(sql: string, params: any[] = []): Database.RunResult {
     if (!this.db) throw new Error("Database not connected");
-    return this.db.prepare(sql).run(params);
+    return this.db.prepare(sql).run(this.sanitizeParams(params));
   }
 
   public transaction<T>(fn: () => T): T {
@@ -214,7 +233,28 @@ export class DatabaseManager {
 
   public prepare(sql: string): Database.Statement {
     if (!this.db) throw new Error("Database not connected");
-    return this.db.prepare(sql);
+    const stmt = this.db.prepare(sql);
+    const self = this;
+    const originalRun = stmt.run.bind(stmt);
+    const originalGet = stmt.get.bind(stmt);
+    const originalAll = stmt.all.bind(stmt);
+
+    stmt.run = function (...args: any[]) {
+      const flatArgs = args.length === 1 && Array.isArray(args[0]) ? args[0] : args;
+      return originalRun.apply(stmt, self.sanitizeParams(flatArgs));
+    } as any;
+
+    stmt.get = function (...args: any[]) {
+      const flatArgs = args.length === 1 && Array.isArray(args[0]) ? args[0] : args;
+      return originalGet.apply(stmt, self.sanitizeParams(flatArgs));
+    } as any;
+
+    stmt.all = function (...args: any[]) {
+      const flatArgs = args.length === 1 && Array.isArray(args[0]) ? args[0] : args;
+      return originalAll.apply(stmt, self.sanitizeParams(flatArgs));
+    } as any;
+
+    return stmt;
   }
 
   private walInterval: NodeJS.Timeout | null = null;

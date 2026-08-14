@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as ort from 'onnxruntime-node';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.ts';
 
 export interface CullingScores {
   blurScore: number;

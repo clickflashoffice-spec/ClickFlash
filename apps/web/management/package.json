@@ -30,6 +30,7 @@
     "@clickflash/types": "workspace:*",
     "@clickflash/ui": "workspace:*",
     "@tanstack/react-query": "^5.90.10",
+    "@tremor/react": "^3.18.7",
     "@vladmandic/face-api": "^1.7.15",
     "@xyflow/react": "^12.11.3",
     "clsx": "^2.1.1",

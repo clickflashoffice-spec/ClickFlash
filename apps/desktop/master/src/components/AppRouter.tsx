@@ -4,8 +4,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSync } from '../context/SyncContext';
 import { apiService } from '../services/apiService';
-import { SystemAudit } from './SystemAudit';
-
 // Lazy load components
 const Login = React.lazy(() => import('./Login'));
 const MainLayout = React.lazy(() => import('./MainLayout'));
@@ -39,9 +37,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({ onExit, isLocked }) => {
     return (
         <React.Suspense fallback={<Spinner />}>
             <Routes>
-                <Route path="/audit" element={
-                    user.role === 'Admin' ? <SystemAudit /> : <Navigate to="/" replace />
-                } />
+
                 <Route path="/*" element={
                     <MainLayout
                         onSwitchUser={logout}

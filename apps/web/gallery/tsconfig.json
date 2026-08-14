@@ -6,7 +6,7 @@
     "module": "ESNext",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
-    "types": ["node", "jest", "@testing-library/jest-dom", "vite/client"],
+    "types": ["jest", "node", "vite/client"],
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "moduleDetection": "force",
@@ -17,45 +17,30 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true,
-
-    /* Strict Type Checking */
     "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noImplicitReturns": false,
-
-    /* Additional Checks */
-    // noUnusedLocals / noUnusedParameters disabled — too many pre-existing violations;
-    // re-enable once the codebase is clean.
     "noFallthroughCasesInSwitch": true,
-    // noUncheckedIndexedAccess / exactOptionalPropertyTypes disabled — overly pedantic
-    // for this codebase at the current stage; can be re-enabled incrementally.
-
-    /* Interop Constraints */
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.js",
-    "**/*.jsx",
-    "src/setupTests.ts"
-  ],
+  "include": ["src"],
   "exclude": [
     "node_modules",
     "dist",
     "release",
     "backend",
+    "functions",
+    "**/*.test.tsx",
+    "**/*.test.ts",
+    "**/*.spec.tsx",
+    "**/*.spec.ts",
+    "src/**/__tests__",
+    "src/utils/testUtils.tsx",
+    "src/setupTests.ts",
     "tests",
-    "**/__tests__/**",
     "playwright.config.ts",
     "jest.config.ts",
     "vite.config.ts"

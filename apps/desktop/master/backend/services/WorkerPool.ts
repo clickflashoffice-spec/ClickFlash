@@ -1,6 +1,6 @@
 import { Worker } from "worker_threads";
 import * as os from "os";
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.ts';
 
 export interface WorkerJob {
   type: string;
@@ -40,7 +40,7 @@ export class WorkerPool {
   constructor(workerScript: string, logger: Logger, max?: number) {
     this.workerScript = workerScript;
     this.logger = logger;
-    this.maxWorkers = max || Math.max(1, os.cpus().length - 2);
+    this.maxWorkers = max || Math.min(4, Math.max(1, os.cpus().length - 2));
     this.logger.info(
       `[WorkerPool] Persistent pool initialized with max ${this.maxWorkers} workers for ${workerScript}`,
     );
@@ -90,7 +90,7 @@ export class WorkerPool {
   private createWorker(): Worker {
     const isTypeScript = this.workerScript.endsWith(".ts");
     const workerOptions = isTypeScript
-      ? { execArgv: ["--import", "tsx/esm"] }
+      ? { execArgv: ["--import", "tsx"] }
       : {};
     const worker = new Worker(this.workerScript, workerOptions);
     const id = (worker as any).threadId;

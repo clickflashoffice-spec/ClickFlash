@@ -1,6 +1,6 @@
 import fs from "fs";
 import sharp from "sharp";
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.ts';
 
 /**
  * Validates a file is a genuine, parseable image using two layers:

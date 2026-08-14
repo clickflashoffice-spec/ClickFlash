@@ -154,16 +154,16 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Tab' && dialogRef.current) {
-        const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+        const focusable: HTMLElement[] = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
           'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
         ));
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
         if (e.shiftKey && document.activeElement === first) {
-          last?.focus();
+          (last as HTMLElement | undefined)?.focus();
           e.preventDefault();
         } else if (!e.shiftKey && document.activeElement === last) {
-          first?.focus();
+          (first as HTMLElement | undefined)?.focus();
           e.preventDefault();
         }
         return;

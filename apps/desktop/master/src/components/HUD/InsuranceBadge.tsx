@@ -22,7 +22,7 @@ export const InsuranceBadge: React.FC = () => {
     };
 
     fetchTelemetry();
-    const interval = setInterval(fetchTelemetry, 3000);
+    const interval = setInterval(fetchTelemetry, 15000);
     return () => clearInterval(interval);
   }, []);
 

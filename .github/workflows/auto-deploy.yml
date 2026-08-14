@@ -1,0 +1,38 @@
+name: Auto Deploy Ecosystem
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy-cloud:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - name: Install dependencies
+        run: pnpm install
+      
+      - name: Deploy Cloudflare Workers (apps/cloud-backend)
+        run: pnpm --filter cloud-backend deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          
+      - name: Deploy Gallery (apps/gallery)
+        run: pnpm --filter clickflash-gallery build && pnpm --filter clickflash-gallery deploy:pages
+        
+      - name: Deploy Management (apps/management)
+        run: pnpm --filter @clickflash/management build && pnpm --filter @clickflash/management deploy:pages
+
+  build-desktop:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build Master & Touch Electron Apps
+        run: pnpm --filter clickflash-master build && pnpm --filter clickflash-touch build

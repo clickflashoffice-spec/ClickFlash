@@ -232,6 +232,184 @@ services:
     networks:
       - clickflash-network
 
+  # ==========================================
+  # imgproxy (On-the-fly image processing CDN)
+  # OSS Alternative: Replaces custom sharp-based image resizing
+  # Docs: https://docs.imgproxy.net
+  # ==========================================
+  imgproxy:
+    image: darthsim/imgproxy:latest
+    container_name: clickflash-imgproxy-dev
+    ports:
+      - "8082:8080"
+    environment:
+      # Security: signing key for URL-based transformations
+      IMGPROXY_KEY: ${IMGPROXY_KEY:-943b421c9eb07c830af81030552c86009268de4e532ba2ee2eab8247c6da0881}
+      IMGPROXY_SALT: ${IMGPROXY_SALT:-520f986b998545b4785e0defbc4f3c1203f22de2374a3d53cb7a7fe9fea309c5}
+      # Connect to MinIO for source images
+      IMGPROXY_USE_S3: "true"
+      IMGPROXY_S3_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      # Performance tuning
+      IMGPROXY_MAX_SRC_RESOLUTION: 50  # 50 megapixels max
+      IMGPROXY_JPEG_PROGRESSIVE: "true"
+      IMGPROXY_ENABLE_WEBP_DETECTION: "true"
+      IMGPROXY_ENABLE_AVIF_DETECTION: "true"
+      IMGPROXY_QUALITY: 85
+      # Watermark support (visible overlay)
+      IMGPROXY_WATERMARK_OPACITY: 0.3
+    networks:
+      - clickflash-network
+    depends_on:
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "imgproxy", "health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ==========================================
+  # Ollama (Local LLM Serving — Florence-2, etc.)
+  # OSS Alternative: Replaces Gemini REST API (~$12K/yr savings)
+  # ==========================================
+  ollama:
+    image: ollama/ollama:latest
+    container_name: clickflash-ollama-dev
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - clickflash-network
+    deploy:
+      resources:
+        reservations:
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ==========================================
+  # GlitchTip (Sentry-Compatible Error Monitoring)
+  # OSS Alternative: Replaces Sentry SaaS — same SDK, self-hosted
+  # ==========================================
+  glitchtip:
+    image: glitchtip/glitchtip:latest
+    container_name: clickflash-glitchtip-dev
+    ports:
+      - "8084:8000"
+    environment:
+      DATABASE_URL: postgres://glitchtip:glitchtip@glitchtip-db:5432/glitchtip
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY:-dev-secret-key-change-in-production}
+      PORT: "8000"
+      EMAIL_URL: smtp://mailhog:1025
+      GLITCHTIP_MAX_EVENT_LIFE_DAYS: 90
+      ENABLE_ORGANIZATION_CREATION: "true"
+    networks:
+      - clickflash-network
+    depends_on:
+      glitchtip-db:
+        condition: service_healthy
+
+  glitchtip-db:
+    image: postgres:16-alpine
+    container_name: clickflash-glitchtip-db-dev
+    environment:
+      POSTGRES_DB: glitchtip
+      POSTGRES_USER: glitchtip
+      POSTGRES_PASSWORD: glitchtip
+    volumes:
+      - glitchtip-db-data:/var/lib/postgresql/data
+    networks:
+      - clickflash-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glitchtip"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # SuperTokens (Unified Auth — MFA, Sessions, RBAC)
+  # OSS Alternative: Replaces custom JWT + KV sessions
+  # ==========================================
+  supertokens:
+    image: registry.supertokens.io/supertokens/supertokens-postgresql:latest
+    container_name: clickflash-supertokens-dev
+    ports:
+      - "3567:3567"
+    environment:
+      POSTGRESQL_CONNECTION_URI: "postgresql://supertokens:supertokens@supertokens-db:5432/supertokens"
+    networks:
+      - clickflash-network
+    depends_on:
+      supertokens-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3567/hello"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  supertokens-db:
+    image: postgres:16-alpine
+    container_name: clickflash-supertokens-db-dev
+    environment:
+      POSTGRES_DB: supertokens
+      POSTGRES_USER: supertokens
+      POSTGRES_PASSWORD: supertokens
+    volumes:
+      - supertokens-db-data:/var/lib/postgresql/data
+    networks:
+      - clickflash-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supertokens"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Svix (Webhook Management — Retries, Signing, Portal)
+  # OSS Alternative: Replaces custom webhook dispatch
+  # ==========================================
+  svix:
+    image: svix/svix-server:latest
+    container_name: clickflash-svix-dev
+    ports:
+      - "8071:8071"
+    environment:
+      SVIX_DB_DSN: "postgresql://svix:svix@svix-db:5432/svix"
+      SVIX_JWT_SECRET: ${SVIX_JWT_SECRET:-dev-svix-jwt-secret-change-in-prod}
+      SVIX_QUEUE_TYPE: memory
+    networks:
+      - clickflash-network
+    depends_on:
+      svix-db:
+        condition: service_healthy
+
+  svix-db:
+    image: postgres:16-alpine
+    container_name: clickflash-svix-db-dev
+    environment:
+      POSTGRES_DB: svix
+      POSTGRES_USER: svix
+      POSTGRES_PASSWORD: svix
+    volumes:
+      - svix-db-data:/var/lib/postgresql/data
+    networks:
+      - clickflash-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U svix"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 # ==========================================
 # Volumes
 # ==========================================
@@ -248,6 +426,10 @@ volumes:
   moneytrash-node-modules:
   redis-data:
   minio-data:
+  ollama-models:
+  glitchtip-db-data:
+  supertokens-db-data:
+  svix-db-data:
 
 # ==========================================
 # Networks

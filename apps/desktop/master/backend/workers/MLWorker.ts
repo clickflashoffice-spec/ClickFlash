@@ -4,7 +4,7 @@ import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-backend-cpu";
 import path from "path";
 import sharp from "sharp";
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.ts';
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';

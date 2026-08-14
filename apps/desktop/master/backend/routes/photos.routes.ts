@@ -55,6 +55,13 @@ export default function photosRoutes(context: any): Router {
 
       if (!data.id) data.id = crypto.randomUUID();
 
+      if (data.metadata && typeof data.metadata === "object") {
+        if (!data.editMetadata) data.editMetadata = data.metadata;
+        if (data.metadata.width && !data.width) data.width = data.metadata.width;
+        if (data.metadata.height && !data.height) data.height = data.metadata.height;
+        if (data.metadata.size && !data.fileSize) data.fileSize = data.metadata.size;
+      }
+
       const now = new Date().toISOString();
       data.created_at = now;
       data.updated_at = now;
@@ -62,7 +69,18 @@ export default function photosRoutes(context: any): Router {
       const allowedCols = ALLOWED_COLUMNS[table] || [];
       const rowData: Record<string, any> = {};
       Object.keys(data).forEach(key => {
-        if (allowedCols.includes(key)) rowData[key] = data[key];
+        if (allowedCols.includes(key)) {
+          const val = data[key];
+          if (val !== undefined) {
+            if (typeof val === "boolean") {
+              rowData[key] = val ? 1 : 0;
+            } else if (typeof val === "object" && val !== null && !Buffer.isBuffer(val)) {
+              rowData[key] = JSON.stringify(val);
+            } else {
+              rowData[key] = val;
+            }
+          }
+        }
       });
 
       const keys = Object.keys(rowData);
@@ -199,7 +217,18 @@ export default function photosRoutes(context: any): Router {
       const allowedCols = ALLOWED_COLUMNS[table] || [];
       const rowData: Record<string, any> = {};
       Object.keys(data).forEach(key => {
-        if (allowedCols.includes(key) && key !== "id") rowData[key] = data[key];
+        if (allowedCols.includes(key) && key !== "id") {
+          const val = data[key];
+          if (val !== undefined) {
+            if (typeof val === "boolean") {
+              rowData[key] = val ? 1 : 0;
+            } else if (typeof val === "object" && val !== null && !Buffer.isBuffer(val)) {
+              rowData[key] = JSON.stringify(val);
+            } else {
+              rowData[key] = val;
+            }
+          }
+        }
       });
 
       let saved: any;

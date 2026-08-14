@@ -87,9 +87,12 @@ mountRoutes(app, context);
 setupStaticAndErrorFallback(app, context);
 
 // 7. Start Metrics Broadcast Loop (Rule 15 - Performance Visibility)
-setInterval(() => {
+const metricsTimer = setInterval(() => {
   realtimeService.broadcastMetrics();
-}, 5000);
+}, 15000);
+if (metricsTimer && typeof metricsTimer.unref === "function") {
+  metricsTimer.unref();
+}
 
 // 8. Start HTTP/HTTPS Server, Bonjour/UDP Discovery, and Background Ecosystem
 startServer(server, context, tlsConfig);

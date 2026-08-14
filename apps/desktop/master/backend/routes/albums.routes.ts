@@ -45,7 +45,18 @@ export default function albumsRoutes(context: any): Router {
       const allowedCols = ALLOWED_COLUMNS[table] || [];
       const rowData: Record<string, any> = {};
       Object.keys(data).forEach(key => {
-        if (allowedCols.includes(key)) rowData[key] = data[key];
+        if (allowedCols.includes(key)) {
+          const val = data[key];
+          if (val !== undefined) {
+            if (typeof val === "boolean") {
+              rowData[key] = val ? 1 : 0;
+            } else if (typeof val === "object" && val !== null && !Buffer.isBuffer(val)) {
+              rowData[key] = JSON.stringify(val);
+            } else {
+              rowData[key] = val;
+            }
+          }
+        }
       });
 
       const keys = Object.keys(rowData);
@@ -114,7 +125,18 @@ export default function albumsRoutes(context: any): Router {
       const allowedCols = ALLOWED_COLUMNS[table] || [];
       const rowData: Record<string, any> = {};
       Object.keys(data).forEach(key => {
-        if (allowedCols.includes(key) && key !== "id") rowData[key] = data[key];
+        if (allowedCols.includes(key) && key !== "id") {
+          const val = data[key];
+          if (val !== undefined) {
+            if (typeof val === "boolean") {
+              rowData[key] = val ? 1 : 0;
+            } else if (typeof val === "object" && val !== null && !Buffer.isBuffer(val)) {
+              rowData[key] = JSON.stringify(val);
+            } else {
+              rowData[key] = val;
+            }
+          }
+        }
       });
 
       let saved: any;

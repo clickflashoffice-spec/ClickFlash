@@ -1,6 +1,6 @@
 import sharp from 'sharp';
-import { logger } from '../utils/logger';
-import { faceService } from './faceService';
+import { logger } from '../utils/logger.ts';
+import { faceService } from './faceService.ts';
 
 export interface ImageStats {
   luminance: number;

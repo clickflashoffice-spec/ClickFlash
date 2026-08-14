@@ -2,6 +2,10 @@
 -- ClickFlash Unified Schema (generated during migration consolidation)
 -- This is a STARTER template. Review and reconcile per-app differences before applying.
 
+-- CPU/RAM Optimization Pragmas for 16GB Master Node
+PRAGMA mmap_size = 2147483648; -- 2GB max mmap for fast disk I/O
+PRAGMA cache_size = -200000; -- 200MB cache limit to prevent starving Electron UI
+
 -- Core shared tables
 CREATE TABLE IF NOT EXISTS destinations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,8 +70,15 @@ CREATE TABLE IF NOT EXISTS photos (
   ai_score REAL,
   is_rejected BOOLEAN DEFAULT 0,
   burst_group TEXT,
+  face_vector BLOB, -- sqlite-vec 128D embedding
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(album_id) REFERENCES albums(id)
+);
+
+-- sqlite-vec Virtual Table for blazing-fast 128D local facial search
+CREATE VIRTUAL TABLE IF NOT EXISTS vec_faces USING vec0(
+  photo_id INTEGER PRIMARY KEY,
+  face_embedding float[128]
 );
 
 CREATE TABLE IF NOT EXISTS kiosk_transfer_queue (

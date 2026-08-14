@@ -1,6 +1,6 @@
 // backend/workers/faceWorker.ts
 import { parentPort } from 'worker_threads';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.ts';
 
 /**
  * Worker Thread for Face Recognition

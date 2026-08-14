@@ -1,3 +1,0 @@
-[mcp_servers.claude-code-explorer]
-command = "node"
-args = ["C:/Users/alamo/claude-code/mcp-server/dist/src/index.js"]

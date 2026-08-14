@@ -25,6 +25,12 @@ ClickFlash_Release_*/
 **/out/
 **/.next/
 **/.turbo/
+**/win-unpacked/
+**/android/app/build/
+**/android/.gradle/
+**/android/.native-build/
+**/ios/build/
+**/dist-bundle/
 
 # Database and Data
 pb_data/*.bin
@@ -213,3 +219,77 @@ scripts/benchmark-results.json
 temp_tls_test*
 **/temp_tls_test*
 
+# Root one-off scripts (cleanup Aug 2026)
+/test_*.js
+/test_*.py
+/scratch_*.py
+/migrate_*.js
+/master-diag.js
+/generate_keys.js
+/setup-deps.js
+/setup-tw.js
+/auto_loop.py
+/refactor.js
+/add_settings.py
+
+# Production release archives
+*.production.zip
+
+# Stale config directories
+.codex/
+.clickflash-plans/
+.baseline/
+TunnelManager/
+Test/
+
+# Root audit & lint dumps
+/audit_results.json
+/audit-high.*
+/audit-moderate.*
+/lint_results.txt
+/lighthouse-*.json
+/logcat.txt
+/err_summary.txt
+
+# Scratch / temp working files
+/scratch/
+
+# Old prompt/config files
+/ANTIGRAVITY_*.md
+/GPT_*.md
+/CLAUDE.md
+/context.md
+/autoloop.md
+/progress.md
+/findings.md
+
+# Root screenshots
+*.png
+!logo.png
+!apps/**/*.png
+!packages/**/*.png
+!docs/**/*.png
+
+# Moneytrash lockfile
+/apps/moneytrash/package-lock.json
+
+# Ad-hoc debug scripts in apps/master (TypeScript)
+apps/master/check-*.ts
+apps/master/test-*.js
+apps/master/test.js
+apps/master/test.ts
+apps/master/scratch-*.js
+apps/master/package.json.bak
+
+# Touch app stale binaries
+apps/touch/*.msi
+apps/touch/e2e_output*
+
+# Electron build variants
+**/release_*/
+**/build-electron-stage/
+**/release-electron/
+**/*.tsbuildinfo
+
+# Malformed directories from Docker
+apps/master/--no-cache/

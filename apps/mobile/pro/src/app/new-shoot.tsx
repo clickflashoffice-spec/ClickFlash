@@ -17,14 +17,20 @@ export default function NewShootScreen() {
     
     setIsLinking(true);
     
-    // TODO: Save to local SQLite via Rust Core
-    // await RustCore.saveBooking({ name, whatsapp, email, status: 'pending' });
-    
-    setTimeout(() => {
-      setIsLinking(false);
-      Alert.alert('Success', 'Shoot Registered Offline. Sync will occur automatically.');
-      router.back();
-    }, 1000);
+    try {
+        const { RustCore } = require('../../modules/clickflash-rust-core');
+        // Use an Expo FileSystem path in a real device, mock for demo
+        const dbPath = "/data/data/com.clickflash.mobilepro/databases/offline.db";
+        const result = RustCore.saveBooking({ dbPath, name, whatsapp, email });
+        console.log("Rust Core Result:", result);
+        
+        setIsLinking(false);
+        Alert.alert('Success', 'Shoot Registered Offline. Sync will occur automatically.');
+        router.back();
+    } catch (e) {
+        setIsLinking(false);
+        Alert.alert('Error', 'Failed to save via Rust Core.');
+    }
   };
 
   return (

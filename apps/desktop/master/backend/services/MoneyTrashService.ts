@@ -194,24 +194,28 @@ export default class MoneyTrashService {
 
             for (const file of filesToDelete) {
                 try {
-                    // Physical Deletion
-                    // Construct full path. url is relative like "albumId/archived/filename.jpg"
-                    const fullPath = path.join((this.dbManager as any).getUploadDir ? (this.dbManager as any).getUploadDir() : path.join(DATA_DIR, 'uploads'), file.url);
+                    // Physical Deletion across possible storage locations
+                    const uploadDir = path.join(DATA_DIR, 'uploads');
+                    const cleanRelative = file.url.replace(/^\/?(uploads\/|api\/files\/)?/, '');
+                    const candidates = [
+                        path.resolve(uploadDir, cleanRelative),
+                        path.resolve(TRASH_ARCHIVE_DIR, cleanRelative),
+                        path.resolve(uploadDir, file.albumId, path.basename(cleanRelative)),
+                        path.resolve(TRASH_ARCHIVE_DIR, file.albumId, path.basename(cleanRelative))
+                    ];
 
-                    // We need to be careful about constructing the path. 
-                    // Assuming standard upload dir structure.
-                    // Ideally we'd use PhotoProcessor to get the path, but we don't have it injected here.
-                    // Fallback to naive path construction relative to known data dir constants.
+                    let deleted = false;
+                    for (const candidatePath of candidates) {
+                        if (fs.existsSync(candidatePath)) {
+                            await fs.promises.unlink(candidatePath);
+                            this.logger.info(`[MoneyTrash] Deleted file: ${candidatePath}`);
+                            deleted = true;
+                            break;
+                        }
+                    }
 
-                    // Note: In a robust system, we'd inject PhotoProcessor. 
-                    // For now, we'll try to locate it.
-                    if (fs.existsSync(fullPath)) {
-                        await fs.promises.unlink(fullPath);
-                        this.logger.info(`[MoneyTrash] Deleted file: ${fullPath}`);
-                    } else {
-                        // Check if it's in the special trash_archive dir we defined but maybe didn't use?
-                        // The 'archivePhoto' method in photoProcessor moved it to `albumId/archived/`.
-                        // So standard path joining should work if we have the right root.
+                    if (!deleted) {
+                        this.logger.debug(`[MoneyTrash] File already removed or not found locally: ${file.url}`);
                     }
 
                     // Delete from DB

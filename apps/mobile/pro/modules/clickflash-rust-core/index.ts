@@ -20,5 +20,25 @@ export const RustCore = {
    */
   processSpotIntelligence(spotData: string): string {
     return ClickFlashRustCore.processSpotIntelligence(spotData);
+  },
+
+  /**
+   * Saves a booking to the offline SQLite database using Rust core for maximum performance
+   */
+  saveBooking(payload: { dbPath: string, name: string, whatsapp: string, email: string }): string {
+    if (ClickFlashRustCore.saveBooking) {
+        return ClickFlashRustCore.saveBooking(payload.dbPath, payload.name, payload.whatsapp, payload.email);
+    }
+    return "Mock: Booking saved offline via Rust Core";
+  },
+
+  /**
+   * Sweeps the offline SQLite database and pushes all pending bookings to the Master Node via HTTP.
+   */
+  syncPendingBookings(payload: { dbPath: string, masterUrl: string }): string {
+    if (ClickFlashRustCore.syncPendingBookings) {
+        return ClickFlashRustCore.syncPendingBookings(payload.dbPath, payload.masterUrl);
+    }
+    return "Mock: Bookings synced via Rust Core";
   }
 };

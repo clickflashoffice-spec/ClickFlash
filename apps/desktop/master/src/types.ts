@@ -9,6 +9,8 @@ export type Permission = string;
 export type View =
   | "Dashboard"
   | "Albums"
+  | "Editor"
+  | "Studio"
   | "Orders"
   | "Clients"
   | "Products"

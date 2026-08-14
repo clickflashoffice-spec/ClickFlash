@@ -26,31 +26,38 @@ parentPort.on('message', async (message: { type: 'analyze' | 'edit' | 'thumbnail
           const modulateOptions: any = {};
           
           if (editParams.exposure !== undefined) {
-             // Basic approximation of exposure via brightness
-             modulateOptions.brightness = Math.max(0, 1 + (editParams.exposure / 2)); 
+             modulateOptions.brightness = Math.max(0.1, 1 + (editParams.exposure / 100)); 
           }
           if (editParams.saturation !== undefined) {
              modulateOptions.saturation = Math.max(0, 1 + (editParams.saturation / 100));
           }
-          if (editParams.whiteBalance) {
-             // White balance would typically involve color tinting/temperature
-             // Keeping it simple here or apply specific tinting
-          }
-          if (editParams.contrast !== undefined) {
-             // Not natively in modulate, sometimes handled via linear
-             // We'll leave as simple mapping
+          if (editParams.hue !== undefined) {
+             modulateOptions.hue = editParams.hue;
           }
           
           if (Object.keys(modulateOptions).length > 0) {
              image = image.modulate(modulateOptions);
           }
 
+          if (editParams.contrast !== undefined) {
+             const c = (editParams.contrast + 100) / 100;
+             image = image.linear(c, -(128 * c) + 128);
+          }
+
+          if (editParams.noiseReduction) {
+              image = image.median(Math.max(3, editParams.noiseReduction));
+          }
+
+          if (editParams.sharpen) {
+              image = image.sharpen();
+          }
+
           if (editParams.cropSuggestion) {
              image = image.extract({
-               left: Math.round(editParams.cropSuggestion.x),
-               top: Math.round(editParams.cropSuggestion.y),
-               width: Math.round(editParams.cropSuggestion.width),
-               height: Math.round(editParams.cropSuggestion.height)
+               left: Math.max(0, Math.round(editParams.cropSuggestion.x)),
+               top: Math.max(0, Math.round(editParams.cropSuggestion.y)),
+               width: Math.max(1, Math.round(editParams.cropSuggestion.width)),
+               height: Math.max(1, Math.round(editParams.cropSuggestion.height))
              });
           }
         }

@@ -2,15 +2,16 @@
   "name": "@clickflash/database",
   "version": "2.0.0",
   "private": true,
-  "main": "./src/migrate.ts",
-  "types": "./src/migrate.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "scripts": {
     "migrate": "ts-node ./src/migrate.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "better-sqlite3-multiple-ciphers": "^12.8.0",
-    "@clickflash/logger": "workspace:*"
+    "@clickflash/logger": "workspace:*",
+    "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

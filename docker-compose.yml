@@ -232,6 +232,170 @@ services:
       timeout: 10s
       retries: 3
 
+  # ==========================================
+  # imgproxy (On-the-fly image processing CDN)
+  # OSS Alternative: Replaces custom sharp-based image resizing
+  # ==========================================
+  imgproxy:
+    image: darthsim/imgproxy:latest
+    container_name: clickflash-imgproxy
+    ports:
+      - "8082:8080"
+    environment:
+      IMGPROXY_KEY: ${IMGPROXY_KEY:?IMGPROXY_KEY is required}
+      IMGPROXY_SALT: ${IMGPROXY_SALT:?IMGPROXY_SALT is required}
+      IMGPROXY_USE_S3: "true"
+      IMGPROXY_S3_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD must be set}
+      IMGPROXY_MAX_SRC_RESOLUTION: 50
+      IMGPROXY_JPEG_PROGRESSIVE: "true"
+      IMGPROXY_ENABLE_WEBP_DETECTION: "true"
+      IMGPROXY_ENABLE_AVIF_DETECTION: "true"
+      IMGPROXY_QUALITY: 85
+      IMGPROXY_WATERMARK_OPACITY: 0.3
+    networks:
+      - clickflash-backend
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "imgproxy", "health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ==========================================
+  # Ollama (Local LLM Serving)
+  # ==========================================
+  ollama:
+    image: ollama/ollama:latest
+    container_name: clickflash-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - clickflash-backend
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          memory: 4G
+
+  # ==========================================
+  # GlitchTip (Sentry-Compatible Error Monitoring)
+  # ==========================================
+  glitchtip:
+    image: glitchtip/glitchtip:latest
+    container_name: clickflash-glitchtip
+    ports:
+      - "8084:8000"
+    environment:
+      DATABASE_URL: postgres://glitchtip:${GLITCHTIP_DB_PASSWORD:?GLITCHTIP_DB_PASSWORD required}@glitchtip-db:5432/glitchtip
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY:?GLITCHTIP_SECRET_KEY required}
+      PORT: "8000"
+      GLITCHTIP_MAX_EVENT_LIFE_DAYS: 90
+    networks:
+      - clickflash-backend
+    depends_on:
+      glitchtip-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  glitchtip-db:
+    image: postgres:16-alpine
+    container_name: clickflash-glitchtip-db
+    environment:
+      POSTGRES_DB: glitchtip
+      POSTGRES_USER: glitchtip
+      POSTGRES_PASSWORD: ${GLITCHTIP_DB_PASSWORD:?GLITCHTIP_DB_PASSWORD required}
+    volumes:
+      - glitchtip-db-data:/var/lib/postgresql/data
+    networks:
+      - clickflash-backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glitchtip"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # SuperTokens (Unified Auth)
+  # ==========================================
+  supertokens:
+    image: registry.supertokens.io/supertokens/supertokens-postgresql:latest
+    container_name: clickflash-supertokens
+    ports:
+      - "3567:3567"
+    environment:
+      POSTGRESQL_CONNECTION_URI: "postgresql://supertokens:${SUPERTOKENS_DB_PASSWORD:?required}@supertokens-db:5432/supertokens"
+    networks:
+      - clickflash-backend
+    depends_on:
+      supertokens-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  supertokens-db:
+    image: postgres:16-alpine
+    container_name: clickflash-supertokens-db
+    environment:
+      POSTGRES_DB: supertokens
+      POSTGRES_USER: supertokens
+      POSTGRES_PASSWORD: ${SUPERTOKENS_DB_PASSWORD:?required}
+    volumes:
+      - supertokens-db-data:/var/lib/postgresql/data
+    networks:
+      - clickflash-backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supertokens"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Svix (Webhook Management)
+  # ==========================================
+  svix:
+    image: svix/svix-server:latest
+    container_name: clickflash-svix
+    ports:
+      - "8071:8071"
+    environment:
+      SVIX_DB_DSN: "postgresql://svix:${SVIX_DB_PASSWORD:?required}@svix-db:5432/svix"
+      SVIX_JWT_SECRET: ${SVIX_JWT_SECRET:?required}
+      SVIX_QUEUE_TYPE: memory
+    networks:
+      - clickflash-backend
+    depends_on:
+      svix-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  svix-db:
+    image: postgres:16-alpine
+    container_name: clickflash-svix-db
+    environment:
+      POSTGRES_DB: svix
+      POSTGRES_USER: svix
+      POSTGRES_PASSWORD: ${SVIX_DB_PASSWORD:?required}
+    volumes:
+      - svix-db-data:/var/lib/postgresql/data
+    networks:
+      - clickflash-backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U svix"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 networks:
   clickflash-frontend:
     driver: bridge
@@ -247,3 +411,7 @@ volumes:
   postgres-data:
   redis-data:
   minio-data:
+  ollama-models:
+  glitchtip-db-data:
+  supertokens-db-data:
+  svix-db-data:

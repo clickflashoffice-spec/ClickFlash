@@ -27,31 +27,6 @@ interface ImportMeta {
 
 declare global {
   // ──────────────────────────────────────────────────────────────────────────
-  // Vendor-prefixed Fullscreen API
-  // (Spec replaced these long ago, but Safari/older Edge still exposed them
-  // when this code was originally written. Type the shims so call sites can
-  // drop their `as any` casts.)
-  // ──────────────────────────────────────────────────────────────────────────
-  interface Element {
-    webkitRequestFullscreen?: () => Promise<void>;
-    mozRequestFullScreen?: () => Promise<void>;
-    msRequestFullscreen?: () => Promise<void>;
-  }
-
-  interface Document {
-    webkitExitFullscreen?: () => Promise<void>;
-    mozCancelFullScreen?: () => Promise<void>;
-    msExitFullscreen?: () => Promise<void>;
-    webkitFullscreenElement?: Element | null;
-    mozFullScreenElement?: Element | null;
-    msFullscreenElement?: Element | null;
-  }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // Network Information API (still experimental in 2026; stable enough that we
-  // read it for diagnostic UI only, never as a programmatic gate).
-  // https://wicg.github.io/netinfo/
-  // ──────────────────────────────────────────────────────────────────────────
   interface NetworkInformation {
     readonly effectiveType?: '2g' | '3g' | '4g' | 'slow-2g';
     readonly downlink?: number;

@@ -90,7 +90,7 @@ function getDataDir(): string {
   if (app.isPackaged) {
     return path.join(app.getPath("userData"), "pb_data");
   }
-  return path.join(__dirname, "pb_data");
+  return path.resolve(__dirname, "../../pb_data");
 }
 
 function sha256OfFile(filePath: string): string {
@@ -191,8 +191,9 @@ class MasterApp {
     });
 
     app.whenReady().then(() => this.onAppReady()).catch((err: unknown) => {
-      logger.error("[Main] Fatal startup error:", { args: [err] });
-      dialog.showErrorBox("Startup Error", String(err));
+      console.error("[Main] Fatal startup error details:", err);
+      logger.error("[Main] Fatal startup error: " + (err instanceof Error ? err.stack : String(err)));
+      dialog.showErrorBox("Startup Error", String(err instanceof Error ? err.stack : err));
       app.quit();
     });
   }
@@ -494,7 +495,7 @@ class MasterApp {
       alwaysOnTop: app.isPackaged,
       skipTaskbar: app.isPackaged,
       title: "ClickFlash Master OS",
-      icon: path.join(__dirname, "build/icon.ico"),
+      icon: path.resolve(__dirname, "../../public/favicon.ico"),
       show: false,
       webPreferences: {
         nodeIntegration: false,
@@ -1115,7 +1116,7 @@ class MasterApp {
   private createTray(): void {
     const iconPath = app.isPackaged
       ? path.join(process.resourcesPath, "tray-icon.png")
-      : path.join(__dirname, "public", "favicon.png");
+      : path.resolve(__dirname, "../../public/favicon.png");
 
     try {
       this.tray = new Tray(iconPath);
@@ -1146,7 +1147,7 @@ class MasterApp {
   private scheduleBackups(): void {
     const backupServicePath = app.isPackaged
       ? getUnpackedPath("dist/backend/main/backupService.js")
-      : path.join(__dirname, "dist/backend/main/backupService.js");
+      : path.resolve(__dirname, "../backend/main/backupService.js");
 
     const runBackup = () => {
       try {

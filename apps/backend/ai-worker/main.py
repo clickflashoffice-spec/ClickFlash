@@ -2,12 +2,28 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from rembg import remove
+from transformers import AutoModelForImageSegmentation
+import torchvision.transforms as T
+import torch
 from PIL import Image
 import io
 import face_service
 import culling_service
 import enhancement_service
+import quality_service
+import upscale_service
+import segmentation_service
+
+# Load BiRefNet model once at module level for background removal
+birefnet_model = AutoModelForImageSegmentation.from_pretrained('ZhengPeng7/BiRefNet', trust_remote_code=True)
+birefnet_model.eval()
+
+# Transform pipeline for input normalization
+transform_image = T.Compose([
+    T.Resize((1024, 1024)),
+    T.ToTensor(),
+    T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+])
 
 app = FastAPI(title="ClickFlash AI Worker", version="1.0.0")
 
@@ -58,15 +74,41 @@ async def evaluate_image_quality(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/ai/quality-assess")
+async def assess_perceptual_quality(file: UploadFile = File(...)):
+    """
+    Evaluates perceptual image quality using the MUSIQ deep learning model.
+    """
+    try:
+        contents = await file.read()
+
+        return {
+            "status": "success",
+            "quality_data": quality_service.assess_perceptual_quality(contents)
+        }
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/ai/remove-background")
 async def remove_background(file: UploadFile = File(...)):
     try:
         # Read the uploaded image
         contents = await file.read()
-        input_image = Image.open(io.BytesIO(contents))
+        input_image = Image.open(io.BytesIO(contents)).convert("RGB")
 
-        # Remove background using rembg
-        output_image = remove(input_image)
+        # Remove background using BiRefNet (upgraded from rembg)
+        input_tensor = transform_image(input_image).unsqueeze(0)
+        
+        with torch.no_grad():
+            preds = birefnet_model(input_tensor)[-1].sigmoid().cpu()
+            
+        pred = preds[0].squeeze()
+        mask = T.ToPILImage()(pred).resize(input_image.size, Image.Resampling.LANCZOS)
+        
+        output_image = input_image.copy()
+        output_image.putalpha(mask)
         
         # Convert back to bytes
         img_byte_arr = io.BytesIO()
@@ -182,3 +224,64 @@ def get_insurance_journal(limit: int = 100):
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+
+# =============================================================================
+# NEW OSS ENDPOINTS (Added by ecosystem audit)
+# =============================================================================
+
+@app.post("/api/ai/upscale")
+async def upscale_image(file: UploadFile = File(...), scale: int = 4):
+    """
+    AI super-resolution using Real-ESRGAN (BSD-3, 28K★).
+    Supports 2x and 4x upscaling.
+    """
+    try:
+        contents = await file.read()
+        result = upscale_service.upscale_image(contents, scale)
+        return Response(content=result, media_type="image/jpeg")
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except ImportError as ie:
+        raise HTTPException(status_code=503, detail=str(ie))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/ai/segment")
+async def segment_image(
+    file: UploadFile = File(...),
+    points: str = "[]",
+    labels: str = "[]",
+):
+    """
+    Interactive segmentation using MobileSAM (MIT).
+    Send point coordinates and labels (1=foreground, 0=background).
+    """
+    import json
+    try:
+        contents = await file.read()
+        pts = json.loads(points)
+        lbls = json.loads(labels)
+
+        if pts and lbls:
+            mask_bytes = segmentation_service.segment_with_points(contents, pts, lbls)
+            return Response(content=mask_bytes, media_type="image/png")
+        else:
+            # Auto-segment everything
+            results = segmentation_service.segment_everything(contents)
+            # Return metadata only (masks are too large for JSON)
+            return {
+                "status": "success",
+                "segments": [
+                    {"area": r["area"], "bbox": r["bbox"], "score": r["score"]}
+                    for r in results
+                ],
+                "total_segments": len(results),
+            }
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except ImportError as ie:
+        raise HTTPException(status_code=503, detail=str(ie))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -20,11 +20,13 @@ const SettingsPage = lazy(() => import("./settings/SettingsPage"));
 const Bookings = lazy(() => import("./bookings/Bookings"));
 const PrintLayout = lazy(() => import("./orders/PrintLayout"));
 const CustomerReceipt = lazy(() => import("./orders/CustomerReceipt"));
-const Clients = lazy(() => import("./Clients"));
 const OrderManagementView = lazy(() => import("./orders/OrderManagementView"));
-const GrowthPage = lazy(() => import("./GrowthPage"));
-const LocalResortDashboard = lazy(() => import("./LocalResortDashboard"));
 const PrintQueue = lazy(() => import("./PrintQueue"));
+const StudioManualEditorView = lazy(() =>
+  import("./studio/StudioManualEditorView").then((module) => ({
+    default: module.StudioManualEditorView,
+  })),
+);
 
 const AIIdeasModal = lazy(() => import("./AIIdeasModal"));
 
@@ -466,6 +468,31 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     </AlbumErrorBoundary>
                     )
                   } />
+                  <Route path="editor" element={
+                    !can("viewAlbums") ? (
+                      <AccessDenied
+                        permission="viewAlbums"
+                        role={currentUser.role}
+                        page="Studio Editor"
+                      />
+                    ) : (
+                      <StudioManualEditorView
+                        photos={
+                          viewParams?.photos ||
+                          (viewParams?.albumId
+                            ? dashboardData?.albums?.find((a) => a.id === viewParams.albumId)?.photos || []
+                            : dashboardData?.albums?.[0]?.photos || [])
+                        }
+                        album={
+                          viewParams?.albumId
+                            ? dashboardData?.albums?.find((a) => a.id === viewParams.albumId)
+                            : dashboardData?.albums?.[0]
+                        }
+                        onClose={() => navigate("/dashboard")}
+                        showToast={showToast}
+                      />
+                    )
+                  } />
                   <Route path="bookings" element={
                     !can("viewBookings") ? (
                       <AccessDenied
@@ -515,22 +542,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     </FeatureErrorBoundary>
                     )
                   } />
-                  <Route path="clients" element={
-                    !can("viewClients") ? (
-                      <AccessDenied
-                        permission="viewClients"
-                        role={currentUser.role}
-                        page="Clients"
-                      />
-                    ) : (
-                    <FeatureErrorBoundary feature="Clients" severity="medium">
-                      <Clients
-                        currentUser={currentUser}
-                        refreshTrigger={effectiveRefreshTrigger}
-                      />
-                    </FeatureErrorBoundary>
-                    )
-                  } />
+
                   <Route path="photographers" element={
                     !can("viewPhotographers") ? (
                       <AccessDenied
@@ -568,32 +580,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     </SettingsErrorBoundary>
                     )
                   } />
-                  <Route path="growth" element={
-                    !can("viewGrowth") ? (
-                      <AccessDenied
-                        permission="viewGrowth"
-                        role={currentUser.role}
-                        page="Growth"
-                      />
-                    ) : (
-                    <FeatureErrorBoundary feature="Growth" severity="medium">
-                      <GrowthPage />
-                    </FeatureErrorBoundary>
-                    )
-                  } />
-                  <Route path="localresortdashboard" element={
-                    !can("viewDashboard") ? (
-                      <AccessDenied
-                        permission="viewDashboard"
-                        role={currentUser.role}
-                        page="Local Resort Dashboard"
-                      />
-                    ) : (
-                    <DashboardErrorBoundary>
-                      <LocalResortDashboard />
-                    </DashboardErrorBoundary>
-                    )
-                  } />
+
                 </Routes>
               );
             })()}

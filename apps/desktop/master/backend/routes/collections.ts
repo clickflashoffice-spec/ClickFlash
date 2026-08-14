@@ -296,13 +296,19 @@ export default function collectionRoutes(context: CollectionsContext): Router {
         }
       });
 
-      // SQLite Compatibility: Sanitize booleans and undefined
+      // SQLite Compatibility: Sanitize booleans, objects, and undefined
       Object.keys(rowData).forEach((key) => {
         const val = rowData[key];
         if (typeof val === "boolean") {
           rowData[key] = val ? 1 : 0;
         } else if (val === undefined) {
           rowData[key] = null;
+        } else if (typeof val === "object" && val !== null && !Buffer.isBuffer(val)) {
+          try {
+            rowData[key] = JSON.stringify(val);
+          } catch (_e) {
+            rowData[key] = String(val);
+          }
         }
       });
 

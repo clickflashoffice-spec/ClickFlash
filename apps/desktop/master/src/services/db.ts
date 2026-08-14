@@ -13,6 +13,8 @@ export interface CullingCacheEntry {
 
 export interface CustomerEngagementRecord {
     customerEmail: string;
+    customerPhone?: string;
+    whatsappOptIn?: boolean;
     totalEmailsSent: number;
     totalOpened: number;
     totalClicked: number;

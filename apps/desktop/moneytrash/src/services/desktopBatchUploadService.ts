@@ -5,7 +5,7 @@
  */
 
 import { invoke, isDesktop } from './tauriService';
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 
 interface UploadJob {
   id: string;

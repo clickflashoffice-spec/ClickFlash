@@ -1,10 +1,8 @@
 import { Card } from "@clickflash/ui";
 import React, { useMemo } from 'react';
-
+import { DonutChart } from '@tremor/react';
 import { Order } from '../../../types';
 import { useCurrency } from '../../CurrencyContext';
-import Chart from 'react-apexcharts';
-import { useTheme } from '../../ThemeContext';
 
 interface ProductMixWidgetProps {
     orders: Order[];
@@ -12,7 +10,6 @@ interface ProductMixWidgetProps {
 
 const ProductMixWidget: React.FC<ProductMixWidgetProps> = ({ orders }) => {
     const { formatCurrency } = useCurrency();
-    const { theme } = useTheme();
 
     const stats = useMemo(() => {
         const mix = new Map<string, number>();
@@ -33,76 +30,18 @@ const ProductMixWidget: React.FC<ProductMixWidgetProps> = ({ orders }) => {
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5);
 
+        const data = sorted.map(([name, amount]) => ({
+            name,
+            amount,
+        }));
+
         return {
-            labels: sorted.map(s => s[0]),
-            series: sorted.map(s => s[1]),
+            data,
             total: totalRevenue
         };
     }, [orders]);
 
-    const chartOptions: any = {
-        chart: {
-            type: 'donut',
-            fontFamily: 'Inter, system-ui, sans-serif'
-        },
-        labels: stats.labels,
-        colors: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'],
-        legend: {
-            position: 'bottom',
-            fontSize: '11px',
-            labels: {
-                colors: theme === 'dark' ? '#94a3b8' : '#64748b'
-            },
-            markers: {
-                radius: 4
-            }
-        },
-        stroke: {
-            show: false
-        },
-        plotOptions: {
-            pie: {
-                donut: {
-                    size: '75%',
-                    labels: {
-                        show: true,
-                        name: {
-                            show: true,
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            color: theme === 'dark' ? '#94a3b8' : '#64748b'
-                        },
-                        value: {
-                            show: true,
-                            fontSize: '18px',
-                            fontWeight: 700,
-                            color: theme === 'dark' ? '#ffffff' : '#1e293b',
-                            formatter: (val: number) => formatCurrency(val)
-                        },
-                        total: {
-                            show: true,
-                            label: 'Total Revenue',
-                            fontSize: '10px',
-                            fontWeight: 500,
-                            color: theme === 'dark' ? '#64748b' : '#94a3b8',
-                            formatter: () => formatCurrency(stats.total)
-                        }
-                    }
-                }
-            }
-        },
-        dataLabels: {
-            enabled: false
-        },
-        tooltip: {
-            theme: theme,
-            y: {
-                formatter: (val: number) => formatCurrency(val)
-            }
-        }
-    };
-
-    if (stats.series.length === 0) {
+    if (stats.data.length === 0) {
         return (
             <Card>
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
@@ -126,13 +65,18 @@ const ProductMixWidget: React.FC<ProductMixWidgetProps> = ({ orders }) => {
                 </div>
             </div>
             <div className="flex flex-col items-center">
-                <Chart
-                    options={chartOptions}
-                    series={stats.series}
-                    type="donut"
-                    width="100%"
-                    height={320}
+                <DonutChart
+                    className="h-64 mt-4"
+                    data={stats.data}
+                    category="amount"
+                    index="name"
+                    valueFormatter={(number: number) => formatCurrency(number)}
+                    colors={['blue', 'violet', 'fuchsia', 'amber', 'emerald']}
                 />
+                <div className="mt-3 text-center">
+                    <span className="text-xs text-slate-500">Total Revenue: </span>
+                    <span className="text-sm font-bold dark:text-white">{formatCurrency(stats.total)}</span>
+                </div>
             </div>
         </Card>
     );

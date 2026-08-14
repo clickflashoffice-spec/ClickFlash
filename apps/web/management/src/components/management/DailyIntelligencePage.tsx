@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area} from 'recharts';
+import { AreaChart, DonutChart } from '@tremor/react';
 import {TrendingUp, Users, ShoppingCart, Globe, Calendar, Filter, RefreshCw, Award, Monitor, PieChart as PieIcon} from 'lucide-react';
 import './DailyIntelligence.css';
 
@@ -190,24 +190,16 @@ export const DailyIntelligencePage: React.FC = () => {
                     <div className="chart-header">
                         <h3><TrendingUp size={18} /> Revenue Trend</h3>
                     </div>
-                    <div className="chart-body">
-                        <ResponsiveContainer width="100%" height={350}>
-                            <AreaChart data={data?.trends}>
-                                <defs>
-                                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                                <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
-                                <YAxis stroke="#94a3b8" fontSize={12} />
-                                <Tooltip 
-                                    contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.5)' }} itemStyle={{ color: '#e2e8f0' }}
-                                />
-                                <Area type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                    <div className="chart-body" style={{ height: 350 }}>
+                        <AreaChart
+                            className="h-full"
+                            data={(data?.trends || []).map(t => ({ date: t.date, Revenue: t.revenue || 0 }))}
+                            index="date"
+                            categories={['Revenue']}
+                            colors={['indigo']}
+                            valueFormatter={(number: number) => `$${number.toFixed(2)}`}
+                            showLegend={false}
+                        />
                     </div>
                 </div>
 
@@ -216,33 +208,14 @@ export const DailyIntelligencePage: React.FC = () => {
                     <div className="chart-header">
                         <h3><PieIcon size={18} /> Product Mix</h3>
                     </div>
-                    <div className="chart-body centered">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <Pie
-                                    data={data?.productBreakdown}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={100}
-                                    paddingAngle={5}
-                                    dataKey="count"
-                                >
-                                    {data?.productBreakdown.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                            </PieChart>
-                        </ResponsiveContainer>
-                        <div className="pie-legend">
-                            {data?.productBreakdown.slice(0, 4).map((entry, index) => (
-                                <div key={entry.name} className="legend-item">
-                                    <span className="dot" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
-                                    <span className="name">{entry.name}</span>
-                                </div>
-                            ))}
-                        </div>
+                    <div className="chart-body centered" style={{ height: 300 }}>
+                        <DonutChart
+                            className="h-full"
+                            data={(data?.productBreakdown || []).map(p => ({ name: p.name, count: p.count || 0 }))}
+                            category="count"
+                            index="name"
+                            colors={['indigo', 'violet', 'fuchsia', 'rose', 'amber', 'emerald', 'cyan']}
+                        />
                     </div>
                 </div>
 

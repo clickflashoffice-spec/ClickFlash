@@ -72,6 +72,27 @@ const NAV_ITEMS_CONFIG = [
     permission: "viewAlbums",
   },
   {
+    view: "Editor",
+    label: "Studio Editor",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+        />
+      </svg>
+    ),
+    permission: "viewAlbums",
+  },
+  {
     view: "Orders",
     label: "Orders",
     icon: (
@@ -135,51 +156,6 @@ const NAV_ITEMS_CONFIG = [
     permission: "viewPhotographers",
   },
 
-  // { view: 'MoneyTrash', label: 'Money Trash', icon: ... }, // Deprecated
-  // { view: 'Marketing', label: 'Marketing', icon: ... }, // Deprecated
-  {
-    view: "Growth",
-    label: "Growth",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-6 w-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-        />
-      </svg>
-    ),
-    permission: "viewGrowth",
-  },
-
-  {
-    view: "LocalResortDashboard",
-    label: "Resort BI",
-    icon: (className?: string) => (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className={className || "h-4 w-4 sm:h-5 sm:w-5"}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-        />
-      </svg>
-    ),
-    permission: "viewSettings",
-  },
 
   {
     view: "Settings",

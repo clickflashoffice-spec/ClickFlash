@@ -1,9 +1,9 @@
 // backend/services/faceService.ts
 import path from "path";
 import fs from "fs";
-import { logger } from '../utils/logger';
-import { FaceAnalysis, FaceWorkerResult, FaceWorkerJob } from "../types/face";
-import { WorkerPool } from '../services/WorkerPool';
+import { logger } from '../utils/logger.ts';
+import type { FaceAnalysis, FaceWorkerResult, FaceWorkerJob } from "../types/face.ts";
+import { WorkerPool } from '../services/WorkerPool.ts';
 import { fileURLToPath } from 'url';
 
 const _filename = fileURLToPath(import.meta.url);
@@ -32,7 +32,7 @@ export class FaceService {
   private pool: WorkerPool;
 
   private constructor() {
-    this.pool = new WorkerPool(this.getWorkerScriptPath(), logger);
+    this.pool = new WorkerPool(this.getWorkerScriptPath(), logger, 2);
   }
 
   public static getInstance(): FaceService {

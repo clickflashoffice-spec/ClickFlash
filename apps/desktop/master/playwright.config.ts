@@ -1,7 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 import path from "path";
+import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const isCI = process.env.CI === "true";
@@ -17,7 +19,7 @@ export default defineConfig({
     : [["list"], ["html", { open: "never" }]],
 
   use: {
-    baseURL: process.env.E2E_BASE_URL || "http://localhost:5173",
+    baseURL: process.env.E2E_BASE_URL || "http://localhost:8090",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",

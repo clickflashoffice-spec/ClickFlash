@@ -1,6 +1,6 @@
 import { Spinner } from "@clickflash/ui";
 import React, { useState, useEffect } from "react";
-import Chart from "react-apexcharts";
+import { BarChart } from "@tremor/react";
 import { analyticsService } from "../../../services/api/analyticsService";
 import { useCurrency } from "../../CurrencyContext";
 import {
@@ -57,42 +57,16 @@ const AlbumAnalytics: React.FC<AlbumAnalyticsProps> = ({ albumId }) => {
     orders: 0,
   };
 
-  const conversionChartOptions: any = {
-    chart: {
-      type: "bar",
-      toolbar: { show: false },
-    },
-    plotOptions: {
-      bar: {
-        borderRadius: 4,
-        horizontal: true,
-        distributed: true,
-        barHeight: "60%",
-      },
-    },
-    colors: ["#3b82f6", "#8b5cf6", "#10b981"],
-    dataLabels: {
-      enabled: true,
-      formatter: (val: number) => val.toLocaleString(),
-    },
-    xaxis: {
-      categories: ["Views", "Selections", "Purchases"],
-      labels: { style: { colors: "#94a3b8" } },
-    },
-    yaxis: {
-      labels: { style: { colors: "#94a3b8" } },
-    },
-    grid: {
-      borderColor: "#f1f5f9",
-      strokeDashArray: 4,
-    },
-    legend: { show: false },
-  };
+  const funnelData = [
+    { stage: "Total Views", Count: conversionStats.views },
+    { stage: "Selections", Count: conversionStats.selections },
+    { stage: "Orders", Count: conversionStats.orders },
+  ];
 
   return (
-    <div className="space-y-8 animate-fadeIn">
-      {/* KPI Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div className="space-y-8 animate-fade-in">
+      {/* Top Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-xl p-5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3 mb-2 text-blue-600">
             <TrendingUp className="h-5 w-5" />
@@ -103,19 +77,17 @@ const AlbumAnalytics: React.FC<AlbumAnalyticsProps> = ({ albumId }) => {
           <h3 className="text-2xl font-black dark:text-white">
             {formatCurrency(stats.totalRevenue)}
           </h3>
-          <p className="text-[10px] text-slate-500 mt-1">
-            Confirmed orders only
-          </p>
+          <p className="text-[10px] text-slate-500 mt-1">Generated from album</p>
         </div>
         <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-xl p-5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3 mb-2 text-purple-600">
             <Eye className="h-5 w-5" />
             <span className="text-xs font-bold uppercase tracking-wider">
-              Engagement
+              Impressions
             </span>
           </div>
           <h3 className="text-2xl font-black dark:text-white">
-            {stats.totalViews.toLocaleString()}
+            {stats.totalViews}
           </h3>
           <p className="text-[10px] text-slate-500 mt-1">Total photo views</p>
         </div>
@@ -152,21 +124,17 @@ const AlbumAnalytics: React.FC<AlbumAnalyticsProps> = ({ albumId }) => {
           <h4 className="font-bold text-slate-900 dark:text-white mb-6">
             Sales Conversion Funnel
           </h4>
-          <Chart
-            options={conversionChartOptions}
-            series={[
-              {
-                name: "Count",
-                data: [
-                  conversionStats.views,
-                  conversionStats.selections,
-                  conversionStats.orders,
-                ],
-              },
-            ]}
-            type="bar"
-            height={250}
-          />
+          <div className="h-64">
+            <BarChart
+              className="h-full"
+              data={funnelData}
+              index="stage"
+              categories={["Count"]}
+              colors={["blue"]}
+              layout="vertical"
+              showLegend={false}
+            />
+          </div>
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl">
               <p className="text-[10px] text-slate-500 font-bold uppercase">

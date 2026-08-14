@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Chart from "react-apexcharts";
-import { ApexOptions } from "apexcharts";
+import { AreaChart, BarChart, ProgressBar } from "@tremor/react";
 import {
   Layers,
   RefreshCw,
@@ -95,7 +94,6 @@ const LocalResortDashboard: React.FC = () => {
       setDistribution(Array.isArray(distRes) ? distRes : []);
       setLastRefresh(new Date().toLocaleTimeString());
       
-      // Also fetch status once
       fetchStatus();
     } catch (err: unknown) {
       const message =
@@ -110,7 +108,6 @@ const LocalResortDashboard: React.FC = () => {
     setIsMounted(true);
     fetchAll();
 
-    // Set up polling for hardware/sync status (Law 09/32)
     const statusInterval = setInterval(() => {
       fetchStatus();
     }, 30000);
@@ -130,93 +127,15 @@ const LocalResortDashboard: React.FC = () => {
       ? Math.min(100, ((monthly.orders || totalOrders) / monthly.guests) * 100)
       : 0;
 
-  // --- Radial Gauge ---
-  const getGaugeOptions = (
-    label: string,
-    max: number,
-    color: string,
-    prefix = "€",
-  ): ApexOptions => ({
-    chart: { type: "radialBar", sparkline: { enabled: true } },
-    plotOptions: {
-      radialBar: {
-        startAngle: -90,
-        endAngle: 90,
-        track: { background: "#f1f5f9", strokeWidth: "97%" },
-        dataLabels: {
-          name: {
-            show: true,
-            offsetY: 20,
-            color: "#64748b",
-            fontSize: "11px",
-            fontWeight: "bold",
-          },
-          value: {
-            offsetY: -5,
-            fontSize: "22px",
-            fontWeight: 900,
-            color: "#1e293b",
-            formatter: (val) => prefix + ((val * max) / 100).toFixed(0),
-          },
-        },
-      },
-    },
-    fill: {
-      type: "gradient",
-      gradient: {
-        type: "horizontal",
-        gradientToColors: [color],
-        stops: [0, 100],
-      },
-    },
-    stroke: { lineCap: "round" },
-    labels: [label],
-    colors: [color],
-    theme: { mode: "light" },
-  });
+  const hourlyChartData = distribution.map((d) => ({
+    Hour: `${d.hour || 0}:00`,
+    Meetings: d.count || 0,
+  }));
 
-  // --- Trend Area Chart ---
-  const trendOptions: ApexOptions = {
-    chart: {
-      type: "area",
-      toolbar: { show: false },
-      background: "transparent",
-    },
-    stroke: { curve: "smooth", width: 2, colors: ["#06b6d4"] },
-    fill: {
-      type: "gradient",
-      gradient: { opacityFrom: 0.4, opacityTo: 0.02, stops: [20, 100] },
-    },
-    xaxis: {
-      categories: trend.map((t) => (t.date || "").slice(5)),
-      labels: { style: { colors: "#64748b" } },
-    },
-    yaxis: { labels: { show: false } },
-    grid: { show: false },
-    dataLabels: { enabled: false },
-    theme: { mode: "light" },
-    tooltip: { theme: "light" },
-  };
-
-  // --- Bar: Hour Distribution ---
-  const hourBarOptions: ApexOptions = {
-    chart: { type: "bar", toolbar: { show: false }, background: "transparent" },
-    plotOptions: { bar: { borderRadius: 3, columnWidth: "70%" } },
-    dataLabels: { enabled: false },
-    xaxis: {
-      categories: distribution.map((d) => `${d.hour || 0}h`),
-      labels: { style: { colors: "#64748b" } },
-    },
-    yaxis: {
-      labels: { style: { colors: "#64748b" } },
-    },
-    grid: {
-      borderColor: "#f1f5f9",
-    },
-    colors: ["#6366f1"],
-    theme: { mode: "light" },
-    tooltip: { theme: "light" },
-  };
+  const trendChartData = trend.map((t) => ({
+    Date: (t.date || "").slice(5),
+    Income: t.income || 0,
+  }));
 
   if (loading) {
     return (
@@ -241,106 +160,104 @@ const LocalResortDashboard: React.FC = () => {
     );
   }
 
+  const kpis = [
+    {
+      label: "30-Day Revenue",
+      value: `€${totalIncome.toLocaleString()}`,
+      sub: `${totalOrders} orders completed`,
+      icon: DollarSign,
+      color: "from-blue-500 to-indigo-600",
+      textColor: "text-blue-600",
+    },
+    {
+      label: "Monthly Orders",
+      value: (monthly?.orders || totalOrders).toString(),
+      sub: `${monthly?.guests ? `${monthly.guests} resort guests` : "Active period"}`,
+      icon: ShoppingBag,
+      color: "from-emerald-500 to-teal-600",
+      textColor: "text-emerald-600",
+    },
+    {
+      label: "Active Stations",
+      value: "Fleet Online",
+      sub: "Kiosks & Gateways",
+      icon: Monitor,
+      color: "from-purple-500 to-pink-600",
+      textColor: "text-purple-600",
+    },
+    {
+      label: "Photos Analyzed",
+      value: processedPhotos.toLocaleString(),
+      sub: "Today's sessions",
+      icon: Camera,
+      color: "from-amber-500 to-orange-600",
+      textColor: "text-amber-600",
+    },
+  ];
+
   return (
-    <div className="space-y-8 animate-fadeIn pb-20 p-2 sm:p-6 bg-slate-50 min-h-screen">
-      {/* Header */}
-      <div className="relative overflow-hidden p-8 rounded-3xl bg-white/70 backdrop-blur-xl border border-slate-200/60 shadow-lg flex justify-between items-center group">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className="flex items-center gap-5 relative z-10">
-          <div className="w-14 h-14 bg-cyan-500/10 rounded-2xl flex items-center justify-center border border-cyan-500/20 shadow-lg group-hover:scale-110 transition-transform duration-500">
-            <Layers className="w-7 h-7 text-cyan-600" />
+    <div className="space-y-6 pb-8">
+      {/* Top Bar */}
+      <div className="flex justify-between items-center bg-white/70 backdrop-blur-md rounded-2xl p-4 border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+            <Layers className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-3xl font-black text-slate-900 tracking-tighter">
-              Resort Intelligence
+            <h2 className="text-slate-800 font-extrabold text-xl tracking-tight">
+              Executive Resort Operations
             </h2>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2 mt-1">
-              <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)]"></span>
-              Live Analytical Node
+            <p className="text-slate-500 text-xs font-medium">
+              Local telemetry & transaction hub
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-4 relative z-10">
+        <div className="flex items-center gap-3">
           {lastRefresh && (
-            <div className="hidden md:flex flex-col items-end">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                Status Active
-              </span>
-              <span className="text-[10px] font-bold text-slate-500 mt-0.5">
-                Updated: {lastRefresh}
-              </span>
-            </div>
+            <span className="text-xs text-slate-400 font-mono">
+              Updated: {lastRefresh}
+            </span>
           )}
           <button
             onClick={fetchAll}
-            title="Force Synchronize"
-            className="p-3 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-cyan-500 hover:border-cyan-200 hover:shadow-lg transition-all active:scale-95"
+            className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition"
           >
-            <RefreshCw className="w-5 h-5" />
+            <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </button>
         </div>
       </div>
 
-      {/* Hardware & Sync Fleet Health Widget (Phase 90 Hardening) */}
-      <div className="grid grid-cols-1 gap-6">
-        <FleetHealthWidget 
-          status={stationStatus} 
-          isLoading={isStatusLoading} 
-          onRefresh={fetchStatus} 
-        />
-      </div>
+      {/* Fleet Health Widget */}
+      <FleetHealthWidget
+        status={stationStatus}
+        isLoading={isStatusLoading}
+        onRefresh={fetchStatus}
+      />
 
-      {/* Stats row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          {
-            label: "Total Revenue",
-            value: totalIncome,
-            icon: <DollarSign />,
-            color: "text-emerald-600",
-            trend: "+12%",
-          },
-          {
-            label: "Active Sessions",
-            value: 3,
-            icon: <Monitor />,
-            color: "text-blue-600",
-            trend: "Live",
-          },
-          {
-            label: "New Orders",
-            value: totalOrders,
-            icon: <ShoppingBag />,
-            color: "text-indigo-600",
-            trend: "Today",
-          },
-          {
-            label: "Photos Processed",
-            value: processedPhotos,
-            icon: <Camera />,
-            color: "text-orange-600",
-            trend: "Live",
-          },
-        ].map((item, _i) => (
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpis.map((kpi, i) => (
           <div
-            key={item.label}
-            className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all"
+            key={i}
+            className="bg-white/70 backdrop-blur-md rounded-2xl p-5 border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between"
           >
-            <div className="flex justify-between items-start mb-4">
-              <div
-                className={`p-3 rounded-xl ${item.color.replace("text", "bg").replace("600", "100")} ${item.color}`}
-              >
-                {item.icon}
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">
+                  {kpi.label}
+                </p>
+                <h3 className="text-2xl font-black text-slate-800 mt-1 tracking-tight">
+                  {kpi.value}
+                </h3>
               </div>
-              <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
-                {item.trend}
-              </span>
+              <div
+                className={`p-2.5 rounded-xl bg-gradient-to-br ${kpi.color} text-white shadow-sm`}
+              >
+                <kpi.icon className="w-5 h-5" />
+              </div>
             </div>
-            <h3 className="text-slate-500 text-sm font-medium">{item.label}</h3>
-            <p className={`text-2xl font-bold mt-1 text-slate-800`}>
-              {item.label.includes("Revenue")
-                ? `€${item.value.toLocaleString()}`
-                : item.value}
+            <p className="text-slate-400 text-xs mt-3 flex items-center gap-1 font-medium">
+              {kpi.sub}
             </p>
           </div>
         ))}
@@ -356,13 +273,13 @@ const LocalResortDashboard: React.FC = () => {
           </div>
           {isMounted && (
             <div className="h-64">
-              <Chart
-                options={hourBarOptions}
-                series={[
-                  { name: "Meetings", data: distribution.map((d) => d.count || 0) },
-                ]}
-                type="bar"
-                height="100%"
+              <BarChart
+                className="h-full"
+                data={hourlyChartData}
+                index="Hour"
+                categories={["Meetings"]}
+                colors={["indigo"]}
+                showLegend={false}
               />
             </div>
           )}
@@ -372,19 +289,18 @@ const LocalResortDashboard: React.FC = () => {
           <h3 className="text-slate-800 font-bold text-lg mb-6 flex items-center gap-2">
             <Target className="text-orange-500" /> Conversion Funnel
           </h3>
-          {isMounted && (
-            <Chart
-              options={getGaugeOptions("Capture Rate", 100, "#f59e0b", "%")}
-              series={[captureRate]}
-              type="radialBar"
-              height={280}
-            />
-          )}
-          <div className="text-center mt-2">
-            <p className="text-slate-500 text-sm">Target vs Actual</p>
-            <p className="text-slate-800 font-extrabold text-2xl">
-              {captureRate.toFixed(1)}%
-            </p>
+          <div className="space-y-4 my-auto">
+            <div className="flex justify-between items-center text-sm font-semibold">
+              <span className="text-slate-600">Capture Rate</span>
+              <span className="text-slate-900 font-bold">{captureRate.toFixed(1)}%</span>
+            </div>
+            <ProgressBar value={captureRate} color="amber" />
+            <div className="text-center pt-2">
+              <p className="text-slate-500 text-xs">Target: 80% • Actual: {captureRate.toFixed(1)}%</p>
+              <p className="text-slate-800 font-extrabold text-2xl mt-1">
+                {captureRate >= 80 ? "🎯 Target Achieved" : "📈 Pacing Up"}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -451,13 +367,14 @@ const LocalResortDashboard: React.FC = () => {
         </h3>
         {isMounted && (
           <div className="h-64">
-            <Chart
-              options={trendOptions}
-              series={[
-                { name: "Income", data: trend.map((t) => t.income || 0) },
-              ]}
-              type="area"
-              height="100%"
+            <AreaChart
+              className="h-full"
+              data={trendChartData}
+              index="Date"
+              categories={["Income"]}
+              colors={["cyan"]}
+              valueFormatter={(number: number) => `€${number.toLocaleString()}`}
+              showLegend={false}
             />
           </div>
         )}
@@ -469,65 +386,58 @@ const LocalResortDashboard: React.FC = () => {
           <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-8">
             Comparative Performance Analysis
           </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/80">
-                  <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    Session Protocol
-                  </th>
-                  <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
-                    Capture Density
-                  </th>
-                  <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
-                    Yield Average
-                  </th>
-                  <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
-                    Volume
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                <tr className="hover:bg-slate-50/50 transition-colors group/row">
-                  <td className="py-5 px-6">
-                    <span className="text-[10px] font-black text-blue-600 uppercase bg-blue-50 py-1.5 px-4 rounded-xl border border-blue-100">
-                      Single Site
-                    </span>
-                  </td>
-                  <td className="py-5 px-6 text-right text-sm font-bold text-slate-600">
-                    {comparison.avg_photos_simple?.toFixed(1) || "—"}{" "}
-                    <span className="text-[10px] opacity-40 ml-1">
-                      avg/photos
-                    </span>
-                  </td>
-                  <td className="py-5 px-6 text-right text-lg font-black text-slate-900 tracking-tighter">
-                    €{comparison.avg_income_simple?.toFixed(2) || "0.00"}
-                  </td>
-                  <td className="py-5 px-6 text-right text-sm font-black text-slate-500">
-                    {comparison.count_simple || 0}
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50/50 transition-colors group/row">
-                  <td className="py-5 px-6">
-                    <span className="text-[10px] font-black text-teal-600 uppercase bg-teal-50 py-1.5 px-4 rounded-xl border border-teal-100">
-                      Multi Site
-                    </span>
-                  </td>
-                  <td className="py-5 px-6 text-right text-sm font-bold text-slate-600">
-                    {comparison.avg_photos_multiple?.toFixed(1) || "—"}{" "}
-                    <span className="text-[10px] opacity-40 ml-1">
-                      avg/photos
-                    </span>
-                  </td>
-                  <td className="py-5 px-6 text-right text-lg font-black text-slate-900 tracking-tighter">
-                    €{comparison.avg_income_multiple?.toFixed(2) || "0.00"}
-                  </td>
-                  <td className="py-5 px-6 text-right text-sm font-black text-slate-500">
-                    {comparison.count_multiple || 0}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="p-6 rounded-2xl bg-white/80 border border-slate-200/50 shadow-sm">
+              <h4 className="font-bold text-slate-800 text-sm mb-4">
+                Single vs Multi-Pose Sessions
+              </h4>
+              <div className="space-y-4 text-xs">
+                <div className="flex justify-between py-2 border-b border-slate-100">
+                  <span className="text-slate-500">Single Pose Count</span>
+                  <span className="font-bold text-slate-800">
+                    {comparison.count_simple}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-slate-100">
+                  <span className="text-slate-500">Multi-Pose Count</span>
+                  <span className="font-bold text-slate-800">
+                    {comparison.count_multiple}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-slate-100">
+                  <span className="text-slate-500">Avg Revenue (Single)</span>
+                  <span className="font-bold text-emerald-600">
+                    €{comparison.avg_income_simple.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span className="text-slate-500">Avg Revenue (Multi)</span>
+                  <span className="font-bold text-emerald-600">
+                    €{comparison.avg_income_multiple.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-white/80 border border-slate-200/50 shadow-sm flex flex-col justify-center">
+              <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">
+                Multi-Pose Revenue Lift
+              </p>
+              <p className="text-4xl font-black text-indigo-600 tracking-tight">
+                +{comparison.avg_income_simple > 0
+                  ? (
+                      ((comparison.avg_income_multiple -
+                        comparison.avg_income_simple) /
+                        comparison.avg_income_simple) *
+                      100
+                    ).toFixed(0)
+                  : 0}
+                %
+              </p>
+              <p className="text-xs text-slate-400 mt-2">
+                Higher yield achieved when photographers capture multiple session poses.
+              </p>
+            </div>
           </div>
         </div>
       )}

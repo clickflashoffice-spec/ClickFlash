@@ -105,7 +105,7 @@ export const AutoPipelineWizardModal: React.FC<AutoPipelineWizardModalProps> = (
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const filesArray = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
+      const filesArray = (Array.from(e.target.files) as File[]).filter(f => f.type.startsWith('image/'));
       setSourceFiles(filesArray);
       setSourceLabel(`${filesArray.length} photos selected`);
       setErrors(prev => ({ ...prev, source: '' }));
@@ -115,7 +115,7 @@ export const AutoPipelineWizardModal: React.FC<AutoPipelineWizardModalProps> = (
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const filesArray = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+      const filesArray = (Array.from(e.dataTransfer.files) as File[]).filter(f => f.type.startsWith('image/'));
       setSourceFiles(filesArray);
       setSourceType('files');
       setSourceLabel(`${filesArray.length} dragged photos`);

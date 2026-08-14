@@ -32,9 +32,15 @@ import { MQTTBrokerService } from "./services/mqttBrokerService";
 import { MQTTPublisher } from "./services/mqttPublisher";
 import { YjsWebsocketServer } from "./services/yjsWebsocketServer";
 
+import { omniModalConfig } from "./config/omniModalConfig";
+
 // Rule 05: Universal Environment Parity - Detection
 const isElectron = process.versions && !!process.versions.electron;
+const ecosystemState = omniModalConfig.getState();
 process.stdout.write(`[Environment] Running in ${isElectron ? "Electron" : "Web"} mode\n`);
+process.stdout.write(`[OmniModal] Master booted in ${ecosystemState.currentMode} mode.\n`);
+process.stdout.write(`   - UI Enabled: ${ecosystemState.uiEnabled}\n`);
+process.stdout.write(`   - Redis Ingestion: ${ecosystemState.redisIngestionEnabled}\n`);
 
 // 1. Initialize all backend directories and domain services
 const {

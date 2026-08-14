@@ -72,15 +72,15 @@ The Monorepo (pnpm workspaces + Turborepo) contains the following 17 application
 
 | App | Description |
 |---|---|
-| **master** | Master Portal (Electron/React 19). Core studio management system. Port: 8090 |
+| **master** | Master Portal (Electron/React 19 + Fastify). Core studio management system. Port: 8090 |
 | **touch** | Touch Kiosk (Electron/React 19). Customer self-service kiosk (offline-first). Port: 8091 |
-| **management** | Management Hub. Fully online business dashboard. |
-| **gallery** | Customer Gallery portal. Online customer access to photos. |
+| **management** | Management Hub. Swarm Command Center (CeoAgent/SpyAgent) & Live Preview. |
+| **gallery** | Customer Gallery portal. Theming Engine & AI Enhancements (Magic/Remove BG). |
 | **moneytrash** | Money Trash gateway. Port: 3000 |
 | **website** | Main Marketing Website. Port: 3001 |
 | **installer** | Desktop installer utility |
 | **license-generator** | Ed25519 license generator for ClickFlash nodes |
-| **mobile-photographer** | Android app. USB/PTP tether to Nikon D7000 (Expo SDK) |
+| **mobile-photographer** | Android app. USB/PTP tether, Hybrid Rust Core, Telemetry & WebRTC |
 | **mobile-customer** | Mobile app for customer gallery access |
 | **mobile-staff** | Mobile app for studio staff management |
 | **mobile-client** | Mobile application for clients |

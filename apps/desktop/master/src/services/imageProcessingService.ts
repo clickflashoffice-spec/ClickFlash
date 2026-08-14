@@ -33,7 +33,7 @@ class ImageProcessingService {
     private initWorker() {
         try {
             if (typeof window !== 'undefined' && typeof Worker !== 'undefined') {
-                this.worker = new Worker(new URL('../workers/imageProcessing.worker.ts', import.meta.url), { type: 'module' });
+                this.worker = new Worker(new URL('../workers/imageProcessor.worker.ts', import.meta.url), { type: 'module' });
                 this.worker.onmessage = (e: MessageEvent) => {
                     const { id, result, error } = e.data;
                     const cb = this.pendingCallbacks.get(id);

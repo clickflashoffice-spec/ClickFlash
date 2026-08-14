@@ -1,16 +1,13 @@
-import { performOfflineReasoning } from "@clickflash/ai/src/llama-cpp-client";
+import { GeminiClient } from "@clickflash/ai";
+
+const aiClient = new GeminiClient({ apiKey: "demo-api-key", model: "gemini-2.0-flash" });
 
 export class StaffingAgent {
-  public static async suggestStaffingLevels(queueLength: number, activePhotographers: number): Promise<string> {
-    const prompt = `
-      You are an autonomous staffing manager for a resort photography system.
-      Current Queue Length: ${queueLength} guests
-      Active Photographers: ${activePhotographers}
-      
-      Should we dispatch more photographers or stand down? Provide a 1-sentence recommendation.
-    `;
-
-    // Uses the strictly constrained node-llama-cpp offline model (3 cores)
-    return await performOfflineReasoning(prompt);
+  public static async generate( predictedFootTraffic: string, availableStaff: string ): Promise<string> {
+    const prompt = `Generate an optimal shift schedule based on the following predicted park traffic and available staff.
+Traffic: ${predictedFootTraffic}
+Staff: ${availableStaff}`;
+    const response = await aiClient.chat([{ role: "user", content: prompt }]);
+    return response.data || "";
   }
 }

@@ -36,6 +36,10 @@ interface State {
  * </FeatureErrorBoundary>
  */
 export class FeatureErrorBoundary extends Component<Props, State> {
+    declare state: State;
+    declare props: Readonly<Props>;
+    declare setState: (state: any) => void;
+
     constructor(props: Props) {
         super(props);
         this.state = { hasError: false, error: null, errorInfo: null };
@@ -56,9 +60,9 @@ export class FeatureErrorBoundary extends Component<Props, State> {
         });
 
         // Update state with error info
-        this.setState({ errorInfo });
+        (this as any).setState({ errorInfo });
 
-        // Call custom error handler if provided
+        // Call optional callback
         if (onError) {
             onError(error, errorInfo);
         }
@@ -77,7 +81,7 @@ export class FeatureErrorBoundary extends Component<Props, State> {
     handleReset = () => {
         const { onReset } = this.props;
         
-        this.setState({ hasError: false, error: null, errorInfo: null });
+        (this as any).setState({ hasError: false, error: null, errorInfo: null });
         
         if (onReset) {
             onReset();

@@ -200,7 +200,7 @@ const ImportAlbumModal: React.FC<ImportAlbumModalProps> = ({
     setIsDragging(false);
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const fileList = Array.from(e.dataTransfer.files);
+      const fileList = Array.from(e.dataTransfer.files) as File[];
       const files = fileList.filter((f) => f.type.startsWith("image/"));
       if (files.length === 0) {
         setValidationErrors({

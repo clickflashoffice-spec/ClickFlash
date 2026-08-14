@@ -5,14 +5,14 @@
 
 ## Project Overview
 
-ClickFlash is an enterprise-grade automated photography concession and edge-to-cloud resort media platform comprising 16 interconnected applications, microservices, and shared packages orchestrated via Turborepo and `pnpm`.
+ClickFlash is an enterprise-grade automated photography concession and edge-to-cloud resort media platform. It has evolved to the **V6.0 The Autonomous Ecosystem Paradigm**. It utilizes AI for auto-culling, biometric selfie-linking, WebRTC live tracking, Rust mobile edge-computing, and dynamic yield pricing to exceed all competitors (DEI, Pomvom, Fotiqo).
 
 ## Setup Commands
 
 - Install dependencies: `pnpm install`
-- Start Master Studio OS: `pnpm run dev:master` (Port 8090)
+- Start Master Studio OS (Headless Orchestrator): `pnpm run dev:master` (Port 8090)
 - Start Touch Kiosk: `pnpm run dev:touch` (Port 8091)
-- Start Management Hub: `pnpm run dev:management` (Port 5175)
+- Start Management Hub (Command Center): `pnpm run dev:management` (Port 5175)
 - Start Gallery Portal: `pnpm run dev:gallery` (Port 5176)
 - Start Website: `pnpm run dev:website` (Port 3001)
 - Run All Tests: `npm run test:all`
@@ -22,19 +22,19 @@ ClickFlash is an enterprise-grade automated photography concession and edge-to-c
 
 | Application / Package | Technology Stack | Primary Purpose |
 | --- | --- | --- |
-| `apps/master` | Electron 39 + React 19 | Central Studio OS, Local SQLite Hub, Kiosk LAN Gateway (Port 8090) |
-| `apps/touch` | Electron 39 + React 19 | Guest Touch Kiosk, Attract Screensaver, 128D Face Search (Port 8091) |
-| `apps/moneytrash` | Electron 39 + Next.js 16 | Rapid Batch Photo Ingestion, Sharpness / Laplacian Variance Grading |
-| `apps/management` | Vite + React 19 | Resort Executive Hub, AI Swarm Command Center, Payroll & Heatmaps |
-| `apps/gallery` | Vite + React 19 + Stripe | Guest Web Gallery, Instant Checkout, Segment-Anything AI Backgrounds |
-| `apps/cloud-backend` | Cloudflare Worker (D1 + R2) | Edge API, Steganographic Watermarking, Webhooks, Payouts |
+| `apps/master` | Electron 39 + Fastify + Redis Streams | Headless Edge Node, LAN Gateway (Port 8090), WebRTC Command Hub |
+| `apps/touch` | Electron 39 + React 19 | Guest Touch Kiosk, Attract Screensaver |
+| `apps/moneytrash` | Electron 39 + Next.js 16 | AI Auto-Culling, Burst-to-Video Engine, Generative Enhance |
+| `apps/management` | Vite + React 19 | Command Center, Live WebRTC Tracking, ClickFlash Agent CRM |
+| `apps/gallery` | Vite + React 19 + Stripe | Guest Self-Service, Selfie-to-Vector DB Biometric Linking |
+| `apps/cloud-backend` | Cloudflare Worker (D1 + R2) | Edge API, Dynamic Yield Pricing Engine, Webhooks, Payouts |
 | `apps/website` | Next.js 15 + Tailwind 4 | Marketing Portal, Interactive Resort ROI Calculator (Port 3001) |
-| `apps/mobile-pro` | Expo React Native | Field Photographer Android USB-OTG/PTP Tether Ingestion & Voice Tagging |
-| `apps/mobile-consumer` | Expo React Native | Guest Mobile Photo Pass, Apple Wallet Passbook, Hotspots Map |
+| `apps/mobile-pro` | Expo React Native + Rust | Field App, Rust Core (Offline First), WebRTC Receiver, UWB/BLE Beacon |
+| `apps/mobile-consumer` | Expo React Native | Guest Mobile Photo Pass, BLE Proximity Linking |
 | `apps/installer` | Electron 39 | Cross-Platform Desktop Installer & Auto-Updater Generator |
 | `apps/license-generator`| Electron 39 | Cryptographic Hardware-Locked License Generator |
 | `apps/mcp-server` | Model Context Protocol SDK | Autonomous AI Agent Studio Toolchain & Automation Engine |
-| `packages/ai` | TypeScript / Gemini REST | Shared AI Models, Zod Schemas (`AIScore`, `EditParams`), System Prompts |
+| `packages/ai` | TypeScript / Gemini REST | Shared AI Models, Vector Search, NLP Admin Agents |
 | `packages/types` | TypeScript | Core Domain Entity Interfaces & Universal Data Contracts |
 | `packages/ui` | React 19 + Tailwind | Shared Glassmorphic UI Primitives & Interactive Components |
 
@@ -42,11 +42,8 @@ ClickFlash is an enterprise-grade automated photography concession and edge-to-c
 
 | Command | Purpose | When to Run |
 | --- | --- | --- |
-| `npm run typecheck:all` | Monorepo strict TypeScript check across all 16 apps | After every code change |
-| `pnpm --filter clickflash-master test` | Run Master OS backend and frontend unit tests | After editing `apps/master` |
-| `pnpm --filter clickflash-touch test` | Run Touch Kiosk vitest unit tests | After editing `apps/touch` |
-| `pnpm --filter star-master-management test` | Run Management Hub test suite | After editing `apps/management` |
-| `pnpm --filter star-master-customer test` | Run Gallery Portal test suite | After editing `apps/gallery` |
+| `npm run typecheck:all` | Monorepo strict TypeScript check across all apps | After every code change |
+| `pnpm --filter clickflash-master test` | Run Master OS backend tests | After editing `apps/master` |
 | `npm run build:all` | Verify full Turborepo production build bundle | Before creating release PRs |
 | `npm run lint:all` | Run ESLint across all projects | Pre-commit validation |
 
@@ -57,14 +54,14 @@ After every code change, execute the following non-negotiable verification seque
 2. **Targeted Tests**: `pnpm --filter <app-name> test` (all tests must pass).
 3. **Lint**: `npm run lint:all`.
 
-## Code Style & Invariants
+## Code Style & Invariants (V6.0 Autonomous Rules)
 
-1. **Direct IPC Data DAO**: Master OS local database CRUD must use `window.electron.invoke('repo:request')` via [`dataService.ts`](file:///C:/Users/alamo/Desktop/ClickFlash/apps/master/src/services/dataService.ts). Never proxy local UI queries through HTTP.
-2. **LAN Express Gateway**: Port 8090 Express server remains active strictly for LAN Touch Kiosks and Mobile field ingestion.
-3. **No Camera-Card Deletion**: Field mobile apps must NEVER delete original photos from camera memory cards.
-4. **Offline-First Resilience**: Touch Kiosks and Mobile apps must function completely offline using embedded Web Workers and IndexedDB/SQLite sync queues.
-5. **Absolute Imports**: Always use absolute `@/` imports for internal files and `@clickflash/*` for workspace packages.
-6. **No Any Types**: Maintain strict TypeScript typing. Avoid `any` assertions.
+1. **Event-Driven Over SQL**: Direct SQLite inserts for ingestion are deprecated. The Master OS must push events to Redis Streams `publishEvent`, mimicking an enterprise Kafka pipeline.
+2. **Zero-Friction Linking**: Do NOT build QR code or barcode scanners. All linking is done via Biometric Vector DB (Selfie-First) or BLE/UWB Proximity.
+3. **Headless Master**: Do not add UI views to `apps/master`. It is a headless orchestrator. Add all UI to `apps/management` Command Center.
+4. **Rust First on Mobile**: For performance-heavy tasks in `apps/mobile-pro` (like offline sync queues, WebRTC, BLE), push logic to the `clickflash-rust-core` module.
+5. **No Camera-Card Deletion**: Field mobile apps must NEVER delete original photos from camera memory cards.
+6. **Offline-First Resilience**: Mobile apps must function completely offline. Syncing happens instantly via Redis Streams when connectivity returns.
 
 ## Prohibitions
 
@@ -85,5 +82,5 @@ After every code change, execute the following non-negotiable verification seque
 - 🎯 [Spec-Driven Development](file:///C:/Users/alamo/Desktop/ClickFlash/.agents/rules/sdd-workflow.md)
 
 ---
-*Generated by `agents-generator` for ClickFlash Ecosystem V3.0*
+*Generated by `agents-generator` for ClickFlash Ecosystem V6.0*
 <!-- AGENTS-GENERATED-END -->

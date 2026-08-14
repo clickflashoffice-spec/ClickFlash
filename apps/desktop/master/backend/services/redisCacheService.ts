@@ -189,6 +189,27 @@ export class RedisCacheService {
   }
 
   /**
+   * Publish an event to a Redis Stream
+   */
+  public async publishEvent(stream: string, event: Record<string, string>, maxLength = 10000): Promise<string | null> {
+    if (this.isRedisConnected && this.client) {
+      try {
+        const args: string[] = [];
+        for (const [k, v] of Object.entries(event)) {
+          args.push(k, v);
+        }
+        // XADD stream MAXLEN ~ maxLength * args
+        const messageId = await this.client.xadd(stream, 'MAXLEN', '~', maxLength, '*', ...args);
+        return messageId;
+      } catch (err: any) {
+        logger.debug(`[RedisCacheService] Redis xadd failed for stream ${stream}: ${err.message}`);
+      }
+    }
+    logger.debug(`[RedisCacheService] Event published to memory stream (no-op) ${stream}: ${JSON.stringify(event)}`);
+    return null;
+  }
+
+  /**
    * Check connection status and ping
    */
   public async ping(): Promise<{ connected: boolean; mode: 'redis' | 'memory' }> {

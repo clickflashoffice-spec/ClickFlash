@@ -4,6 +4,7 @@
     "types": [
       "node"
     ],
+    "skipLibCheck": true,
     "strict": true,
     "paths": {
       "@/assets/*": [

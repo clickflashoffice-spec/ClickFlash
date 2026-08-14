@@ -13,6 +13,8 @@ import enhancement_service
 import quality_service
 import upscale_service
 import segmentation_service
+import pipeline_service
+import scene_composite_service
 
 # Load BiRefNet model once at module level for background removal
 birefnet_model = AutoModelForImageSegmentation.from_pretrained('ZhengPeng7/BiRefNet', trust_remote_code=True)
@@ -42,7 +44,7 @@ def health_check():
 @app.post("/api/ai/face/vector")
 async def extract_face_vector(file: UploadFile = File(...)):
     """
-    Extracts a 128D or 512D face vector from an uploaded image using InsightFace.
+    Extracts a 512D face vector from an uploaded image using InsightFace.
     """
     try:
         contents = await file.read()
@@ -52,6 +54,20 @@ async def extract_face_vector(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="No face detected in the image")
             
         return {"status": "success", "vector": embedding}
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/ai/face/detect-all")
+async def detect_all_faces(file: UploadFile = File(...)):
+    """
+    Detects all faces in an image and extracts 512D normalized embeddings, bboxes, age, and gender.
+    """
+    try:
+        contents = await file.read()
+        faces = face_service.extract_all_faces(contents)
+        return {"status": "success", "count": len(faces), "faces": faces}
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
@@ -283,5 +299,59 @@ async def segment_image(
         raise HTTPException(status_code=400, detail=str(ve))
     except ImportError as ie:
         raise HTTPException(status_code=503, detail=str(ie))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/ai/pipeline/process")
+async def run_ingestion_pipeline(
+    file: UploadFile = File(...),
+    auto_enhance: bool = True,
+    remove_bg: bool = False,
+    upscale_factor: int = 0,
+    extract_palette: bool = True,
+):
+    """
+    Executes autonomous end-to-end AI ingestion pipeline (grading, enhancement, segmentation, upscaling, palette).
+    """
+    try:
+        contents = await file.read()
+        result = pipeline_service.process_ingestion_pipeline(
+            contents,
+            auto_enhance=auto_enhance,
+            remove_bg=remove_bg,
+            upscale_factor=upscale_factor,
+            extract_palette=extract_palette,
+        )
+        return result
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/ai/composite-scene")
+async def composite_resort_scene(
+    foreground_file: UploadFile = File(...),
+    background_file: Optional[UploadFile] = None,
+    preset_theme: str = "sunset_beach",
+    harmonize: bool = True,
+):
+    """
+    Composites a transparent subject cutout (or photo) onto a preset resort theme backdrop.
+    """
+    try:
+        fg_contents = await foreground_file.read()
+        bg_contents = await background_file.read() if background_file else None
+
+        result_jpeg = scene_composite_service.composite_foreground_onto_scene(
+            fg_contents,
+            background_bytes=bg_contents,
+            preset_theme=preset_theme,
+            apply_color_harmonization=harmonize,
+        )
+        return Response(content=result_jpeg, media_type="image/jpeg")
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

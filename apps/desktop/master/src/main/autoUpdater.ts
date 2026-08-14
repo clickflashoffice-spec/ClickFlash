@@ -14,13 +14,13 @@ const updaterLogger = {
   error: (msg: string) => logger.error(msg, { context: 'updater' }),
   debug: (msg: string) => logger.debug(msg, { context: 'updater' }),
 };
-autoUpdater.logger = updaterLogger;
-autoUpdater.autoDownload = false;        // Never download without user confirmation
-autoUpdater.autoInstallOnAppQuit = true;
+(autoUpdater as any).logger = updaterLogger;
+(autoUpdater as any).autoDownload = false;        // Never download without user confirmation
+(autoUpdater as any).autoInstallOnAppQuit = true;
 // Require code-signing certificate to match publisherName (set in electron-builder.yml)
 // When forceDevUpdateConfig is false in production, this is enforced automatically.
-autoUpdater.allowPrerelease = false;     // Never install pre-release builds on kiosks
-autoUpdater.allowDowngrade  = false;     // Never downgrade
+(autoUpdater as any).allowPrerelease = false;     // Never install pre-release builds on kiosks
+(autoUpdater as any).allowDowngrade  = false;     // Never downgrade
 
 interface UpdateStatus {
   checking: boolean;
@@ -98,13 +98,14 @@ function setupIpcHandlers(): void {
 }
 
 function setupEventHandlers(): void {
-  autoUpdater.on('checking-for-update', () => {
+  const updater = autoUpdater as any;
+  updater.on('checking-for-update', () => {
     logger.info('[AutoUpdater] Checking for update...');
     updateStatus = { ...updateStatus, checking: true, error: null };
     notifyRenderer('checking');
   });
 
-  autoUpdater.on('update-available', (info: UpdateInfo) => {
+  updater.on('update-available', (info: UpdateInfo) => {
     logger.info('[AutoUpdater] Update available:', { args: [info.version] });
     updateStatus = {
       ...updateStatus,
@@ -117,25 +118,25 @@ function setupEventHandlers(): void {
     showUpdateAvailableDialog(info);
   });
 
-  autoUpdater.on('update-not-available', () => {
+  updater.on('update-not-available', () => {
     logger.info('[AutoUpdater] No update available');
     updateStatus = { ...updateStatus, checking: false, available: false };
     notifyRenderer('not-available');
   });
 
-  autoUpdater.on('download-progress', (progress) => {
+  updater.on('download-progress', (progress: any) => {
     updateStatus = { ...updateStatus, progress: progress.percent };
     notifyRenderer('progress', progress);
   });
 
-  autoUpdater.on('update-downloaded', (info: UpdateInfo) => {
+  updater.on('update-downloaded', (info: UpdateInfo) => {
     logger.info('[AutoUpdater] Update downloaded');
     updateStatus = { ...updateStatus, downloaded: true, checking: false };
     notifyRenderer('downloaded', info);
     showUpdateDownloadedDialog(info);
   });
 
-  autoUpdater.on('error', (error) => {
+  updater.on('error', (error: any) => {
     logger.error('[AutoUpdater] Error:', { args: [error] });
     updateStatus = { ...updateStatus, checking: false, error: error.message };
     notifyRenderer('error', { message: error.message });

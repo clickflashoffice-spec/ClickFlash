@@ -68,7 +68,7 @@
     "test:report": "npx playwright show-report",
     "lint:all": "pnpm --filter clickflash-master run lint && pnpm --filter clickflash-touch run lint && pnpm --filter star-master-management run lint && pnpm --filter star-master-customer run lint && pnpm --filter main-website run lint && pnpm --filter moneytrash-uploader run lint && pnpm --filter clickflash-installer run lint && pnpm --filter clickflash-license-generator run lint && pnpm --filter @clickflash/mobile-pro run lint && pnpm --filter @clickflash/mobile-consumer run lint",
     "lint:mobile": "pnpm --filter @clickflash/mobile-pro run lint && pnpm --filter @clickflash/mobile-consumer run lint",
-    "typecheck:all": "pnpm --filter clickflash-master run typecheck:ci && pnpm --filter clickflash-touch run typecheck && pnpm --filter star-master-management run typecheck && pnpm --filter star-master-customer run typecheck && pnpm --filter main-website run typecheck && pnpm --filter moneytrash-uploader run typecheck && pnpm --filter clickflash-installer run typecheck && pnpm --filter clickflash-license-generator run typecheck && pnpm --filter @clickflash/mobile-pro run typecheck && pnpm --filter @clickflash/mobile-consumer run typecheck",
+    "typecheck:all": "pnpm --filter clickflash-master run typecheck:ci && pnpm --filter clickflash-touch run typecheck && pnpm --filter @clickflash/management run typecheck && pnpm --filter moneytrash-uploader run typecheck && pnpm --filter clickflash-installer run typecheck && pnpm --filter clickflash-license-generator run typecheck && pnpm --filter @clickflash/mobile-pro run typecheck && pnpm --filter @clickflash/mobile-consumer run typecheck && pnpm --filter cloud-backend run typecheck && pnpm --filter clickflash-mcp run build",
     "typecheck:mobile": "pnpm --filter @clickflash/mobile-pro run typecheck && pnpm --filter @clickflash/mobile-consumer run typecheck",
     "docker:up": "docker-compose -f docker-compose.dev.yml up -d",
     "docker:down": "docker-compose -f docker-compose.dev.yml down",
@@ -91,7 +91,7 @@
     "playwright": "^1.58.2",
     "sharp": "^0.35.1",
     "ts-morph": "^28.0.0",
-    "tsx": "^4.21.0",
+    "tsx": "^4.23.12",
     "turbo": "^2.10.0",
     "vitest": "^4.1.10"
   },
@@ -148,6 +148,7 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^12.9.0"
+    "better-sqlite3": "^12.9.0",
+    "esbuild": "0.28.2"
   }
 }

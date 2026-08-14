@@ -196,13 +196,13 @@ export const AIAutoEditorModal: React.FC<AIAutoEditorModalProps> = ({
               <div key={key} className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <label className="capitalize text-slate-300">{key}</label>
-                  <span className="text-slate-400 font-mono">{value > 0 ? `+${value}` : value}</span>
+                  <span className="text-slate-400 font-mono">{(value as number) > 0 ? `+${value}` : String(value)}</span>
                 </div>
                 <input
                   type="range"
                   min="-100"
                   max="100"
-                  value={value}
+                  value={value as number}
                   onChange={(e) => handleSliderChange(key as keyof EditParams, parseInt(e.target.value))}
                   className="w-full accent-blue-500 bg-slate-700 h-1 rounded-full appearance-none cursor-pointer"
                 />

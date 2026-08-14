@@ -102,7 +102,7 @@ export const usePermissions = (user: Photographer | null) => {
 
         // Normalize role to match type definition (standardize on Capitalized words)
         // This handles cases like 'admin' -> 'Admin', 'photographer' -> 'Photographer'
-        const rawRole = user.role || '';
+        const rawRole = String(user.role || '');
         let finalRole = (rawRole.charAt(0).toUpperCase() + rawRole.slice(1).toLowerCase()) as AppRole;
 
         // Special cases for specific roles

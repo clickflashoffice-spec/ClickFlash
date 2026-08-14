@@ -4,7 +4,8 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  className?: string;
   variant?: 'default' | 'glass' | 'outline' | 'ghost';
   noPadding?: boolean;
 }

@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logger } from '../utils/logger.ts';
 
 interface Props {
@@ -30,12 +30,14 @@ export class UploadErrorBoundary extends Component<Props, State> {
     }
 
     private handleReset = () => {
-        this.setState({ hasError: false, error: null });
-        if (this.onReset) this.onReset();
+        (this as any).setState({ hasError: false, error: null });
+        if ((this as any).props.onReset) (this as any).props.onReset();
     };
 
     public render() {
-        if (this.state.hasError) {
+        const state = (this as any).state as State;
+        const props = (this as any).props as Props;
+        if (state.hasError) {
             return (
                 <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-2xl p-8 text-center animate-bounceIn">
                     <div className="w-16 h-16 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -61,12 +63,12 @@ export class UploadErrorBoundary extends Component<Props, State> {
                             Try Recovery
                         </button>
                     </div>
-                    {this.state.error && (
+                    {state.error && (
                         <div className="mt-8 pt-6 border-t border-red-100 dark:border-red-900/40 text-left">
                             <details className="text-xs text-red-500/80 cursor-pointer">
                                 <summary className="font-mono uppercase tracking-widest hover:text-red-600">Technical Details</summary>
                                 <pre className="mt-2 p-4 bg-black/5 dark:bg-black/20 rounded font-mono overflow-auto whitespace-pre-wrap">
-                                    {this.state.error.stack}
+                                    {state.error.stack}
                                 </pre>
                             </details>
                         </div>
@@ -75,10 +77,6 @@ export class UploadErrorBoundary extends Component<Props, State> {
             );
         }
 
-        return this.props.children;
-    }
-
-    private get onReset() {
-        return this.props.onReset;
+        return props.children;
     }
 }

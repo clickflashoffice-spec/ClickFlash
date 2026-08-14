@@ -6,7 +6,7 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
@@ -16,8 +16,8 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240405.0",
     "drizzle-kit": "^0.31.10",
+    "tsx": "^4.23.12",
     "typescript": "^5.0.4",
-    "tsx": "^4.19.0",
     "wrangler": "^4.114.0"
   }
 }

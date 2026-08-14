@@ -152,7 +152,6 @@ export const PERMISSIONS: Record<AppRole, Permission[]> = {
     ],
 };
 
-// Helper function to check permissions
-export function hasPermission(role: AppRole, permission: Permission): boolean {
-    return PERMISSIONS[role]?.includes(permission) || false;
+export function hasPermission(role: AppRole | string, permission: Permission): boolean {
+    return (PERMISSIONS as any)[role]?.includes(permission) || false;
 }

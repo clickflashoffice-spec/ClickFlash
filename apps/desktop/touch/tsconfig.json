@@ -30,25 +30,26 @@
         "./src/*"
       ],
       "@clickflash/ui/*": [
-        "../../packages/ui/src/*"
+        "../../../packages/ui/src/*"
       ],
       "@clickflash/ui": [
-        "../../packages/ui/src/index.ts"
+        "../../../packages/ui/src/index.ts"
       ]
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.js",
-    "**/*.jsx"
+    "src"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "release",
-    "backend/node_modules"
+    "backend",
+    "tests",
+    "vitest.config.ts",
+    "vite.config.ts",
+    "playwright.config.ts"
   ]
 }

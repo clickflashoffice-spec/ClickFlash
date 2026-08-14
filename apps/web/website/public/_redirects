@@ -1,6 +1,0 @@
-/manage https://management.clicketflash.com 301
-/manage/* https://management.clicketflash.com/:splat 301
-/management https://management.clicketflash.com 301
-/management/* https://management.clicketflash.com/:splat 301
-/gallery https://gallery.clicketflash.com 301
-/gallery/* https://gallery.clicketflash.com/:splat 301

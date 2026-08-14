@@ -1,17 +1,45 @@
-import { AIRequestParams, AIResponse } from './types.js';
+export interface AIRequestParams {
+  prompt: string;
+  maxTokens?: number;
+  temperature?: number;
+}
+
+export interface AIResponse {
+  text: string;
+  model: string;
+  tokensUsed?: number;
+}
 
 /**
- * @deprecated Ollama local inference has been disabled for Master/Touch nodes
- * because running local SLMs on 4-core CPUs degrades the UI performance.
- * Please use GeminiClient for cloud-offloaded AI inference.
+ * Lightweight client for local Ollama server integration.
  */
 export class OllamaClient {
+  private baseUrl: string;
+
   constructor(config?: { baseUrl?: string }) {
-    console.warn('OllamaClient is deprecated to maintain fast app performance. Falling back to NoOp.');
+    this.baseUrl = config?.baseUrl || 'http://localhost:11434';
   }
 
   async generate(params: AIRequestParams, model: string = 'llama3'): Promise<AIResponse> {
-    throw new Error('OllamaClient is disabled due to hardware constraints (CPU-only nodes). Use GeminiClient.');
+    try {
+      const res = await fetch(`${this.baseUrl}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          prompt: params.prompt,
+          stream: false,
+        }),
+      });
+      if (!res.ok) throw new Error(`Ollama error: ${res.statusText}`);
+      const data = (await res.json()) as any;
+      return {
+        text: data.response || '',
+        model: data.model || model,
+        tokensUsed: data.eval_count,
+      };
+    } catch (err: any) {
+      throw new Error(`Failed to generate text from Ollama: ${err.message}`);
+    }
   }
 }
-

@@ -374,7 +374,7 @@ export const SyncLogSchema = z.object({
   level: SyncLogLevelSchema,
   event: z.string(),
   message: z.string(),
-  details: z.record(z.unknown()).optional(),
+  details: z.record(z.string(), z.unknown()).optional(),
   timestamp: z.string(),
 });
 
@@ -387,14 +387,14 @@ export const ApiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
     success: z.boolean(),
     data: dataSchema.optional(),
     error: z.string().optional(),
-    details: z.record(z.unknown()).optional(),
+    details: z.record(z.string(), z.unknown()).optional(),
   });
 
 export const ApiErrorSchema = z.object({
   success: z.literal(false),
   error: z.string(),
   code: z.string().optional(),
-  details: z.record(z.unknown()).optional(),
+  details: z.record(z.string(), z.unknown()).optional(),
   path: z.string().optional(),
 });
 
@@ -474,7 +474,7 @@ export const FleetHeartbeatSchema = z.object({
 export const FleetCommandSchema = z.object({
   kioskId: z.string(),
   command: z.enum(['Restart', 'UpdateSoftware', 'LockScreen', 'ClearCache', 'SyncNow']),
-  payload: z.record(z.unknown()).optional(),
+  payload: z.record(z.string(), z.unknown()).optional(),
   scheduledFor: z.string().datetime().optional(),
 });
 

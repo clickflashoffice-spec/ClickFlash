@@ -1,7 +1,7 @@
 import { Text, type TextProps } from 'react-native';
 
 export type ThemedTextProps = TextProps & {
-  type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code';
+  type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code' | 'defaultSemiBold';
   themeColor?: 'text' | 'textSecondary' | 'tint' | 'success' | 'warning' | 'danger';
 };
 
@@ -28,6 +28,9 @@ export function ThemedText({ style, className, type = 'default', themeColor, ...
       break;
     case 'code':
       typeClassName = 'font-mono font-medium text-xs android:font-bold';
+      break;
+    case 'defaultSemiBold':
+      typeClassName = 'text-base leading-6 font-semibold';
       break;
     case 'default':
     default:

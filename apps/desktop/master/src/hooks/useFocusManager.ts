@@ -35,7 +35,7 @@ export function useFocusManager(options: FocusManagerOptions = {}) {
 
   // Get all focusable elements in order
   const getFocusableElements = useCallback((): HTMLElement[] => {
-    const elements = Array.from(focusableElementsRef.current.values());
+    const elements = Array.from(focusableElementsRef.current.values()) as HTMLElement[];
     return elements.filter(el => {
       const tabIndex = el.getAttribute('tabindex');
       return tabIndex !== '-1' && !el.hasAttribute('disabled') && !el.hasAttribute('aria-hidden');

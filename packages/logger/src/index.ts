@@ -170,7 +170,7 @@ export function createLogger(config: LoggerConfig): ILogger {
 
     if (config.enableFile !== false) {
       transports.push(
-        new winston.transports.DailyRotateFile({
+        new (winston.transports as any).DailyRotateFile({
           dirname: logDir,
           filename: `${config.serviceName}-error-%DATE%.log`,
           datePattern: 'YYYY-MM-DD',
@@ -178,15 +178,15 @@ export function createLogger(config: LoggerConfig): ILogger {
           maxFiles,
           maxSize,
           format: combine(timestamp(), redactFormat(), json()),
-        }),
-        new winston.transports.DailyRotateFile({
+        } as any),
+        new (winston.transports as any).DailyRotateFile({
           dirname: logDir,
           filename: `${config.serviceName}-combined-%DATE%.log`,
           datePattern: 'YYYY-MM-DD',
           maxFiles,
           maxSize,
           format: combine(timestamp(), redactFormat(), json()),
-        }),
+        } as any),
       );
     }
   }
@@ -214,7 +214,7 @@ export function createLogger(config: LoggerConfig): ILogger {
       new winston.transports.Console({
         format: combine(colorize(), customFormat),
         stderrLevels: ['error', 'warn', 'info', 'debug'],
-      }),
+      } as any),
     );
   }
 

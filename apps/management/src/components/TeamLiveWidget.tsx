@@ -1,0 +1,131 @@
+import { useState } from 'react';
+import { Video, VideoOff, Maximize2, Battery, MapPin, Signal } from 'lucide-react';
+
+interface PhotographerFeed {
+  id: string;
+  name: string;
+  location: string;
+  status: 'live' | 'offline' | 'idle';
+  batteryPercent: number;
+  signalStrength: 'strong' | 'medium' | 'weak';
+  photosTaken: number;
+  lastActive: string;
+}
+
+const mockFeeds: PhotographerFeed[] = [
+  { id: 'p1', name: 'Maria Santos', location: 'Pool Area B', status: 'live', batteryPercent: 72, signalStrength: 'strong', photosTaken: 184, lastActive: 'Now' },
+  { id: 'p2', name: 'James Chen', location: 'Main Entrance', status: 'live', batteryPercent: 45, signalStrength: 'medium', photosTaken: 92, lastActive: 'Now' },
+  { id: 'p3', name: 'Aisha Nakamura', location: 'Waterpark Slide', status: 'idle', batteryPercent: 88, signalStrength: 'strong', photosTaken: 210, lastActive: '3 min ago' },
+  { id: 'p4', name: 'David Oliveira', location: 'Restaurant Terrace', status: 'live', batteryPercent: 31, signalStrength: 'weak', photosTaken: 67, lastActive: 'Now' },
+  { id: 'p5', name: 'Sophie Laurent', location: 'Kids Club', status: 'offline', batteryPercent: 0, signalStrength: 'weak', photosTaken: 0, lastActive: '2 hours ago' },
+  { id: 'p6', name: 'Marco Rossi', location: 'Beach Cabanas', status: 'live', batteryPercent: 91, signalStrength: 'strong', photosTaken: 156, lastActive: 'Now' },
+];
+
+const signalColors = {
+  strong: 'text-emerald-400',
+  medium: 'text-amber-400',
+  weak: 'text-rose-400',
+};
+
+export function TeamLiveWidget() {
+  const [expandedFeed, setExpandedFeed] = useState<string | null>(null);
+
+  const liveCount = mockFeeds.filter(f => f.status === 'live').length;
+  const idleCount = mockFeeds.filter(f => f.status === 'idle').length;
+  const offlineCount = mockFeeds.filter(f => f.status === 'offline').length;
+
+  return (
+    <div className="bg-slate-900 rounded-xl border border-slate-800 shadow-sm overflow-hidden">
+      <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+            <Video className="w-5 h-5 text-cyan-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white">Team Live — WebRTC Feeds</h3>
+            <p className="text-xs text-slate-500">Real-time photographer monitoring via video check-in</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 text-xs font-medium">
+          <span className="text-emerald-400">{liveCount} Live</span>
+          <span className="text-amber-400">{idleCount} Idle</span>
+          <span className="text-slate-500">{offlineCount} Off</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-px bg-slate-800/50">
+        {mockFeeds.map(feed => (
+          <div
+            key={feed.id}
+            className={`relative bg-slate-950 p-3 group cursor-pointer hover:bg-slate-900 transition-colors ${
+              expandedFeed === feed.id ? 'ring-2 ring-cyan-500/50 ring-inset' : ''
+            }`}
+            onClick={() => setExpandedFeed(expandedFeed === feed.id ? null : feed.id)}
+          >
+            {/* Video placeholder */}
+            <div className="aspect-video rounded-lg bg-slate-800 border border-slate-700/50 flex items-center justify-center mb-2 overflow-hidden relative">
+              {feed.status === 'live' ? (
+                <>
+                  <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-900" />
+                  <span className="relative text-xs text-slate-400 font-medium">Live Feed</span>
+                  <div className="absolute top-1.5 left-1.5 flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-600 text-white text-[9px] font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                    LIVE
+                  </div>
+                  <button className="absolute top-1.5 right-1.5 w-6 h-6 rounded bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Maximize2 className="w-3 h-3 text-white" />
+                  </button>
+                </>
+              ) : feed.status === 'idle' ? (
+                <>
+                  <VideoOff className="w-6 h-6 text-amber-500/50" />
+                  <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-amber-600/80 text-white text-[9px] font-bold">IDLE</div>
+                </>
+              ) : (
+                <>
+                  <VideoOff className="w-6 h-6 text-slate-600" />
+                  <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 text-[9px] font-bold">OFFLINE</div>
+                </>
+              )}
+            </div>
+
+            {/* Info */}
+            <div className="flex items-start justify-between gap-1">
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-white truncate">{feed.name}</p>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <MapPin className="w-3 h-3 text-slate-500 shrink-0" />
+                  <p className="text-[10px] text-slate-500 truncate">{feed.location}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-0.5" title={`Battery: ${feed.batteryPercent}%`}>
+                  <Battery className={`w-3 h-3 ${feed.batteryPercent > 50 ? 'text-emerald-400' : feed.batteryPercent > 20 ? 'text-amber-400' : 'text-rose-400'}`} />
+                  <span className="text-[9px] text-slate-500">{feed.batteryPercent}%</span>
+                </div>
+                <Signal className={`w-3 h-3 ${signalColors[feed.signalStrength]}`} />
+              </div>
+            </div>
+
+            {/* Expanded details */}
+            {expandedFeed === feed.id && (
+              <div className="mt-2 pt-2 border-t border-slate-800 grid grid-cols-2 gap-2">
+                <div className="text-center">
+                  <p className="text-lg font-bold text-white">{feed.photosTaken}</p>
+                  <p className="text-[9px] text-slate-500 uppercase tracking-wider">Photos</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-bold text-slate-300">{feed.lastActive}</p>
+                  <p className="text-[9px] text-slate-500 uppercase tracking-wider">Last Active</p>
+                </div>
+                <button className="col-span-2 mt-1 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-bold uppercase tracking-wider transition-colors">
+                  Request Video Check-In
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

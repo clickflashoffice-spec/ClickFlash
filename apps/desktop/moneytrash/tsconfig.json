@@ -19,7 +19,11 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@clickflash/ai": ["../../../packages/ai/src/index.ts"],
+      "@clickflash/ai/*": ["../../../packages/ai/src/*"],
+      "@clickflash/types": ["../../../packages/types/src/index.ts"],
+      "@clickflash/types/*": ["../../../packages/types/src/*"]
     }
   },
   "include": ["src"],

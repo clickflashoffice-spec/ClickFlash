@@ -16,6 +16,10 @@ export class DashboardErrorBoundary extends React.Component<
   ErrorBoundaryProps,
   ErrorBoundaryState
 > {
+  declare state: ErrorBoundaryState;
+  declare props: Readonly<ErrorBoundaryProps>;
+  declare setState: (state: any) => void;
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -33,8 +37,10 @@ export class DashboardErrorBoundary extends React.Component<
   }
 
   render(): React.ReactNode {
-    if (this.state.hasError) {
-      if (this.props.fallback) return this.props.fallback;
+    const state = (this as any).state as ErrorBoundaryState;
+    const props = (this as any).props as ErrorBoundaryProps;
+    if (state.hasError) {
+      if (props.fallback) return props.fallback;
 
       return (
         <div className="p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
@@ -42,12 +48,12 @@ export class DashboardErrorBoundary extends React.Component<
             Something went wrong
           </h3>
           <p className="text-sm text-red-600 dark:text-red-300">
-            {this.state.error?.message || "An unexpected error occurred."}
+            {state.error?.message || "An unexpected error occurred."}
           </p>
           <button
             onClick={() => {
-              if (this.props.onReset) this.props.onReset();
-              this.setState({ hasError: false });
+              if (props.onReset) props.onReset();
+              (this as any).setState({ hasError: false });
             }}
             className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
           >
@@ -57,6 +63,6 @@ export class DashboardErrorBoundary extends React.Component<
       );
     }
 
-    return this.props.children;
+    return props.children;
   }
 }

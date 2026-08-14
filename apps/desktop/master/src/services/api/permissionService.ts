@@ -13,7 +13,7 @@ export const permissionService = {
      * Get all permissions for all roles
      * P3-D2 Fix: Handle 404 gracefully - return empty permissions instead of throwing
      */
-    async getPermissions(): Promise<Record<AppRole, Permission[]>> {
+    async getPermissions(): Promise<Record<string, Permission[]>> {
         try {
             const baseUrl = pb.baseUrlValue;
             const response = await fetch(`${baseUrl}/api/permissions`, {
@@ -28,7 +28,7 @@ export const permissionService = {
                 // 401 — not authenticated, return empty permissions silently.
                 // 404 — endpoint not yet implemented on this backend build, degrade gracefully.
                 if (response.status === 401 || response.status === 404) {
-                    return {} as Record<AppRole, Permission[]>;
+                    return {} as Record<string, Permission[]>;
                 }
                 throw new Error(`Failed to fetch permissions: ${response.status} ${response.statusText}`);
             }
@@ -37,14 +37,14 @@ export const permissionService = {
         } catch (error) {
             // Don't let fetch errors pollute the console - return empty permissions
             logger.debug(`[PermissionService] Could not fetch permissions: ${(error as Error).message}`);
-            return {} as Record<AppRole, Permission[]>;
+            return {} as Record<string, Permission[]>;
         }
     },
 
     /**
      * Update permissions for a specific role
      */
-    async updatePermissions(role: AppRole, permissions: Permission[]): Promise<void> {
+    async updatePermissions(role: AppRole | string, permissions: Permission[]): Promise<void> {
         const baseUrl = pb.baseUrlValue;
         const csrfToken = await pb.getCsrfToken();
         const response = await fetch(`${baseUrl}/api/permissions`, {

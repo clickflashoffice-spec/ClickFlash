@@ -10,6 +10,7 @@ files:
   - dist/renderer/**/*
   - dist/electron/**/*
   - package.json
+  - "!node_modules/**/*"
 
 extraResources:
   - from: build/generated/license-public-key.txt
@@ -41,6 +42,7 @@ compression: normal
 
 electronVersion: "39.8.7"
 npmRebuild: false
+nodeGypRebuild: false
 
 publish:
   provider: github

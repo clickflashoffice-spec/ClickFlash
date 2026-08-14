@@ -71,3 +71,30 @@ export interface AIOperationResult<T> {
   model: string;
   tokensUsed?: number;
 }
+
+export interface QualityGateEvaluation {
+  passed: boolean;
+  brandSafetyScore: number;
+  hallucinationRisk: 'LOW' | 'MEDIUM' | 'HIGH';
+  approvalRequired: boolean;
+  routing: 'AUTO_PUBLISH' | 'HITL_REVIEW' | 'REJECT';
+  violations: string[];
+  tokenCostEstimate: {
+    promptTokens: number;
+    completionTokens: number;
+    estimatedCostUsd: number;
+  };
+}
+
+export interface QualityGateOptions {
+  bannedTerms?: RegExp[];
+  requiredKeywords?: RegExp[];
+  maxDailySpendUsd?: number;
+  maxDailyBudgetUsd?: number;
+  currentDailySpendUsd?: number;
+  costPer1kInputTokens?: number;
+  costPer1kOutputTokens?: number;
+  minBrandSafetyScore?: number;
+}
+
+

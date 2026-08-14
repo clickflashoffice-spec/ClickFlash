@@ -60,9 +60,11 @@ describe('MediaPipeGestureService', () => {
   });
 
   it('detects swipe left -> emits "gesture:swipe-left" (SWIPE_LEFT)', () => {
-    // Setup initial position
+    // Setup initial position (with thumb & index far apart)
     const initialLandmarks = createLandmarks({
       0: { x: 0.8, y: 0.5 }, // wrist right
+      4: { x: 0.1, y: 0.1 }, // thumb tip far away
+      8: { x: 0.9, y: 0.9 }, // index tip far away
     });
     mediaPipeGestureService.processLandmarks(initialLandmarks);
 
@@ -72,6 +74,8 @@ describe('MediaPipeGestureService', () => {
     // Swipe left: deltaX < -0.15
     const swipeLandmarks = createLandmarks({
       0: { x: 0.2, y: 0.5 }, // wrist moved left (0.2 - 0.8 = -0.6 < -0.15)
+      4: { x: 0.1, y: 0.1 },
+      8: { x: 0.9, y: 0.9 },
     });
     const gesture = mediaPipeGestureService.processLandmarks(swipeLandmarks);
     expect(gesture).toBe('SWIPE_LEFT');

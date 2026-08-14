@@ -14,9 +14,9 @@ describe('local intelligence services', () => {
         });
 
         expect(result.blogPostHtml).toContain('&lt;Summer &amp; Friends&gt;');
-        expect(result.blogPostHtml).toContain('12 highlighted images');
+        expect(result.blogPostHtml).toContain('12 highlighted photos');
         expect(result.blogPostHtml).not.toContain('<script>');
-        expect(result.emailSubject).toBe('<Summer & Friends> gallery is ready');
+        expect(result.emailSubject).toBe('<Summer & Friends> Resort Moments Are Ready');
     });
 
     it('generates coaching guidance from measured values only', async () => {

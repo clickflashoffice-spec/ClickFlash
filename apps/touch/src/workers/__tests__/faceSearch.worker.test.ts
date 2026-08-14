@@ -88,18 +88,17 @@ describe('FaceSearchWorker', () => {
   });
 
   it('top-K matching: 5 database vectors -> returns top matches above threshold sorted by score', () => {
-    const baseVector = new Array(128).fill(0.1);
+    // Generate distinct angular vectors
+    const targetVector = Array.from({ length: 128 }, (_, i) => Math.sin(i));
     
-    // Create candidates with varying similarities
+    // Create candidates with distinct cosine similarity scores
     const candidates = [
-      { id: '1', vector: baseVector.map(v => v + 0.9) }, // high similarity
-      { id: '2', vector: baseVector.map(v => v - 0.1) }, // low/zero similarity
-      { id: '3', vector: baseVector.map(v => v + 0.8) },
-      { id: '4', vector: baseVector.map(v => v + 0.7) },
-      { id: '5', vector: baseVector.map(v => v - 0.2) },
+      { id: '1', vector: [...targetVector] }, // exact match (~1.0)
+      { id: '2', vector: Array.from({ length: 128 }, (_, i) => Math.cos(i * 3)) }, // low similarity
+      { id: '3', vector: targetVector.map((v, i) => v + 0.1 * Math.cos(i)) }, // ~0.95 similarity
+      { id: '4', vector: targetVector.map((v, i) => v + 0.3 * Math.cos(i)) }, // ~0.82 similarity
+      { id: '5', vector: targetVector.map(v => -v) }, // negative similarity
     ];
-
-    const targetVector = baseVector.map(v => v + 0.9); // exactly matches candidate 1
 
     sendMessage({
       type: 'match',

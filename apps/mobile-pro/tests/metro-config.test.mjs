@@ -13,8 +13,8 @@ const config = require('../metro.config.js');
 
 test('Metro watches only Mobile runtime workspace dependencies', () => {
   const expected = [
-    path.join(workspaceRoot, 'node_modules'),
-    ...['logger', 'types', 'ui', 'validation'].map((packageName) =>
+    appRoot,
+    ...['ai-core', 'logger', 'types', 'ui', 'validation'].map((packageName) =>
       path.join(workspaceRoot, 'packages', packageName),
     ),
   ];

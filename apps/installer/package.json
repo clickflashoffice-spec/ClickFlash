@@ -8,22 +8,23 @@
   "packageManager": "pnpm@10.28.2",
   "main": "dist/electron/electron-main.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "pnpm exec vite",
     "dev:electron": "concurrently \"pnpm run dev\" \"wait-on http://localhost:5175 && electron .\" --names \"renderer,electron\" --prefix-colors \"green,cyan\" --kill-others-on-fail",
-    "build": "vite build",
+    "build": "pnpm exec vite build",
     "build:electron": "rimraf dist/electron && tsc -p tsconfig.electron.json && npx javascript-obfuscator dist/electron/electron-main.js --output dist/electron/electron-main.js --compact true --control-flow-flattening true --dead-code-injection true --string-array true --string-array-encoding base64 --string-array-threshold 1",
     "build:payload-tool": "rimraf dist/payload-tools && tsc -p tsconfig.payload-tools.json",
     "payload:key:generate": "node scripts/generate-payload-key.mjs",
     "payload:sign": "pnpm run build:payload-tool && node dist/payload-tools/scripts/payload-release.js",
     "prepare:license-trust": "node ../../scripts/prepare-license-trust.cjs build/generated/license-public-key.txt",
-    "package": "pnpm run prepare:license-trust && pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && electron-builder build --win --dir",
-    "package:installer": "pnpm run prepare:license-trust && pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && electron-builder build --win",
+    "package": "pnpm run prepare:license-trust && pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && pnpm exec electron-builder build --win --dir",
+    "package:installer": "pnpm run prepare:license-trust && pnpm run build && pnpm run build:electron && rimraf release/win-unpacked && pnpm exec electron-builder build --win",
     "lint": "eslint src installer-payload-installation.ts installer-payload-release.ts installer-payload-verification.ts installer-payload-trust.ts scripts/payload-release.ts --ext .ts,.tsx --max-warnings 50",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.electron.json && tsc --noEmit -p tsconfig.payload-tools.json",
     "test": "vitest run --pool=forks",
     "clean": "rimraf dist release"
   },
   "dependencies": {
+    "@clickflash/logger": "workspace:*",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",
     "qrcode": "^1.5.4",
@@ -31,8 +32,7 @@
     "react-dom": "^19.2.0",
     "systeminformation": "^5.33.1",
     "tailwind-merge": "^3.4.0",
-    "zod": "^4.1.13",
-    "@clickflash/logger": "workspace:*"
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
@@ -46,6 +46,7 @@
     "concurrently": "^9.2.1",
     "electron": "^39.8.7",
     "electron-builder": "^26.15.7",
+    "esbuild": "^0.27.7",
     "eslint": "^9.39.4",
     "javascript-obfuscator": "^5.4.3",
     "postcss": "^8.5.23",

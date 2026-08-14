@@ -3,8 +3,8 @@ import {
   GeminiClient,
   parseRetryAfter,
   calculateFullJitterDelay,
-} from '../gemini-client.js';
-import type { GeminiConfig } from '../types.js';
+} from './gemini-client.js';
+import type { GeminiConfig } from './types.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

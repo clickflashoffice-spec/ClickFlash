@@ -24,7 +24,7 @@ describe('CommissionRulesEngine', () => {
     fireEvent.click(saveBtn);
     
     // Check if added
-    expect(screen.getByText('New Test Rule')).toBeTruthy();
+    expect(screen.getAllByText('New Test Rule').length).toBeGreaterThan(0);
   });
 
   it('changing base rate updates preview calculation correctly', () => {

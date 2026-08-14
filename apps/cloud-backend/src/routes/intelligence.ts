@@ -35,7 +35,7 @@ app.post('/scout', async (c) => {
       liveDatabaseTelemetry: d1Telemetry
     };
 
-    const insights = await analyzeLocationScoutWithGemini(enrichedZones, c.env.GEMINI_API_KEY);
+    const insights = await analyzeLocationScoutWithGemini(enrichedZones, c.env.GEMINI_API_KEY, c.get('DB'));
     return c.json({ success: true, insights });
   } catch (error: any) {
     return c.json({ error: 'AI Scout processing failed' }, 500);
@@ -64,7 +64,7 @@ app.post('/manager', async (c) => {
       ? { clientPhotographers: photographers, liveDatabaseActivity: d1Activity }
       : { clientPhotographers: [], liveDatabaseActivity: d1Activity };
 
-    const flags = await analyzeFleetManagerWithGemini(enrichedPhotographers as any, c.env.GEMINI_API_KEY);
+    const flags = await analyzeFleetManagerWithGemini(enrichedPhotographers as any, c.env.GEMINI_API_KEY, c.get('DB'));
     return c.json({ success: true, flags });
   } catch (error: any) {
     return c.json({ error: 'AI Manager processing failed' }, 500);
@@ -92,7 +92,7 @@ app.post('/ceo', async (c) => {
       liveDatabaseFinancials: d1Financials
     };
 
-    const ceoData = await analyzeCEOInsightsWithGemini(enrichedFinancials, c.env.GEMINI_API_KEY);
+    const ceoData = await analyzeCEOInsightsWithGemini(enrichedFinancials, c.env.GEMINI_API_KEY, c.get('DB'));
     return c.json({ success: true, ...ceoData });
   } catch (error: any) {
     return c.json({ error: 'AI CEO processing failed' }, 500);

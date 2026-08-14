@@ -212,3 +212,14 @@ CREATE TABLE IF NOT EXISTS commission_state (
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS ai_cost_ledger (
+  id TEXT PRIMARY KEY,
+  function_name TEXT NOT NULL,
+  model TEXT NOT NULL DEFAULT 'gemini-1.5-flash',
+  prompt_tokens INTEGER NOT NULL DEFAULT 0,
+  completion_tokens INTEGER NOT NULL DEFAULT 0,
+  estimated_cost_usd REAL NOT NULL DEFAULT 0.0,
+  resort_id TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_cost_ledger_date ON ai_cost_ledger(created_at);

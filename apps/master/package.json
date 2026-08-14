@@ -17,7 +17,7 @@
     "clean": "pnpm exec rimraf dist release",
     "build:wasm": "pnpm exec asc src/wasm/photoEditor.ts --target release -O3 --runtime stub -o public/wasm/photoEditor.wasm",
     "build": "pnpm run build:wasm && vite build",
-    "build:backend": "node ../../node_modules/esbuild/bin/esbuild \"server=backend/server.ts\" \"workers/photoWorker=backend/workers/photoWorker.ts\" \"workers/folderWorker=backend/workers/folderWorker.ts\" \"main/autoUpdater=src/main/autoUpdater.ts\" \"main/backupService=src/main/backupService.ts\" --bundle --minify --platform=node --target=node20 --outdir=dist/backend --external:electron --external:electron-updater --external:better-sqlite3-multiple-ciphers --external:sharp --external:@napi-rs/canvas --external:onnxruntime-node --external:multer --drop:debugger && tsx scripts/copy-assets.ts",
+    "build:backend": "node ../../node_modules/esbuild/bin/esbuild \"server=backend/server.ts\" \"workers/photoWorker=backend/workers/photoWorker.ts\" \"workers/folderWorker=backend/workers/folderWorker.ts\" \"main/autoUpdater=src/main/autoUpdater.ts\" \"main/backupService=src/main/backupService.ts\" --bundle --minify --platform=node --target=node20 --outdir=dist/backend --external:electron --external:electron-updater --external:better-sqlite3-multiple-ciphers --external:sharp --external:@napi-rs/canvas --external:onnxruntime-node --external:multer --drop:debugger && node scripts/copy-assets.cjs",
     "prepare:license-trust": "node ../../scripts/prepare-license-trust.cjs build/generated/license-public-key.txt",
     "package": "pnpm run clean && pnpm run prepare:license-trust && pnpm run build && pnpm run build:backend && pnpm run build:electron && pnpm exec electron-builder build --win --dir",
     "package:installer": "pnpm run clean && pnpm run prepare:license-trust && pnpm run build && pnpm run build:backend && pnpm run build:electron && pnpm exec electron-builder build --win",
@@ -49,6 +49,7 @@
     "build:hotel": "node scripts/build-hotel-installers.js"
   },
   "dependencies": {
+    "@clickflash/ai": "workspace:*",
     "@clickflash/ai-core": "workspace:*",
     "@clickflash/logger": "workspace:*",
     "@clickflash/types": "workspace:*",

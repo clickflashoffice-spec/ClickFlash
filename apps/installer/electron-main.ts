@@ -341,8 +341,9 @@ function setupIpc(): void {
       const nodePath = await which("node");
       if (nodePath) {
         const version = await execPromise("node --version");
-        results.nodeVersion = version.trim();
-        const major = parseInt(results.nodeVersion.replace("v", "").split(".")[0]);
+        const cleanVersion = version.trim();
+        results.nodeVersion = cleanVersion;
+        const major = parseInt(cleanVersion.replace("v", "").split(".")[0] || "0", 10);
         results.nodeInstalled = major >= 20;
       }
     } catch {
@@ -1181,6 +1182,7 @@ async function getFreeSpaceGB(): Promise<number> {
   });
 }
 
+
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const server = http.createServer();
@@ -1193,13 +1195,18 @@ function isPortAvailable(port: number): Promise<boolean> {
 }
 
 async function getHardwareFingerprint(): Promise<string> {
+  const uuidInfo = await si.uuid();
+  const machineId = uuidInfo.os || uuidInfo.hardware;
+  if (machineId && machineId !== "-") {
+    return machineId;
+  }
   const cpus = os.cpus();
   const network = os.networkInterfaces();
   const mac = Object.values(network)
     .flat()
     .find((iface) => iface && !iface.internal && iface.mac)?.mac || "unknown";
   const data = `${os.hostname()}-${mac}-${cpus[0]?.model || "unknown"}`;
-  return require("crypto").createHash("sha256").update(data).digest("hex").slice(0, 32);
+  return crypto.createHash("sha256").update(data).digest("hex").slice(0, 32);
 }
 
 async function fetchWithTimeout(url: string, timeoutMs: number, init?: RequestInit): Promise<Response> {

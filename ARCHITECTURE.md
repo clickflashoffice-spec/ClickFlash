@@ -11,32 +11,35 @@ ClickFlash is an **enterprise-grade automated photography concession and edge-to
 ```
 ClickFlash/
 ├── apps/
-│   ├── master/            # Electron Studio OS (Port 8090)
-│   ├── touch/             # Guest Touch Kiosk (Port 8091)
-│   ├── moneytrash/        # Batch Photo Ingestion Desktop App
-│   ├── management/        # Resort Executive Hub (Port 5175)
-│   ├── gallery/           # Guest Web Gallery + Stripe Checkout (Port 5176)
-│   ├── cloud-backend/     # Cloudflare Worker Edge API
-│   ├── website/           # Next.js 15 Marketing Website (Port 3001)
-│   ├── mobile-pro/        # Field Photographer Android App (Expo)
-│   ├── mobile-consumer/   # Guest Mobile Photo Pass App (Expo)
-│   ├── installer/         # Cross-Platform Desktop Installer
-│   ├── license-generator/ # Hardware-Locked License Generator
-│   ├── mcp-server/        # AI Agent Studio Toolchain
-│   └── ai-worker/         # Python AI Worker (SAM, Diffusion, Enhancement)
+│   ├── backend/
+│   │   ├── cloud-backend/     # Cloudflare Worker Edge API (D1, R2, KV)
+│   │   └── mcp-server/        # AI Agent Studio Toolchain & Automation
+│   ├── desktop/
+│   │   ├── master/            # Electron Studio OS & Gateway (Port 8090)
+│   │   ├── touch/             # Guest Touch Kiosk & Face Search (Port 8091)
+│   │   ├── moneytrash/        # Batch Photo Ingestion Desktop App
+│   │   ├── installer/         # Cross-Platform Desktop Installer Generator
+│   │   └── license-generator/ # Hardware-Locked License Generator
+│   ├── mobile/
+│   │   ├── pro/               # Field Photographer Android Tether App (Expo)
+│   │   └── consumer/          # Guest Mobile Photo Pass App (Expo)
+│   ├── web/
+│   │   ├── gallery/           # Guest Web Gallery + Stripe Checkout (Port 5176)
+│   │   ├── management/        # Resort Executive Hub & Payroll (Port 5175)
+│   │   └── website/           # Next.js 15 Marketing Website (Port 3001)
+│   └── docs/                  # Interactive Documentation Portal
 ├── packages/
-│   ├── ai/                # @clickflash/ai — Gemini AI models + Zod schemas
-│   ├── ai-core/           # @clickflash/ai-core — Core AI orchestration
-│   ├── types/             # @clickflash/types — Domain entity interfaces
-│   ├── ui/                # @clickflash/ui — Glassmorphic UI primitives
-│   ├── logger/            # @clickflash/logger — Structured logging
-│   └── wasm-sharpness/    # @clickflash/wasm-sharpness — WASM quality grading
+│   ├── ai/                    # @clickflash/ai — Gemini AI models + Zod schemas
+│   ├── ai-core/               # @clickflash/ai-core — Core AI orchestration
+│   ├── types/                 # @clickflash/types — Domain entity interfaces
+│   ├── ui/                    # @clickflash/ui — Glassmorphic UI primitives
+│   ├── logger/                # @clickflash/logger — Structured logging
+│   └── wasm-sharpness/        # @clickflash/wasm-sharpness — WASM quality grading
 ├── workers/
-│   ├── management-worker/ # Cloudflare Worker for management API
-│   └── moneytrash-worker/ # Cloudflare Worker for ingestion
-├── scripts/               # Dev scripts, benchmarks, ecosystem verifier
-├── docs/                  # Architecture docs, ADRs, API references
-└── .agents/               # AI agent rules, skills, session state
+│   ├── management-worker/     # Cloudflare Worker for management API
+│   └── moneytrash-worker/     # Cloudflare Worker for ingestion
+├── scripts/                   # Dev scripts, benchmarks, ecosystem verifier
+└── .agents/                   # AI agent rules, skills, session state, ADRs
 ```
 
 ---

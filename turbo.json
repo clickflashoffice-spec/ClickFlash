@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*local"],
+  "globalDependencies": ["**/.env.*local", "pnpm-lock.yaml", "pnpm-workspace.yaml"],
   "globalEnv": [
     "NODE_ENV",
     "DATABASE_URL",
@@ -9,28 +9,45 @@
     "API_URL",
     "APP_URL",
     "PORT",
-    "HOSTNAME"
+    "HOSTNAME",
+    "CI"
   ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env.*local"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**", "out/**"]
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.md", "!**/*.test.*", "!**/__tests__/**"],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**",
+        "build/**",
+        "out/**",
+        "dist-bundle/**",
+        "public/build/**"
+      ]
     },
     "test": {
-      "dependsOn": ["build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env.*local"],
-      "outputs": [],
-      "cache": false
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "test*/**",
+        "backend/**",
+        "jest.config.*",
+        "vitest.config.*",
+        "tsconfig*.json"
+      ],
+      "outputs": ["coverage/**"],
+      "cache": true
     },
     "lint": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env.*local"],
-      "outputs": []
+      "inputs": ["src/**", "backend/**", ".eslintrc*", "eslint.config.*"],
+      "outputs": [],
+      "cache": true
     },
     "typecheck": {
-      "dependsOn": [],
-      "inputs": ["$TURBO_DEFAULT$"],
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "backend/**", "tsconfig*.json"],
       "outputs": [],
       "cache": true
     },
@@ -40,7 +57,7 @@
     },
     "deploy": {
       "dependsOn": ["build", "test", "lint", "typecheck"],
-      "inputs": ["$TURBO_DEFAULT$", ".env.*local"],
+      "inputs": ["$TURBO_DEFAULT$"],
       "outputs": []
     },
     "clean": {

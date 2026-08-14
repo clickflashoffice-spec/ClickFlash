@@ -1,11 +1,27 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import path from 'path';
 
 const config: Config = {
   title: 'ClickFlash Docs',
   tagline: 'Documentation for the ClickFlash Photography Studio Ecosystem',
   favicon: 'img/favicon.ico',
+  plugins: [
+    () => ({
+      name: 'resolve-react-singleton',
+      configureWebpack() {
+        return {
+          resolve: {
+            alias: {
+              react: path.resolve(__dirname, '../../node_modules/react'),
+              'react-dom': path.resolve(__dirname, '../../node_modules/react-dom'),
+            },
+          },
+        };
+      },
+    }),
+  ],
 
 
   url: 'https://docs.clickflash.app',

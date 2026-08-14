@@ -54,12 +54,16 @@ export async function whatsappRoutes(fastify: FastifyInstance) {
         }
     };
 
-    // Register primary and API-prefixed routes
+    // Register primary, API-prefixed, and reverse-order routes
     fastify.get('/webhook/whatsapp', handleVerify);
     fastify.get('/api/webhook/whatsapp', handleVerify);
     fastify.get('/api/webhooks/whatsapp', handleVerify);
+    fastify.get('/whatsapp/webhook', handleVerify);
+    fastify.get('/api/whatsapp/webhook', handleVerify);
 
     fastify.post('/webhook/whatsapp', handlePayload);
     fastify.post('/api/webhook/whatsapp', handlePayload);
     fastify.post('/api/webhooks/whatsapp', handlePayload);
+    fastify.post('/whatsapp/webhook', handlePayload);
+    fastify.post('/api/whatsapp/webhook', handlePayload);
 }

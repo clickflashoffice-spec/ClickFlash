@@ -157,16 +157,16 @@ D1 migrations are additive-only — no DB rollback needed.
 Developer Machine
   ├── pnpm run package:installer → ClickFlash-Studio-Setup-5.0.0-x64.exe
   └── wrangler deploy
-        ├── apps/cloud-backend   (D1 + R2 + Stripe)
-        ├── workers/update-server (auto-update manifests v2.0.0)
-        ├── apps/management      (Cloudflare Pages — Workforce Dashboard)
-        └── apps/gallery         (Cloudflare Pages — guest photo delivery)
+        ├── apps/backend/cloud-backend   (D1 + R2 + Stripe)
+        ├── workers/update-server        (auto-update manifests v2.0.0)
+        ├── apps/web/management          (Cloudflare Pages — Workforce Dashboard)
+        └── apps/web/gallery             (Cloudflare Pages — guest photo delivery)
 
 Field (Resort LAN)
-  ├── Master PC  ← installer .exe
+  ├── Master PC  ← installer .exe (`apps/desktop/master`)
   │     ├── Express backend (SQLite + biometric LAN proxy)
   │     └── Background sync CRON → Cloudflare D1 + R2
-  ├── Touch Kiosks ← installer .exe (Touch mode)
-  └── Mobile Photographers ← Expo
+  ├── Touch Kiosks ← installer .exe (`apps/desktop/touch`)
+  └── Mobile Photographers ← Expo (`apps/mobile/pro`, `apps/mobile/consumer`)
         └── FaceBiometricService (BlazeFace + MobileNet 128D)
 ```

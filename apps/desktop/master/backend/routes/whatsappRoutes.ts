@@ -2,9 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { aiSalesOrchestrator } from '../services/aiSalesOrchestrator';
 
 export async function whatsappRoutes(fastify: FastifyInstance) {
-    
-    // Webhook verification endpoint (GET) required by Meta
-    fastify.get('/webhook/whatsapp', async (request: FastifyRequest, reply: FastifyReply) => {
+    const handleVerify = async (request: FastifyRequest, reply: FastifyReply) => {
         const query = request.query as any;
         const mode = query['hub.mode'];
         const token = query['hub.verify_token'];
@@ -14,40 +12,54 @@ export async function whatsappRoutes(fastify: FastifyInstance) {
 
         if (mode && token) {
             if (mode === 'subscribe' && token === verifyToken) {
-                console.log('WhatsApp Webhook verified successfully!');
+                console.log('[WhatsApp Webhook] Verification challenge passed.');
                 return reply.status(200).send(challenge);
             } else {
-                return reply.status(403).send();
+                console.warn('[WhatsApp Webhook] Verification token mismatch.');
+                return reply.status(403).send('Forbidden');
             }
         }
-        return reply.status(400).send();
-    });
+        return reply.status(400).send('Missing hub parameters');
+    };
 
-    // Webhook payload endpoint (POST)
-    fastify.post('/webhook/whatsapp', async (request: FastifyRequest, reply: FastifyReply) => {
+    const handlePayload = async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as any;
 
-        if (body.object) {
-            if (
-                body.entry &&
-                body.entry[0].changes &&
-                body.entry[0].changes[0] &&
-                body.entry[0].changes[0].value.messages &&
-                body.entry[0].changes[0].value.messages[0]
-            ) {
-                const from = body.entry[0].changes[0].value.messages[0].from; // sender's phone number
-                const msgBody = body.entry[0].changes[0].value.messages[0].text.body;
+        if (body && body.object) {
+            const entry = body.entry?.[0];
+            const change = entry?.changes?.[0];
+            const message = change?.value?.messages?.[0];
 
-                console.log(`Received WhatsApp message from ${from}: ${msgBody}`);
+            if (message) {
+                const from = message.from; // sender's phone number
+                let msgBody = '';
 
-                // Send to orchestrator
-                aiSalesOrchestrator.handleIncomingReply(from, msgBody).catch(err => {
-                    console.error('Error handling incoming WhatsApp reply:', err);
-                });
+                if (message.type === 'text' && message.text?.body) {
+                    msgBody = message.text.body;
+                } else if (message.type === 'interactive') {
+                    // Handle button reply or list reply
+                    msgBody = message.interactive?.button_reply?.title || message.interactive?.button_reply?.id || message.interactive?.list_reply?.title || '';
+                }
+
+                if (from && msgBody) {
+                    console.log(`[WhatsApp Webhook] Inbound from ${from}: "${msgBody}"`);
+                    aiSalesOrchestrator.handleIncomingReply(from, msgBody).catch(err => {
+                        console.error('[WhatsApp Webhook] Error in aiSalesOrchestrator:', err);
+                    });
+                }
             }
             return reply.status(200).send('EVENT_RECEIVED');
         } else {
-            return reply.status(404).send();
+            return reply.status(404).send('Not Found');
         }
-    });
+    };
+
+    // Register primary and API-prefixed routes
+    fastify.get('/webhook/whatsapp', handleVerify);
+    fastify.get('/api/webhook/whatsapp', handleVerify);
+    fastify.get('/api/webhooks/whatsapp', handleVerify);
+
+    fastify.post('/webhook/whatsapp', handlePayload);
+    fastify.post('/api/webhook/whatsapp', handlePayload);
+    fastify.post('/api/webhooks/whatsapp', handlePayload);
 }

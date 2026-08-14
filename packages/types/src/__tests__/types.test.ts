@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
 import {
   PhotoSchema,
@@ -14,6 +14,7 @@ describe('Photo Schema', () => {
     const validPhoto = {
       id: 'photo-123',
       albumId: 'album-456',
+      photographerId: 'photographer-1',
       url: 'https://example.com/photo.jpg',
       watermarkUrl: 'https://example.com/watermark.jpg',
       width: 1920,
@@ -36,6 +37,7 @@ describe('Photo Schema', () => {
     const invalidPhoto = {
       id: 'photo-123',
       albumId: 'album-456',
+      photographerId: 'photographer-1',
       url: 'not-a-valid-url',
     };
 
@@ -47,6 +49,7 @@ describe('Photo Schema', () => {
     const invalidPhoto = {
       id: 'photo-123',
       albumId: 'album-456',
+      photographerId: 'photographer-1',
       url: 'https://example.com/photo.jpg',
       cullingStatus: 'InvalidStatus',
     };
@@ -59,6 +62,7 @@ describe('Photo Schema', () => {
     const minimalPhoto = {
       id: 'photo-123',
       albumId: 'album-456',
+      photographerId: 'photographer-1',
       url: 'https://example.com/photo.jpg',
     };
 

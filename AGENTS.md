@@ -22,18 +22,18 @@ ClickFlash is an enterprise-grade automated photography concession and edge-to-c
 
 | Application / Package | Technology Stack | Primary Purpose |
 | --- | --- | --- |
-| `apps/master` | Electron 39 + Fastify + Redis Streams | Headless Edge Node, LAN Gateway (Port 8090), WebRTC Command Hub |
-| `apps/touch` | Electron 39 + React 19 | Guest Touch Kiosk, Attract Screensaver |
-| `apps/moneytrash` | Electron 39 + Next.js 16 | AI Auto-Culling, Burst-to-Video Engine, Generative Enhance |
+| `apps/desktop/master` | Electron 39 + Fastify + Redis Streams | Headless Edge Node, LAN Gateway (Port 8090), WebRTC Command Hub |
+| `apps/desktop/touch` | Electron 39 + React 19 | Guest Touch Kiosk, Attract Screensaver |
+| `apps/desktop/moneytrash` | Electron 39 + Vite + React 19 | AI Auto-Culling, Burst-to-Video Engine, Unsold Batch Pipeline |
+| `apps/desktop/installer` | Electron 39 | Cross-Platform Desktop Installer & Auto-Updater Generator |
+| `apps/desktop/license-generator`| Electron 39 | Cryptographic Hardware-Locked License Generator |
 | `apps/management` | Vite + React 19 | Command Center, Live WebRTC Tracking, ClickFlash Agent CRM |
-| `apps/gallery` | Vite + React 19 + Stripe | Guest Self-Service, Selfie-to-Vector DB Biometric Linking |
-| `apps/cloud-backend` | Cloudflare Worker (D1 + R2) | Edge API, Dynamic Yield Pricing Engine, Webhooks, Payouts |
-| `apps/website` | Next.js 15 + Tailwind 4 | Marketing Portal, Interactive Resort ROI Calculator (Port 3001) |
-| `apps/mobile-pro` | Expo React Native + Rust | Field App, Rust Core (Offline First), WebRTC Receiver, UWB/BLE Beacon |
-| `apps/mobile-consumer` | Expo React Native | Guest Mobile Photo Pass, BLE Proximity Linking |
-| `apps/installer` | Electron 39 | Cross-Platform Desktop Installer & Auto-Updater Generator |
-| `apps/license-generator`| Electron 39 | Cryptographic Hardware-Locked License Generator |
-| `apps/mcp-server` | Model Context Protocol SDK | Autonomous AI Agent Studio Toolchain & Automation Engine |
+| `apps/gallery` | React 19 + Tailwind + Stripe | Guest Self-Service, Selfie-to-Vector DB Biometric Linking |
+| `apps/backend/cloud-backend` | Cloudflare Worker (D1 + R2) | Edge API, Dynamic Yield Pricing Engine, Webhooks, Payouts |
+| `apps/backend/mcp-server` | Model Context Protocol SDK | Autonomous AI Agent Studio Toolchain & Automation Engine |
+| `apps/backend/ai-worker` | FastAPI / Python | Local/Cloud Computer Vision, ArcFace & Sharpness Inferencing |
+| `apps/mobile/pro` | Expo React Native + Rust | Field App, Rust Core (Offline First), WebRTC Receiver, UWB/BLE Beacon |
+| `apps/mobile/consumer` | Expo React Native | Guest Mobile Pass, BLE Proximity Linking, NLP Smart Album Search |
 | `packages/ai` | TypeScript / Gemini REST | Shared AI Models, Vector Search, NLP Admin Agents |
 | `packages/types` | TypeScript | Core Domain Entity Interfaces & Universal Data Contracts |
 | `packages/ui` | React 19 + Tailwind | Shared Glassmorphic UI Primitives & Interactive Components |

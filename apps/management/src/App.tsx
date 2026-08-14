@@ -14,7 +14,7 @@ function Sidebar() {
   const location = useLocation();
   const navItems = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/fleet', label: 'Fleet & Ops', icon: MonitorSmartphone },
+    { path: '/fleet', label: 'Live Ops', icon: MonitorSmartphone },
     { path: '/staff', label: 'Staff & HR', icon: Users },
     { path: '/customers', label: 'CRM', icon: UserCircle },
     { path: '/galleries', label: 'Galleries', icon: Images },

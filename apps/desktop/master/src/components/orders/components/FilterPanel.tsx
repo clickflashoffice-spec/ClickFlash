@@ -1,5 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
-import { FilterState } from '../../Orders';
+
+export interface FilterState {
+    status: 'All' | 'Pending' | 'Processing' | 'Completed' | 'Delivered' | 'Cancelled';
+    dateFrom: string;
+    dateTo: string;
+    amountMin: string;
+    amountMax: string;
+    paymentStatus: 'All' | 'Paid' | 'Pending' | 'Refunded';
+}
 
 /**
  * Filter Panel Component

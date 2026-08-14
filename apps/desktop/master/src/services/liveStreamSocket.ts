@@ -4,6 +4,8 @@ import { logger } from "../utils/logger";
 
 export class LiveStreamSocket {
     private io: Server | null = null;
+    private connectedDevices: Map<string, string> = new Map(); // socketId -> deviceId
+    private reverseDeviceMap: Map<string, string> = new Map(); // deviceId -> socketId
 
     /**
      * Initializes the Socket.io WebSocket server attached to the main Express HTTP server.
@@ -25,7 +27,55 @@ export class LiveStreamSocket {
                 logger.info(`[LiveStream] Socket ${socket.id} joined gallery_${galleryId}`);
             });
 
+            // --- WebRTC Signaling ---
+            socket.on('register', (data: { deviceId: string }) => {
+                this.connectedDevices.set(socket.id, data.deviceId);
+                this.reverseDeviceMap.set(data.deviceId, socket.id);
+                logger.info(`[LiveStream] Device registered for WebRTC: ${data.deviceId}`);
+                
+                // Notify manager that a device is live
+                if (data.deviceId !== 'manager') {
+                    this.io?.to(this.reverseDeviceMap.get('manager') || '').emit('device_status', { 
+                        deviceId: data.deviceId, 
+                        status: 'live' 
+                    });
+                }
+            });
+
+            socket.on('request_check_in', (data: { target: string, offer: any }) => {
+                const targetSocket = this.reverseDeviceMap.get(data.target);
+                if (targetSocket) {
+                    this.io?.to(targetSocket).emit('INCOMING_CHECK_IN', { offer: data.offer, from: this.connectedDevices.get(socket.id) });
+                }
+            });
+
+            socket.on('answer', (data: { target: string, answer: any }) => {
+                const targetSocket = this.reverseDeviceMap.get(data.target);
+                if (targetSocket) {
+                    this.io?.to(targetSocket).emit('answer', { answer: data.answer, from: this.connectedDevices.get(socket.id) });
+                }
+            });
+
+            socket.on('ice-candidate', (data: { target: string, candidate: any }) => {
+                const targetSocket = this.reverseDeviceMap.get(data.target);
+                if (targetSocket) {
+                    this.io?.to(targetSocket).emit('ice-candidate', { candidate: data.candidate, from: this.connectedDevices.get(socket.id) });
+                }
+            });
+
             socket.on('disconnect', () => {
+                const deviceId = this.connectedDevices.get(socket.id);
+                if (deviceId) {
+                    this.connectedDevices.delete(socket.id);
+                    this.reverseDeviceMap.delete(deviceId);
+                    
+                    if (deviceId !== 'manager') {
+                        this.io?.to(this.reverseDeviceMap.get('manager') || '').emit('device_status', { 
+                            deviceId, 
+                            status: 'offline' 
+                        });
+                    }
+                }
                 logger.info(`[LiveStream] Device disconnected: ${socket.id}`);
             });
         });

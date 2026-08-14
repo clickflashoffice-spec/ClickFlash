@@ -5,6 +5,32 @@ import {
     Destination, Expense, Loan, Adjustment, Equipment, ExpenseCategory, EquipmentCategory
 } from '../types.ts';
 
+export interface CullingCacheEntry {
+    albumId: string;
+    data: any; // CullingAnalysisResult
+    updatedAt: number;
+}
+
+export interface CustomerEngagementRecord {
+    customerEmail: string;
+    totalEmailsSent: number;
+    totalOpened: number;
+    totalClicked: number;
+    totalConverted: number;
+    lifetimeValue: number;
+    engagementScore: number;
+    lastEvent?: string;
+    lastUpdated: number;
+}
+
+export interface EmailRetryRecord {
+    id?: number;
+    payload: any;
+    retryCount: number;
+    lastAttempt: number;
+    status: 'pending' | 'failed';
+}
+
 export interface FileRecord {
     id: string;
     data: Blob;
@@ -20,6 +46,19 @@ export interface BackgroundJob {
     error?: string;
     createdAt: number;
     updatedAt: number;
+}
+
+export type AIBatchOperation = 'auto-enhance' | 'smart-crop' | 'face-retouch';
+
+export interface BatchJob {
+    id: string;
+    photoIds: string[];
+    operation: AIBatchOperation;
+    status: 'queued' | 'processing' | 'completed' | 'failed';
+    progress: number;
+    createdAt: number;
+    completedAt?: number;
+    error?: string;
 }
 
 export interface CampaignTemplate {
@@ -56,6 +95,7 @@ export interface CampaignSend {
         userAgent?: string;
         linkClicked?: string;
     };
+    qualityGateRouting?: string;
     createdAt: string;
 }
 
@@ -80,6 +120,10 @@ export class StarMasterDatabase extends Dexie {
     backgroundJobs!: Table<BackgroundJob, number>;
     campaignTemplates!: Table<CampaignTemplate, string>;
     campaignSends!: Table<CampaignSend, string>;
+    cullingCache!: Table<CullingCacheEntry, string>;
+    customerEngagements!: Table<CustomerEngagementRecord, string>;
+    emailRetryQueue!: Table<EmailRetryRecord, number>;
+    batchJobs!: Table<BatchJob, string>;
 
     constructor() {
         super('StarMasterDB');
@@ -114,6 +158,16 @@ export class StarMasterDatabase extends Dexie {
             campaignTemplates: 'id, type, trigger, isActive',
             campaignSends: 'id, campaignId, templateId, customerEmail, status, sentAt, trackingId, createdAt',
             dataVersions: 'collection, version, lastUpdated'
+        });
+
+        v.version(8).stores({
+            cullingCache: 'albumId',
+            customerEngagements: 'customerEmail',
+            emailRetryQueue: '++id, status, lastAttempt'
+        });
+
+        v.version(9).stores({
+            batchJobs: 'id, status, createdAt'
         });
     }
 }

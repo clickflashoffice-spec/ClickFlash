@@ -50,17 +50,20 @@ class DataService {
   ): Promise<T> {
     if (this.isElectron) {
       try {
-        const response: IPCRepoResponse<T> = await window.electron!.invoke('repo:request', {
-          repo,
+        const response: any = await window.electron!.invoke('repo:request', {
+          collection: repo,
           action,
+          params: payload,
+          repo,
           payload,
         });
 
-        if (!response.success) {
-          throw new Error(response.error || `IPC Repository request failed: ${repo}.${action}`);
+        const isOk = response?.ok ?? response?.success;
+        if (!isOk) {
+          throw new Error(response?.error || response?.data?.error || `IPC Repository request failed: ${repo}.${action}`);
         }
 
-        return response.data as T;
+        return (response.data !== undefined ? response.data : response) as T;
       } catch (err: any) {
         logger.error(`[IPC Error] ${repo}.${action}:`, err);
         throw err;

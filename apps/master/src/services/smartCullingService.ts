@@ -8,6 +8,7 @@
 import { logger } from '@/utils/logger';
 import { Photo } from '@/types';
 import { aiClient } from './aiClient';
+import { db } from './db';
 
 export interface PhotoQualityScore {
     photoId: string;
@@ -153,22 +154,32 @@ class SmartCullingService {
         let rejectedPhotos = 0;
         let reviewPhotos = 0;
 
-        // Analyze all photos
-        for (const photo of photos) {
-            const score = await this.analyzePhoto(photo);
-            scores.push(score);
+        // Analyze all photos in chunks of 20
+        for (let i = 0; i < photos.length; i += 20) {
+            const chunk = photos.slice(i, i + 20);
+            
+            // Process chunk sequentially or in parallel?
+            // "Process photos in chunks of 20 instead of a single sequential loop." 
+            // "Between chunks, yield to the event loop"
+            for (const photo of chunk) {
+                const score = await this.analyzePhoto(photo);
+                scores.push(score);
 
-            switch (score.recommendation) {
-                case 'keep':
-                    keptPhotos++;
-                    break;
-                case 'reject':
-                    rejectedPhotos++;
-                    break;
-                case 'review':
-                    reviewPhotos++;
-                    break;
+                switch (score.recommendation) {
+                    case 'keep':
+                        keptPhotos++;
+                        break;
+                    case 'reject':
+                        rejectedPhotos++;
+                        break;
+                    case 'review':
+                        reviewPhotos++;
+                        break;
+                }
             }
+
+            // Yield to event loop
+            await new Promise(r => setTimeout(r, 0));
         }
 
         // Detect duplicates if enabled
@@ -189,6 +200,15 @@ class SmartCullingService {
 
         // Cache result
         this.analysisCache.set(albumId, result);
+        try {
+            await db.cullingCache.put({
+                albumId,
+                data: result,
+                updatedAt: Date.now()
+            });
+        } catch (err) {
+            logger.error(`[SmartCulling] Failed to save cache to DB`, err);
+        }
 
         logger.info(`[SmartCulling] Analysis complete: ${keptPhotos} keep, ${reviewPhotos} review, ${rejectedPhotos} reject`);
         return result;
@@ -197,18 +217,34 @@ class SmartCullingService {
     /**
      * Get cached analysis for an album
      */
-    public getCachedAnalysis(albumId: string): CullingAnalysisResult | null {
-        return this.analysisCache.get(albumId) || null;
+    public async getCachedAnalysis(albumId: string): Promise<CullingAnalysisResult | null> {
+        if (this.analysisCache.has(albumId)) {
+            return this.analysisCache.get(albumId) || null;
+        }
+
+        try {
+            const dbCache = await db.cullingCache.get(albumId);
+            if (dbCache && dbCache.data) {
+                this.analysisCache.set(albumId, dbCache.data);
+                return dbCache.data;
+            }
+        } catch (err) {
+            logger.error(`[SmartCulling] Failed to read cache from DB`, err);
+        }
+
+        return null;
     }
 
     /**
      * Clear cached analysis
      */
-    public clearCache(albumId?: string): void {
+    public async clearCache(albumId?: string): Promise<void> {
         if (albumId) {
             this.analysisCache.delete(albumId);
+            await db.cullingCache.delete(albumId).catch(() => {});
         } else {
             this.analysisCache.clear();
+            await db.cullingCache.clear().catch(() => {});
         }
     }
 
@@ -314,13 +350,19 @@ class SmartCullingService {
      * Load image from URL
      */
     private loadImage(url: string): Promise<HTMLImageElement> {
-        return new Promise((resolve, reject) => {
+        const loadPromise = new Promise<HTMLImageElement>((resolve, reject) => {
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = () => resolve(img);
             img.onerror = reject;
             img.src = url;
         });
+
+        const timeoutPromise = new Promise<HTMLImageElement>((_, reject) => {
+            setTimeout(() => reject(new Error('Image load timeout')), 10000);
+        });
+
+        return Promise.race([loadPromise, timeoutPromise]);
     }
 }
 

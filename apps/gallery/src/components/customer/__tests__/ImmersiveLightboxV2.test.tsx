@@ -1,11 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ImmersiveLightboxV2 from '../ImmersiveLightboxV2';
 import { Photo } from '../../../types';
 
 // Mock framer-motion to avoid complex animations in tests
-vi.mock('framer-motion', () => {
+jest.mock('framer-motion', () => {
     return {
         motion: {
             div: ({ children, animate, ...props }: any) => {
@@ -22,8 +21,8 @@ vi.mock('framer-motion', () => {
 });
 
 // Mock metadata utils
-vi.mock('../../../utils/metadataUtils', () => ({
-    extractMetadata: vi.fn(() => Promise.resolve({
+jest.mock('../../../utils/metadataUtils', () => ({
+    extractMetadata: jest.fn(() => Promise.resolve({
         camera: 'Sony A7III',
         lens: '50mm f/1.8',
         aperture: 'f/1.8',
@@ -31,7 +30,7 @@ vi.mock('../../../utils/metadataUtils', () => ({
         iso: '100',
         captureDate: '2023-01-01T12:00:00Z',
     })),
-    getImageFileSize: vi.fn(() => Promise.resolve('2.5 MB')),
+    getImageFileSize: jest.fn(() => Promise.resolve('2.5 MB')),
 }));
 
 const mockPhotos: Photo[] = [
@@ -41,13 +40,13 @@ const mockPhotos: Photo[] = [
 ];
 
 describe('ImmersiveLightboxV2', () => {
-    const mockOnClose = vi.fn();
-    const mockOnToggleFavorite = vi.fn();
-    const mockOnOpenAddToCartModal = vi.fn();
-    const mockOnShare = vi.fn();
+    const mockOnClose = jest.fn();
+    const mockOnToggleFavorite = jest.fn();
+    const mockOnOpenAddToCartModal = jest.fn();
+    const mockOnShare = jest.fn();
 
     beforeEach(() => {
-        vi.clearAllMocks();
+        jest.clearAllMocks();
     });
 
     it('renders fullscreen with correct image src', () => {
@@ -159,7 +158,7 @@ describe('ImmersiveLightboxV2', () => {
         expect(wheelContainer).toBeDefined();
 
         // Fire wheel event (zoom in)
-        fireEvent.wheel(wheelContainer!, { deltaY: -50, preventDefault: vi.fn() });
+        fireEvent.wheel(wheelContainer!, { deltaY: -50, preventDefault: jest.fn() });
 
         // Check image style
         const img = screen.getByAltText('Photo 1');

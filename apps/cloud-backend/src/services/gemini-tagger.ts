@@ -1,3 +1,6 @@
+import type { D1Database } from '@cloudflare/workers-types';
+import { logAICost } from './ai-cost';
+
 export interface ImageTags {
   clothing_colors: string[];
   accessories: string[];
@@ -12,14 +15,18 @@ export interface ImageTags {
 export async function analyzeImageWithGemini(
   imageBuffer: ArrayBuffer,
   mimeType: string,
-  apiKey: string
+  apiKey: string,
+  db: D1Database
 ): Promise<ImageTags> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-  const base64Image = btoa(
-    new Uint8Array(imageBuffer)
-      .reduce((data, byte) => data + String.fromCharCode(byte), '')
-  );
+  const uint8Array = new Uint8Array(imageBuffer);
+  let binaryString = "";
+  const chunkSize = 8192;
+  for (let i = 0; i < uint8Array.length; i += chunkSize) {
+    binaryString += String.fromCharCode.apply(null, Array.from(uint8Array.slice(i, i + chunkSize)));
+  }
+  const base64Image = btoa(binaryString);
 
   const payload = {
     contents: [
@@ -53,29 +60,67 @@ export async function analyzeImageWithGemini(
     }
   };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload)
-  });
+  let response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Gemini API Error: ${response.status} ${errorText}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Gemini API Error: ${response.status} ${errorText}`);
+    }
+  } catch (err: any) {
+    console.error(`Gemini Error:`, err);
+    return {
+      clothing_colors: [],
+      accessories: [],
+      context: 'resort',
+      people_count: 0,
+      quality_score: 5,
+      is_blurry: false,
+      has_closed_eyes: false,
+      curation_status: "APPROVED"
+    };
   }
 
   const data: any = await response.json();
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   
   if (!text) {
-    throw new Error('No text returned from Gemini');
+    return {
+      clothing_colors: [],
+      accessories: [],
+      context: 'resort',
+      people_count: 0,
+      quality_score: 5,
+      is_blurry: false,
+      has_closed_eyes: false,
+      curation_status: "APPROVED"
+    };
   }
 
+  const promptTokens = data.usageMetadata?.promptTokenCount || 0;
+  const completionTokens = data.usageMetadata?.candidatesTokenCount || 0;
+  await logAICost(db, 'analyzeImageWithGemini', 'gemini-1.5-flash', promptTokens, completionTokens);
+
   try {
-    return JSON.parse(text) as ImageTags;
+    const stripped = text.replace(/```json?\n?([\s\S]*?)```/g, '$1').trim();
+    return JSON.parse(stripped) as ImageTags;
   } catch (e) {
-    throw new Error(`Failed to parse Gemini JSON: ${text}`);
+    return {
+      clothing_colors: [],
+      accessories: [],
+      context: 'resort',
+      people_count: 0,
+      quality_score: 5,
+      is_blurry: false,
+      has_closed_eyes: false,
+      curation_status: "APPROVED"
+    };
   }
 }

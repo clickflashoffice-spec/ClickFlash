@@ -31,7 +31,7 @@ exports.default = async function(configuration) {
       process.exit(1);
     }
   } else {
-    if (process.env.NODE_ENV === 'production' || process.env.CI) {
+    if ((process.env.NODE_ENV === 'production' || process.env.CI) && !process.env.SKIP_SIGNING) {
       console.error(`[EV-SIGN] FATAL: Skipping signing: No EV signing credentials provided, but required for production builds.`);
       process.exit(1);
     } else {

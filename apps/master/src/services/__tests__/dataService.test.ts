@@ -30,8 +30,10 @@ describe('DataService', () => {
 
       const result = await dataService.albums.getAll();
       expect(global.window.electron?.invoke).toHaveBeenCalledWith('repo:request', {
+        collection: 'albums',
         repo: 'albums',
         action: 'findAll',
+        params: undefined,
         payload: undefined
       });
       expect(result).toEqual([{ id: '1', name: 'Album 1' }]);
@@ -45,8 +47,10 @@ describe('DataService', () => {
 
       const result = await dataService.albums.create({ name: 'New Album' });
       expect(global.window.electron?.invoke).toHaveBeenCalledWith('repo:request', {
+        collection: 'albums',
         repo: 'albums',
         action: 'create',
+        params: { name: 'New Album' },
         payload: { name: 'New Album' }
       });
       expect(result).toEqual({ id: '1', name: 'New Album' });
@@ -62,8 +66,10 @@ describe('DataService', () => {
 
       const result = await dataService.photos.search('query');
       expect(global.window.electron?.invoke).toHaveBeenCalledWith('repo:request', {
+        collection: 'photos',
         repo: 'photos',
         action: 'search',
+        params: { query: 'query' },
         payload: { query: 'query' }
       });
       expect(result).toEqual([]);
@@ -79,8 +85,10 @@ describe('DataService', () => {
 
       const result = await dataService.settings.get('key');
       expect(global.window.electron?.invoke).toHaveBeenCalledWith('repo:request', {
+        collection: 'settings',
         repo: 'settings',
         action: 'findByKey',
+        params: { key: 'key' },
         payload: { key: 'key' }
       });
       expect(result).toEqual('value');

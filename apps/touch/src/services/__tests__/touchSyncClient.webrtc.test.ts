@@ -1,22 +1,25 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TouchSyncClient } from '../touchSyncClient';
 import { Bonjour } from 'bonjour-service';
 
+const mockBrowser = {
+  on: vi.fn(),
+};
+const mockBonjour = {
+  find: vi.fn(() => mockBrowser),
+  destroy: vi.fn(),
+};
+
 vi.mock('bonjour-service', () => {
-  const mockBrowser = {
-    on: vi.fn(),
-  };
-  const mockBonjour = {
-    find: vi.fn(() => mockBrowser),
-    destroy: vi.fn(),
-  };
   return {
-    Bonjour: vi.fn(() => mockBonjour),
+    Bonjour: vi.fn(function () { return mockBonjour; }),
   };
 });
 
 describe('TouchSyncClient WebRTC Transfer', () => {
   let client: TouchSyncClient;
+  let lastCreatedWs: any;
+  let lastCreatedPeerConnection: any;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -25,15 +28,38 @@ describe('TouchSyncClient WebRTC Transfer', () => {
     TouchSyncClient.instance = undefined; // Reset singleton
     client = (TouchSyncClient as any).getInstance();
 
-    global.crypto = {
-      randomUUID: () => 'mock-uuid',
-    } as any;
+    Object.defineProperty(globalThis, 'crypto', {
+      value: {
+        randomUUID: () => 'mock-uuid',
+      },
+      writable: true,
+      configurable: true,
+    });
 
-    global.WebSocket = vi.fn().mockImplementation(() => ({
-      readyState: 1, // OPEN
-      send: vi.fn(),
-      close: vi.fn(),
-    })) as any;
+    class MockWebSocket {
+      static OPEN = 1;
+      static CONNECTING = 0;
+      static CLOSING = 2;
+      static CLOSED = 3;
+      readyState = 1;
+      send = vi.fn();
+      close = vi.fn();
+      onopen: any = null;
+      onmessage: any = null;
+      onerror: any = null;
+      onclose: any = null;
+      constructor(public url: string) {
+        lastCreatedWs = this;
+      }
+    }
+    const wsConstructor = vi.fn(function (url: string) {
+      return new MockWebSocket(url);
+    });
+    (wsConstructor as any).OPEN = 1;
+    (wsConstructor as any).CONNECTING = 0;
+    (wsConstructor as any).CLOSING = 2;
+    (wsConstructor as any).CLOSED = 3;
+    global.WebSocket = wsConstructor as any;
 
     const mockDataChannel = {
       close: vi.fn(),
@@ -45,26 +71,53 @@ describe('TouchSyncClient WebRTC Transfer', () => {
       bufferedAmount: 0,
     };
 
-    global.RTCDataChannel = vi.fn() as any;
-    global.RTCPeerConnection = vi.fn().mockImplementation(() => ({
-      createDataChannel: vi.fn(() => mockDataChannel),
-      createOffer: vi.fn(() => Promise.resolve({ type: 'offer', sdp: 'mock-sdp' })),
-      createAnswer: vi.fn(() => Promise.resolve({ type: 'answer', sdp: 'mock-sdp' })),
-      setLocalDescription: vi.fn(() => Promise.resolve()),
-      setRemoteDescription: vi.fn(() => Promise.resolve()),
-      addIceCandidate: vi.fn(() => Promise.resolve()),
-      close: vi.fn(),
-      localDescription: { type: 'offer', sdp: 'mock-sdp' },
-    })) as any;
+    class MockRTCDataChannel {
+      close = vi.fn();
+      send = vi.fn();
+      addEventListener = vi.fn((event: string, cb: () => void) => {
+        if (event === 'open') setTimeout(cb, 10);
+        if (event === 'bufferedamountlow') setTimeout(cb, 10);
+      });
+      bufferedAmount = 0;
+    }
+    global.RTCDataChannel = vi.fn(function () {
+      return new MockRTCDataChannel();
+    }) as any;
 
-    global.Blob = vi.fn().mockImplementation((chunks, options) => ({
-      type: options?.type,
-      size: chunks.reduce((acc: number, chunk: ArrayBuffer) => acc + chunk.byteLength, 0),
-      arrayBuffer: () => {
-        const totalSize = chunks.reduce((acc: number, chunk: ArrayBuffer) => acc + chunk.byteLength, 0);
-        return Promise.resolve(new ArrayBuffer(totalSize));
+    class MockRTCPeerConnection {
+      createDataChannel = vi.fn(() => mockDataChannel);
+      createOffer = vi.fn(() => Promise.resolve({ type: 'offer', sdp: 'mock-sdp' }));
+      createAnswer = vi.fn(() => Promise.resolve({ type: 'answer', sdp: 'mock-sdp' }));
+      setLocalDescription = vi.fn(() => Promise.resolve());
+      setRemoteDescription = vi.fn(() => Promise.resolve());
+      addIceCandidate = vi.fn(() => Promise.resolve());
+      close = vi.fn();
+      localDescription = { type: 'offer', sdp: 'mock-sdp' };
+      ondatachannel: any = null;
+      onicecandidate: any = null;
+      onconnectionstatechange: any = null;
+      constructor() {
+        lastCreatedPeerConnection = this;
       }
-    })) as any;
+    }
+    global.RTCPeerConnection = vi.fn(function () {
+      return new MockRTCPeerConnection();
+    }) as any;
+
+    class MockBlob {
+      type: string;
+      size: number;
+      constructor(chunks: any[] = [], options?: any) {
+        this.type = options?.type || '';
+        this.size = chunks.reduce((acc: number, chunk: any) => acc + (chunk?.byteLength || chunk?.size || 0), 0);
+      }
+      arrayBuffer() {
+        return Promise.resolve(new ArrayBuffer(this.size));
+      }
+    }
+    global.Blob = vi.fn(function (chunks?: any[], options?: any) {
+      return new MockBlob(chunks, options);
+    }) as any;
   });
 
   afterEach(() => {
@@ -74,12 +127,11 @@ describe('TouchSyncClient WebRTC Transfer', () => {
   it('discovers master via Bonjour and connects', () => {
     client.init();
     expect(Bonjour).toHaveBeenCalled();
-    const mockBonjourInstance = vi.mocked(Bonjour).mock.results[0].value;
-    expect(mockBonjourInstance.find).toHaveBeenCalledWith({ type: 'clickflash-sync' });
+    expect(mockBonjour.find).toHaveBeenCalledWith({ type: 'clickflash-sync' });
 
-    const browserOn = mockBonjourInstance.find().on as any;
-    const upCallback = browserOn.mock.calls.find((call: any[]) => call[0] === 'up')[1];
-
+    const upCall = mockBrowser.on.mock.calls.find((call: any[]) => call[0] === 'up');
+    expect(upCall).toBeDefined();
+    const upCallback = upCall![1];
     upCallback({ host: '127.0.0.1', port: 8092 });
     
     // Check if websocket connects to the discovered master
@@ -88,9 +140,8 @@ describe('TouchSyncClient WebRTC Transfer', () => {
 
   it('creates WebRTC offer and sends via signaling', async () => {
     client.init();
-    // mock ws open
-    const wsInstance = vi.mocked(global.WebSocket).mock.results[0].value;
-    wsInstance.onopen();
+    const wsInstance = lastCreatedWs;
+    if (wsInstance.onopen) wsInstance.onopen();
 
     const photo = new Blob([new ArrayBuffer(1024)], { type: 'image/jpeg' });
     
@@ -110,8 +161,8 @@ describe('TouchSyncClient WebRTC Transfer', () => {
 
   it('reassembles photo transfer chunks correctly (3 chunks of 64KB)', async () => {
     client.init();
-    const wsInstance = vi.mocked(global.WebSocket).mock.results[0].value;
-    wsInstance.onopen();
+    const wsInstance = lastCreatedWs;
+    if (wsInstance.onopen) wsInstance.onopen();
 
     // Trigger handleWebRtcSignal to create peer transfer as receiver
     const offerMsg = {
@@ -125,7 +176,7 @@ describe('TouchSyncClient WebRTC Transfer', () => {
       }
     };
 
-    wsInstance.onmessage({ data: JSON.stringify(offerMsg) });
+    if (wsInstance.onmessage) wsInstance.onmessage({ data: JSON.stringify(offerMsg) });
     await vi.advanceTimersByTimeAsync(10);
     
     const state = (client as any).peerTransfers.get('mock-transfer-id');
@@ -135,6 +186,8 @@ describe('TouchSyncClient WebRTC Transfer', () => {
     const mockChannel = {
       binaryType: 'blob',
       bufferedAmountLowThreshold: 0,
+      close: vi.fn(),
+      send: vi.fn(),
       onmessage: null as any,
       onerror: null as any
     };
@@ -174,8 +227,8 @@ describe('TouchSyncClient WebRTC Transfer', () => {
 
   it('triggers HTTP fallback after 30s timeout', async () => {
     client.init();
-    const wsInstance = vi.mocked(global.WebSocket).mock.results[0].value;
-    wsInstance.onopen();
+    const wsInstance = lastCreatedWs;
+    if (wsInstance.onopen) wsInstance.onopen();
     
     const fallbackMock = vi.fn();
     client.on('photo:transfer:fallback', fallbackMock);
@@ -190,7 +243,7 @@ describe('TouchSyncClient WebRTC Transfer', () => {
         description: { type: 'offer', sdp: 'mock-sdp' }
       }
     };
-    wsInstance.onmessage({ data: JSON.stringify(offerMsg) });
+    if (wsInstance.onmessage) wsInstance.onmessage({ data: JSON.stringify(offerMsg) });
     await vi.advanceTimersByTimeAsync(10);
     
     // Advance timers by 30 seconds
@@ -202,8 +255,8 @@ describe('TouchSyncClient WebRTC Transfer', () => {
 
   it('respects bufferedAmount backpressure', async () => {
     client.init();
-    const wsInstance = vi.mocked(global.WebSocket).mock.results[0].value;
-    wsInstance.onopen();
+    const wsInstance = lastCreatedWs;
+    if (wsInstance.onopen) wsInstance.onopen();
     
     const largePhotoSize = 2 * 1024 * 1024; // 2MB
     const photo = new Blob([new ArrayBuffer(largePhotoSize)], { type: 'image/jpeg' });
@@ -232,20 +285,22 @@ describe('TouchSyncClient WebRTC Transfer', () => {
       }
     };
     
-    global.RTCPeerConnection = vi.fn().mockImplementation(() => ({
-      createDataChannel: vi.fn(() => mockChannel),
-      createOffer: vi.fn(() => Promise.resolve({ type: 'offer', sdp: 'mock-sdp' })),
-      setLocalDescription: vi.fn(() => Promise.resolve()),
-      localDescription: { type: 'offer', sdp: 'mock-sdp' },
-      close: vi.fn(),
-    })) as any;
+    class CustomPeerConnection {
+      createDataChannel = vi.fn(() => mockChannel);
+      createOffer = vi.fn(() => Promise.resolve({ type: 'offer', sdp: 'mock-sdp' }));
+      setLocalDescription = vi.fn(() => Promise.resolve());
+      localDescription = { type: 'offer', sdp: 'mock-sdp' };
+      close = vi.fn();
+    }
+    global.RTCPeerConnection = vi.fn(function () {
+      return new CustomPeerConnection();
+    }) as any;
 
     const transferPromise = client.transferPhoto('target-id', photo as any, 'large.jpg');
     
     // Let the event loop run a bit to trigger the backpressure
     await vi.advanceTimersByTimeAsync(5);
     
-    // At some point, the bufferedAmount should exceed 1MB (MAX_BUFFERED_BYTES)
     // Wait for the transfer to complete
     await vi.advanceTimersByTimeAsync(100);
     await vi.advanceTimersByTimeAsync(100);

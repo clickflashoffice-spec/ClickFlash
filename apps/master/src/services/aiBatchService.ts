@@ -4,22 +4,11 @@ import { photoService } from './api/photoService';
 import { aiModelService } from './aiModelService';
 import { imageProcessingService } from './imageProcessingService';
 
-export type AIBatchOperation = 'auto-enhance' | 'smart-crop' | 'face-retouch';
-
-export interface BatchJob {
-    id: string;
-    photoIds: string[];
-    operation: AIBatchOperation;
-    status: 'queued' | 'processing' | 'completed' | 'failed';
-    progress: number;
-    createdAt: number;
-    completedAt?: number;
-    error?: string;
-}
+import { db, BatchJob, AIBatchOperation } from './db';
+export type { BatchJob, AIBatchOperation };
 
 class AIBatchService {
     private static instance: AIBatchService;
-    private queue: BatchJob[] = [];
     private isProcessing = false;
     private currentJob: BatchJob | null = null;
     private readonly MAX_CONCURRENT = 5; // Process max 5 photos simultaneously
@@ -27,6 +16,23 @@ class AIBatchService {
 
     private constructor() {
         logger.info('[AIBatchService] Initialized');
+        this.init().catch(err => logger.error('[AIBatchService] Init error', err));
+    }
+
+    private async init() {
+        const staleJobs = await db.batchJobs.where('status').anyOf(['queued', 'processing']).toArray();
+        let needsProcessing = false;
+        for (const job of staleJobs) {
+            if (job.status === 'processing') {
+                await db.batchJobs.update(job.id, { status: 'queued' });
+                needsProcessing = true;
+            } else if (job.status === 'queued') {
+                needsProcessing = true;
+            }
+        }
+        if (needsProcessing) {
+            this.processQueue();
+        }
     }
 
     public static getInstance(): AIBatchService {
@@ -34,6 +40,10 @@ class AIBatchService {
             AIBatchService.instance = new AIBatchService();
         }
         return AIBatchService.instance;
+    }
+
+    public getCurrentJob(): BatchJob | null {
+        return this.currentJob;
     }
 
     /**
@@ -49,7 +59,7 @@ class AIBatchService {
             createdAt: Date.now()
         };
 
-        this.queue.push(job);
+        await db.batchJobs.add(job);
         logger.info(`[AIBatchService] Job submitted: ${job.id} (${photoIds.length} photos, ${operation})`);
 
         // Start processing if not already running
@@ -64,25 +74,31 @@ class AIBatchService {
      * Sequential queue processor (Rule 15: Memory Safety)
      */
     private async processQueue() {
-        if (this.isProcessing || this.queue.length === 0) return;
+        if (this.isProcessing) return;
 
         this.isProcessing = true;
         logger.info('[AIBatchService] Starting queue processing');
 
-        while (this.queue.length > 0) {
-            const job = this.queue.shift()!;
+        while (true) {
+            const jobs = await db.batchJobs.where('status').equals('queued').sortBy('createdAt');
+            if (jobs.length === 0) break;
+
+            const job = jobs[0];
             this.currentJob = job;
             job.status = 'processing';
+            await db.batchJobs.update(job.id, { status: 'processing' });
 
             try {
                 await this.executeJob(job);
                 job.status = 'completed';
                 job.progress = 100;
                 job.completedAt = Date.now();
+                await db.batchJobs.update(job.id, { status: 'completed', progress: 100, completedAt: job.completedAt });
                 logger.info(`[AIBatchService] Job completed: ${job.id}`);
             } catch (error) {
                 job.status = 'failed';
                 job.error = error instanceof Error ? error.message : String(error);
+                await db.batchJobs.update(job.id, { status: 'failed', error: job.error });
                 logger.error(`[AIBatchService] Job failed: ${job.id}`, error);
             }
 
@@ -114,6 +130,7 @@ class AIBatchService {
             );
 
             job.progress = Math.round(((i + batch.length) / totalPhotos) * 100);
+            await db.batchJobs.update(job.id, { progress: job.progress });
 
             // Small yield to prevent blocking
             await new Promise(resolve => setTimeout(resolve, 0));
@@ -126,14 +143,19 @@ class AIBatchService {
     private async waitForMemorySafety(): Promise<void> {
         // Check if performance.memory API is available (Chromium-based browsers)
         if ('memory' in performance && (performance as any).memory) {
-            const memoryMB = (performance as any).memory.usedJSHeapSize / (1024 * 1024);
-            const memoryGB = memoryMB / 1024;
+            for (let attempt = 1; attempt <= 5; attempt++) {
+                const memoryMB = (performance as any).memory.usedJSHeapSize / (1024 * 1024);
+                const memoryGB = memoryMB / 1024;
 
-            if (memoryGB > this.MEMORY_THRESHOLD_GB) {
-                logger.warn(`[AIBatchService] Memory usage high (${memoryGB.toFixed(2)}GB), pausing...`);
+                if (memoryGB <= this.MEMORY_THRESHOLD_GB) {
+                    return;
+                }
+
+                logger.warn(`[AIBatchService] Memory usage high (${memoryGB.toFixed(2)}GB), pausing... (attempt ${attempt}/5)`);
                 // Wait for GC to potentially free memory
                 await new Promise(resolve => setTimeout(resolve, 2000));
             }
+            logger.warn(`[AIBatchService] Memory still high after 5 attempts, proceeding anyway with risk.`);
         }
     }
 
@@ -305,30 +327,24 @@ class AIBatchService {
         }
     }
 
-    /**
-     * Get current job status
-     */
-    public getJobStatus(jobId: string): BatchJob | null {
-        if (this.currentJob?.id === jobId) return this.currentJob;
-        return this.queue.find(j => j.id === jobId) || null;
+    public async getJobStatus(jobId: string): Promise<BatchJob | null> {
+        return (await db.batchJobs.get(jobId)) || null;
     }
 
     /**
      * Get all jobs (for UI display)
      */
-    public getAllJobs(): BatchJob[] {
-        const jobs = [...this.queue];
-        if (this.currentJob) jobs.unshift(this.currentJob);
-        return jobs;
+    public async getAllJobs(): Promise<BatchJob[]> {
+        return await db.batchJobs.orderBy('createdAt').reverse().toArray();
     }
 
     /**
      * Cancel a queued job
      */
-    public cancelJob(jobId: string): boolean {
-        const index = this.queue.findIndex(j => j.id === jobId);
-        if (index !== -1) {
-            this.queue.splice(index, 1);
+    public async cancelJob(jobId: string): Promise<boolean> {
+        const job = await db.batchJobs.get(jobId);
+        if (job && (job.status === 'queued' || job.status === 'processing')) {
+            await db.batchJobs.update(jobId, { status: 'failed', error: 'Cancelled' });
             logger.info(`[AIBatchService] Job cancelled: ${jobId}`);
             return true;
         }

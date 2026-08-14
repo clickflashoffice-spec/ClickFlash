@@ -1,5 +1,6 @@
 import { logger } from './logger';
-import { aiBatchService, AIBatchOperation } from '../services/aiBatchService';
+import { aiBatchService } from '../services/aiBatchService';
+import { AIBatchOperation, BatchJob } from '../services/db';
 import { aiModelService } from '../services/aiModelService';
 
 interface TestResult {
@@ -196,10 +197,8 @@ class AIBatchStressTest {
         const startTime = Date.now();
 
         while (Date.now() - startTime < maxWaitMs) {
-            const allComplete = jobIds.every(jobId => {
-                const job = aiBatchService.getJobStatus(jobId);
-                return job && (job.status === 'completed' || job.status === 'failed');
-            });
+            const jobStatuses = (await Promise.all(jobIds.map(jobId => aiBatchService.getJobStatus(jobId)))) as (BatchJob | null)[];
+            const allComplete = jobStatuses.every(job => job && (job.status === 'completed' || job.status === 'failed'));
 
             if (allComplete) {
                 return;

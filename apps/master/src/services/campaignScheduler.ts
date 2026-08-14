@@ -2,6 +2,8 @@ import { logger } from '../utils/logger';
 import { emailService } from './emailService';
 import { db, CampaignTemplate, CampaignSend } from './db';
 import { Order } from '../types';
+import { TokenBucketRateLimiter } from '@clickflash/ai';
+import contentGenerationService from './contentGenerationService';
 
 interface CampaignTriggerContext {
     customerEmail: string;
@@ -21,6 +23,7 @@ class CampaignScheduler {
     private intervalId: NodeJS.Timeout | null = null;
     private isRunning = false;
     private pollIntervalMs = parseInt(process.env.CAMPAIGN_POLL_INTERVAL_MS || '300000'); // 5 minutes
+    private rateLimiter = new TokenBucketRateLimiter(10, 0.17);
 
     /**
      * Start the campaign scheduler
@@ -138,18 +141,39 @@ class CampaignScheduler {
 
                 // Use first template (could be extended to support multiple)
                 const template = templates[0];
+                const customerName = album.title?.split(' ')[0] || 'Valued Customer';
+                
+                const aiResult = await contentGenerationService.generateGalleryContent({
+                    eventName: album.title || 'Your Event',
+                    date: album.date ? new Date(album.date).toLocaleDateString() : 'Today',
+                    location: 'Resort & Beach Club',
+                    tags: [],
+                    highlightImageCount: album.photos?.length || 0,
+                    guestName: customerName
+                });
+
+                let subjectTemplate = template.subjectTemplate;
+                let bodyTextTemplate = template.bodyText;
+                let qualityGateRouting: string | undefined = undefined;
+
+                if (aiResult.qualityGate.routing !== 'REJECT') {
+                    subjectTemplate = aiResult.emailSubject;
+                    bodyTextTemplate = aiResult.emailBodyText;
+                    qualityGateRouting = aiResult.qualityGate.routing;
+                }
 
                 // Trigger campaign
                 await this.triggerCampaign(template.id, {
                     customerEmail,
-                    customerName: album.title?.split(' ')[0] || 'Valued Customer',
+                    customerName,
                     albumId: album.id,
                     variables: {
-                        customer_name: album.title?.split(' ')[0] || 'Valued Customer',
+                        customer_name: customerName,
                         event_name: album.title || 'Your Event',
                         gallery_link: `https://clickflash.com/gallery/${album.id}`,
                         photo_count: String(album.photos?.length || 0)
-                    }
+                    },
+                    aiOverrides: { subjectTemplate, bodyTextTemplate, qualityGateRouting }
                 });
             }
         } catch (error) {
@@ -305,7 +329,12 @@ class CampaignScheduler {
     /**
      * Trigger a specific campaign for a customer
      */
-    private async triggerCampaign(campaignId: string, context: CampaignTriggerContext): Promise<void> {
+    private async triggerCampaign(campaignId: string, context: CampaignTriggerContext & { aiOverrides?: { subjectTemplate: string, bodyTextTemplate: string, qualityGateRouting?: string } }): Promise<void> {
+        if (!await this.rateLimiter.acquire()) {
+            logger.warn(`[CampaignScheduler] Rate limit exceeded, skipping campaign ${campaignId} for ${context.customerEmail}`);
+            return;
+        }
+
         try {
             logger.info(`[CampaignScheduler] Triggering campaign ${campaignId} for ${context.customerEmail}`);
 
@@ -323,9 +352,11 @@ class CampaignScheduler {
             }
 
             // Render template with variables
-            const subject = emailService.renderTemplate(template.subjectTemplate, context.variables);
+            const subjectTemplate = context.aiOverrides?.subjectTemplate || template.subjectTemplate;
+            const bodyTextTemplate = context.aiOverrides?.bodyTextTemplate || template.bodyText;
+            const subject = emailService.renderTemplate(subjectTemplate, context.variables);
             const html = emailService.renderTemplate(template.bodyHtml, context.variables);
-            const text = emailService.renderTemplate(template.bodyText, context.variables);
+            const text = emailService.renderTemplate(bodyTextTemplate, context.variables);
 
             // Generate tracking ID
             const trackingId = `${campaignId}_${context.customerEmail}_${Date.now()}`;
@@ -340,6 +371,7 @@ class CampaignScheduler {
                 orderId: context.orderId,
                 status: 'pending',
                 trackingId,
+                qualityGateRouting: context.aiOverrides?.qualityGateRouting,
                 createdAt: new Date().toISOString()
             };
 

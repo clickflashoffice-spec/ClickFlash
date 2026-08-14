@@ -4,6 +4,20 @@ import { pb } from '../services/pb';
 import { imageProcessingService } from './imageProcessingService';
 
 class BackgroundJobService {
+    constructor() {
+        this.recoverStaleJobs().catch(err => logger.error('[BackgroundJobService] Recover stale jobs failed', err));
+    }
+
+    private async recoverStaleJobs() {
+        const staleJobs = await db.backgroundJobs.where('status').equals('processing').toArray();
+        for (const job of staleJobs) {
+            const retries = (job.retries || 0) + 1;
+            const status = retries < 3 ? 'pending' : 'failed';
+            await this.updateJob(job.id!, { status, retries });
+            logger.info(`[BackgroundJobService] Recovered stale job ${job.id} -> ${status}`);
+        }
+    }
+
     /**
      * Add a new job to the queue
      * @param type - The type of job to execute
@@ -95,11 +109,14 @@ class BackgroundJobService {
                     if (payload && payload.url) {
                         const img = new Image();
                         img.crossOrigin = 'anonymous';
-                        await new Promise<void>((resolve, reject) => {
-                            img.onload = () => resolve();
-                            img.onerror = () => reject(new Error('Failed to load image for auto_edit'));
-                            img.src = payload.url;
-                        });
+                        await Promise.race([
+                            new Promise<void>((resolve, reject) => {
+                                img.onload = () => resolve();
+                                img.onerror = () => reject(new Error('Failed to load image for auto_edit'));
+                                img.src = payload.url;
+                            }),
+                            new Promise<void>((_, reject) => setTimeout(() => reject(new Error('Image load timeout')), 30000))
+                        ]);
                         
                         let imgData: ImageData;
                         const c = document.createElement('canvas');
@@ -137,11 +154,14 @@ class BackgroundJobService {
                             try {
                                 const img = new Image();
                                 img.crossOrigin = 'anonymous';
-                                await new Promise<void>((resolve, reject) => {
-                                    img.onload = () => resolve();
-                                    img.onerror = () => reject(new Error('Failed to load image in batch'));
-                                    img.src = photo.url;
-                                });
+                                await Promise.race([
+                                    new Promise<void>((resolve, reject) => {
+                                        img.onload = () => resolve();
+                                        img.onerror = () => reject(new Error('Failed to load image in batch'));
+                                        img.src = photo.url;
+                                    }),
+                                    new Promise<void>((_, reject) => setTimeout(() => reject(new Error('Image load timeout')), 30000))
+                                ]);
                                 
                                 let imgData: ImageData;
                                 const c = document.createElement('canvas');

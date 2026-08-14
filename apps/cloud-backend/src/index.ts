@@ -104,13 +104,14 @@ export default {
 
         const buffer = await object.arrayBuffer();
 
+        const db = getRegionalDB(env, msg.body.regionId);
         const tags = await analyzeImageWithGemini(
           buffer, 
           msg.body.mimeType || 'image/jpeg', 
-          env.GEMINI_API_KEY
+          env.GEMINI_API_KEY,
+          db
         );
         
-        const db = getRegionalDB(env, msg.body.regionId);
         await db.prepare(`UPDATE photos SET ai_tags = ?, quality_score = ?, curation_status = ? WHERE id = ?`)
           .bind(JSON.stringify(tags), tags.quality_score || null, tags.curation_status || 'PENDING', msg.body.photoId)
           .run();

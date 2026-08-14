@@ -118,41 +118,42 @@ class MediaPipeGestureService {
             return 'PINCH';
         }
 
-        // 2. Check Finger Extensions (tip.y < pip.y in normal upright orientation)
+        // 2. Check Swipe Left / Right via horizontal velocity
+        const now = Date.now();
+        if (this.lastWristX !== null && now - this.lastSwipeTimestamp > 400) {
+            const deltaX = wrist.x - this.lastWristX;
+            if (deltaX < -0.08) {
+                this.lastWristX = wrist.x;
+                this.lastSwipeTimestamp = now;
+                return 'SWIPE_LEFT';
+            }
+            if (deltaX > 0.08) {
+                this.lastWristX = wrist.x;
+                this.lastSwipeTimestamp = now;
+                return 'SWIPE_RIGHT';
+            }
+        }
+        this.lastWristX = wrist.x;
+
+        // 3. Check Finger Extensions (tip.y < pip.y in normal upright orientation)
         const indexExtended = indexTip.y < indexPip.y;
         const middleExtended = middleTip.y < middlePip.y;
         const ringExtended = ringTip.y < ringPip.y;
         const pinkyExtended = pinkyTip.y < pinkyPip.y;
 
-        // 3. Check Thumbs Up (Thumb up, 4 fingers folded)
+        // 4. Check Closed Fist (All fingers curled, thumb curled below mcp)
         const fourFingersCurled = !indexExtended && !middleExtended && !ringExtended && !pinkyExtended;
-        if (fourFingersCurled && thumbTip.y < wrist.y - 0.1) {
-            return 'THUMBS_UP';
-        }
-
-        // 4. Check Closed Fist (All fingers curled)
         if (fourFingersCurled && thumbTip.y >= landmarks[3].y) {
             return 'CLOSED_FIST';
         }
 
-        // 5. Check Swipe Left / Right via horizontal velocity
-        const now = Date.now();
-        if (this.lastWristX !== null && now - this.lastSwipeTimestamp > 400) {
-            const deltaX = wrist.x - this.lastWristX;
-            if (deltaX > 0.15) {
-                this.lastSwipeTimestamp = now;
-                this.lastWristX = wrist.x;
-                return 'SWIPE_RIGHT';
-            } else if (deltaX < -0.15) {
-                this.lastSwipeTimestamp = now;
-                this.lastWristX = wrist.x;
-                return 'SWIPE_LEFT';
-            }
+        // 5. Check Thumbs Up (Thumb extended upwards, 4 fingers folded)
+        if (fourFingersCurled && thumbTip.y < landmarks[3].y && thumbTip.y < wrist.y - 0.1) {
+            return 'THUMBS_UP';
         }
-        this.lastWristX = wrist.x;
 
-        // 6. Open Palm (All 4 fingers extended)
-        if (indexExtended && middleExtended && ringExtended && pinkyExtended) {
+        // 6. Check Open Palm (All 4 fingers + thumb fully extended upwards)
+        if (indexExtended && middleExtended && ringExtended && pinkyExtended && thumbTip.y < wrist.y) {
             return 'OPEN_PALM';
         }
 

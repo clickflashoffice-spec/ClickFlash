@@ -3,21 +3,22 @@ import { logger } from '../utils/logger';
 import { hardwareTriggerService } from './hardwareTriggerService';
 
 class CameraTriggerService {
-    private server: dgram.Socket;
+    private server?: dgram.Socket;
     private readonly PORT = 5555; // Default UDP port for hardware triggers
 
-    constructor() {
-        this.server = dgram.createSocket('udp4');
-        this.setupListeners();
-    }
+    constructor() {}
 
-    private setupListeners() {
-        this.server.on('error', (err) => {
+    private setupListeners(socket: dgram.Socket) {
+        socket.on('error', (err) => {
             logger.error(`[CameraTriggerService] UDP server error:\n${err.stack}`);
-            this.server.close();
+            try {
+                socket.close();
+            } catch {
+                // Ignore if already closed
+            }
         });
 
-        this.server.on('message', (msg, rinfo) => {
+        socket.on('message', (msg, rinfo) => {
             logger.debug(`[CameraTriggerService] Received UDP packet from ${rinfo.address}:${rinfo.port}`);
             
             try {
@@ -31,7 +32,7 @@ class CameraTriggerService {
                      logger.error('[CameraTriggerService] Failed to process hardware trigger', err);
                 });
                 
-            } catch (error) {
+            } catch {
                 // If it's a raw byte trigger (e.g., just 0x01), we can handle it here too.
                 // Fallback for simple byte trigger:
                 if (msg.length === 1 && msg[0] === 0x01) {
@@ -46,14 +47,23 @@ class CameraTriggerService {
             }
         });
 
-        this.server.on('listening', () => {
-            const address = this.server.address();
+        socket.on('listening', () => {
+            const address = socket.address();
             logger.info(`[CameraTriggerService] UDP hardware trigger listener bound to ${address.address}:${address.port}`);
         });
     }
 
     public start(port: number = this.PORT, cb?: () => void) {
         try {
+            if (this.server) {
+                try {
+                    this.server.close();
+                } catch {
+                    // Ignore
+                }
+            }
+            this.server = dgram.createSocket('udp4');
+            this.setupListeners(this.server);
             this.server.bind(port, cb);
         } catch (error) {
             logger.error(`[CameraTriggerService] Failed to bind UDP server on port ${port}`, error);
@@ -62,13 +72,18 @@ class CameraTriggerService {
     }
 
     public stop(cb?: () => void) {
+        if (!this.server) {
+            if (cb) cb();
+            return;
+        }
         try {
-            this.server.close(() => {
+            const s = this.server;
+            this.server = undefined;
+            s.close(() => {
                 logger.info('[CameraTriggerService] UDP server stopped');
                 if (cb) cb();
             });
-        } catch (err) {
-            // Might not be running
+        } catch {
             logger.debug('[CameraTriggerService] Stop called but server was not running');
             if (cb) cb();
         }

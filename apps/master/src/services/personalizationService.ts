@@ -1,4 +1,5 @@
 import { logger } from '../utils/logger';
+import { db } from './db';
 
 interface CustomerEngagement {
     customerEmail: string;
@@ -150,8 +151,36 @@ class PersonalizationService {
                 timestamp: new Date().toISOString()
             });
 
-            // Update engagement score in real-time (Placeholder for DB call)
-            // await db.updateCustomerEngagement(customerEmail, eventType, conversionValue);
+            // Update engagement score in real-time
+            await db.transaction('rw', db.customerEngagements, async () => {
+                let engagement = await db.customerEngagements.get(customerEmail);
+                if (!engagement) {
+                    engagement = {
+                        customerEmail,
+                        totalEmailsSent: 0,
+                        totalOpened: 0,
+                        totalClicked: 0,
+                        totalConverted: 0,
+                        lifetimeValue: 0,
+                        engagementScore: 50,
+                        lastUpdated: Date.now()
+                    };
+                }
+
+                if (eventType === 'sent') engagement.totalEmailsSent++;
+                else if (eventType === 'opened') engagement.totalOpened++;
+                else if (eventType === 'clicked') engagement.totalClicked++;
+                else if (eventType === 'converted') {
+                    engagement.totalConverted++;
+                    if (conversionValue) engagement.lifetimeValue += conversionValue;
+                }
+
+                engagement.engagementScore = this.calculateEngagementScore(engagement);
+                engagement.lastEvent = eventType;
+                engagement.lastUpdated = Date.now();
+
+                await db.customerEngagements.put(engagement);
+            });
 
         } catch (error) {
             logger.error('[Personalization] Failed to track engagement', error);

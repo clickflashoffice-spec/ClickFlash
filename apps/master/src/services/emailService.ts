@@ -1,4 +1,5 @@
 import { logger } from '../utils/logger';
+import { db } from './db';
 
 interface EmailOptions {
     to: string;
@@ -22,10 +23,15 @@ interface CampaignEmail extends EmailOptions {
 class EmailServiceClient {
     private backendUrl = '/api/marketing';
 
+    constructor() {
+        // Run initial flush asynchronously
+        this.flushRetryQueue().catch(err => logger.error('[EmailService] Init flush failed', err));
+    }
+
     /**
      * Send transactional email via backend API
      */
-    async sendTransactional(options: EmailOptions): Promise<boolean> {
+    async sendTransactional(options: EmailOptions, isRetry: boolean = false): Promise<boolean> {
         try {
             const response = await fetch(`${this.backendUrl}/test-email`, {
                 method: 'POST',
@@ -38,6 +44,7 @@ class EmailServiceClient {
             if (!response.ok) {
                 const errorData = await response.json();
                 logger.error('[EmailService] API Error:', errorData);
+                if (!isRetry) await this.queueForRetry(options);
                 return false;
             }
 
@@ -45,7 +52,51 @@ class EmailServiceClient {
             return true;
         } catch (error) {
             logger.error('[EmailService] Network Error:', error);
+            if (!isRetry) await this.queueForRetry(options);
             return false;
+        }
+    }
+
+    private async queueForRetry(payload: EmailOptions): Promise<void> {
+        try {
+            await db.emailRetryQueue.add({
+                payload,
+                retryCount: 0,
+                lastAttempt: Date.now(),
+                status: 'pending'
+            });
+        } catch (err) {
+            logger.error('[EmailService] Failed to queue email for retry', err);
+        }
+    }
+
+    public async flushRetryQueue(): Promise<void> {
+        try {
+            const pending = await db.emailRetryQueue.where({ status: 'pending' }).toArray();
+            for (const record of pending) {
+                if (record.retryCount >= 3) {
+                    await db.emailRetryQueue.update(record.id!, { status: 'failed' });
+                    continue;
+                }
+
+                // Exponential backoff: 1s, 4s, 16s
+                const delay = Math.pow(4, record.retryCount) * 1000;
+                if (Date.now() - record.lastAttempt < delay) {
+                    continue;
+                }
+
+                await db.emailRetryQueue.update(record.id!, {
+                    lastAttempt: Date.now(),
+                    retryCount: record.retryCount + 1
+                });
+
+                const success = await this.sendTransactional(record.payload, true);
+                if (success) {
+                    await db.emailRetryQueue.delete(record.id!);
+                }
+            }
+        } catch (err) {
+            logger.error('[EmailService] Failed to flush email retry queue', err);
         }
     }
 
@@ -82,7 +133,7 @@ class EmailServiceClient {
      * In frontend, we assume backend is configured if API is reachable.
      */
     isConfigured(): boolean {
-        return true;
+        return !!this.backendUrl && this.backendUrl.length > 0;
     }
 }
 

@@ -33,6 +33,8 @@
       "@clickflash/ui/*": ["../../packages/ui/src/*"],
       "@clickflash/ui": ["../../packages/ui/src/index.ts"],
       "@clickflash/types": ["../../packages/types/src/index.ts"],
+      "@clickflash/ai": ["../../packages/ai/src/index.ts"],
+      "@clickflash/ai/*": ["../../packages/ai/src/*"],
       "@clickflash/ai-core": ["../../packages/ai-core/src/index.ts"],
       "@clickflash/ai-core/*": ["../../packages/ai-core/src/*"]
     }

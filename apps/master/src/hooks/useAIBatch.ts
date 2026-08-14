@@ -1,5 +1,6 @@
 import React from 'react';
-import { aiBatchService, AIBatchOperation, BatchJob } from '../services/aiBatchService';
+import { aiBatchService } from '../services/aiBatchService';
+import { AIBatchOperation, BatchJob } from '../services/db';
 import { logger } from '../utils/logger';
 
 export function useAIBatch() {
@@ -8,8 +9,8 @@ export function useAIBatch() {
 
     // Poll for job updates
     React.useEffect(() => {
-        const interval = setInterval(() => {
-            const allJobs = aiBatchService.getAllJobs();
+        const interval = setInterval(async () => {
+            const allJobs = (await aiBatchService.getAllJobs()) as BatchJob[];
             setJobs(allJobs);
             setIsProcessing(allJobs.some(j => j.status === 'processing'));
         }, 1000);

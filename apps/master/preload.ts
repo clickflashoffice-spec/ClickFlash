@@ -24,6 +24,7 @@ function onSignal(channel: string, callback: () => void): Cleanup {
 contextBridge.exposeInMainWorld("electron", {
   isElectron: true,
   platform: process.platform,
+  invoke: (channel: string, ...args: unknown[]) => ipcRenderer.invoke(channel, ...args),
   kiosk: {
     unlock: (pin: string) => ipcRenderer.invoke("kiosk:unlock", pin),
     lock: () => ipcRenderer.invoke("kiosk:lock"),

@@ -9,12 +9,12 @@ const config = getDefaultConfig(projectRoot);
 // ClickFlash that also pulls large desktop build stages into Metro's file map,
 // delaying the dev server before it can bind port 8081. Mobile needs only the
 // shared packages declared in its package.json.
-const mobileWorkspacePackages = ['logger', 'types', 'ui', 'validation'].map(
+const mobileWorkspacePackages = ['ai-core', 'logger', 'types', 'ui', 'validation'].map(
   (packageName) => path.join(workspaceRoot, 'packages', packageName),
 );
 
 config.watchFolders = [
-  path.join(workspaceRoot, 'node_modules'),
+  projectRoot,
   ...mobileWorkspacePackages,
 ];
 config.resolver.nodeModulesPaths = [

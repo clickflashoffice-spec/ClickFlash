@@ -25,9 +25,9 @@ export const AICullingDashboard: React.FC = () => {
             setAlbumPhotos(paginatedPhotos.items);
 
             // Check cache
-            const cached = smartCullingService.getCachedAnalysis(albumId);
+            const cached = await smartCullingService.getCachedAnalysis(albumId);
             if (cached) {
-                setAnalysisResult(cached);
+                setAnalysisResult(cached as CullingAnalysisResult);
             }
         } catch (error) {
             logger.error('Failed to load culling results', error);

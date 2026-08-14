@@ -1,3 +1,6 @@
+import type { D1Database } from '@cloudflare/workers-types';
+import { logAICost } from './ai-cost';
+
 export interface ScoutInsight {
   zoneId: string;
   zoneName: string;
@@ -29,7 +32,8 @@ export interface PricingSuggestion {
  */
 export async function analyzeLocationScoutWithGemini(
   zonesData: any,
-  apiKey: string
+  apiKey: string,
+  db: D1Database
 ): Promise<ScoutInsight[]> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
@@ -89,7 +93,16 @@ Return ONLY a valid JSON array matching this schema:
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error("No text returned from Gemini Scout");
 
-  return JSON.parse(text) as ScoutInsight[];
+  const promptTokens = data.usageMetadata?.promptTokenCount || 0;
+  const completionTokens = data.usageMetadata?.candidatesTokenCount || 0;
+  await logAICost(db, 'analyzeLocationScoutWithGemini', 'gemini-1.5-flash', promptTokens, completionTokens);
+
+  try {
+    const stripped = text.replace(/```json?\n?([\s\S]*?)```/g, '$1').trim();
+    return JSON.parse(stripped) as ScoutInsight[];
+  } catch (e: any) {
+    throw new Error(`Failed to parse Gemini JSON: ${text}`);
+  }
 }
 
 /**
@@ -97,7 +110,8 @@ Return ONLY a valid JSON array matching this schema:
  */
 export async function analyzeFleetManagerWithGemini(
   photographers: any[],
-  apiKey: string
+  apiKey: string,
+  db: D1Database
 ): Promise<ManagerFlag[]> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
@@ -139,7 +153,16 @@ Return ONLY a valid JSON array of objects for flagged photographers matching thi
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error("No text returned from Gemini Manager");
 
-  return JSON.parse(text) as ManagerFlag[];
+  const promptTokens = data.usageMetadata?.promptTokenCount || 0;
+  const completionTokens = data.usageMetadata?.candidatesTokenCount || 0;
+  await logAICost(db, 'analyzeFleetManagerWithGemini', 'gemini-1.5-flash', promptTokens, completionTokens);
+
+  try {
+    const stripped = text.replace(/```json?\n?([\s\S]*?)```/g, '$1').trim();
+    return JSON.parse(stripped) as ManagerFlag[];
+  } catch (e: any) {
+    throw new Error(`Failed to parse Gemini JSON: ${text}`);
+  }
 }
 
 /**
@@ -147,7 +170,8 @@ Return ONLY a valid JSON array of objects for flagged photographers matching thi
  */
 export async function analyzeCEOInsightsWithGemini(
   financialData: any,
-  apiKey: string
+  apiKey: string,
+  db: D1Database
 ): Promise<{ pricingSuggestions: PricingSuggestion[]; executiveSummary: string; forecastAugust: number }> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
@@ -208,5 +232,14 @@ Return ONLY a valid JSON object matching this schema:
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error("No text returned from Gemini CEO");
 
-  return JSON.parse(text) as { pricingSuggestions: PricingSuggestion[]; executiveSummary: string; forecastAugust: number };
+  const promptTokens = data.usageMetadata?.promptTokenCount || 0;
+  const completionTokens = data.usageMetadata?.candidatesTokenCount || 0;
+  await logAICost(db, 'analyzeCEOInsightsWithGemini', 'gemini-1.5-flash', promptTokens, completionTokens);
+
+  try {
+    const stripped = text.replace(/```json?\n?([\s\S]*?)```/g, '$1').trim();
+    return JSON.parse(stripped) as { pricingSuggestions: PricingSuggestion[]; executiveSummary: string; forecastAugust: number };
+  } catch (e: any) {
+    throw new Error(`Failed to parse Gemini JSON: ${text}`);
+  }
 }

@@ -209,3 +209,7 @@ scripts/benchmark-results.json
 # Mobile bundler output and accidental app-local npm locks
 /apps/mobile-*/dist-bundle/
 /apps/mobile-*/package-lock.json
+
+temp_tls_test*
+**/temp_tls_test*
+

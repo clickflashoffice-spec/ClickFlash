@@ -27,10 +27,10 @@ export class PricingEngine {
             multiplier += 0.15; // +15%
         } else if (context.conversionRate > 0.10) {
             multiplier += 0.05; // +5%
-        } else if (context.conversionRate < 0.05) {
-            multiplier -= 0.15; // -15%
         } else if (context.conversionRate < 0.02) {
             multiplier -= 0.25; // -25%
+        } else if (context.conversionRate < 0.05) {
+            multiplier -= 0.15; // -15%
         }
 
         // 2. Time Decay (Days Since Capture)

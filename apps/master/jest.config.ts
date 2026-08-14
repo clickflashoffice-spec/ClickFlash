@@ -16,7 +16,7 @@ const config: Config = {
         '**/src/**/*.test.tsx',
       ],
       moduleNameMapper: {
-        '^(\\.{1,2}/.*)\\.js$': '$1',
+        '^(\\./.*|\\.\\./.*)\\.js$': ['$1.ts', '$1.tsx', '$1.js', '$1'],
         '^@/(.*)$': '<rootDir>/src/$1',
         '^@components/(.*)$': '<rootDir>/src/components/$1',
         '^@services/(.*)$': '<rootDir>/src/services/$1',
@@ -47,7 +47,7 @@ const config: Config = {
         ],
       },
       transformIgnorePatterns: [
-        'node_modules/(?!(lucide-react|framer-motion|uuid|@uuid|@clickflash)/)',
+        '[/\\\\]node_modules[/\\\\](?!(\\.pnpm[/\\\\])?(lucide-react|framer-motion|uuid|@uuid|@clickflash)[/\\\\])',
       ],
       testPathIgnorePatterns: [
         '/node_modules/',
@@ -68,7 +68,7 @@ const config: Config = {
         '**/backend/**/*.test.tsx',
       ],
       moduleNameMapper: {
-        '^(\\.{1,2}/.*)\\.js$': '$1',
+        '^(\\./.*|\\.\\./.*)\\.js$': ['$1.ts', '$1.tsx', '$1.js', '$1'],
         '^@/(.*)$': '<rootDir>/src/$1',
         '^@services/(.*)$': '<rootDir>/src/services/$1',
         '^@utils/(.*)$': '<rootDir>/src/utils/$1',
@@ -95,7 +95,7 @@ const config: Config = {
         ],
       },
       transformIgnorePatterns: [
-        'node_modules/(?!(lucide-react|framer-motion|uuid|@uuid|@clickflash)/)',
+        '[/\\\\]node_modules[/\\\\](?!(\\.pnpm[/\\\\])?(lucide-react|framer-motion|uuid|@uuid|@clickflash)[/\\\\])',
       ],
       testPathIgnorePatterns: [
         '/node_modules/',

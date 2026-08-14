@@ -71,6 +71,7 @@ nsis:
 
 electronVersion: "39.8.7"
 npmRebuild: false
+nodeGypRebuild: false
 asar: true
 
 afterPack: scripts/ensure-native-deps.cjs

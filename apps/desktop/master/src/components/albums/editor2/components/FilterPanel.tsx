@@ -324,7 +324,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
             {expandedSection === sectionKey && (
               <div className={styles.controlsGrid}>
-                {controls.map((control) => (
+                {(controls as any[]).map((control) => (
                   <FilterSlider
                     key={control.key}
                     control={control}

@@ -9,7 +9,7 @@ export class LiveStreamSocket {
      * Initializes the Socket.io WebSocket server attached to the main Express HTTP server.
      */
     initialize(server: HttpServer) {
-        this.io = new Server(server, {
+        this.io = new (Server as any)(server, {
             cors: {
                 origin: '*',
                 methods: ['GET', 'POST']

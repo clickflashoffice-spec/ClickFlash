@@ -60,7 +60,9 @@ export function Uploader({
   const activeUploadsRef = useRef<Set<string>>(new Set());
   
   const workerRef = useRef<Worker | null>(null);
+  const aiWorkerRef = useRef<Worker | null>(null);
   const gradeCallbacks = useRef<Map<string, (result: EdgeAIGradingResult) => void>>(new Map());
+  const aiGradeCallbacks = useRef<Map<string, (result: EdgeAIGradingResult) => void>>(new Map());
 
   useEffect(() => {
     workerRef.current = new Worker(new URL('./workers/grade-worker.ts', import.meta.url), { type: 'module' });
@@ -74,13 +76,28 @@ export function Uploader({
         }
       }
     };
+
+    aiWorkerRef.current = new Worker(new URL('./workers/ai-grade-worker.ts', import.meta.url), { type: 'module' });
+    aiWorkerRef.current.onmessage = (e) => {
+      if (e.data.type === 'AI_GRADE_RESULT') {
+        const { id, result } = e.data;
+        const cb = aiGradeCallbacks.current.get(id);
+        if (cb) {
+          cb(result);
+          aiGradeCallbacks.current.delete(id);
+        }
+      }
+    };
+
     return () => {
       workerRef.current?.terminate();
+      aiWorkerRef.current?.terminate();
     };
   }, []);
 
   // High-Speed Edge AI Settings
   const [enableEdgeAIGrading, setEnableEdgeAIGrading] = useState(true);
+  const [enableCloudAIOverride, setEnableCloudAIOverride] = useState(false);
   const [autoCullRejects, setAutoCullRejects] = useState(true);
   const [concurrentThreads, setConcurrentThreads] = useState(4);
   const [speedThroughput, setSpeedThroughput] = useState('0.0 MB/s');
@@ -188,11 +205,42 @@ export function Uploader({
       if (enableEdgeAIGrading && workerRef.current) {
         updateFile(fileItem.id, { status: 'grading' });
         try {
-          const grading = await new Promise<EdgeAIGradingResult>((resolve) => {
+          let grading = await new Promise<EdgeAIGradingResult>((resolve) => {
             gradeCallbacks.current.set(fileItem.id, resolve);
             workerRef.current!.postMessage({ type: 'GRADE_FILE', file: fileItem.file, id: fileItem.id });
           });
           
+          // Phase 1.5: Cloud AI Grading Override (Laplacian variance override)
+          if (grading.grade === 'REJECT' && enableCloudAIOverride && aiWorkerRef.current) {
+             logger.info(`Sending ${fileItem.file.name} to Cloud AI Override for laplacian variance override...`);
+             const base64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                   const result = reader.result as string;
+                   // strip data url prefix
+                   resolve(result.split(',')[1] || result);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(fileItem.file);
+             });
+
+             const aiGrading = await new Promise<EdgeAIGradingResult>((resolve) => {
+                aiGradeCallbacks.current.set(fileItem.id, resolve);
+                aiWorkerRef.current!.postMessage({
+                   type: 'AI_GRADE_FILE',
+                   imageBase64: base64,
+                   id: fileItem.id,
+                   currentScore: grading.sharpnessScore
+                });
+             });
+             
+             // If the AI rescues the photo, override the grade.
+             if (aiGrading.grade !== 'REJECT') {
+                logger.info(`Cloud AI rescued ${fileItem.file.name}! Grade: ${aiGrading.grade}`);
+                grading = aiGrading;
+             }
+          }
+
           currentItem = { ...fileItem, aiGrading: grading };
           updateFile(fileItem.id, { aiGrading: grading });
 
@@ -210,7 +258,7 @@ export function Uploader({
       updateFile(fileItem.id, { status: 'pending' });
       await uploadFile(currentItem);
     },
-    [enableEdgeAIGrading, autoCullRejects, updateFile, uploadFile]
+    [enableEdgeAIGrading, enableCloudAIOverride, autoCullRejects, updateFile, uploadFile]
   );
 
   const onDrop = useCallback(
@@ -307,6 +355,18 @@ export function Uploader({
             />
             <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
             <span>Auto-Cull Rejects (Blur/Dark)</span>
+          </label>
+
+          <label className="flex items-center gap-2 text-xs font-bold text-white/70 cursor-pointer select-none bg-[#131C31]/80 px-3 py-2 rounded-xl border border-white/20 hover:border-slate-600 transition-colors">
+            <input
+              type="checkbox"
+              checked={enableCloudAIOverride}
+              disabled={!enableEdgeAIGrading}
+              onChange={(e) => setEnableCloudAIOverride(e.target.checked)}
+              className="rounded text-indigo-500 focus:ring-indigo-500 w-4 h-4 bg-[#0B111F] border-white/20 disabled:opacity-40"
+            />
+            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Cloud AI Override (Gemini 2.0)</span>
           </label>
 
           <div className="flex items-center gap-2 bg-[#131C31]/80 px-3 py-1.5 rounded-xl border border-white/20 text-xs font-bold text-white/70">

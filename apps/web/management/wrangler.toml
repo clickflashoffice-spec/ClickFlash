@@ -1,7 +1,0 @@
-name = "clickflash-management"
-compatibility_date = "2024-03-29"
-
-pages_build_output_dir = "./dist"
-
-[env.production]
-name = "clickflash-management-prod"

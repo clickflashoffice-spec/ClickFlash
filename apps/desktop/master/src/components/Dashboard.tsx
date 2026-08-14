@@ -621,7 +621,6 @@ const DashboardComponent: React.FC<DashboardProps> = ({
                               </svg>
                             }
                             color="emerald"
-                            onClick={() => onNavigate("Albums")}
                           />
                           <StatCard
                             title="PTP Tether"
@@ -689,7 +688,7 @@ const DashboardComponent: React.FC<DashboardProps> = ({
         isOpen={isProgressHudOpen}
         progress={pipelineProgress}
         onClose={() => setIsProgressHudOpen(false)}
-        onViewAlbum={(albumId) => onNavigate("Albums", { albumId })}
+        onViewAlbum={(albumId) => onNavigate("Editor", { albumId })}
         onOpenManualEditor={(albumId) => onNavigate("Editor", { albumId })}
       />
     </ErrorBoundary>

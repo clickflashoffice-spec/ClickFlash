@@ -1,125 +1,109 @@
-import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
-import { Platform, Pressable, ScrollView } from 'react-native';
+import { Platform, StyleSheet, View, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { ExternalLink } from '@/components/external-link';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Collapsible } from '@/components/ui/collapsible';
-import { WebBadge } from '@/components/web-badge';
+import { useEffect, useState } from 'react';
+import * as Location from 'expo-location';
 
+// Lazy import MapView because it's not supported on web out of the box
+let MapView: any;
+let Circle: any;
+if (Platform.OS !== 'web') {
+  const Maps = require('react-native-maps');
+  MapView = Maps.default;
+  Circle = Maps.Circle;
+}
 
-export default function TabTwoScreen() {
-
+export default function HotspotsMapScreen() {
   const safeAreaInsets = useSafeAreaInsets();
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
 
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: safeAreaInsets.top,
-      paddingLeft: safeAreaInsets.left,
-      paddingRight: safeAreaInsets.right,
-      paddingBottom: safeAreaInsets.bottom + 85 + 12,
-    },
-    web: {
-      paddingTop: 24,
-      paddingBottom: 16,
-    },
-  });
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        return;
+      }
+      let loc = await Location.getCurrentPositionAsync({});
+      setLocation(loc);
+    })();
+  }, []);
+
+  if (Platform.OS === 'web') {
+    return (
+      <ThemedView style={styles.webFallbackContainer}>
+        <ThemedText type="subtitle">AI Hotspots Map</ThemedText>
+        <ThemedText style={{ marginTop: 16 }}>
+          Interactive maps are currently optimized for native (iOS/Android).
+          Please run in the simulator or on a physical device.
+        </ThemedText>
+      </ThemedView>
+    );
+  }
 
   return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentInset={{
-        ...safeAreaInsets,
-        bottom: safeAreaInsets.bottom + 85 + 12,
-      }}
-      contentContainerStyle={contentPlatformStyle}
-      contentContainerClassName="flex-row justify-center">
-      <ThemedView className="max-w-4xl grow">
-        <ThemedView className="gap-3 items-center px-4 py-6">
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText className="text-center" themeColor="textSecondary">
-            This starter app includes example{'\n'}code to help you get started.
-          </ThemedText>
-
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable className="active:opacity-70">
-              <ThemedView type="backgroundElement" className="flex-row px-4 py-2 rounded-xl justify-center gap-1 items-center">
-                <ThemedText type="link">Expo documentation</ThemedText>
-                <SymbolView
-                  tintColor="currentColor"
-                  name={{ ios: 'arrow.up.right.square', android: 'link', web: 'link' }}
-                  size={12}
-                />
-              </ThemedView>
-            </Pressable>
-          </ExternalLink>
+    <View style={styles.container}>
+      {location ? (
+        <MapView
+          style={styles.map}
+          initialRegion={{
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          }}
+          showsUserLocation={true}
+        >
+          {/* Mock Glowing Zone from AI Hotspot predictions */}
+          <Circle
+            center={{
+              latitude: location.coords.latitude + 0.005,
+              longitude: location.coords.longitude + 0.005,
+            }}
+            radius={300}
+            fillColor="rgba(255, 0, 0, 0.3)"
+            strokeColor="rgba(255, 0, 0, 0.8)"
+          />
+        </MapView>
+      ) : (
+        <ThemedView style={styles.webFallbackContainer}>
+          <ThemedText>Acquiring Location...</ThemedText>
         </ThemedView>
-
-        <ThemedView className="gap-5 px-4 pt-3">
-          <Collapsible title="File-based routing">
-            <ThemedText type="small">
-              This app has two screens: <ThemedText type="code">src/app/index.tsx</ThemedText> and{' '}
-              <ThemedText type="code">src/app/explore.tsx</ThemedText>
-            </ThemedText>
-            <ThemedText type="small">
-              The layout file in <ThemedText type="code">src/app/_layout.tsx</ThemedText> sets up
-              the tab navigator.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/router/introduction">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Android, iOS, and web support">
-            <ThemedView type="backgroundElement" className="items-center">
-              <ThemedText type="small">
-                You can open this project on Android, iOS, and the web. To open the web version,
-                press <ThemedText type="smallBold">w</ThemedText> in the terminal running this
-                project.
-              </ThemedText>
-              <Image
-                source={require('@/assets/images/tutorial-web.png')}
-                className="w-full aspect-[296/171] rounded-xl mt-2"
-              />
-            </ThemedView>
-          </Collapsible>
-
-          <Collapsible title="Images">
-            <ThemedText type="small">
-              For static images, you can use the <ThemedText type="code">@2x</ThemedText> and{' '}
-              <ThemedText type="code">@3x</ThemedText> suffixes to provide files for different
-              screen densities.
-            </ThemedText>
-            <Image source={require('@/assets/images/react-logo.png')} className="w-[100px] h-[100px] self-center" />
-            <ExternalLink href="https://reactnative.dev/docs/images">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Light and dark mode components">
-            <ThemedText type="small">
-              This template has light and dark mode support. The{' '}
-              <ThemedText type="code">useColorScheme()</ThemedText> hook lets you inspect what the
-              user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Animations">
-            <ThemedText type="small">
-              This template includes an example of an animated component. The{' '}
-              <ThemedText type="code">src/components/ui/collapsible.tsx</ThemedText> component uses
-              the powerful <ThemedText type="code">react-native-reanimated</ThemedText> library to
-              animate opening this hint.
-            </ThemedText>
-          </Collapsible>
-        </ThemedView>
-        {Platform.OS === 'web' && <WebBadge />}
+      )}
+      
+      <ThemedView style={[styles.overlay, { top: safeAreaInsets.top + 16 }]}>
+        <ThemedText type="defaultSemiBold">🔥 AI Hotspot Radar</ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">Red zones indicate high conversion probability.</ThemedText>
       </ThemedView>
-    </ScrollView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  map: {
+    width: '100%',
+    height: '100%',
+  },
+  webFallbackContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  overlay: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  }
+});

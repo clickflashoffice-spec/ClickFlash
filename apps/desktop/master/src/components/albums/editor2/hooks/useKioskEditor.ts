@@ -50,7 +50,7 @@ export function useKioskEditor({ albumId, showToast }: UseKioskEditorProps) {
           const kiosk = availableKiosks.find((k) => k.id === kId);
           const name = kiosk?.name || kId;
           try {
-            const res = await kioskService.sendAlbumToKiosk(albumId, kId, undefined, metadataOnly);
+            const res = await kioskService.sendAlbumToKiosk(albumId, kId as string, undefined, metadataOnly);
             return {
               id: kId,
               name,

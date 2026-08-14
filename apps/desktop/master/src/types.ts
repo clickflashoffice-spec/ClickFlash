@@ -1,8 +1,7 @@
 export * from "./types/shared";
 // Re-export UserRole as AppRole for consistency
-import { UserRole, BookingStatus } from "./types/shared";
-export type AppRole = UserRole;
-export type { BookingStatus };
+export type AppRole = 'CEO' | 'Manager' | 'Team Leader' | 'Admin' | 'Photographer';
+export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';
 
 export type Permission = string;
 

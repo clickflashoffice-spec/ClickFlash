@@ -1,7 +1,10 @@
 import { db } from './db';
 import { SearchResult } from '../context/GlobalSearchContext';
 import React from 'react';
-import { Folder, ShoppingCart, User } from 'lucide-react';
+
+const Folder = (props: any) => React.createElement('span', { role: 'img', 'aria-label': 'Folder', ...props }, '📁');
+const ShoppingCart = (props: any) => React.createElement('span', { role: 'img', 'aria-label': 'Order', ...props }, '🛒');
+const User = (props: any) => React.createElement('span', { role: 'img', 'aria-label': 'User', ...props }, '👤');
 
 class SearchService {
     async search(query: string): Promise<SearchResult[]> {

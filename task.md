@@ -1,0 +1,15 @@
+- [x] **Management Hub & Headless Master Architecture**
+  - [x] Remove max pages (`Albums`, `Photographers`, `Studio Editor`) from Master app UI.
+  - [x] Convert Master app into Headless Edge engine.
+  - [x] Create Fotiqo-style KPI Dashboard in Management Hub (`GalleriesView.tsx`).
+  - [x] Implement Live Customer Gallery Preview iframe modal in Management Hub.
+- [ ] **WhatsApp Webhook Verification**
+  - [ ] Connect Ngrok locally.
+  - [ ] Test payload delivery from Meta Webhooks (`test-orchestrator.ts`).
+  - [ ] Verify `AnalystAgent` and `CloserAgent` sequence execution.
+- [ ] **MoneyTrash Mechanism & AI Grading**
+  - [ ] Scaffold `ai-grade-worker.ts` in `apps/desktop/moneytrash`.
+  - [ ] Integrate VLM to bypass mathematical grading for emotional photos.
+- [ ] **Mobile Pro Rust Core Foundation**
+  - [ ] Initialize `clickflash-rust-core`.
+  - [ ] Port sqlite sync/queue logic.

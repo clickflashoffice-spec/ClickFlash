@@ -53,7 +53,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@clickflash/ui': path.resolve(__dirname, '../../packages/ui/src'),
+      '@clickflash/ui': path.resolve(__dirname, '../../../packages/ui/src'),
     },
   },
   server: {

@@ -11,8 +11,8 @@
     "db:init": "wrangler d1 execute management-db --local --file=./schema.sql"
   },
   "dependencies": {
-    "@clickflash/logger": "workspace:*",
     "@clickflash/licensing": "workspace:*",
+    "@clickflash/logger": "workspace:*",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.3",
     "zod": "^4.3.6"
@@ -34,7 +34,7 @@
     "nodemailer": "^9.0.3",
     "stripe": "^20.4.1",
     "ts-jest": "^29.4.6",
-    "tsx": "^4.21.0",
+    "tsx": "^4.23.12",
     "typescript": "^5.7.3",
     "wrangler": "^4.114.0"
   }

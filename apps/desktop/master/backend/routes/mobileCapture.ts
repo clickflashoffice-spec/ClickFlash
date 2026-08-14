@@ -8,6 +8,7 @@ import { DatabaseManager } from "../database/db";
 import { IMPORT_DIR, PORT, UPLOAD_DIR } from "../config/constants";
 import { getOrCreateManagedIdentity } from "../config/tlsIdentityService";
 import { strictRateLimiter } from "../middleware/rateLimiter";
+import { redisCache } from "../services/redisCacheService";
 import {
   EMPTY_SHA256,
   MOBILE_COMMAND_CENTER_RESPONSE_PROTOCOL,
@@ -1242,22 +1243,20 @@ export function mobileCapturePublicRoutes(context: MobileCaptureContext): Router
               upload.idempotencyKey,
             ]
           );
-          context.dbManager.run(
-            `INSERT INTO mobile_capture_processing_queue (
-               id, idempotency_key, asset_sha256, local_path,
-               state, created_at, updated_at
-             )
-             VALUES (?, ?, ?, ?, 'PENDING', ?, ?)
-             ON CONFLICT(idempotency_key) DO NOTHING`,
-            [
-              `${upload.remoteReceiptId}:processing`,
-              upload.idempotencyKey,
-              upload.assetSha256,
-              finalPath,
-              now,
-              now,
-            ]
-          );
+          // We still execute the SQLite update inside the transaction.
+          // But instead of the synchronous queue insert, we publish an event to Redis streams.
+          // This allows autonomous and scalable background workers (moneytrash/cloud) to ingest.
+          redisCache.publishEvent('mobile_capture_processing_queue', {
+            id: `${upload.remoteReceiptId}:processing`,
+            idempotency_key: upload.idempotencyKey,
+            asset_sha256: upload.assetSha256,
+            local_path: finalPath || '',
+            state: 'PENDING',
+            created_at: String(now),
+            updated_at: String(now)
+          }).catch(err => {
+            context.logger.error("[MobileCapture] Redis stream publish failed", { error: err.message });
+          });
         });
         fs.rmSync(upload.tempPath, { force: true });
         context.logger.info("[MobileCapture] Capture committed", {

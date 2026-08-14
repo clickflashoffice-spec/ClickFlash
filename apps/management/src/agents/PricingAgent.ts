@@ -1,16 +1,14 @@
-import { performOfflineReasoning } from "@clickflash/ai/src/llama-cpp-client";
+import { GeminiClient } from "@clickflash/ai";
+
+const aiClient = new GeminiClient({ apiKey: "demo-api-key", model: "gemini-2.0-flash" });
 
 export class PricingAgent {
-  public static async analyzePricing(currentSales: number, occupancyRate: number): Promise<string> {
-    const prompt = `
-      You are an autonomous pricing strategist for a resort photography system.
-      Current Sales: $${currentSales}
-      Resort Occupancy: ${occupancyRate}%
-      
-      Suggest if we should increase, decrease, or maintain the current digital photo pass price, and provide a 1-sentence reason.
-    `;
-
-    // Uses the strictly constrained node-llama-cpp offline model (3 cores)
-    return await performOfflineReasoning(prompt);
+  public static async generate( currentDemand: string, weatherData: string, competitorPricing: string ): Promise<string> {
+    const prompt = `Analyze the current park conditions and recommend a dynamic pricing multiplier (e.g. 1.2x) for photo passes.
+Demand: ${currentDemand}
+Weather: ${weatherData}
+Competitors: ${competitorPricing}`;
+    const response = await aiClient.chat([{ role: "user", content: prompt }]);
+    return response.data || "";
   }
 }

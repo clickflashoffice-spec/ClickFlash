@@ -3,6 +3,7 @@ import express, { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { Worker } from 'worker_threads';
+import archiver from 'archiver';
 import DatabaseManager from '../database/db';
 import { Logger } from '../utils/logger';
 import { signFilePath } from '../utils/signedUrls';
@@ -336,6 +337,131 @@ export default function galleryRoutes(context: GalleryContext) {
         } catch (error: any) {
             logger.error('[Gallery] Failed to generate wallet pass:', error);
             res.status(500).json({ error: 'Failed to generate wallet pass' });
+        }
+    });
+
+    // GET /api/gallery/:albumId/download
+    router.get('/:albumId/download', async (req: Request, res: Response) => {
+        try {
+            const albumId = req.params.albumId as string;
+            const purchased = req.query.purchased === 'true';
+
+            const photos = dbManager.query<{ id: string; url: string }>(
+                'SELECT id, url FROM photos WHERE albumId = ? ORDER BY created_at ASC',
+                [albumId]
+            );
+
+            if (!photos || photos.length === 0) {
+                return res.status(404).json({ error: 'Gallery not found or empty' });
+            }
+
+            res.attachment(`${albumId}-gallery.zip`);
+            const archive = archiver('zip', { zlib: { level: 9 } });
+            archive.pipe(res);
+
+            const watermarkDir = path.join(uploadDir, 'gallery', 'watermarked', albumId);
+            if (!purchased && !fs.existsSync(watermarkDir)) {
+                fs.mkdirSync(watermarkDir, { recursive: true });
+            }
+
+            for (const photo of photos) {
+                let filePath = path.join(uploadDir, photo.url);
+                let fileName = path.basename(photo.url);
+
+                if (!purchased) {
+                    const result = await processWatermark(photo, watermarkDir, {}, uploadDir);
+                    filePath = path.join(uploadDir, result.watermarkUrl);
+                    fileName = `${photo.id}_watermarked.webp`;
+                }
+
+                if (fs.existsSync(filePath)) {
+                    archive.file(filePath, { name: fileName });
+                }
+            }
+
+            await archive.finalize();
+
+        } catch (error: any) {
+            logger.error('[Gallery] Full download error:', error);
+            if (!res.headersSent) {
+                res.status(500).json({ error: error.message });
+            }
+        }
+    });
+
+    // POST /api/gallery/download-selected
+    router.post('/download-selected', async (req: Request, res: Response) => {
+        try {
+            const { photoIds, purchased } = req.body;
+            if (!photoIds || !Array.isArray(photoIds) || photoIds.length === 0) {
+                return res.status(400).json({ error: 'photoIds array is required' });
+            }
+
+            const placeholders = photoIds.map(() => '?').join(',');
+            const photos = dbManager.query<{ id: string; url: string; albumId: string }>(
+                `SELECT id, url, albumId FROM photos WHERE id IN (${placeholders})`,
+                photoIds
+            );
+
+            if (!photos || photos.length === 0) {
+                return res.status(404).json({ error: 'Photos not found' });
+            }
+
+            res.attachment(`selected-photos.zip`);
+            const archive = archiver('zip', { zlib: { level: 9 } });
+            archive.pipe(res);
+
+            for (const photo of photos) {
+                let filePath = path.join(uploadDir, photo.url);
+                let fileName = path.basename(photo.url);
+
+                if (!purchased) {
+                    const watermarkDir = path.join(uploadDir, 'gallery', 'watermarked', photo.albumId);
+                    if (!fs.existsSync(watermarkDir)) {
+                        fs.mkdirSync(watermarkDir, { recursive: true });
+                    }
+                    const result = await processWatermark(photo, watermarkDir, {}, uploadDir);
+                    filePath = path.join(uploadDir, result.watermarkUrl);
+                    fileName = `${photo.id}_watermarked.webp`;
+                }
+
+                if (fs.existsSync(filePath)) {
+                    archive.file(filePath, { name: fileName });
+                }
+            }
+
+            await archive.finalize();
+        } catch (error: any) {
+            logger.error('[Gallery] Selected download error:', error);
+            if (!res.headersSent) {
+                res.status(500).json({ error: error.message });
+            }
+        }
+    });
+
+    // POST /api/gallery/watermark
+    router.post('/watermark', async (req: Request, res: Response) => {
+        try {
+            const { imageUrl } = req.body;
+            if (!imageUrl) return res.status(400).json({ error: 'imageUrl required' });
+            res.json({ watermarkedUrl: `${imageUrl}?watermarked=true` });
+        } catch (error: any) {
+            logger.error('[Gallery] Watermark error:', error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    // GET /api/gallery/:albumId/share-link
+    router.get('/:albumId/share-link', async (req: Request, res: Response) => {
+        try {
+            const { albumId } = req.params;
+            const { platform } = req.query;
+            const baseUrl = 'https://gallery.clickflash.app';
+            const shareUrl = `${baseUrl}/gallery/${albumId}?utm_source=share&utm_medium=${platform}`;
+            res.json({ shareUrl });
+        } catch (error: any) {
+            logger.error('[Gallery] Share link error:', error);
+            res.status(500).json({ error: error.message });
         }
     });
 

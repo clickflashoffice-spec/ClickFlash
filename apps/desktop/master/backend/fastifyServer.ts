@@ -99,6 +99,32 @@ async function buildServer() {
     timestamp: new Date().toISOString(),
   }));
 
+  // Native Fastify AI Ingestion Pipeline endpoint
+  fastify.post("/api/ai/pipeline/run", async (request, reply) => {
+    try {
+      const body = request.body as any;
+      const { photoId, base64Image, autoEnhance, removeBg, upscaleFactor, extractPalette } = body;
+
+      if (!base64Image) {
+        return reply.status(400).send({ error: "base64Image is required" });
+      }
+
+      const { aiPipelineOrchestrator } = await import("./services/aiPipelineOrchestrator");
+      const buffer = Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ""), "base64");
+      const result = await aiPipelineOrchestrator.processPhoto(buffer, {
+        photoId: photoId || `photo_${Date.now()}`,
+        autoEnhance,
+        removeBg,
+        upscaleFactor,
+        extractPalette,
+      });
+
+      return reply.status(200).send(result);
+    } catch (err: any) {
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
   // 3. Register Express compatibility layer for existing routes
   await fastify.register(fastifyExpress);
 
@@ -133,6 +159,22 @@ async function buildServer() {
     logger.error("Failed to init MQTT Publisher", err)
   );
   YjsWebsocketServer.initialize(rawServer, "/yjs");
+
+  // Initialize WebRTC Signaling Server for spontaneous video check-ins
+  const { WebRTCSignalingServer } = await import("./services/webrtcSignaling");
+  new WebRTCSignalingServer(rawServer as any);
+
+  // Initialize self-hosted GlitchTip error tracking
+  const { glitchtipService } = await import("./services/glitchtipService");
+  glitchtipService.initialize().catch((err) =>
+    logger.warn("[Fastify] GlitchTip init non-fatal warning", err)
+  );
+
+  // Initialize SuperTokens authentication bridge
+  const { supertokensService } = await import("./services/supertokensService");
+  supertokensService.initialize().catch((err) =>
+    logger.warn("[Fastify] SuperTokens init non-fatal warning", err)
+  );
 
   // 5. Metrics broadcast
   const metricsTimer = setInterval(() => {

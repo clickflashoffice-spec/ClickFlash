@@ -1,8 +1,25 @@
 
 import JSZip from 'jszip';
-import pLimit from 'p-limit';
 import { photoService, getPhotoUrl } from './api/photoService';
 import { logger } from '../utils/logger';
+
+function pLimit(concurrency: number) {
+  const queue: Array<() => void> = [];
+  let active = 0;
+  const next = () => {
+    active--;
+    if (queue.length > 0) queue.shift()!();
+  };
+  return <T>(fn: () => Promise<T>): Promise<T> =>
+    new Promise<T>((resolve, reject) => {
+      const run = () => {
+        active++;
+        fn().then(resolve, reject).finally(next);
+      };
+      if (active < concurrency) run();
+      else queue.push(run);
+    });
+}
 
 export interface DownloadProgress {
     total: number;

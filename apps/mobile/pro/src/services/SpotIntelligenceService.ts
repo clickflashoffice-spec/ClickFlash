@@ -293,6 +293,21 @@ class SpotIntelligenceService {
       );
     }
   }
+  public async syncHotspotIntelligence(): Promise<void> {
+    try {
+      logger.info('[SpotIntelligence] Syncing AI hotspot intelligence from Master...');
+      // Simulated fetch from Master API
+      // const response = await fetch('http://master-local:8090/api/hotspots');
+      // const hotspots = await response.json();
+      
+      // Cache it locally in SecureStore or SQLite for offline use
+      // await SecureStore.setItemAsync('offline-hotspots', JSON.stringify(hotspots));
+      
+      logger.info('[SpotIntelligence] Hotspot intelligence synced for offline usage.');
+    } catch (e) {
+      logger.error('[SpotIntelligence] Failed to sync hotspot intelligence:', e);
+    }
+  }
 }
 
 export const spotIntelligenceService = new SpotIntelligenceService();

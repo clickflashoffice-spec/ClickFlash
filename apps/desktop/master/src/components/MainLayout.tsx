@@ -14,10 +14,7 @@ import Header from "./Header";
 import Orders from "./Orders";
 // Lazy load components
 const Dashboard = lazy(() => import("./Dashboard"));
-const Albums = lazy(() => import("./albums/Albums"));
-const Photographers = lazy(() => import("./Photographers"));
 const SettingsPage = lazy(() => import("./settings/SettingsPage"));
-const Bookings = lazy(() => import("./bookings/Bookings"));
 const PrintLayout = lazy(() => import("./orders/PrintLayout"));
 const CustomerReceipt = lazy(() => import("./orders/CustomerReceipt"));
 const OrderManagementView = lazy(() => import("./orders/OrderManagementView"));
@@ -450,24 +447,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     </DashboardErrorBoundary>
                     )
                   } />
-                  <Route path="albums" element={
-                    !can("viewAlbums") ? (
-                      <AccessDenied
-                        permission="viewAlbums"
-                        role={currentUser.role}
-                        page="Albums"
-                      />
-                    ) : (
-                    <AlbumErrorBoundary>
-                      <Albums
-                        showToast={showToast}
-                        currentUser={currentUser}
-                        isOnline={isOnline}
-                        refreshTrigger={effectiveRefreshTrigger}
-                      />
-                    </AlbumErrorBoundary>
-                    )
-                  } />
+
                   <Route path="editor" element={
                     !can("viewAlbums") ? (
                       <AccessDenied
@@ -493,22 +473,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                       />
                     )
                   } />
-                  <Route path="bookings" element={
-                    !can("viewBookings") ? (
-                      <AccessDenied
-                        permission="viewBookings"
-                        role={currentUser.role}
-                        page="Bookings"
-                      />
-                    ) : (
-                    <FeatureErrorBoundary feature="Bookings" severity="medium">
-                      <Bookings
-                        showToast={showToast}
-                        refreshTrigger={effectiveRefreshTrigger}
-                      />
-                    </FeatureErrorBoundary>
-                    )
-                  } />
+
                   <Route path="orders" element={
                     !can("viewOrders") ? (
                       <AccessDenied
@@ -543,24 +508,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     )
                   } />
 
-                  <Route path="photographers" element={
-                    !can("viewPhotographers") ? (
-                      <AccessDenied
-                        permission="viewPhotographers"
-                        role={currentUser.role}
-                        page="Photographers"
-                      />
-                    ) : (
-                    <FeatureErrorBoundary feature="Photographers" severity="medium">
-                      <Photographers
-                        currentUser={currentUser}
-                        photographers={dashboardData?.photographers || []}
-                        orders={dashboardData?.orders || []}
-                        refreshData={refreshData}
-                      />
-                    </FeatureErrorBoundary>
-                    )
-                  } />
+
                   <Route path="settings" element={
                     !can("viewSettings") ? (
                       <AccessDenied

@@ -381,7 +381,7 @@ const DatabaseManagement: React.FC = () => {
                       {table}
                     </span>
                     <span className="text-xs font-black text-slate-900 dark:text-white">
-                      {count >= 0 ? count.toLocaleString() : "N/A"}
+                      {(count as number) >= 0 ? (count as number).toLocaleString() : "N/A"}
                     </span>
                   </div>
                 ))}

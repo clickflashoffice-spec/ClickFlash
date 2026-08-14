@@ -182,22 +182,53 @@ export class FaceIndexingWorker {
       return;
     }
 
-    // 4. Run face detection via FaceService worker
-    const analysis = await faceService.analyzeImage(filePath);
+    // 4. Run face detection via InsightFace 512D endpoint with fallback to local FaceService worker
+    let detectedFaces: Array<{ descriptor: number[]; box?: any }> = [];
 
-    if (!analysis || !analysis.faces || analysis.faces.length === 0) {
+    try {
+      const fs = await import("fs");
+      const axios = (await import("axios")).default;
+      const fileBuffer = fs.readFileSync(filePath);
+      const formData = new FormData();
+      const blob = new Blob([fileBuffer], { type: "image/jpeg" });
+      formData.append("file", blob, path.basename(filePath));
+
+      const aiWorkerUrl = process.env.AI_WORKER_URL || "http://localhost:8000";
+      const response = await axios.post(`${aiWorkerUrl}/api/ai/face/detect-all`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        timeout: 5000,
+      });
+
+      if (response.data?.faces && Array.isArray(response.data.faces)) {
+        detectedFaces = response.data.faces.map((f: any) => ({
+          descriptor: f.embedding,
+          box: f.bbox
+            ? { x: f.bbox[0], y: f.bbox[1], width: f.bbox[2] - f.bbox[0], height: f.bbox[3] - f.bbox[1] }
+            : undefined,
+        }));
+      }
+    } catch {
+      // Fallback to local FaceService ONNX worker
+      const analysis = await faceService.analyzeImage(filePath);
+      if (analysis?.faces && analysis.faces.length > 0) {
+        detectedFaces = analysis.faces.map((f) => ({
+          descriptor: Array.from(f.descriptor),
+          box: f.box,
+        }));
+      }
+    }
+
+    if (detectedFaces.length === 0) {
       // No faces detected — still mark as completed (not an error)
       return;
     }
 
     // 5. Store each face descriptor in photo_faces and add to vector index
-    for (let i = 0; i < analysis.faces.length; i++) {
-      const face = analysis.faces[i];
+    for (let i = 0; i < detectedFaces.length; i++) {
+      const face = detectedFaces[i];
       const faceId = `${item.photoId}_face_${i}`;
-      const descriptorJson = JSON.stringify(Array.from(face.descriptor));
-      const boxJson = face.box
-        ? JSON.stringify(face.box)
-        : null;
+      const descriptorJson = JSON.stringify(face.descriptor);
+      const boxJson = face.box ? JSON.stringify(face.box) : null;
 
       this.dbManager.run(
         `INSERT OR IGNORE INTO photo_faces (id, photoId, descriptor, box, createdAt)
@@ -206,15 +237,11 @@ export class FaceIndexingWorker {
       );
 
       // 6. Add to VP-Tree index for fast search
-      this.vectorIndex.addFace(
-        item.photoId,
-        faceId,
-        Array.from(face.descriptor),
-      );
+      this.vectorIndex.addFace(item.photoId, faceId, face.descriptor);
     }
 
     this.logger.info(
-      `[FaceIndexingWorker] Indexed ${analysis.faces.length} face(s) for photo ${item.photoId}`,
+      `[FaceIndexingWorker] Indexed ${detectedFaces.length} face(s) for photo ${item.photoId}`,
     );
   }
 

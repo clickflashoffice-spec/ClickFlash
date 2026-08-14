@@ -11,8 +11,8 @@
     "dev:renderer": "vite",
     "dev:electron": "tsc -p tsconfig.electron.json --watch",
     "build": "pnpm run build:renderer && pnpm run build:electron",
-    "build:renderer": "node ../../node_modules/vite/bin/vite.js build",
-    "build:electron": "tsc -p tsconfig.electron.json --noEmit && node ../../node_modules/esbuild/bin/esbuild src/main.ts src/preload.ts --bundle --platform=node --target=node20 --format=cjs --outdir=dist --external:electron --minify --tsconfig=tsconfig.electron.json",
+    "build:renderer": "vite build",
+    "build:electron": "tsc -p tsconfig.electron.json --noEmit && esbuild src/main.ts src/preload.ts --bundle --platform=node --target=node20 --format=cjs --outdir=dist --external:electron --minify --tsconfig=tsconfig.electron.json",
     "package": "pnpm run build && npx electron-builder",
     "package:win": "pnpm run build && npx electron-builder --win",
     "test": "vitest run --pool=forks",
@@ -37,7 +37,7 @@
     "electron-builder": "26.15.7",
     "esbuild": "^0.27.4",
     "typescript": "^5.7.0",
-    "vite": "^6.4.3",
+    "vite": "^7.3.6",
     "vitest": "^4.1.10",
     "zod": "^4.1.13"
   }

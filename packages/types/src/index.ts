@@ -70,6 +70,24 @@ export interface BaseRecord {
 // USER & IDENTITY
 // =============================================================================
 
+export interface Guest extends BaseRecord {
+  name?: string;
+  email?: string;
+  phone?: string;
+  whatsappOptIn?: boolean;
+  faceDescriptor?: string;  // 128D float array stored as JSON string or binary string for InsightFace
+  faceVector?: number[];    // Parsed float array
+  rfidTag?: string;
+  status?: 'Active' | 'Inactive';
+}
+
+export interface GuestCreateInput {
+  name?: string;
+  email?: string;
+  phone?: string;
+  faceDescriptor?: string;
+}
+
 
 export const PayrollTypeSchema = z.enum(['Salary', 'Commission']);
 export type PayrollType = z.infer<typeof PayrollTypeSchema>;
@@ -180,6 +198,18 @@ export interface PhotoMetadata {
 export type CullingStatus = 'Selected' | 'Rejected' | 'Pending';
 export type ProofingStatus = 'pending' | 'approved' | 'rejected';
 
+export type AnomalySeverity = 'Low' | 'Medium' | 'High' | 'Critical';
+
+export interface AnomalyEvent extends BaseRecord {
+  photographerId: string | number;
+  type: 'Idle' | 'LocationSpoof' | 'ExcessiveVoids' | 'CashUnderTable' | 'BuddyPunching';
+  severity: AnomalySeverity;
+  timestamp: string;
+  spotId?: string;
+  details?: Record<string, unknown>;
+  resolved?: boolean;
+}
+
 /**
  * ClickFlash Photo Model
  * Standardized for Master, Touch, and Cloud ecosystem.
@@ -187,6 +217,7 @@ export type ProofingStatus = 'pending' | 'approved' | 'rejected';
 export interface Photo extends BaseRecord , ValidationPhoto{
   id: string;
   albumId: string;
+  spotId?: string;
   url: string;
   watermarkUrl?: string; // Mandate
   originalUrl?: string;
@@ -835,15 +866,15 @@ export const ImageEditRecipeV1Schema = z.object({
   provenance: z.object({
     authorId: IdentityIdSchema,
     engineVersion: z.string().trim().min(1),
-    modelVersions: z.record(z.string()).optional(),
-    profileVersions: z.record(z.string()).optional(),
+    modelVersions: z.record(z.string(), z.string()).optional(),
+    profileVersions: z.record(z.string(), z.string()).optional(),
     confidence: z.number().min(0).max(1).optional(),
     timestamp: IsoDateTimeSchema,
     generator: z.enum(['MANUAL', 'AI', 'SYSTEM']),
   }).strict(),
   source: z.object({
     fileHash: z.string().trim().min(1),
-    derivativeHashes: z.record(z.string()).optional(),
+    derivativeHashes: z.record(z.string(), z.string()).optional(),
     width: NonNegativeSafeIntegerSchema,
     height: NonNegativeSafeIntegerSchema,
   }).strict(),

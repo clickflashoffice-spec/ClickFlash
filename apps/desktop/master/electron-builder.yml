@@ -50,7 +50,6 @@ win:
     - target: nsis
       arch:
         - x64
-  icon: build/icon.ico
   requestedExecutionLevel: requireAdministrator
   signAndEditExecutable: false
 
@@ -64,8 +63,6 @@ nsis:
   perMachine: true
   include: build/installer.nsh
   deleteAppDataOnUninstall: false
-  installerIcon: build/icon.ico
-  uninstallerIcon: build/icon.ico
   uninstallDisplayName: ClickFlash Master OS
   warningsAsErrors: false
 

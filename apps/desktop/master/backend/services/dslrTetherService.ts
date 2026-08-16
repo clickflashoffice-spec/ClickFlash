@@ -8,6 +8,7 @@ class DslrTetherService {
     private tetherProcess: ChildProcess | null = null;
     private isRunning: boolean = false;
     private platform: NodeJS.Platform;
+    private sdCardRemoved: boolean = false;
 
     constructor() {
         this.platform = process.platform;
@@ -70,6 +71,11 @@ class DslrTetherService {
             const output = data.toString();
             logger.debug(`[gphoto2] ${output.trim()}`);
             
+            if (output.includes('PTP Store Not Available') || output.includes('Card removed')) {
+                this.sdCardRemoved = true;
+                logger.warn('[DslrTether] SD Card removed during shift detected via gphoto2');
+            }
+
             // Note: Since gphoto2 writes directly to IMPORT_DIR, the existing 
             // folderMonitor.ts will automatically pick up the new file and 
             // pass it to PhotoProcessor. No manual DB insertion needed here.
@@ -118,7 +124,13 @@ class DslrTetherService {
         ]);
 
         this.tetherProcess.stdout?.on("data", (data) => {
-            logger.debug(`[digiCamControl] ${data.toString().trim()}`);
+            const output = data.toString();
+            logger.debug(`[digiCamControl] ${output.trim()}`);
+
+            if (output.includes('CardRemoved') || output.includes('No storage media')) {
+                this.sdCardRemoved = true;
+                logger.warn('[DslrTether] SD Card removed during shift detected via digiCamControl');
+            }
         });
 
         this.tetherProcess.stderr?.on("data", (data) => {
@@ -134,6 +146,14 @@ class DslrTetherService {
                 }, 5000);
             }
         });
+    }
+
+    public hasSdCardRemoved(): boolean {
+        return this.sdCardRemoved;
+    }
+
+    public resetTamperFlags(): void {
+        this.sdCardRemoved = false;
     }
 }
 

@@ -27,12 +27,19 @@ export class PtpIpTransportUnavailableError extends Error {
 export class PtpIpClient {
   private commandSocket: PtpIpSocket | null = null;
   private eventSocket: PtpIpSocket | null = null;
+  private readonly host: string;
+  private readonly port: number;
+  private readonly createSocket?: PtpIpSocketFactory;
 
   constructor(
-    private readonly host = '192.168.1.1',
-    private readonly port = 15740,
-    private readonly createSocket?: PtpIpSocketFactory
-  ) {}
+    host = '192.168.1.1',
+    port = 15740,
+    createSocket?: PtpIpSocketFactory
+  ) {
+    this.host = host;
+    this.port = port;
+    this.createSocket = createSocket;
+  }
 
   connect(): Promise<void> {
     if (!this.createSocket) {

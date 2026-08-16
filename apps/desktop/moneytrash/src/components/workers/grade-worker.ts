@@ -19,6 +19,7 @@ export interface WorkerGradeRequest {
   type: 'GRADE_FILE';
   file: File;
   id: string;
+  brisqueScore?: number | null;
 }
 
 export interface WorkerGradeResponse {
@@ -31,9 +32,9 @@ const MAX_RAW_BYTES = 256 * 1024 * 1024;
 
 self.onmessage = async (event: MessageEvent<WorkerGradeRequest>) => {
   if (event.data.type !== 'GRADE_FILE') return;
-  const { file, id } = event.data;
+  const { file, id, brisqueScore } = event.data;
   try {
-    const result = await performLocalEdgeAIGrading(file);
+    const result = await performLocalEdgeAIGrading(file, brisqueScore);
     self.postMessage({ type: 'GRADE_RESULT', id, result } satisfies WorkerGradeResponse);
   } catch (error: unknown) {
     self.postMessage({
@@ -76,6 +77,7 @@ async function decodeBitmap(file: File): Promise<ImageBitmap> {
 
 export async function performLocalEdgeAIGrading(
   file: File,
+  brisqueScore?: number | null
 ): Promise<EdgeAIGradingResult> {
   const bitmap = await decodeBitmap(file);
   const scale = Math.min(1, 512 / bitmap.width);
@@ -104,25 +106,36 @@ export async function performLocalEdgeAIGrading(
   }
 
   const { bounds, skinPixels } = findSkinBounds(rgba, width, height);
-  const roiWidth = Math.max(0, bounds.endX - bounds.startX);
-  const roiHeight = Math.max(0, bounds.endY - bounds.startY);
-  const roiPixels = new Uint8Array(roiWidth * roiHeight);
-  for (let y = 0; y < roiHeight; y++) {
-    const sourceStart = (bounds.startY + y) * width + bounds.startX;
-    roiPixels.set(grayscale.subarray(sourceStart, sourceStart + roiWidth), y * roiWidth);
-  }
-  const wasmVariance = await calculateWasmLaplacianVariance(
-    roiPixels,
-    roiWidth,
-    roiHeight,
-  );
-  const laplacianVariance =
-    wasmVariance ?? calculateLaplacianVariance(grayscale, width, height, bounds);
   const totalPixels = width * height;
-  const sharpnessScore = Math.min(
-    99,
-    Math.max(10, Math.floor(laplacianVariance / 12)),
-  );
+  
+  let sharpnessScore = 0;
+  
+  if (brisqueScore != null) {
+    // If BRISQUE score is provided, use it directly as the sharpness/quality score
+    sharpnessScore = Math.min(100, Math.max(0, Math.floor(brisqueScore)));
+  } else {
+    // Fallback to legacy Laplacian Variance
+    const roiWidth = Math.max(0, bounds.endX - bounds.startX);
+    const roiHeight = Math.max(0, bounds.endY - bounds.startY);
+    const roiPixels = new Uint8Array(roiWidth * roiHeight);
+    for (let y = 0; y < roiHeight; y++) {
+      const sourceStart = (bounds.startY + y) * width + bounds.startX;
+      roiPixels.set(grayscale.subarray(sourceStart, sourceStart + roiWidth), y * roiWidth);
+    }
+    const wasmVariance = await calculateWasmLaplacianVariance(
+      roiPixels,
+      roiWidth,
+      roiHeight,
+    );
+    const laplacianVariance =
+      wasmVariance ?? calculateLaplacianVariance(grayscale, width, height, bounds);
+      
+    sharpnessScore = Math.min(
+      99,
+      Math.max(10, Math.floor(laplacianVariance / 12)),
+    );
+  }
+
   const clippedRatio = (underExposedPixels + overExposedPixels) / totalPixels;
   const exposureScore = Math.min(
     99,

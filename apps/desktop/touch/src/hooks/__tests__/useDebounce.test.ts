@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 /**
  * Unit Tests for useDebounce Hook
  */

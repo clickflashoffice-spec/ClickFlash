@@ -1,4 +1,5 @@
 import { BrowserLogger, LogMeta } from "@clickflash/logger";
+import { AppError, ErrorCode } from "@clickflash/errors";
 
 const logger = new BrowserLogger("clickflash-api");
 
@@ -63,7 +64,7 @@ export class ConnectionManager {
           }
         }
 
-        throw new Error(`API Error ${response.status}: ${await response.text()}`);
+        throw new AppError(`API Error ${response.status}: ${await response.text()}`, ErrorCode.NETWORK_ERROR);
       }
 
       return response.json() as Promise<T>;
@@ -104,7 +105,7 @@ export class ConnectionManager {
 }
 
 export const api = new ConnectionManager(
-  typeof window !== "undefined" ? window.location.origin : "http://localhost:8090"
+  typeof window !== "undefined" ? window.location.origin : (process.env.CLICKFLASH_API_URL || "http://localhost:8090")
 );
 
 export class SSEManager {

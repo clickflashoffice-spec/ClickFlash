@@ -4,6 +4,7 @@ import type React from 'react';
 import { memo, forwardRef } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { logger } from '@clickflash/logger';
 
 type ButtonVariant = 
   | 'primary' 
@@ -104,7 +105,7 @@ export const Button = memo(
     ) => {
       // Enforce mandatory aria-label for icon-only buttons
       if (size === 'icon' && !props['aria-label'] && !props['aria-labelledby']) {
-        console.warn('Accessibility Error: Icon-only buttons must provide an `aria-label` for screen readers.');
+        logger.warn('Accessibility Error: Icon-only buttons must provide an `aria-label` for screen readers.');
       }
 
       const baseStyles = `

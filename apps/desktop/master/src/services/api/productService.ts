@@ -8,6 +8,8 @@ import { pb } from '../pb';
 import { PocketRecord } from '../pbTypes';
 import { Product } from '../../types';
 import { logger } from '@/utils/logger';
+import { yieldPricingService } from '@clickflash/utils';
+import type { YieldPricingConfig } from '@clickflash/types';
 
 export const productService = {
     /**
@@ -15,14 +17,34 @@ export const productService = {
      */
     async getProducts(): Promise<Product[]> {
         const records = await pb.collection('products').getFullList();
-        return records.map((r: PocketRecord) => ({
-            id: r.id,
-            name: r.name,
-            description: r.description || '',
-            price: r.price,
-            category: r.category || '',
-            type: r.type || 'output'
-        }));
+
+        const dummyConfig: YieldPricingConfig = {
+            destinationId: 'default',
+            basePrice: 1.0,
+            minPrice: 0.5,
+            maxPrice: 2.0,
+            algorithm: 'surge',
+            rules: {
+                crowdDensityMultiplier: { 'High': 1.15, 'Low': 0.90 }
+            },
+            isActive: true
+        };
+        const yieldMultiplier = yieldPricingService.evaluateYield(dummyConfig, { crowdDensity: 'Medium' });
+
+        return records.map((r: PocketRecord) => {
+            const basePrice = Number(r.price) || 0;
+            const dynamicPrice = Math.round((basePrice * yieldMultiplier) * 100) / 100;
+            return {
+                id: r.id,
+                name: r.name,
+                description: r.description || '',
+                price: dynamicPrice,
+                category: r.category || '',
+                type: r.type || 'output',
+                basePrice: basePrice,
+                yieldMultiplier: yieldMultiplier
+            };
+        });
     },
 
     /**

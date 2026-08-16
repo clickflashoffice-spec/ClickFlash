@@ -106,5 +106,56 @@ export default function settingsRoutes(context: any): Router {
         }
     });
 
+    // Get all system settings
+    router.get("/", authMiddleware as any, (_req: Request, res: Response) => {
+        try {
+            const rows = dbManager.all("SELECT key, value FROM settings");
+            const settings = rows.reduce((acc: Record<string, any>, row: any) => {
+                try {
+                    acc[row.key] = JSON.parse(row.value);
+                } catch {
+                    acc[row.key] = row.value;
+                }
+                return acc;
+            }, {});
+            res.json({ success: true, settings });
+        } catch (error) {
+            logger.error("[Settings] Failed to get system settings", error);
+            res.status(500).json({ success: false, error: "Internal Server Error" });
+        }
+    });
+
+    // Update system settings (merge)
+    router.post("/", authMiddleware as any, requireRole(['admin', 'manager']), (req: Request, res: Response) => {
+        try {
+            const { settings } = req.body;
+            if (!settings || typeof settings !== 'object') {
+                return res.status(400).json({ success: false, error: "Invalid settings payload" });
+            }
+
+            const now = new Date().toISOString();
+            dbManager.run("BEGIN TRANSACTION");
+
+            for (const [key, value] of Object.entries(settings)) {
+                const strValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+                const existing = dbManager.get("SELECT id FROM settings WHERE key = ?", [key]);
+                
+                if (existing) {
+                    dbManager.run("UPDATE settings SET value = ?, updated_at = ? WHERE key = ?", [strValue, now, key]);
+                } else {
+                    dbManager.run("INSERT INTO settings (key, value, created_at, updated_at) VALUES (?, ?, ?, ?)", [key, strValue, now, now]);
+                }
+            }
+
+            dbManager.run("COMMIT");
+            logger.info("[Settings] System settings updated successfully");
+            res.json({ success: true, message: "Settings saved successfully" });
+        } catch (error) {
+            dbManager.run("ROLLBACK");
+            logger.error("[Settings] Failed to save system settings", error);
+            res.status(500).json({ success: false, error: "Internal Server Error" });
+        }
+    });
+
     return router;
 }

@@ -44,8 +44,8 @@ async function reset() {
 
     // 2. Clear localized data
     const dataDirs = [
-        path.join(BASE_DIR, 'apps/master/pb_data'),
-        path.join(BASE_DIR, 'apps/touch/pb_data'),
+        path.join(BASE_DIR, 'apps/desktop/master/pb_data'),
+        path.join(BASE_DIR, 'apps/desktop/touch/pb_data'),
         path.join(BASE_DIR, 'apps/management/pb_data'), // If exists
     ];
 
@@ -64,9 +64,9 @@ async function reset() {
 
     // 3. Environment Variable Sanity Check
     console.log('Verifying .env files...');
-    const masterEnv = path.join(BASE_DIR, 'apps/master/.env');
+    const masterEnv = path.join(BASE_DIR, 'apps/desktop/master/.env');
     if (!fs.existsSync(masterEnv)) {
-        console.error('FATAL: apps/master/.env is missing! Tests will fail.');
+        console.error('FATAL: apps/desktop/master/.env is missing! Tests will fail.');
         process.exit(1);
     }
 

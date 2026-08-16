@@ -5,6 +5,10 @@ import * as SecureStore from 'expo-secure-store';
 import { getDatabase } from '@/backend/database';
 import { logger } from '@/utils/logger';
 
+import { networkRoutingService } from './NetworkRoutingService';
+import { RustCore } from '../../modules/clickflash-rust-core';
+import type { DispatchNotification } from '@clickflash/types';
+
 import {
   buildSpotRecommendation,
   confidenceFromGpsAccuracy,
@@ -307,6 +311,66 @@ class SpotIntelligenceService {
     } catch (e) {
       logger.error('[SpotIntelligence] Failed to sync hotspot intelligence:', e);
     }
+  }
+
+  private ws: WebSocket | null = null;
+
+  public async syncProximityLinks(): Promise<void> {
+    try {
+      const { tier, masterIp } = networkRoutingService.getStatusSnapshot();
+      if ((tier === 'ONLINE_HYBRID' || tier === 'ONLINE_MASTER_ONLY') && masterIp) {
+        logger.info('[SpotIntelligence] Syncing offline proximity links to Master Edge Node...');
+        const targetUrlPrefix = `http://${masterIp}:8090`;
+        const result = await RustCore.syncPendingEvents({
+          dbPath: 'offline_queue.db',
+          targetUrlPrefix
+        });
+        logger.info(`[SpotIntelligence] Proximity Sync Result: ${result}`);
+      }
+    } catch (e) {
+      logger.error('[SpotIntelligence] Failed to sync proximity links:', e);
+    }
+  }
+
+  public connectToHotspotDispatchChannel(photographerId: string) {
+    const { masterIp } = networkRoutingService.getStatusSnapshot();
+    if (!masterIp) {
+      logger.warn('[SpotIntelligence] Master IP not found, cannot connect to WebSocket');
+      return;
+    }
+
+    const wsUrl = `ws://${masterIp}:8090/ws/hotspots`;
+    
+    this.ws = new WebSocket(wsUrl);
+
+    this.ws.onopen = () => {
+      logger.info('[SpotIntelligence] Connected to hotspot dispatch channel');
+      this.ws?.send(JSON.stringify({ type: 'subscribe', channel: 'hotspot:dispatch', photographerId }));
+      
+      // Automatically push BLE/UWB proximity links when connecting to the Master Edge Node
+      this.syncProximityLinks();
+    };
+
+    this.ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'hotspot:dispatch') {
+            const notification = data.payload as DispatchNotification;
+            logger.info(`[SpotIntelligence] Received dispatch notification: ${JSON.stringify(notification)}`);
+            // Show notification to user / update UI state
+        }
+      } catch (e) {
+        logger.error('[SpotIntelligence] Failed to parse WebSocket message', e);
+      }
+    };
+
+    this.ws.onerror = (e) => {
+      logger.error('[SpotIntelligence] WebSocket error:', e);
+    };
+
+    this.ws.onclose = () => {
+      logger.info('[SpotIntelligence] WebSocket closed, will retry later');
+    };
   }
 }
 

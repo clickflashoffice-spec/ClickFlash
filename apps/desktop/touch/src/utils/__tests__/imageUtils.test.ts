@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 /**
  * Unit Tests for Touch Kiosk Image Utilities
  */
@@ -98,21 +99,43 @@ describe('Image Utilities', () => {
 
   describe('getImageDimensions', () => {
     it('should return null for invalid image', async () => {
-      const invalidBlob = new Blob(['not-an-image'], { type: 'text/plain' });
-      const dimensions = await getImageDimensions(invalidBlob);
-      expect(dimensions).toBeNull();
+      const originalImage = global.Image;
+      class MockImageError {
+        onload: any = null;
+        onerror: any = null;
+        set src(_v: string) {
+          setTimeout(() => this.onerror?.(), 0);
+        }
+      }
+      global.Image = MockImageError as any;
+      try {
+        const invalidBlob = new Blob(['not-an-image'], { type: 'text/plain' });
+        const dimensions = await getImageDimensions(invalidBlob);
+        expect(dimensions).toBeNull();
+      } finally {
+        global.Image = originalImage;
+      }
     });
 
     it('should handle blob URLs', async () => {
-      // Create a minimal valid GIF (1x1 pixel transparent)
-      const gifBytes = new Uint8Array([
-        0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00,
-        0x01, 0x00, 0x00, 0x00, 0x00, 0x3B
-      ]);
-      const blob = new Blob([gifBytes], { type: 'image/gif' });
-      
-      const dimensions = await getImageDimensions(blob);
-      expect(dimensions).toBeNull(); // Will timeout or fail to load
+      const originalImage = global.Image;
+      class MockImageSuccess {
+        onload: any = null;
+        onerror: any = null;
+        naturalWidth = 100;
+        naturalHeight = 100;
+        set src(_v: string) {
+          setTimeout(() => this.onload?.(), 0);
+        }
+      }
+      global.Image = MockImageSuccess as any;
+      try {
+        const blob = new Blob(['gif-bytes'], { type: 'image/gif' });
+        const dimensions = await getImageDimensions(blob);
+        expect(dimensions).toEqual({ width: 100, height: 100 });
+      } finally {
+        global.Image = originalImage;
+      }
     });
   });
 

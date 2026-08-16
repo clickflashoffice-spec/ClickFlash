@@ -1,3 +1,5 @@
+import { AppError, ErrorCode } from '@clickflash/errors';
+
 export interface AIRequestParams {
   prompt: string;
   maxTokens?: number;
@@ -31,7 +33,7 @@ export class OllamaClient {
           stream: false,
         }),
       });
-      if (!res.ok) throw new Error(`Ollama error: ${res.statusText}`);
+      if (!res.ok) throw new AppError(`Ollama error: ${res.statusText}`, ErrorCode.NETWORK_ERROR);
       const data = (await res.json()) as any;
       return {
         text: data.response || '',
@@ -39,7 +41,7 @@ export class OllamaClient {
         tokensUsed: data.eval_count,
       };
     } catch (err: any) {
-      throw new Error(`Failed to generate text from Ollama: ${err.message}`);
+      throw new AppError(`Failed to generate text from Ollama: ${err.message}`, ErrorCode.INTERNAL_ERROR);
     }
   }
 }

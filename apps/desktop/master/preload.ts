@@ -24,7 +24,6 @@ function onSignal(channel: string, callback: () => void): Cleanup {
 contextBridge.exposeInMainWorld("electron", {
   isElectron: true,
   platform: process.platform,
-  invoke: (channel: string, ...args: unknown[]) => ipcRenderer.invoke(channel, ...args),
   kiosk: {
     unlock: (pin: string) => ipcRenderer.invoke("kiosk:unlock", pin),
     lock: () => ipcRenderer.invoke("kiosk:lock"),
@@ -39,9 +38,7 @@ contextBridge.exposeInMainWorld("electron", {
     getPrinters: () => ipcRenderer.invoke("printing:getPrinters"),
     print: (options: PrintOptions) => ipcRenderer.invoke("printing:print", options),
   },
-  api: {
-    invoke: (path: string, options: any) => ipcRenderer.invoke("api:request", { path, options }),
-  },
+
   updater: {
     check: () => ipcRenderer.invoke("updater:check"),
     download: () => ipcRenderer.invoke("updater:download"),

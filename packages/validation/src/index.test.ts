@@ -120,7 +120,7 @@ describe('LoginSchema', () => {
 
 describe('MagicLinkSchema', () => {
   it('validates a valid token', () => {
-    const token = 'a'.repeat(64);
+    const token = process.env.TEST_MAGIC_LINK_TOKEN || 'a'.repeat(64);
     expect(() => validateOrThrow(MagicLinkSchema, { token })).not.toThrow();
   });
 
@@ -356,7 +356,7 @@ describe('DestinationSchema', () => {
 
 describe('LicenseKeySchema', () => {
   it('validates a license key', () => {
-    const key = { key: 'a'.repeat(64), studioName: 'ClickFlash Studio' };
+    const key = { key: process.env.TEST_LICENSE_KEY || 'a'.repeat(64), studioName: 'ClickFlash Studio' };
     expect(() => validateOrThrow(LicenseKeySchema, key)).not.toThrow();
   });
 });

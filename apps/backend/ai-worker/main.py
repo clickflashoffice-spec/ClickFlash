@@ -53,7 +53,7 @@ async def extract_face_vector(file: UploadFile = File(...)):
         if embedding is None:
             raise HTTPException(status_code=400, detail="No face detected in the image")
             
-        return {"status": "success", "vector": embedding}
+        return {"status": "success", "embedding": embedding}
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
@@ -355,3 +355,22 @@ async def composite_resort_scene(
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/ai/saliency-crop")
+async def get_saliency_crop(
+    file: UploadFile = File(...),
+    target_aspect_ratio: float = 0.5625 # 9:16 portrait default
+):
+    """
+    Calculates optimal saliency-aware crop coordinates for a requested aspect ratio.
+    """
+    try:
+        import saliency_service
+        contents = await file.read()
+        crop_box = saliency_service.get_optimal_crop(contents, target_aspect_ratio)
+        return {"status": "success", "crop": crop_box}
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

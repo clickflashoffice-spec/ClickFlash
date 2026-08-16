@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 /**
  * Layer 5.2 — Touch Kiosk WebSocket Client Tests
  *

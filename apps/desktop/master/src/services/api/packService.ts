@@ -7,6 +7,8 @@
 import { pb } from '../pb';
 import { Pack } from '../../types';
 import { PocketRecord } from '../pbTypes';
+import { yieldPricingService } from '@clickflash/utils';
+import type { YieldPricingConfig } from '@clickflash/types';
 
 export const packService = {
     /**
@@ -14,6 +16,20 @@ export const packService = {
      */
     async getPacks(): Promise<Pack[]> {
         const records = await pb.collection('packs').getFullList();
+
+        const dummyConfig: YieldPricingConfig = {
+            destinationId: 'default',
+            basePrice: 1.0,
+            minPrice: 0.5,
+            maxPrice: 2.0,
+            algorithm: 'surge',
+            rules: {
+                crowdDensityMultiplier: { 'High': 1.15, 'Low': 0.90 }
+            },
+            isActive: true
+        };
+        const yieldMultiplier = yieldPricingService.evaluateYield(dummyConfig, { crowdDensity: 'Medium' });
+
         return records.map((r: PocketRecord) => {
             // Handle products field - it might be stored as JSON string or array
             let products: string[] = [];
@@ -31,12 +47,17 @@ export const packService = {
                 products = r.products;
             }
 
+            const basePrice = Number(r.price) || 0;
+            const dynamicPrice = Math.round((basePrice * yieldMultiplier) * 100) / 100;
+
             return {
                 id: r.id,
                 name: r.name,
                 description: r.description || '',
-                price: r.price,
-                products: products
+                price: dynamicPrice,
+                products: products,
+                basePrice: basePrice,
+                yieldMultiplier: yieldMultiplier
             };
         });
     },

@@ -1,3 +1,7 @@
+import { createRequire } from "module";
+const esmRequire = createRequire(import.meta.url);
+(globalThis as any).require = (globalThis as any).require || esmRequire;
+
 import http from "http";
 import fs from "fs";
 import path from "path";

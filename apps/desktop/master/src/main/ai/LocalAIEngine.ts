@@ -16,7 +16,7 @@ export class LocalAIEngine {
   constructor() {
     // In production, the model is packed into the app asar.unpacked directory.
     this.modelPath = env.NODE_ENV === 'production' 
-      ? path.join(process.resourcesPath, 'models', 'clickflash-vision-v1.onnx')
+      ? path.join((process as any).resourcesPath, 'models', 'clickflash-vision-v1.onnx')
       : path.join(__dirname, '../../../../models', 'clickflash-vision-v1.onnx');
   }
 

@@ -9,10 +9,22 @@
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.clickflash.pass"
+      "bundleIdentifier": "com.clickflash.pass",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "ClickFlash needs Bluetooth to automatically link your high-speed ride photos and photographer shots.",
+        "NSBluetoothPeripheralUsageDescription": "ClickFlash uses Bluetooth to seamlessly link your gallery while you explore."
+      }
     },
     "android": {
       "package": "com.clickflash.pass",
+      "permissions": [
+        "BLUETOOTH",
+        "BLUETOOTH_ADMIN",
+        "BLUETOOTH_ADVERTISE",
+        "BLUETOOTH_CONNECT",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

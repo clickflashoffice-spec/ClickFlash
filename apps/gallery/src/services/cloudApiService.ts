@@ -68,7 +68,7 @@ export const cloudApiService = {
         status: 'Completed',
         total: 0,
         photographerId: event?.photographer_id || 'system',
-        items: photos.map((photo: any) => ({
+        items: photos.map((photo: Record<string, unknown>) => ({
           id: `item-${photo.id}`,
           name: 'Digital Photo',
           quantity: 1,
@@ -78,7 +78,7 @@ export const cloudApiService = {
              // The backend sends aiTags, the frontend component expects aiTags
              aiTags: photo.aiTags,
           }
-        })) as any[],
+        })) as unknown as Product[],
       };
 
       return formattedOrder;
@@ -130,7 +130,7 @@ export const cloudApiService = {
       const photos = photosData.photos || [];
 
       // Decode token to get event info
-      let tokenPayload: any = {};
+      let tokenPayload: Record<string, unknown> = {};
       try {
         tokenPayload = JSON.parse(atob(normalizedToken));
       } catch (e) {
@@ -138,14 +138,14 @@ export const cloudApiService = {
       }
 
       const formattedOrder: Order = {
-        id: tokenPayload?.eventId || 'unknown',
+        id: (tokenPayload?.eventId as string) || 'unknown',
         date: new Date().toISOString(),
         clientName: 'Guest',
         email: '',
         status: 'Completed',
         total: 0,
         photographerId: 'system',
-        items: photos.map((photo: any) => ({
+        items: photos.map((photo: Record<string, unknown>) => ({
           id: `item-${photo.id}`,
           name: 'Digital Photo',
           quantity: 1,
@@ -154,7 +154,7 @@ export const cloudApiService = {
              ...photo,
              aiTags: photo.aiTags,
           }
-        })) as any[],
+        })) as unknown as Product[],
       };
 
       return formattedOrder;
@@ -162,6 +162,11 @@ export const cloudApiService = {
       logger.warn("[Cloud API] Order lookup by token failed", err);
       return null;
     }
+  },
+
+  async validateMagicLink(token: string): Promise<Order | null> {
+    logger.info("[Cloud API] Validating magic link token...");
+    return this.getOrderByToken(token);
   },
 
   async getPhotoDownloadUrl(photoId: string): Promise<string> {
@@ -234,7 +239,7 @@ export const cloudApiService = {
     return Array.isArray(data.items) ? data.items : [];
   },
 
-  async notifyCashPending(items: any[]): Promise<{ orderId: string, status: string }> {
+  async notifyCashPending(items: Record<string, unknown>[]): Promise<{ orderId: string, status: string }> {
     const token = localStorage.getItem("gallery_token");
     if (!token) throw new Error("Customer authentication is required");
 
@@ -252,7 +257,7 @@ export const cloudApiService = {
     return response.json();
   },
 
-  async getResortBranding(destinationId: string): Promise<any> {
+  async getResortBranding(destinationId: string): Promise<Record<string, unknown> | null> {
     try {
       const response = await fetch(`${config.apiUrl}/api/resorts/branding?destination_id=${encodeURIComponent(destinationId)}`);
       if (!response.ok) return null;
@@ -284,7 +289,7 @@ export const cloudApiService = {
     return data.processedImageUrl || data.url || `${imageUrl}?magic=erased&timestamp=${Date.now()}`;
   },
 
-  async searchPhotosByFace(imageDataUrl: string): Promise<any[]> {
+  async searchPhotosByFace(imageDataUrl: string): Promise<Record<string, unknown>[]> {
     const token = localStorage.getItem("gallery_token");
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (token) headers.Authorization = `Bearer ${token}`;

@@ -4,6 +4,7 @@ import { Logger } from '../utils/logger';
 import fs from "fs";
 import path from "path";
 import { UPLOAD_DIR } from "../config/constants";
+import { redisCache } from "./redisCacheService";
 
 export class StressTestService {
   private dbManager: DatabaseManager;
@@ -72,24 +73,14 @@ export class StressTestService {
       fs.writeFileSync(previewAbsolutePath, Buffer.alloc(1024, "0"));
 
       try {
-        // Photos table
-        await this.dbManager.run(
-          "INSERT INTO photos (id, albumId, title, url, status, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-          [
-            photoId,
-            albumId,
-            `Photo ${i}`,
-            url,
-            "available",
-            new Date().toISOString(),
-          ],
-        );
-
-        // Retention queue
-        await this.dbManager.run(
-          "INSERT INTO retention_queue (album_id, asset_id, status, created_at) VALUES (?, ?, ?, ?)",
-          [albumId, photoId, "pending", new Date().toISOString()],
-        );
+        // Photos via Redis
+        await redisCache.publishEvent("photo_ingestion", {
+          id: photoId,
+          albumId: albumId,
+          title: `Photo ${i}`,
+          url: url,
+          status: "available"
+        });
       } catch (e: any) {
         this.logger.error(
           `[STRESS] ERR: photo ${i} insert failed: ${e.message}`,

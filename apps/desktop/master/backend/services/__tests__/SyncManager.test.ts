@@ -15,14 +15,21 @@ const mockLogger = {
     debug: jest.fn(),
 };
 
-jest.mock('ws', () => ({
-    WebSocket: {
-        OPEN: 1,
-    }
-}));
+jest.mock('ws', () => {
+    return {
+        __esModule: true,
+        default: {
+            OPEN: 1,
+        },
+        WebSocket: {
+            OPEN: 1,
+        }
+    };
+});
 
 const mockWs = {
     readyState: 1, // OPEN
+    bufferedAmount: 0,
     send: jest.fn(),
     close: jest.fn(),
     on: jest.fn(),
@@ -46,12 +53,12 @@ describe('SyncManager', () => {
         manager.stop();
     });
 
-    it('should acknowledge heartbeat', () => {
+    it('should acknowledge heartbeat', async () => {
         manager.handleConnection(mockWs as any, mockReq as any);
         // Simulate heartbeat message from client
         const messageHandler = mockWs.on.mock.calls.find((call: any[]) => call[0] === 'message')?.[1];
         expect(messageHandler).toBeDefined();
-        messageHandler(JSON.stringify({ type: 'HEARTBEAT', clientId: 'kiosk-123', timestamp: Date.now() }));
+        await messageHandler(JSON.stringify({ type: 'HEARTBEAT', clientId: 'kiosk-123', timestamp: Date.now() }));
         expect(mockWs.send).toHaveBeenCalledWith(
             expect.stringContaining('HEARTBEAT_ACK')
         );

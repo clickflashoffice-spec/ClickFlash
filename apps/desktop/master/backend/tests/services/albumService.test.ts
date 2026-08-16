@@ -17,6 +17,10 @@ const mockRealtimeService = {
   broadcast: jest.fn(),
 };
 
+const mockRedisCache = {
+  publishEvent: jest.fn().mockResolvedValue(true),
+};
+
 describe("AlbumService", () => {
   let service: AlbumService;
 
@@ -25,6 +29,7 @@ describe("AlbumService", () => {
       dbManager: mockDbManager as any,
       logger: mockLogger as any,
       realtimeService: mockRealtimeService as any,
+      redisCache: mockRedisCache as any,
     });
     jest.clearAllMocks();
   });
@@ -55,15 +60,15 @@ describe("AlbumService", () => {
       // Execute
       service.registerPhoto(newPhoto);
 
-      // Verify Insert Photo
-      expect(mockDbManager.run).toHaveBeenCalledWith(
-        expect.stringContaining("INSERT INTO photos"),
-        expect.arrayContaining([
-          "photo-1",
-          "album-1",
-          "/test/photo.jpg",
-          "admin",
-        ]),
+      // Verify Publish Event
+      expect(mockRedisCache.publishEvent).toHaveBeenCalledWith(
+        "photo_ingestion",
+        expect.objectContaining({
+          id: "photo-1",
+          albumId: "album-1",
+          url: "/test/photo.jpg",
+          photographerId: "admin",
+        })
       );
 
       // Verify Ensure Cover Photo
@@ -106,10 +111,10 @@ describe("AlbumService", () => {
       // Execute
       service.registerPhoto(newPhoto);
 
-      // Verify Insert Photo
-      expect(mockDbManager.run).toHaveBeenCalledWith(
-        expect.stringContaining("INSERT INTO photos"),
-        expect.anything(),
+      // Verify Publish Event
+      expect(mockRedisCache.publishEvent).toHaveBeenCalledWith(
+        "photo_ingestion",
+        expect.anything()
       );
 
       // Verify Ensure Cover Photo (SHOULD NOT BE CALLED)

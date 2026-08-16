@@ -46,55 +46,24 @@ export default function shiftRoutes(context: any) {
         logger.error(`[ShiftRoutes] Failed to append shift to ledger: ${ledgerErr.message}`);
       }
 
-      // 1. Save to local SQLite queue
+      // 1. Publish event to Redis Streams instead of SQLite
       try {
-        const info = dbManager.run(
-          `INSERT INTO shifts_proxy_queue (
-            photographer_id, station_id, shift_type, timestamp, biometric_method, biometric_confidence, payload, synced
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
-          [
-            shift.photographerId,
-            shift.stationId || null,
-            shift.type,
-            shift.timestamp || new Date().toISOString(),
-            shift.biometricMethod || null,
-            typeof shift.biometricConfidence === 'number' ? shift.biometricConfidence : null,
-            payloadStr
-          ]
-        );
-        rowId = info.lastInsertRowid;
-      } catch (dbErr: any) {
-        logger.error(`[ShiftRoutes] Failed to insert into shifts_proxy_queue: ${dbErr.message}`);
+        await context.redisCache.publishEvent("shift_proxy_ingestion", {
+          photographerId: shift.photographerId,
+          stationId: shift.stationId || '',
+          shiftType: shift.type,
+          timestamp: shift.timestamp || nowIso,
+          biometricMethod: shift.biometricMethod || '',
+          biometricConfidence: shift.biometricConfidence != null ? String(shift.biometricConfidence) : '',
+          payloadStr: payloadStr
+        });
+        logger.info(`[ShiftRoutes] Successfully pushed shift event to Redis Streams: shift_proxy_ingestion.`);
+      } catch (redisErr: any) {
+        logger.error(`[ShiftRoutes] Failed to publish shift to Redis stream: ${redisErr.message}`);
+        // Fallback or just throw
       }
 
-      // 2. Attempt to forward directly to Cloudflare
-      const cloudflareUrl = 'https://clickflash-api.yourdomain.workers.dev/api/shifts';
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
-      
-      fetch(cloudflareUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: payloadStr,
-        signal: controller.signal
-      }).then(cloudRes => {
-        if (cloudRes.ok) {
-          logger.info(`[ShiftRoutes] Successfully forwarded shift for ${shift.photographerId} to Cloudflare.`);
-          if (rowId > 0) {
-            try {
-              dbManager.run(`UPDATE shifts_proxy_queue SET synced = 1 WHERE id = ?`, [rowId]);
-            } catch (e: any) {
-              logger.warn(`[ShiftRoutes] Failed to mark shift ${rowId} synced: ${e.message}`);
-            }
-          }
-        } else {
-          logger.warn(`[ShiftRoutes] Failed to forward shift to Cloudflare. HTTP ${cloudRes.status}`);
-        }
-      }).catch(err => {
-         logger.warn(`[ShiftRoutes] Error forwarding shift to Cloudflare (saved locally): ${err.message}`);
-      }).finally(() => clearTimeout(timeoutId));
-
-      return res.status(200).json({ success: true, message: "Shift proxied successfully" });
+      return res.status(200).json({ success: true, message: "Shift proxied to event bus successfully" });
     } catch (error: any) {
       logger.error("[ShiftRoutes] Error handling shift proxy", error);
       return res.status(500).json({ error: "Failed to proxy shift" });

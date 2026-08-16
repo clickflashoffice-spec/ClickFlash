@@ -20,6 +20,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(Threads REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(redis-plus-plus CONFIG REQUIRED)
 
 if(ENABLE_OPENSSL)
     find_package(OpenSSL REQUIRED)
@@ -70,6 +71,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     nlohmann_json::nlohmann_json
     spdlog::spdlog
     Threads::Threads
+    redis-plus-plus::redis-plus-plus
     ${OpenCV_LIBS}
 )
 

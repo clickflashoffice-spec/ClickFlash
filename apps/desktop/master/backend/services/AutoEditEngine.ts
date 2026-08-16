@@ -95,7 +95,11 @@ export class AutoEditEngine {
           }
         }
         
-        if (minX === Infinity) return undefined;
+        
+        if (minX === Infinity) {
+          // Fallback to Saliency-based cropping
+          return await AutoEditEngine.saliencyCropFallback(imagePath, targetAspectRatio, width, height);
+        }
         
         const analysisW = analysis.width || width;
         const analysisH = analysis.height || height;
@@ -129,9 +133,33 @@ export class AutoEditEngine {
           width: (cropW / width) * 100,
           height: (cropH / height) * 100
         };
+      } else {
+        // Fallback to Saliency-based cropping if no faces detected
+        return await AutoEditEngine.saliencyCropFallback(imagePath, targetAspectRatio, width, height);
       }
     } catch (err) {
       logger.error('[AutoEditEngine] Smart crop failed:', err);
+    }
+    return undefined;
+  }
+
+  static async saliencyCropFallback(imagePath: string, targetAspectRatio: number, width: number, height: number): Promise<{x: number, y: number, width: number, height: number} | undefined> {
+    try {
+      const exec = require('util').promisify(require('child_process').exec);
+      const scriptPath = require('path').join(process.cwd(), '../../backend/ai-worker/saliency_service.py');
+      const { stdout } = await exec(`python "${scriptPath}" "${imagePath}" ${targetAspectRatio}`);
+      
+      const crop = JSON.parse(stdout.trim());
+      if (crop && !crop.error) {
+        return {
+          x: (crop.x / width) * 100,
+          y: (crop.y / height) * 100,
+          width: (crop.w / width) * 100,
+          height: (crop.h / height) * 100
+        };
+      }
+    } catch (err) {
+      logger.warn('[AutoEditEngine] Saliency fallback failed:', err);
     }
     return undefined;
   }

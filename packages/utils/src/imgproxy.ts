@@ -62,7 +62,7 @@ export interface ImgproxyOptions {
  * // High-quality download with watermark
  * buildImgproxyUrl(photoUrl, { width: 2400, quality: 95, watermark: true })
  */
-export function buildImgproxyUrl(sourceUrl: string, options: ImgproxyOptions = {}): string {
+export function buildImgproxyPath(sourceUrl: string, options: ImgproxyOptions = {}): string {
   const parts: string[] = [];
 
   // Resize
@@ -109,18 +109,67 @@ export function buildImgproxyUrl(sourceUrl: string, options: ImgproxyOptions = {
 
   // Build final URL: /processing_options/plain/source_url@extension
   const processingPath = parts.join('/');
-  return `${IMGPROXY_BASE_URL}/insecure/${processingPath}/${encodedSource}${ext ? `@${options.format}` : ''}`;
+  return `${processingPath}/${encodedSource}${ext ? `@${options.format}` : ''}`;
 }
+
+/**
+ * Build an imgproxy URL for on-the-fly image transformation (insecure).
+ * 
+ * @example
+ * // Resize to 800x600, auto-format for browser
+ * buildImgproxyUrl('s3://photos/album-1/photo-001.jpg', { width: 800, height: 600 })
+ */
+export function buildImgproxyUrl(sourceUrl: string, options: ImgproxyOptions = {}): string {
+  const path = buildImgproxyPath(sourceUrl, options);
+  return `${IMGPROXY_BASE_URL}/insecure/${path}`;
+}
+
+const hexDecode = (hex: string) => new Uint8Array(hex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
+const urlSafeBase64 = (base64: string) => base64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 
 /**
  * Generate a signed imgproxy URL for production use.
  * In production, URLs should be signed with IMGPROXY_KEY and IMGPROXY_SALT.
- * This is a placeholder — actual signing should happen server-side.
  */
-export function buildSignedImgproxyUrl(sourceUrl: string, options: ImgproxyOptions = {}): string {
-  // TODO: Implement HMAC-SHA256 signing for production URLs
-  // For now, use insecure URLs (safe behind VPN/LAN)
-  return buildImgproxyUrl(sourceUrl, options);
+export async function buildSignedImgproxyUrl(
+    sourceUrl: string, 
+    options: ImgproxyOptions = {}, 
+    keyHex?: string, 
+    saltHex?: string
+): Promise<string> {
+  const path = buildImgproxyPath(sourceUrl, options);
+  
+  const key = keyHex || process.env.IMGPROXY_KEY || process.env.VITE_IMGPROXY_KEY;
+  const salt = saltHex || process.env.IMGPROXY_SALT || process.env.VITE_IMGPROXY_SALT;
+
+  if (!key || !salt) {
+      // Fallback to insecure if no keys provided
+      return `${IMGPROXY_BASE_URL}/insecure/${path}`;
+  }
+
+  const keyBytes = hexDecode(key);
+  const saltBytes = hexDecode(salt);
+  
+  const encoder = new TextEncoder();
+  const pathBytes = encoder.encode('/' + path);
+  
+  const dataToSign = new Uint8Array(saltBytes.length + pathBytes.length);
+  dataToSign.set(saltBytes);
+  dataToSign.set(pathBytes, saltBytes.length);
+
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    keyBytes,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, dataToSign);
+  const signatureBase64 = btoa(String.fromCharCode(...new Uint8Array(signature)));
+  const signatureUrlSafe = urlSafeBase64(signatureBase64);
+
+  return `${IMGPROXY_BASE_URL}/${signatureUrlSafe}/${path}`;
 }
 
 /**

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { internal } from '@clickflash/errors';
 
 type Theme = 'dark' | 'light' | 'system';
 
@@ -47,7 +48,7 @@ export function ThemeProvider({
 export const useTheme = () => {
   const context = React.useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    throw internal('useTheme must be used within a ThemeProvider');
   }
   return context;
 };

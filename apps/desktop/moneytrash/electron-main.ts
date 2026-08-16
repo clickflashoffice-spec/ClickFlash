@@ -26,6 +26,11 @@ import {
 } from "./electron-storage";
 import { UploadManager } from "./electron-uploads";
 import { TetherManager } from "./electron-tether";
+import { exec } from "child_process";
+import { promisify } from "util";
+import { brisqueRequestSchema } from "./electron-contract";
+
+const execPromise = promisify(exec);
 
 protocol.registerSchemesAsPrivileged([{
   scheme: "moneytrash-file",
@@ -94,6 +99,23 @@ function registerIpcHandlers(): void {
     return true;
   });
   registerHandler("notifications:open-external", (url) => shell.openExternal(parseApprovedExternalUrl(String(url))));
+
+  registerHandler("process:brisque", async (rawRequest) => {
+    const { filePath } = brisqueRequestSchema.parse(rawRequest);
+    try {
+      const scriptPath = app.isPackaged 
+        ? path.join(process.resourcesPath, "scripts", "brisque_scorer.py")
+        : path.join(__dirname, "..", "scripts", "brisque_scorer.py");
+        
+      const { stdout } = await execPromise(`python "${scriptPath}" "${filePath}"`);
+      const score = parseFloat(stdout.trim());
+      if (isNaN(score)) throw new Error("Invalid output from brisque script");
+      return score;
+    } catch (err) {
+      console.error("[BRISQUE Error]", err);
+      return null;
+    }
+  });
 }
 
 function applySessionSecurity(): void {

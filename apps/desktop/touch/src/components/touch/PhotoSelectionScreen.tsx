@@ -29,15 +29,20 @@ const PhotoCard: React.FC<{
     return (
     <motion.div 
         layoutId={`photo-container-${photo.id}`}
-        className="group cursor-pointer aspect-square relative" 
+        className="group cursor-pointer aspect-square relative focus:outline-none focus:ring-4 focus:ring-blue-500 rounded-2xl" 
         onClick={onClick} 
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+        tabIndex={0}
+        role="button"
+        aria-label={`Photo ${photo.title || photo.id}${isInCart ? ', currently in cart' : ''}`}
+        aria-pressed={isInCart}
         style={style} 
         data-testid="photo-card"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.95 }}
     >
         {!isLoaded && (
-            <div className="absolute inset-0 bg-slate-200 dark:bg-slate-800 animate-pulse rounded-2xl" />
+            <div className="absolute inset-0 bg-slate-200 dark:bg-slate-800 animate-pulse rounded-2xl" aria-hidden="true" />
         )}
         <motion.img
             layoutId={`photo-img-${photo.id}`}
@@ -303,7 +308,7 @@ const PhotoSelectionScreen: React.FC<PhotoSelectionScreenProps> = ({
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                     <span className="font-semibold">Home</span>
                 </motion.button>
-                <div className="text-center absolute left-1/2 transform -translate-x-1/2">
+                <div className="text-center absolute left-1/2 transform -translate-x-1/2" role="heading" aria-level={1}>
                     <h1 className="text-2xl font-bold tracking-tight">
                         {roomNumber ? `Room ${roomNumber}` : 'Gallery'}
                     </h1>
@@ -346,33 +351,45 @@ const PhotoSelectionScreen: React.FC<PhotoSelectionScreenProps> = ({
             <div className="flex flex-1 overflow-hidden relative">
                 <aside className="w-72 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-6 border-r border-slate-200/50 dark:border-slate-800/50 flex flex-col z-0">
                     <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-4 px-2">Collections</h2>
-                    <nav className="space-y-1.5 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                    <nav className="space-y-1.5 flex-1 overflow-y-auto pr-2 custom-scrollbar" role="tablist" aria-label="Photo Collections">
                         {allCategories.map(cat => (
                             <motion.button
                                 key={cat}
                                 whileHover={{ scale: 1.02, x: 4 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => setSelectedCategory(cat)}
-                                className={`w-full text-left px-4 py-3 rounded-2xl font-semibold transition-all flex justify-between items-center ${selectedCategory === cat
+                                role="tab"
+                                aria-selected={selectedCategory === cat}
+                                aria-controls="photo-grid-panel"
+                                id={`category-tab-${cat}`}
+                                className={`w-full text-left px-4 py-3 rounded-2xl font-semibold transition-all flex justify-between items-center focus:outline-none focus:ring-4 focus:ring-blue-500/50 ${selectedCategory === cat
                                     ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
                                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80'
                                     }`}
                             >
                                 <span>{cat}</span>
-                                {cat === 'Matched' && <span className="bg-white/20 text-white text-xs px-2.5 py-0.5 rounded-full backdrop-blur-sm">{matchedPhotos.length}</span>}
+                                {cat === 'Matched' && <span className="bg-white/20 text-white text-xs px-2.5 py-0.5 rounded-full backdrop-blur-sm" aria-label={`${matchedPhotos.length} matched photos`}>{matchedPhotos.length}</span>}
                             </motion.button>
                         ))}
                     </nav>
                 </aside>
 
-                <main className="flex-1 overflow-y-auto p-8 z-0" ref={containerRef}>
+                <main 
+                    className="flex-1 overflow-y-auto p-8 z-0" 
+                    ref={containerRef}
+                    role="tabpanel"
+                    id="photo-grid-panel"
+                    aria-labelledby={`category-tab-${selectedCategory}`}
+                    aria-live="polite"
+                >
                     {filteredAlbums.length === 0 ? (
                         <motion.div 
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             className="flex flex-col items-center justify-center h-full text-slate-500 dark:text-slate-400"
+                            role="status"
                         >
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-full shadow-lg mb-6">
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-full shadow-lg mb-6" aria-hidden="true">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
@@ -393,6 +410,7 @@ const PhotoSelectionScreen: React.FC<PhotoSelectionScreenProps> = ({
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => onBack()}
                                     className="mt-6 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-colors shadow-lg shadow-blue-500/20"
+                                    aria-label="Search Different Room"
                                 >
                                     Search Different Room
                                 </motion.button>

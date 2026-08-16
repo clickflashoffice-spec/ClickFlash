@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Video, VideoOff, Maximize2, Battery, MapPin, Signal } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
-
+import type { SDPMessage, ICECandidateMessage } from '@clickflash/types/webrtc';
 interface PhotographerFeed {
   id: string;
   name: string;
@@ -59,15 +59,15 @@ export function TeamLiveWidget() {
       }
     });
 
-    socket.on('answer', async (data: { answer: RTCSessionDescriptionInit, from: string }) => {
-      const pc = peerConnections.current.get(data.from);
-      if (pc) {
-        await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+    socket.on('answer', async (data: SDPMessage) => {
+      const pc = peerConnections.current.get(data.senderId);
+      if (pc && data.sdp) {
+        await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
       }
     });
 
-    socket.on('ice-candidate', async (data: { candidate: RTCIceCandidateInit, from: string }) => {
-      const pc = peerConnections.current.get(data.from);
+    socket.on('ice-candidate', async (data: ICECandidateMessage) => {
+      const pc = peerConnections.current.get(data.senderId);
       if (pc && data.candidate) {
         await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
       }
@@ -89,7 +89,13 @@ export function TeamLiveWidget() {
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        socketRef.current?.emit('ice-candidate', { target: deviceId, candidate: event.candidate });
+        const msg: ICECandidateMessage = {
+          type: 'ice-candidate',
+          senderId: 'manager',
+          targetId: deviceId,
+          candidate: event.candidate
+        };
+        socketRef.current?.emit('ice-candidate', msg);
       }
     };
 
@@ -108,7 +114,13 @@ export function TeamLiveWidget() {
     const offer = await pc.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: true });
     await pc.setLocalDescription(offer);
 
-    socketRef.current.emit('request_check_in', { target: deviceId, offer });
+    const msg: SDPMessage = {
+      type: 'offer',
+      senderId: 'manager',
+      targetId: deviceId,
+      sdp: offer as RTCSessionDescriptionInit
+    };
+    socketRef.current.emit('request_check_in', msg);
   };
 
   const liveCount = feeds.filter(f => f.status === 'live').length;

@@ -35,43 +35,24 @@ async function generateWatermark(job: any) {
     }
 
     try {
-        // Get image dimensions
-        const metadata = await sharp(sourcePath).metadata();
-        const width = metadata.width || 1200;
-        const height = metadata.height || 800;
-
-        // Calculate font size (10% of smallest dimension)
-        const fontSize = config.fontSize || Math.floor(Math.min(width, height) * 0.1);
-
-        // Create SVG watermark
-        const svgWatermark = Buffer.from(`
-            <svg width="${width}" height="${height}">
-                <style>
-                    .watermark { 
-                        fill: rgba(255, 255, 255, ${config.opacity || 0.3}); 
-                        font-size: ${fontSize}px; 
-                        font-weight: bold; 
-                        transform: rotate(${config.rotation || -45}deg);
-                        transform-origin: center;
-                    }
-                </style>
-                <text x="50%" y="50%" text-anchor="middle" class="watermark">
-                    ${config.text || 'PROOF'}
-                </text>
-            </svg>
-        `);
-
         // Ensure output directory exists
         const outputDir = path.dirname(outputPath);
         if (!fs.existsSync(outputDir)) {
             fs.mkdirSync(outputDir, { recursive: true });
         }
 
-        // Apply watermark and save as WebP
-        await sharp(sourcePath)
-            .composite([{ input: svgWatermark, gravity: 'center' }])
-            .webp({ quality: 80 })
-            .toFile(outputPath);
+        // Apply invisible DCT steganographic watermark
+        const watermarkText = config.text || `CF-${photoId}`;
+        const scriptPath = path.join(process.cwd(), 'scripts', 'dct_watermark.py');
+        const exec = require('util').promisify(require('child_process').exec);
+        
+        // Execute Python DCT watermark script
+        await exec(`python "${scriptPath}" "${sourcePath}" "${watermarkText}" "${outputPath}"`);
+        
+        // Ensure the file was created
+        if (!fs.existsSync(outputPath)) {
+            throw new Error('DCT watermark script failed to generate output file');
+        }
 
         // Generated watermark
 

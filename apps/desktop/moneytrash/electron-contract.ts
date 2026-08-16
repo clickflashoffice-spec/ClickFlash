@@ -72,6 +72,10 @@ export const analyticsRangeSchema = z.object({
   message: "Analytics start date must not be after end date",
 });
 
+export const brisqueRequestSchema = z.object({
+  filePath: filePathSchema,
+}).strict();
+
 export const nativeUploadSchema = z.object({
   sessionId: sessionIdSchema.optional(),
   filePath: filePathSchema,

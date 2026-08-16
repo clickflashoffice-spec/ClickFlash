@@ -25,7 +25,7 @@ export async function validateImageMagicNumber(
   mimeType?: string,
 ): Promise<boolean> {
   // ── Layer 1: Magic bytes ─────────────────────────────────────────────────
-  let detectedFormat: "jpeg" | "png" | "webp" | "gif" | null = null;
+  let detectedFormat: "jpeg" | "png" | "webp" | "gif" | "tiff" | null = null;
 
   try {
     const fileHandle = await fs.promises.open(filepath, "r");
@@ -83,6 +83,16 @@ export async function validateImageMagicNumber(
       ) {
         detectedFormat = "gif";
       }
+      // TIFF / RAW (CR2, NEF, ARW often use TIFF headers)
+      // Little-endian: 49 49 2A 00
+      // Big-endian: 4D 4D 00 2A
+      else if (
+        bytesRead >= 4 &&
+        ((buffer[0] === 0x49 && buffer[1] === 0x49 && buffer[2] === 0x2a && buffer[3] === 0x00) ||
+         (buffer[0] === 0x4d && buffer[1] === 0x4d && buffer[2] === 0x00 && buffer[3] === 0x2a))
+      ) {
+        detectedFormat = "tiff";
+      }
     } finally {
       await fileHandle.close();
     }
@@ -108,6 +118,11 @@ export async function validateImageMagicNumber(
       "image/png": "png",
       "image/webp": "webp",
       "image/gif": "gif",
+      "image/tiff": "tiff",
+      "image/x-canon-cr2": "tiff",
+      "image/x-nikon-nef": "tiff",
+      "image/x-sony-arw": "tiff",
+      "image/x-adobe-dng": "tiff",
     };
     const expectedFormat = mimeToFormat[mimeType.toLowerCase()];
     if (expectedFormat && expectedFormat !== detectedFormat) {

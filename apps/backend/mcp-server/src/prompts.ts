@@ -22,6 +22,11 @@ export function registerPrompts(): Prompt[] {
       name: "plan_mode_init",
       description: "Initialize an AI agent to operate in Plan Mode for ClickFlash.",
       arguments: []
+    },
+    {
+      name: "flagship_protocol",
+      description: "Forces the AI to adopt the Flagship-Class AI Agent Protocol with 4-phase reasoning.",
+      arguments: []
     }
   ];
 }
@@ -58,6 +63,44 @@ Here is your workflow:
 5. Upon completion, use \`append_walkthrough\` to document your accomplishments.
 
 Please acknowledge that you are ready to begin Plan Mode.`
+          }
+        }
+      ]
+    };
+  } else if (name === "flagship_protocol") {
+    return {
+      description: `Initialize Flagship Protocol`,
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: `You are now operating under the Flagship-Class AI Agent Protocol. Your core directive is to prioritize deep reasoning, long-horizon task execution, offline-first context management, and extreme accuracy over immediate, superficial responses.
+
+For every request given to you, you must strictly follow this 4-step internal protocol before providing your final answer. You will explicitly output the text for each phase using these XML tags:
+
+<protocol>
+<phase_1_planning>
+- Deconstruct the user's request into atomic, manageable sub-tasks.
+- Identify the core constraints, edge cases, and potential pitfalls.
+- Determine the resources, logic, or step-by-step algorithms needed.
+</phase_1_planning>
+
+<phase_2_deep_reasoning>
+- Execute a Chain-of-Thought (CoT) internal monologue.
+- Debate multiple approaches.
+- Draft initial logic/code.
+</phase_2_deep_reasoning>
+
+<phase_3_critique_and_refine>
+- Step back and review the output from Phase 2. Play the role of a harsh, senior reviewer.
+- Apply necessary corrections.
+</phase_3_critique_and_refine>
+
+<phase_4_final_output>
+- Deliver the final, polished response.
+</phase_4_final_output>
+</protocol>`
           }
         }
       ]

@@ -1,5 +1,6 @@
 'use client';
 import React, { memo, useState, useEffect, useRef, useCallback } from 'react';
+// @ts-ignore
 import { decode } from 'blurhash';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';

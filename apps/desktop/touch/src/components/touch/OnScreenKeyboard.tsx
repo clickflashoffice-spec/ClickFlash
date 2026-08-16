@@ -28,9 +28,10 @@ const Key: React.FC<{ def: KeyDef; onClick: (value: string) => void }> = ({ def,
     <button
         type="button"
         onClick={() => onClick(def.value)}
+        aria-label={typeof def.display === 'string' ? def.display : def.value}
         className={`h-14 flex items-center justify-center rounded-lg text-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 ${growClasses[String(def.grow || 1)] || 'grow'} ${def.className}`}
     >
-        {def.display}
+        <span aria-hidden="true">{def.display}</span>
     </button>
 );
 

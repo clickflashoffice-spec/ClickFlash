@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest';
 import { AI_CONFIG } from '@clickflash/ai-core';
 import {
   ACTIVE_FACE_DESCRIPTOR_ALGORITHM,
@@ -21,14 +22,14 @@ function jsonResponse(status: number, body: unknown): Response {
   return {
     ok: status >= 200 && status < 300,
     status,
-    json: jest.fn().mockResolvedValue(body),
+    json: vi.fn().mockResolvedValue(body),
   } as unknown as Response;
 }
 
 describe('faceSearchClient', () => {
   it('uses the canonical authenticated endpoint and returns server matches', async () => {
     const matches = [{ id: 'photo-1', score: 0.91 }];
-    const fetchMock = jest.fn().mockResolvedValue(
+    const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse(200, { matches }),
     );
     const descriptor = activeDescriptor();
@@ -52,7 +53,7 @@ describe('faceSearchClient', () => {
   });
 
   it('surfaces FACE_SEARCH_UNAVAILABLE with no fallback matches', async () => {
-    const fetchMock = jest.fn().mockResolvedValue(
+    const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse(503, {
         error: 'Face search is unavailable until the event-scoped vector index is configured',
         code: 'FACE_SEARCH_UNAVAILABLE',
@@ -77,7 +78,7 @@ describe('faceSearchClient', () => {
   });
 
   it('rejects invalid descriptors before making a request', async () => {
-    const fetchMock = jest.fn();
+    const fetchMock = vi.fn();
     const invalidDescriptor = {
       ...activeDescriptor(),
       dimensions: AI_CONFIG.FACE_VECTOR_DIMENSION_TARGET,
@@ -95,7 +96,7 @@ describe('faceSearchClient', () => {
   });
 
   it('does not treat authorization failures as temporary unavailability', async () => {
-    const fetchMock = jest.fn().mockResolvedValue(
+    const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse(401, { error: 'Unauthorized' }),
     );
 
@@ -112,7 +113,7 @@ describe('faceSearchClient', () => {
   });
 
   it('rejects successful responses that omit typed matches', async () => {
-    const fetchMock = jest.fn().mockResolvedValue(
+    const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse(200, { success: true }),
     );
 

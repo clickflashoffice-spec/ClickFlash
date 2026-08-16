@@ -9,6 +9,7 @@
     "./eslint": "./eslint.config.js",
     "./prettier": "./prettier.config.js",
     "./tsconfig": "./tsconfig.json",
+    "./tsconfig.json": "./tsconfig.json",
     "./tailwind": "./tailwind.config.js",
     "./security-headers": "./dist/security-headers.js",
     "./error-logger": "./dist/error-logger.js"

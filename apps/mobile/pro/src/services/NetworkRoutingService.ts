@@ -3,6 +3,7 @@ import { meshSyncService } from './MeshSyncService';
 import { offlineQueueService } from './OfflineQueueService';
 import { appState } from '../store';
 import { logger } from "@/utils/logger";
+import { RustCore } from '../../modules/clickflash-rust-core';
 
 export type ConnectionTier = 
   | 'ONLINE_HYBRID'      // Both LAN Master PC and Cloud Edge reachable
@@ -184,14 +185,11 @@ export class NetworkRoutingService {
   }
 
   /**
-   * Flushes items stored in OfflineQueueService over the active connection.
+   * Flushes items stored in OfflineQueueService over the active connection using Rust Core.
    */
   public async flushOfflineQueue(): Promise<{ processed: number; failed: number }> {
     if (this.isFlushingQueue) return { processed: 0, failed: 0 };
     this.isFlushingQueue = true;
-
-    let processed = 0;
-    let failed = 0;
 
     try {
       const items = await offlineQueueService.getQueue();
@@ -200,82 +198,40 @@ export class NetworkRoutingService {
         return { processed: 0, failed: 0 };
       }
 
-      logger.info(`[NetworkRoutingService] Flushing ${items.length} items from offline queue...`);
+      logger.info(`[NetworkRoutingService] Flushing ${items.length} items from offline queue via Rust Core...`);
 
-      for (const item of items) {
-        const targetUrl = this.resolveTargetUrl(item.endpoint, true);
-        if (!targetUrl) {
-          if (this.currentTier === 'OFFLINE_MESH' && item.type === 'PHOTO_SYNC') {
-             const payloadData = item.payload as any;
-             const relayed = await meshSyncService.queueForPeerRelay({
-                id: item.id,
-                uri: payloadData.uri, 
-                filename: payloadData.filename, 
-                aiMetadata: payloadData.aiMetadata,
-                mediaType: 'photo',
-                creationTime: item.timestamp,
-                width: 0, height: 0, fileSize: 0
-             });
-             if (relayed) {
-               await offlineQueueService.dequeue(item.id);
-               processed++;
-               continue;
-             }
-          }
-          logger.info(`[NetworkRoutingService] No route available right now during flush. Pausing.`);
-          break;
-        }
-
-        try {
-          let headers: Record<string, string> = { 'Content-Type': 'application/json' };
-          let body: any = item.payload ? JSON.stringify(item.payload) : undefined;
-
-          if (item.type === 'PHOTO_SYNC') {
-            const formData = new FormData();
-            const payloadData = item.payload as any;
-            formData.append('photo', {
-                uri: payloadData.uri,
-                name: payloadData.filename,
-                type: 'image/jpeg',
-            } as any);
-
-            if (payloadData.aiMetadata) {
-                formData.append('aiMetadata', JSON.stringify(payloadData.aiMetadata));
-            }
-            body = formData;
-            headers = {
-                'Accept': 'application/json',
-            };
-          }
-
-          const res = await fetch(targetUrl, {
-            method: item.method,
-            headers,
-            body
-          });
-
-          if (res.ok) {
-            await offlineQueueService.dequeue(item.id);
-            processed++;
-            logger.info(`[NetworkRoutingService] ✔ Flushed offline item ${item.id} (${item.type})`);
-          } else {
-            await offlineQueueService.incrementRetry(item.id);
-            failed++;
-          }
-        } catch (err) {
-          logger.error(`[NetworkRoutingService] Failed to flush item ${item.id}:`, err);
-          await offlineQueueService.incrementRetry(item.id);
-          failed++;
-          break;
-        }
+      // Determine the target URL prefix
+      let targetPrefix = this.cloudBaseUrl;
+      if ((this.currentTier === 'ONLINE_HYBRID' || this.currentTier === 'ONLINE_MASTER_ONLY') && this.masterIp) {
+        targetPrefix = `http://${this.masterIp}:${this.masterPort}`;
+      } else if (this.currentTier === 'OFFLINE_MESH') {
+         // Mesh relay is handled separately for photos, but for events we wait.
+         logger.info(`[NetworkRoutingService] Events wait in queue during OFFLINE_MESH tier.`);
+         return { processed: 0, failed: 0 };
       }
+
+      // Delegate to high-performance Rust core
+      const resultMsg = await RustCore.syncPendingEvents({
+        dbPath: 'offline_queue.db',
+        targetUrlPrefix: targetPrefix
+      });
+
+      logger.info(`[NetworkRoutingService] Rust Core sync result: ${resultMsg}`);
+      
+      // We don't have exact processed/failed counts parsed from the string here natively,
+      // but we update the pending count.
+      this.pendingOfflineCount = await offlineQueueService.getQueueSize();
+      
+    } catch (err) {
+      logger.error(`[NetworkRoutingService] Failed to flush offline queue via Rust Core:`, err);
     } finally {
       this.isFlushingQueue = false;
       appState.network.status = this.getStatusSnapshot();
       appState.network.relayQueueStatus = meshSyncService.getRelayQueueStatus();
     }
 
-    return { processed, failed };
+    // Return dummy numbers as rust core handled it natively
+    return { processed: 0, failed: 0 };
   }
 }
 

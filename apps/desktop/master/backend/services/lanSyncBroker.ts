@@ -64,7 +64,7 @@ export class LanSyncBroker extends EventEmitter {
       try {
         this.wss = new WebSocketServer({ port: this.port });
 
-        this.wss.on('connection', (ws: WebSocket, req) => {
+        this.wss.on('connection', (ws: WebSocket, req: any) => {
           const clientIp = req.socket.remoteAddress || 'unknown';
           logger.info(`[LanSyncBroker] New kiosk connection attempt from ${clientIp}`);
 
@@ -81,7 +81,7 @@ export class LanSyncBroker extends EventEmitter {
             this.handleClientDisconnect(ws);
           });
 
-          ws.on('error', (err) => {
+          ws.on('error', (err: any) => {
             logger.error(`[LanSyncBroker] WebSocket client error: ${err.message}`);
           });
         });
@@ -93,7 +93,7 @@ export class LanSyncBroker extends EventEmitter {
           resolve();
         });
 
-        this.wss.on('error', (err) => {
+        this.wss.on('error', (err: any) => {
           logger.error(`[LanSyncBroker] WebSocket server error: ${err.message}`);
           reject(err);
         });

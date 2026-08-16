@@ -2,6 +2,7 @@
 #include <spdlog/spdlog.h>
 #include "core/Config.h"
 #include "db/DatabaseManager.h"
+#include "services/RedisCacheService.h"
 #include <csignal>
 
 using namespace drogon;
@@ -31,6 +32,11 @@ int main(int argc, char* argv[]) {
         auto& db = cf::db::DatabaseManager::instance();
         std::string dbPath = config.getDbPath();
         std::string dbKey = config.getDbKey();
+        
+        // Initialize Redis
+        auto& redisCache = cf::services::RedisCacheService::instance();
+        // Assuming config might have getRedisUrl() later, default to localhost for now
+        redisCache.initialize("tcp://127.0.0.1:6379");
         
         // Run async initialization
         drogon::sync_wait(db.initialize(dbPath, dbKey));

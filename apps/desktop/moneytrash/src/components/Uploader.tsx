@@ -205,9 +205,15 @@ export function Uploader({
       if (enableEdgeAIGrading && workerRef.current) {
         updateFile(fileItem.id, { status: 'grading' });
         try {
+          // Get BRISQUE score from IPC
+          let brisqueScore = null;
+          if ((fileItem.file as any).path) {
+            brisqueScore = await window.electron.invoke('process:brisque', { filePath: (fileItem.file as any).path }) as number | null;
+          }
+
           let grading = await new Promise<EdgeAIGradingResult>((resolve) => {
             gradeCallbacks.current.set(fileItem.id, resolve);
-            workerRef.current!.postMessage({ type: 'GRADE_FILE', file: fileItem.file, id: fileItem.id });
+            workerRef.current!.postMessage({ type: 'GRADE_FILE', file: fileItem.file, id: fileItem.id, brisqueScore });
           });
           
           // Phase 1.5: Cloud AI Grading Override (Laplacian variance override)

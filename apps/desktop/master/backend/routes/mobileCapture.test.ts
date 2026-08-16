@@ -23,6 +23,12 @@ import {
 } from "../services/mobileCaptureProtocol";
 import type { DatabaseManager } from "../database/db";
 
+jest.mock("../services/redisCacheService", () => ({
+  redisCache: {
+    publishEvent: jest.fn().mockResolvedValue(true)
+  }
+}));
+
 const _dirname = __dirname;
 
 const mockLogger = {
@@ -95,6 +101,7 @@ describe("Android mobile capture ingest", () => {
   });
 
   beforeEach(() => {
+    jest.clearAllMocks();
     resetMobileCapturePairingCodesForTest();
     database.exec(`
       DELETE FROM mobile_capture_processing_queue;
@@ -510,19 +517,15 @@ describe("Android mobile capture ingest", () => {
       .get(idempotencyKey) as { finalPath: string; state: string };
     expect(upload.state).toBe("READY");
     expect(fs.readFileSync(upload.finalPath)).toEqual(asset);
-    const queued = database
-      .prepare(
-        "SELECT state FROM mobile_capture_processing_queue WHERE idempotency_key = ?"
-      )
-      .get(idempotencyKey) as { state: string };
-    expect(queued.state).toBe("PENDING");
-    expect(
-      database
-        .prepare(
-          "SELECT COUNT(*) AS count FROM mobile_capture_processing_queue WHERE idempotency_key = ?"
-        )
-        .get(idempotencyKey)
-    ).toEqual({ count: 1 });
+    
+    const { redisCache } = require("../services/redisCacheService");
+    expect(redisCache.publishEvent).toHaveBeenCalledWith(
+      "mobile_capture_processing_queue",
+      expect.objectContaining({
+        deviceId: "A-TEST-DEVICE",
+        photoId: expect.any(String),
+      })
+    );
 
     const rogueSecret = crypto.randomBytes(32).toString("base64");
     const roguePairedAt = Date.now();

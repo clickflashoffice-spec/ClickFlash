@@ -105,7 +105,7 @@ app.post('/query', async (c) => {
     if (!query) return c.json({ error: 'Missing query text' }, 400);
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${c.env.GEMINI_API_KEY}`;
-    const prompt = `You are the Fotiqo Ecosystem AI Assistant.
+    const prompt = `You are the ClickFlash Ecosystem AI Assistant.
 Context data: ${JSON.stringify(context || {})}
 User Query: "${query}"
 Answer concisely, authoritatively, and provide strategic recommendations.`;
@@ -127,6 +127,28 @@ Answer concisely, authoritatively, and provide strategic recommendations.`;
     return c.json({ success: true, answer });
   } catch (error: any) {
     return c.json({ error: 'AI Query failed' }, 500);
+  }
+});
+
+app.post('/face-search', async (c) => {
+  try {
+    const { image } = await c.req.json();
+    if (!image) return c.json({ error: 'Missing image data' }, 400);
+
+    // Call AI Worker (FastAPI) to extract ArcFace 512D Vector
+    // Simulated here as the DB doesn't have Vectorize bound yet
+    const simulatedMatches = [
+      {
+        id: `photo_vector_matched_${Date.now()}`,
+        url: 'https://images.unsplash.com/photo-1522881113594-5dbfa6eb18f2?w=800',
+        watermarkedUrl: 'https://images.unsplash.com/photo-1522881113594-5dbfa6eb18f2?w=800',
+        aiTags: ['happy', 'vacation', 'face-match'],
+      }
+    ];
+
+    return c.json({ success: true, matches: simulatedMatches });
+  } catch (error: any) {
+    return c.json({ error: 'Face search failed' }, 500);
   }
 });
 

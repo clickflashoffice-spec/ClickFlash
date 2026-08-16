@@ -14,8 +14,8 @@ export class SharedSeed {
     const TEST_EMAIL = "admin@clickflash.local";
     const TEST_PASS = "$2b$12$FIj38CWm5vGhjjrH1WdpH.3E0gh56jdrnKuHsvy4v8OLM5ljBMRaq"; // "ClickFlash2025!" (hashed with 12 rounds)
 
-    const masterDbPath = path.resolve(__dirname, "../../../apps/master/pb_data/master.db");
-    const touchDbPath = path.resolve(__dirname, "../../../apps/touch/pb_data/touch.db");
+    const masterDbPath = path.resolve(__dirname, "../../../apps/desktop/master/pb_data/master.db");
+    const touchDbPath = path.resolve(__dirname, "../../../apps/desktop/touch/pb_data/touch.db");
 
     // Clear Databases
     [masterDbPath, touchDbPath].forEach(dbPath => {
@@ -29,6 +29,7 @@ export class SharedSeed {
         const shmPath = `${dbPath}-shm`;
         if (fs.existsSync(walPath)) fs.unlinkSync(walPath);
         if (fs.existsSync(shmPath)) fs.unlinkSync(shmPath);
+        fs.mkdirSync(path.dirname(dbPath), { recursive: true });
       } catch (e: any) {
         if (e.code === 'EBUSY' || e.code === 'EPERM') {
           console.warn(`[Seed] WARNING: Could not delete ${path.basename(dbPath)}. File is locked. Please stop all Master/Touch backend processes and retry.`);
@@ -75,9 +76,10 @@ export class SharedSeed {
     };
 
     // Initialize Master DB and run migrations
+    fs.mkdirSync(path.dirname(masterDbPath), { recursive: true });
     const masterDb = new Database(masterDbPath);
-    const masterMigrationsDir1 = path.resolve(__dirname, "../../../apps/master/backend/database/migrations");
-    const masterMigrationsDir2 = path.resolve(__dirname, "../../../apps/master/backend/migrations");
+    const masterMigrationsDir1 = path.resolve(__dirname, "../../../apps/desktop/master/backend/database/migrations");
+    const masterMigrationsDir2 = path.resolve(__dirname, "../../../apps/desktop/master/backend/migrations");
     runMigrationsForDb(masterDb, [masterMigrationsDir1, masterMigrationsDir2]);
 
     // Seed Master with Admin & Test Site
@@ -104,8 +106,9 @@ export class SharedSeed {
     masterDb.close();
 
     // Initialize Touch DB and run migrations
+    fs.mkdirSync(path.dirname(touchDbPath), { recursive: true });
     const touchDb = new Database(touchDbPath);
-    const touchMigrationsDir = path.resolve(__dirname, "../../../apps/touch/backend/migrations");
+    const touchMigrationsDir = path.resolve(__dirname, "../../../apps/desktop/touch/backend/migrations");
     runMigrationsForDb(touchDb, [touchMigrationsDir]);
 
     // Seed Touch with config

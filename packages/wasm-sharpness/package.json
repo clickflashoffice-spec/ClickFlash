@@ -2,6 +2,9 @@
   "name": "@clickflash/wasm-sharpness",
   "version": "0.1.0",
   "private": true,
+  "exports": {
+    ".": "./pkg/index.js"
+  },
   "scripts": {
     "build": "cargo build --release --target wasm32-unknown-unknown",
     "test": "cargo test",

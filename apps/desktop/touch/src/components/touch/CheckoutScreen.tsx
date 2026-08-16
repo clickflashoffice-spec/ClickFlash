@@ -43,6 +43,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
     });
     const [isComplete, setIsComplete] = useState(false);
     const [orderId, setOrderId] = useState('');
+    const [magicLinkUrl, setMagicLinkUrl] = useState<string | undefined>(undefined);
     const [focusedInput, setFocusedInput] = useState<'name' | 'email' | 'roomNumber' | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [tipAmount, setTipAmount] = useState<number>(0);
@@ -112,7 +113,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
             // 2. Try to send to Master API (Zero-Config)
             let createdOrderId: string | null = null;
             try {
-                createdOrderId = await orderService.createOrder({
+                const result = await orderService.createOrder({
                     clientName: customerDetails.name,
                     email: customerDetails.email,
                     total: total + tipAmount,
@@ -122,6 +123,11 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
                     roomNumber: customerDetails.roomNumber,
                     appliedDiscount: appliedDiscount,
                 });
+                createdOrderId = result.id;
+                
+                if (result.magicLinkUrl) {
+                    setMagicLinkUrl(result.magicLinkUrl);
+                }
                 
                 logger.info("Order successfully sent to Master API", { orderId: tempId, dbId: createdOrderId });
 
@@ -161,7 +167,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
     };
 
     if (isComplete) {
-        return <ThankYouScreen orderId={orderId} name={customerDetails.name} email={customerDetails.email} onFinish={onCheckoutSuccess} isOffline={true} />;
+        return <ThankYouScreen orderId={orderId} name={customerDetails.name} email={customerDetails.email} onFinish={onCheckoutSuccess} isOffline={!magicLinkUrl} magicLinkUrl={magicLinkUrl} />;
     }
 
     return (
@@ -226,37 +232,42 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
 
                     <form onSubmit={handlePlaceOrder} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1">Name</label>
+                            <label htmlFor="checkout-name" className="block text-sm font-medium mb-1">Name</label>
                             <input
+                                id="checkout-name"
                                 type="text"
                                 value={customerDetails.name}
                                 onFocus={() => setFocusedInput('name')}
                                 onChange={(e) => handleInputChange('name', e.target.value)}
-                                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
                                 placeholder="Enter your name"
                                 required
+                                aria-required="true"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Email</label>
+                            <label htmlFor="checkout-email" className="block text-sm font-medium mb-1">Email</label>
                             <input
+                                id="checkout-email"
                                 type="email"
                                 value={customerDetails.email}
                                 onFocus={() => setFocusedInput('email')}
                                 onChange={(e) => handleInputChange('email', e.target.value)}
-                                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
                                 placeholder="Enter your email"
                                 required
+                                aria-required="true"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Room Number (Optional)</label>
+                            <label htmlFor="checkout-room" className="block text-sm font-medium mb-1">Room Number (Optional)</label>
                             <input
+                                id="checkout-room"
                                 type="text"
                                 value={customerDetails.roomNumber}
                                 onFocus={() => setFocusedInput('roomNumber')}
                                 onChange={(e) => handleInputChange('roomNumber', e.target.value)}
-                                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
                                 placeholder="Room number"
                             />
                         </div>

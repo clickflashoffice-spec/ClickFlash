@@ -1,4 +1,5 @@
 import { NativeModules, NativeEventEmitter } from 'react-native';
+import { BLE_CONSTANTS, BleHandshakePayload, BleRole } from '@clickflash/types';
 
 const { BleBeaconModule } = NativeModules;
 const bleEmitter = new NativeEventEmitter(BleBeaconModule);
@@ -22,9 +23,22 @@ export class BleProximityService {
         if (this.isBroadcasting) return;
         
         try {
-            console.log(`[BleProximity] Starting BLE broadcast for user ${this.userId}...`);
+            console.log(`[BleProximity] Starting BLE broadcast for guest ${this.userId}...`);
+            
+            const payload: BleHandshakePayload = {
+                userId: this.userId,
+                sessionToken: 'guest-temp-session', // Would be generated securely
+                timestamp: Date.now(),
+                role: BleRole.GUEST,
+                version: 1,
+                deviceId: 'consumer-device-temp'
+            };
+
             if (BleBeaconModule?.startBroadcast) {
-                await BleBeaconModule.startBroadcast('CLICKFLASH-V7-PROXIMITY', this.userId);
+                await BleBeaconModule.startBroadcast(
+                    BLE_CONSTANTS.PROXIMITY_SERVICE_UUID,
+                    JSON.stringify(payload)
+                );
             }
             this.isBroadcasting = true;
             console.log(`[BleProximity] Broadcasting active.`);

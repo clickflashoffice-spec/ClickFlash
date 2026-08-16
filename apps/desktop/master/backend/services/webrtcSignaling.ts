@@ -1,6 +1,8 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HttpServer } from 'http';
 import { Logger } from '../utils/logger';
+import { SDPMessage, ICECandidateMessage } from '@clickflash/types/webrtc';
+
 const logger = new Logger('data', 'INFO');
 
 export class WebRTCSignalingServer {
@@ -30,20 +32,20 @@ export class WebRTCSignalingServer {
       });
 
       // Signaling: Offer
-      socket.on('offer', (data: { target: string, offer: any }) => {
-        logger.info(`[WebRTC] Offer from ${socket.id} to ${data.target}`);
-        this.io.to(data.target).emit('INCOMING_CHECK_IN', { offer: data.offer });
+      socket.on('offer', (data: SDPMessage) => {
+        logger.info(`[WebRTC] Offer from ${socket.id} to ${data.targetId}`);
+        this.io.to(data.targetId).emit('INCOMING_CHECK_IN', { offer: data.sdp });
       });
 
       // Signaling: Answer
-      socket.on('answer', (data: { target: string, answer: any }) => {
-        logger.info(`[WebRTC] Answer from ${socket.id} to ${data.target}`);
-        this.io.to(data.target).emit('answer', { answer: data.answer });
+      socket.on('answer', (data: SDPMessage) => {
+        logger.info(`[WebRTC] Answer from ${socket.id} to ${data.targetId}`);
+        this.io.to(data.targetId).emit('answer', { answer: data.sdp });
       });
 
       // Signaling: ICE Candidate
-      socket.on('ice-candidate', (data: { target: string, candidate: any }) => {
-        this.io.to(data.target).emit('ice-candidate', { candidate: data.candidate });
+      socket.on('ice-candidate', (data: ICECandidateMessage) => {
+        this.io.to(data.targetId).emit('ice-candidate', { candidate: data.candidate });
       });
 
       socket.on('disconnect', () => {

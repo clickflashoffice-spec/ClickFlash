@@ -25,6 +25,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@clickflash/errors": "workspace:^",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {

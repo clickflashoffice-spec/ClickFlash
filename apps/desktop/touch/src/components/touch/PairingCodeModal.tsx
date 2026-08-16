@@ -38,6 +38,7 @@ const PairingCodeModal: React.FC<PairingCodeModalProps> = ({ isOpen, onClose, on
                     readOnly
                     value={code}
                     placeholder="word-word-word"
+                    aria-label="3-word pairing code"
                     className="w-full h-24 bg-slate-100 dark:bg-slate-900 rounded-xl text-center text-4xl font-mono font-bold tracking-widest text-slate-900 dark:text-white border-2 border-slate-300 dark:border-slate-700 placeholder-slate-400 dark:placeholder-slate-600 focus:ring-4 focus:ring-blue-500/30 focus:border-blue-500 outline-none transition-all"
                 />
                 

@@ -11,10 +11,11 @@ app.post('/magic-link', async (c) => {
     }
 
     const token = crypto.randomUUID();
-    const magicUrl = `https://gallery.clickflash.app/magic?token=${token}&session=${guestSessionId}`;
+    const webrtcAuth = crypto.randomUUID();
+    const magicUrl = `https://gallery.clickflash.app/magic?token=${token}&session=${guestSessionId}&webrtcAuth=${webrtcAuth}`;
 
     if (c.env.DELIVERY_TOKENS) {
-      await c.env.DELIVERY_TOKENS.put(token, JSON.stringify({ guestSessionId, phone, channel }), { expirationTtl: 86400 });
+      await c.env.DELIVERY_TOKENS.put(token, JSON.stringify({ guestSessionId, phone, channel, webrtcAuth }), { expirationTtl: 86400 });
     }
 
     // Log & simulate WhatsApp/SMS delivery via Resend or SMS provider

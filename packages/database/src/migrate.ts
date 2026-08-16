@@ -1,5 +1,6 @@
 // packages/database/src/migrate.ts
 import { Database } from 'better-sqlite3-multiple-ciphers';
+import { AppError, ErrorCode } from '@clickflash/errors';
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import crypto from 'crypto';
@@ -75,7 +76,7 @@ export function migrate(db: Database, options: MigrateOptions = {}) {
       const existingChecksum = applied.get(m.id);
       // If we added the column retroactively, we might not have a checksum for old migrations.
       if (existingChecksum && existingChecksum !== m.checksum) {
-        throw new Error(`Migration checksum mismatch for ${m.id}. The migration file was modified after it was applied.`);
+        throw new AppError(`Migration checksum mismatch for ${m.id}. The migration file was modified after it was applied.`, ErrorCode.DATABASE_ERROR);
       }
       continue;
     }

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { WebSocket, WebSocketServer } from "ws";
+import WebSocket from "ws";
+type WebSocketServer = any;
 import { DatabaseManager } from '../database/db';
 import { Logger } from '../utils/logger';
 
@@ -268,8 +269,8 @@ export class OrderWatcher {
 
     // Broadcast via Realtime
     if (this.wss) {
-      this.wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
+      this.wss.clients.forEach((client: any) => {
+        if (client.readyState === 1) { // WebSocket.OPEN
           client.send(
             JSON.stringify({
               type: "NEW_ORDER_IMPORTED",

@@ -119,7 +119,7 @@ export const orders = sqliteTable('orders', {
   kioskId: integer('kiosk_id').references(() => kiosks.id),
   totalAmount: real('total_amount').notNull(),
   currency: text('currency').default('USD'),
-  paymentMethod: text('payment_method').default('STRIPE'), // 'STRIPE' | 'CASH' | 'ROOM_CHARGE'
+  paymentMethod: text('payment_method').default(process.env.DEFAULT_PAYMENT_METHOD || 'STRIPE'), // 'STRIPE' | 'CASH' | 'ROOM_CHARGE'
   paymentStatus: text('payment_status').default('PENDING'), // 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED'
   stripePaymentIntentId: text('stripe_payment_intent_id'),
   items: text('items', { mode: 'json' }), // OrderItem[]

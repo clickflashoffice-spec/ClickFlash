@@ -5,6 +5,9 @@ import { getDatabase } from '@/backend/database';
 import { logger } from '@/utils/logger';
 import * as Crypto from 'expo-crypto';
 
+import { networkRoutingService } from './NetworkRoutingService';
+import type { PhotographerLocation } from '@clickflash/types';
+
 export type AnomalySeverity = 'Low' | 'Medium' | 'High' | 'Critical';
 export interface AnomalyEvent {
   id: string;
@@ -24,7 +27,18 @@ class TelemetryService {
   private subscription: any = null;
   private lastMovementTimestamp: number = Date.now();
   private checkInterval: NodeJS.Timeout | null = null;
+  private heartbeatInterval: NodeJS.Timeout | null = null;
   private readonly IDLE_THRESHOLD_MS = 45 * 60 * 1000; // 45 minutes
+  private ws: WebSocket | null = null;
+
+  private connectWebSocket() {
+    const { masterIp } = networkRoutingService.getStatusSnapshot();
+    if (!masterIp) return;
+    
+    this.ws = new WebSocket(`ws://${masterIp}:8090/ws/telemetry`);
+    this.ws.onopen = () => logger.info('[Telemetry] Connected telemetry WebSocket');
+    this.ws.onerror = (e) => logger.error('[Telemetry] WebSocket error:', e);
+  }
 
   public async startTracking(photographerId: string) {
     // Request permissions
@@ -35,6 +49,7 @@ class TelemetryService {
     }
 
     this.lastMovementTimestamp = Date.now();
+    this.connectWebSocket();
 
     // Monitor accelerometer for physical movement
     if (Accelerometer?.setUpdateInterval) {
@@ -51,6 +66,44 @@ class TelemetryService {
 
     // Periodically check if idle
     this.checkInterval = setInterval(() => this.checkForIdle(photographerId), 60000); // Check every minute
+
+    // Send heartbeat to master
+    this.heartbeatInterval = setInterval(async () => {
+      try {
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+            // Try reconnecting if closed
+            if (this.ws?.readyState === WebSocket.CLOSED) {
+                this.connectWebSocket();
+            }
+            return;
+        }
+
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        const status = (Date.now() - this.lastMovementTimestamp > this.IDLE_THRESHOLD_MS) ? 'idle' : 'moving';
+
+        const payload: PhotographerLocation = {
+          photographerId,
+          destinationId: 'DEST-1', // Default destination
+          coordinates: {
+            lat: loc.coords.latitude,
+            lng: loc.coords.longitude,
+          },
+          accuracy: loc.coords.accuracy ?? 10,
+          heading: loc.coords.heading ?? undefined,
+          speed: loc.coords.speed ?? undefined,
+          lastUpdatedAt: new Date().toISOString(),
+          status: status as 'idle' | 'moving' | 'shooting' | 'break' | 'offline',
+        };
+        
+        this.ws.send(JSON.stringify({ type: 'telemetry:heartbeat', payload }));
+      } catch (err) {
+        logger.warn('[Telemetry] Heartbeat failed:', err);
+      }
+    }, 10000); // 10s heartbeat
+
     logger.info('[Telemetry] Started behavioral telemetry tracking.');
   }
 
@@ -62,6 +115,14 @@ class TelemetryService {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
       this.checkInterval = null;
+    }
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
     }
     logger.info('[Telemetry] Stopped telemetry tracking.');
   }

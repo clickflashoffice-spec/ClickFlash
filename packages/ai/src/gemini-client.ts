@@ -1,4 +1,5 @@
 import type { AIOperationResult, GeminiConfig } from './types.js';
+import { AppError, ErrorCode } from '@clickflash/errors';
 
 const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
 const BASE_RETRY_DELAY_MS = 1_000;
@@ -112,8 +113,9 @@ export class GeminiClient {
       const responseText = await response
         .text()
         .catch(() => `HTTP ${response.status}`);
-      const apiError = new Error(
+      const apiError = new AppError(
         `Gemini API Error (${response.status}): ${responseText}`,
+        ErrorCode.NETWORK_ERROR,
       );
 
       if (!RETRYABLE_STATUSES.has(response.status) || attempt === attempts - 1) {
@@ -130,8 +132,9 @@ export class GeminiClient {
       );
     }
 
-    throw new Error(
+    throw new AppError(
       `Gemini request exhausted retries: ${errorMessage(lastNetworkError)}`,
+      ErrorCode.NETWORK_ERROR,
     );
   }
 
@@ -177,7 +180,7 @@ export class GeminiClient {
 
       const data = (await response.json()) as GeminiApiResponse;
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) throw new Error('No content returned from Gemini API');
+      if (!text) throw new AppError('No content returned from Gemini API', ErrorCode.INTERNAL_ERROR);
 
       return {
         success: true,
@@ -225,7 +228,7 @@ export class GeminiClient {
       });
       const data = (await response.json()) as GeminiApiResponse;
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) throw new Error('No content returned from Gemini API');
+      if (!text) throw new AppError('No content returned from Gemini API', ErrorCode.INTERNAL_ERROR);
 
       return {
         success: true,

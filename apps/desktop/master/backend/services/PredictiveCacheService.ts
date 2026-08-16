@@ -132,8 +132,8 @@ export class PredictiveCacheService {
     try {
       // Lookup guest album assigned to RFID tag
       const session = this.dbManager.get<{ albumId: string }>(
-        `SELECT albumId FROM guest_sessions WHERE rfidTag = ? OR qrCode = ? LIMIT 1`,
-        [rfidTag, rfidTag]
+        `SELECT albumId FROM guest_sessions WHERE rfidTag = ? LIMIT 1`,
+        [rfidTag]
       );
       if (session?.albumId) {
         this.logger.info(`[PredictiveCache] RFID scan (${rfidTag}) matched album ${session.albumId}. Triggering immediate cache pre-warm.`);

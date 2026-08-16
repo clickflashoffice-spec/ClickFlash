@@ -17,7 +17,7 @@ export const orderService = {
     /**
      * Create an order directly on the Master via HTTP API (Zero-Config)
      */
-    async createOrder(params: CreateOrderParams): Promise<string> {
+    async createOrder(params: CreateOrderParams): Promise<{ id: string, magicLinkUrl?: string }> {
         try {
             const clientMutationId = `KIOSK-${Date.now().toString().slice(-6)}`;
             
@@ -53,10 +53,11 @@ export const orderService = {
 
             const data = await response.json();
             const createdId = data.id;
+            const magicLinkUrl = data.magicLinkUrl;
 
             logger.info("Order successfully created on Master", { id: createdId });
 
-            return createdId;
+            return { id: createdId, magicLinkUrl };
 
         } catch (error) {
             logger.error("Failed to create order on Master", error instanceof Error ? error : new Error(String(error)));

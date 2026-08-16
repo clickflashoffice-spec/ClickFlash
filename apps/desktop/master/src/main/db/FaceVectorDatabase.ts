@@ -24,7 +24,7 @@ export class FaceVectorDatabase {
 
     try {
       const dbPath = env.NODE_ENV === 'production'
-        ? path.join(process.resourcesPath, 'db', 'face_vectors.sqlite')
+        ? path.join((process as any).resourcesPath, 'db', 'face_vectors.sqlite')
         : path.join(__dirname, '../../../../pb_data', 'face_vectors.sqlite');
 
       logger.info(`[FaceVectorDatabase] Connecting to local vector store at ${dbPath}`);

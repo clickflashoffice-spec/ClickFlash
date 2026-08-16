@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { logger } from '@clickflash/logger';
+import { internal } from '@clickflash/errors';
 
 /**
  * Service to handle WhatsApp Meta Cloud API communication.
@@ -20,8 +22,8 @@ export class WhatsAppService {
      */
     async sendTextMessage(to: string, message: string): Promise<boolean> {
         if (!this.accessToken || !this.phoneNumberId) {
-            console.warn('WhatsAppService: Access token or phone number ID not configured. Simulating send.');
-            console.log(`[SIMULATED WHATSAPP] To: ${to} | Message: ${message}`);
+            logger.warn('[WhatsAppService] Access token or phone number ID not configured. Simulating send.');
+            logger.info(`[SIMULATED WHATSAPP] To: ${to} | Message: ${message}`);
             return true;
         }
 
@@ -44,8 +46,8 @@ export class WhatsAppService {
 
             return response.status === 200 || response.status === 201;
         } catch (error: any) {
-            console.error('WhatsAppService: Failed to send message:', error.response?.data || error.message);
-            return false;
+            logger.error('[WhatsAppService] Failed to send message:', error.response?.data || error.message);
+            throw internal('Failed to send WhatsApp text message', error);
         }
     }
 
@@ -54,8 +56,8 @@ export class WhatsAppService {
      */
     async sendInteractiveButtonMessage(to: string, bodyText: string, buttons: { id: string; title: string }[]): Promise<boolean> {
         if (!this.accessToken || !this.phoneNumberId) {
-             console.warn('WhatsAppService: Access token or phone number ID not configured. Simulating interactive send.');
-             console.log(`[SIMULATED WHATSAPP INTERACTIVE] To: ${to} | Text: ${bodyText} | Buttons: ${JSON.stringify(buttons)}`);
+             logger.warn('[WhatsAppService] Access token or phone number ID not configured. Simulating interactive send.');
+             logger.info(`[SIMULATED WHATSAPP INTERACTIVE] To: ${to} | Text: ${bodyText} | Buttons: ${JSON.stringify(buttons)}`);
              return true;
         }
 
@@ -87,8 +89,8 @@ export class WhatsAppService {
 
             return response.status === 200 || response.status === 201;
         } catch (error: any) {
-             console.error('WhatsAppService: Failed to send interactive message:', error.response?.data || error.message);
-             return false;
+             logger.error('[WhatsAppService] Failed to send interactive message:', error.response?.data || error.message);
+             throw internal('Failed to send WhatsApp interactive message', error);
         }
     }
 }

@@ -6,6 +6,22 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { logger } from '@clickflash/logger';
+import { getSwarmTools, handleSwarmPlanTask, handleSwarmSynthesize } from './swarm.js';
+import { getCompetitorTools, handleCompetitorScan, handleFindBetterIdeas } from './competitor.js';
+import { getRevenueTools, handleYieldSimulator, handleRevenueDashboard, handleAbandonedCartScan } from './revenue.js';
+import { getMobileTools, handleBleBeaconStatus, handleEdgeHealthCheck, handleCameraFleetStatus } from './mobile.js';
+import { getAiPipelineTools, handleCullingStats, handleVectorIndexHealth, handleTriggerBatchEnhance, handleFaceMatchAccuracy } from './ai_pipeline.js';
+import { getAnalyticsTools, handleParkHeatmap, handleGuestJourneyTrace, handleDailyBriefing, handleWeeklyTrendReport } from './analytics.js';
+import { getWhatsappTools, handleWhatsappSendMagicLink, handleWhatsappCampaignStatus, handleSalesSwarmDeploy, handleLeadScoring } from './whatsapp.js';
+import { getPhotographerTools, handlePhotographerLeaderboard, handlePhotographerDispatch, handleShiftPlanner } from './photographer.js';
+import { getComplianceTools, handleGdprAudit, handleBiometricConsentCheck, handlePciDssScan } from './compliance.js';
+import { getDevopsTools, handleAutoFixLoop, handleIssueScanner, handleBuildStatus, handleDependencyAudit, handleBundleSizeCheck, handleDeadCodeScanner, handleChangelogGenerator, handleTechDebtTracker } from './devops.js';
+import { getCustomerTools, handleCustomerSegmentation, handleNpsCalculator, handleChurnPredictor } from './customer.js';
+import { getGlobalTools, handleMultiVenueOverview, handleCurrencyConverter, handleVenueComparison } from './global.js';
+import { getCodeIntelTools, handleApiEndpointLister, handleEnvValidator, handleMonorepoHealthScore, handleErrorLogAnalyzer, handleAccessibilityAudit, handleI18nScanner, handleLicenseChecker, handlePerformanceProfiler, handlePhotoPipelineStatus, handleDeploymentReadiness, handleRedisMonitor, handleMigrationPlanner } from './code_intel.js';
+import { getProductionTools, handleAuditAppBoundaries, handleSearchArchitectureGaps, handleUiUxAccessibilityFixer, handleFinalProductionReadiness } from './production.js';
+import { infiniteLoopTools, handleInfiniteLoopCall } from './infinite-loop.js';
+import { getInnovationTools, handleAuditUxFlow, handleGenerateFeatureIdea, handleStartInfiniteFeatureLoop } from './innovation.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -43,6 +59,22 @@ function resolveContainedRegularFile(rootDir: string, requestedPath: unknown): s
 
 export function registerTools(): Tool[] {
   return [
+    ...getSwarmTools(),
+    ...getCompetitorTools(),
+    ...getRevenueTools(),
+    ...getMobileTools(),
+    ...getAiPipelineTools(),
+    ...getAnalyticsTools(),
+    ...getWhatsappTools(),
+    ...getPhotographerTools(),
+    ...getComplianceTools(),
+    ...getDevopsTools(),
+    ...getCustomerTools(),
+    ...getGlobalTools(),
+    ...getCodeIntelTools(),
+    ...getProductionTools(),
+    ...infiniteLoopTools,
+    ...getInnovationTools(),
     {
       name: "start_app",
       description: "Start a ClickFlash app in the background",
@@ -161,6 +193,42 @@ export function registerTools(): Tool[] {
           lines: { type: "number", minimum: 1, maximum: 1000, description: "Number of tail lines to fetch" }
         },
         required: ["appName"]
+      }
+    },
+    {
+      name: "ceo_scan",
+      description: "CEO Agent: Scans the entire ClickFlash monorepo (ROADMAP.md, packages_gap_report.json, and codebase health) and returns the single highest-ROI task to work on next. Use this as the starting point of an autonomous improvement loop.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          focus: { 
+            type: "string", 
+            enum: ["roadmap", "security", "performance", "testing", "revenue"],
+            description: "Optional strategic focus area. Defaults to automatic detection." 
+          }
+        },
+        required: []
+      }
+    },
+    {
+      name: "ceo_deploy_swarm",
+      description: "CEO Agent: Given a task description from ceo_scan, generates a structured execution plan with agent assignments, file targets, and verification steps. The calling AI client should then execute each agent's work.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          task: { type: "string", description: "The task description returned by ceo_scan" },
+          maxAgents: { type: "number", minimum: 1, maximum: 10, description: "Max parallel agents to deploy. Default 5." }
+        },
+        required: ["task"]
+      }
+    },
+    {
+      name: "ceo_status",
+      description: "CEO Agent: Returns the current strategic status of the ClickFlash ecosystem — roadmap progress, recent changes, open gaps, and suggested next moves.",
+      inputSchema: {
+        type: "object",
+        properties: {},
+        required: []
       }
     }
   ];
@@ -381,6 +449,290 @@ export async function handleToolCall(name: string, args: any) {
     } catch (e: any) {
       return { content: [{ type: "text", text: `Error fetching logs: ${e.message}` }] };
     }
+  } else if (name === "swarm_plan_task") {
+    return await handleSwarmPlanTask(args);
+  } else if (name === "swarm_synthesize_results") {
+    return await handleSwarmSynthesize(args);
+  } else if (name === "ceo_scan") {
+    const rootDir = path.resolve(__dirname, "../../../..");
+    const focus: string = args.focus || 'auto';
+    
+    try {
+      // 1. Read ROADMAP.md to find unchecked items
+      const roadmapPath = path.join(rootDir, "ROADMAP.md");
+      let roadmapTasks: string[] = [];
+      if (fs.existsSync(roadmapPath)) {
+        const roadmap = fs.readFileSync(roadmapPath, "utf-8");
+        const lines = roadmap.split("\n");
+        roadmapTasks = lines
+          .filter(l => l.match(/^\s*-\s*\[\s\]/)) // Unchecked items
+          .map(l => l.replace(/^\s*-\s*\[\s\]\s*/, '').trim());
+      }
+
+      // 2. Read gap report for blocking issues
+      const gapPath = path.join(rootDir, "packages_gap_report.json");
+      let blockingGaps: any[] = [];
+      if (fs.existsSync(gapPath)) {
+        const gaps = JSON.parse(fs.readFileSync(gapPath, "utf-8"));
+        blockingGaps = gaps.filter((g: any) => g.blocking === "yes" && (g.severity === "CRITICAL" || g.severity === "HIGH"));
+      }
+
+      // 3. Check git status for uncommitted work
+      let gitStatus = '';
+      try {
+        const { stdout } = await execAsync("git status --porcelain | head -20", { cwd: rootDir });
+        gitStatus = stdout.trim();
+      } catch { /* ignore */ }
+
+      // 4. Prioritize based on focus
+      let recommendation = '';
+      let priority = '';
+
+      if (blockingGaps.length > 0 && (focus === 'auto' || focus === 'security')) {
+        const gap = blockingGaps[0];
+        priority = 'CRITICAL';
+        recommendation = `[SECURITY] Fix ${gap.severity} issue: ${gap.description} in ${gap.location}. Impact: ${gap.impact}. Fix: ${gap.fix}`;
+      } else if (roadmapTasks.length > 0 && (focus === 'auto' || focus === 'roadmap' || focus === 'revenue')) {
+        priority = 'HIGH';
+        recommendation = `[ROADMAP] ${roadmapTasks[0]}`;
+      } else {
+        priority = 'MEDIUM';
+        recommendation = '[MAINTENANCE] All roadmap items and critical gaps are resolved. Run test coverage expansion or performance profiling.';
+      }
+
+      const report = [
+        `=== CEO SCAN REPORT ===${"\n"}`,
+        `Priority: ${priority}`,
+        `Focus: ${focus}`,
+        `Recommendation: ${recommendation}`,
+        ``,
+        `--- Roadmap Status ---`,
+        `Remaining items: ${roadmapTasks.length}`,
+        roadmapTasks.length > 0 ? `Next 3:\n${roadmapTasks.slice(0, 3).map((t, i) => `  ${i + 1}. ${t}`).join('\n')}` : 'All complete!',
+        ``,
+        `--- Blocking Gaps ---`,
+        `Count: ${blockingGaps.length}`,
+        blockingGaps.length > 0 ? `Top: ${blockingGaps[0].description} (${blockingGaps[0].location})` : 'None remaining.',
+        ``,
+        `--- Workspace ---`,
+        gitStatus ? `Uncommitted changes:\n${gitStatus}` : 'Clean workspace.',
+      ].join('\n');
+
+      return { content: [{ type: "text", text: report }] };
+    } catch (e: any) {
+      return { content: [{ type: "text", text: `CEO Scan error: ${e.message}` }] };
+    }
+  } else if (name === "ceo_deploy_swarm") {
+    const task: string = args.task;
+    const maxAgents: number = Math.min(args.maxAgents || 5, 10);
+
+    // Generate a structured agent deployment plan that the calling AI client can execute
+    const plan = {
+      task,
+      maxAgents,
+      timestamp: new Date().toISOString(),
+      agents: [
+        {
+          role: "Research Agent",
+          instruction: `Explore the codebase files related to: ${task}. Identify all files that need modification, existing patterns to follow, and dependencies to consider.`,
+          model: "flash",
+        },
+        {
+          role: "Implementation Agent",
+          instruction: `Implement the changes for: ${task}. Write production-ready TypeScript code following existing ClickFlash patterns. Use @clickflash/errors for error handling and @clickflash/logger for logging.`,
+          model: "pro",
+        },
+        {
+          role: "Test Agent",
+          instruction: `Write comprehensive Vitest unit tests for the changes made for: ${task}. Aim for >80% coverage on new code.`,
+          model: "flash",
+        },
+        {
+          role: "Verification Agent",
+          instruction: `After implementation, run: npm run typecheck:all && pnpm run test:all. Report any failures.`,
+          model: "flash",
+        },
+      ].slice(0, maxAgents),
+      verification: {
+        commands: [
+          "npm run typecheck:all",
+          "pnpm run test:all",
+          "npm run lint:all",
+        ],
+        successCriteria: "All commands must exit with code 0.",
+      },
+    };
+
+    return { content: [{ type: "text", text: JSON.stringify(plan, null, 2) }] };
+  } else if (name === "ceo_status") {
+    const rootDir = path.resolve(__dirname, "../../../..");
+    
+    try {
+      // Read ROADMAP.md
+      const roadmapPath = path.join(rootDir, "ROADMAP.md");
+      let completed = 0;
+      let remaining = 0;
+      let phases: string[] = [];
+      
+      if (fs.existsSync(roadmapPath)) {
+        const roadmap = fs.readFileSync(roadmapPath, "utf-8");
+        const lines = roadmap.split("\n");
+        for (const line of lines) {
+          if (line.match(/^\s*-\s*\[x\]/i)) completed++;
+          if (line.match(/^\s*-\s*\[\s\]/)) remaining++;
+          if (line.startsWith('## Phase')) phases.push(line.replace('## ', ''));
+        }
+      }
+
+      // Git log for recent changes
+      let recentCommits = '';
+      try {
+        const { stdout } = await execAsync('git log --oneline -5', { cwd: rootDir });
+        recentCommits = stdout.trim();
+      } catch { /* ignore */ }
+
+      const status = [
+        `=== CLICKFLASH CEO STATUS ===${"\n"}`,
+        `Version: 2.0.0 | Ecosystem: V8.0 Omni-Modal`,
+        ``,
+        `--- Roadmap Progress ---`,
+        `Completed: ${completed} | Remaining: ${remaining} | Total: ${completed + remaining}`,
+        `Progress: ${Math.round((completed / Math.max(completed + remaining, 1)) * 100)}%`,
+        `Phases: ${phases.join(' → ')}`,
+        ``,
+        `--- Recent Activity ---`,
+        recentCommits || 'No recent commits.',
+        ``,
+        `--- Strategic Recommendation ---`,
+        remaining > 0 
+          ? `Focus on completing Phase 1 before advancing. ${remaining} items remain across ${phases.length} phases.`
+          : `All roadmap items complete. Consider expanding to V9.0 or scaling operations.`,
+      ].join('\n');
+
+      return { content: [{ type: "text", text: status }] };
+    } catch (e: any) {
+      return { content: [{ type: "text", text: `CEO Status error: ${e.message}` }] };
+    }
+  } else if (name === "competitor_scan") {
+    return await handleCompetitorScan(args);
+  } else if (name === "find_better_ideas") {
+    return await handleFindBetterIdeas(args);
+  } else if (name === "yield_simulator") {
+    return await handleYieldSimulator(args);
+  } else if (name === "revenue_dashboard") {
+    return await handleRevenueDashboard(args);
+  } else if (name === "abandoned_cart_scan") {
+    return await handleAbandonedCartScan(args);
+  } else if (name === "ble_beacon_status") {
+    return await handleBleBeaconStatus(args);
+  } else if (name === "edge_health_check") {
+    return await handleEdgeHealthCheck(args);
+  } else if (name === "camera_fleet_status") {
+    return await handleCameraFleetStatus(args);
+  } else if (name === "culling_stats") {
+    return await handleCullingStats(args);
+  } else if (name === "vector_index_health") {
+    return await handleVectorIndexHealth(args);
+  } else if (name === "trigger_batch_enhance") {
+    return await handleTriggerBatchEnhance(args);
+  } else if (name === "face_match_accuracy") {
+    return await handleFaceMatchAccuracy(args);
+  } else if (name === "park_heatmap") {
+    return await handleParkHeatmap(args);
+  } else if (name === "guest_journey_trace") {
+    return await handleGuestJourneyTrace(args);
+  } else if (name === "daily_briefing") {
+    return await handleDailyBriefing(args);
+  } else if (name === "weekly_trend_report") {
+    return await handleWeeklyTrendReport(args);
+  } else if (name === "whatsapp_send_magic_link") {
+    return await handleWhatsappSendMagicLink(args);
+  } else if (name === "whatsapp_campaign_status") {
+    return await handleWhatsappCampaignStatus(args);
+  } else if (name === "sales_swarm_deploy") {
+    return await handleSalesSwarmDeploy(args);
+  } else if (name === "lead_scoring") {
+    return await handleLeadScoring(args);
+  } else if (name === "photographer_leaderboard") {
+    return await handlePhotographerLeaderboard(args);
+  } else if (name === "photographer_dispatch") {
+    return await handlePhotographerDispatch(args);
+  } else if (name === "shift_planner") {
+    return await handleShiftPlanner(args);
+  } else if (name === "gdpr_audit") {
+    return await handleGdprAudit(args);
+  } else if (name === "biometric_consent_check") {
+    return await handleBiometricConsentCheck(args);
+  } else if (name === "pci_dss_scan") {
+    return await handlePciDssScan(args);
+  } else if (name === "auto_fix_loop") {
+    return await handleAutoFixLoop(args);
+  } else if (name === "issue_scanner") {
+    return await handleIssueScanner(args);
+  } else if (name === "build_status") {
+    return await handleBuildStatus(args);
+  } else if (name === "dependency_audit") {
+    return await handleDependencyAudit(args);
+  } else if (name === "bundle_size_check") {
+    return await handleBundleSizeCheck(args);
+  } else if (name === "dead_code_scanner") {
+    return await handleDeadCodeScanner(args);
+  } else if (name === "changelog_generator") {
+    return await handleChangelogGenerator(args);
+  } else if (name === "tech_debt_tracker") {
+    return await handleTechDebtTracker(args);
+  } else if (name === "customer_segmentation") {
+    return await handleCustomerSegmentation(args);
+  } else if (name === "nps_calculator") {
+    return await handleNpsCalculator(args);
+  } else if (name === "churn_predictor") {
+    return await handleChurnPredictor(args);
+  } else if (name === "multi_venue_overview") {
+    return await handleMultiVenueOverview(args);
+  } else if (name === "currency_converter") {
+    return await handleCurrencyConverter(args);
+  } else if (name === "venue_comparison") {
+    return await handleVenueComparison(args);
+  } else if (name === "api_endpoint_lister") {
+    return await handleApiEndpointLister(args);
+  } else if (name === "env_validator") {
+    return await handleEnvValidator(args);
+  } else if (name === "monorepo_health_score") {
+    return await handleMonorepoHealthScore(args);
+  } else if (name === "error_log_analyzer") {
+    return await handleErrorLogAnalyzer(args);
+  } else if (name === "accessibility_audit") {
+    return await handleAccessibilityAudit(args);
+  } else if (name === "i18n_scanner") {
+    return await handleI18nScanner(args);
+  } else if (name === "license_checker") {
+    return await handleLicenseChecker(args);
+  } else if (name === "performance_profiler") {
+    return await handlePerformanceProfiler(args);
+  } else if (name === "photo_pipeline_status") {
+    return await handlePhotoPipelineStatus(args);
+  } else if (name === "deployment_readiness") {
+    return await handleDeploymentReadiness(args);
+  } else if (name === "redis_monitor") {
+    return await handleRedisMonitor(args);
+  } else if (name === "migration_planner") {
+    return await handleMigrationPlanner(args);
+  } else if (name === "audit_app_boundaries") {
+    return await handleAuditAppBoundaries(args);
+  } else if (name === "search_architecture_gaps") {
+    return await handleSearchArchitectureGaps(args);
+  } else if (name === "ui_ux_accessibility_fixer") {
+    return await handleUiUxAccessibilityFixer(args);
+  } else if (name === "final_production_readiness") {
+    return await handleFinalProductionReadiness(args);
+  } else if (name === "start_infinite_loop" || name === "report_gap_fixed" || name === "check_loop_status") {
+    return await handleInfiniteLoopCall(name, args);
+  } else if (name === "audit_ux_flow") {
+    return await handleAuditUxFlow(args);
+  } else if (name === "generate_feature_idea") {
+    return await handleGenerateFeatureIdea(args);
+  } else if (name === "start_infinite_feature_loop") {
+    return await handleStartInfiniteFeatureLoop(args);
   }
   
   throw new Error(`Unknown tool: ${name}`);

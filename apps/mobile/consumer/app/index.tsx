@@ -1,22 +1,50 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
+import { useEffect, useState, useMemo } from 'react';
+import { BleProximityService } from '../src/services/BleProximityService';
 
 export default function LoginScreen() {
+  const [isScanning, setIsScanning] = useState(true);
+  const bleService = useMemo(() => new BleProximityService('guest-temp-id'), []);
+
+  useEffect(() => {
+    let mounted = true;
+    
+    const startScan = async () => {
+      await bleService.startScanning((photographerId, sessionId) => {
+        if (mounted) {
+          setIsScanning(false);
+          // Auto-link successful, route to gallery
+          router.replace('/(tabs)/gallery');
+        }
+      });
+    };
+    
+    startScan();
+
+    return () => {
+      mounted = false;
+      bleService.stopScanning();
+    };
+  }, [bleService]);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to ClickFlash</Text>
       <Text style={styles.subtitle}>Find your resort memories instantly.</Text>
+      
+      {isScanning && (
+        <View style={styles.scanningContainer}>
+          <ActivityIndicator size="large" color="#3b82f6" />
+          <Text style={styles.scanningText}>Auto-detecting nearby photographers...</Text>
+        </View>
+      )}
+
       <TouchableOpacity 
         style={styles.button}
         onPress={() => router.replace('/selfie')}
       >
         <Text style={styles.buttonText}>Find My Photos (Selfie)</Text>
-      </TouchableOpacity>
-      <TouchableOpacity 
-        style={[styles.button, styles.qrButton]}
-        onPress={() => router.push('/qr-scan')}
-      >
-        <Text style={styles.buttonText}>Scan Kiosk QR Code</Text>
       </TouchableOpacity>
     </View>
   );
@@ -52,8 +80,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  qrButton: {
-    backgroundColor: '#f59e0b', // Tailwind amber-500
+  scanningContainer: {
+    alignItems: 'center',
+    marginBottom: 30,
+    padding: 20,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderRadius: 16,
+    width: '100%',
+  },
+  scanningText: {
+    color: '#60a5fa',
+    marginTop: 12,
+    fontSize: 14,
+    fontWeight: '500',
   },
   buttonText: {
     color: '#fff',

@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { ArrowRight, ArrowLeft, Monitor, Wifi, QrCode, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
+import React from "react";
+import { ArrowRight, ArrowLeft, Monitor, Wifi, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { InstallerState } from "../types/installer";
-import QRCode from "qrcode";
 
 interface TouchPairingStepProps {
   state: InstallerState;
@@ -17,27 +16,6 @@ const TouchPairingStep: React.FC<TouchPairingStepProps> = ({
   onPrev,
 }) => {
   const result = state.pairingResult;
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const [manualIp, setManualIp] = useState("");
-
-  const qrPayload = useMemo(() => {
-    if (!result?.masterIp || !result?.kioskId) return null;
-    return JSON.stringify({
-      master_url: `http://${result.masterIp}:8090`,
-      desk_id: result.kioskId,
-      fp: result.hardwareFingerprint,
-    });
-  }, [result]);
-
-  useEffect(() => {
-    if (qrPayload) {
-      QRCode.toDataURL(qrPayload, { width: 160, margin: 2 })
-        .then(setQrDataUrl)
-        .catch(() => setQrDataUrl(null));
-    } else {
-      setQrDataUrl(null);
-    }
-  }, [qrPayload]);
 
   return (
     <div className="step-card max-w-2xl mx-auto mt-4">
@@ -99,36 +77,23 @@ const TouchPairingStep: React.FC<TouchPairingStepProps> = ({
             </div>
           )}
 
-          {/* QR Fallback */}
+          {/* Manual Fallback */}
           <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700/50">
             <div className="flex items-center gap-2 mb-2">
-              <QrCode className="w-4 h-4 text-slate-400" />
-              <span className="text-sm font-medium text-slate-300">QR Code Fallback</span>
+              <Wifi className="w-4 h-4 text-slate-400" />
+              <span className="text-sm font-medium text-slate-300">Manual Fallback</span>
             </div>
             <p className="text-xs text-slate-500 mb-3">
-              If automatic discovery fails, scan this QR code on the Touch Kiosk to pair manually.
+              If automatic discovery fails, enter the Master IP manually.
             </p>
-            {qrDataUrl ? (
-              <div className="flex items-center gap-4">
-                <img src={qrDataUrl} alt="Pairing QR Code" className="w-40 h-40 rounded border border-slate-700" />
-                <div className="space-y-1 text-xs text-slate-400">
-                  <p>Master URL: <span className="font-mono text-slate-300">http://{result.masterIp}:8090</span></p>
-                  <p>Desk ID: <span className="font-mono text-slate-300">{result.kioskId}</span></p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Wifi className="w-4 h-4 text-slate-500" />
-                <input
-                  type="text"
-                  value={manualIp}
-                  onChange={(e) => setManualIp(e.target.value)}
-                  placeholder="192.168.1.100"
-                  className="input-field flex-1 text-sm"
-                />
-                <button className="btn-secondary text-sm">Pair</button>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="192.168.1.100"
+                className="input-field flex-1 text-sm"
+              />
+              <button className="btn-secondary text-sm">Pair</button>
+            </div>
           </div>
         </div>
       )}

@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 /**
  * ClickFlash Installer — Pairing Smoke Tests
  * Mocks the IPC layer and tests runPairing states.

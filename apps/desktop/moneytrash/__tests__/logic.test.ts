@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 /**
  * MoneyTrash Uploader - Unit Tests
  * 

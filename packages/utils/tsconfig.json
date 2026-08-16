@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -14,6 +16,12 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"],
-  "exclude": ["dist", "node_modules", "src/__tests__"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "src/__tests__"
+  ]
 }

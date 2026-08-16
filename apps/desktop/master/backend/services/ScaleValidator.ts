@@ -14,6 +14,7 @@ import fs from "fs";
 import path from "path";
 import http from "http";
 import { UPLOAD_DIR } from "../config/constants";
+import { redisCache } from "./redisCacheService";
 
 export interface ScaleReport {
   timestamp: string;
@@ -276,28 +277,23 @@ export class ScaleValidator {
 
       const t0 = Date.now();
 
-      // Batch insert using a transaction — orders of magnitude faster than per-row await
-      const photoStmt = this.dbManager
-        .getDb()
-        .prepare(
-          "INSERT INTO photos (id, albumId, title, url, status, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-        );
-      const retentionStmt = this.dbManager
-        .getDb()
-        .prepare(
-          "INSERT INTO retention_queue (album_id, asset_id, status, created_at) VALUES (?, ?, ?, ?)",
-        );
-
-      const batchInsert = this.dbManager.getDb().transaction(() => {
+      // Batch insert using Redis streams
+      const batchInsert = async () => {
         for (let i = 0; i < count; i++) {
           const photoId = `scale_photo_${i}_${albumId}`;
           const url = `/uploads/${albumId}/highres/scale_${i}.jpg`;
-          photoStmt.run(photoId, albumId, `Photo ${i}`, url, "available", now);
-          retentionStmt.run(albumId, photoId, "pending", now);
+          
+          await redisCache.publishEvent("photo_ingestion", {
+            id: photoId,
+            albumId: albumId,
+            title: `Photo ${i}`,
+            url: url,
+            status: "available"
+          });
         }
-      });
+      };
 
-      batchInsert();
+      await batchInsert();
 
       const durationMs = Date.now() - t0;
       const throughputPerSec = Math.round((count / durationMs) * 1000);

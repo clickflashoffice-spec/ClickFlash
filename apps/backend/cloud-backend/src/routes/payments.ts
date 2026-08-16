@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { requireServiceAuth } from '../auth';
 import type { AppEnv } from '../types';
 
 const app = new Hono<AppEnv>();
@@ -142,6 +143,101 @@ app.get('/methods', async (c) => {
   
   // Return dummy response for the test if it passes validation
   return c.json({ success: true, methods: [] });
+});
+
+// BCK-GAP-002: Payout disbursement logic
+app.post('/disburse-payout', requireServiceAuth, async (c) => {
+  let body;
+  try {
+    body = await c.req.json();
+  } catch (e) {
+    return c.json({ error: 'Validation failed' }, 400);
+  }
+
+  const { photographerId, destinationAccountId } = body;
+
+  if (!photographerId || !destinationAccountId) {
+    return c.json({ error: 'Missing photographerId or destinationAccountId' }, 400);
+  }
+
+  const stripeSecretKey = c.env.STRIPE_SECRET_KEY;
+  if (!stripeSecretKey) {
+    return c.json({ error: 'Stripe not configured' }, 503);
+  }
+
+  try {
+    const db = c.get('DB') as any;
+    
+    // Get pending commission
+    const commissionRow = await db.prepare(
+      `SELECT pending_commission FROM commission_state WHERE photographer_id = ?`
+    ).bind(photographerId).first();
+
+    if (!commissionRow || commissionRow.pending_commission <= 0) {
+      return c.json({ error: 'No pending commission to disburse' }, 400);
+    }
+
+    const amountToDisburse = commissionRow.pending_commission;
+    // Amount in cents for Stripe
+    const amountInCents = Math.floor(amountToDisburse * 100);
+
+    // Create a Transfer to the connected account via Stripe
+    const params = new URLSearchParams();
+    params.append('amount', amountInCents.toString());
+    params.append('currency', 'eur'); // Assuming EUR as base
+    params.append('destination', destinationAccountId);
+    params.append('description', `ClickFlash Payout for Photographer ${photographerId}`);
+
+    const idempotencyKey = c.req.header('Idempotency-Key') || `payout_${photographerId}_${Date.now()}`;
+    const headers: Record<string, string> = {
+      'Authorization': `Bearer ${stripeSecretKey}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Idempotency-Key': idempotencyKey
+    };
+
+    const response = await fetch('https://api.stripe.com/v1/transfers', {
+      method: 'POST',
+      headers,
+      body: params
+    });
+
+    const data: any = await response.json();
+
+    if (!response.ok) {
+      return c.json({ error: data.error?.message || 'Failed to process payout via Stripe' }, 500);
+    }
+
+    // Update the ledger to reflect paid commission
+    await db.prepare(
+      `UPDATE commission_state 
+       SET pending_commission = 0 
+       WHERE photographer_id = ?`
+    ).bind(photographerId).run();
+
+    // Log the payout event
+    await db.prepare(
+      `INSERT INTO photographer_events_v1 (id, aggregate_id, event_type, payload, processed)
+       VALUES (?, ?, ?, ?, 0)`
+    ).bind(
+      `po_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+      photographerId,
+      'PAYOUT_DISBURSED',
+      JSON.stringify({
+        transferId: data.id,
+        amount: amountToDisburse,
+        destination: destinationAccountId
+      })
+    ).run();
+
+    return c.json({
+      success: true,
+      transferId: data.id,
+      amountDisbursed: amountToDisburse
+    });
+
+  } catch (error: any) {
+    return c.json({ error: 'Internal server error processing payout' }, 500);
+  }
 });
 
 export default app;

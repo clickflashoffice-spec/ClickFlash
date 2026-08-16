@@ -54,31 +54,23 @@ export class AICullingService {
    * Evaluates the image buffer for blur, faces, and closed eyes.
    * If models are not present, uses safe heuristic defaults.
    */
-  public static async evaluateImage(_imageBuffer: Buffer, _width: number, _height: number): Promise<CullingScores> {
-    await this.init();
-
+  public static async evaluateImage(imagePath: string): Promise<CullingScores> {
     const scores: CullingScores = {
-      blurScore: 0,
+      blurScore: 0.1, // Default safe value
       faceCount: 0,
       closedEyesCount: 0,
     };
 
     try {
-      if (this.blurSession) {
-        // Assume output is a single float score (0 = sharp, 1 = extremely blurred)
-        // Dummy inference for fallback
-        const dummyTensor = new ort.Tensor('float32', new Float32Array(3 * 224 * 224), [1, 3, 224, 224]);
-        const results = await this.blurSession.run({ input: dummyTensor });
-        const output = results[this.blurSession.outputNames[0]];
-        if (output && output.data) {
-          scores.blurScore = output.data[0] as number;
-        }
-      } else {
-        // Heuristic: Use sharp library directly or return 0
-        scores.blurScore = 0.1; // Default
+      const exec = require('util').promisify(require('child_process').exec);
+      const scriptPath = path.join(process.cwd(), 'scripts', 'brisque_scorer.py');
+      const { stdout } = await exec(`python "${scriptPath}" "${imagePath}"`);
+      const score = parseFloat(stdout.trim());
+      if (!isNaN(score)) {
+        scores.blurScore = score;
       }
     } catch (error) {
-      logger.error('[AICullingService] Error running inference:', error);
+      logger.error('[AICullingService] Error running BRISQUE inference:', error);
     }
 
     return scores;
@@ -88,11 +80,7 @@ export class AICullingService {
     try {
       if (!fs.existsSync(imagePath)) return;
       
-      // Calculate basic quality scores via sharp
-      const sharp = require("sharp");
-      const imageBuffer = await sharp(imagePath).resize(224, 224).toBuffer();
-      
-      const scores = await AICullingService.evaluateImage(imageBuffer, 224, 224);
+      const scores = await AICullingService.evaluateImage(imagePath);
       
       const aiScore = Math.max(0, Math.min(100, Math.round(100 - (scores.blurScore * 100))));
       const isRejected = aiScore < 40 ? 1 : 0;

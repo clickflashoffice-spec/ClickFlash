@@ -1,4 +1,4 @@
-import { WebSocket } from 'ws';
+import WebSocket from 'ws';
 import { Logger } from '../utils/logger';
 import DatabaseManager from '../database/db';
 import { TABLE_MAP, JSON_COLUMNS, ALLOWED_COLUMNS } from '../config/constants';

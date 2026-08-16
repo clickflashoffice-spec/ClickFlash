@@ -101,6 +101,52 @@ services:
       retries: 5
 
   # ==========================================
+  # AI Worker (Python FastAPI + CUDA)
+  # ==========================================
+  ai-worker:
+    build:
+      context: apps/backend/ai-worker
+      dockerfile: Dockerfile.cuda
+    container_name: clickflash-ai-worker-prod
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PYTHONUNBUFFERED=1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - clickflash-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ==========================================
+  # MCP Server (Model Context Protocol)
+  # ==========================================
+  mcp-server:
+    build:
+      context: .
+      dockerfile: apps/backend/mcp-server/Dockerfile.prod
+    container_name: clickflash-mcp-server-prod
+    restart: always
+    environment:
+      - NODE_ENV=production
+    networks:
+      - clickflash-prod-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ==========================================
   # Gateway Reverse Proxy (Nginx)
   # ==========================================
   proxy:

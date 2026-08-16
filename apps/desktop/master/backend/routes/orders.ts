@@ -1,3 +1,4 @@
+import { redisCache } from "../services/redisCacheService";
 import express, { Request, Response, Router } from "express";
 import { randomUUID } from "crypto";
 import fs from "fs-extra";
@@ -161,32 +162,25 @@ export default function orderRoutes(context: OrdersContext): Router {
         return sum + (Number(item.price) || 0) * (Number(item.quantity) || 1);
       }, 0) * (1 - safeDiscount / 100);
 
-      dbManager.run(
-        `INSERT INTO orders (
-          id, clientName, email, total, status, items, date,
-          destinationId, photographerId, roomNumber, appliedDiscount, tip_amount,
-          client_mutation_id, client_device_id, mutation_timestamp, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          id,
-          clientName || "",
-          email || "",
-          calculatedTotal,
-          status || "Pending",
-          JSON.stringify(items || []),
-          date || now.split("T")[0],
-          destinationId || "",
-          photographerId || 0,
-          roomNumber || "",
-          appliedDiscount || 0,
-          tipAmount || 0,
-          clientMutationId,
-          clientDeviceId || "",
-          Date.now(),
-          now,
-          now,
-        ]
-      );
+      await redisCache.publishEvent("order_ingestion", {
+          id: id,
+          clientName: clientName || "",
+          email: email || "",
+          total: calculatedTotal,
+          status: status || "Pending",
+          items: JSON.stringify(items || []),
+          date: date || now.split("T")[0],
+          destinationId: destinationId || "",
+          photographerId: photographerId || 0,
+          roomNumber: roomNumber || "",
+          appliedDiscount: appliedDiscount || 0,
+          tip_amount: tipAmount || 0,
+          client_mutation_id: clientMutationId,
+          client_device_id: clientDeviceId || "",
+          mutation_timestamp: Date.now(),
+          created_at: now,
+          updated_at: now
+      });
 
       // Broadcast
       if (syncManager) {
@@ -629,32 +623,25 @@ export default function orderRoutes(context: OrdersContext): Router {
         return sum + (Number(item.price) || 0) * (Number(item.quantity) || 1);
       }, 0) * (1 - safeDiscount / 100);
 
-      dbManager.run(
-        `INSERT INTO orders (
-          id, clientName, email, total, status, items, date,
-          destinationId, photographerId, roomNumber, appliedDiscount, tip_amount,
-          client_mutation_id, client_device_id, mutation_timestamp, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          id,
-          clientName || "",
-          email || "",
-          calculatedTotal,
-          status || "Pending",
-          JSON.stringify(items || []),
-          date || now.split("T")[0],
-          destinationId || "",
-          photographerId || 0,
-          roomNumber || "",
-          appliedDiscount || 0,
-          tipAmount || 0,
-          clientMutationId,
-          clientDeviceId || "",
-          Date.now(),
-          now,
-          now,
-        ]
-      );
+      await redisCache.publishEvent("order_ingestion", {
+          id: id,
+          clientName: clientName || "",
+          email: email || "",
+          total: calculatedTotal,
+          status: status || "Pending",
+          items: JSON.stringify(items || []),
+          date: date || now.split("T")[0],
+          destinationId: destinationId || "",
+          photographerId: photographerId || 0,
+          roomNumber: roomNumber || "",
+          appliedDiscount: appliedDiscount || 0,
+          tip_amount: tipAmount || 0,
+          client_mutation_id: clientMutationId,
+          client_device_id: clientDeviceId || "",
+          mutation_timestamp: Date.now(),
+          created_at: now,
+          updated_at: now
+      });
 
       // Broadcast to connected kiosks
       if (syncManager) {

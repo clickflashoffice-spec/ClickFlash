@@ -1,5 +1,7 @@
 import { LlamaModel, LlamaContext, LlamaChatSession } from "node-llama-cpp";
 import path from "path";
+import { logger } from "@clickflash/logger";
+import { internal } from "@clickflash/errors";
 
 let model: LlamaModel | null = null;
 let context: LlamaContext | null = null;
@@ -46,7 +48,7 @@ export async function performOfflineReasoning(prompt: string): Promise<string> {
     const response = await chatSession.prompt(prompt);
     return response;
   } catch (error) {
-    console.error("Failed to run local generative AI:", error);
-    return "Error: Local AI reasoning failed.";
+    logger.error("Failed to run local generative AI:", error);
+    throw internal("Local AI reasoning failed", error instanceof Error ? error : undefined);
   }
 }

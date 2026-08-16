@@ -201,11 +201,11 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
         >
             <div className="bg-white dark:bg-slate-900 w-full h-full lg:rounded-2xl flex flex-col text-slate-800 dark:text-white overflow-hidden shadow-2xl border-none lg:border border-slate-800">
                 <header className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center flex-shrink-0 bg-white dark:bg-slate-900 z-30">
-                    <button onClick={onBack} data-testid="back-to-gallery-button" className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                    <button onClick={onBack} data-testid="back-to-gallery-button" className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-lg" aria-label="Back to Gallery">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                         <span>Back to Gallery</span>
                     </button>
-                    <h2 className="text-xl font-bold truncate max-w-md hidden sm:block">{photo.title}</h2>
+                    <h2 className="text-xl font-bold truncate max-w-md hidden sm:block" role="heading" aria-level={2}>{photo.title}</h2>
                     <div className="w-48 hidden sm:block"></div>
                 </header>
 
@@ -265,8 +265,8 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
 
                             {/* Optimistic Loading Overlay */}
                             {isAiProcessing && (
-                                <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
-                                    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4"></div>
+                                <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none" role="status" aria-live="assertive">
+                                    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4" aria-hidden="true"></div>
                                     <p className="text-white font-bold text-xl drop-shadow-md">AI Optimizing Lighting & Color...</p>
                                 </div>
                             )}
@@ -403,9 +403,9 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
                             <div>
                                 <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">Quantity</label>
                                 <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden w-full max-w-[200px]">
-                                    <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-14 h-12 text-2xl bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors font-bold">-</button>
+                                    <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-14 h-12 text-2xl bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors font-bold" aria-label="Decrease quantity">-</button>
                                     <span className="flex-1 h-12 flex items-center justify-center font-bold text-xl">{quantity}</span>
-                                    <button onClick={() => setQuantity(q => q + 1)} className="w-14 h-12 text-2xl bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors font-bold">+</button>
+                                    <button onClick={() => setQuantity(q => q + 1)} className="w-14 h-12 text-2xl bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors font-bold" aria-label="Increase quantity">+</button>
                                 </div>
                             </div>
                         </div>

@@ -5,12 +5,14 @@ import { DatabaseManager } from '../database/db';
 import { Logger } from '../utils/logger';
 import RealtimeService from "./realtimeService";
 import { Album } from "../types/shared";
+import { redisCache } from "./redisCacheService";
 
 interface ServiceContext {
   dbManager: DatabaseManager;
   logger: Logger;
   realtimeService?: RealtimeService;
   bookingService?: import("./bookingService").BookingService;
+  redisCache?: import("./redisCacheService").RedisCacheService;
 }
 
 interface CreateAlbumData {
@@ -82,12 +84,14 @@ export default class AlbumService {
   private logger: Logger;
   private realtimeService?: RealtimeService;
   private bookingService?: import("./bookingService").BookingService;
+  private redisCache?: import("./redisCacheService").RedisCacheService;
 
   constructor(context: ServiceContext) {
     this.dbManager = context.dbManager;
     this.logger = context.logger;
     this.realtimeService = context.realtimeService;
     this.bookingService = context.bookingService;
+    this.redisCache = context.redisCache || redisCache;
   }
 
   /**
@@ -206,19 +210,22 @@ export default class AlbumService {
         }
       }
 
-      // 2. Whitelist-based INSERT (prevents SQL injection from dynamic keys)
-      const allowedEntries = ALLOWED_PHOTO_COLUMNS.filter(
-        (col) => photoData[col as AllowedPhotoColumn] !== undefined,
-      ).map((col) => ({ col, val: photoData[col as AllowedPhotoColumn] }));
+      // 2. Publish to Redis Streams (V6.0 Event-Driven Invariant)
+      const eventPayload: Record<string, string> = {
+        operation: "register",
+      };
+      
+      for (const col of ALLOWED_PHOTO_COLUMNS) {
+        if (photoData[col as AllowedPhotoColumn] !== undefined && photoData[col as AllowedPhotoColumn] !== null) {
+          eventPayload[col] = String(photoData[col as AllowedPhotoColumn]);
+        }
+      }
 
-      const cols = allowedEntries.map((e) => e.col).join(", ");
-      const placeholders = allowedEntries.map(() => "?").join(", ");
-      const values = allowedEntries.map((e) => e.val);
-
-      this.dbManager.run(
-        `INSERT INTO photos (${cols}) VALUES (${placeholders})`,
-        values,
-      );
+      this.redisCache?.publishEvent("photo_ingestion", eventPayload).catch((err) => {
+        if (this.logger && this.logger.warn) {
+          this.logger.warn(`[AlbumService] Failed to publish photo_ingestion event`, { error: err.message });
+        }
+      });
 
       // 3. Queue for face indexing (P3-R5: auto-index on import)
       this.queueFaceIndexing(photoData.id);
@@ -326,19 +333,22 @@ export default class AlbumService {
             }
           }
 
-          // 2. Whitelist-based INSERT
-          const allowedEntries = ALLOWED_PHOTO_COLUMNS.filter(
-            (col) => photoData[col as AllowedPhotoColumn] !== undefined,
-          ).map((col) => ({ col, val: photoData[col as AllowedPhotoColumn] }));
+          // 2. Publish to Redis Streams (V6.0 Event-Driven Invariant)
+          const eventPayload: Record<string, string> = {
+            operation: "register",
+          };
+          
+          for (const col of ALLOWED_PHOTO_COLUMNS) {
+            if (photoData[col as AllowedPhotoColumn] !== undefined && photoData[col as AllowedPhotoColumn] !== null) {
+              eventPayload[col] = String(photoData[col as AllowedPhotoColumn]);
+            }
+          }
 
-          const cols = allowedEntries.map((e) => e.col).join(", ");
-          const placeholders = allowedEntries.map(() => "?").join(", ");
-          const values = allowedEntries.map((e) => e.val);
-
-          this.dbManager.run(
-            `INSERT INTO photos (${cols}) VALUES (${placeholders})`,
-            values,
-          );
+          this.redisCache?.publishEvent("photo_ingestion", eventPayload).catch((err) => {
+            if (this.logger && this.logger.warn) {
+              this.logger.warn(`[AlbumService] Failed to publish photo_ingestion bulk event`, { error: err.message });
+            }
+          });
 
           // 3. Queue for face indexing (P3-R5: auto-index on import)
           this.queueFaceIndexing(photoData.id);

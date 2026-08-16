@@ -2,6 +2,7 @@
 /// @brief Drogon implementation for file/photo management endpoints
 #include "http/FilesController.h"
 #include "db/DatabaseManager.h"
+#include "services/RedisCacheService.h"
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <fstream>
@@ -210,18 +211,15 @@ Task<> FilesController::uploadFile(
 
         const std::string url = "local://albums/" + albumId + "/" + fileId;
 
-        // Insert into DB
-        auto& conn = cf::db::DatabaseManager::instance().conn();
-        SQLite::Statement ins(conn,
-            "INSERT INTO photos "
-            "(id, album_id, url, storage_path, file_size, sync_status, created_at) "
-            "VALUES (?, ?, ?, ?, ?, 'pending', datetime('now'))");
-        ins.bind(1, fileId);
-        ins.bind(2, albumId);
-        ins.bind(3, url);
-        ins.bind(4, filePath.string());
-        ins.bind(5, static_cast<int64_t>(fileData.size()));
-        ins.exec();
+        // Use Redis Streams instead of direct SQLite INSERT per V6.0 invariant
+        json payload = {
+            {"fileId", fileId},
+            {"albumId", albumId},
+            {"url", url},
+            {"storagePath", filePath.string()},
+            {"fileSize", fileData.size()}
+        };
+        cf::services::RedisCacheService::instance().publishEvent("photo_ingestion", "photo_uploaded", payload);
 
         spdlog::info("File uploaded: {} ({} bytes)", fileId, fileData.size());
 

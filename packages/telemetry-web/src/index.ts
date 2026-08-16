@@ -113,7 +113,7 @@ export class WebLogger {
       };
       
       if (typeof sessionStorage !== 'undefined') {
-        const token = sessionStorage.getItem('authToken');
+        const token = sessionStorage.getItem(process.env.AUTH_TOKEN_KEY || 'authToken');
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
         }

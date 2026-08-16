@@ -10,8 +10,8 @@ describe('redactSensitiveFields', () => {
     const input = {
       username: 'alice',
       password: 'hunter2',
-      token: 'jwt-xxx',
-      apiKey: 'ak_live_123',
+      token: process.env.TEST_TOKEN || 'jwt-xxx',
+      apiKey: process.env.TEST_API_KEY || 'ak_live_123',
       safe: 'visible',
     };
 
@@ -120,7 +120,7 @@ describe('redactFormat', () => {
       level: 'info',
       message: 'test',
       password: 'secret123',
-      token: 'jwt-token',
+      token: process.env.TEST_JWT_TOKEN || 'jwt-token',
       safeField: 'visible',
       [Symbol.for('level')]: 'info',
     };

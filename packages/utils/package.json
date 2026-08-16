@@ -21,6 +21,10 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
+  "dependencies": {
+    "@clickflash/errors": "workspace:*",
+    "@clickflash/types": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "^5.0.0",
     "vitest": "^3.2.7"

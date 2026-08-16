@@ -1,13 +1,36 @@
-import { Tag, Plus, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Tag, Plus, Check, Loader2 } from 'lucide-react';
 
-const packages = [
-  { id: 1, name: 'Single Digital', type: 'Digital', price: 15.00, active: true },
-  { id: 2, name: 'All Inclusive Digital', type: 'Digital', price: 89.00, active: true },
-  { id: 3, name: 'Digital + 3 Prints', type: 'Bundle', price: 120.00, active: true },
-  { id: 4, name: 'Premium Album', type: 'Physical', price: 250.00, active: false },
-];
+interface Package {
+  id: string;
+  name: string;
+  type: string;
+  price: number;
+  basePrice: number;
+  yieldMultiplier: number;
+  active: boolean;
+}
 
 export function PricingView() {
+  const [packages, setPackages] = useState<Package[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPricing() {
+      try {
+        const res = await fetch('http://localhost:8787/api/pricing/packages');
+        if (res.ok) {
+          const data = await res.json();
+          setPackages(data.items || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch pricing:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPricing();
+  }, []);
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-end">
@@ -25,8 +48,18 @@ export function PricingView() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {packages.map(pkg => (
-          <div key={pkg.id} className={`bg-slate-900 rounded-xl border ${pkg.active ? 'border-amber-500/30' : 'border-slate-800'} p-5 flex flex-col`}>
+        {loading ? (
+          <div className="col-span-full flex items-center justify-center p-12">
+             <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+             <span className="ml-3 text-slate-400">Loading dynamic pricing...</span>
+          </div>
+        ) : packages.map(pkg => (
+          <div key={pkg.id} className={`bg-slate-900 rounded-xl border ${pkg.active ? 'border-amber-500/30' : 'border-slate-800'} p-5 flex flex-col relative overflow-hidden`}>
+            {pkg.yieldMultiplier !== 1 && (
+               <div className={`absolute top-0 right-0 px-2 py-1 text-[10px] font-bold tracking-wider rounded-bl-lg ${pkg.yieldMultiplier > 1 ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                 YIELD: {pkg.yieldMultiplier > 1 ? '+' : '-'}{Math.abs((pkg.yieldMultiplier - 1) * 100).toFixed(0)}%
+               </div>
+            )}
             <div className="flex justify-between items-start mb-4">
               <div>
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1 block">{pkg.type}</span>
@@ -42,7 +75,12 @@ export function PricingView() {
             </div>
             
             <div className="mt-auto pt-4 border-t border-slate-800/50 flex justify-between items-center">
-              <span className="text-2xl font-bold text-white">${pkg.price.toFixed(2)}</span>
+              <div>
+                <span className="text-2xl font-bold text-white">${pkg.price.toFixed(2)}</span>
+                {pkg.yieldMultiplier !== 1 && (
+                  <span className="text-xs text-slate-500 line-through ml-2">${pkg.basePrice.toFixed(2)}</span>
+                )}
+              </div>
               <button className="text-sm font-medium text-amber-400 hover:text-amber-300">Edit</button>
             </div>
           </div>

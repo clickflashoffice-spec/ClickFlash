@@ -6,19 +6,19 @@
     "auditLog": "c:\\Users\\alamo\\Desktop\\ClickFlash\\logs\\.eb8b26b2cd831912dfbe4171e62b6e0513f5f3d4-audit.json",
     "files": [
         {
-            "date": 1785430354386,
-            "name": "c:\\Users\\alamo\\Desktop\\ClickFlash\\logs\\clickflash-combined-2026-07-30.log",
-            "hash": "092d1d9d6d0e60ede2be907fe0cf77d818b9a0877a41584e2fae3715c05e8363"
-        },
-        {
-            "date": 1785535060979,
-            "name": "c:\\Users\\alamo\\Desktop\\ClickFlash\\logs\\clickflash-combined-2026-07-31.log",
-            "hash": "6efc49a100097ff88c4f064d8d430e3ee7b42d6c9a5c6060b5f3cf5a46d433e7"
-        },
-        {
             "date": 1786104370878,
             "name": "c:\\Users\\alamo\\Desktop\\ClickFlash\\logs\\clickflash-combined-2026-08-07.log",
             "hash": "ee00dd8566f3ccbccda0b69692bd574809ae8c34a459c8e4117d61d23f6252fd"
+        },
+        {
+            "date": 1786826770629,
+            "name": "c:\\Users\\alamo\\Desktop\\ClickFlash\\logs\\clickflash-combined-2026-08-15.log",
+            "hash": "6158ce3d4ddc4d19cce4e780e79f18afbeb30999f0d5b39375612fbc54c6ce4a"
+        },
+        {
+            "date": 1786837180089,
+            "name": "c:\\Users\\alamo\\Desktop\\ClickFlash\\logs\\clickflash-combined-2026-08-16.log",
+            "hash": "144190e446bbd2474f1292b4ba4263aad495cc46c69240a678ec430ebe75030a"
         }
     ],
     "hashType": "sha256"

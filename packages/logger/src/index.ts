@@ -64,16 +64,20 @@ export interface ILogger {
 // =============================================================================
 
 /** Fields whose values will be replaced with '[REDACTED]' */
-const SENSITIVE_FIELDS = new Set([
-  'password',
-  'token',
-  'secret',
-  'apikey',
-  'authorization',
-  'creditcard',
-  'ssn',
-  'cookie',
-]);
+const SENSITIVE_FIELDS = new Set(
+  process.env.LOGGER_SENSITIVE_FIELDS
+    ? process.env.LOGGER_SENSITIVE_FIELDS.split(',')
+    : [
+        'password',
+        'token',
+        'secret',
+        'apikey',
+        'authorization',
+        'creditcard',
+        'ssn',
+        'cookie',
+      ]
+);
 
 /**
  * Recursively redact sensitive fields from an object.
@@ -281,4 +285,5 @@ export const noopLogger: ILogger = {
   },
 };
 
-export { BrowserLogger } from './browser';
+export { BrowserLogger } from './browser.js';
+

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router';
+import { useState, type ReactNode } from 'react';
 import { 
   LayoutDashboard, 
   MonitorSmartphone, 
@@ -6,22 +6,45 @@ import {
   UserCircle, 
   Tag, 
   Bot, 
-  CreditCard,
-  Images
+  CreditCard, 
+  Images, 
+  LogOut,
+  Settings 
 } from 'lucide-react';
+import { AuthProvider, useAuth } from './lib/AuthContext';
+import { LoginView } from './views/LoginView';
+import { DashboardView } from './views/DashboardView';
+import { FleetView } from './views/FleetView';
+import { StaffView } from './views/StaffView';
+import { CustomerView } from './views/CustomerView';
+import { GalleriesView } from './views/GalleriesView';
+import { PricingView } from './views/PricingView';
+import { AICommandView } from './views/AICommandView';
+import { FinancialsView } from './views/FinancialsView';
+import { SystemSettingsView } from './views/SystemSettingsView';
 
-function Sidebar() {
-  const location = useLocation();
-  const navItems = [
-    { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/fleet', label: 'Live Ops', icon: MonitorSmartphone },
-    { path: '/staff', label: 'Staff & HR', icon: Users },
-    { path: '/customers', label: 'CRM', icon: UserCircle },
-    { path: '/galleries', label: 'Galleries', icon: Images },
-    { path: '/pricing', label: 'Pricing & Products', icon: Tag },
-    { path: '/ai-command', label: 'AI Command', icon: Bot },
-    { path: '/financials', label: 'Financials', icon: CreditCard },
-  ];
+type TabPath = '/' | '/fleet' | '/staff' | '/customers' | '/galleries' | '/pricing' | '/ai-command' | '/financials' | '/settings';
+
+interface NavItem {
+  path: TabPath;
+  label: string;
+  icon: React.ElementType;
+}
+
+const navItems: NavItem[] = [
+  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/fleet', label: 'Live Ops', icon: MonitorSmartphone },
+  { path: '/staff', label: 'Staff & HR', icon: Users },
+  { path: '/customers', label: 'CRM', icon: UserCircle },
+  { path: '/galleries', label: 'Galleries', icon: Images },
+  { path: '/pricing', label: 'Pricing & Products', icon: Tag },
+  { path: '/ai-command', label: 'AI Command', icon: Bot },
+  { path: '/financials', label: 'Financials', icon: CreditCard },
+  { path: '/settings', label: 'System Settings', icon: Settings },
+];
+
+function Sidebar({ currentPath, onNavigate }: { currentPath: TabPath; onNavigate: (path: TabPath) => void }) {
+  const { logout } = useAuth();
 
   return (
     <div className="w-64 bg-slate-900 border-r border-slate-800 h-full flex flex-col">
@@ -35,43 +58,66 @@ function Sidebar() {
       <nav className="flex-1 px-4 space-y-2 mt-4">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path;
+          const isActive = currentPath === item.path;
           return (
-            <Link
+            <button
               key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              onClick={() => onNavigate(item.path)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
                 isActive 
-                  ? 'bg-blue-600 text-white' 
+                  ? 'bg-blue-600 text-white shadow-sm' 
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >
               <Icon className="w-5 h-5" />
               {item.label}
-            </Link>
+            </button>
           );
         })}
       </nav>
       
       <div className="p-4 border-t border-slate-800">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
-            <UserCircle className="w-5 h-5 text-slate-300" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
+              <UserCircle className="w-5 h-5 text-slate-300" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white">CEO</p>
+              <p className="text-xs text-slate-400">Admin</p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-medium text-white">CEO</p>
-            <p className="text-xs text-slate-400">Admin</p>
-          </div>
+          <button 
+            onClick={logout}
+            className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
+            title="Logout"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-function MainLayout({ children }: { children: React.ReactNode }) {
+function MainLayout({ 
+  currentPath, 
+  onNavigate, 
+  children 
+}: { 
+  currentPath: TabPath; 
+  onNavigate: (path: TabPath) => void; 
+  children: ReactNode 
+}) {
+  const { isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <LoginView />;
+  }
+
   return (
     <div className="flex h-screen bg-slate-950 text-slate-50 overflow-hidden">
-      <Sidebar />
+      <Sidebar currentPath={currentPath} onNavigate={onNavigate} />
       <main className="flex-1 overflow-y-auto p-8">
         {children}
       </main>
@@ -79,30 +125,38 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-import { DashboardView } from './views/DashboardView';
-import { FleetView } from './views/FleetView';
-import { StaffView } from './views/StaffView';
-import { CustomerView } from './views/CustomerView';
-import { GalleriesView } from './views/GalleriesView';
-import { PricingView } from './views/PricingView';
-import { AICommandView } from './views/AICommandView';
-import { FinancialsView } from './views/FinancialsView';
-
 export default function App() {
+  const [currentPath, setCurrentPath] = useState<TabPath>(() => {
+    const hash = window.location.hash.replace('#', '') as TabPath;
+    return navItems.some(i => i.path === hash) ? hash : '/';
+  });
+
+  const handleNavigate = (path: TabPath) => {
+    setCurrentPath(path);
+    window.location.hash = path;
+  };
+
+  const renderView = () => {
+    switch (currentPath) {
+      case '/': return <DashboardView />;
+      case '/fleet': return <FleetView />;
+      case '/staff': return <StaffView />;
+      case '/customers': return <CustomerView />;
+      case '/galleries': return <GalleriesView />;
+      case '/pricing': return <PricingView />;
+      case '/ai-command': return <AICommandView />;
+      case '/financials': return <FinancialsView />;
+      case '/settings': return <SystemSettingsView />;
+      default: return <DashboardView />;
+    }
+  };
+
   return (
-    <Router>
-      <MainLayout>
-        <Routes>
-          <Route path="/" element={<DashboardView />} />
-          <Route path="/fleet" element={<FleetView />} />
-          <Route path="/staff" element={<StaffView />} />
-          <Route path="/customers" element={<CustomerView />} />
-          <Route path="/galleries" element={<GalleriesView />} />
-          <Route path="/pricing" element={<PricingView />} />
-          <Route path="/ai-command" element={<AICommandView />} />
-          <Route path="/financials" element={<FinancialsView />} />
-        </Routes>
+    <AuthProvider>
+      <MainLayout currentPath={currentPath} onNavigate={handleNavigate}>
+        {renderView()}
       </MainLayout>
-    </Router>
+    </AuthProvider>
   );
 }
+

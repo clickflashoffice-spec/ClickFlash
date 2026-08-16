@@ -1,6 +1,7 @@
 import { getDatabase } from '../backend/database';
 import { logger } from "@/utils/logger";
 import { appState } from '../store';
+import { RustCore } from '../../modules/clickflash-rust-core';
 
 export type QueueItemType = 'SHIFT_EVENT' | 'PHOTO_SYNC' | 'FACE_ENROLL' | 'GENERIC_API';
 
@@ -45,26 +46,28 @@ export class OfflineQueueService {
     payload: unknown,
     priority: 'HIGH' | 'NORMAL' | 'LOW' = 'NORMAL'
   ): Promise<OfflineQueueItem> {
-    const db = await getDatabase();
-    const id = `offline_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    const timestamp = Date.now();
     const payloadStr = JSON.stringify(payload);
-
-    await db.runAsync(
-      `INSERT INTO offline_queue (id, type, endpoint, method, payload, timestamp, retryCount, priority)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, type, endpoint, method, payloadStr, timestamp, 0, priority]
-    );
-
-    logger.info(`[OfflineQueueService] Enqueued ${type} (${endpoint}) into SQLite.`);
+    
+    // Delegate strictly to Rust Core
+    const result = RustCore.enqueueSyncEvent({
+      dbPath: 'offline_queue.db',
+      eventType: type,
+      endpoint,
+      method,
+      payload: payloadStr,
+      priority
+    });
+    
+    logger.info(`[OfflineQueueService] Enqueued ${type} (${endpoint}) via Rust Core: ${result}`);
     appState.network.offlineQueueSize = await this.getQueueSize();
+    
     return {
-      id,
+      id: "rust-managed",
       type,
       endpoint,
       method,
       payload,
-      timestamp,
+      timestamp: Date.now(),
       retryCount: 0,
       priority
     };

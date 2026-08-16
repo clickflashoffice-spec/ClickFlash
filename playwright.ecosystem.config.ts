@@ -77,7 +77,7 @@ export default defineConfig({
     },
     {
       command: 'npm run dev:management',
-      url: 'http://localhost:5175/manage/',
+      url: 'http://127.0.0.1:5175',
       timeout: 120000,
       reuseExistingServer: !process.env.CI,
       env: { TEST_E2E: '1' },
@@ -86,7 +86,7 @@ export default defineConfig({
     },
     {
       command: 'npm run dev:gallery',
-      url: 'http://localhost:5176/gallery/',
+      url: 'http://127.0.0.1:5176/api/health',
       timeout: 120000,
       reuseExistingServer: !process.env.CI,
       env: { TEST_E2E: '1' },
@@ -95,7 +95,7 @@ export default defineConfig({
     },
     {
       command: 'pnpm --filter moneytrash-uploader run dev',
-      url: 'http://localhost:1420/',
+      url: 'http://127.0.0.1:1420',
       timeout: 120000,
       reuseExistingServer: !process.env.CI,
       env: { TEST_E2E: '1' },

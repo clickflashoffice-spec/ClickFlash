@@ -1,10 +1,11 @@
 import { logger } from "@clickflash/logger";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Order } from "../../types";
 import {
   moneyTrashService,
   TrashGallery,
 } from "../../services/moneyTrashService";
+import { cloudApiService } from "../../services/cloudApiService";
 import { Logo } from "../common/Logo";
 
 interface CustomerLoginProps {
@@ -27,6 +28,34 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
   onBack,
 }) => {
   const [mode, setMode] = useState<LoginMode>("gallery");
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+    if (token) {
+      const validateToken = async () => {
+        setLoading(true);
+        setError("");
+        try {
+          const order = await cloudApiService.validateMagicLink(token);
+          if (order) {
+            onLoginSuccess(order);
+          } else {
+            setError("The magic link token is invalid or expired.");
+            setMode("magic");
+          }
+        } catch (err) {
+          logger.error("Magic link validation failed", err);
+          setError("An error occurred while validating the magic link.");
+          setMode("magic");
+        } finally {
+          setLoading(false);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      };
+      validateToken();
+    }
+  }, [onLoginSuccess]);
   const [accessPin, setAccessPin] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -79,7 +108,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
       } else if (mode === "magic" || mode === "proximity") {
         const trimmedInput = accessPin.trim();
         if (!trimmedInput) {
-          setError(mode === "proximity" ? "Please enter or scan your QR/BLE attraction pass." : "Please enter your magic token.");
+          setError(mode === "proximity" ? "Please scan your BLE attraction pass." : "Please enter your magic token.");
           setLoading(false);
           return;
         }
@@ -98,7 +127,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
         if (order) {
           onLoginSuccess(order);
         } else if (mode === "proximity") {
-          setError("Proximity pass or QR token not found or expired.");
+          setError("Proximity pass not found or expired.");
         } else {
           setError("The magic token is invalid or expired.");
         }
@@ -156,19 +185,57 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
       setSelfieStream(stream);
-      // In a real implementation, we'd capture a frame, extract the embedding via Cloudflare worker, 
-      // and match the user against the Milvus Vector DB. For now, we simulate success after 3s.
       logger.info("[Selfie Biometrics] Camera initialized. Capturing face embedding...");
-      setTimeout(() => {
-        stream.getTracks().forEach(track => track.stop());
-        setSelfieStream(null);
-        setAccessPin("VECTOR-MATCHED-39912");
-        setIsCapturingSelfie(false);
-        // We'd actually pass the matched gallery here
-      }, 3000);
+      
+      // Hook up real Vector DB search in Gallery (WEB-GAP-005)
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.play();
+      
+      await new Promise(resolve => {
+        video.onloadeddata = resolve;
+      });
+
+      // Let camera adjust exposure for 1s
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+         const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+         
+         const matches = await cloudApiService.searchPhotosByFace(imageDataUrl);
+         
+         stream.getTracks().forEach(track => track.stop());
+         setSelfieStream(null);
+         setIsCapturingSelfie(false);
+
+         if (matches && matches.length > 0) {
+            setAccessPin(`VECTOR-MATCHED-${matches.length}`);
+            onLoginSuccess({
+               event_id: 'face-search',
+               status: 'active',
+               photos: matches.map(m => ({
+                 id: m.id,
+                 url: m.url || m.r2_path,
+                 aiTags: m.aiTags || [],
+                 price: 15,
+                 watermarkedUrl: m.watermarkedUrl
+               }))
+            } as any);
+         } else {
+            setError("No photos found matching your face in the Vector DB.");
+         }
+      } else {
+         throw new Error("Canvas context is not available");
+      }
     } catch (err) {
-      logger.error("Camera access denied or failed", err);
-      setError("Camera access is required for biometric matching.");
+      logger.error("Camera access denied or vector search failed", err);
+      setError("Camera access is required for biometric matching, or the search failed.");
       setIsCapturingSelfie(false);
     }
   };
@@ -275,7 +342,7 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
               }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              BLE / QR
+              BLE Proximity
             </button>
             <button
               type="button"
@@ -425,34 +492,12 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
                   </div>
                 </div>
 
-                <div className="group">
-                  <div className="flex justify-between items-center mb-3">
-                    <label
-                      htmlFor="proximityToken"
-                      className="block text-[10px] font-black text-slate-700 uppercase tracking-[0.2em] px-1 group-focus-within:text-cyan-800 transition-colors"
-                    >
-                      QR Code / Attraction ID
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setAccessPin("B2B-8841-PASS")}
-                      className="text-[9px] font-black text-cyan-800 hover:underline uppercase tracking-wider"
-                    >
-                      Quick Fill Demo Pass
-                    </button>
-                  </div>
-                  <input
-                    type="text"
-                    id="proximityToken"
-                    name="proximityToken"
-                    value={accessPin}
-                    onChange={(e) => setAccessPin(e.target.value)}
-                    placeholder="Scan QR or enter ID (e.g. B2B-8841-PASS)"
-                    required
-                    autoComplete="off"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4.5 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all font-bold text-sm group-hover:border-slate-300"
-                  />
-                </div>
+                <input
+                  type="hidden"
+                  id="proximityToken"
+                  name="proximityToken"
+                  value={accessPin}
+                />
               </div>
             )}
 

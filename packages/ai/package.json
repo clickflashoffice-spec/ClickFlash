@@ -16,8 +16,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@clickflash/types": "workspace:*",
+    "@clickflash/errors": "workspace:^",
     "@clickflash/logger": "workspace:*",
+    "@clickflash/types": "workspace:*",
     "zod": "^3.23.8"
   },
   "devDependencies": {

@@ -47,10 +47,34 @@ export class HardwareService {
     private inventoryService: InventoryService;
     private queue: PrintJob[] = [];
     private isProcessing: boolean = false;
+    private clockAltered: boolean = false;
+    private lastCheckedTime: number = Date.now();
+    private clockInterval: NodeJS.Timeout | null = null;
 
     constructor(logger: Logger, _db: DatabaseManager, inventoryService: InventoryService) {
         this.logger = logger;
         this.inventoryService = inventoryService;
+        this.startClockMonitor();
+    }
+
+    private startClockMonitor() {
+        this.clockInterval = setInterval(() => {
+            const now = Date.now();
+            // If time jumped backwards by more than 5 seconds or forwards by more than 5 minutes unexpectedly
+            if (now < this.lastCheckedTime - 5000 || now > this.lastCheckedTime + 300000) {
+                this.clockAltered = true;
+                this.logger.warn('[HardwareService] System clock alteration detected (Time Jump)!');
+            }
+            this.lastCheckedTime = now;
+        }, 10000);
+    }
+
+    public hasClockAltered(): boolean {
+        return this.clockAltered;
+    }
+
+    public resetTamperFlags(): void {
+        this.clockAltered = false;
     }
 
     /**

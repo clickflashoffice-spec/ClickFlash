@@ -192,6 +192,8 @@ const OrderConfigurationScreen: React.FC<OrderConfigurationScreenProps> = ({ car
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 className="flex items-center justify-center h-full py-12"
+                                role="status"
+                                aria-live="polite"
                             >
                                 <p className="text-xl text-center text-slate-500">Your cart is empty. Go back to the gallery to add photos.</p>
                             </motion.div>

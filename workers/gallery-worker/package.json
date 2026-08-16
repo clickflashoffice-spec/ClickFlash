@@ -4,7 +4,7 @@
   "private": true,
   "main": "src/server.ts",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "node ../../node_modules/wrangler/bin/wrangler.js dev --port 5176 --ip 127.0.0.1",
     "deploy": "wrangler deploy",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
     "typecheck": "tsc --noEmit"

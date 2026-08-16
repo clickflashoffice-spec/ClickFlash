@@ -1,4 +1,5 @@
 import nacl from 'tweetnacl';
+import { validationError } from '@clickflash/errors';
 
 export interface Ed25519LicenseData {
   plan: 'starter' | 'pro' | 'enterprise' | 'trial';
@@ -111,16 +112,16 @@ export function generateEd25519License(
 ): Ed25519GeneratedLicense {
   const machineId = options.machineId.trim();
   if (!machineId || machineId.length > 256) {
-    throw new Error('A valid machine ID is required');
+    throw validationError('A valid machine ID is required');
   }
   if (!PLANS.has(options.plan) || !Number.isInteger(options.maxMasters)
     || options.maxMasters < 1 || options.maxMasters > 10_000) {
-    throw new Error('License options are invalid');
+    throw validationError('License options are invalid');
   }
 
   const privateKey = base64ToUint8Array(privateKeyB64);
   if (privateKey.length !== nacl.sign.secretKeyLength) {
-    throw new Error('Ed25519 private key length is invalid');
+    throw validationError('Ed25519 private key length is invalid');
   }
 
   const expiresAt = new Date();
@@ -138,7 +139,7 @@ export function generateEd25519License(
   const signatureBytes = nacl.sign.detached(payloadBytes, privateKey);
 
   return {
-    key: `CF-LIVE-${toBase64Url(payloadBytes)}.${toBase64Url(signatureBytes)}`,
+    key: `${process.env.LICENSE_PREFIX_LIVE || 'CF-LIVE-'}${toBase64Url(payloadBytes)}.${toBase64Url(signatureBytes)}`,
     plan: payload.plan,
     maxMasters: payload.maxMasters,
     expiresAt: payload.expiresAt,
@@ -167,7 +168,7 @@ export function verifyEd25519License(
   publicKeyB64: string,
   options?: Ed25519ValidateOptions,
 ): Ed25519LicenseResult {
-  if (!key.startsWith('CF-LIVE-') && !key.startsWith('CF-TEST-')) {
+  if (!key.startsWith(process.env.LICENSE_PREFIX_LIVE || 'CF-LIVE-') && !key.startsWith(process.env.LICENSE_PREFIX_TEST || 'CF-TEST-')) {
     return { valid: false, error: 'Invalid license prefix' };
   }
 

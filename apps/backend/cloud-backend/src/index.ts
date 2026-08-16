@@ -19,6 +19,8 @@ import paymentsRoutes from './routes/payments';
 
 import deliveryRoutes from './routes/delivery';
 import socialGraphRoutes from './routes/social-graph';
+import pricingRoutes from './routes/pricing';
+import ghostlinkRoutes from './routes/ghostlink';
 
 const app = new Hono<AppEnv>();
 
@@ -39,6 +41,8 @@ app.route('/api', ordersRoutes); // webhooks, analytics
 app.route('/api', photographersRoutes); // shifts, photographers
 app.route('/api', settingsRoutes); // settings, cloud/sync, cloud/config, franchise, resort, stations, payroll
 app.route('/api/ai', intelligenceRoutes);
+app.route('/api/pricing', pricingRoutes);
+app.route('/api/ghostlink', ghostlinkRoutes);
 app.route('/api', emailRoutes); // notifications, push-token
 app.route('/api/health', healthRoutes);
 app.route('/api/stripe-webhooks', stripeWebhooksRoutes);

@@ -1,3 +1,5 @@
+import { AppError, ErrorCode } from '@clickflash/errors';
+
 export interface RetryOptions {
   maxAttempts?: number;
   baseDelay?: number;
@@ -19,7 +21,7 @@ export function calculateBackoff(attempt: number, base = 1000, max = 30000, jitt
 export function delay(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
-      return reject(signal.reason || new Error('Aborted'));
+      return reject(signal.reason || new AppError('Aborted', ErrorCode.INTERNAL_ERROR));
     }
 
     const timeout = setTimeout(resolve, ms);
@@ -27,7 +29,7 @@ export function delay(ms: number, signal?: AbortSignal): Promise<void> {
     if (signal) {
       signal.addEventListener('abort', () => {
         clearTimeout(timeout);
-        reject(signal.reason || new Error('Aborted'));
+        reject(signal.reason || new AppError('Aborted', ErrorCode.INTERNAL_ERROR));
       }, { once: true });
     }
   });
@@ -47,7 +49,7 @@ export async function retry<T>(fn: () => Promise<T>, options: RetryOptions = {})
 
   while (true) {
     if (signal?.aborted) {
-      throw signal.reason || new Error('Aborted');
+      throw signal.reason || new AppError('Aborted', ErrorCode.INTERNAL_ERROR);
     }
 
     try {

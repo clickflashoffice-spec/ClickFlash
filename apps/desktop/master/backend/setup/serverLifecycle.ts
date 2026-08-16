@@ -21,22 +21,13 @@ import { MOBILE_CAPTURE_MASTER_ID } from "../services/mobileCaptureProtocol";
 export function setupStaticAndErrorFallback(app: Application, context: any): void {
   const { logger } = context;
 
-  // Static Serving (Web App)
-  if (WEB_ROOT && fs.existsSync(WEB_ROOT)) {
-    app.use(express.static(WEB_ROOT));
-  }
-
   app.get(/.*/, (_req: Request, res: Response) => {
     if (_req.url.startsWith("/api")) {
       sendNotFoundError(res, "API endpoint");
       return;
     }
-
-    if (WEB_ROOT && fs.existsSync(path.join(WEB_ROOT, "index.html"))) {
-      res.sendFile(path.join(WEB_ROOT, "index.html"));
-    } else {
-      res.status(404).send("Web root not found");
-    }
+    // DSK-GAP-001: Enforce Headless Master Invariant
+    res.status(404).send("Headless Master OS. UI is available in Command Center.");
   });
 
   // Error handling middleware — ApiError (4xx/5xx structured) + catch-all 500

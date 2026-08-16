@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { Logger } from "../utils/logger";
 import DatabaseManager from "../database/db";
 import { v4 as uuidv4 } from "uuid";
+import { redisCache } from "../services/redisCacheService";
 
 export default function createEntaggedRouter(context: { dbManager: DatabaseManager; logger: Logger }) {
     const router = Router();
@@ -56,56 +57,14 @@ export default function createEntaggedRouter(context: { dbManager: DatabaseManag
                 return res.status(400).json({ success: false, error: "Invalid payload. 'roster' must be an array." });
             }
 
-            let inserted = 0;
-            let updated = 0;
-
-            dbManager.transaction(() => {
-                for (const item of roster) {
-                    // require at least a name and some identifier
-                    if (!item.name || (!item.barcode && !item.rfidUid)) continue;
-                    
-                    // We'll match primarily on barcode, fallback to rfidUid
-                    let existing = null;
-                    if (item.barcode) {
-                        existing = dbManager.get<{ id: string }>("SELECT id FROM rosters WHERE barcode = ?", [item.barcode]);
-                    }
-                    if (!existing && item.rfidUid) {
-                        existing = dbManager.get<{ id: string }>("SELECT id FROM rosters WHERE rfidUid = ?", [item.rfidUid]);
-                    }
-                    
-                    if (existing) {
-                        dbManager.run(
-                            "UPDATE rosters SET name = ?, rfidUid = ?, roomNumber = ?, barcode = ?, metadata = ?, updated_at = ? WHERE id = ?",
-                            [
-                                item.name,
-                                item.rfidUid || null,
-                                item.roomNumber || null,
-                                item.barcode || null,
-                                item.metadata ? JSON.stringify(item.metadata) : null,
-                                new Date().toISOString(),
-                                existing.id
-                            ]
-                        );
-                        updated++;
-                    } else {
-                        dbManager.run(
-                            "INSERT INTO rosters (id, name, rfidUid, roomNumber, barcode, metadata) VALUES (?, ?, ?, ?, ?, ?)",
-                            [
-                                item.id || uuidv4(),
-                                item.name,
-                                item.rfidUid || null,
-                                item.roomNumber || null,
-                                item.barcode || null,
-                                item.metadata ? JSON.stringify(item.metadata) : null
-                            ]
-                        );
-                        inserted++;
-                    }
-                }
+            // Instead of direct DB insertion, push to Redis Stream as per V6.0 rules
+            const eventPayload = { roster: JSON.stringify(roster) };
+            await redisCache.publishEvent("roster_sync_ingestion", eventPayload).catch((error) => {
+                logger.error(`[Entagged] Failed to publish roster_sync_ingestion event: ${(error as Error).message}`);
             });
 
-            logger.info(`[Entagged] Roster sync complete. Inserted: ${inserted}, Updated: ${updated}`);
-            return res.json({ success: true, inserted, updated });
+            logger.info(`[Entagged] Roster sync event published. Items: ${roster.length}`);
+            return res.json({ success: true, queued: roster.length });
         } catch (error) {
             logger.error(`[Entagged] Error syncing roster: ${(error as Error).message}`);
             return res.status(500).json({ success: false, error: "Internal server error" });

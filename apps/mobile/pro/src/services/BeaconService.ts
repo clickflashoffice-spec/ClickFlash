@@ -1,5 +1,7 @@
 import { logger } from '@/utils/logger';
 
+import { RustCore } from '../../modules/clickflash-rust-core';
+
 export interface BeaconPayload {
   photographerId: string;
   sessionId?: string;
@@ -7,18 +9,18 @@ export interface BeaconPayload {
 }
 
 export class BeaconService {
-  private isBroadcasting = false;
-  private broadcastInterval: NodeJS.Timeout | null = null;
+  private isScanning = false;
+  private scanInterval: NodeJS.Timeout | null = null;
   private currentPayload: BeaconPayload | null = null;
+  private dbPath: string = 'offline_queue.db'; // SQLite DB managed by Rust
 
   /**
-   * Starts broadcasting UWB and BLE beacons.
-   * In a real React Native app, this would use `react-native-ble-plx` or 
-   * platform-specific native modules for UWB (like iOS NearbyInteraction).
+   * Starts high-performance background BLE scanning using Rust Core.
+   * This runs during an active photographer shift to detect nearby guests.
    */
-  public startBroadcasting(photographerId: string, sessionId?: string) {
-    if (this.isBroadcasting) {
-      this.stopBroadcasting();
+  public startScanning(photographerId: string, sessionId?: string) {
+    if (this.isScanning) {
+      this.stopScanning();
     }
 
     this.currentPayload = {
@@ -27,35 +29,45 @@ export class BeaconService {
       timestamp: Date.now(),
     };
 
-    this.isBroadcasting = true;
-    logger.info(`[BeaconService] Started UWB/BLE broadcasting for photographer: ${photographerId}`);
+    this.isScanning = true;
+    logger.info(`[BeaconService] Started BLE background scanning for photographer: ${photographerId}`);
 
-    // Mock beacon broadcasting by logging every 5 seconds
-    this.broadcastInterval = setInterval(() => {
+    // Loop to continuously scan in chunks of 5 seconds via Rust JNI
+    this.scanInterval = setInterval(async () => {
       this.currentPayload!.timestamp = Date.now();
-      logger.debug(`[BeaconService] Broadcasting payload...`, this.currentPayload);
       
-      // In production, this would call native modules to emit BLE advertisements
-      // and update UWB ranging sessions.
-    }, 5000);
+      try {
+        const resultJson = await RustCore.scanAndLinkBeacons({
+          dbPath: this.dbPath,
+          durationSecs: 5
+        });
+        const result = JSON.parse(resultJson);
+        
+        if (result.linked > 0) {
+          logger.info(`[BeaconService] Rust Core successfully linked ${result.linked} nearby guests in this pass.`);
+        }
+      } catch (error) {
+        logger.error(`[BeaconService] Rust BLE Scanner Error:`, error);
+      }
+    }, 5500); // Wait 500ms between 5-second scans
   }
 
-  public stopBroadcasting() {
-    if (!this.isBroadcasting) return;
+  public stopScanning() {
+    if (!this.isScanning) return;
 
-    if (this.broadcastInterval) {
-      clearInterval(this.broadcastInterval);
-      this.broadcastInterval = null;
+    if (this.scanInterval) {
+      clearInterval(this.scanInterval);
+      this.scanInterval = null;
     }
 
-    this.isBroadcasting = false;
+    this.isScanning = false;
     this.currentPayload = null;
-    logger.info('[BeaconService] Stopped UWB/BLE broadcasting');
+    logger.info('[BeaconService] Stopped BLE background scanning');
   }
 
   public getStatus() {
     return {
-      isBroadcasting: this.isBroadcasting,
+      isScanning: this.isScanning,
       payload: this.currentPayload,
     };
   }

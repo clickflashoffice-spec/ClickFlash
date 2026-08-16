@@ -41,7 +41,7 @@ import createEntaggedRouter from "../routes/entagged.routes";
 import mobileShareRoutes from "../routes/mobileShareRoutes";
 import bridgeRoutes from "../routes/bridge.routes";
 import tlsRoutes from "../routes/tls.routes";
-// import settingsRoutes from "../routes/settings.routes";
+import settingsRoutes from "../routes/settings.routes";
 import shiftRoutes from "../routes/shifts";
 import photographerRoutes from "../routes/photographers.routes";
 import insuranceRoutes from "../routes/insurance.routes";
@@ -99,7 +99,7 @@ export function mountRoutes(app: Application, context: any) {
   // Legacy LAN routes disabled as per SEC-007
   // app.use("/api", syncRoutes(context as any));
   app.use("/api/setup", setupRoutes(context));
-  // app.use("/api/settings", settingsRoutes(context));
+  app.use("/api/settings", settingsRoutes(context));
   app.use("/api/shifts", shiftRoutes(context));
   app.use("/api/photographers", photographerRoutes(context));
   app.use("/api/license", licenseRoutes(context));

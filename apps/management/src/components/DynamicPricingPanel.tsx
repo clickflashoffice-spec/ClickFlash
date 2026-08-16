@@ -13,6 +13,30 @@ export const DynamicPricingPanel: React.FC = () => {
   const [basePrice, setBasePrice] = useState(25);
   const [maxSurge, setMaxSurge] = useState(40);
   const [enableFootTraffic, setEnableFootTraffic] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Hook up dynamic pricing API (WEB-GAP-002)
+  const savePricingConfig = async () => {
+    setIsSaving(true);
+    try {
+      const response = await fetch('http://localhost:8787/api/settings/pricing-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: pricingMode,
+          basePrice,
+          maxSurge,
+          enableFootTraffic
+        })
+      });
+      if (!response.ok) throw new Error('Failed to save config');
+      // Toast notification could go here
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Simple mock data for 24 hours of multipliers (1.0 = base price, 1.4 = +40%)
   const hourlyMultipliers = [
@@ -197,6 +221,14 @@ export const DynamicPricingPanel: React.FC = () => {
                   <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${enableFootTraffic && pricingMode === 'ai' ? 'translate-x-5' : ''}`} />
                 </button>
               </div>
+              
+              <button
+                onClick={savePricingConfig}
+                disabled={isSaving}
+                className="w-full mt-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 disabled:opacity-50"
+              >
+                {isSaving ? 'Applying...' : 'Apply Dynamic Pricing Strategy'}
+              </button>
             </div>
           </div>
         </div>

@@ -47,6 +47,10 @@ export {
   DateRangeSchema
 } from '@clickflash/validation';
 
+export * from './ble.js';
+export * from './phase3.js';
+export * from './auth.js';
+
 export type {
   PhotoCreate,
   AlbumCreate,
@@ -439,6 +443,8 @@ export interface Product extends BaseRecord , ValidationProduct{
   isFeatured?: boolean;
   description?: string;
   imageUrl?: string;
+  basePrice?: number;
+  yieldMultiplier?: number;
 }
 
 export interface Pack extends BaseRecord {
@@ -446,6 +452,8 @@ export interface Pack extends BaseRecord {
   description?: string;
   price: number;
   products: string[];
+  basePrice?: number;
+  yieldMultiplier?: number;
 }
 
 export interface SessionType extends BaseRecord , ValidationSessionType{
@@ -505,6 +513,28 @@ export interface Destination extends BaseRecord , ValidationDestination{
   version?: string;
   ipAddress?: string;
   siteCode?: string;
+}
+
+export enum GalleryTheme {
+  CLASSIC = 'CLASSIC',
+  FILMSTRIP = 'FILMSTRIP',
+  GLASSMORPHIC = 'GLASSMORPHIC'
+}
+
+export enum AIPermission {
+  MAGIC_ENHANCE = 'MAGIC_ENHANCE',
+  REMOVE_BG = 'REMOVE_BG',
+  WATERMARK_FREE = 'WATERMARK_FREE'
+}
+
+export interface GalleryConfig {
+  theme: GalleryTheme;
+  features: {
+    enablePhotoBooks: boolean;
+    enableReels: boolean;
+    enableAiFigures: boolean;
+  };
+  aiPermissions: AIPermission[];
 }
 
 export interface SyncLog extends BaseRecord , ValidationSyncLog{
@@ -1398,4 +1428,170 @@ export interface FaceVector extends BaseRecord {
     width: number;
     height: number;
   };
+}
+
+// --- YIELD PRICING ---
+
+export type WeatherCondition = 'Clear' | 'Cloudy' | 'Rain' | 'Snow' | 'Extreme';
+export type CrowdDensity = 'Low' | 'Medium' | 'High' | 'Peak';
+export type TimeOfDay = 'Morning' | 'Afternoon' | 'Evening' | 'Night';
+
+export interface DynamicPriceMultiplier {
+  baseMultiplier: number;
+  weather?: Partial<Record<WeatherCondition, number>>;
+  crowdDensity?: Partial<Record<CrowdDensity, number>>;
+  timeOfDay?: Partial<Record<TimeOfDay, number>>;
+}
+
+export interface YieldPricingRule extends BaseRecord {
+  name: string;
+  destinationId: string;
+  isActive: boolean;
+  priority: number;
+  conditions: {
+    weather?: WeatherCondition[];
+    crowdDensity?: CrowdDensity[];
+    timeOfDay?: TimeOfDay[];
+  };
+  multiplier: number;
+  validFrom?: string;
+  validTo?: string;
+}
+
+// =============================================================================
+// PHASE 4: AI MEDIA GENERATION & UNSOLD REVENUE RECOVERY
+// =============================================================================
+
+export type ReelFormat = '9:16_vertical' | '16:9_landscape' | '1:1_square';
+export type ReelMusicGenre = 'cinematic' | 'upbeat' | 'resort_vacation' | 'trending' | 'epic';
+
+export interface ReelRequest {
+  galleryId: string;
+  photoIds: string[];
+  musicGenre?: ReelMusicGenre;
+  format?: ReelFormat;
+  durationSeconds?: number;
+  includeKenBurns?: boolean;
+}
+
+export interface ReelJob extends BaseRecord {
+  galleryId: string;
+  format: ReelFormat;
+  durationSeconds: number;
+  status: 'queued' | 'rendering' | 'completed' | 'failed';
+  videoUrl?: string;
+  thumbnailUrl?: string;
+  error?: string;
+}
+
+export type EnhanceLevel = 'auto-correct' | 'pro-retouch' | 'magic-shot' | 'cinematic-hdr';
+
+export interface EnhancementRequest {
+  photoId: string;
+  originalUrl: string;
+  level: EnhanceLevel;
+  arElements?: string[];
+  destinationTheme?: string;
+}
+
+export interface EnhanceJob extends BaseRecord {
+  photoId: string;
+  level: EnhanceLevel;
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  enhancedUrl?: string;
+  metadata?: Record<string, unknown>;
+  error?: string;
+}
+
+export type Mesh3DStyle = 'realistic' | 'stylized' | 'low-poly';
+export type Mesh3DFormat = 'gltf' | 'glb' | 'obj' | 'stl';
+
+export interface MeshGenerationRequest {
+  photoIds: string[];
+  style: Mesh3DStyle;
+  format?: Mesh3DFormat;
+  webhookUrl?: string;
+  guestId?: string;
+}
+
+export interface Mesh3DJob extends BaseRecord {
+  photoIds: string[];
+  style: Mesh3DStyle;
+  format: Mesh3DFormat;
+  status: 'queued' | 'reconstructing_mesh' | 'texturing' | 'completed' | 'failed';
+  modelUrl?: string;
+  thumbnailUrl?: string;
+  polygonCount?: number;
+  error?: string;
+}
+
+export interface SalvageAnalysis extends BaseRecord {
+  photoId: string;
+  galleryId: string;
+  filePath: string;
+  emotionalScore: number;
+  smileScore: number;
+  sharpnessScore: number;
+  compositionScore?: number;
+  aiSalvageScore: number; // Overall score determining upsell viability
+  recommendation: 'salvage_for_upsell' | 'archive_cold_storage' | 'purge';
+  reasoning?: string;
+}
+
+export type SalvageItem = SalvageAnalysis;
+
+export interface BatchAnalyzerEvent extends BaseRecord {
+  batchId: string;
+  destinationId: string;
+  status: 'queued' | 'running' | 'completed' | 'failed';
+  startedAt?: string;
+  completedAt?: string;
+  totalPhotosScanned: number;
+  salvagedCount: number;
+  archivedCount: number;
+  purgedCount: number;
+  analyses: SalvageAnalysis[];
+}
+
+export interface UnsoldBatchScanResult {
+  totalScanned: number;
+  salvagedCount: number;
+  archivedCount: number;
+  purgedCount: number;
+  items: SalvageAnalysis[];
+  campaign?: SalvageCampaign;
+}
+
+export interface SalvageCampaign {
+  id: string;
+  galleryId: string;
+  guestPhone?: string;
+  guestEmail?: string;
+  discountPercentage: number;
+  magicLinkUrl: string;
+  expiresAt: string;
+  status: 'draft' | 'dispatched' | 'converted' | 'expired';
+}
+
+export interface MediaDiscardEvent extends BaseRecord {
+  photoId: string;
+  batchId: string;
+  photographerId: string | number;
+  discardReason: 'low_quality' | 'unrecognized_faces' | 'excessive_blur' | 'storage_optimization';
+  deletedAt: string;
+  purgedFromStorage: boolean;
+}
+
+export interface SalesTriggerEvent extends BaseRecord {
+  triggerId: string;
+  batchId: string;
+  galleryId: string;
+  guestPhone?: string;
+  guestWhatsApp?: string;
+  aiSalvageScore: number;
+  selectedPhotoIds: string[];
+  proposedDiscountPercentage: number;
+  magicLinkUrl?: string;
+  dispatchedToWhatsApp: boolean;
+  dispatchedAt?: string;
 }

@@ -1,5 +1,5 @@
 import { createCanvas, loadImage } from "@napi-rs/canvas";
-import QRCode from "qrcode";
+
 import fs from "fs-extra";
 import path from "path";
 import { Logger } from '../utils/logger';
@@ -117,23 +117,20 @@ export class FulfillmentSlipService {
       ctx.font = "bold 20px sans-serif";
       ctx.fillText(`SOURCE: ${order.kioskName || "MANUAL"}`, 60, y + 90);
 
-      // 8. QR Code for Tracking or Gallery Link
-      const qrData = options?.galleryUrl || `clickflash://order/${orderId}`;
-      const qrBuffer = await QRCode.toBuffer(qrData, {
-        width: 250,
-        margin: 2,
-        color: { dark: "#1e293b", light: "#ffffff" },
-      });
-      const qrImage = await loadImage(qrBuffer);
-      ctx.drawImage(qrImage, width / 2 - 125, height - 350, 250, 250);
-
+      // 8. Gallery Link
       ctx.fillStyle = "#64748b";
       ctx.font = "18px sans-serif";
       const footerText = options?.galleryUrl
-        ? "Scan to view your digital gallery"
-        : "Scan to verify or update status";
+        ? "Visit link to view your digital gallery:"
+        : "Visit link to verify or update status:";
       const textWidth = ctx.measureText(footerText).width;
-      ctx.fillText(footerText, (width - textWidth) / 2, height - 70);
+      ctx.fillText(footerText, (width - textWidth) / 2, height - 200);
+
+      const qrData = options?.galleryUrl || `clickflash://order/${orderId}`;
+      ctx.fillStyle = "#1e293b";
+      ctx.font = "bold 22px sans-serif";
+      const linkWidthUrl = ctx.measureText(qrData).width;
+      ctx.fillText(qrData, (width - linkWidthUrl) / 2, height - 160);
 
       if (options?.galleryUrl) {
         ctx.font = "bold 20px sans-serif";

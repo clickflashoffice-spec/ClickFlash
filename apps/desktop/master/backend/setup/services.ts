@@ -41,6 +41,7 @@ import { FleetService } from "../services/FleetService";
 import { PredictiveCacheService } from "../services/PredictiveCacheService";
 import { BandwidthShaperService } from "../services/BandwidthShaperService";
 import { udpDiscoveryService } from "../services/udpDiscoveryService";
+import { GalleryConfigService } from "../services/GalleryConfigService";
 
 // Configuration
 import {
@@ -83,6 +84,7 @@ export interface SetupServicesResult {
   automatedBackupService: AutomatedBackupService;
   udpDiscoveryService: any;
   realtimeService: RealtimeService;
+  galleryConfigService: GalleryConfigService;
 }
 
 /**
@@ -185,6 +187,7 @@ export function setupServices(): SetupServicesResult {
   let diagnosticSync: DiagnosticSyncService;
   let backupService: BackupService;
   let automatedBackupService: AutomatedBackupService;
+  let galleryConfigService: GalleryConfigService;
 
   try {
     dbWriteQueue = new DbWriteQueue(dbManager, { logger });
@@ -229,6 +232,8 @@ export function setupServices(): SetupServicesResult {
       process.env.CLOUD_API_URL || "https://management.clickflash.com",
       process.env.CLOUD_API_TOKEN || ""
     );
+    
+    galleryConfigService = new GalleryConfigService(dbManager);
   } catch (err) {
     logger.error("[Fatal] Service Initialization Error:", err);
     process.exit(1);
@@ -370,5 +375,6 @@ export function setupServices(): SetupServicesResult {
     automatedBackupService,
     udpDiscoveryService,
     realtimeService,
+    galleryConfigService,
   };
 }

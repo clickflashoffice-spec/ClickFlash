@@ -1,4 +1,6 @@
-import { WebSocketServer } from 'ws';
+import WebSocket from 'ws';
+const WebSocketServer = (WebSocket as any).WebSocketServer || (WebSocket as any).Server;
+type WebSocketServer = any;
 // @ts-ignore
 import { setupWSConnection } from 'y-websocket/bin/utils';
 import { Server } from 'http';
@@ -13,15 +15,15 @@ export class YjsWebsocketServer {
 
     this.wss = new WebSocketServer({ noServer: true });
 
-    server.on('upgrade', (request, socket, head) => {
+    server.on('upgrade', (request: any, socket: any, head: any) => {
       if (request.url?.startsWith(path)) {
-        this.wss!.handleUpgrade(request, socket, head, (ws) => {
+        this.wss!.handleUpgrade(request, socket, head, (ws: any) => {
           this.wss!.emit('connection', ws, request);
         });
       }
     });
 
-    this.wss.on('connection', (conn, req) => {
+    this.wss.on('connection', (conn: any, req: any) => {
       const docName = req.url?.split('/').pop() || 'default';
       logger.debug(`[Yjs] New connection to document: ${docName}`);
       setupWSConnection(conn, req, { docName });

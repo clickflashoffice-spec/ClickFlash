@@ -36,15 +36,17 @@ app.post('/webhooks/stripe', async (c) => {
       const sessionId = paymentIntent.metadata?.sessionId;
 
       if (sessionId) {
-        const existingTransaction = await c.get('DB').prepare(
-          `SELECT id FROM transactions WHERE stripe_payment_intent_id = ?`
-        ).bind(paymentIntent.id).first();
-        if (existingTransaction) return c.json({ received: true });
-
-        await c.get('DB').prepare(
-          `INSERT INTO transactions (id, session_id, stripe_payment_intent_id, amount, currency, status, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`
-        ).bind(crypto.randomUUID(), sessionId, paymentIntent.id, paymentIntent.amount, paymentIntent.currency, 'SUCCEEDED', Date.now()).run();
+        try {
+          await c.get('DB').prepare(
+            `INSERT INTO transactions (id, session_id, stripe_payment_intent_id, amount, currency, status, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`
+          ).bind(crypto.randomUUID(), sessionId, paymentIntent.id, paymentIntent.amount, paymentIntent.currency, 'SUCCEEDED', new Date().toISOString()).run();
+        } catch (dbErr: any) {
+          if (dbErr.message?.includes('UNIQUE constraint failed') || dbErr.message?.includes('D1_ERROR')) {
+            return c.json({ received: true, status: 'already_processed' });
+          }
+          throw dbErr;
+        }
 
         await c.get('DB').prepare(
           `UPDATE sessions SET status = 'PAID' WHERE id = ?`
@@ -133,7 +135,7 @@ app.get('/analytics/conversion', requireServiceAuth, async (c) => {
   }
 });
 
-app.get('/analytics/dashboard', async (c) => {
+app.get('/analytics/dashboard', requireServiceAuth, async (c) => {
   try {
     const db = c.get('DB');
     

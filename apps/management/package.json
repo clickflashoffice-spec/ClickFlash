@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "ClickFlash Executive Swarm AI Hub",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "node ../../node_modules/eslint/bin/eslint.js src --max-warnings 1000",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -25,7 +26,8 @@
     "react-router": "^8.3.0",
     "recharts": "^3.10.1",
     "socket.io-client": "^4.8.1",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

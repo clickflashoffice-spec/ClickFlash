@@ -11,6 +11,7 @@ bucket_name = "clickflash-photos"
 # Production deployment must supply the provisioned namespace ID explicitly.
 [[kv_namespaces]]
 binding = "SESSION_KV"
+id = "aba18d1fd83c4291b34d2ad49afc225c"
 
 [[queues.producers]]
 queue = "ai-tagger-queue"

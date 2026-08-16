@@ -12,6 +12,11 @@ export interface WSPayload {
 /** Listener callback type */
 type MessageListener = (data: unknown) => void;
 
+// Import backend Redis consumer logic (assuming Node integration in Electron renderer)
+import { RedisStreamConsumer } from '../../backend/services/redisStreamConsumer';
+import { redisCache } from '../../backend/services/redisCacheService';
+import { DispatchNotification } from '@clickflash/types';
+
 class WebSocketService {
     private ws: WebSocket | null = null;
     private onMessageCallback: ((data: unknown) => void) | null = null;
@@ -42,6 +47,7 @@ class WebSocketService {
     constructor() {
         this.setupNetworkListeners();
         this.initWorker();
+        this.listenToDispatchStream();
     }
 
     private initWorker() {
@@ -58,6 +64,34 @@ class WebSocketService {
                     logger.error('[WebSocketService] Worker error:', error);
                 }
             };
+        }
+    }
+
+    /**
+     * Listens to the 'hotspot:dispatch' Redis stream and broadcasts to connected mobile pros
+     * over the 'hotspot:dispatch' WebSocket channel.
+     */
+    private listenToDispatchStream() {
+        try {
+            const consumer = new RedisStreamConsumer(redisCache);
+            consumer.register({
+                stream: 'hotspot:dispatch',
+                group: 'master_ws_group',
+                consumer: 'master_ws_client_' + Math.random().toString(36).substring(7),
+                handler: async (eventId: string, fields: Record<string, string>) => {
+                    if (fields.payload) {
+                        const notification = JSON.parse(fields.payload) as DispatchNotification;
+                        logger.info(`[WebSocketService] Broadcasting DispatchNotification to pros: ${notification.dispatchId}`);
+                        this.sendMessage({
+                            type: 'hotspot:dispatch',
+                            payload: notification
+                        });
+                    }
+                }
+            });
+            consumer.start();
+        } catch (e) {
+            logger.error('[WebSocketService] Failed to initialize RedisStreamConsumer', e);
         }
     }
 

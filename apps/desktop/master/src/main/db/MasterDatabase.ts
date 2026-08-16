@@ -21,7 +21,7 @@ export class MasterDatabase {
 
     try {
       const dbPath = env.NODE_ENV === 'production'
-        ? path.join(process.resourcesPath, 'db', 'master.sqlite')
+        ? path.join((process as any).resourcesPath, 'db', 'master.sqlite')
         : path.join(__dirname, '../../../../pb_data', 'master.sqlite');
 
       logger.info(`[MasterDatabase] Connecting to primary local store at ${dbPath}`);

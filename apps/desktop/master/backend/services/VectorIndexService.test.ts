@@ -19,13 +19,13 @@ describe("VectorIndexService.normalizeL2", () => {
 
   it("rejects zero, non-finite, and unsupported vectors", () => {
     expect(() => VectorIndexService.normalizeL2(new Float32Array(128))).toThrow(
-      "non-zero L2 norm",
+      "Vector magnitude must be finite and non-zero.",
     );
 
     const nonFinite = new Float32Array(128);
     nonFinite[0] = Number.NaN;
     expect(() => VectorIndexService.normalizeL2(nonFinite)).toThrow(
-      "non-finite value",
+      "Vector magnitude must be finite and non-zero.",
     );
 
     expect(() => VectorIndexService.normalizeL2(new Float32Array(64))).toThrow(

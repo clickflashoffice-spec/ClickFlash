@@ -4,6 +4,8 @@
  * Maps to Fotiqo feature: Abandoned-Cart and 7-Day Sweep-Up Automations.
  */
 
+import { salesSwarm } from './sales-swarm';
+
 export interface CartContext {
     userId: string;
     galleryId: string;
@@ -15,7 +17,7 @@ export class AbandonedCartCRM {
     
     /**
      * Sweeps the database for carts that have been inactive for > 24 hours
-     * and triggers the first reminder.
+     * and triggers the WhatsApp Sales Swarm.
      */
     public async processDailySweep(): Promise<void> {
         console.log(`[AbandonedCartCRM] Initiating daily sweep for inactive carts...`);
@@ -23,20 +25,22 @@ export class AbandonedCartCRM {
         const inactiveCarts = this.mockFindInactiveCarts(24 * 60 * 60 * 1000); // 24 hours
 
         for (const cart of inactiveCarts) {
-            await this.sendReminder(cart, "Your photos are waiting! 📸", "Don't forget to checkout your beautiful memories.");
+            console.log(`[AbandonedCartCRM] Handing over cart ${cart.userId} to Sales Swarm...`);
+            await salesSwarm.deploySwarm(cart);
         }
     }
 
     /**
      * Sweeps the database for carts inactive for > 7 days
-     * and triggers a discount incentive.
+     * and triggers an aggressive WhatsApp Sales Swarm.
      */
     public async process7DaySweepUp(): Promise<void> {
         console.log(`[AbandonedCartCRM] Initiating 7-day sweep-up...`);
         const inactiveCarts = this.mockFindInactiveCarts(7 * 24 * 60 * 60 * 1000);
 
         for (const cart of inactiveCarts) {
-            await this.sendReminder(cart, "Last chance! 15% OFF your gallery 🎁", "Use code MEMORY15 to unlock your full gallery before it expires.");
+            console.log(`[AbandonedCartCRM] Handing over cold cart ${cart.userId} to Sales Swarm...`);
+            await salesSwarm.deploySwarm(cart);
         }
     }
 

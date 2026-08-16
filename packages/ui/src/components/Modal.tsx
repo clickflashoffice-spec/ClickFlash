@@ -3,6 +3,7 @@ import { ReactNode, useEffect, useRef, useId, memo, createContext, useContext, u
 import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { internal } from '@clickflash/errors';
 
 interface ModalContextType {
   isOpen: boolean;
@@ -18,7 +19,7 @@ const ModalContext = createContext<ModalContextType | undefined>(undefined);
 function useModalContext() {
   const context = useContext(ModalContext);
   if (!context) {
-    throw new Error('Modal components must be used within a Modal.Root');
+    throw internal('Modal components must be used within a Modal.Root');
   }
   return context;
 }

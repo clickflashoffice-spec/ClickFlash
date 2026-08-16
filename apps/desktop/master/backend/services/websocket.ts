@@ -1,5 +1,5 @@
 import { Server } from 'http';
-import WebSocket, { WebSocketServer } from 'ws';
+import { WebSocketServer, WebSocket } from 'ws';
 import crypto from 'crypto';
 import DatabaseManager from '../database/db';
 import { Logger } from '../utils/logger';
@@ -391,7 +391,7 @@ const initWebSocketServer = (server: Server, context: WebSocketContext): WebSock
 
     // Heartbeat interval
     const interval = setInterval(() => {
-        wss.clients.forEach((client) => {
+        wss.clients.forEach((client: any) => {
             const ws = client as CustomWebSocket;
             if (ws.isAlive === false) return ws.terminate();
             ws.isAlive = false;

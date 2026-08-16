@@ -10,6 +10,7 @@ from typing import Protocol
 from uuid import uuid4
 
 import boto3
+import redis
 from loguru import logger
 
 
@@ -117,14 +118,27 @@ class R2UploadTransport:
 
 
 class Uploader:
-    def __init__(self, transport: UploadTransport | None = None):
+    def __init__(self, transport: UploadTransport | None = None, redis_client: redis.Redis | None = None):
         self.transport = transport
+        self.redis_client = redis_client
         self.upload_queue: queue.Queue[str] = queue.Queue()
         self.worker_thread = threading.Thread(target=self._upload_worker, daemon=True)
 
     @classmethod
     def from_environment(cls) -> "Uploader":
-        return cls(R2UploadTransport.from_environment())
+        redis_host = os.getenv("REDIS_HOST", "localhost")
+        redis_port = int(os.getenv("REDIS_PORT", "6379"))
+        redis_password = os.getenv("REDIS_PASSWORD", None)
+        
+        redis_client = None
+        try:
+            redis_client = redis.Redis(host=redis_host, port=redis_port, password=redis_password, decode_responses=True)
+            redis_client.ping()
+        except Exception as e:
+            logger.warning(f"Failed to connect to Redis: {e}")
+            redis_client = None
+            
+        return cls(R2UploadTransport.from_environment(), redis_client)
 
     def start(self) -> None:
         self.worker_thread.start()
@@ -168,6 +182,24 @@ class Uploader:
 
         file_path.unlink()
         logger.success("Upload verified at {}; removed local source {}", receipt.remote_key, file_path)
+        
+        # Publish event to Master OS Redis Stream
+        if self.redis_client:
+            event_payload = {
+                "operation": "register",
+                "url": f"https://{self.transport.bucket}.r2.cloudflarestorage.com/{receipt.remote_key}",
+                "fileSize": str(receipt.byte_length),
+                "originalFilename": file_path.name,
+                "fileHash": receipt.checksum_sha256,
+                "status": "pending_processing",
+                "source": "ride-node"
+            }
+            try:
+                self.redis_client.xadd("photo_ingestion", event_payload, maxlen=10000)
+                logger.info("Published photo_ingestion event to Redis Stream")
+            except Exception as e:
+                logger.error(f"Failed to publish event to Redis: {e}")
+                
         return True
 
     def _upload_worker(self) -> None:

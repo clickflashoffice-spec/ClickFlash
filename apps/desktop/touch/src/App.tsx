@@ -297,8 +297,8 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
 
         if (touchView === 'photos' && displayedKioskAlbums.length === 0) {
             content = (
-                <motion.div key="empty" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-screen w-screen flex flex-col items-center justify-center bg-white dark:bg-slate-900 text-center p-8">
-                    <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-full mb-6">
+                <motion.div key="empty" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-screen w-screen flex flex-col items-center justify-center bg-white dark:bg-slate-900 text-center p-8" role="alert" aria-live="polite">
+                    <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-full mb-6" aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                     </div>
                     <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">No Photos Available</h2>
@@ -307,7 +307,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
                             ? `We couldn't find any photos for Room ${roomFilter}. Please check the number or ask a photographer.`
                             : "The gallery is currently empty. Please wait for a photographer to send your photos."}
                     </p>
-                    <button onClick={() => setTouchView('welcome')} className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">Return to Home</button>
+                    <button onClick={() => setTouchView('welcome')} className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors" aria-label="Return to Home Screen">Return to Home</button>
                 </motion.div>
             );
         } else {
@@ -316,7 +316,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
                     content = (
                         <motion.div key="welcome" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-full w-full">
                             <ErrorBoundary>
-                                <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900"><Spinner /></div>}>
+                                <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900" role="status" aria-label="Loading Welcome Screen"><Spinner /></div>}>
                                     <WelcomeScreen
                                         onBrowsePhotos={handleBrowsePhotos}
                                         kioskConnectionStatus={kioskConnectionStatus}
@@ -336,7 +336,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
                     content = (
                         <motion.div key="photos" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-full w-full">
                             <ErrorBoundary>
-                                <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-slate-900"><Spinner /></div>}>
+                                <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-slate-900" role="status" aria-label="Loading Photos"><Spinner /></div>}>
                                     <PhotoSelectionScreen
                                         albums={displayedKioskAlbums}
                                         onPhotoClick={handlePhotoClick}
@@ -357,7 +357,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
                     content = (
                         <motion.div key="photo-detail" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-full w-full">
                             <ErrorBoundary>
-                                <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-black"><Spinner /></div>}>
+                                <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-black" role="status" aria-label="Loading Photo Details"><Spinner /></div>}>
                                     {activePhoto && activeAlbum ? <PhotoPreviewScreen
                                         photo={activePhoto}
                                         albumPhotos={activeAlbum.photos || []}
@@ -377,7 +377,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
                     content = (
                         <motion.div key="order-config" variants={variants} initial="initial" animate="animate" exit="exit" transition={transition} className="h-full w-full">
                             <ErrorBoundary>
-                                <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-slate-900"><Spinner /></div>}>
+                                <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-slate-900" role="status" aria-label="Loading Cart"><Spinner /></div>}>
                                     <OrderConfigurationScreen
                                         cart={cart}
                                         onUpdateCart={handleUpdateCart}
@@ -421,7 +421,12 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
     };
 
     return (
-        <div className="touch-portal h-screen w-screen overflow-hidden bg-background text-foreground select-none relative">
+        <div 
+            className="touch-portal h-screen w-screen overflow-hidden bg-background text-foreground select-none relative"
+            role="application"
+            aria-label="ClickFlash Touch Kiosk"
+        >
+            <div aria-live="polite" className="sr-only" id="kiosk-live-region"></div>
             <ErrorBoundary>
                 <AnimatePresence mode="wait">
                     {renderTouchContent()}

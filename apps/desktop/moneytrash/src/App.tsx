@@ -52,7 +52,6 @@ function App() {
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [uploadHistory, setUploadHistory] = useState<UploadHistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
 
   // Metadata State
   const [eventName, setEventName] = useState("");
@@ -134,9 +133,37 @@ function App() {
             .then(health => logger.info('[MoneyTrash] Cloud API Health:', health))
             .catch(err => logger.error('[MoneyTrash] Cloud API Connectivity Error:', err));
         }
-      } else {
-        logger.info('[MoneyTrash] No saved configuration found, using defaults.');
+      let masterConfig: any = null;
+      try {
+        const res = await fetch('http://localhost:8090/api/settings', {
+          headers: { 'Authorization': 'Bearer ADMIN-SECRET-TOKEN' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.settings) {
+            masterConfig = data.settings;
+            logger.info('[MoneyTrash] Loaded config from Master OS:', masterConfig);
+          }
+        }
+      } catch (err) {
+        logger.warn('[MoneyTrash] Could not connect to Master OS settings API', err);
       }
+
+      if (masterConfig) {
+        config = { ...(config || {}), ...masterConfig };
+        logger.info('[MoneyTrash] Final Configuration:', config);
+        
+        setSettings(prev => ({
+          ...prev,
+          apiUrl: masterConfig.moneytrashApiUrl || prev.apiUrl,
+          deskId: masterConfig.moneytrashDeskId || prev.deskId,
+          s3AccessKey: masterConfig.s3AccessKey || prev.s3AccessKey,
+          s3SecretKey: masterConfig.s3SecretKey || prev.s3SecretKey,
+          s3Region: masterConfig.s3Region || prev.s3Region,
+          s3Bucket: masterConfig.s3Bucket || prev.s3Bucket
+        }));
+      }
+
     } catch (e) {
       logger.error('[MoneyTrash] Error during startup data load:', e);
     }
@@ -491,13 +518,7 @@ function App() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="px-4 py-2 bg-[#131C31] border border-white/10 rounded-lg text-sm text-slate-300 hover:text-white hover:border-white/20 transition-colors flex items-center gap-2"
-          >
-            <Settings className="w-4 h-4" />
-            Settings
-          </button>
+
           <button
             onClick={() => setShowHistory(!showHistory)}
             className="px-4 py-2 bg-[#131C31] border border-white/10 rounded-lg text-sm text-slate-300 hover:text-white hover:border-white/20 transition-colors flex items-center gap-2"
@@ -546,110 +567,7 @@ function App() {
         </div>
       </header>
 
-      {/* Settings Panel */}
-      {showSettings && (
-        <div className="max-w-6xl mx-auto mb-6 bg-[#131C31]/50 border border-white/10 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold mb-4 text-slate-200 flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            Application Settings
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">
-                  Cloud Hub URL (API)
-                </label>
-                <input
-                  type="text"
-                  value={settings.apiUrl}
-                  onChange={(e) => setSettings({ ...settings, apiUrl: e.target.value })}
-                  placeholder="https://moneytrash-api.clickflash-office.workers.dev"
-                  className="w-full bg-black border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:border-yellow-500 focus:outline-none transition-colors"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">
-                  Station ID (Desk ID)
-                </label>
-                <input
-                  type="text"
-                  value={settings.deskId}
-                  onChange={(e) => setSettings({ ...settings, deskId: e.target.value.toUpperCase() })}
-                  placeholder="STATION-01"
-                  className="w-full bg-black border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:border-yellow-500 focus:outline-none transition-colors font-mono"
-                />
-              </div>
-            </div>
 
-            <div className="space-y-4">
-              <div className="p-4 bg-[#131C31] border border-white/10 rounded-xl space-y-3">
-                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Cloud Storage (S3/R2)</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <input
-                    type="password"
-                    value={settings.s3AccessKey || ''}
-                    onChange={(e) => setSettings({ ...settings, s3AccessKey: e.target.value })}
-                    placeholder="Access Key"
-                    className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-yellow-500 focus:outline-none"
-                  />
-                  <input
-                    type="password"
-                    value={settings.s3SecretKey || ''}
-                    onChange={(e) => setSettings({ ...settings, s3SecretKey: e.target.value })}
-                    placeholder="Secret Key"
-                    className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-yellow-500 focus:outline-none"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <input
-                    type="text"
-                    value={settings.s3Region || ''}
-                    onChange={(e) => setSettings({ ...settings, s3Region: e.target.value })}
-                    placeholder="Region (e.g. auto)"
-                    className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-yellow-500 focus:outline-none"
-                  />
-                  <input
-                    type="text"
-                    value={settings.s3Bucket || ''}
-                    onChange={(e) => setSettings({ ...settings, s3Bucket: e.target.value })}
-                    placeholder="Bucket Name"
-                    className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-yellow-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-3 pt-2">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.saveHistory}
-                    onChange={(e) => setSettings({ ...settings, saveHistory: e.target.checked })}
-                    className="w-4 h-4 accent-[#06B6D4]"
-                  />
-                  <span className="text-sm text-slate-300">Save upload history locally</span>
-                </label>
-                <p className="text-xs text-slate-400">
-                  Native streaming is always enabled to keep large files out of renderer memory.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 flex justify-end gap-3">
-            <button
-              onClick={() => setShowSettings(false)}
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={saveSettings}
-              className="px-4 py-2 bg-[#06B6D4] hover:bg-[#06B6D4]/80 text-black font-medium rounded-lg text-sm transition-colors"
-            >
-              Save Settings
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Upload History Panel */}
       {showHistory && uploadHistory.length > 0 && (

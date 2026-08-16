@@ -5,11 +5,15 @@ import DatabaseManager from '../database/db';
 import { EmailService } from "../services/emailService";
 import { strictRateLimiter } from '../middleware/rateLimiter';
 import { customRoutesSchemas } from '../utils/validation';
+import { GalleryConfigService } from '../services/GalleryConfigService';
+import { GalleryConfig } from '@clickflash/types';
+
 interface GalleryAuthContext {
   dbManager: DatabaseManager;
   logger: Logger;
   JWT_SECRET: string;
   emailService?: EmailService;
+  galleryConfigService: GalleryConfigService;
 }
 
 interface GalleryTokenPayload {
@@ -189,6 +193,67 @@ export default function galleryAuthRoutes(context: GalleryAuthContext): Router {
     }
   });
 
+  /**
+   * AUTHENTICATION PATH 3: Validate Magic Link
+   */
+  router.post("/magic-validate", strictRateLimiter, async (req: Request, res: Response) => {
+    try {
+      const { token } = req.body;
+      if (!token) {
+        return res.status(400).json({ error: "Token is required" });
+      }
+
+      // Magic link secret validation
+      const MAGIC_LINK_SECRET = process.env.MAGIC_LINK_SECRET || 'fallback-dev-secret-for-magic-links';
+      
+      let payload: any;
+      try {
+        payload = jwt.verify(token, MAGIC_LINK_SECRET);
+      } catch (error) {
+        return res.status(401).json({ error: "Invalid or expired magic link" });
+      }
+
+      const { albumId, guestId, orderId } = payload;
+
+      const album = dbManager.get("SELECT id FROM albums WHERE id = ?", [albumId]);
+      if (!album) {
+        return res.status(404).json({ error: "Album not found" });
+      }
+
+      const galleryPayload: GalleryTokenPayload = {
+        albumId,
+        customerEmail: guestId || "magic-link-guest",
+        type: "magic-link",
+        orderId,
+      };
+
+      const galleryToken = jwt.sign(galleryPayload, JWT_SECRET, {
+        expiresIn: `${TOKEN_EXPIRY_DAYS}d`,
+      });
+
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + TOKEN_EXPIRY_DAYS);
+
+      dbManager.run(
+        `INSERT INTO gallery_tokens (albumId, customerEmail, token, expiresAt)
+         VALUES (?, ?, ?, ?)`,
+        [albumId, galleryPayload.customerEmail, galleryToken, expiresAt.toISOString()],
+      );
+
+      res.json({
+        success: true,
+        token: galleryToken,
+        access: "magic-link",
+        expiresAt: expiresAt.toISOString(),
+      });
+    } catch (error: any) {
+      logger.error("[GalleryAuth] Failed to validate magic link", {
+        error: error.message,
+      });
+      res.status(500).json({ error: "Failed to validate magic link" });
+    }
+  });
+
   router.get("/:token/verify", async (req: Request, res: Response) => {
     try {
       const { token } = req.params;
@@ -356,7 +421,7 @@ export default function galleryAuthRoutes(context: GalleryAuthContext): Router {
         }
 
         const photo = dbManager.get<any>(
-          `SELECT * FROM photos WHERE id = ? AND album_id = ?`,
+          `SELECT * FROM photos WHERE id = ? AND albumId = ?`,
           [photoId, payload.albumId],
         );
 
@@ -389,6 +454,36 @@ export default function galleryAuthRoutes(context: GalleryAuthContext): Router {
       }
     },
   );
+
+  /**
+   * GALLERY CONFIGURATION API
+   */
+  router.get("/gallery-config/:destinationId", (req: Request, res: Response) => {
+    const destinationId = Array.isArray(req.params.destinationId)
+      ? req.params.destinationId[0]
+      : (req.params.destinationId as string);
+    const config = context.galleryConfigService.getConfig(destinationId as string);
+    if (config) {
+      res.json({ success: true, data: config });
+    } else {
+      res.status(404).json({ error: "Gallery config not found for destination" });
+    }
+  });
+
+  router.put("/gallery-config/:destinationId", (req: Request, res: Response) => {
+    const destinationId = Array.isArray(req.params.destinationId)
+      ? req.params.destinationId[0]
+      : (req.params.destinationId as string);
+    const config = req.body as GalleryConfig;
+    
+    try {
+      context.galleryConfigService.updateConfig(destinationId as string, config);
+      res.json({ success: true, message: "Gallery config updated successfully" });
+    } catch (error: any) {
+      context.logger.error("[GalleryConfig] Update failed", { error: error.message });
+      res.status(500).json({ error: "Failed to update config" });
+    }
+  });
 
   return router;
 }

@@ -9,9 +9,10 @@ interface NumericKeypadProps {
 const Key: React.FC<{ value: string; onClick: (value: string) => void; className?: string, small?: boolean }> = ({ value, onClick, className, small }) => (
     <button
         onClick={() => onClick(value)}
+        aria-label={`Digit ${value}`}
         className={`w-full rounded-2xl flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-500/20 active:scale-95 border ${className} ${small ? 'min-h-[64px] text-2xl font-medium bg-slate-900/60 hover:bg-slate-800 border-slate-700/50 text-slate-200' : 'min-h-[96px] text-4xl font-light bg-slate-900/60 hover:bg-slate-800 border-slate-700/50 text-slate-200'}`}
     >
-        {value}
+        <span aria-hidden="true">{value}</span>
     </button>
 );
 

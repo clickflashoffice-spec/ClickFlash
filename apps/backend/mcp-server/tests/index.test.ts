@@ -1,43 +1,49 @@
-import assert from "assert";
+import { describe, it, expect } from "vitest";
 import { handleToolCall, registerTools } from "../src/tools.js";
 import { registerResources } from "../src/resources.js";
 import { registerPrompts } from "../src/prompts.js";
 
-async function runTests() {
-  console.log("Running tests for clickflash-mcp...");
+describe("clickflash-mcp", () => {
+  it("should register tools correctly", () => {
+    const tools = registerTools();
+    expect(tools.length).toBe(11);
+    
+    const toolNames = tools.map((t) => t.name);
+    expect(toolNames).toContain("start_app");
+    expect(toolNames).toContain("query_local_db");
+    expect(toolNames).toContain("audit_architecture");
+    expect(toolNames).toContain("scan_security");
+    expect(toolNames).toContain("suggest_refactor");
+    expect(toolNames).toContain("discover_shared_assets");
+    
+    // Ensure dangerous tools are NOT exposed
+    expect(toolNames).not.toContain("generate_license");
+    expect(toolNames).not.toContain("run_migrations");
+    expect(toolNames).not.toContain("deploy_app");
+  });
 
-  // Test tools registration
-  const tools = registerTools();
-  assert(tools.length === 11, "Should register 11 tools");
-  assert(tools.find((t) => t.name === "start_app"), "Should have start_app tool");
-  assert(tools.find((t) => t.name === "query_local_db"), "Should have query_local_db tool");
-  assert(tools.find((t) => t.name === "audit_architecture"), "Should have audit_architecture tool");
-  assert(tools.find((t) => t.name === "scan_security"), "Should have scan_security tool");
-  assert(tools.find((t) => t.name === "suggest_refactor"), "Should have suggest_refactor tool");
-  assert(tools.find((t) => t.name === "discover_shared_assets"), "Should have discover_shared_assets tool");
-  assert(!tools.find((t) => t.name === "generate_license"), "Must not expose signing-key generation");
-  assert(!tools.find((t) => t.name === "run_migrations"), "Must not expose an unscoped migration shell");
-  assert(!tools.find((t) => t.name === "deploy_app"), "Must not advertise simulated deployment");
+  it("should handle suggest_refactor outside workspace", async () => {
+    const traversal = await handleToolCall("suggest_refactor", { filePath: "../outside.txt" });
+    const contentText = (traversal.content[0] as any).text;
+    expect(contentText).toMatch(/outside the workspace/);
+  });
 
-  const traversal = await handleToolCall("suggest_refactor", { filePath: "../outside.txt" });
-  assert.match((traversal.content[0] as any).text, /outside the workspace/);
-  const unknownApp = await handleToolCall("start_app", { appName: "master && whoami" });
-  assert.match((unknownApp.content[0] as any).text, /Unknown application/);
+  it("should handle start_app with unknown application", async () => {
+    const unknownApp = await handleToolCall("start_app", { appName: "master && whoami" });
+    const contentText = (unknownApp.content[0] as any).text;
+    expect(contentText).toMatch(/Unknown application/);
+  });
 
-  // Test resources registration
-  const resources = registerResources();
-  assert(resources.length === 5, "Should register 5 resources");
-  assert(resources.find((r) => r.uri === "clickflash://architecture"), "Should have architecture resource");
+  it("should register resources correctly", () => {
+    const resources = registerResources();
+    expect(resources.length).toBe(5);
+    const resourceUris = resources.map((r) => r.uri);
+    expect(resourceUris).toContain("clickflash://architecture");
+  });
 
-  // Test prompts registration
-  const prompts = registerPrompts();
-  assert(prompts.length === 2, "Should register 2 prompts");
-  assert(prompts[0].name === "debug_issue", "Should have debug_issue prompt");
-
-  console.log("All MCP unit tests passed successfully!");
-}
-
-runTests().catch((err) => {
-  console.error("Tests failed:", err);
-  process.exit(1);
+  it("should register prompts correctly", () => {
+    const prompts = registerPrompts();
+    expect(prompts.length).toBe(2);
+    expect(prompts[0].name).toBe("debug_issue");
+  });
 });

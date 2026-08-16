@@ -1,5 +1,5 @@
 import axios from "axios";
-import { calculateQualityRating, cosineSimilarity, l2Normalize } from "../packages/ai-core/src/index.ts";
+import { calculateQualityRating, cosineSimilarity, l2Normalize } from "../packages/ai-core/src/vectorUtils.ts";
 
 async function verifyEcosystem() {
   console.log("=================================================");

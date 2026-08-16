@@ -7,8 +7,8 @@
     "paths": {
       "@/assets/*": ["./assets/*"],
       "@/*": ["./src/*"],
-      "@clickflash/ai-core": ["../../packages/ai-core/src"],
-      "@clickflash/*": ["../../packages/*/src"]
+      "@clickflash/ai-core": ["../../../packages/ai-core/src"],
+      "@clickflash/*": ["../../../packages/*/src"]
     }
   },
   "include": [

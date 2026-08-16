@@ -1,13 +1,11 @@
-
 import React, { useState, useEffect, useRef } from "react";
-import KioskSettingsModal from "./KioskSettingsModal";
 import RoomNumberModal from "./RoomNumberModal";
 import { KioskSettings, DestinationFeatures, Photo } from "../../types.ts";
 import PasswordModal from "./PasswordModal";
 import { webSocketService } from "../../services/webSocketService.ts";
 import FaceSearchModal from "./FaceSearchModal";
 import { VintageSlideshow } from "./VintageSlideshow";
-import { SelfServiceQRModal } from "../SelfServiceQRModal";
+import { SelfServiceBLEModal } from "../SelfServiceBLEModal";
 import { logger } from "../../utils/logger";
 import { motion, AnimatePresence } from "framer-motion";
 import { faceRecognitionService, FaceSearchResult } from "../../services/faceRecognitionService.ts";
@@ -50,7 +48,8 @@ const WelcomeButton: React.FC<{
     transition={{ delay: delay / 1000, duration: 0.6, type: "spring", bounce: 0.4 }}
     whileHover={{ y: -8, scale: 1.02 }}
     whileTap={{ scale: 0.95 }}
-    className={`group relative overflow-hidden rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center transition-shadow duration-300 touch-manipulation min-h-[160px] sm:min-h-[180px] border-4 ${
+    aria-label={`${title}. ${description}`}
+    className={`group relative overflow-hidden rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center transition-shadow duration-300 touch-manipulation min-h-[160px] sm:min-h-[180px] border-4 focus:outline-none focus:ring-4 focus:ring-white/50 ${
       highlight
         ? "border-amber-400/50 shadow-[0_0_30px_rgba(251,191,36,0.3)] bg-white/20 dark:bg-black/40 backdrop-blur-xl"
         : "border-white/20 dark:border-white/10 shadow-xl bg-white/10 dark:bg-black/20 backdrop-blur-xl"
@@ -92,10 +91,9 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   onResumeOrder,
 }) => {
   const [isPasswordModalOpen, setPasswordModalOpen] = useState(false);
-  const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [isRoomNumberModalOpen, setRoomNumberModalOpen] = useState(false);
   const [helpRequested, setHelpRequested] = useState(false);
-  const [authAction, setAuthAction] = useState<"settings" | "exit">("settings");
+  const [authAction, setAuthAction] = useState<"exit">("exit");
 
   // Face Login State
   const [isFaceLoginOpen, setIsFaceLoginOpen] = useState(false);
@@ -108,7 +106,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const [isVintageBoothOpen, setIsVintageBoothOpen] = useState(false);
 
   // Self-Service QR Kiosk State
-  const [isSelfServiceQROpen, setIsSelfServiceQROpen] = useState(false);
+  const [isSelfServiceBLEOpen, setIsSelfServiceBLEOpen] = useState(false);
 
   const [settings, setSettings] = useState<KioskSettings>({
     logoUrl: "/logo.png",
@@ -155,25 +153,24 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     }
 
     if (isConfigRequired) {
-      setSettingsOpen(true);
+      localStorage.removeItem('kioskSettingsV2');
+      window.location.reload();
     }
-  }, [isSettingsOpen, isConfigRequired]);
+  }, [isConfigRequired]);
 
   const handleRoomNumberConfirm = (roomNumber: string) => {
     setRoomNumberModalOpen(false);
     onBrowsePhotos(roomNumber);
   };
 
-  const handleAuthRequest = (action: "settings" | "exit") => {
+  const handleAuthRequest = (action: "exit") => {
     setAuthAction(action);
     setPasswordModalOpen(true);
   };
 
   const handleAdminAuthSuccess = () => {
     setPasswordModalOpen(false);
-    if (authAction === "settings") {
-      setSettingsOpen(true);
-    } else if (authAction === "exit") {
+    if (authAction === "exit") {
       onExit();
     }
   };
@@ -546,6 +543,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         kioskConnectionStatus === "Disconnected") && (
         <div
           className={`absolute top-0 left-0 w-full ${kioskConnectionStatus === "Offline" ? "bg-red-700" : "bg-orange-600"} text-white z-50 p-4 shadow-lg flex items-center justify-center space-x-4 animate-slideDown pointer-events-none`}
+          role="alert"
+          aria-live="assertive"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -553,6 +552,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"
@@ -569,12 +569,17 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           <button
             onClick={() => window.location.reload()}
             className={`bg-white ${kioskConnectionStatus === "Offline" ? "text-red-700" : "text-orange-600"} px-4 py-1 rounded-full font-bold text-sm hover:bg-opacity-90 transition-colors shadow-sm pointer-events-auto`}
+            aria-label="Retry connection by reloading the app"
           >
             Retry Connection
           </button>
           <button
-            onClick={() => setSettingsOpen(true)}
+            onClick={() => {
+              localStorage.removeItem('kioskSettingsV2');
+              window.location.reload();
+            }}
             className="text-white underline text-sm hover:text-red-100 ml-4 pointer-events-auto"
+            aria-label="Configure IP address"
           >
             Configure IP
           </button>
@@ -582,7 +587,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       )}
 
       {/* Dynamic Background */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 opacity-100 transition-colors duration-500"></div>
         <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[150px] animate-pulse-slow"></div>
         <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] bg-purple-500/10 dark:bg-purple-600/10 rounded-full blur-[150px] animate-pulse-slow delay-700"></div>
@@ -598,11 +603,14 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           transition={{ duration: 1 }}
           className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center cursor-pointer overflow-hidden"
           onClick={() => setIsIdle(false)}
+          role="button"
+          aria-label="Wake up screensaver"
+          tabIndex={0}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-black to-purple-900 opacity-60"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-black to-purple-900 opacity-60" aria-hidden="true"></div>
           
-          <div className="absolute top-[10%] left-[10%] w-72 h-72 bg-blue-600/30 rounded-full blur-[120px] animate-pulse-slow"></div>
-          <div className="absolute bottom-[10%] right-[10%] w-96 h-96 bg-purple-600/30 rounded-full blur-[120px] animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-[10%] left-[10%] w-72 h-72 bg-blue-600/30 rounded-full blur-[120px] animate-pulse-slow" aria-hidden="true"></div>
+          <div className="absolute bottom-[10%] right-[10%] w-96 h-96 bg-purple-600/30 rounded-full blur-[120px] animate-pulse-slow" style={{ animationDelay: '1s' }} aria-hidden="true"></div>
 
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
@@ -619,7 +627,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
              <h1 className="text-7xl md:text-9xl font-black text-white tracking-tight drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]">
                {settings.welcomeMessage}
              </h1>
-             <div className="mt-12 px-8 py-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full animate-pulse">
+             <div className="mt-12 px-8 py-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full animate-pulse" aria-hidden="true">
                <p className="text-3xl text-white font-bold tracking-widest uppercase">
                  Touch Screen to Begin
                </p>
@@ -630,7 +638,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       </AnimatePresence>
 
       {isVintageBoothOpen && (
-        <div className="absolute inset-0 z-[100] bg-black">
+        <div className="absolute inset-0 z-[100] bg-black" role="dialog" aria-modal="true" aria-label="Vintage Booth Capture">
           <VintageSlideshow 
             photos={[]} // User can capture new photos inside the overlay
             onCaptureRequest={() => {
@@ -930,9 +938,9 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
             {/* Self-Service QR Kiosk Button */}
             <WelcomeButton
-              onClick={() => setIsSelfServiceQROpen(true)}
+              onClick={() => setIsSelfServiceBLEOpen(true)}
               title="Order on Phone"
-              description="Scan dynamic QR code to bypass kiosk and order on your device."
+              description="Connect via BLE to bypass kiosk and order on your device."
               testId="welcome-self-service-qr-button"
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -975,16 +983,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         </div>
       </div>
 
-      <KioskSettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        onSave={(s) => setSettings(s)}
-        kioskConnectionStatus={
-          kioskConnectionStatus === "Offline"
-            ? "Disconnected"
-            : kioskConnectionStatus
-        }
-      />
       <PasswordModal
         isOpen={isPasswordModalOpen}
         onClose={() => setPasswordModalOpen(false)}
@@ -1014,11 +1012,14 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         title="Search for Your Photos"
       />
 
-      <SelfServiceQRModal
-        isOpen={isSelfServiceQROpen}
-        onClose={() => setIsSelfServiceQROpen(false)}
+      <SelfServiceBLEModal
+        isOpen={isSelfServiceBLEOpen}
+        onClose={() => setIsSelfServiceBLEOpen(false)}
         eventId="default-event"
-        accessCode="GUEST-2026"
+        onGuestDetected={(guestId) => {
+          console.log(`BLE Linked guest: ${guestId}`);
+          setIsSelfServiceBLEOpen(false);
+        }}
       />
 
       {/* Loading overlay for face search */}

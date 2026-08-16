@@ -100,3 +100,33 @@ def upscale_image(image_bytes: bytes, scale: int = 4) -> bytes:
         raise ValueError("Failed to encode upscaled image")
 
     return encoded.tobytes()
+
+if __name__ == "__main__":
+    import sys
+    import argparse
+    import os
+
+    parser = argparse.ArgumentParser(description="Real-ESRGAN Upscaler CLI")
+    parser.add_argument("-i", "--input", required=True, help="Input image path")
+    parser.add_argument("-o", "--output", required=True, help="Output image path")
+    parser.add_argument("-s", "--scale", type=int, default=4, help="Upscale factor (2 or 4)")
+    
+    args = parser.parse_args()
+
+    if not os.path.exists(args.input):
+        print(f"Error: Input file not found at {args.input}")
+        sys.exit(1)
+
+    try:
+        with open(args.input, "rb") as f:
+            in_bytes = f.read()
+
+        out_bytes = upscale_image(in_bytes, scale=args.scale)
+
+        with open(args.output, "wb") as f:
+            f.write(out_bytes)
+            
+        print(f"Successfully upscaled {args.input} to {args.output}")
+    except Exception as e:
+        print(f"Error during upscaling: {e}")
+        sys.exit(1)

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Camera, MapPin, Activity } from 'lucide-react';
+import { TeamLiveWidget } from '../components/TeamLiveWidget';
 
 type Photographer = {
   id: string;
@@ -19,11 +20,6 @@ const defaultPhotographers: Photographer[] = [
 
 export function FleetView() {
   const [photographers] = useState(() => [...defaultPhotographers]);
-  const [liveFeed] = useState([
-    { id: 1, time: '10:42 AM', event: 'Sarah M. registered a new shoot: John D. (Beach)' },
-    { id: 2, time: '10:41 AM', event: 'James K. uploaded 42 high-res burst photos (Waterpark)' },
-    { id: 3, time: '10:38 AM', event: 'David L. came online (Pool Deck)' },
-  ]);
 
   return (
     <div className="space-y-6 h-full flex flex-col">
@@ -100,23 +96,9 @@ export function FleetView() {
                 </div>
             </div>
 
-            {/* Live Feed */}
-            <div className="h-64 bg-slate-900 rounded-xl border border-slate-800 shadow-sm overflow-hidden flex flex-col">
-                <div className="p-4 border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 flex justify-between items-center">
-                    <h3 className="font-semibold text-slate-200 flex items-center gap-2">
-                        <Activity className="w-5 h-5 text-slate-400" /> 
-                        Live Shoot Feed (Redis Stream)
-                    </h3>
-                </div>
-                <div className="overflow-y-auto p-4 space-y-3 flex-1 font-mono text-sm">
-                    {liveFeed.map(feed => (
-                        <div key={feed.id} className="flex gap-4 items-start py-2 border-b border-slate-800/50 last:border-0">
-                            <span className="text-blue-400 shrink-0">{feed.time}</span>
-                            <span className="text-slate-300">{feed.event}</span>
-                        </div>
-                    ))}
-                    <div className="text-slate-500 text-xs text-center mt-4 pt-4 border-t border-slate-800/50">Listening for incoming WebRTC events...</div>
-                </div>
+            {/* WebRTC Video Feed */}
+            <div className="flex-1 flex flex-col min-h-0">
+                <TeamLiveWidget />
             </div>
         </div>
 

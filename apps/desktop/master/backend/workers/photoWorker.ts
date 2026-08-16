@@ -7,6 +7,8 @@ import {
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import { exec } from "child_process";
+import { promisify } from "util";
 import sharp from "sharp";
 import exifr from "exifr";
 import type { ImageEditRecipeV1 } from "@clickflash/types";
@@ -91,11 +93,13 @@ function applyFormatCompression(pipeline: sharp.Sharp, ext: string, mode: 'highr
   return pipeline;
 }
 
+const execPromise = promisify(exec);
+
 async function handleProcessJob(job: WorkerJob) {
   const photoId = job.photoId || crypto.randomUUID();
-  const filepath = job.filepath;
+  let filepath = job.filepath;
   const outputDir = job.outputDir || (filepath ? path.dirname(filepath) : ".");
-  const ext = job.ext || (filepath ? path.extname(filepath) : ".jpg") || ".jpg";
+  let ext = job.ext || (filepath ? path.extname(filepath) : ".jpg") || ".jpg";
   const { mimeType, iccProfilePath } = job;
   // Processing ${photoId} from ${filepath}
 
@@ -118,6 +122,31 @@ async function handleProcessJob(job: WorkerJob) {
 
   if (!fs.existsSync(filepath)) {
     throw new Error(`Input file not found: ${filepath}`);
+  }
+
+  let tempRawJpegPath: string | null = null;
+  const rawExtensions = ['.nef', '.cr2', '.arw', '.dng', '.raf', '.orf', '.rw2'];
+  const isRaw = rawExtensions.includes(ext.toLowerCase());
+
+  if (isRaw) {
+    try {
+      logger.info(`[PhotoWorker] RAW file detected for ${photoId} (${ext}). Using rawtherapee-cli...`);
+      tempRawJpegPath = path.join(outputDir, `${photoId}_raw_temp.jpg`);
+      
+      // rawtherapee-cli -O <output_dir/file> -j100 -c <input_file>
+      await execPromise(`rawtherapee-cli -O "${tempRawJpegPath}" -j100 -c "${filepath}"`);
+      
+      if (!fs.existsSync(tempRawJpegPath)) {
+        throw new Error("rawtherapee-cli finished but temp file was not created.");
+      }
+
+      // Swap filepath to the generated JPEG for the rest of the pipeline
+      filepath = tempRawJpegPath;
+      ext = '.jpg';
+    } catch (err) {
+      logger.error(`[PhotoWorker] Failed to process RAW file via rawtherapee-cli for ${photoId}`, err);
+      throw new Error(`RAW processing failed. Ensure rawtherapee-cli is installed in PATH. Details: ${(err as Error).message}`);
+    }
   }
 
   // Two-layer validation: magic bytes + sharp header parse (catches polyglots)
@@ -193,9 +222,7 @@ async function handleProcessJob(job: WorkerJob) {
       }
 
       // 🧠 Run Deep Learning Quality Assessment
-      // Requires raw RGB buffer, which we approximate with sharp() buffer
-      const bufferForAI = await sharp(filepath, { failOn: 'none' }).resize(224, 224, { fit: 'inside' }).toBuffer();
-      const aiScores = await AICullingService.evaluateImage(bufferForAI, 224, 224);
+      const aiScores = await AICullingService.evaluateImage(filepath);
       
       if (aiScores.blurScore > 0.8) quality_flags.push("Blurred");
       else if (aiScores.blurScore < 0.2) quality_flags.push("Sharp");
@@ -271,8 +298,64 @@ async function handleProcessJob(job: WorkerJob) {
       baseEditedPipeline = applyPipelineCrop(baseEditedPipeline, autoEdits.crop, currentWidth, currentHeight);
       baseEditedPipeline = applyPipelineEdits(baseEditedPipeline, autoEdits);
       
-      promises.push(applyFormatCompression(baseEditedPipeline.clone().resize(2048, 2048, { fit: "inside", withoutEnlargement: true }), '.jpg', 'preview').toFile(previewEditedPath));
-      promises.push(applyFormatCompression(baseEditedPipeline.clone(), '.jpg', 'highres').toFile(highresEditedPath));
+      let isAggressiveCrop = false;
+      if (autoEdits.crop) {
+        const cropArea = (autoEdits.crop.width / 100) * (autoEdits.crop.height / 100);
+        if (cropArea < 0.3) {
+           isAggressiveCrop = true;
+        }
+      }
+
+      const processEdits = async () => {
+        if (isAggressiveCrop) {
+          logger.info(`[PhotoWorker] Aggressive crop detected for ${photoId}. Triggering AI Upscaler...`);
+          const tempCropPath = path.join(outputDir, `${photoId}_temp_crop.jpg`);
+          await applyFormatCompression(baseEditedPipeline.clone(), '.jpg', 'highres').toFile(tempCropPath);
+          
+          const scriptPath = path.join(process.cwd(), '../../backend/ai-worker/upscale_service.py');
+          const upscaledPath = path.join(outputDir, `${photoId}_temp_upscaled.jpg`);
+          
+          try {
+            await execPromise(`python "${scriptPath}" -i "${tempCropPath}" -o "${upscaledPath}" -s 2`);
+            
+            // Use upscaled image for assets
+            await applyFormatCompression(sharp(upscaledPath).resize(2048, 2048, { fit: "inside", withoutEnlargement: true }), '.jpg', 'preview').toFile(previewEditedPath);
+            await applyFormatCompression(sharp(upscaledPath), '.jpg', 'highres').toFile(highresEditedPath);
+            
+            // Cleanup
+            if (fs.existsSync(tempCropPath)) fs.unlinkSync(tempCropPath);
+            if (fs.existsSync(upscaledPath)) fs.unlinkSync(upscaledPath);
+            return;
+          } catch (upscaleErr) {
+            logger.warn(`[PhotoWorker] AI Upscaling failed, falling back to standard crop: ${(upscaleErr as Error).message}`);
+            if (fs.existsSync(tempCropPath)) fs.unlinkSync(tempCropPath);
+            if (fs.existsSync(upscaledPath)) fs.unlinkSync(upscaledPath);
+            // Fall through to standard save
+          }
+        }
+        
+        // Standard save
+        await applyFormatCompression(baseEditedPipeline.clone().resize(2048, 2048, { fit: "inside", withoutEnlargement: true }), '.jpg', 'preview').toFile(previewEditedPath);
+        await applyFormatCompression(baseEditedPipeline.clone(), '.jpg', 'highres').toFile(highresEditedPath);
+      };
+      
+      promises.push(processEdits());
+    }
+
+    if ((autoEdits as any)?.magicShot || (job.edits as any)?.magicShot) {
+      const processMagicShot = async () => {
+        logger.info(`[PhotoWorker] Magic Shot requested for ${photoId}. Triggering AI Compositor...`);
+        const scriptPath = path.join(process.cwd(), '../../backend/ai-worker/magic_shot_cli.py');
+        const magicShotPath = path.join(outputDir, `${photoId}_magicshot.jpg`);
+        
+        try {
+          await execPromise(`python "${scriptPath}" -i "${filepath}" -o "${magicShotPath}"`);
+          logger.info(`[PhotoWorker] Magic Shot successful for ${photoId}`);
+        } catch (magicErr) {
+          logger.warn(`[PhotoWorker] AI Magic Shot failed: ${(magicErr as Error).message}`);
+        }
+      };
+      promises.push(processMagicShot());
     }
 
     const [blurhash] = await Promise.all([
@@ -304,6 +387,9 @@ async function handleProcessJob(job: WorkerJob) {
         ...(autoEdits && Object.keys(autoEdits).length > 0 ? {
           previewEdited: `${photoId}_preview_edited.jpg`,
           highresEdited: `${photoId}_highres_edited.jpg`,
+        } : {}),
+        ...(((autoEdits as any)?.magicShot || (job.edits as any)?.magicShot) ? {
+          magicShot: `${photoId}_magicshot.jpg`
         } : {})
       },
     });
@@ -368,6 +454,15 @@ async function handleProcessJob(job: WorkerJob) {
   } finally {
     // GC Cleanup
     (imageInstance as any) = null;
+    
+    // Cleanup temp RAW jpeg if it exists
+    if (tempRawJpegPath && fs.existsSync(tempRawJpegPath)) {
+      try {
+        fs.unlinkSync(tempRawJpegPath);
+      } catch (e) {
+        logger.warn(`[PhotoWorker] Failed to cleanup temp RAW JPEG: ${tempRawJpegPath}`);
+      }
+    }
   }
 }
 

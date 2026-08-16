@@ -4,6 +4,7 @@ import type { Logger } from '../utils/logger';
 import path from "path";
 import fs from "fs";
 import { DATA_DIR } from "../config/constants";
+import { l2Normalize } from "@clickflash/ai-core";
 
 const BINARY_INDEX_FILE = path.join(DATA_DIR, "face_vectors.bin");
 const JSON_INDEX_FILE = path.join(DATA_DIR, "face_vectors.json");
@@ -169,25 +170,29 @@ export class VectorIndexService {
       );
     }
 
-    let squaredNorm = 0;
-    for (let index = 0; index < expectedDim; index++) {
-      const value = vector[index];
-      if (!Number.isFinite(value)) {
-        throw new TypeError(`Face vector contains a non-finite value at index ${index}`);
-      }
-      squaredNorm += value * value;
-    }
+    const normalizedArray = l2Normalize(Array.from(vector));
+    return new Float32Array(normalizedArray);
+  }
 
-    const norm = Math.sqrt(squaredNorm);
-    if (!Number.isFinite(norm) || norm <= epsilon) {
-      throw new RangeError("Face vector must have a finite, non-zero L2 norm");
-    }
+  private wasmModule: WebAssembly.Instance | null = null;
+  private wasmMemory: WebAssembly.Memory | null = null;
+  private binaryBuffer: Buffer | null = null;
 
-    const normalized = new Float32Array(expectedDim);
-    for (let index = 0; index < expectedDim; index++) {
-      normalized[index] = vector[index] / norm;
+  public async initWasm(): Promise<void> {
+    if (this.wasmModule) return;
+    try {
+      const wasmPath = path.join(process.cwd(), "public", "wasm", "vptree.wasm");
+      const wasmBuffer = fs.readFileSync(wasmPath);
+      // We'll allocate initially 256 pages (16MB) - can grow if needed
+      this.wasmMemory = new WebAssembly.Memory({ initial: 256 });
+      const wasmImports = { env: { memory: this.wasmMemory } };
+      
+      const { instance } = await WebAssembly.instantiate(wasmBuffer, wasmImports);
+      this.wasmModule = instance;
+      this.logger.info("[VectorIndex] Loaded WebAssembly VP-Tree Engine.");
+    } catch (e) {
+      this.logger.error("[VectorIndex] Failed to load WASM engine, falling back to JS.", { error: String(e) });
     }
-    return normalized;
   }
 
   public search(
@@ -195,13 +200,80 @@ export class VectorIndexService {
     limit: number = 20,
     threshold: number = 0.8366,
   ): string[] {
-    if (!this.root) return [];
+    if (!this.root || !this.binaryBuffer) return [];
 
     const typedQuery = VectorIndexService.normalizeL2(
       queryVector,
       this.root.pivot.length,
     );
 
+    // If WASM is available, use it!
+    if (this.wasmModule && this.wasmMemory) {
+      const searchVPTreeWasm = this.wasmModule.exports.searchVPTreeWasm as Function;
+      
+      // Calculate layout
+      const dim = this.root.pivot.length || VECTOR_DIM;
+      const PADDING_SIZE = 3;
+      const nodeSize = 1 + 24 + 24 + PADDING_SIZE + 8 + dim * 4 + 4 + 4; // 580 bytes for dim 128
+      const headerSize = MAGIC_BYTES.length + 2 + 4 + 4; // 14 bytes
+      const nodeCount = this.binaryBuffer.readUInt32LE(MAGIC_BYTES.length + 2);
+      
+      const totalTreeSize = headerSize + (nodeCount * nodeSize);
+      const querySize = dim * 4;
+      const resultsSize = limit * 8; // [i32 index, f32 dist]
+      const requiredMemoryBytes = totalTreeSize + querySize + resultsSize + (limit * 10 * 4); // extra for stack
+      
+      // Grow memory if needed (1 page = 64KB)
+      const currentPages = this.wasmMemory.buffer.byteLength / 65536;
+      const requiredPages = Math.ceil(requiredMemoryBytes / 65536);
+      if (requiredPages > currentPages) {
+        this.wasmMemory.grow(requiredPages - currentPages);
+      }
+      
+      const memArray = new Uint8Array(this.wasmMemory.buffer);
+      
+      // 1. Copy tree binary to WASM memory (ptr 0)
+      memArray.set(new Uint8Array(this.binaryBuffer.buffer, this.binaryBuffer.byteOffset, this.binaryBuffer.byteLength), 0);
+      
+      // 2. Copy query vector
+      const queryPtr = totalTreeSize;
+      const queryArray = new Float32Array(this.wasmMemory.buffer, queryPtr, dim);
+      queryArray.set(typedQuery);
+      
+      // 3. Set resultsPtr
+      const resultsPtr = queryPtr + querySize;
+      
+      // 4. Run WASM
+      const treeNodesPtr = headerSize;
+      const resultsCount = searchVPTreeWasm(
+        treeNodesPtr,
+        nodeCount,
+        nodeSize,
+        dim,
+        queryPtr,
+        threshold,
+        limit,
+        resultsPtr
+      );
+      
+      // 5. Read results
+      const resultsData = new DataView(this.wasmMemory.buffer, resultsPtr, resultsCount * 8);
+      const finalResults = [];
+      for (let i = 0; i < resultsCount; i++) {
+        const nodeIdx = resultsData.getInt32(i * 8, true);
+        const dist = resultsData.getFloat32(i * 8 + 4, true);
+        
+        // Read string ID directly from tree memory
+        const idOffset = treeNodesPtr + (nodeIdx * nodeSize) + 1;
+        const idBuf = Buffer.from(this.wasmMemory.buffer, idOffset, 24);
+        const id = idBuf.toString('ascii').replace(/\0/g, "");
+        finalResults.push({ id, distance: dist });
+      }
+      
+      return finalResults.map(r => r.id);
+    }
+
+    // --- FALLBACK PURE TS IMPL ---
     // Max-priority queue for top K results
     const results = new MaxHeap<{ id: string; distance: number }>(
       limit,

@@ -2,6 +2,10 @@ import { DatabaseManager } from '../database/db';
 import { Logger } from '../utils/logger';
 import si from "systeminformation";
 import { RecyclerService } from "./RecyclerService";
+import { HardwareHealthStatus } from '@clickflash/types';
+import { dslrTetherService } from './dslrTetherService';
+import { HardwareService } from './HardwareService';
+import { randomUUID } from 'crypto';
 
 /**
  * Phase 15: HealthArbiter
@@ -42,12 +46,18 @@ export class HealthArbiter {
   private recycler: RecyclerService;
   private sseCallback: ((event: string, data: any) => void) | null = null;
 
+  private hardwareService: HardwareService | null = null;
+
   constructor(
     private dbManager: DatabaseManager,
     private logger: Logger,
   ) {
     this.recycler = new RecyclerService(dbManager, logger);
     this.thresholds = this.loadThresholds();
+  }
+
+  public setHardwareService(hwService: HardwareService) {
+    this.hardwareService = hwService;
   }
 
   public static getInstance(dbManager: DatabaseManager, logger: Logger): HealthArbiter {
@@ -196,6 +206,37 @@ export class HealthArbiter {
       this.lastSnapshot.state = newState;
       this.lastSnapshot.reasons = reasons;
       this.lastSnapshot.timestamp = new Date().toISOString();
+    }
+
+    // HardwareHealthStatus / Tamper evaluation
+    const clockAltered = this.hardwareService ? this.hardwareService.hasClockAltered() : false;
+    const sdCardRemovedDuringShift = dslrTetherService.hasSdCardRemoved();
+
+    let hardwareState: 'healthy' | 'degraded' | 'critical' | 'offline' = newState === "NOMINAL" ? 'healthy' : newState === 'DEGRADED' ? 'degraded' : 'critical';
+    if (clockAltered || sdCardRemovedDuringShift) {
+        hardwareState = 'critical';
+    }
+
+    const hwStatus: HardwareHealthStatus = {
+        id: randomUUID(),
+        deviceId: 'MASTER_NODE',
+        status: hardwareState,
+        tamperFlags: {
+            sdCardRemovedDuringShift,
+            clockAltered,
+            gpsSpoofed: false,
+            unauthorizedUsb: false
+        },
+        metrics: {
+            diskSpace: this.lastSnapshot?.metrics.diskFreeGb,
+            cpuTemp: undefined, // Requires privileged sensors
+            batteryLevel: undefined
+        },
+        lastCheckinAt: new Date().toISOString()
+    };
+
+    if (this.sseCallback) {
+        this.sseCallback("HARDWARE_HEALTH", hwStatus);
     }
 
     // State transition handling

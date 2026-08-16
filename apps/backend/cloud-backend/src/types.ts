@@ -15,6 +15,8 @@ export type Bindings = {
   STRIPE_WEBHOOK_SECRET?: string;
   STRIPE_SECRET_KEY?: string;
   RESEND_API_KEY: string;
+  UPSTASH_REDIS_REST_URL?: string;
+  UPSTASH_REDIS_REST_TOKEN?: string;
 };
 
 export type AppEnv = {

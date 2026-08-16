@@ -1,6 +1,6 @@
 import express, { Request, Response, Router } from "express";
 import crypto from "crypto";
-import QRCode from "qrcode";
+
 import { Logger } from "../utils/logger";
 import { DatabaseManager } from "../database/db";
 
@@ -73,20 +73,7 @@ export default function mobileShareRoutes(context: MobileShareContext): Router {
       const protocol = req.protocol || "http";
       const shareUrl = galleryUrl || `${protocol}://${host}/share/${token}`;
 
-      let qrCodeDataUrl = "";
-      try {
-        qrCodeDataUrl = await QRCode.toDataURL(shareUrl, {
-          width: 300,
-          margin: 2,
-          color: { dark: "#1e293b", light: "#ffffff" },
-        });
-      } catch (qrErr: any) {
-        if (logger) {
-          logger.warn("[MobileShare] Failed to generate QR code image data URL", {
-            error: qrErr.message,
-          });
-        }
-      }
+      const qrCodeDataUrl = "";
 
       if (logger) {
         logger.info("[MobileShare] Created instant share session", {

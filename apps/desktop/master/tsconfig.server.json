@@ -5,7 +5,6 @@
         "module": "ES2022",
         "moduleResolution": "bundler",
         "outDir": "./dist/backend",
-        "rootDir": "../../",
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
@@ -15,9 +14,19 @@
         "allowImportingTsExtensions": true,
         "noEmit": true,
         "paths": {
-            "@clickflash/types": ["../../packages/types/src/index.ts"],
-            "@clickflash/ai-core": ["../../packages/ai-core/src/index.ts"],
-            "@clickflash/ai-core/*": ["../../packages/ai-core/src/*"]
+            "@/*": ["./src/*", "./backend/*"],
+            "@clickflash/types": ["../../../packages/types/src/index.ts"],
+            "@clickflash/types/*": ["../../../packages/types/src/*"],
+            "@clickflash/validation": ["../../../packages/validation/src/index.ts"],
+            "@clickflash/validation/*": ["../../../packages/validation/src/*"],
+            "@clickflash/ai": ["../../../packages/ai/src/index.ts"],
+            "@clickflash/ai/*": ["../../../packages/ai/src/*"],
+            "@clickflash/ai-core": ["../../../packages/ai-core/src/index.ts"],
+            "@clickflash/ai-core/*": ["../../../packages/ai-core/src/*"],
+            "@clickflash/errors": ["../../../packages/errors/src/index.ts"],
+            "@clickflash/errors/*": ["../../../packages/errors/src/*"],
+            "@clickflash/logger": ["../../../packages/logger/src/index.ts"],
+            "@clickflash/logger/*": ["../../../packages/logger/src/*"]
         }
     },
     "include": [

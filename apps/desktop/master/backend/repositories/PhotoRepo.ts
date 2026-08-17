@@ -47,6 +47,8 @@ export class PhotoRepo {
       values
     );
 
+    redisCache.publishEvent('photo_ingestion', { id: data.id, albumId: data.albumId, timestamp: now });
+
     return this.findById(data.id);
   }
 

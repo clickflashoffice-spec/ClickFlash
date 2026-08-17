@@ -70,7 +70,7 @@ export class SwarmDispatchAI {
     private async pushPredictions(predictions: HotspotPrediction[]) {
         console.log(`[SwarmDispatchAI] Pushing ${predictions.length} predictions to stream...`);
         
-        const edgeWebhookUrl = (typeof process !== 'undefined' && process.env?.EDGE_WEBHOOK_URL) || 'http://localhost:8090/api/webhooks/dispatch';
+        const edgeWebhookUrl = (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.EDGE_WEBHOOK_URL) || 'http://localhost:8090/api/webhooks/dispatch';
 
         for (const p of predictions) {
             try {

@@ -44,3 +44,9 @@ export const regionRoutingMiddleware = createMiddleware<AppEnv>(async (c, next) 
   c.set('DB', getRegionalDB(c.env, regionId));
   await next();
 });
+
+export const tenantRoutingMiddleware = createMiddleware<AppEnv>(async (c, next) => {
+  const tenantId = c.req.header('X-Tenant-ID') || c.req.query('tenant_id') || 'default-tenant';
+  c.set('tenantId', tenantId);
+  await next();
+});

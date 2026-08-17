@@ -15,6 +15,7 @@ import { AnimatePresence, motion, Transition } from 'framer-motion';
 import PasswordModal from './components/touch/PasswordModal';
 import { VoiceAssistantWidget } from './components/touch/VoiceAssistantWidget';
 import { AttractScreensaver } from './components/touch/AttractScreensaver';
+import { OfflineBanner } from './components/touch/OfflineBanner';
 import { rfidIntegrationService } from './services/rfidIntegrationService';
 import { rfidService } from './services/rfidService';
 import { useProximityAuth } from './hooks/useProximityAuth';
@@ -426,6 +427,7 @@ const TouchPortalContent: React.FC<TouchPortalProps> = ({ isOnline, showToast, o
             role="application"
             aria-label="ClickFlash Touch Kiosk"
         >
+            <OfflineBanner />
             <div aria-live="polite" className="sr-only" id="kiosk-live-region"></div>
             <ErrorBoundary>
                 <AnimatePresence mode="wait">

@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS events;
 
 CREATE TABLE events (
     id TEXT PRIMARY KEY,
+    tenant_id TEXT,
     name TEXT NOT NULL,
     access_code TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -10,6 +11,7 @@ CREATE TABLE events (
 
 CREATE TABLE photos (
     id TEXT PRIMARY KEY,
+    tenant_id TEXT,
     event_id TEXT NOT NULL,
     r2_path TEXT NOT NULL,
     size INTEGER NOT NULL,
@@ -43,6 +45,7 @@ CREATE INDEX IF NOT EXISTS idx_raw_export_jobs_event ON raw_export_jobs(event_id
 
 CREATE TABLE IF NOT EXISTS photographers (
     id TEXT PRIMARY KEY,
+    tenant_id TEXT,
     name TEXT NOT NULL,
     station_id TEXT,
     face_vector TEXT,
@@ -66,6 +69,7 @@ CREATE TABLE IF NOT EXISTS shifts (
 
 CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
+    tenant_id TEXT,
     resort_id TEXT,
     photographer_id TEXT,
     guest_name TEXT,
@@ -99,6 +103,7 @@ CREATE TABLE IF NOT EXISTS global_settings (
 
 CREATE TABLE IF NOT EXISTS fleet_nodes (
     id TEXT PRIMARY KEY,
+    tenant_id TEXT,
     name TEXT NOT NULL,
     location TEXT,
     status TEXT DEFAULT 'offline',
@@ -198,6 +203,7 @@ CREATE TABLE IF NOT EXISTS order_state (
 
 CREATE TABLE IF NOT EXISTS payment_state (
     id TEXT PRIMARY KEY,
+    tenant_id TEXT,
     order_id TEXT,
     amount REAL,
     status TEXT,
@@ -223,3 +229,12 @@ CREATE TABLE IF NOT EXISTS ai_cost_ledger (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_cost_ledger_date ON ai_cost_ledger(created_at);
+
+CREATE TABLE IF NOT EXISTS tenants (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    region TEXT,
+    base_currency TEXT DEFAULT 'USD',
+    config_json TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

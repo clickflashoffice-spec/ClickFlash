@@ -1,12 +1,8 @@
 import { GeminiClient } from "@clickflash/ai";
+import { getAgentApiKey } from "./getAgentApiKey";
 
-const getApiKey = (): string =>
-  (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_GEMINI_API_KEY) ||
-  (typeof window !== "undefined" && (window as any).ENV?.GEMINI_API_KEY) ||
-  (typeof process !== "undefined" && process.env?.GEMINI_API_KEY) ||
-  "demo-api-key";
+const aiClient = new GeminiClient({ apiKey: getAgentApiKey(), model: "gemini-2.0-flash" });
 
-const aiClient = new GeminiClient({ apiKey: getApiKey(), model: "gemini-2.0-flash" });
 
 export class NegotiatorAgent {
   public static async calculateCounterOffer(replyText: string, aiSalvageScore: number, initialOffer: number): Promise<number> {

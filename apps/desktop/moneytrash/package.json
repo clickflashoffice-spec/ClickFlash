@@ -6,10 +6,10 @@
   "packageManager": "pnpm@10.28.1",
   "main": "dist/electron/electron-main.js",
   "scripts": {
-    "dev": "vite",
-    "build": "pnpm run build:wasm-sharpness && vite build",
+    "dev": "node ../../../node_modules/vite/bin/vite.js",
+    "build": "pnpm run build:wasm-sharpness && node ../../../node_modules/vite/bin/vite.js build",
     "build:wasm-sharpness": "pnpm --dir ../../../packages/wasm-sharpness run build && node scripts/copy-wasm-sharpness.mjs",
-    "preview": "vite preview",
+    "preview": "node ../../../node_modules/vite/bin/vite.js preview",
     "desktop:dev": "concurrently \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:1420 && electron .\" --kill-others-on-fail",
     "typecheck:electron": "tsc -p tsconfig.electron.json --noEmit",
     "build:electron": "pnpm run typecheck:electron && node scripts/build-electron.cjs",
@@ -68,6 +68,9 @@
     "zod": "^4.1.13"
   },
   "dependencies": {
+    "@clickflash/ai": "workspace:*",
+    "@clickflash/logger": "workspace:*",
+    "@clickflash/types": "workspace:*",
     "@clickflash/ui": "workspace:*"
   }
 }

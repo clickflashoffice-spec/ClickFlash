@@ -1,22 +1,23 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { CloudSyncService } from "../../services/cloudSyncService";
 
 // Mock dependencies
 const mockDbManager = {
-  get: jest.fn(),
-  all: jest.fn(),
-  query: jest.fn(),
-  run: jest.fn(),
+  get: vi.fn(),
+  all: vi.fn(),
+  query: vi.fn(),
+  run: vi.fn(),
 };
 
 const mockLogger = {
-  info: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn(),
-  debug: jest.fn(),
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
 };
 
 const mockEmailService = {
-  sendEmail: jest.fn(),
+  sendEmail: vi.fn(),
 };
 
 describe("CloudSyncService DLQ", () => {
@@ -28,7 +29,7 @@ describe("CloudSyncService DLQ", () => {
       mockLogger as any,
       mockEmailService as any
     );
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("replayDeadLetterQueue", () => {

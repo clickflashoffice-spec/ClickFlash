@@ -16,6 +16,7 @@ export class RedisCacheService {
   private static instance: RedisCacheService;
   private client: Redis | null = null;
   private memoryCache: Map<string, { value: string; expiresAt: number | null }> = new Map();
+  private offlineEventStore: Map<string, Record<string, string>[]> = new Map();
   private isRedisConnected = false;
   private checkInterval: NodeJS.Timeout | null = null;
 
@@ -72,6 +73,7 @@ export class RedisCacheService {
       this.client.on('connect', () => {
         logger.info('[RedisCacheService] Connected to distributed Redis cache.');
         this.isRedisConnected = true;
+        this.flushOfflineEvents();
       });
 
       this.client.on('error', (err) => {
@@ -189,7 +191,7 @@ export class RedisCacheService {
   }
 
   /**
-   * Publish an event to a Redis Stream
+   * Publish an event to a Redis Stream, with offline resilience
    */
   public async publishEvent(stream: string, event: Record<string, string>, maxLength = 10000): Promise<string | null> {
     if (this.isRedisConnected && this.client) {
@@ -202,11 +204,45 @@ export class RedisCacheService {
         const messageId = await this.client.xadd(stream, 'MAXLEN', '~', maxLength, '*', ...args);
         return messageId;
       } catch (err: any) {
-        logger.debug(`[RedisCacheService] Redis xadd failed for stream ${stream}: ${err.message}`);
+        logger.warn(`[RedisCacheService] Redis xadd failed for stream ${stream}: ${err.message}. Queueing offline.`);
+        this.queueOfflineEvent(stream, event);
       }
+    } else {
+        logger.debug(`[RedisCacheService] Offline mode. Queueing event for stream ${stream}.`);
+        this.queueOfflineEvent(stream, event);
     }
-    logger.debug(`[RedisCacheService] Event published to memory stream (no-op) ${stream}: ${JSON.stringify(event)}`);
     return null;
+  }
+
+  private queueOfflineEvent(stream: string, event: Record<string, string>) {
+      if (!this.offlineEventStore.has(stream)) {
+          this.offlineEventStore.set(stream, []);
+      }
+      this.offlineEventStore.get(stream)!.push(event);
+  }
+
+  private async flushOfflineEvents() {
+      if (!this.isRedisConnected || !this.client) return;
+      
+      let flushedCount = 0;
+      for (const [stream, events] of this.offlineEventStore.entries()) {
+          while (events.length > 0) {
+              const event = events.shift();
+              if (event) {
+                  try {
+                      await this.publishEvent(stream, event);
+                      flushedCount++;
+                  } catch (e) {
+                      // If it fails again, put it back at the front and stop flushing
+                      events.unshift(event);
+                      break;
+                  }
+              }
+          }
+      }
+      if (flushedCount > 0) {
+          logger.info(`[RedisCacheService] Flushed ${flushedCount} offline events to Redis Streams.`);
+      }
   }
 
   /**
@@ -224,6 +260,10 @@ export class RedisCacheService {
       }
     }
     return { connected: true, mode: 'memory' };
+  }
+
+  public isConnected(): boolean {
+    return this.isRedisConnected;
   }
 
   private cleanupMemoryCache(): void {

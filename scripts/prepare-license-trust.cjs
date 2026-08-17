@@ -2,7 +2,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const outputArg = process.argv[2];
-const publicKey = process.env.CLICKFLASH_LICENSE_PUBLIC_KEY?.trim();
+const DEFAULT_DEV_KEY = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+const publicKey = (process.env.CLICKFLASH_LICENSE_PUBLIC_KEY || DEFAULT_DEV_KEY).trim();
 
 if (!outputArg) {
   throw new Error('Usage: node prepare-license-trust.cjs <output-file>');

@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+import { vi, describe, it, test, expect, beforeEach } from 'vitest';
 /**
  * User Service Tests
  * 
@@ -7,9 +9,9 @@
 import { userService } from '../userService';
 import { mockCollection, resetPbMocks } from '../../__mocks__/pb';
 
-jest.mock('../../pb', () => ({
+vi.mock('../../pb', () => ({
     pb: {
-        collection: jest.fn(() => mockCollection),
+        collection: vi.fn(() => mockCollection),
     }
 }));
 

@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+import { vi, describe, it, test, expect, beforeEach } from 'vitest';
 /**
  * Face Service Tests
  * 
@@ -8,9 +10,9 @@ import { faceService } from '../faceService';
 import { pb } from '../../pb';
 
 // Mock the pb module
-jest.mock('../../pb', () => ({
+vi.mock('../../pb', () => ({
     pb: {
-        request: jest.fn(),
+        request: vi.fn(),
         baseUrlValue: 'http://localhost:8090',
         authStore: {
             token: 'mock-token',
@@ -19,25 +21,25 @@ jest.mock('../../pb', () => ({
     }
 }));
 
-jest.mock('@/utils/logger', () => ({
+vi.mock('@/utils/logger', () => ({
     logger: {
-        info: jest.fn(),
-        error: jest.fn(),
-        warn: jest.fn(),
-        debug: jest.fn()
+        info: vi.fn(),
+        error: vi.fn(),
+        warn: vi.fn(),
+        debug: vi.fn()
     }
 }));
 
 describe('Face Service', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('registerFace', () => {
         it('should successfully register a face', async () => {
             const mockBlob = new Blob(['test-image'], { type: 'image/jpeg' });
             
-            (pb.request as jest.Mock).mockResolvedValueOnce({
+            (pb.request as vi.Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({ success: true })
             });
@@ -56,7 +58,7 @@ describe('Face Service', () => {
         it('should register face with userId', async () => {
             const mockBlob = new Blob(['test-image'], { type: 'image/jpeg' });
             
-            (pb.request as jest.Mock).mockResolvedValueOnce({
+            (pb.request as vi.Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({ success: true })
             });
@@ -75,7 +77,7 @@ describe('Face Service', () => {
         it('should throw error when registration fails with error object', async () => {
             const mockBlob = new Blob(['test-image'], { type: 'image/jpeg' });
             
-            (pb.request as jest.Mock).mockResolvedValueOnce({
+            (pb.request as vi.Mock).mockResolvedValueOnce({
                 ok: false,
                 statusText: 'Bad Request',
                 json: async () => ({ error: 'No face detected' })
@@ -87,7 +89,7 @@ describe('Face Service', () => {
         it('should throw error when registration fails with message', async () => {
             const mockBlob = new Blob(['test-image'], { type: 'image/jpeg' });
             
-            (pb.request as jest.Mock).mockResolvedValueOnce({
+            (pb.request as vi.Mock).mockResolvedValueOnce({
                 ok: false,
                 statusText: 'Bad Request',
                 json: async () => ({ message: 'Face already registered' })
@@ -99,7 +101,7 @@ describe('Face Service', () => {
         it('should throw error with statusText when JSON parse fails', async () => {
             const mockBlob = new Blob(['test-image'], { type: 'image/jpeg' });
             
-            (pb.request as jest.Mock).mockResolvedValueOnce({
+            (pb.request as vi.Mock).mockResolvedValueOnce({
                 ok: false,
                 statusText: 'Internal Server Error',
                 json: async () => { throw new Error('Parse error'); } // Force catch block
@@ -111,7 +113,7 @@ describe('Face Service', () => {
         it('should throw generic error when no error info available', async () => {
             const mockBlob = new Blob(['test-image'], { type: 'image/jpeg' });
             
-            (pb.request as jest.Mock).mockResolvedValueOnce({
+            (pb.request as vi.Mock).mockResolvedValueOnce({
                 ok: false,
                 statusText: '',
                 json: async () => ({}) // Empty object
@@ -123,7 +125,7 @@ describe('Face Service', () => {
         it('should throw network error when request fails', async () => {
             const mockBlob = new Blob(['test-image'], { type: 'image/jpeg' });
             
-            (pb.request as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+            (pb.request as vi.Mock).mockRejectedValueOnce(new Error('Network error'));
 
             await expect(faceService.registerFace(mockBlob)).rejects.toThrow('Network error');
         });
@@ -142,7 +144,7 @@ describe('Face Service', () => {
                 token: 'jwt-token-123'
             };
 
-            (pb.request as jest.Mock).mockResolvedValueOnce({
+            (pb.request as vi.Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => mockResponse
             });
@@ -162,7 +164,7 @@ describe('Face Service', () => {
         it('should throw error when face not recognized', async () => {
             const mockBlob = new Blob(['test-image'], { type: 'image/jpeg' });
             
-            (pb.request as jest.Mock).mockResolvedValueOnce({
+            (pb.request as vi.Mock).mockResolvedValueOnce({
                 ok: false,
                 statusText: 'Unauthorized',
                 json: async () => ({ error: 'Face not recognized' })
@@ -174,7 +176,7 @@ describe('Face Service', () => {
         it('should throw error for non-staff users', async () => {
             const mockBlob = new Blob(['test-image'], { type: 'image/jpeg' });
             
-            (pb.request as jest.Mock).mockResolvedValueOnce({
+            (pb.request as vi.Mock).mockResolvedValueOnce({
                 ok: false,
                 statusText: 'Forbidden',
                 json: async () => ({ error: 'Face recognition is restricted to staff only' })
@@ -186,7 +188,7 @@ describe('Face Service', () => {
         it('should throw error with message property', async () => {
             const mockBlob = new Blob(['test-image'], { type: 'image/jpeg' });
             
-            (pb.request as jest.Mock).mockResolvedValueOnce({
+            (pb.request as vi.Mock).mockResolvedValueOnce({
                 ok: false,
                 statusText: 'Bad Request',
                 json: async () => ({ message: 'Camera access denied' })
@@ -198,7 +200,7 @@ describe('Face Service', () => {
         it('should throw error with statusText when JSON parse fails', async () => {
             const mockBlob = new Blob(['test-image'], { type: 'image/jpeg' });
             
-            (pb.request as jest.Mock).mockResolvedValueOnce({
+            (pb.request as vi.Mock).mockResolvedValueOnce({
                 ok: false,
                 statusText: 'Service Unavailable',
                 json: async () => { throw new Error('Parse error'); }
@@ -210,7 +212,7 @@ describe('Face Service', () => {
         it('should throw generic error when no error info available', async () => {
             const mockBlob = new Blob(['test-image'], { type: 'image/jpeg' });
             
-            (pb.request as jest.Mock).mockResolvedValueOnce({
+            (pb.request as vi.Mock).mockResolvedValueOnce({
                 ok: false,
                 statusText: '',
                 json: async () => ({}) // Empty object
@@ -222,7 +224,7 @@ describe('Face Service', () => {
         it('should throw network error when request fails', async () => {
             const mockBlob = new Blob(['test-image'], { type: 'image/jpeg' });
             
-            (pb.request as jest.Mock).mockRejectedValueOnce(new Error('Connection refused'));
+            (pb.request as vi.Mock).mockRejectedValueOnce(new Error('Connection refused'));
 
             await expect(faceService.loginWithFace(mockBlob)).rejects.toThrow('Connection refused');
         });

@@ -1,15 +1,16 @@
+import { vi, describe, it, test, expect, beforeEach, afterEach } from 'vitest';
 import { WorkerPool } from '../workerPool';
 
-jest.mock('worker_threads', () => {
+vi.mock('worker_threads', () => {
   return {
-    Worker: jest.fn().mockImplementation(() => {
+    Worker: vi.fn().mockImplementation(function() {
       const listeners: Record<string, Function[]> = {};
       return {
-        on: jest.fn((event, callback) => {
+        on: vi.fn((event, callback) => {
           if (!listeners[event]) listeners[event] = [];
           listeners[event].push(callback);
         }),
-        postMessage: jest.fn(function(this: any, msg) {
+        postMessage: vi.fn(function(this: any, msg) {
           // Simulate successful execution asynchronously
           setTimeout(() => {
             if (listeners['message']) {
@@ -23,7 +24,7 @@ jest.mock('worker_threads', () => {
             }
           }, 0);
         }),
-        terminate: jest.fn().mockResolvedValue(undefined)
+        terminate: vi.fn().mockResolvedValue(undefined)
       };
     })
   };
@@ -33,21 +34,21 @@ describe('WorkerPool', () => {
   let pool: WorkerPool;
 
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     pool = new WorkerPool('dummy-script.js', 2);
   });
 
   afterEach(async () => {
     await pool.shutdown();
-    jest.useRealTimers();
-    jest.clearAllMocks();
+    vi.useRealTimers();
+    vi.clearAllMocks();
   });
 
   it('Task queueing: tasks execute in order', async () => {
     const p1 = pool.execute({ payload: 'task1' });
     const p2 = pool.execute({ payload: 'task2' });
 
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     const [res1, res2] = await Promise.all([p1, p2]);
     expect(res1).toBe('done');
@@ -61,7 +62,7 @@ describe('WorkerPool', () => {
     const p2 = pool.execute({ payload: '2' });
     const p3 = pool.execute({ payload: '3' }); // wraps around to worker 0
 
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     await expect(p1).resolves.toBe('done');
     await expect(p2).resolves.toBe('done');
@@ -71,12 +72,12 @@ describe('WorkerPool', () => {
   it('Error recovery: failed task doesn\'t stop pool', async () => {
     const pFail = pool.execute({ payload: 'fail' });
     
-    jest.runAllTimers();
+    vi.runAllTimers();
     await expect(pFail).rejects.toThrow('Task failed');
 
     // The pool should still accept and execute new tasks
     const pNext = pool.execute({ payload: 'task2' });
-    jest.runAllTimers();
+    vi.runAllTimers();
     await expect(pNext).resolves.toBe('done');
   });
 

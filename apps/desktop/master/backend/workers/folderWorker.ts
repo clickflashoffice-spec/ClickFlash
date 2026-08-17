@@ -55,15 +55,18 @@ async function scan() {
             const entries = await fs.promises.readdir(currentPath, { withFileTypes: true });
             const albumFolders = entries.filter(d => d.isDirectory() && d.name.startsWith("album_"));
 
-            for (const folder of albumFolders) {
+            // Process all album folders concurrently to handle simultaneous BLE tethered ingestions
+            const scanPromises = albumFolders.map(async (folder) => {
                 const albumPath = path.join(currentPath, folder.name);
                 
                 // Skip export folders
-                if (config.touchExportPath && path.resolve(albumPath) === path.resolve(config.touchExportPath)) continue;
+                if (config.touchExportPath && path.resolve(albumPath) === path.resolve(config.touchExportPath)) return;
 
                 // Scan for files and report back to main process
                 await scanAlbum(albumPath, folder.name.replace("album_", ""));
-            }
+            });
+
+            await Promise.allSettled(scanPromises);
         }
     } catch (err) {
         if (parentPort) parentPort.postMessage({ type: 'ERROR', error: err instanceof Error ? err.message : String(err) });

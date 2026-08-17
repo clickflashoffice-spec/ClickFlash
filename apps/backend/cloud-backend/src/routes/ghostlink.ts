@@ -27,8 +27,12 @@ app.post('/init', async (c) => {
       });
     }
 
-    // Redirect to WhatsApp Business API
-    const text = encodeURIComponent(`Hi, here is your ClickFlash offer!`);
+    // Generate a quick WebRTC session token for the browser
+    const sessionToken = crypto.randomUUID();
+
+    // Redirect to WhatsApp Business API with the embedded token
+    const magicLinkUrl = `https://gallery.clickflash.com?webrtc_session=${sessionToken}`;
+    const text = encodeURIComponent(`Hi, here is your ClickFlash offer! Tap here to preview your watermarked gallery instantly (Valid for 10 mins): ${magicLinkUrl}`);
     const waUrl = `https://api.whatsapp.com/send/?phone=${phone}&text=${text}`;
     
     // Some implementations might expect a JSON response with the redirect URL,

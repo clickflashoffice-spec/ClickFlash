@@ -1,5 +1,5 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { logger } from "@clickflash/logger";
+import { logger } from "./logger.js";
 import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs";
@@ -144,8 +144,8 @@ export async function handleAutoFixLoop(args: Record<string, unknown>) {
         results.push(`\nTop 10 errors:`);
         errorLines.slice(0, 10).forEach(l => results.push(`  ${l.trim()}`));
       }
-    } catch (e: unknown) {
-      const output = (e.stdout || "") + (e.stderr || "");
+    } catch (e: any) {
+      const output = (e?.stdout || "") + (e?.stderr || "");
       const errorLines = output.split("\n").filter((l: string) => l.includes("error TS"));
       results.push(`Iteration ${i}: ${errorLines.length} TypeScript errors (build failed)`);
 

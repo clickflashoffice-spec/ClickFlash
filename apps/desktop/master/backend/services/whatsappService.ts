@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { logger } from '@clickflash/logger';
-import { internal } from '@clickflash/errors';
+import { logger } from '../utils/logger';
 
 /**
  * Service to handle WhatsApp Meta Cloud API communication.
@@ -47,7 +46,7 @@ export class WhatsAppService {
             return response.status === 200 || response.status === 201;
         } catch (error: any) {
             logger.error('[WhatsAppService] Failed to send message:', error.response?.data || error.message);
-            throw internal('Failed to send WhatsApp text message', error);
+            throw new Error('Failed to send WhatsApp text message: ' + error.message);
         }
     }
 
@@ -90,7 +89,7 @@ export class WhatsAppService {
             return response.status === 200 || response.status === 201;
         } catch (error: any) {
              logger.error('[WhatsAppService] Failed to send interactive message:', error.response?.data || error.message);
-             throw internal('Failed to send WhatsApp interactive message', error);
+             throw new Error('Failed to send WhatsApp interactive message: ' + error.message);
         }
     }
 }

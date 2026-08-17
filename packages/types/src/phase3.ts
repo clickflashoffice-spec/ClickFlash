@@ -21,6 +21,7 @@ export interface YieldPricingConfig extends BaseRecord {
     weatherMultiplier?: Partial<Record<WeatherCondition, number>>;
     crowdDensityMultiplier?: Partial<Record<CrowdDensity, number>>;
     timeOfDayMultipliers?: Partial<Record<TimeOfDay, number>>;
+    experimentMultipliers?: Record<string, number>;
   };
   isActive: boolean;
   lastCalculatedAt?: string;

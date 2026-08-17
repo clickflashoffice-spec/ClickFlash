@@ -1,30 +1,31 @@
-const mockFetch = jest.fn();
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+const mockFetch = vi.fn();
 (globalThis as any).fetch = mockFetch;
-
+vi.mock('node-fetch', () => ({ default: mockFetch }));
 import { CloudSyncService } from '../cloudSyncService';
 
 const mockDbManager = {
-    query: jest.fn(),
-    get: jest.fn(),
-    run: jest.fn(),
-    prepare: jest.fn(() => ({ run: jest.fn() })),
-    transaction: jest.fn((fn: Function) => fn()),
+    query: vi.fn(),
+    get: vi.fn(),
+    run: vi.fn(),
+    prepare: vi.fn(() => ({ run: vi.fn() })),
+    transaction: vi.fn((fn: Function) => fn()),
 };
 
 const mockLogger = {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
 };
 
 const mockEmailService = {
-    setCloudConfig: jest.fn(),
+    setCloudConfig: vi.fn(),
 };
 
-jest.mock('../SystemHardwareService', () => ({
+vi.mock('../SystemHardwareService', () => ({
     HardwareService: {
-        getMachineId: jest.fn().mockResolvedValue('test-machine-id')
+        getMachineId: vi.fn().mockResolvedValue('test-machine-id')
     }
 }));
 
@@ -32,7 +33,7 @@ describe('CloudSyncService', () => {
     let service: CloudSyncService;
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         process.env.CLOUD_API_URL = 'https://hub.example.com';
         process.env.CLOUD_EMAIL = 'test@example.com';
         process.env.CLOUD_PASSWORD = 'secret';
@@ -93,15 +94,15 @@ describe('CloudSyncService', () => {
 
         // Mock the internal logic by directly forcing the circuit breaker loop via fetch mocks
         // Or simply force an error in one of the direct pipeline calls
-        (service as any).syncYieldIntelligence = jest.fn(() => Promise.reject(new Error('fail')));
-        (service as any).syncProspectingCRM = jest.fn(() => Promise.resolve());
-        (service as any).sendFleetTriage = jest.fn(() => Promise.resolve());
-        (service as any).pullRemoteOperations = jest.fn(() => Promise.resolve());
-        (service as any).pullGlobalSettings = jest.fn(() => Promise.resolve());
-        (service as any).pollPaidOrders = jest.fn(() => Promise.resolve());
-        (service as any).processRetentionQueue = jest.fn(() => Promise.resolve());
-        (service as any).syncRetentionStats = jest.fn(() => Promise.resolve());
-        (service as any).syncResortBI = jest.fn(() => Promise.resolve());
+        (service as any).syncYieldIntelligence = vi.fn(() => Promise.reject(new Error('fail')));
+        (service as any).syncProspectingCRM = vi.fn(() => Promise.resolve());
+        (service as any).sendFleetTriage = vi.fn(() => Promise.resolve());
+        (service as any).pullRemoteOperations = vi.fn(() => Promise.resolve());
+        (service as any).pullGlobalSettings = vi.fn(() => Promise.resolve());
+        (service as any).pollPaidOrders = vi.fn(() => Promise.resolve());
+        (service as any).processRetentionQueue = vi.fn(() => Promise.resolve());
+        (service as any).syncRetentionStats = vi.fn(() => Promise.resolve());
+        (service as any).syncResortBI = vi.fn(() => Promise.resolve());
 
         await service.sync();
 

@@ -108,7 +108,7 @@ const Lightbox: React.FC<LightboxProps> = ({
 
     // Fullscreen API — vendor-prefixed methods are typed via src/types/globals.d.ts
     const enterFullscreen = () => {
-        const el = lightboxRef.current;
+        const el = lightboxRef.current as any;
         if (el) {
             if (el.requestFullscreen) {
                 el.requestFullscreen();
@@ -124,14 +124,15 @@ const Lightbox: React.FC<LightboxProps> = ({
     };
 
     const exitFullscreen = () => {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
+        const doc = document as any;
+        if (doc.exitFullscreen) {
+            doc.exitFullscreen();
+        } else if (doc.webkitExitFullscreen) {
+            doc.webkitExitFullscreen();
+        } else if (doc.mozCancelFullScreen) {
+            doc.mozCancelFullScreen();
+        } else if (doc.msExitFullscreen) {
+            doc.msExitFullscreen();
         }
         setIsFullscreen(false);
     };
@@ -139,7 +140,8 @@ const Lightbox: React.FC<LightboxProps> = ({
     // Listen for fullscreen changes
     useEffect(() => {
         const handleFullscreenChange = () => {
-            setIsFullscreen(!!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement));
+            const doc = document as any;
+            setIsFullscreen(!!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement));
         };
         document.addEventListener('fullscreenchange', handleFullscreenChange);
         document.addEventListener('webkitfullscreenchange', handleFullscreenChange);

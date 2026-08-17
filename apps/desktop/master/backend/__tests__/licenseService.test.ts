@@ -1,3 +1,4 @@
+import { vi, describe, it, test, expect, beforeEach } from 'vitest';
 import { LicenseService } from "../services/license-service";
 import { createTestLicenseSigner } from "./helpers/signedLicense";
 
@@ -12,15 +13,15 @@ describe("LicenseService (Master OS)", () => {
         const signer = createTestLicenseSigner(machineId);
         validKey = signer.signLicense();
         mockDb = {
-            get: jest.fn(),
-            run: jest.fn(),
+            get: vi.fn(),
+            run: vi.fn(),
         };
         mockLogger = {
-            info: jest.fn(),
-            warn: jest.fn(),
-            error: jest.fn(),
+            info: vi.fn(),
+            warn: vi.fn(),
+            error: vi.fn(),
         };
-        global.fetch = jest.fn() as any;
+        global.fetch = vi.fn() as any;
         licenseService = new LicenseService(mockDb, mockLogger, "https://hub.example", {
             publicKeyB64: signer.publicKeyB64,
             getMachineId: async () => machineId,
@@ -139,7 +140,7 @@ describe("LicenseService (Master OS)", () => {
         });
 
         it("updates lastChecked after successful hub verification", async () => {
-            (global.fetch as jest.Mock).mockResolvedValue({
+            (global.fetch as vi.Mock).mockResolvedValue({
                 ok: true,
                 json: async () => ({ valid: true }),
             });
@@ -156,7 +157,7 @@ describe("LicenseService (Master OS)", () => {
         });
 
         it("marks the local status invalid when the hub rejects it", async () => {
-            (global.fetch as jest.Mock).mockResolvedValue({
+            (global.fetch as vi.Mock).mockResolvedValue({
                 ok: true,
                 json: async () => ({ valid: false, reason: "REVOKED" }),
             });
@@ -169,7 +170,7 @@ describe("LicenseService (Master OS)", () => {
         });
 
         it("uses verified local grace state when the network fails", async () => {
-            (global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"));
+            (global.fetch as vi.Mock).mockRejectedValue(new Error("Network error"));
 
             await expect(licenseService.verifyWithHub("test-station-1")).resolves.toBe(true);
             expect(mockLogger.error).toHaveBeenCalledWith(

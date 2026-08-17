@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const pluginSource = readFileSync(
-  new URL('../plugins/withNativeBuildStaging.js', import.meta.url),
+  new URL('../plugins/withNativeBuildStaging.ts', import.meta.url),
   'utf8'
 );
 const generatedGradle = readFileSync(

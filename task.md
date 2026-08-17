@@ -3,13 +3,29 @@
   - [x] Convert Master app into Headless Edge engine.
   - [x] Create Fotiqo-style KPI Dashboard in Management Hub (`GalleriesView.tsx`).
   - [x] Implement Live Customer Gallery Preview iframe modal in Management Hub.
-- [ ] **WhatsApp Webhook Verification**
-  - [ ] Connect Ngrok locally.
-  - [ ] Test payload delivery from Meta Webhooks (`test-orchestrator.ts`).
-  - [ ] Verify `AnalystAgent` and `CloserAgent` sequence execution.
-- [ ] **MoneyTrash Mechanism & AI Grading**
-  - [ ] Scaffold `ai-grade-worker.ts` in `apps/desktop/moneytrash`.
-  - [ ] Integrate VLM to bypass mathematical grading for emotional photos.
-- [ ] **Mobile Pro Rust Core Foundation**
-  - [ ] Initialize `clickflash-rust-core`.
-  - [ ] Port sqlite sync/queue logic.
+- [x] **WhatsApp Webhook Verification & Sales Swarm**
+  - [x] Implement live Meta webhook challenge handshake & HMAC-SHA256 signature verification.
+  - [x] Create and test `AnalystAgent`, `CloserAgent`, and `NegotiatorAgent` sequence execution.
+  - [x] Deploy interactive button payloads (`📷 View Album`, `🎁 Apply 20% Off`) and multi-turn negotiation memory.
+  - [x] Build CLI test harness `scripts/test_whatsapp_swarm.ts`.
+- [x] **MoneyTrash Mechanism & AI Grading**
+  - [x] Scaffold `ai-grade-worker.ts` in `apps/desktop/moneytrash`.
+  - [x] Integrate VLM to bypass mathematical grading for emotional photos.
+- [x] **Mobile Pro Rust Core Foundation**
+  - [x] Initialize `clickflash-rust-core`.
+  - [x] Port sqlite sync/queue logic.
+- [x] **3D Gaussian Splatting & NeRF World Model**
+  - [x] Extend `MeshWorker` and `@clickflash/types` for `.splat` and `.ply` 6-DoF scene generation.
+  - [x] Build interactive luxury `GaussianSplatViewer.tsx` WebGL HUD component in `@clickflash/ui`.
+  - [x] Verify full unit test suite and monorepo strict typecheck.
+- [x] **Phase 10: V12.0 Autonomous Hyper-Ecosystem & Global AI Symphony**
+  - [x] Neural Relighting & Atmospheric VFX Worker (`relighting-worker.ts`).
+  - [x] Neuromorphic High-Speed Coaster Deblur & Optical Flow Worker (`neuromorphic-deblur-worker.ts`).
+  - [x] AI Narrative Storyboard Film Composer & Ultrasonic Steganography (`storyboard-film-worker.ts`).
+  - [x] Game-Theoretic Dynamic Yield Engine & Global PPP Arbitrage (`gameTheoreticYieldService.ts`).
+- [x] **Distributed LAN Video Transcoding Grid**
+  - [x] Implement master-kiosk chunk distributor for 4K highlight reels (`DistributedTranscodingGrid.ts`, `transcode.routes.ts`).
+  - [x] Pass end-to-end multi-node slicing, heartbeat telemetry, and automatic failover tests.
+- [x] **Multimodal NLP Semantic Photo Search**
+  - [x] Implement multi-vector hybrid CLIP + ArcFace semantic search for guest albums (`semantic-search.ts`, `NlpSemanticSearchService.ts`).
+  - [x] Add natural language photo search routes (`semanticSearch.routes.ts`) and unit tests.

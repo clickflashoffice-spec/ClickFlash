@@ -1,4 +1,4 @@
-import { logger } from '@/utils/logger';
+import { logger } from './utils/logger';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import Database from 'better-sqlite3';
@@ -12,7 +12,7 @@ export function debugKiosks(dbDir: string = _dirname) {
   let db: Database.Database;
   
   try {
-    db = new Database(dbPath, { verbose: logger.info });
+    db = new Database(dbPath, { verbose: (msg: any) => logger.info(msg) });
   } catch (err) {
     logger.error("DB Initialization Error", err);
     return false;

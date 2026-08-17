@@ -2,7 +2,7 @@
 
 export const getEnv = () => {
     // Handle Jest environment
-    if (typeof jest !== 'undefined') {
+    if (typeof (globalThis as any).jest !== 'undefined') {
         return {
             VITE_LOG_LEVEL: 'INFO',
             DEV: true,

@@ -1,20 +1,20 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AISalesOrchestrator, aiSalesOrchestrator } from '../services/aiSalesOrchestrator';
 import { whatsappService } from '../services/whatsappService';
-import { GeminiClient } from '@clickflash/ai';
 
 vi.mock('../services/whatsappService', () => ({
     whatsappService: {
         sendTextMessage: vi.fn().mockResolvedValue(true),
+        sendInteractiveButtonMessage: vi.fn().mockResolvedValue(true),
     },
 }));
 
 vi.mock('@clickflash/ai', () => {
     const mockChat = vi.fn();
     return {
-        GeminiClient: vi.fn().mockImplementation(() => ({
-            chat: mockChat,
-        })),
+        GeminiClient: class {
+            chat = mockChat;
+        },
     };
 });
 
@@ -70,13 +70,14 @@ describe('AISalesOrchestrator & WhatsApp Closer/Negotiator Swarm', () => {
 
             await orchestrator.huntForLeads([hotRecord]);
 
-            // Analyst was queried
+            // Analyst and Closer were queried
             expect(mockGeminiChat).toHaveBeenCalledTimes(2);
 
-            // WhatsApp Closer was dispatched
-            expect(whatsappService.sendTextMessage).toHaveBeenCalledWith(
+            // WhatsApp Closer was dispatched with interactive buttons
+            expect(whatsappService.sendInteractiveButtonMessage).toHaveBeenCalledWith(
                 '+15554321098',
-                expect.stringContaining('MEMORIES20')
+                expect.stringContaining('MEMORIES20'),
+                expect.any(Array)
             );
         });
 
@@ -101,6 +102,7 @@ describe('AISalesOrchestrator & WhatsApp Closer/Negotiator Swarm', () => {
 
             expect(mockGeminiChat).toHaveBeenCalledTimes(1);
             expect(whatsappService.sendTextMessage).not.toHaveBeenCalled();
+            expect(whatsappService.sendInteractiveButtonMessage).not.toHaveBeenCalled();
         });
 
         it('handles malformed JSON from Analyst Agent gracefully without crashing', async () => {
@@ -143,7 +145,7 @@ describe('AISalesOrchestrator & WhatsApp Closer/Negotiator Swarm', () => {
                     { role: 'assistant', content: 'Special 20% discount on your photos!' },
                     { role: 'user', content: 'Are the photos full resolution or compressed?' },
                 ],
-                expect.stringContaining('Negotiator Agent') || expect.stringContaining('helpful and persuasive')
+                expect.stringContaining('customer service agent')
             );
 
             expect(whatsappService.sendTextMessage).toHaveBeenCalledWith(
@@ -160,7 +162,7 @@ describe('AISalesOrchestrator & WhatsApp Closer/Negotiator Swarm', () => {
 
             await orchestrator.handleIncomingReply(
                 '+15559876543',
-                'Can I get a discount for group tickets?'
+                'Can I get help with group tickets?'
             );
 
             expect(whatsappService.sendTextMessage).toHaveBeenCalledWith(

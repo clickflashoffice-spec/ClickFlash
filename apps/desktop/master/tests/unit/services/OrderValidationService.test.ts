@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { vi } from 'vitest';
+
 import { OrderValidationService } from '../../../backend/services/OrderValidationService';
 
 describe('OrderValidationService', () => {
@@ -9,24 +10,24 @@ describe('OrderValidationService', () => {
 
   beforeEach(() => {
     mockDb = {
-      run: jest.fn().mockResolvedValue({ changes: 1 }),
-      get: jest.fn(),
-      query: jest.fn().mockResolvedValue([]),
+      run: vi.fn().mockResolvedValue({ changes: 1 }),
+      get: vi.fn(),
+      query: vi.fn().mockResolvedValue([]),
     };
 
     mockLogger = {
-      info: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
-      debug: jest.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
     };
 
     mockEmailService = {
-      sendTransactional: jest.fn().mockResolvedValue(true),
+      sendTransactional: vi.fn().mockResolvedValue(true),
     };
 
     mockHardwareService = {
-      enqueuePrint: jest.fn().mockResolvedValue(true),
+      enqueuePrint: vi.fn().mockResolvedValue(true),
     };
   });
 

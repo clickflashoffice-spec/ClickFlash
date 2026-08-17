@@ -42,6 +42,7 @@ import { PredictiveCacheService } from "../services/PredictiveCacheService";
 import { BandwidthShaperService } from "../services/BandwidthShaperService";
 import { udpDiscoveryService } from "../services/udpDiscoveryService";
 import { GalleryConfigService } from "../services/GalleryConfigService";
+import { phantomCheckoutOrchestrator } from "../services/phantomCheckoutOrchestrator";
 
 // Configuration
 import {
@@ -257,6 +258,8 @@ export function setupServices(): SetupServicesResult {
 
   const resourceMonitor = new ResourceMonitor(logger);
   resourceMonitor.start(30000); // Check every 30s
+
+  phantomCheckoutOrchestrator.start();
 
   const cloudSyncService = new CloudSyncService(
     dbManager,

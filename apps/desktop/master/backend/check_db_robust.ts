@@ -1,4 +1,4 @@
-import { logger } from '@/utils/logger';
+import { Logger, logger } from './utils/logger';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import Database from 'better-sqlite3';

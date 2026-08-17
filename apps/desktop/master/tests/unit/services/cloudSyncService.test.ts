@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { vi } from 'vitest';
+
 
 describe('CloudSyncService', () => {
   let CloudSyncService: any;
@@ -9,37 +10,37 @@ describe('CloudSyncService', () => {
   let mockResortAnalytics: any;
 
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
 
     mockDb = {
-      run: jest.fn().mockReturnValue({ changes: 1 }),
-      get: jest.fn(),
-      query: jest.fn().mockReturnValue([]),
-      prepare: jest.fn().mockReturnValue({
-        run: jest.fn(),
+      run: vi.fn().mockReturnValue({ changes: 1 }),
+      get: vi.fn(),
+      query: vi.fn().mockReturnValue([]),
+      prepare: vi.fn().mockReturnValue({
+        run: vi.fn(),
       }),
     };
 
     mockLogger = {
-      info: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
-      debug: jest.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
     };
 
     mockEmailService = {
-      sendTransactional: jest.fn().mockResolvedValue(true),
+      sendTransactional: vi.fn().mockResolvedValue(true),
     };
 
     mockResourceMonitor = {
-      getMetrics: jest.fn().mockReturnValue({
+      getMetrics: vi.fn().mockReturnValue({
         cpu: { usage: 50 },
         memory: { used: 1000000000 },
       }),
     };
 
     mockResortAnalytics = {
-      syncMetrics: jest.fn().mockResolvedValue(true),
+      syncMetrics: vi.fn().mockResolvedValue(true),
     };
 
     CloudSyncService = require('../../../backend/services/cloudSyncService').CloudSyncService;

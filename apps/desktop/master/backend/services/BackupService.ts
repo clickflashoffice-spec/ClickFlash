@@ -85,9 +85,12 @@ export class BackupService {
   async createIncrementalSnapshot(since?: string): Promise<{ manifest: BackupManifest; zipBuffer: Buffer }> {
     const stream = new (require("stream").PassThrough)();
     const chunks: Buffer[] = [];
-    stream.on("data", (chunk: Buffer) => chunks.push(chunk));
     
     const exportPromise = this.streamExport(stream, { incremental: true, since });
+    
+    for await (const chunk of stream) {
+      chunks.push(chunk);
+    }
     await exportPromise;
     
     const zipBuffer = Buffer.concat(chunks);

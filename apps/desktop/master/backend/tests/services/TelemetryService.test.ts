@@ -1,9 +1,10 @@
+import { vi, describe, it, expect } from 'vitest';
 import { TelemetryService } from '../../services/TelemetryService';
 
 describe('TelemetryService', () => {
   it('should aggregate stats from CloudSyncService, DbWriteQueue, and BackupService', () => {
     const mockCloudSync = {
-      getStats: jest.fn().mockReturnValue({
+      getStats: vi.fn().mockReturnValue({
         metrics: {
           'sync.queue_depth': 42,
           'sync.dlq_count': 3,
@@ -16,7 +17,7 @@ describe('TelemetryService', () => {
     };
 
     const mockDbWriteQueue = {
-      getStats: jest.fn().mockReturnValue({
+      getStats: vi.fn().mockReturnValue({
         writeLatencyMs: 12.5,
         queueSize: 5,
         oldestWrite: 1000,
@@ -24,7 +25,7 @@ describe('TelemetryService', () => {
     };
 
     const mockBackupService = {
-      getStats: jest.fn().mockReturnValue({
+      getStats: vi.fn().mockReturnValue({
         lastSuccessTimestamp: 1719940000000,
       }),
     };
@@ -47,7 +48,7 @@ describe('TelemetryService', () => {
 
   it('should handle missing or throwing services gracefully', () => {
     const mockCloudSync = {
-      getStats: jest.fn().mockImplementation(() => {
+      getStats: vi.fn().mockImplementation(() => {
         throw new Error('Sync error');
       }),
     };

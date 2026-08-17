@@ -1,0 +1,10 @@
+# Compiled JavaScript output — TypeScript is the source of truth
+src/**/*.js
+src/**/*.js.map
+src/**/*.d.ts
+test/**/*.js
+test/**/*.js.map
+
+# Wrangler
+.wrangler/
+.dev.vars

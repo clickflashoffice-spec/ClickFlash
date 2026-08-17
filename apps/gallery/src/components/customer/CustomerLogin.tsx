@@ -217,15 +217,18 @@ const CustomerLogin: React.FC<CustomerLoginProps> = ({
          if (matches && matches.length > 0) {
             setAccessPin(`VECTOR-MATCHED-${matches.length}`);
             onLoginSuccess({
-               event_id: 'face-search',
-               status: 'active',
-               photos: matches.map(m => ({
-                 id: m.id,
-                 url: m.url || m.r2_path,
-                 aiTags: m.aiTags || [],
-                 price: 15,
-                 watermarkedUrl: m.watermarkedUrl
-               }))
+                event_id: 'face-search',
+                status: 'active',
+                photos: matches.map((m: any) => {
+                  const photo = m.photo || m;
+                  return {
+                    id: photo.id,
+                    url: photo.url || photo.previewUrl || photo.r2_path,
+                    aiTags: photo.aiTags || [],
+                    price: 15,
+                    watermarkedUrl: photo.watermarkUrl || photo.watermarkedUrl || photo.url
+                  };
+                })
             } as any);
          } else {
             setError("No photos found matching your face in the Vector DB.");

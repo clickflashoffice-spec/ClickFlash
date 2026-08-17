@@ -1,24 +1,26 @@
+// @vitest-environment jsdom
+import { vi, describe, it, test, expect, beforeEach } from 'vitest';
 import { kioskService } from '../kioskService';
 import { mockCollection, resetPbMocks } from '../../__mocks__/pb';
 
 // Mock the logger
-jest.mock('../../../utils/logger', () => ({
+vi.mock('../../../utils/logger', () => ({
     logger: {
-        error: jest.fn(),
-        warn: jest.fn(),
-        info: jest.fn(),
+        error: vi.fn(),
+        warn: vi.fn(),
+        info: vi.fn(),
     },
 }));
 
 // Mock the actual pb module
-jest.mock('../../pb', () => ({
+vi.mock('../../pb', () => ({
     pb: require('../../__mocks__/pb').pb,
 }));
 
 describe('kioskService', () => {
     beforeEach(() => {
         resetPbMocks();
-        global.fetch = jest.fn() as any;
+        global.fetch = vi.fn() as any;
     });
 
     describe('getKiosks', () => {
@@ -76,7 +78,7 @@ describe('kioskService', () => {
 
     describe('getActiveKioskSessions', () => {
         it('should fetch active kiosk IDs', async () => {
-            (global.fetch as jest.Mock).mockResolvedValue({
+            (global.fetch as vi.Mock).mockResolvedValue({
                 ok: true,
                 json: async () => ({ activeKioskIds: ['k1', 'k2'] })
             });
@@ -89,7 +91,7 @@ describe('kioskService', () => {
         });
 
         it('should return empty set on fetch error', async () => {
-            (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 500 });
+            (global.fetch as vi.Mock).mockResolvedValue({ ok: false, status: 500 });
             const results = await kioskService.getActiveKioskSessions();
             expect(results.size).toBe(0);
         });
@@ -127,7 +129,7 @@ describe('kioskService', () => {
 
     describe('sendAlbumToKiosk', () => {
         it('should call send-album API', async () => {
-            (global.fetch as jest.Mock).mockResolvedValue({
+            (global.fetch as vi.Mock).mockResolvedValue({
                 ok: true,
                 json: async () => ({ success: true, copiedCount: 5 })
             });
@@ -145,7 +147,7 @@ describe('kioskService', () => {
         });
 
         it('should throw meaningful error on 404', async () => {
-            (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 404 });
+            (global.fetch as vi.Mock).mockResolvedValue({ ok: false, status: 404 });
 
             await expect(kioskService.sendAlbumToKiosk('a1', 'k1'))
                 .rejects.toThrow('Backend endpoint not found');

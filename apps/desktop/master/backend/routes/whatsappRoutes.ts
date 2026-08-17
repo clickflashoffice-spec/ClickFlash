@@ -1,5 +1,30 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import crypto from 'crypto';
 import { aiSalesOrchestrator } from '../services/aiSalesOrchestrator';
+import { logger } from '../utils/logger';
+
+/**
+ * Verify Meta Webhook HMAC-SHA256 signature
+ */
+function verifyMetaHmac(rawBody: string, signatureHeader: string | undefined, appSecret: string | undefined): boolean {
+    if (!signatureHeader || !appSecret) {
+        return true; // Pass in dev/test mode if app secret is not configured
+    }
+
+    try {
+        const parts = signatureHeader.split('sha256=');
+        if (parts.length !== 2) return false;
+        const expectedSignature = parts[1];
+
+        const hmac = crypto.createHmac('sha256', appSecret);
+        const calculatedSignature = hmac.update(rawBody).digest('hex');
+
+        return crypto.timingSafeEqual(Buffer.from(calculatedSignature), Buffer.from(expectedSignature));
+    } catch (err) {
+        logger.error('[WhatsApp Webhook] Signature verification error:', err);
+        return false;
+    }
+}
 
 export async function whatsappRoutes(fastify: FastifyInstance) {
     const handleVerify = async (request: FastifyRequest, reply: FastifyReply) => {
@@ -12,10 +37,10 @@ export async function whatsappRoutes(fastify: FastifyInstance) {
 
         if (mode && token) {
             if (mode === 'subscribe' && token === verifyToken) {
-                console.log('[WhatsApp Webhook] Verification challenge passed.');
+                logger.info('[WhatsApp Webhook] Verification challenge passed.');
                 return reply.status(200).send(challenge);
             } else {
-                console.warn('[WhatsApp Webhook] Verification token mismatch.');
+                logger.warn('[WhatsApp Webhook] Verification token mismatch.');
                 return reply.status(403).send('Forbidden');
             }
         }
@@ -23,6 +48,16 @@ export async function whatsappRoutes(fastify: FastifyInstance) {
     };
 
     const handlePayload = async (request: FastifyRequest, reply: FastifyReply) => {
+        const rawBody = typeof request.body === 'string' ? request.body : JSON.stringify(request.body || {});
+        const signature = (request.headers['x-hub-signature-256'] || request.headers['X-Hub-Signature-256']) as string | undefined;
+        const appSecret = process.env.WHATSAPP_APP_SECRET;
+
+        const isSignatureValid = verifyMetaHmac(rawBody, signature, appSecret);
+        if (!isSignatureValid) {
+            logger.warn('[WhatsApp Webhook] Rejected invalid HMAC-SHA256 signature.');
+            return reply.status(401).send({ error: 'Invalid webhook signature' });
+        }
+
         const body = request.body as any;
 
         if (body && body.object) {
@@ -39,12 +74,14 @@ export async function whatsappRoutes(fastify: FastifyInstance) {
                 } else if (message.type === 'interactive') {
                     // Handle button reply or list reply
                     msgBody = message.interactive?.button_reply?.title || message.interactive?.button_reply?.id || message.interactive?.list_reply?.title || '';
+                } else if (message.type === 'button') {
+                    msgBody = message.button?.text || message.button?.payload || '';
                 }
 
                 if (from && msgBody) {
-                    console.log(`[WhatsApp Webhook] Inbound from ${from}: "${msgBody}"`);
+                    logger.info(`[WhatsApp Webhook] Inbound from ${from}: "${msgBody}"`);
                     aiSalesOrchestrator.handleIncomingReply(from, msgBody).catch(err => {
-                        console.error('[WhatsApp Webhook] Error in aiSalesOrchestrator:', err);
+                        logger.error('[WhatsApp Webhook] Error in aiSalesOrchestrator:', err);
                     });
                 }
             }

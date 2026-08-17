@@ -4,15 +4,19 @@
       "node"
     ],
     "target": "ES2022",
-    "module": "Node16",
-    "moduleResolution": "node16",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "declaration": true,
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@clickflash/types": ["../types/dist/index.d.ts"],
+      "@clickflash/errors": ["../errors/dist/index.d.ts"]
+    }
   },
   "include": [
     "src/**/*"

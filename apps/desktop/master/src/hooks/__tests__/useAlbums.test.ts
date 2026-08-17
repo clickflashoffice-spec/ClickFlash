@@ -1,36 +1,38 @@
+// @vitest-environment jsdom
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useAlbums, useAlbum, useCreateAlbum, useUpdateAlbum, useDeleteAlbum, albumKeys } from '../useAlbums';
 import { useQuery, useMutation } from '@tanstack/react-query';
 
 // Mock dependencies
-jest.mock('@tanstack/react-query', () => ({
-    useQuery: jest.fn(),
-    useMutation: jest.fn(),
-    useQueryClient: jest.fn(() => ({
-        invalidateQueries: jest.fn(),
+vi.mock('@tanstack/react-query', () => ({
+    useQuery: vi.fn(),
+    useMutation: vi.fn(),
+    useQueryClient: vi.fn(() => ({
+        invalidateQueries: vi.fn(),
     })),
-    useInfiniteQuery: jest.fn(),
+    useInfiniteQuery: vi.fn(),
 }));
 
-jest.mock('../../services/apiService', () => ({
+vi.mock('../../services/apiService', () => ({
     apiService: {
-        getAlbums: jest.fn(),
-        getAlbum: jest.fn(),
-        createAlbum: jest.fn(),
-        updateAlbum: jest.fn(),
-        deleteAlbum: jest.fn(),
+        getAlbums: vi.fn(),
+        getAlbum: vi.fn(),
+        createAlbum: vi.fn(),
+        updateAlbum: vi.fn(),
+        deleteAlbum: vi.fn(),
     }
 }));
 
-jest.mock('../../services/api/albumService', () => ({
+vi.mock('../../services/api/albumService', () => ({
     albumService: {
-        getAlbumsPaginated: jest.fn(),
+        getAlbumsPaginated: vi.fn(),
     }
 }));
 
 describe('useAlbums hooks structure', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('albumKeys', () => {

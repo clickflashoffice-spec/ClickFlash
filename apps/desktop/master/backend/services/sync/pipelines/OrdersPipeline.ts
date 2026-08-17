@@ -1,7 +1,7 @@
 import { SyncPipeline, SyncContext, PipelineResult } from '../SyncPipeline';
 import crypto from 'crypto';
 
-const fetchFn = (globalThis as any).fetch;
+const fetchFn = (...args: any[]) => ((globalThis as any).fetch)(...args);
 
 export class OrdersPipeline implements SyncPipeline {
   name = 'orders_to_gallery';

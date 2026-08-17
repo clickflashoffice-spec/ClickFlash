@@ -82,10 +82,12 @@ if (context.cloudSyncService) {
 }
 
 
-// 3.5 Setup Yjs & MQTT
+// 3.5 Setup Yjs, MQTT, and WebRTC
 MQTTBrokerService.start();
 MQTTPublisher.initialize().catch(err => logger.error("Failed to init MQTT Publisher", err));
 YjsWebsocketServer.initialize(server, '/yjs');
+import { webRtcSignalingService } from './services/webrtcSignaling';
+webRtcSignalingService.init(server);
 
 // 4. Setup Global Express Middleware (Helmet, CORS, Auth, Rate Limiting, Audit)
 setupExpressMiddleware(app, context);
@@ -105,4 +107,7 @@ if (metricsTimer && typeof metricsTimer.unref === "function") {
 }
 
 // 8. Start HTTP/HTTPS Server, Bonjour/UDP Discovery, and Background Ecosystem
-startServer(server, context, tlsConfig);
+startServer(server, context, tlsConfig).catch(err => {
+    logger.error("[FATAL] Server startup failed:", err);
+    process.exit(1);
+});

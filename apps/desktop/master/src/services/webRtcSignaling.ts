@@ -2,10 +2,11 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { logger } from '../utils/logger';
 
 // Type declarations to avoid missing DOM types if they aren't fully configured
-declare var RTCPeerConnection: any;
-declare var RTCSessionDescription: any;
-declare var RTCIceCandidate: any;
-declare var RTCDataChannel: any;
+declare const RTCPeerConnection: any;
+declare const RTCSessionDescription: any;
+declare const RTCIceCandidate: any;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+declare const RTCDataChannel: any;
 
 export class WebRtcSignalingService {
   private wss: WebSocketServer | null = null;

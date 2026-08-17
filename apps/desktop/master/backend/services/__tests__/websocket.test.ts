@@ -17,14 +17,16 @@
 // Jest globals
 
 // --------------- ws mock ---------------
-const mockWssOn = jest.fn();
+const mockWssOn = vi.fn();
 const mockWssClients = new Set<any>();
-const MockWebSocketServer = jest.fn().mockImplementation(() => ({
-  on: mockWssOn,
-  clients: mockWssClients,
-}));
+const MockWebSocketServer = vi.fn().mockImplementation(function() {
+  return {
+    on: mockWssOn,
+    clients: mockWssClients,
+  };
+});
 
-jest.mock('ws', () => {
+vi.mock('ws', () => {
   const wsMock = { OPEN: 1, CLOSED: 3 };
   return {
     __esModule: true,
@@ -36,25 +38,25 @@ jest.mock('ws', () => {
 
 // --------------- DB mock ---------------
 const mockDbManager = {
-  run: jest.fn(),
-  get: jest.fn(),
-  query: jest.fn().mockReturnValue([]),
-  prepare: jest.fn(() => ({ run: jest.fn() })),
-  transaction: jest.fn((fn: () => void) => fn()),
+  run: vi.fn(),
+  get: vi.fn(),
+  query: vi.fn().mockReturnValue([]),
+  prepare: vi.fn(() => ({ run: vi.fn() })),
+  transaction: vi.fn((fn: () => void) => fn()),
 };
 
 // --------------- Logger mock ---------------
 const mockLogger = {
-  info: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn(),
-  debug: jest.fn(),
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
 };
 
 // --------------- SyncManager mock ---------------
 const mockSyncManager = {
-  handleConnection: jest.fn(),
-  stop: jest.fn(),
+  handleConnection: vi.fn(),
+  stop: vi.fn(),
 };
 
 // --------------- helpers ---------------
@@ -63,11 +65,11 @@ function createMockWs(overrides: Record<string, any> = {}) {
     readyState: 1, // OPEN
     isAlive: true,
     clientInfo: undefined as any,
-    send: jest.fn(),
-    close: jest.fn(),
-    ping: jest.fn(),
-    terminate: jest.fn(),
-    on: jest.fn(),
+    send: vi.fn(),
+    close: vi.fn(),
+    ping: vi.fn(),
+    terminate: vi.fn(),
+    on: vi.fn(),
     ...overrides,
   };
 }
@@ -86,11 +88,11 @@ describe('WebSocket Server (initWebSocketServer)', () => {
   let connectionHandler: (ws: any, req: any) => void;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockWssClients.clear();
-    jest.useFakeTimers();
+    vi.useFakeTimers();
 
-    // Dynamic import so `jest.mock('ws')` takes effect
+    // Dynamic import so `vi.mock('ws')` takes effect
     const mod = await import('../websocket');
     initWebSocketServer = mod.default;
 
@@ -109,7 +111,7 @@ describe('WebSocket Server (initWebSocketServer)', () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   // ----------------------------------------------------------------
@@ -271,7 +273,7 @@ describe('WebSocket Server (initWebSocketServer)', () => {
       ws.isAlive = false;
 
       // The heartbeat runs every 30 000 ms
-      jest.advanceTimersByTime(30_001);
+      vi.advanceTimersByTime(30_001);
 
       expect(ws.terminate).toHaveBeenCalled();
     });
@@ -284,7 +286,7 @@ describe('WebSocket Server (initWebSocketServer)', () => {
 
       // Force isAlive true initially
       ws.isAlive = true;
-      jest.advanceTimersByTime(30_001);
+      vi.advanceTimersByTime(30_001);
 
       expect(ws.isAlive).toBe(false);
       expect(ws.ping).toHaveBeenCalled();

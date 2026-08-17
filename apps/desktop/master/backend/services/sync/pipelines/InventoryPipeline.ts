@@ -1,7 +1,7 @@
 import { SyncPipeline, SyncContext, PipelineResult } from '../SyncPipeline';
 import { executeWithRetry } from '../../../utils/networkUtils';
 
-const fetchFn = (globalThis as any).fetch;
+const fetchFn = (...args: any[]) => ((globalThis as any).fetch)(...args);
 
 export class InventoryPipeline implements SyncPipeline {
   name = 'inventory';

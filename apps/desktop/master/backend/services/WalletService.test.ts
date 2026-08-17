@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { createWalletBarcodes, type WalletPassParams } from './WalletService';
 
 describe('createWalletBarcodes', () => {

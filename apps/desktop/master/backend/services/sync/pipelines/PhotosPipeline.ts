@@ -4,7 +4,7 @@ import path from 'path';
 import FormData from 'form-data';
 import { UPLOAD_DIR } from '../../../config/constants';
 
-const fetchFn = (globalThis as any).fetch;
+const fetchFn = (...args: any[]) => ((globalThis as any).fetch)(...args);
 
 export class PhotosPipeline implements SyncPipeline {
   name = 'photos_to_cloud';

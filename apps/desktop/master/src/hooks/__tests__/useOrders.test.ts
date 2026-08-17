@@ -1,21 +1,23 @@
+// @vitest-environment jsdom
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useOrders, useOrder, useCreateOrder, useUpdateOrder, useDeleteOrder, orderKeys } from '../useOrders';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
 // Mock dependencies
-jest.mock('@tanstack/react-query', () => ({
-    useQuery: jest.fn(),
-    useMutation: jest.fn(),
-    useQueryClient: jest.fn(() => ({
-        invalidateQueries: jest.fn(),
+vi.mock('@tanstack/react-query', () => ({
+    useQuery: vi.fn(),
+    useMutation: vi.fn(),
+    useQueryClient: vi.fn(() => ({
+        invalidateQueries: vi.fn(),
     })),
-    useInfiniteQuery: jest.fn(),
+    useInfiniteQuery: vi.fn(),
 }));
 
-jest.mock('react', () => ({
-    ...jest.requireActual('react'),
-    useEffect: jest.fn((cb) => {
+vi.mock('react', () => ({
+    ...vi.requireActual('react'),
+    useEffect: vi.fn((cb) => {
         // execute effect body for coverage, but mock cleanup
         const cleanup = cb();
         if (typeof cleanup === 'function') {
@@ -24,27 +26,27 @@ jest.mock('react', () => ({
     }),
 }));
 
-jest.mock('../../services/apiService', () => ({
+vi.mock('../../services/apiService', () => ({
     apiService: {
-        getOrders: jest.fn(),
-        getOrder: jest.fn(),
-        createOrder: jest.fn(),
-        updateOrder: jest.fn(),
-        deleteOrder: jest.fn(),
+        getOrders: vi.fn(),
+        getOrder: vi.fn(),
+        createOrder: vi.fn(),
+        updateOrder: vi.fn(),
+        deleteOrder: vi.fn(),
     }
 }));
 
-jest.mock('../../services/pb', () => ({
+vi.mock('../../services/pb', () => ({
     pb: {
-        collection: jest.fn(() => ({
-            subscribe: jest.fn(() => jest.fn()), // returns unsubscribe function
+        collection: vi.fn(() => ({
+            subscribe: vi.fn(() => vi.fn()), // returns unsubscribe function
         }))
     }
 }));
 
 describe('useOrders hooks structure', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('orderKeys', () => {

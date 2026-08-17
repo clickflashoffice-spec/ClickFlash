@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+import { vi, describe, it, test, expect, beforeEach } from 'vitest';
 /**
  * Sync Verification Tests
  * 
@@ -6,10 +8,10 @@
 
 
 // Mock fetch for Hub API calls
-global.fetch = jest.fn();
+global.fetch = vi.fn();
 
 // Mock the pb module
-jest.mock('../../pb', () => ({
+vi.mock('../../pb', () => ({
     pb: {
         baseUrlValue: 'http://localhost:8090',
         authStore: {
@@ -24,7 +26,7 @@ describe('Sync Verification', () => {
     const TEST_ORDER_ID = 'order-phase95-001';
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('Master Database Checks', () => {
@@ -78,7 +80,7 @@ describe('Sync Verification', () => {
                 }
             };
 
-            (global.fetch as jest.Mock).mockResolvedValueOnce({
+            (global.fetch as vi.Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => mockAuthResponse
             });
@@ -115,7 +117,7 @@ describe('Sync Verification', () => {
                 ]
             };
 
-            (global.fetch as jest.Mock).mockResolvedValueOnce({
+            (global.fetch as vi.Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({ items: [mockOrder] })
             });
@@ -146,7 +148,7 @@ describe('Sync Verification', () => {
                 items: [{ id: 'item-1', photoId: 'photo-001' }]
             };
 
-            (global.fetch as jest.Mock).mockResolvedValueOnce({
+            (global.fetch as vi.Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => mockOrder
             });
@@ -168,7 +170,7 @@ describe('Sync Verification', () => {
                 { id: 'photo-phase95-002', albumId: 'album-phase95-001', title: 'Test Photo 2' }
             ];
 
-            (global.fetch as jest.Mock).mockResolvedValueOnce({
+            (global.fetch as vi.Mock).mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({ items: mockPhotos })
             });

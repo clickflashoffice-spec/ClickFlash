@@ -17,6 +17,10 @@ export type Bindings = {
   RESEND_API_KEY: string;
   UPSTASH_REDIS_REST_URL?: string;
   UPSTASH_REDIS_REST_TOKEN?: string;
+  WHATSAPP_WEBHOOK_VERIFY_TOKEN?: string;
+  WHATSAPP_APP_SECRET?: string;
+  WHATSAPP_ACCESS_TOKEN?: string;
+  WHATSAPP_PHONE_NUMBER_ID?: string;
 };
 
 export type AppEnv = {
@@ -24,6 +28,7 @@ export type AppEnv = {
   Variables: {
     DB: D1Database;
     regionId: string;
+    tenantId: string;
     principal?: import('./auth').Principal;
   };
 };

@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 // Polyfill TextEncoder/TextDecoder for Node.js environment (needed for supertest/cuid2)
 if (typeof TextEncoder === 'undefined') {
     const { TextEncoder, TextDecoder } = require('util');
@@ -14,20 +15,22 @@ import stripeService from '../services/stripeService';
 import { logger } from '../utils/logger';
 
 // Mock Stripe Service
-jest.mock('../services/stripeService', () => ({
-    constructWebhookEvent: jest.fn(),
-    createCheckoutSession: jest.fn()
+vi.mock('../services/stripeService', () => ({
+    default: {
+        constructWebhookEvent: vi.fn(),
+        createCheckoutSession: vi.fn()
+    }
 }));
 
 const mockSyncManager = {
-    broadcastOrderStatus: jest.fn()
+    broadcastOrderStatus: vi.fn()
 };
 
 const mockLogger = {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn()
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn()
 };
 
 describe('Gallery Checkout Webhook & Sync', () => {
@@ -112,7 +115,7 @@ describe('Gallery Checkout Webhook & Sync', () => {
             logger: mockLogger as any,
             JWT_SECRET: 'test-secret',
             syncManager: mockSyncManager,
-            photographerEventLedgerService: { append: jest.fn() } as any
+            photographerEventLedgerService: { append: vi.fn() } as any
         }));
     });
 
@@ -121,7 +124,7 @@ describe('Gallery Checkout Webhook & Sync', () => {
     });
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         db.prepare('DELETE FROM gallery_tokens').run();
         db.prepare('DELETE FROM gallery_orders').run();
         db.prepare('DELETE FROM orders').run();

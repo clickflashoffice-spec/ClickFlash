@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 /**
  * Unit tests for useLocalStorage hook
  * @jest-environment jsdom
@@ -5,22 +7,22 @@
 import { renderHook, act } from '@testing-library/react';
 
 // Mock safeStorage before importing the hook
-jest.mock('../utils/safeStorage', () => ({
+vi.mock('../utils/safeStorage', () => ({
     safeStorage: {
-        getItem: jest.fn(),
-        setItem: jest.fn(),
-        removeItem: jest.fn(),
+        getItem: vi.fn(),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
     }
 }));
 
 import useLocalStorage from './useLocalStorage';
 import { safeStorage } from '../utils/safeStorage';
 
-const mockSafeStorage = safeStorage as jest.Mocked<typeof safeStorage>;
+const mockSafeStorage = safeStorage as vi.Mocked<typeof safeStorage>;
 
 describe('useLocalStorage', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         mockSafeStorage.getItem.mockReturnValue(null);
     });
 

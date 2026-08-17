@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { testSyncOperational } from './test_sync_operational';
 import fetch from 'node-fetch';
 
-vi.mock('node-fetch');
+vi.mock('node-fetch', () => ({ default: vi.fn() }));
 vi.mock('@/utils/logger', () => ({
   logger: {
     info: vi.fn(),

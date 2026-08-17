@@ -1,16 +1,17 @@
+import { vi, describe, it, test, expect, beforeEach, afterEach } from 'vitest';
 import { CloudSyncService } from '../../services/cloudSyncService';
 import DatabaseManager from '../../database/db';
 
 const mockLogger = {
-  info: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn(),
-  debug: jest.fn(),
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
 };
 
 const mockEmailService = {
-  sendEmail: jest.fn(),
-  setCloudConfig: jest.fn(),
+  sendEmail: vi.fn(),
+  setCloudConfig: vi.fn(),
 };
 
 describe('CloudSyncService - Multi-Region Failover & Resilience', () => {
@@ -20,11 +21,11 @@ describe('CloudSyncService - Multi-Region Failover & Resilience', () => {
 
   beforeEach(() => {
     mockDbManager = {
-      get: jest.fn(),
-      run: jest.fn(),
-      query: jest.fn().mockReturnValue([]),
-      exec: jest.fn(),
-      all: jest.fn(),
+      get: vi.fn(),
+      run: vi.fn(),
+      query: vi.fn().mockReturnValue([]),
+      exec: vi.fn(),
+      all: vi.fn(),
     };
 
     originalFetch = (globalThis as any).fetch;
@@ -47,7 +48,7 @@ describe('CloudSyncService - Multi-Region Failover & Resilience', () => {
   });
 
   it('should use primary URL when it returns a successful response (< 500)', async () => {
-    const mockFetch = jest.fn().mockImplementation((url: string) => {
+    const mockFetch = vi.fn().mockImplementation((url: string) => {
       if (url === 'https://hq.clickflash.com/api/test') {
         return Promise.resolve({
           status: 200,
@@ -66,7 +67,7 @@ describe('CloudSyncService - Multi-Region Failover & Resilience', () => {
   });
 
   it('should failover to secondary URL when primary URL returns a 500 error', async () => {
-    const mockFetch = jest.fn().mockImplementation((url: string) => {
+    const mockFetch = vi.fn().mockImplementation((url: string) => {
       if (url === 'https://hq.clickflash.com/api/test') {
         return Promise.resolve({
           status: 503,
@@ -94,7 +95,7 @@ describe('CloudSyncService - Multi-Region Failover & Resilience', () => {
   });
 
   it('should failover when primary URL throws a network/DNS error', async () => {
-    const mockFetch = jest.fn().mockImplementation((url: string) => {
+    const mockFetch = vi.fn().mockImplementation((url: string) => {
       if (url === 'https://hq.clickflash.com/api/test') {
         return Promise.reject(new Error('getaddrinfo ENOTFOUND hq.clickflash.com'));
       }
@@ -114,7 +115,7 @@ describe('CloudSyncService - Multi-Region Failover & Resilience', () => {
   });
 
   it('should throw an error when both primary and secondary fail so executeWithRetry can back off', async () => {
-    const mockFetch = jest.fn().mockImplementation(() => {
+    const mockFetch = vi.fn().mockImplementation(() => {
       return Promise.resolve({
         status: 502,
         statusText: 'Bad Gateway',

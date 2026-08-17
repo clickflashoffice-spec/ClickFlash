@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 import { TransferService } from '../../services/TransferService';
 import { limitConcurrency } from '../../middleware/limitConcurrency';
@@ -6,31 +7,31 @@ import fs from 'fs';
 
 // Mock dependencies
 const mockDbManager = {
-    query: jest.fn(),
-    get: jest.fn()
+    query: vi.fn(),
+    get: vi.fn()
 };
 
 const mockLogger = {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn()
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn()
 };
 
 const mockWss = {
     clients: []
 };
 
-jest.mock('fs', () => {
-    const original = jest.requireActual('fs');
+vi.mock('fs', () => {
+    const original = vi.requireActual('fs');
     return {
         ...original,
-        existsSync: jest.fn(),
-        mkdirSync: jest.fn(),
+        existsSync: vi.fn(),
+        mkdirSync: vi.fn(),
         promises: {
             ...original.promises,
-            copyFile: jest.fn(),
-            writeFile: jest.fn()
+            copyFile: vi.fn(),
+            writeFile: vi.fn()
         }
     };
 });
@@ -44,7 +45,7 @@ describe('TransferService', () => {
             logger: mockLogger as any,
             wss: mockWss
         });
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     it('should send album photos to destinations', async () => {
@@ -77,7 +78,7 @@ describe('TransferService', () => {
         mockDbManager.get.mockReturnValue({ title: 'Test Album' });
 
         // Mock FS
-        (fs.existsSync as jest.Mock).mockReturnValue(true); // Source files exist
+        (fs.existsSync as vi.Mock).mockReturnValue(true); // Source files exist
 
         // Execute
         const result = await service.sendAlbumToKiosks(albumId, destinations);

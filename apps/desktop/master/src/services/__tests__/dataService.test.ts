@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { dataService } from '../dataService';
 
 describe('DataService', () => {
@@ -5,25 +7,32 @@ describe('DataService', () => {
   let originalFetch: any;
 
   beforeEach(() => {
-    (window as any).electron = {
-      invoke: jest.fn(),
+    originalWindow = (globalThis as any).window;
+    originalFetch = (globalThis as any).fetch;
+    
+    if (!(globalThis as any).window) {
+        (globalThis as any).window = {};
+    }
+    
+    (globalThis as any).window.electron = {
+      invoke: vi.fn(),
     };
 
-    global.fetch = jest.fn();
+    (globalThis as any).fetch = vi.fn();
 
     // Reset dataService's isElectron state by recreating the logic or mock
     (dataService as any).isElectron = true;
   });
 
   afterEach(() => {
-    global.window = originalWindow;
-    global.fetch = originalFetch;
-    jest.restoreAllMocks();
+    (globalThis as any).window = originalWindow;
+    (globalThis as any).fetch = originalFetch;
+    vi.restoreAllMocks();
   });
 
   describe('albums', () => {
     it('getAll calls window.electron.invoke with correct args', async () => {
-      ((window as any).electron.invoke as jest.Mock).mockResolvedValueOnce({
+      ((window as any).electron.invoke as vi.Mock).mockResolvedValueOnce({
         success: true,
         data: [{ id: '1', name: 'Album 1' }]
       });
@@ -40,7 +49,7 @@ describe('DataService', () => {
     });
 
     it('create calls invoke with correct args', async () => {
-      ((window as any).electron.invoke as jest.Mock).mockResolvedValueOnce({
+      ((window as any).electron.invoke as vi.Mock).mockResolvedValueOnce({
         success: true,
         data: { id: '1', name: 'New Album' }
       });
@@ -59,7 +68,7 @@ describe('DataService', () => {
 
   describe('photos', () => {
     it('searchPhotos uses IPC search channel', async () => {
-      ((window as any).electron.invoke as jest.Mock).mockResolvedValueOnce({
+      ((window as any).electron.invoke as vi.Mock).mockResolvedValueOnce({
         success: true,
         data: []
       });
@@ -78,7 +87,7 @@ describe('DataService', () => {
 
   describe('settings', () => {
     it('get returns value via IPC', async () => {
-      ((window as any).electron.invoke as jest.Mock).mockResolvedValueOnce({
+      ((window as any).electron.invoke as vi.Mock).mockResolvedValueOnce({
         success: true,
         data: 'value'
       });
@@ -97,7 +106,7 @@ describe('DataService', () => {
 
   describe('Error propagation', () => {
     it('rejected IPC promise throws typed error', async () => {
-      ((window as any).electron.invoke as jest.Mock).mockResolvedValueOnce({
+      ((window as any).electron.invoke as vi.Mock).mockResolvedValueOnce({
         success: false,
         error: 'Custom error message'
       });
@@ -111,7 +120,7 @@ describe('DataService', () => {
       delete (window as any).electron;
       (dataService as any).isElectron = false;
 
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as vi.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ id: '1' })
       });

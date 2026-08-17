@@ -1,10 +1,11 @@
+import { vi, describe, it, test, expect, beforeEach } from 'vitest';
 import { geminiService } from '../geminiService';
 
-const mockGenerateContent = jest.fn();
+const mockGenerateContent = vi.fn();
 
-jest.mock('@google/genai', () => {
+vi.mock('@google/genai', () => {
   return {
-    GoogleGenAI: jest.fn().mockImplementation(() => {
+    GoogleGenAI: vi.fn().mockImplementation(() => {
       return {
         models: {
           generateContent: mockGenerateContent
@@ -16,7 +17,7 @@ jest.mock('@google/genai', () => {
 
 describe('GeminiService', () => {
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     await geminiService.initialize('test-key');
   });
 
@@ -38,7 +39,7 @@ describe('GeminiService', () => {
         .mockResolvedValueOnce({ text: '["tag1"]' });
 
       // Spy on setTimeout to capture jitter
-      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+      const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
       
       const result = await geminiService.generateTags(Buffer.from('test'), 'image/jpeg', 1);
       
@@ -62,7 +63,7 @@ describe('GeminiService', () => {
         .mockRejectedValueOnce(error429)
         .mockResolvedValueOnce({ text: '["tag1"]' });
 
-      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+      const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
       
       await geminiService.generateTags(Buffer.from('test'), 'image/jpeg', 1);
       const delay1 = setTimeoutSpy.mock.calls[0][1] as number;

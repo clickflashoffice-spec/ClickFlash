@@ -1,6 +1,6 @@
 import { SyncPipeline, SyncContext, PipelineResult } from '../SyncPipeline';
 
-const fetchFn = (globalThis as any).fetch;
+const fetchFn = (...args: any[]) => ((globalThis as any).fetch)(...args);
 
 export class AnalyticsPipeline implements SyncPipeline {
   name = 'daily_analytics';

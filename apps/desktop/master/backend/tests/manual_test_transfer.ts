@@ -14,7 +14,7 @@ const mockDbManager = {
 };
 const mockLogger = { info: logger.info, warn: logger.warn, error: logger.error, debug: logger.info } as any;
 
-// We will just spy with logger.info instead of jest.fn
+// We will just spy with logger.info instead of vi.fn
 fs.existsSync = ((_path: any) => true) as any;
 fs.mkdirSync = ((path: any) => logger.info(`mkdir ${path}`)) as any;
 fs.promises.copyFile = (async (src: any, dest: any) => logger.info(`copy ${src} -> ${dest}`)) as any;

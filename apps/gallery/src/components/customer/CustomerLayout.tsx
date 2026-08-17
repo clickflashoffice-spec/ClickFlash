@@ -1,26 +1,7 @@
-// @ts-nocheck
+
 import { logger } from '@clickflash/logger';
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { Order, Photo, Product } from "../../types.ts";
-import { cloudApiService } from "../../services/cloudApiService";
-import CustomerGallery from "./CustomerGallery";
-import StorePage from "./StorePage";
-import FavoritesPage from "./FavoritesPage";
-import DownloadPage from "./DownloadPage";
-import OrderStatusPage from "./OrderStatusPage";
-import EnhancedLightbox from "./EnhancedLightbox";
-import AddToCartModal from "./AddToCartModal";
-import CheckoutModal from "./CheckoutModal";
-import ProofingModal from "./ProofingModal";
-import ShareModal from "./ShareModal";
-import SubscriptionPassModal from "./SubscriptionPassModal";
-import GuestFaceSearchModal from "./GuestFaceSearchModal";
-import { SocialProofToast } from "./SocialProofToast";
-import { MoneyTrashGallery } from "./MoneyTrashGallery";
-// @ts-nocheck
-import { logger } from '@clickflash/logger';
-import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { Order, Photo, Product } from "../../types.ts";
+import { Order, Photo, Product } from "../../types";
 import { cloudApiService } from "../../services/cloudApiService";
 import CustomerGallery from "./CustomerGallery";
 import StorePage from "./StorePage";
@@ -42,8 +23,8 @@ import {
   type MoneyTrashPurchaseDownload,
   type TrashGallery,
 } from "../../services/moneyTrashService";
-import { markCartRecovered, useCartSync } from "../../hooks/useCartSync.ts";
-import useCartStore from "../../stores/useCartStore.ts";
+import { markCartRecovered, useCartSync } from "../../hooks/useCartSync";
+import useCartStore from "../../stores/useCartStore";
 import AIProductBar, { AIProductType } from "./AIProductBar";
 import FavoritesBar from "./FavoritesBar";
 import FigurePreview3D from "./FigurePreview3D";
@@ -79,12 +60,12 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
   );
   
   // Zustand Cart Store
-  const { cart, clearCart } = useCartStore((state) => ({
+  const { cart, clearCart } = useCartStore((state: any) => ({
     cart: state.items,
     clearCart: state.clearCart,
   }));
   const activeCart = useMemo(
-    () => cart.filter((item) => trashGallery
+    () => cart.filter((item: any) => trashGallery
       ? item.productId === "moneytrash_single" && item.photo?.albumId === trashGallery.id
       : item.productId !== "moneytrash_single"),
     [cart, trashGallery],
@@ -104,17 +85,17 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
 
   useEffect(() => {
     const fetchBranding = async () => {
-      const destId = order?.destinationId || trashGallery?.destinationId;
+      const destId = order?.destinationId || (trashGallery as any)?.destinationId;
       if (!destId) return;
       try {
-        const branding = await cloudApiService.getResortBranding(destId);
+        const branding = await cloudApiService.getResortBranding(destId) as any;
         if (branding) {
           setWhiteLabelEnabled(true);
           
-          if (branding.primaryColor) {
+          if (branding.primaryColor && typeof branding.primaryColor === 'string') {
             document.documentElement.style.setProperty('--brand-primary', branding.primaryColor);
           }
-          if (branding.logoUrl) {
+          if (branding.logoUrl && typeof branding.logoUrl === 'string') {
             setBrandLogoUrl(branding.logoUrl);
           }
         }
@@ -123,7 +104,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
       }
     };
     fetchBranding();
-  }, [order?.destinationId, trashGallery?.destinationId]);
+  }, [order?.destinationId, (trashGallery as any)?.destinationId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -151,7 +132,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     if (checkoutResult === "cancelled") {
       setCheckoutNotice({ tone: "warning", message: "Checkout was cancelled. Your cart is still available." });
       params.delete("checkout");
-      window.history.replaceState({}, "", `${window.location.pathname}${params.size ? `?${params}` : ""}${window.location.hash}`);
+      window.history.replaceState(null, "", `${window.location.pathname}${params.size ? `?${params}` : ""}${window.location.hash}`);
       return;
     }
     if (checkoutResult !== "success" || !sessionId) return;
@@ -180,7 +161,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
       } finally {
         params.delete("checkout");
         params.delete("session_id");
-        window.history.replaceState({}, "", `${window.location.pathname}${params.size ? `?${params}` : ""}${window.location.hash}`);
+        window.history.replaceState(null, "", `${window.location.pathname}${params.size ? `?${params}` : ""}${window.location.hash}`);
       }
     };
 
@@ -199,7 +180,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     const cleanReturnParams = () => {
       params.delete("moneytrash_checkout");
       params.delete("session_id");
-      window.history.replaceState({}, "", `${window.location.pathname}${params.size ? `?${params}` : ""}${window.location.hash}`);
+      window.history.replaceState(null, "", `${window.location.pathname}${params.size ? `?${params}` : ""}${window.location.hash}`);
     };
 
     if (checkoutResult === "cancelled") {
@@ -219,8 +200,8 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
           if (result.paid) {
             const store = useCartStore.getState();
             store.items
-              .filter((item) => item.productId === "moneytrash_single" && item.photo?.albumId === trashGallery.id)
-              .forEach((item) => store.removeItem(item.photoId));
+              .filter((item: any) => item.productId === "moneytrash_single" && item.photo?.albumId === trashGallery.id)
+              .forEach((item: any) => store.removeItem(item.photoId));
             moneyTrashService.clearCheckoutSession();
             if (active) {
               setMoneyTrashDownloads(result.downloads);
@@ -259,7 +240,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
   const [photoToShare, setPhotoToShare] = useState<Photo | null>(null);
 
   const photosInOrder =
-    (order?.items.map((item) => item.photo).filter(Boolean) as Photo[]) || [];
+    (order?.items.map((item: any) => item.photo).filter(Boolean) as Photo[]) || [];
   const [photosWithProofing, setPhotosWithProofing] =
     useState<Photo[]>(photosInOrder);
   const lightboxPhotos = useMemo(
@@ -293,8 +274,8 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     setIsAddToCartModalOpen(true);
   }, []);
 
-  const addItem = useCartStore(state => state.addItem);
-  const updateQuantity = useCartStore(state => state.updateQuantity);
+  const addItem = useCartStore((state: any) => state.addItem);
+  const updateQuantity = useCartStore((state: any) => state.updateQuantity);
 
   const handleAddToCart = useCallback(
     (product: Product, quantity: number) => {
@@ -349,7 +330,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
   const handleUpdateCartQuantity = useCallback(
     (itemId: string, newQuantity: number) => {
       // Find the specific cart item to get its photoId to update via store
-      const item = cart.find(i => i.id === itemId);
+      const item = cart.find((i: any) => i.id === itemId);
       if (item) {
         updateQuantity(item.photoId, newQuantity);
       }
@@ -455,8 +436,8 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     }
   };
 
-  const cartItemCount = activeCart.reduce((count, item) => count + item.quantity, 0);
-  const cartTotal = activeCart.reduce((total, item) => total + item.price * item.quantity, 0);
+  const cartItemCount = activeCart.reduce((count: number, item: any) => count + item.quantity, 0);
+  const cartTotal = activeCart.reduce((total: number, item: any) => total + item.price * item.quantity, 0);
   const renderView = () => {
     switch (view) {
       case "Gallery":
@@ -520,7 +501,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
             onOpenAddToCartModal={handleAddMoneyTrashPhoto}
             onPhotoClick={(photo) =>
               openLightbox(
-                trashGallery.photos.findIndex((candidate) => candidate.id === photo.id),
+                trashGallery.photos.findIndex((candidate) => (candidate as any).id === (photo as any).id),
               )
             }
           />
@@ -634,6 +615,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
             </button>
           </div>
         </div>
+      </header>
       {isLightboxOpen && (
         <EnhancedLightbox
           photos={lightboxPhotos}
@@ -679,15 +661,6 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
             setIsCheckoutModalOpen(false);
           }}
           albumId={order?.albumId || photosInOrder[0]?.albumId || ""}
-          moneyTrashGalleryId={trashGallery?.id}
-          moneyTrashPurchaseToken={trashGallery?.purchaseToken}
-        />
-      )}
-
-      {isProofingModalOpen && (
-        <ProofingModal
-          isOpen={isProofingModalOpen}
-          onClose={() => setIsProofingModalOpen(false)}
           moneyTrashGalleryId={trashGallery?.id}
           moneyTrashPurchaseToken={trashGallery?.purchaseToken}
         />

@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { albumService } from '../albumService';
 import { mockCollection, resetPbMocks } from '../../__mocks__/pb';
 
@@ -8,7 +10,7 @@ Object.defineProperty(global, 'crypto', {
 });
 
 
-jest.mock('../../pb', () => ({
+vi.mock('../../pb', () => ({
     pb: require('../../__mocks__/pb').pb,
 }));
 

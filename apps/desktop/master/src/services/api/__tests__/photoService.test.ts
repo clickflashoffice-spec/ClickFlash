@@ -1,9 +1,11 @@
+// @vitest-environment jsdom
+import { vi, describe, it, test, expect, beforeEach, afterEach } from 'vitest';
 import { photoService, validateManualEdits } from '../photoService';
 import { mockCollection, resetPbMocks } from '../../__mocks__/pb';
 import { INITIAL_EDITS } from '../../../utils/styleUtils';
 
 // Mock the actual pb module
-jest.mock('../../pb', () => ({
+vi.mock('../../pb', () => ({
     pb: require('../../__mocks__/pb').pb,
 }));
 
@@ -11,11 +13,11 @@ jest.mock('../../pb', () => ({
 describe('photoService', () => {
     beforeEach(() => {
         resetPbMocks();
-        jest.useFakeTimers();
+        vi.useFakeTimers();
     });
 
     afterEach(() => {
-        jest.useRealTimers();
+        vi.useRealTimers();
     });
 
     describe('validateManualEdits', () => {
@@ -43,7 +45,7 @@ describe('photoService', () => {
             const promise = photoService.updatePhoto('p1', { title: 'New' });
 
             // Fast-forward through retries
-            await jest.runAllTimersAsync();
+            await vi.runAllTimersAsync();
 
             const result = await promise;
             expect(mockCollection.update).toHaveBeenCalledTimes(2);
@@ -99,7 +101,7 @@ describe('photoService', () => {
     describe('getPhotoBlobs', () => {
         it('should fetch multiple blobs', async () => {
             const mockBlob = new Blob(['test'], { type: 'image/jpeg' });
-            global.fetch = jest.fn().mockResolvedValue({
+            global.fetch = vi.fn().mockResolvedValue({
                 ok: true,
                 blob: async () => mockBlob
             });

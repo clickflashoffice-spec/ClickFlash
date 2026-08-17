@@ -1,18 +1,15 @@
-/**
- * Keyboard Blocker Tests
- * 
- * Unit tests for keyboard blocking functionality in Kiosk mode
- */
+// @vitest-environment jsdom
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 import { KeyboardBlocker } from '../keyboardBlocker';
 import { logger } from '../logger';
 
 // Mock logger
-jest.mock('../logger', () => ({
+vi.mock('../logger', () => ({
     logger: {
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn()
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn()
     }
 }));
 
@@ -20,7 +17,7 @@ describe('KeyboardBlocker', () => {
     let keyboardBlocker: KeyboardBlocker;
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         keyboardBlocker = new KeyboardBlocker();
     });
 
@@ -32,8 +29,8 @@ describe('KeyboardBlocker', () => {
                 altKey: true,
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
-            jest.spyOn(event, 'stopPropagation');
+            vi.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'stopPropagation');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -49,7 +46,7 @@ describe('KeyboardBlocker', () => {
                 altKey: true,
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -63,7 +60,7 @@ describe('KeyboardBlocker', () => {
                 metaKey: true,
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -78,7 +75,7 @@ describe('KeyboardBlocker', () => {
                 key: 'Escape',
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -91,7 +88,7 @@ describe('KeyboardBlocker', () => {
                 key: 'F12',
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -106,7 +103,7 @@ describe('KeyboardBlocker', () => {
                 shiftKey: true,
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -120,7 +117,7 @@ describe('KeyboardBlocker', () => {
                 ctrlKey: true,
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -133,7 +130,7 @@ describe('KeyboardBlocker', () => {
                 ctrlKey: true,
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -146,7 +143,7 @@ describe('KeyboardBlocker', () => {
                 ctrlKey: true,
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -161,7 +158,7 @@ describe('KeyboardBlocker', () => {
                 ctrlKey: true,
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -174,7 +171,7 @@ describe('KeyboardBlocker', () => {
                 key: '5',
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -187,7 +184,7 @@ describe('KeyboardBlocker', () => {
                 key: 'a',
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -200,7 +197,7 @@ describe('KeyboardBlocker', () => {
                 key: 'Enter',
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -212,7 +209,7 @@ describe('KeyboardBlocker', () => {
                 key: 'ArrowRight',
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -229,7 +226,7 @@ describe('KeyboardBlocker', () => {
                 altKey: true,
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -246,7 +243,7 @@ describe('KeyboardBlocker', () => {
                 altKey: true,
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 
@@ -265,7 +262,7 @@ describe('KeyboardBlocker', () => {
 
     describe('Event Listener Management', () => {
         it('should attach event listener when initialized', () => {
-            const addEventListenerSpy = jest.spyOn(document, 'addEventListener');
+            const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
             
             keyboardBlocker.initialize();
             
@@ -277,7 +274,7 @@ describe('KeyboardBlocker', () => {
         });
 
         it('should remove event listener when destroyed', () => {
-            const removeEventListenerSpy = jest.spyOn(document, 'removeEventListener');
+            const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
             
             keyboardBlocker.initialize();
             keyboardBlocker.destroy();
@@ -355,7 +352,7 @@ describe('KeyboardBlocker', () => {
                 altKey: true,
                 bubbles: true
             });
-            jest.spyOn(event, 'preventDefault');
+            vi.spyOn(event, 'preventDefault');
 
             const result = keyboardBlocker.handleKeyDown(event);
 

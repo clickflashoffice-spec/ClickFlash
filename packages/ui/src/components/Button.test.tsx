@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { Button } from './Button';
@@ -17,6 +19,6 @@ describe('Button', () => {
 
   it('is disabled when disabled prop is true', () => {
     render(<Button disabled>Click Me</Button>);
-    expect(screen.getByText('Click Me')).toBeDisabled();
+    expect(screen.getByRole('button')).toBeDisabled();
   });
 });

@@ -1,3 +1,4 @@
+import { describe, it, test, expect, beforeEach, afterEach } from 'vitest';
 import { RedisCacheService } from '../../services/redisCacheService';
 
 describe('RedisCacheService', () => {

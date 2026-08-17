@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import healthRouter from '../health';
@@ -5,16 +6,16 @@ import { HardwareService } from '../../services/SystemHardwareService';
 
 // Mock dependencies
 const mockDb = {
-  get: jest.fn()
+  get: vi.fn()
 };
 
 const mockThermalService = {
-  getStatus: jest.fn()
+  getStatus: vi.fn()
 };
 
-jest.mock('../../services/SystemHardwareService', () => ({
+vi.mock('../../services/SystemHardwareService', () => ({
   HardwareService: {
-    getHealthStatus: jest.fn()
+    getHealthStatus: vi.fn()
   }
 }));
 
@@ -22,7 +23,7 @@ describe('Health API Routes', () => {
   let app: express.Express;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     (globalThis as any).isEcosystemInitialized = true;
     
     app = express();
@@ -45,7 +46,7 @@ describe('Health API Routes', () => {
   describe('GET /api/health/detailed', () => {
     it('should return healthy status when all checks pass', async () => {
       // Mock healthy responses
-      (HardwareService.getHealthStatus as jest.Mock).mockResolvedValue({
+      (HardwareService.getHealthStatus as vi.Mock).mockResolvedValue({
         diskPercent: 50,
         memoryPercent: 50,
         memoryUsed: 4000,
@@ -71,7 +72,7 @@ describe('Health API Routes', () => {
     });
 
     it('should return unhealthy status when database check fails', async () => {
-      (HardwareService.getHealthStatus as jest.Mock).mockResolvedValue({ diskPercent: 50, memoryPercent: 50 });
+      (HardwareService.getHealthStatus as vi.Mock).mockResolvedValue({ diskPercent: 50, memoryPercent: 50 });
       mockThermalService.getStatus.mockReturnValue({ status: 'NORMAL' });
       mockDb.get.mockImplementation(() => { throw new Error('DB error'); });
 
@@ -84,7 +85,7 @@ describe('Health API Routes', () => {
 
     it('should return degraded status when a non-critical check fails', async () => {
       // Memory > 90%
-      (HardwareService.getHealthStatus as jest.Mock).mockResolvedValue({ diskPercent: 50, memoryPercent: 95 });
+      (HardwareService.getHealthStatus as vi.Mock).mockResolvedValue({ diskPercent: 50, memoryPercent: 95 });
       mockThermalService.getStatus.mockReturnValue({ status: 'NORMAL' });
       mockDb.get.mockReturnValue({ one: 1 });
 

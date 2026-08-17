@@ -1,23 +1,24 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { PhotoRepo } from '../PhotoRepo';
 import { DatabaseManager } from '../../database/db';
 import { redisCache } from '../../services/redisCacheService';
 
-jest.mock('../../services/redisCacheService', () => ({
+vi.mock('../../services/redisCacheService', () => ({
   redisCache: {
-    publishEvent: jest.fn().mockResolvedValue(true)
+    publishEvent: vi.fn().mockResolvedValue(true)
   }
 }));
 
 describe('PhotoRepo', () => {
-  let dbManagerMock: jest.Mocked<DatabaseManager>;
+  let dbManagerMock: vi.Mocked<DatabaseManager>;
   let repo: PhotoRepo;
 
   beforeEach(() => {
     dbManagerMock = {
-      get: jest.fn(),
-      all: jest.fn(),
-      run: jest.fn(),
-    } as unknown as jest.Mocked<DatabaseManager>;
+      get: vi.fn(),
+      all: vi.fn(),
+      run: vi.fn(),
+    } as unknown as vi.Mocked<DatabaseManager>;
 
     repo = new PhotoRepo(dbManagerMock);
   });

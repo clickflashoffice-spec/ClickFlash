@@ -2,13 +2,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { withAndroidManifest, withDangerousMod } = require('expo/config-plugins');
 
-module.exports = function withUsbPermissions(config) {
-  config = withAndroidManifest(config, (manifestConfig) => {
+module.exports = function withUsbPermissions(config: any) {
+  config = withAndroidManifest(config, (manifestConfig: any) => {
     const androidManifest = manifestConfig.modResults.manifest;
 
     const usesFeature = androidManifest['uses-feature'] || [];
     const hasUsbFeature = usesFeature.some(
-      (feature) => feature.$['android:name'] === 'android.hardware.usb.host'
+      (feature: any) => feature.$['android:name'] === 'android.hardware.usb.host'
     );
 
     if (!hasUsbFeature) {
@@ -23,17 +23,17 @@ module.exports = function withUsbPermissions(config) {
 
     const application = androidManifest.application[0];
     const mainActivity = application.activity.find(
-      (activity) =>
+      (activity: any) =>
         activity['intent-filter'] &&
-        activity['intent-filter'].some((filter) =>
-          filter.action?.some((action) => action.$['android:name'] === 'android.intent.action.MAIN')
+        activity['intent-filter'].some((filter: any) =>
+          filter.action?.some((action: any) => action.$['android:name'] === 'android.intent.action.MAIN')
         )
     );
 
     if (mainActivity) {
       const intentFilters = mainActivity['intent-filter'] || [];
       const hasUsbIntent = intentFilters.some(
-        (filter) => filter.action?.some((action) => action.$['android:name'] === 'android.hardware.usb.action.USB_DEVICE_ATTACHED')
+        (filter: any) => filter.action?.some((action: any) => action.$['android:name'] === 'android.hardware.usb.action.USB_DEVICE_ATTACHED')
       );
 
       if (!hasUsbIntent) {
@@ -51,7 +51,7 @@ module.exports = function withUsbPermissions(config) {
 
       const metadata = mainActivity['meta-data'] || [];
       const hasUsbFilterMetadata = metadata.some(
-        (item) => item.$['android:name'] === 'android.hardware.usb.action.USB_DEVICE_ATTACHED'
+        (item: any) => item.$['android:name'] === 'android.hardware.usb.action.USB_DEVICE_ATTACHED'
       );
 
       if (!hasUsbFilterMetadata) {
@@ -70,7 +70,7 @@ module.exports = function withUsbPermissions(config) {
 
   return withDangerousMod(config, [
     'android',
-    async (dangerousConfig) => {
+    async (dangerousConfig: any) => {
       const xmlDirectory = path.join(
         dangerousConfig.modRequest.platformProjectRoot,
         'app',

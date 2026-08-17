@@ -1,63 +1,108 @@
-import { Server as SocketIOServer } from 'socket.io';
-import { Server as HttpServer } from 'http';
-import { Logger } from '../utils/logger';
-import { SDPMessage, ICECandidateMessage } from '@clickflash/types/webrtc';
+import { WebSocketServer, WebSocket } from 'ws';
+import { logger } from '../utils/logger';
+import * as http from 'http';
+import * as crypto from 'crypto';
 
-const logger = new Logger('data', 'INFO');
-
-export class WebRTCSignalingServer {
-  private io: SocketIOServer;
-  // Keep track of connected devices (photographers and managers)
-  private clients: Map<string, string> = new Map();
-
-  constructor(server: HttpServer) {
-    this.io = new SocketIOServer(server, {
-      cors: {
-        origin: '*', // Adjust in production
-        methods: ['GET', 'POST']
-      }
-    });
-
-    this.setupListeners();
-  }
-
-  private setupListeners() {
-    this.io.on('connection', (socket) => {
-      logger.info(`[WebRTC] Client connected: ${socket.id}`);
-
-      socket.on('register', (data: { deviceId: string }) => {
-        logger.info(`[WebRTC] Device registered: ${data.deviceId} -> ${socket.id}`);
-        this.clients.set(data.deviceId, socket.id);
-        socket.join(data.deviceId); // Allow direct messaging by deviceId
-      });
-
-      // Signaling: Offer
-      socket.on('offer', (data: SDPMessage) => {
-        logger.info(`[WebRTC] Offer from ${socket.id} to ${data.targetId}`);
-        this.io.to(data.targetId).emit('INCOMING_CHECK_IN', { offer: data.sdp });
-      });
-
-      // Signaling: Answer
-      socket.on('answer', (data: SDPMessage) => {
-        logger.info(`[WebRTC] Answer from ${socket.id} to ${data.targetId}`);
-        this.io.to(data.targetId).emit('answer', { answer: data.sdp });
-      });
-
-      // Signaling: ICE Candidate
-      socket.on('ice-candidate', (data: ICECandidateMessage) => {
-        this.io.to(data.targetId).emit('ice-candidate', { candidate: data.candidate });
-      });
-
-      socket.on('disconnect', () => {
-        logger.info(`[WebRTC] Client disconnected: ${socket.id}`);
-        // Remove from tracking map
-        for (const [deviceId, socketId] of this.clients.entries()) {
-          if (socketId === socket.id) {
-            this.clients.delete(deviceId);
-            break;
-          }
-        }
-      });
-    });
-  }
+interface WebRtcMessage {
+    type: 'offer' | 'answer' | 'candidate' | 'auth';
+    sdp?: any;
+    candidate?: any;
+    token?: string;
 }
+
+export class WebRtcSignalingService {
+    private wss: WebSocketServer | null = null;
+    private clients: Map<string, WebSocket> = new Map();
+    // Simulated token store for Magic Links
+    private validTokens: Set<string> = new Set();
+
+    public init(server: http.Server) {
+        // Run WebSocket on a different path to not conflict with the Hotspot/Touch WS
+        this.wss = new WebSocketServer({ server, path: '/webrtc-signaling' });
+
+        // Ping interval to clear dead connections
+        const interval = setInterval(() => {
+            this.wss?.clients.forEach((ws: any) => {
+                if (ws.isAlive === false) {
+                    logger.warn(`[WebRTC] Terminating dead client connection.`);
+                    return ws.terminate();
+                }
+                ws.isAlive = false;
+                ws.ping();
+            });
+        }, 30000);
+
+        this.wss.on('close', () => {
+            clearInterval(interval);
+        });
+
+        this.wss.on('connection', (ws: any) => {
+            const clientId = crypto.randomUUID();
+            logger.info(`[WebRTC] Client connected: ${clientId}`);
+            let isAuthenticated = false;
+            
+            ws.isAlive = true;
+            ws.on('pong', () => {
+                ws.isAlive = true;
+            });
+
+            ws.on('message', (message: string) => {
+                try {
+                    const data = JSON.parse(message) as WebRtcMessage;
+
+                    if (data.type === 'auth') {
+                        if (data.token && this.validTokens.has(data.token)) {
+                            isAuthenticated = true;
+                            this.clients.set(clientId, ws);
+                            logger.info(`[WebRTC] Client ${clientId} authenticated successfully.`);
+                            ws.send(JSON.stringify({ type: 'auth_success' }));
+                        } else {
+                            logger.warn(`[WebRTC] Client ${clientId} failed authentication.`);
+                            ws.send(JSON.stringify({ type: 'auth_error', message: 'Invalid or expired token' }));
+                            ws.close();
+                        }
+                        return;
+                    }
+
+                    if (!isAuthenticated) {
+                        logger.warn(`[WebRTC] Unauthenticated client ${clientId} attempted to send signaling data.`);
+                        return;
+                    }
+
+                    // For this architecture, the Master Node acts as the peer.
+                    // We simulate a successful handshake by telling the client we are "connecting".
+                    logger.info(`[WebRTC] Received ${data.type} from ${clientId}`);
+                    
+                    if (data.type === 'offer') {
+                        ws.send(JSON.stringify({ type: 'server_ack', message: 'SDP offer received, establishing DataChannel' }));
+                    }
+
+                } catch (err) {
+                    logger.error(`[WebRTC] Error parsing message from ${clientId}:`, err);
+                }
+            });
+
+            ws.on('close', () => {
+                logger.info(`[WebRTC] Client disconnected: ${clientId}`);
+                this.clients.delete(clientId);
+            });
+        });
+
+        logger.info('[WebRTC] Signaling service initialized on /webrtc-signaling');
+    }
+
+    public generateSessionToken(): string {
+        const token = crypto.randomUUID();
+        this.validTokens.add(token);
+        
+        // Auto-expire token after 10 minutes (Cart Recovery Window)
+        setTimeout(() => {
+            this.validTokens.delete(token);
+            logger.info(`[WebRTC] Token ${token} expired.`);
+        }, 10 * 60 * 1000);
+
+        return token;
+    }
+}
+
+export const webRtcSignalingService = new WebRtcSignalingService();

@@ -5,7 +5,7 @@ import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { logger } from '@clickflash/logger';
+import { logger } from './logger.js';
 import { getSwarmTools, handleSwarmPlanTask, handleSwarmSynthesize } from './swarm.js';
 import { getCompetitorTools, handleCompetitorScan, handleFindBetterIdeas } from './competitor.js';
 import { getRevenueTools, handleYieldSimulator, handleRevenueDashboard, handleAbandonedCartScan } from './revenue.js';
@@ -22,6 +22,13 @@ import { getCodeIntelTools, handleApiEndpointLister, handleEnvValidator, handleM
 import { getProductionTools, handleAuditAppBoundaries, handleSearchArchitectureGaps, handleUiUxAccessibilityFixer, handleFinalProductionReadiness } from './production.js';
 import { infiniteLoopTools, handleInfiniteLoopCall } from './infinite-loop.js';
 import { getInnovationTools, handleAuditUxFlow, handleGenerateFeatureIdea, handleStartInfiniteFeatureLoop } from './innovation.js';
+import { getDeepIntelTools, handleDeepThinkAnalyze, handleDeepScanAst, handleDeepSearchSymbols, handleDeepPlanSynthesizer, handleDeepScanArchitecture } from './deep_intel.js';
+import { getChaosTools, handleChaosEdgeFaultInjector, handleOfflineStoragePressureTester } from './chaos.js';
+import { getVisionTools, handleArcfaceVectorBenchmarker, handleBurstActionShotScorer } from './vision.js';
+import { getYieldArbitrageTools, handleDynamicYieldArbitrageEngine, handleWhaleLeadNegotiator } from './yield_arbitrage.js';
+import { getCryptoTools, handleDrmEphemeralWatermarkVerifier, handleHardwareLicenseEnclaveValidator } from './crypto.js';
+import { getSimulationTools, handleSyntheticParkSimulator, handleLoadStressBenchmark } from './simulation.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -75,6 +82,13 @@ export function registerTools(): Tool[] {
     ...getProductionTools(),
     ...infiniteLoopTools,
     ...getInnovationTools(),
+    ...getDeepIntelTools(),
+    ...getChaosTools(),
+    ...getVisionTools(),
+    ...getYieldArbitrageTools(),
+    ...getCryptoTools(),
+    ...getSimulationTools(),
+
     {
       name: "start_app",
       description: "Start a ClickFlash app in the background",
@@ -733,7 +747,38 @@ export async function handleToolCall(name: string, args: any) {
     return await handleGenerateFeatureIdea(args);
   } else if (name === "start_infinite_feature_loop") {
     return await handleStartInfiniteFeatureLoop(args);
+  } else if (name === "deep_think_analyze") {
+    return await handleDeepThinkAnalyze(args);
+  } else if (name === "deep_scan_ast") {
+    return await handleDeepScanAst(args);
+  } else if (name === "deep_search_symbols") {
+    return await handleDeepSearchSymbols(args);
+  } else if (name === "deep_plan_synthesizer") {
+    return await handleDeepPlanSynthesizer(args);
+  } else if (name === "deep_scan_architecture") {
+    return await handleDeepScanArchitecture(args);
+  } else if (name === "chaos_edge_fault_injector") {
+    return await handleChaosEdgeFaultInjector(args);
+  } else if (name === "offline_storage_pressure_tester") {
+    return await handleOfflineStoragePressureTester(args);
+  } else if (name === "arcface_vector_benchmarker") {
+    return await handleArcfaceVectorBenchmarker(args);
+  } else if (name === "burst_action_shot_scorer") {
+    return await handleBurstActionShotScorer(args);
+  } else if (name === "dynamic_yield_arbitrage_engine") {
+    return await handleDynamicYieldArbitrageEngine(args);
+  } else if (name === "whale_lead_negotiator") {
+    return await handleWhaleLeadNegotiator(args);
+  } else if (name === "drm_ephemeral_watermark_verifier") {
+    return await handleDrmEphemeralWatermarkVerifier(args);
+  } else if (name === "hardware_license_enclave_validator") {
+    return await handleHardwareLicenseEnclaveValidator(args);
+  } else if (name === "synthetic_park_simulator") {
+    return await handleSyntheticParkSimulator(args);
+  } else if (name === "load_stress_benchmark") {
+    return await handleLoadStressBenchmark(args);
   }
+
   
   throw new Error(`Unknown tool: ${name}`);
 }

@@ -1,5 +1,5 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { logger } from "@clickflash/logger";
+import { logger } from "./logger.js";
 import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs";
@@ -251,11 +251,12 @@ export async function handleMonorepoHealthScore(_args: Record<string, unknown>) 
 
   // Typecheck
   try {
-    await execAsync("npm run typecheck:all 2>&1", { cwd: rootDir, timeout: 120000 });
+    await execAsync("npm run typecheck:all", { cwd: rootDir, timeout: 240000 });
     details.push("✅ TypeCheck: PASS (+0)");
-  } catch {
+  } catch (err: any) {
+    logger.warn(`[CodeIntel] Typecheck check encountered: ${err?.message || err}`);
     score -= 30;
-    details.push("❌ TypeCheck: FAIL (-30)");
+    details.push(`❌ TypeCheck: FAIL (-30) [${err?.message?.slice(0, 80) || "error"}]`);
   }
 
   // TODO count

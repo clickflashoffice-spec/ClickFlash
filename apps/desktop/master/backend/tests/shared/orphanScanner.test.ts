@@ -1,3 +1,4 @@
+import { vi, describe, it, test, expect, beforeAll, afterAll } from 'vitest';
 // backend/tests/shared/orphanScanner.test.ts
 // Unit test for P0-1 bidirectional orphan scanner.
 
@@ -9,10 +10,10 @@ import { runOrphanScan, ensureOrphanAuditSchema, getRecentOrphanReports } from '
 import { Logger } from '../../utils/logger';
 
 const mockLogger: Logger = {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
 } as any;
 
 describe("OrphanScanner (P0-1)", () => {

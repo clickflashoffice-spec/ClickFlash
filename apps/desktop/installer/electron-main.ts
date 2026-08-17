@@ -91,6 +91,7 @@ import {
   isPrivateIpv4,
   isTrustedRendererUrl,
 } from "./electron-security";
+import { runSystemAudit } from "./systemAudit";
 
 // ─── Protocol Registration ────────────────────────────────────────────────────
 protocol.registerSchemesAsPrivileged([
@@ -1410,8 +1411,25 @@ if (!gotLock) {
 
 const readyPromise = app.whenReady();
 if (readyPromise && typeof readyPromise.then === "function") {
-  readyPromise.then(() => {
+  readyPromise.then(async () => {
     setupIpc();
+    
+    // Run pre-flight system audit
+    log("info", "Running pre-flight system audit...");
+    const auditResult = await runSystemAudit();
+    if (!auditResult.passed) {
+      log("error", "System audit failed", { errors: auditResult.errors });
+      dialog.showErrorBox(
+        "System Audit Failed",
+        "This system does not meet the minimum requirements for ClickFlash:\n\n" + auditResult.errors.join("\n")
+      );
+      app.quit();
+      return;
+    }
+    if (auditResult.warnings.length > 0) {
+      log("warn", "System audit warnings", { warnings: auditResult.warnings });
+    }
+
     createWindow();
 
     // Handle OAuth callback protocol

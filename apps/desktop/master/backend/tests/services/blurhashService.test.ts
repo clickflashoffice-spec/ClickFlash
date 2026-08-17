@@ -1,3 +1,4 @@
+import { describe, it, test, expect } from 'vitest';
 import sharp from 'sharp';
 import { BlurhashService } from '../../services/blurhashService';
 

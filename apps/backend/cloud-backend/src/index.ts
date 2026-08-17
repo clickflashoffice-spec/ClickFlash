@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { Resend } from 'resend';
 import type { AppEnv, Bindings } from './types';
-import { corsMiddleware, regionRoutingMiddleware, getRegionalDB } from './middleware';
+import { corsMiddleware, regionRoutingMiddleware, tenantRoutingMiddleware, getRegionalDB } from './middleware';
 import { analyzeImageWithGemini } from './services/gemini-tagger';
 
 import galleryRoutes from './routes/gallery';
@@ -15,6 +15,7 @@ import intelligenceRoutes from './routes/intelligence';
 import emailRoutes from './routes/email';
 import healthRoutes from './routes/health';
 import stripeWebhooksRoutes from './routes/stripeWebhooks';
+import whatsappWebhooksRoutes from './routes/whatsappWebhooks';
 import paymentsRoutes from './routes/payments';
 
 import deliveryRoutes from './routes/delivery';
@@ -26,6 +27,7 @@ const app = new Hono<AppEnv>();
 
 app.use('*', corsMiddleware);
 app.use('*', regionRoutingMiddleware);
+app.use('*', tenantRoutingMiddleware);
 
 app.get('/', (c) => c.text('ClickFlash Cloud Backend API is running!'));
 
@@ -46,6 +48,9 @@ app.route('/api/ghostlink', ghostlinkRoutes);
 app.route('/api', emailRoutes); // notifications, push-token
 app.route('/api/health', healthRoutes);
 app.route('/api/stripe-webhooks', stripeWebhooksRoutes);
+app.route('/api/webhooks/whatsapp', whatsappWebhooksRoutes);
+app.route('/api/webhook/whatsapp', whatsappWebhooksRoutes);
+
 
 export default {
   fetch: app.fetch,

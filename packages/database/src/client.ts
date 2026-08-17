@@ -36,6 +36,11 @@ export function createDrizzleClient(options: DatabaseOptions): {
   sqlite.pragma('journal_mode = WAL');
   sqlite.pragma('synchronous = NORMAL');
   sqlite.pragma('foreign_keys = ON');
+  
+  // Performance and concurrency optimizations
+  sqlite.pragma('busy_timeout = 5000');
+  sqlite.pragma('temp_store = MEMORY');
+  sqlite.pragma('mmap_size = 268435456');
 
   // Apply encryption key if specified
   if (options.encryptionKey) {

@@ -1,7 +1,7 @@
 import { SyncPipeline, SyncContext, PipelineResult } from '../SyncPipeline';
 import { HardwareService } from '../../SystemHardwareService';
 
-const fetchFn = (globalThis as any).fetch;
+const fetchFn = (...args: any[]) => ((globalThis as any).fetch)(...args);
 
 export class HeartbeatPipeline implements SyncPipeline {
   name = 'heartbeat';

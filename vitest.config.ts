@@ -17,6 +17,7 @@ export default defineConfig({
       ['apps/desktop/touch/**', 'jsdom'],
       ['apps/desktop/moneytrash/**', 'jsdom'],
       ['apps/desktop/installer/**', 'jsdom'],
+      ['packages/ui/**', 'jsdom'],
       ['packages/**', 'node'],
       ['apps/backend/**', 'node'],
     ],

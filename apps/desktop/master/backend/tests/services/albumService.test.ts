@@ -1,24 +1,25 @@
+import { vi, describe, it, test, expect, beforeEach } from 'vitest';
 import AlbumService from "../../services/albumService";
 
 // Mock dependencies
 const mockDbManager = {
-  get: jest.fn(),
-  run: jest.fn(),
+  get: vi.fn(),
+  run: vi.fn(),
 };
 
 const mockLogger = {
-  info: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn(),
-  debug: jest.fn(),
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
 };
 
 const mockRealtimeService = {
-  broadcast: jest.fn(),
+  broadcast: vi.fn(),
 };
 
 const mockRedisCache = {
-  publishEvent: jest.fn().mockResolvedValue(true),
+  publishEvent: vi.fn().mockResolvedValue(true),
 };
 
 describe("AlbumService", () => {
@@ -31,7 +32,7 @@ describe("AlbumService", () => {
       realtimeService: mockRealtimeService as any,
       redisCache: mockRedisCache as any,
     });
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("registerPhoto", () => {

@@ -1,25 +1,26 @@
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DbWriteQueue } from '../DbWriteQueue';
 
 const mockDb = {
-    run: jest.fn(),
-    query: jest.fn(),
-    get: jest.fn(),
-    prepare: jest.fn(),
-    transaction: jest.fn((fn: Function) => fn()),
+    run: vi.fn(),
+    query: vi.fn(),
+    get: vi.fn(),
+    prepare: vi.fn(),
+    transaction: vi.fn((fn: Function) => fn()),
 };
 
 const mockLogger = {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
 };
 
 describe('DbWriteQueue', () => {
     let queue: DbWriteQueue;
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         mockDb.query.mockReturnValue([]);
         queue = new DbWriteQueue(mockDb as any, { logger: mockLogger as any, flushInterval: 50, maxQueueSize: 5 });
     });

@@ -3,7 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import {
   Upload, FolderUp, CheckCircle, X, Smartphone, HardDrive,
   Image, FileImage, Trash2, AlertCircle, Loader2, History,
-  FileCheck, Settings, FolderOpen, MonitorPlay, BarChart2
+  FileCheck, FolderOpen, MonitorPlay, BarChart2
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { desktopBatchUploadService } from './services/desktopBatchUploadService';
@@ -94,7 +94,7 @@ function App() {
 
       // 2. Load Config (PRE-CONFIGURATION SYNC)
       logger.info('[MoneyTrash] Initializing cloud configuration...');
-      const config = await invoke<any>('load_upload_config');
+      let config = await invoke<any>('load_upload_config');
       
       if (config) {
         logger.info('[MoneyTrash] Pre-configuration found:', config);
@@ -133,6 +133,8 @@ function App() {
             .then(health => logger.info('[MoneyTrash] Cloud API Health:', health))
             .catch(err => logger.error('[MoneyTrash] Cloud API Connectivity Error:', err));
         }
+      } // Close if (config)
+
       let masterConfig: any = null;
       try {
         const res = await fetch('http://localhost:8090/api/settings', {
@@ -470,32 +472,7 @@ function App() {
     }
   };
 
-  const saveSettings = async () => {
-    try {
-      if (isTauri()) {
-        await invoke('save_upload_config', {
-          config: {
-            event_name: eventName,
-            access_code: accessCode,
-            mode: mode === 'analytics' ? 'moneytrash' : mode,
-            customer_email: customerEmail || null,
-            single_photo_price: singlePhotoPrice || null,
-            full_gallery_price: fullGalleryPrice || null,
-            api_url: settings.apiUrl,
-            desk_id: settings.deskId,
-            s3_access_key: settings.s3AccessKey || null,
-            s3_secret_key: settings.s3SecretKey || null,
-            s3_region: settings.s3Region || null,
-            s3_bucket: settings.s3Bucket || null,
-            s3_endpoint: settings.s3Endpoint || null
-          }
-        });
-      }
-      setShowSettings(false);
-    } catch (error) {
-      logger.error('Error saving settings:', error);
-    }
-  };
+
 
   // File validation errors
   const fileErrors = fileRejections.map(({ file, errors }) => (

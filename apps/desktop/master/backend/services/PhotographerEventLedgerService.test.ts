@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from "fs";
 import path from "path";
 
@@ -19,9 +20,9 @@ describe("PhotographerEventLedgerService", () => {
   let sequence = 1;
 
   const logger = {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   };
 
   beforeEach(() => {
@@ -52,7 +53,7 @@ describe("PhotographerEventLedgerService", () => {
       now: () => NOW,
     });
     sequence = 1;
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => database.close());

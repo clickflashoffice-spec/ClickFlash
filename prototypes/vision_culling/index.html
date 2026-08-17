@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Vision Culling Pipeline (WASM & WebGPU)</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+        color: #333;
+      }
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+      }
+      .image-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .image-card {
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 4px;
+        width: calc(33% - 20px);
+      }
+      .image-card img {
+        max-width: 100%;
+        height: auto;
+      }
+      #status {
+        padding: 10px;
+        border-radius: 4px;
+        background: #e3f2fd;
+        border: 1px solid #bbdefb;
+        margin-bottom: 20px;
+      }
+      .badges {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin-top: 5px;
+      }
+      .badge {
+        background: #eee;
+        padding: 2px 6px;
+        border-radius: 12px;
+        font-size: 0.8em;
+      }
+      .score {
+        font-weight: bold;
+        color: #2196F3;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Local-First AI Photo Culling</h1>
+    <div class="card">
+      <div id="status">Initializing pipeline...</div>
+      
+      <div>
+        <h3>1. Select Photos</h3>
+        <input type="file" id="imageInput" multiple accept="image/*" disabled />
+      </div>
+
+      <div>
+        <h3>2. Culling Criteria</h3>
+        <label>
+          Search Concept (CLIP):
+          <input type="text" id="conceptInput" value="a clear photo of a face, smiling" placeholder="e.g. happy people" />
+        </label>
+        <button id="processBtn" disabled>Process Images</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Results</h2>
+      <div class="image-container" id="results"></div>
+    </div>
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

@@ -6,9 +6,24 @@ import { redisCache } from './redisCacheService';
 export class HotspotDispatcher {
     /**
      * Analyzes real-time guest density telemetry (e.g., from BLE nets or Kiosk check-ins)
-     * and dispatches a HotspotDispatchEvent to re-route photographers locally.
+     * and dispatches a HotspotDispatchEvent to re-route photographers locally,
+     * taking into account environmental factors like weather and time of day.
      */
-    public async evaluateTelemetry(zoneId: string, guestCount: number, availablePhotographers: string[]): Promise<HotspotDispatchEvent | null> {
+    public async evaluateTelemetry(
+        zoneId: string, 
+        guestCount: number, 
+        availablePhotographers: string[],
+        environmentalContext?: { weather?: 'sunny' | 'rain' | 'cloudy', timeOfDay?: 'day' | 'night' }
+    ): Promise<HotspotDispatchEvent | null> {
+        // AI Dynamic Yield / Routing logic: Do not dispatch to outdoor zones in heavy rain unless it's a known covered area.
+        // For this edge node implementation, if it's raining and it's an outdoor zone (assumed general zones), reduce dispatch priority or abort.
+        if (environmentalContext?.weather === 'rain') {
+            logger.info(`[HotspotDispatcher] Aborting or reducing dispatch in ${zoneId} due to rain.`);
+            guestCount = Math.floor(guestCount * 0.3); // Drastically reduce perceived crowd value in rain
+        }
+
+        // Night time might need flash equipment. We could filter available photographers based on equipment.
+        
         // Simple threshold logic for AI Dispatch
         if (guestCount > 100 && availablePhotographers.length > 0) {
             const recommendedCount = Math.ceil(guestCount / 50); // 1 photog per 50 guests
@@ -30,7 +45,8 @@ export class HotspotDispatcher {
                 status: 'pending',
                 timestamp: new Date().toISOString(),
                 metadata: {
-                    crowdEstimate: guestCount
+                    crowdEstimate: guestCount,
+                    weatherCondition: environmentalContext?.weather || 'unknown'
                 }
             };
 

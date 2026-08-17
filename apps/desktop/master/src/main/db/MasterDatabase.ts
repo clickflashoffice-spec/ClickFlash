@@ -29,7 +29,11 @@ export class MasterDatabase {
       
       // Enforce foreign keys and WAL mode for performance
       this.db.pragma('journal_mode = WAL');
+      this.db.pragma('synchronous = NORMAL');
       this.db.pragma('foreign_keys = ON');
+      this.db.pragma('busy_timeout = 5000');
+      this.db.pragma('temp_store = MEMORY');
+      this.db.pragma('mmap_size = 268435456');
 
       // Create core schema
       this.db.exec(`

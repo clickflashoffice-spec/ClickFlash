@@ -9,7 +9,10 @@ import {
   CreditCard, 
   Images, 
   LogOut,
-  Settings 
+  Settings,
+  MessageCircle,
+  Activity,
+  Sparkles
 } from 'lucide-react';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import { LoginView } from './views/LoginView';
@@ -22,8 +25,12 @@ import { PricingView } from './views/PricingView';
 import { AICommandView } from './views/AICommandView';
 import { FinancialsView } from './views/FinancialsView';
 import { SystemSettingsView } from './views/SystemSettingsView';
+import { WhatsappSwarmView } from './views/WhatsappSwarmView';
+import { MagicShotStudioView } from './views/MagicShotStudioView';
+import { AutonomousCeo } from './pages/AutonomousCeo';
+import { FranchiseOverview } from './pages/FranchiseOverview';
 
-type TabPath = '/' | '/fleet' | '/staff' | '/customers' | '/galleries' | '/pricing' | '/ai-command' | '/financials' | '/settings';
+type TabPath = '/' | '/fleet' | '/staff' | '/customers' | '/galleries' | '/pricing' | '/magic-shots' | '/ai-command' | '/whatsapp-swarm' | '/autonomous-ceo' | '/financials' | '/settings' | '/franchise';
 
 interface NavItem {
   path: TabPath;
@@ -33,12 +40,16 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/franchise', label: 'Franchise Overview', icon: Activity },
   { path: '/fleet', label: 'Live Ops', icon: MonitorSmartphone },
   { path: '/staff', label: 'Staff & HR', icon: Users },
   { path: '/customers', label: 'CRM', icon: UserCircle },
   { path: '/galleries', label: 'Galleries', icon: Images },
   { path: '/pricing', label: 'Pricing & Products', icon: Tag },
+  { path: '/magic-shots', label: 'Magic Shot VFX', icon: Sparkles },
   { path: '/ai-command', label: 'AI Command', icon: Bot },
+  { path: '/autonomous-ceo', label: 'Autonomous CEO', icon: Activity },
+  { path: '/whatsapp-swarm', label: 'WhatsApp Swarm', icon: MessageCircle },
   { path: '/financials', label: 'Financials', icon: CreditCard },
   { path: '/settings', label: 'System Settings', icon: Settings },
 ];
@@ -139,12 +150,16 @@ export default function App() {
   const renderView = () => {
     switch (currentPath) {
       case '/': return <DashboardView />;
+      case '/franchise': return <FranchiseOverview />;
       case '/fleet': return <FleetView />;
       case '/staff': return <StaffView />;
       case '/customers': return <CustomerView />;
       case '/galleries': return <GalleriesView />;
       case '/pricing': return <PricingView />;
+      case '/magic-shots': return <MagicShotStudioView />;
       case '/ai-command': return <AICommandView />;
+      case '/autonomous-ceo': return <AutonomousCeo />;
+      case '/whatsapp-swarm': return <WhatsappSwarmView />;
       case '/financials': return <FinancialsView />;
       case '/settings': return <SystemSettingsView />;
       default: return <DashboardView />;

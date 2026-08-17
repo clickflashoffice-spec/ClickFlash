@@ -8,7 +8,7 @@ import { registerTools, handleToolCall } from "./tools.js";
 import { registerResources, handleReadResource } from "./resources.js";
 import { registerPrompts, handleGetPrompt } from "./prompts.js";
 import { discoverExternalTools, dispatchExternalTool, shutdownGateway } from "./gateway.js";
-import { logger } from "@clickflash/logger";
+import { logger } from "./logger.js";
 
 const server = new Server(
   {

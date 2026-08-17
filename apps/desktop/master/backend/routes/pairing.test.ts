@@ -1,3 +1,4 @@
+import { vi, describe, it, test, expect, beforeEach, beforeAll, afterAll } from 'vitest';
 if (typeof TextEncoder === 'undefined') {
     const { TextEncoder, TextDecoder } = require('util');
     global.TextEncoder = TextEncoder;
@@ -12,14 +13,14 @@ import pairingRoutes from '../routes/pairing';
 import crypto from 'crypto';
 
 const mockLogger = {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn()
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn()
 };
 
 const mockAuditLogger = {
-    logLoginAttempt: jest.fn()
+    logLoginAttempt: vi.fn()
 };
 
 describe('Touch pairing flow', () => {
@@ -68,7 +69,7 @@ describe('Touch pairing flow', () => {
     });
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         // Clear pairings table between tests
         db.exec('DELETE FROM pairings');
     });

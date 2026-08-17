@@ -1,3 +1,4 @@
+import { vi, describe, it, test, expect, beforeEach, beforeAll, afterAll } from 'vitest';
 import { PhotographerCommandCenterV1Schema } from "@clickflash/types";
 import Database from "better-sqlite3-multiple-ciphers";
 import express from "express";
@@ -7,10 +8,10 @@ import type { DatabaseManager } from "../database/db";
 import photographerCommandCenterRoutes from "./photographerCommandCenter";
 
 const mockLogger = {
-  info: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  debug: vi.fn(),
 };
 
 describe("Photographer self command center", () => {
@@ -116,7 +117,7 @@ describe("Photographer self command center", () => {
       "last_hub_sync_at",
       JSON.stringify("2000-01-01T00:00:00.000Z")
     );
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("returns only authenticated self data with explicit unavailable financial states", async () => {

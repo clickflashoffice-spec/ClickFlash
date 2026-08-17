@@ -1,3 +1,4 @@
+import { describe, it, test, expect, beforeAll, afterAll } from 'vitest';
 /**
  * ClickFlash Photo Pipeline E2E Test
  *

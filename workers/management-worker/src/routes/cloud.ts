@@ -172,15 +172,16 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
 
         const processed: string[] = [];
         for (const op of ops) {
-          try {
-            // Free Tier Enforcement
-            if (isFreeTier && op.table === 'photos' && op.type.toLowerCase() === 'insert') {
-              if (currentUsage + photosAdded >= 100) {
-                return createErrorResponse(402, "Payment Required", "Free tier limit of 100 photos/month reached. Please upgrade to Pro.", undefined, undefined, corsHeaders);
-              }
-              photosAdded++;
+          if (isFreeTier && op.table === 'photos' && op.type.toLowerCase() === 'insert') {
+            if (currentUsage + photosAdded >= 100) {
+              return createErrorResponse(402, "Payment Required", "Free tier limit of 100 photos/month reached. Please upgrade to Pro.", undefined, undefined, corsHeaders);
             }
+            photosAdded++;
+          }
+        }
 
+        await Promise.all(ops.map(async (op: any) => {
+          try {
             await dbManager.run(
               `INSERT OR IGNORE INTO operation_logs (id, desk_id, type, table_name, record_id, payload, timestamp, sequence_number)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -201,7 +202,7 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
           } catch (err) {
             logger.error(String(`[SyncOps] Failed to store op ${op.id}:`) + ' ' + String(err));
           }
-        }
+        }));
 
         // Update studio photo usage
         if (photosAdded > 0 && destination?.studio_id) {
@@ -387,10 +388,10 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
         };
 
         let count = 0;
-        for (const item of items) {
+        await Promise.all(items.map(async (item: any) => {
           try {
             const keys = Object.keys(item).filter((k) => ALLOWED_COLUMNS[table].includes(k));
-            if (keys.length === 0) continue;
+            if (keys.length === 0) return;
             const placeholders = keys.map(() => "?").join(", ");
             const setClause = keys
               .map((k) => `${k} = excluded.${k}`)
@@ -405,7 +406,7 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
           } catch (e) {
             logger.error(String(`[SyncBatch] Failed to upsert into ${table}:`) + ' ' + String(e));
           }
-        }
+        }));
         return Response.json(
           { success: true, processed: count },
           { headers: corsHeaders },
@@ -789,12 +790,12 @@ export const handleCloud = async (request: Request, url: URL, env: any, dbManage
               [deskId],
             );
             if (oldBackups && oldBackups.length > 0) {
-              for (const old of oldBackups) {
+              await Promise.all(oldBackups.map(async (old: any) => {
                 try {
                   if (env.BACKUP_BUCKET) await env.BACKUP_BUCKET.delete(old.r2_key);
                   await dbManager.run(`DELETE FROM cloud_backups WHERE id = ?`, [old.id]);
                 } catch (_) {}
-              }
+              }));
             }
           } catch (retentionErr) {
             logger.warn("[Backup Retention] Cleanup non-fatal error:", { args: [retentionErr] });

@@ -20,7 +20,8 @@ overrides:
   "dompurify": "^3.4.12"
   "electron@<39.8.10": "39.8.10"
   "electron-builder-squirrel-windows>app-builder-lib": "26.15.7"
-  "esbuild": "^0.25.0"
+  "esbuild": "0.28.2"
+  "@esbuild/win32-x64": "0.28.2"
   "fast-uri@<3.1.5": "3.1.5"
   "fast-xml-parser@>=5.0.0 <5.5.6": "5.5.6"
   "flatted@<3.4.2": "3.4.3"
@@ -62,7 +63,7 @@ overrides:
   "react-dom": "19.2.7"
   "image-size": "2.0.2"
 
-onlyBuiltDependencies:
+allowBuilds:
   - "@sentry/cli"
   - "@serialport/bindings-cpp"
   - "@swc/core"

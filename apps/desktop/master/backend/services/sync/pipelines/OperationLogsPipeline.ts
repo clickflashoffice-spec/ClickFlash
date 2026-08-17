@@ -24,7 +24,7 @@ interface OutgoingOperation {
   sequence_number?: number;
 }
 
-const fetchFn = (globalThis as any).fetch;
+const fetchFn = (...args: any[]) => ((globalThis as any).fetch)(...args);
 
 export class OperationLogsPipeline implements SyncPipeline {
   name = 'operation_logs';

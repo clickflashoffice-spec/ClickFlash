@@ -1,6 +1,7 @@
 /**
  * Mock API Service for Testing
  */
+import { vi } from 'vitest';
 import { Photo, Album } from '../../types';
 
 export const mockPhotos: Photo[] = [
@@ -47,18 +48,18 @@ export const mockAlbum: Album = {
 };
 
 export const apiService = {
-    getAlbum: jest.fn().mockResolvedValue(mockAlbum),
-    getPhotosPaginated: jest.fn().mockResolvedValue({
+    getAlbum: vi.fn().mockResolvedValue(mockAlbum),
+    getPhotosPaginated: vi.fn().mockResolvedValue({
         items: mockPhotos,
         totalItems: mockPhotos.length,
         page: 1,
         totalPages: 1,
     }),
-    getPhotos: jest.fn().mockResolvedValue(mockPhotos),
-    createAlbum: jest.fn(),
-    updateAlbum: jest.fn(),
-    deleteAlbum: jest.fn(),
-    updatePhoto: jest.fn(),
+    getPhotos: vi.fn().mockResolvedValue(mockPhotos),
+    createAlbum: vi.fn(),
+    updateAlbum: vi.fn(),
+    deleteAlbum: vi.fn(),
+    updatePhoto: vi.fn(),
 };
 
 // Reset mocks between tests

@@ -609,11 +609,24 @@ export class CloudSyncService {
   private async getHeaders() {
     const machineId = await HardwareService.getMachineId();
     const version = process.env.npm_package_version || "4.1.0";
+    
+    // Inject tenant ID from environment fallback or settings
+    let tenantId = process.env.TENANT_ID;
+    try {
+      const row = this.dbManager.get<{ value: string }>("SELECT value FROM settings WHERE key = 'tenant_id'");
+      if (row && row.value) {
+        tenantId = JSON.parse(row.value);
+      }
+    } catch (e) {
+      // Ignored
+    }
+
     return {
       Authorization: `Bearer ${this.token}`,
       "Content-Type": "application/json",
       "User-Agent": `ClickFlashMaster/${version} (${machineId})`,
       "X-Desk-ID": this.deskId,
+      "X-Tenant-ID": tenantId || "default-tenant",
     };
   }
 

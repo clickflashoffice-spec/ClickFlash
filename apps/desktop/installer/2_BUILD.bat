@@ -2,6 +2,5 @@
 cd /d "%~dp0"
 echo ===================================================
 echo   STUDIO INSTALLER - Build
-echo ===================================================
-pnpm run build
+pnpm run build:all
 pause

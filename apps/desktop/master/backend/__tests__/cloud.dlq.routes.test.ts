@@ -1,3 +1,4 @@
+import { vi, describe, it, test, expect, beforeEach } from 'vitest';
 if (typeof TextEncoder === 'undefined') {
     const { TextEncoder, TextDecoder } = require('util');
     global.TextEncoder = TextEncoder;
@@ -9,7 +10,7 @@ import express from 'express';
 import cloudRoutes from '../routes/cloud';
 
 // Mock strictRateLimiter
-jest.mock('../middleware/rateLimiter', () => ({
+vi.mock('../middleware/rateLimiter', () => ({
     strictRateLimiter: (_req: any, _res: any, next: any) => next(),
     apiRateLimiter: (_req: any, _res: any, next: any) => next()
 }));
@@ -22,29 +23,29 @@ describe('Cloud DLQ Routes', () => {
 
     beforeEach(() => {
         mockCloudSyncService = {
-            getDeadLetterQueue: jest.fn().mockReturnValue({
+            getDeadLetterQueue: vi.fn().mockReturnValue({
                 items: [{ id: 'dlq-1', operation: 'test', status: 'dead_letter' }],
                 total: 1
             }),
-            replayDeadLetterQueue: jest.fn().mockReturnValue({
+            replayDeadLetterQueue: vi.fn().mockReturnValue({
                 replayed: 1,
                 errors: []
             }),
-            deleteDeadLetterQueueItems: jest.fn().mockReturnValue({
+            deleteDeadLetterQueueItems: vi.fn().mockReturnValue({
                 deleted: 1,
                 errors: []
             })
         };
 
         mockLogger = {
-            info: jest.fn(),
-            error: jest.fn(),
-            warn: jest.fn(),
-            debug: jest.fn()
+            info: vi.fn(),
+            error: vi.fn(),
+            warn: vi.fn(),
+            debug: vi.fn()
         };
 
         mockDbManager = {
-            query: jest.fn().mockReturnValue([])
+            query: vi.fn().mockReturnValue([])
         };
 
         app = express();

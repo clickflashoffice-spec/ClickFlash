@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+import { vi, describe, it, test, expect, beforeEach, afterEach } from 'vitest';
 /**
  * Unit tests for useDebounce hook
  * @jest-environment jsdom
@@ -7,11 +9,11 @@ import { useDebounce } from './useDebounce';
 
 describe('useDebounce', () => {
     beforeEach(() => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
     });
 
     afterEach(() => {
-        jest.useRealTimers();
+        vi.useRealTimers();
     });
 
     it('should return initial value immediately', () => {
@@ -37,7 +39,7 @@ describe('useDebounce', () => {
 
         // Fast-forward time
         act(() => {
-            jest.advanceTimersByTime(500);
+            vi.advanceTimersByTime(500);
         });
 
         // Now value should be updated
@@ -53,12 +55,12 @@ describe('useDebounce', () => {
         // Rapid changes
         rerender({ value: 'v2', delay: 300 });
         act(() => {
-            jest.advanceTimersByTime(100);
+            vi.advanceTimersByTime(100);
         });
 
         rerender({ value: 'v3', delay: 300 });
         act(() => {
-            jest.advanceTimersByTime(100);
+            vi.advanceTimersByTime(100);
         });
 
         rerender({ value: 'v4', delay: 300 });
@@ -68,7 +70,7 @@ describe('useDebounce', () => {
 
         // Wait full delay
         act(() => {
-            jest.advanceTimersByTime(300);
+            vi.advanceTimersByTime(300);
         });
 
         // Now should be final value
@@ -85,13 +87,13 @@ describe('useDebounce', () => {
 
         // Advance 500ms - should still be debouncing
         act(() => {
-            jest.advanceTimersByTime(500);
+            vi.advanceTimersByTime(500);
         });
         expect(result.current).toBe('test');
 
         // Advance remaining 500ms
         act(() => {
-            jest.advanceTimersByTime(500);
+            vi.advanceTimersByTime(500);
         });
         expect(result.current).toBe('changed');
     });

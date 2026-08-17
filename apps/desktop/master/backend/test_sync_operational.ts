@@ -1,4 +1,4 @@
-import { logger } from "@/utils/logger";
+import { logger } from "./utils/logger";
 import fetch from 'node-fetch';
 
 const HUB_URL = 'http://localhost:8092';
@@ -61,7 +61,7 @@ export async function testSyncOperational(url: string = HUB_URL, token: string =
     }
 }
 
-if (require.main === module || process.argv[1] === __filename) {
+if (!process.env.VITEST && typeof require !== 'undefined' && typeof __filename !== 'undefined' && (require.main === module || process.argv[1] === __filename)) {
     testSyncOperational().catch(err => {
       logger.error('Unhandled exception:', err);
       process.exit(1);

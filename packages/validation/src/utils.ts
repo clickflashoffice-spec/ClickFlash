@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { validationError } from '@clickflash/errors';
+import { validationError } from '../../errors/src/index.js';
 
 /**
  * Validate data against a Zod schema, throwing on failure.

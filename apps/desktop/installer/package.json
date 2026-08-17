@@ -1,6 +1,6 @@
 {
   "name": "clickflash-installer",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "description": "ClickFlash Unified 1-Click Installer — Master Portal + Touch Kiosk",
   "author": "ClickFlash Photography",
   "private": true,
@@ -8,11 +8,13 @@
   "packageManager": "pnpm@10.28.1",
   "main": "dist/electron/electron-main.js",
   "scripts": {
-    "dev": "pnpm exec vite",
+    "dev": "node ../../../node_modules/vite/bin/vite.js",
     "dev:electron": "concurrently \"pnpm run dev\" \"wait-on http://localhost:5175 && electron .\" --names \"renderer,electron\" --prefix-colors \"green,cyan\" --kill-others-on-fail",
-    "build": "pnpm exec vite build",
+    "start": "electron .",
+    "build": "node ../../../node_modules/vite/bin/vite.js build",
     "build:electron": "rimraf dist/electron && tsc -p tsconfig.electron.json",
     "build:payload-tool": "rimraf dist/payload-tools && tsc -p tsconfig.payload-tools.json",
+    "build:all": "pnpm run build && pnpm run build:electron && pnpm run build:payload-tool",
     "payload:key:generate": "node scripts/generate-payload-key.mjs",
     "payload:sign": "pnpm run build:payload-tool && node dist/payload-tools/scripts/payload-release.js",
     "prepare:license-trust": "node ../../../scripts/prepare-license-trust.cjs build/generated/license-public-key.txt",

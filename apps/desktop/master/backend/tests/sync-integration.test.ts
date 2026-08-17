@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, beforeEach, beforeAll, afterAll } from 'vitest';
 /**
  * Integration Test: Offline-to-Online Sync Flow
  *
@@ -12,10 +13,10 @@ describe('Offline -> Online Sync Integration', () => {
     let db: DatabaseManager;
     let syncManager: SyncManager;
     const logger = {
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-        debug: jest.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
     };
 
     beforeAll(() => {
@@ -62,7 +63,7 @@ describe('Offline -> Online Sync Integration', () => {
     });
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         db.run("DELETE FROM orders");
         db.run("DELETE FROM mutation_ack_log");
     });

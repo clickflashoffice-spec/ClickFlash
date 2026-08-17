@@ -1,26 +1,27 @@
+import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
 // photoProcessor.test.ts
 import { PhotoProcessor } from "./photoProcessor";
 import fs from "fs";
 
 // fs will be mocked via spyOn in beforeEach
 // Mock worker_threads to prevent actual worker instantiation
-jest.mock("worker_threads", () => ({
-  Worker: jest.fn().mockImplementation(() => {
+vi.mock("worker_threads", () => ({
+  Worker: vi.fn().mockImplementation(() => {
     const listeners: Record<string, Function[]> = {};
     const emitter = {
-      on: jest.fn((event, callback) => {
+      on: vi.fn((event, callback) => {
         if (!listeners[event]) listeners[event] = [];
         listeners[event].push(callback);
         if (event === "online") {
           setTimeout(callback, 5);
         }
       }),
-      off: jest.fn((event, callback) => {
+      off: vi.fn((event, callback) => {
         if (listeners[event]) {
           listeners[event] = listeners[event].filter(cb => cb !== callback);
         }
       }),
-      postMessage: jest.fn(() => {
+      postMessage: vi.fn(() => {
         setTimeout(() => {
           if (listeners["message"]) {
             listeners["message"].forEach(cb => cb({
@@ -32,8 +33,8 @@ jest.mock("worker_threads", () => ({
           }
         }, 10);
       }),
-      terminate: jest.fn().mockResolvedValue(undefined),
-      unref: jest.fn(),
+      terminate: vi.fn().mockResolvedValue(undefined),
+      unref: vi.fn(),
       threadId: Math.floor(Math.random() * 1000),
     };
     return emitter;
@@ -44,15 +45,15 @@ describe("PhotoProcessor Robustness", () => {
   let processor: any;
 
   beforeEach(() => {
-    jest.spyOn(fs, "existsSync").mockReturnValue(true);
-    jest.spyOn(fs, "statSync").mockReturnValue({ size: 1024 } as any);
-    jest.spyOn(fs, "mkdirSync").mockImplementation(() => undefined as any);
-    jest.spyOn(fs.promises, "statfs").mockResolvedValue({ bavail: 10, bsize: 1024*1024*1024 } as any);
-    jest.spyOn(fs.promises, "mkdir").mockResolvedValue(undefined);
-    jest.spyOn(fs.promises, "access").mockResolvedValue(undefined);
-    jest.spyOn(fs.promises, "unlink").mockResolvedValue(undefined);
-    jest.spyOn(fs.promises, "rename").mockResolvedValue(undefined);
-    jest.spyOn(fs.promises, "copyFile").mockResolvedValue(undefined);
+    vi.spyOn(fs, "existsSync").mockReturnValue(true);
+    vi.spyOn(fs, "statSync").mockReturnValue({ size: 1024 } as any);
+    vi.spyOn(fs, "mkdirSync").mockImplementation(() => undefined as any);
+    vi.spyOn(fs.promises, "statfs").mockResolvedValue({ bavail: 10, bsize: 1024*1024*1024 } as any);
+    vi.spyOn(fs.promises, "mkdir").mockResolvedValue(undefined);
+    vi.spyOn(fs.promises, "access").mockResolvedValue(undefined);
+    vi.spyOn(fs.promises, "unlink").mockResolvedValue(undefined);
+    vi.spyOn(fs.promises, "rename").mockResolvedValue(undefined);
+    vi.spyOn(fs.promises, "copyFile").mockResolvedValue(undefined);
 
     // Mocking constructor to avoid worker pool initialization
     processor = new PhotoProcessor("/tmp/photos");
@@ -60,12 +61,12 @@ describe("PhotoProcessor Robustness", () => {
 
   afterEach(() => {
     if (processor) processor.shutdown();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test("Should block processing if disk space is < 5GB", async () => {
     // Mock 2GB remaining (2 blocks of 1GB)
-    (fs.promises.statfs as jest.Mock).mockResolvedValue({
+    (fs.promises.statfs as vi.Mock).mockResolvedValue({
       bavail: 2,
       bsize: 1024 * 1024 * 1024,
     });
@@ -79,7 +80,7 @@ describe("PhotoProcessor Robustness", () => {
 
   test("Should proceed if disk space is > 5GB", async () => {
     // Mock 10GB remaining
-    (fs.promises.statfs as jest.Mock).mockResolvedValue({
+    (fs.promises.statfs as vi.Mock).mockResolvedValue({
       bavail: 10,
       bsize: 1024 * 1024 * 1024,
     });

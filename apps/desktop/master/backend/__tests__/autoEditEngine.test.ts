@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { AutoEditEngine, ImageStats } from '../services/AutoEditEngine';
 
 describe('AutoEditEngine Heuristics', () => {

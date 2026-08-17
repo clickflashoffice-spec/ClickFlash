@@ -6,7 +6,7 @@ import { logger } from '@clickflash/logger';
  */
 
 
-import { Order, Product } from "../types.ts";
+import { Order, Product, Photo } from "../types.ts";
 import { config } from "../utils/env";
 
 export const cloudApiService = {
@@ -78,7 +78,7 @@ export const cloudApiService = {
              // The backend sends aiTags, the frontend component expects aiTags
              aiTags: photo.aiTags,
           }
-        })) as unknown as Product[],
+        })) as unknown as import('@clickflash/types').OrderItem[],
       };
 
       return formattedOrder;
@@ -154,7 +154,7 @@ export const cloudApiService = {
              ...photo,
              aiTags: photo.aiTags,
           }
-        })) as unknown as Product[],
+        })) as unknown as import('@clickflash/types').OrderItem[],
       };
 
       return formattedOrder;
@@ -289,7 +289,7 @@ export const cloudApiService = {
     return data.processedImageUrl || data.url || `${imageUrl}?magic=erased&timestamp=${Date.now()}`;
   },
 
-  async searchPhotosByFace(imageDataUrl: string): Promise<Record<string, unknown>[]> {
+  async searchPhotosByFace(imageDataUrl: string): Promise<Array<{ photo: Photo; matchScore: number }>> {
     const token = localStorage.getItem("gallery_token");
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (token) headers.Authorization = `Bearer ${token}`;

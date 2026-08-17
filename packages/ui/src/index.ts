@@ -11,6 +11,7 @@ export { OfflineScreen } from './components/OfflineScreen';
 export { default as Skeleton } from './components/Skeleton';
 export { default as ProgressiveImage, type ProgressiveImageProps } from './components/ProgressiveImage';
 export { default as ThemeToggle } from './components/ThemeToggle';
+export { GaussianSplatViewer, type GaussianSplatViewerProps, type ViewPreset } from './components/GaussianSplatViewer';
 export * from './providers/ThemeProvider';
 export * from './providers/CurrencyProvider';
 export * from './utils/styleUtils';

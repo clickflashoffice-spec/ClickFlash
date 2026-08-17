@@ -62,6 +62,8 @@ export class AlbumRepo {
       values
     );
 
+    redisCache.publishEvent('album_created', { id: data.id, photographerId: data.photographerId, timestamp: now });
+
     return this.findById(data.id);
   }
 

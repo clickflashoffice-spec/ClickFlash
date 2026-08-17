@@ -37,8 +37,10 @@ import licenseRoutes from "../routes/license";
 import { createHardwareRouter } from "../routes/hardware.routes";
 import createAutoRegisterRouter from "../routes/autoRegister";
 import reelRoutes from "../routes/reels.routes";
+import transcodeRoutes from "../routes/transcode.routes";
+import semanticSearchRoutes from "../routes/semanticSearch.routes";
 import createEntaggedRouter from "../routes/entagged.routes";
-import mobileShareRoutes from "../routes/mobileShareRoutes";
+
 import bridgeRoutes from "../routes/bridge.routes";
 import tlsRoutes from "../routes/tls.routes";
 import settingsRoutes from "../routes/settings.routes";
@@ -54,7 +56,7 @@ export function mountRoutes(app: Application, context: any) {
   // Specific API routes
   app.use("/api/insurance", insuranceRoutes);
   app.use("/api/bridge", bridgeRoutes(context));
-  app.use("/api/mobile-share", strictRateLimiter, mobileShareRoutes(context));
+
   app.use("/api/mobile-capture", mobileCaptureAdminRoutes(context));
   app.use("/api/v1/mobile-capture", mobileCapturePublicRoutes(context));
   app.use("/api/entagged", createEntaggedRouter(context));
@@ -104,6 +106,8 @@ export function mountRoutes(app: Application, context: any) {
   app.use("/api/photographers", photographerRoutes(context));
   app.use("/api/license", licenseRoutes(context));
   app.use("/api/reels", reelRoutes(context));
+  app.use("/api/transcode", transcodeRoutes(context));
+  app.use("/api/search", semanticSearchRoutes(context));
   app.use("/api/v1/kiosks", createAutoRegisterRouter(context.dbManager, context.logger));
 
   // Fallback for unhandled API routes

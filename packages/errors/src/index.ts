@@ -88,6 +88,7 @@ export class AppError extends Error {
   public readonly statusCode: number;
   public readonly context?: Record<string, unknown>;
   public readonly isOperational: boolean;
+  public readonly cause?: unknown;
 
   constructor(
     message: string,

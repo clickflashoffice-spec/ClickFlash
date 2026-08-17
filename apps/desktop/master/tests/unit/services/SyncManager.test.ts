@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { vi } from 'vitest';
+
 import { SyncManager } from '../../../backend/services/SyncManager';
 import { Logger } from '../../../backend/utils/logger';
 
@@ -8,16 +9,16 @@ describe('SyncManager', () => {
 
   beforeEach(() => {
     mockLogger = {
-      debug: jest.fn(),
-      info: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
     } as unknown as Logger;
 
     mockDb = {
-      run: jest.fn().mockResolvedValue({ changes: 1 }),
-      query: jest.fn().mockResolvedValue([]),
-      get: jest.fn().mockResolvedValue(undefined),
+      run: vi.fn().mockResolvedValue({ changes: 1 }),
+      query: vi.fn().mockResolvedValue([]),
+      get: vi.fn().mockResolvedValue(undefined),
     };
   });
 

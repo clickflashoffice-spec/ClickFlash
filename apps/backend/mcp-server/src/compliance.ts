@@ -1,5 +1,5 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { logger } from "@clickflash/logger";
+import { logger } from "./logger.js";
 import { exec } from "child_process";
 import { promisify } from "util";
 import path from "path";

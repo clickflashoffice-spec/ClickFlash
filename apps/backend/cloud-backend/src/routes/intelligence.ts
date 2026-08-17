@@ -16,10 +16,11 @@ app.post('/scout', async (c) => {
     
     let d1Telemetry: any = {};
     try {
+      const tenantId = c.get('tenantId');
       const [shiftsRes, sessionsRes, txRes] = await Promise.all([
-        c.get('DB').prepare(`SELECT * FROM shifts ORDER BY timestamp DESC LIMIT 50`).all(),
-        c.get('DB').prepare(`SELECT * FROM sessions ORDER BY created_at DESC LIMIT 50`).all(),
-        c.get('DB').prepare(`SELECT * FROM transactions ORDER BY created_at DESC LIMIT 50`).all()
+        c.get('DB').prepare(`SELECT * FROM shifts WHERE tenant_id = ? ORDER BY timestamp DESC LIMIT 50`).bind(tenantId).all(),
+        c.get('DB').prepare(`SELECT * FROM sessions WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 50`).bind(tenantId).all(),
+        c.get('DB').prepare(`SELECT * FROM transactions WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 50`).bind(tenantId).all()
       ]);
       d1Telemetry = {
         recentShifts: shiftsRes.results || [],
@@ -48,9 +49,10 @@ app.post('/manager', async (c) => {
     
     let d1Activity: any = {};
     try {
+      const tenantId = c.get('tenantId');
       const [shiftsRes, sessionsRes] = await Promise.all([
-        c.get('DB').prepare(`SELECT * FROM shifts ORDER BY timestamp DESC LIMIT 100`).all(),
-        c.get('DB').prepare(`SELECT * FROM sessions ORDER BY created_at DESC LIMIT 100`).all()
+        c.get('DB').prepare(`SELECT * FROM shifts WHERE tenant_id = ? ORDER BY timestamp DESC LIMIT 100`).bind(tenantId).all(),
+        c.get('DB').prepare(`SELECT * FROM sessions WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 100`).bind(tenantId).all()
       ]);
       d1Activity = {
         shifts: shiftsRes.results || [],
@@ -77,8 +79,9 @@ app.post('/ceo', async (c) => {
     
     let d1Financials: any = {};
     try {
-      const txRes = await c.get('DB').prepare(`SELECT * FROM transactions ORDER BY created_at DESC LIMIT 200`).all();
-      const sessionsRes = await c.get('DB').prepare(`SELECT status, count(*) as count FROM sessions GROUP BY status`).all();
+      const tenantId = c.get('tenantId');
+      const txRes = await c.get('DB').prepare(`SELECT * FROM transactions WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 200`).bind(tenantId).all();
+      const sessionsRes = await c.get('DB').prepare(`SELECT status, count(*) as count FROM sessions WHERE tenant_id = ? GROUP BY status`).bind(tenantId).all();
       d1Financials = {
         recentTransactions: txRes.results || [],
         sessionsByStatus: sessionsRes.results || []

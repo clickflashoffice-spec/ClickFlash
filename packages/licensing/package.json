@@ -1,6 +1,7 @@
 {
   "name": "@clickflash/licensing",
   "version": "2.0.0",
+  "type": "module",
   "files": [
     "dist"
   ],
@@ -26,6 +27,7 @@
   },
   "dependencies": {
     "@clickflash/errors": "workspace:^",
+    "@clickflash/types": "workspace:^",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {

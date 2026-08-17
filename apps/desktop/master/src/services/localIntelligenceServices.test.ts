@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+import { describe, it, expect } from 'vitest';
 import { CoachingReportService } from './coachingReportService';
 import { ContentGenerationService } from './contentGenerationService';
 import { StudioIntelligenceService } from './studioIntelligenceService';

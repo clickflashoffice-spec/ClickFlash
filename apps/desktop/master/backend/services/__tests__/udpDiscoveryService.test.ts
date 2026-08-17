@@ -1,3 +1,5 @@
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+
 /**
  * Layer 5.2 — UDP Discovery Service Tests
  *
@@ -9,19 +11,17 @@
  *  - Error handling (socket errors)
  */
 
-// Jest globals
-
 // --------------- dgram mock ---------------
-const mockSocketOn = jest.fn();
-const mockSocketBind = jest.fn();
-const mockSocketClose = jest.fn();
-const mockSocketSend = jest.fn((_msg, _offset, _len, _port, _address, cb) => {
+const mockSocketOn = vi.fn();
+const mockSocketBind = vi.fn();
+const mockSocketClose = vi.fn();
+const mockSocketSend = vi.fn((_msg, _offset, _len, _port, _address, cb) => {
   if (cb) cb(null);
 });
-const mockSocketSetBroadcast = jest.fn();
-const mockSocketAddress = jest.fn().mockReturnValue({ port: 41234 });
+const mockSocketSetBroadcast = vi.fn();
+const mockSocketAddress = vi.fn().mockReturnValue({ port: 41234 });
 
-jest.mock('dgram', () => {
+vi.mock('dgram', () => {
   const socketMock = () => ({
     on: mockSocketOn,
     bind: mockSocketBind,
@@ -32,32 +32,34 @@ jest.mock('dgram', () => {
   });
   return {
     __esModule: true,
-    default: { createSocket: jest.fn(socketMock) },
-    createSocket: jest.fn(socketMock),
+    default: { createSocket: vi.fn(socketMock) },
+    createSocket: vi.fn(socketMock),
   };
 });
 
-jest.mock('../networkDetection', () => ({
-  getLocalNetworkIPs: jest.fn(() => ['192.168.1.100']),
+vi.mock('../networkDetection', () => ({
+  getLocalNetworkIPs: vi.fn(() => ['192.168.1.100']),
 }));
 
 // Logger is instantiated inside the module, so we mock the Logger class
-jest.mock('../../utils/logger', () => ({
-  Logger: jest.fn().mockImplementation(() => ({
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
-  })),
-}));
+vi.mock('../../utils/logger', () => {
+  return {
+    Logger: class {
+      info = vi.fn();
+      warn = vi.fn();
+      error = vi.fn();
+      debug = vi.fn();
+    }
+  };
+});
 
 describe('UDPDiscoveryService', () => {
   let UDPDiscoveryService: typeof import('../udpDiscoveryService').UDPDiscoveryService;
   let service: InstanceType<typeof UDPDiscoveryService>;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
+    vi.clearAllMocks();
+    vi.useFakeTimers();
     // Dynamic import to ensure mocks take effect
     const mod = await import('../udpDiscoveryService');
     UDPDiscoveryService = mod.UDPDiscoveryService;
@@ -66,7 +68,7 @@ describe('UDPDiscoveryService', () => {
 
   afterEach(() => {
     service.stop();
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   // ----------------------------------------------------------------
@@ -81,74 +83,90 @@ describe('UDPDiscoveryService', () => {
     it('should not start twice', () => {
       service.start();
       service.start();
-      // Only one bind call
       expect(mockSocketBind).toHaveBeenCalledTimes(1);
     });
+  });
 
+  // ----------------------------------------------------------------
+  // Listening & beacon
+  // ----------------------------------------------------------------
+  describe('beacon broadcasting', () => {
     it('should set broadcast flag on listening', () => {
       service.start();
 
-      // Trigger 'listening' handler
-      const listeningHandler = mockSocketOn.mock.calls.find((c) => c[0] === 'listening')?.[1];
+      const listeningHandler = mockSocketOn.mock.calls.find(
+        ([evt]: [string]) => evt === 'listening'
+      )?.[1];
       expect(listeningHandler).toBeDefined();
-      listeningHandler!();
 
+      listeningHandler();
       expect(mockSocketSetBroadcast).toHaveBeenCalledWith(true);
     });
 
     it('should broadcast periodic beacons every 3s after listening', () => {
       service.start();
 
-      const listeningHandler = mockSocketOn.mock.calls.find((c) => c[0] === 'listening')?.[1];
-      listeningHandler!();
+      const listeningHandler = mockSocketOn.mock.calls.find(
+        ([evt]: [string]) => evt === 'listening'
+      )?.[1];
+      listeningHandler();
 
-      // Advance 3 seconds for first broadcast
-      jest.advanceTimersByTime(3001);
+      mockSocketSend.mockClear();
 
-      expect(mockSocketSend).toHaveBeenCalled();
-      const sentPayload = JSON.parse(mockSocketSend.mock.calls[0][0].toString());
-      expect(sentPayload).toEqual(
-        expect.objectContaining({
-          service: 'clickflash-master',
-          host: '192.168.1.100',
-          port: 8090,
-        }),
-      );
+      vi.advanceTimersByTime(3000);
+      expect(mockSocketSend).toHaveBeenCalledTimes(1);
+
+      vi.advanceTimersByTime(3000);
+      expect(mockSocketSend).toHaveBeenCalledTimes(2);
     });
   });
 
   // ----------------------------------------------------------------
-  // Incoming messages
+  // Message handling (Touch ping)
   // ----------------------------------------------------------------
-  describe('incoming messages', () => {
+  describe('message handling', () => {
     it('should respond to clickflash-touch-discovery pings with a beacon', () => {
       service.start();
 
-      const messageHandler = mockSocketOn.mock.calls.find((c) => c[0] === 'message')?.[1];
+      const messageHandler = mockSocketOn.mock.calls.find(
+        ([evt]: [string]) => evt === 'message'
+      )?.[1];
       expect(messageHandler).toBeDefined();
 
-      const touchPing = Buffer.from(JSON.stringify({ service: 'clickflash-touch-discovery' }));
-      messageHandler!(touchPing, { address: '192.168.1.50', port: 41234 });
+      const pingPayload = Buffer.from(
+        JSON.stringify({ service: 'clickflash-touch-discovery', timestamp: Date.now() })
+      );
 
-      // Should send a direct beacon back
+      mockSocketSend.mockClear();
+      messageHandler(pingPayload, { address: '192.168.1.50', port: 54321 });
+
       expect(mockSocketSend).toHaveBeenCalledWith(
         expect.any(Buffer),
         0,
         expect.any(Number),
-        41234,
+        54321,
         '192.168.1.50',
-        expect.any(Function),
+        expect.any(Function)
       );
+
+      const sentBuffer: Buffer = mockSocketSend.mock.calls[0][0];
+      const parsed = JSON.parse(sentBuffer.toString());
+      expect(parsed.service).toBe('clickflash-master');
+      expect(parsed.port).toBe(8090);
+      expect(parsed.host).toBe('192.168.1.100');
     });
 
     it('should ignore non-JSON messages', () => {
       service.start();
 
-      const messageHandler = mockSocketOn.mock.calls.find((c) => c[0] === 'message')?.[1];
-      const badMsg = Buffer.from('not json');
+      const messageHandler = mockSocketOn.mock.calls.find(
+        ([evt]: [string]) => evt === 'message'
+      )?.[1];
 
-      // Should not throw
-      expect(() => messageHandler!(badMsg, { address: '10.0.0.1', port: 41234 })).not.toThrow();
+      mockSocketSend.mockClear();
+      messageHandler(Buffer.from('not-json'), { address: '192.168.1.50', port: 54321 });
+
+      expect(mockSocketSend).not.toHaveBeenCalled();
     });
   });
 
@@ -159,14 +177,14 @@ describe('UDPDiscoveryService', () => {
     it('should close socket and clear interval', () => {
       service.start();
       service.stop();
-
       expect(mockSocketClose).toHaveBeenCalled();
     });
 
     it('should be idempotent', () => {
+      service.start();
       service.stop();
       service.stop();
-      // No errors thrown
+      expect(mockSocketClose).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -177,11 +195,12 @@ describe('UDPDiscoveryService', () => {
     it('should close socket on error event', () => {
       service.start();
 
-      const errorHandler = mockSocketOn.mock.calls.find((c) => c[0] === 'error')?.[1];
+      const errorHandler = mockSocketOn.mock.calls.find(
+        ([evt]: [string]) => evt === 'error'
+      )?.[1];
       expect(errorHandler).toBeDefined();
 
-      errorHandler!(new Error('EADDRINUSE'));
-
+      errorHandler(new Error('EADDRINUSE'));
       expect(mockSocketClose).toHaveBeenCalled();
     });
   });

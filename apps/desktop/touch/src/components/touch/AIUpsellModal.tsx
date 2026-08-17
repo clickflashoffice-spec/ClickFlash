@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { CartItem } from '../../types';
 import { useCurrency } from '../CurrencyContext';

@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { safeStorage } from '../safeStorage';
 import { logger } from '../logger';

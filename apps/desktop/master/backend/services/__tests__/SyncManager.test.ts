@@ -1,21 +1,22 @@
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SyncManager } from '../SyncManager';
 
 const mockDb = {
-    run: jest.fn(),
-    get: jest.fn(),
-    query: jest.fn(),
-    prepare: jest.fn(() => ({ run: jest.fn() })),
-    transaction: jest.fn((fn: Function) => fn()),
+    run: vi.fn(),
+    get: vi.fn(),
+    query: vi.fn(),
+    prepare: vi.fn(() => ({ run: vi.fn() })),
+    transaction: vi.fn((fn: Function) => fn()),
 };
 
 const mockLogger = {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
 };
 
-jest.mock('ws', () => {
+vi.mock('ws', () => {
     return {
         __esModule: true,
         default: {
@@ -30,10 +31,10 @@ jest.mock('ws', () => {
 const mockWs = {
     readyState: 1, // OPEN
     bufferedAmount: 0,
-    send: jest.fn(),
-    close: jest.fn(),
-    on: jest.fn(),
-    terminate: jest.fn(),
+    send: vi.fn(),
+    close: vi.fn(),
+    on: vi.fn(),
+    terminate: vi.fn(),
 };
 
 const mockReq = {
@@ -45,7 +46,7 @@ describe('SyncManager', () => {
     let manager: SyncManager;
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         manager = new SyncManager(mockLogger as any, mockDb as any);
     });
 
@@ -126,7 +127,7 @@ describe('SyncManager', () => {
         manager.handleConnection(mockWs as any, mockReq as any);
 
         // Add a second client
-        const ws2 = { ...mockWs, send: jest.fn() };
+        const ws2 = { ...mockWs, send: vi.fn() };
         manager.handleConnection(ws2 as any, { ...mockReq, url: '/ws?clientId=kiosk-456' } as any);
 
         manager.broadcastOrderStatus('ord-1', 'Completed', { total: 50 });

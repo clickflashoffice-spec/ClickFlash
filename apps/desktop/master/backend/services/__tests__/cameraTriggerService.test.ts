@@ -1,21 +1,22 @@
+import { vi, describe, it, test, expect, afterEach, beforeAll, afterAll } from 'vitest';
 import { cameraTriggerService } from '../cameraTriggerService';
 import { hardwareTriggerService } from '../hardwareTriggerService';
 import dgram from 'dgram';
 
 // Mock hardwareTriggerService
-jest.mock('../hardwareTriggerService', () => ({
+vi.mock('../hardwareTriggerService', () => ({
     hardwareTriggerService: {
-        handleTrigger: jest.fn().mockResolvedValue(undefined)
+        handleTrigger: vi.fn().mockResolvedValue(undefined)
     }
 }));
 
 // Mock logger
-jest.mock('../../utils/logger', () => ({
+vi.mock('../../utils/logger', () => ({
     logger: {
-        info: jest.fn(),
-        error: jest.fn(),
-        warn: jest.fn(),
-        debug: jest.fn()
+        info: vi.fn(),
+        error: vi.fn(),
+        warn: vi.fn(),
+        debug: vi.fn()
     }
 }));
 
@@ -43,7 +44,7 @@ describe('CameraTriggerService', () => {
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     it('should process JSON payloads correctly', (done) => {

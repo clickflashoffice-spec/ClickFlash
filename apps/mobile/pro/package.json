@@ -75,8 +75,8 @@
     "android:prebuild": "expo prebuild --platform android",
     "android:apk": "cd android && gradlew.bat :app:assembleDebug",
     "android:aab": "cd android && gradlew.bat :app:bundleRelease",
-    "test": "vitest run",
-    "test:capture": "vitest run",
+    "test": "node --import ./tests/test-setup.ts --test tests/*.test.ts",
+    "test:capture": "node --import ./tests/test-setup.ts --test tests/*.test.ts",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit"
   },

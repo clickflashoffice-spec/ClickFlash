@@ -1,4 +1,6 @@
+// @ts-nocheck
 import { defineConfig } from 'eslint/config';
+// @ts-ignore
 import expoConfig from 'eslint-config-expo/flat';
 
 export default defineConfig([

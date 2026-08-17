@@ -1,3 +1,4 @@
+import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 // backend/tests/shared/signedUrls.test.ts
 // Unit test for P0-2 signed URL helper.
 

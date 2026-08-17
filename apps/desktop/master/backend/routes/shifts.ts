@@ -54,7 +54,7 @@ export default function shiftRoutes(context: any) {
           shiftType: shift.type,
           timestamp: shift.timestamp || nowIso,
           biometricMethod: shift.biometricMethod || '',
-          biometricConfidence: shift.biometricConfidence != null ? String(shift.biometricConfidence) : '',
+          biometricConfidence: shift.biometricConfidence != null ? `${shift.biometricConfidence}` : '',
           payloadStr: payloadStr
         });
         logger.info(`[ShiftRoutes] Successfully pushed shift event to Redis Streams: shift_proxy_ingestion.`);

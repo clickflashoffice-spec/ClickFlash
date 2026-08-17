@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, afterAll } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 
@@ -12,7 +13,7 @@ import { getOrCreateManagedIdentity, rotateManagedIdentity } from '../config/tls
 
 describe('TLS Identity Service', () => {
   // Increase timeout for RSA key generation
-  jest.setTimeout(15000);
+  vi.setTimeout(15000);
 
   afterAll(() => {
     if (fs.existsSync(TEMP_DIR)) {

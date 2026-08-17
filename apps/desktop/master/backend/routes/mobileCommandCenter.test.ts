@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, beforeEach, beforeAll, afterAll } from 'vitest';
 import crypto from "crypto";
 import express from "express";
 import fs from "fs";
@@ -28,10 +29,10 @@ import {
 } from "./mobileCapture";
 
 const mockLogger = {
-  info: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  debug: vi.fn(),
 };
 
 describe("Paired Android photographer command center", () => {
@@ -166,7 +167,7 @@ describe("Paired Android photographer command center", () => {
       Date.now(),
       "1"
     );
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   function signedHeaders(

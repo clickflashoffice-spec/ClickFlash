@@ -38,11 +38,11 @@ export function setupStaticAndErrorFallback(app: Application, context: any): voi
  * Starts the HTTP/HTTPS server, initializes Bonjour/UDP discovery, kicks off background
  * services, and registers graceful shutdown and crash handlers.
  */
-export function startServer(
+export async function startServer(
   server: Server | HttpsServer,
   context: any,
   tlsConfig: { enabled: boolean }
-): void {
+): Promise<void> {
   const {
     logger,
     dbWriteQueue,
@@ -56,7 +56,19 @@ export function startServer(
     fleetService,
     automatedBackupService,
     udpDiscoveryService,
+    licenseService,
   } = context;
+
+  // Zero-Trust Licensing Enclave Verification (Phase 3)
+  if (licenseService) {
+      logger.info("[License] Verifying ED25519 node licensing enclave...");
+      const licenseStatus = await licenseService.getLocalLicenseStatus();
+      if (!licenseStatus.isValid) {
+          logger.error(`[License] CRITICAL: Node licensing enclave verification failed. Status: ${licenseStatus.status}. LAN Gateway startup aborted.`);
+          process.exit(1);
+      }
+      logger.info(`[License] Enclave verified. License Status: ${licenseStatus.status}`);
+  }
 
   // Start Tunnel Manager if configured
   if (process.env.ENABLE_CLOUDFLARED_TUNNEL === "true") {

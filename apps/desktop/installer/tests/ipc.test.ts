@@ -112,6 +112,7 @@ vi.mock('electron', () => ({
     openExternal: vi.fn()
   },
   dialog: {
+    showErrorBox: vi.fn(),
     showOpenDialog: vi.fn(async () => selectedDirectory
       ? { canceled: false, filePaths: [selectedDirectory] }
       : { canceled: true, filePaths: [] })
@@ -127,17 +128,26 @@ vi.mock('electron', () => ({
 }));
 
 // Mock systeminformation
-vi.mock('systeminformation', () => ({
-  default: {
-    uuid: vi.fn().mockResolvedValue({
-      os: 'mock-machine-id',
-      hardware: 'mock-hardware-id'
-    })
-  },
+const mockSi = {
   uuid: vi.fn().mockResolvedValue({
     os: 'mock-machine-id',
     hardware: 'mock-hardware-id'
-  })
+  }),
+  osInfo: vi.fn().mockResolvedValue({
+    platform: 'Windows'
+  }),
+  mem: vi.fn().mockResolvedValue({
+    total: 16 * (1024 ** 3),
+    free: 8 * (1024 ** 3)
+  }),
+  fsSize: vi.fn().mockResolvedValue([
+    { mount: 'C:', available: 100 * (1024 ** 3) }
+  ])
+};
+
+vi.mock('systeminformation', () => ({
+  default: mockSi,
+  ...mockSi
 }));
 
 // Mock the offline license validator

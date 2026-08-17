@@ -1,12 +1,13 @@
+import { vi } from 'vitest';
 import { getOrCreateManagedIdentity } from '../../../backend/config/tlsIdentityService';
 import forge from 'node-forge';
 import crypto from 'crypto';
 
-jest.mock('../../../backend/utils/logger', () => ({
+vi.mock('../../../backend/utils/logger', () => ({
   logger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn()
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn()
   }
 }));
 

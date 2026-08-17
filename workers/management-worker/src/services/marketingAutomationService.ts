@@ -55,9 +55,7 @@ export class MarketingAutomationService {
         `Found ${candidates.length} potential MoneyTrash targets.`,
       );
 
-      for (const candidate of candidates) {
-        await this.sendNurtureEmail(candidate);
-      }
+      await Promise.all(candidates.map(candidate => this.sendNurtureEmail(candidate)));
 
       this.logger.info("MoneyTrash campaign processing complete.");
     } catch (error: any) {

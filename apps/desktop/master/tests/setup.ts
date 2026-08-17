@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import '@testing-library/jest-dom';
 import { db } from './mocks/database';
 import { logger } from '@/utils/logger';
@@ -12,38 +13,38 @@ if (typeof clearImmediate === 'undefined') {
 let server: { listen: (opts: { onUnhandledRequest: string }) => void; resetHandlers: () => void; close: () => Promise<void> } | null = null;
 
 const mockLogger = {
-  debug: jest.fn(),
-  info: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn(),
-  child: jest.fn().mockReturnThis(),
+  debug: vi.fn(),
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  child: vi.fn().mockReturnThis(),
 };
 
-jest.mock('../src/utils/logger', () => ({
+vi.mock('../src/utils/logger', () => ({
   __esModule: true,
   Logger: {
-    getInstance: jest.fn(() => mockLogger),
+    getInstance: vi.fn(() => mockLogger),
   },
   logger: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    child: jest.fn().mockReturnThis(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    child: vi.fn().mockReturnThis(),
   },
   noopLogger: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    child: jest.fn().mockReturnThis(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    child: vi.fn().mockReturnThis(),
   },
-  createLogger: jest.fn(() => ({
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    child: jest.fn().mockReturnThis(),
+  createLogger: vi.fn(() => ({
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    child: vi.fn().mockReturnThis(),
   })),
 }));
 
@@ -59,7 +60,7 @@ afterEach(() => {
   if (server) {
     server.resetHandlers();
   }
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   db.reset();
 });
 
@@ -72,11 +73,11 @@ afterAll(async () => {
 
 global.console = {
   ...console,
-  log: jest.fn(),
-  debug: jest.fn(),
-  info: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn(),
+  log: vi.fn(),
+  debug: vi.fn(),
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
 };
 
 process.on('unhandledRejection', (reason) => {

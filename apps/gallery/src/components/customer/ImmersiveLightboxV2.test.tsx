@@ -1,10 +1,11 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import ImmersiveLightboxV2 from '../ImmersiveLightboxV2';
-import { Photo } from '../../../types';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import ImmersiveLightboxV2 from './ImmersiveLightboxV2';
+import { Photo } from '../../types';
 
 // Mock framer-motion to avoid complex animations in tests
-jest.mock('framer-motion', () => {
+vi.mock('framer-motion', () => {
     return {
         motion: {
             div: ({ children, animate, ...props }: any) => {
@@ -21,8 +22,8 @@ jest.mock('framer-motion', () => {
 });
 
 // Mock metadata utils
-jest.mock('../../../utils/metadataUtils', () => ({
-    extractMetadata: jest.fn(() => Promise.resolve({
+vi.mock('../../utils/metadataUtils', () => ({
+    extractMetadata: vi.fn(() => Promise.resolve({
         camera: 'Sony A7III',
         lens: '50mm f/1.8',
         aperture: 'f/1.8',
@@ -30,23 +31,23 @@ jest.mock('../../../utils/metadataUtils', () => ({
         iso: '100',
         captureDate: '2023-01-01T12:00:00Z',
     })),
-    getImageFileSize: jest.fn(() => Promise.resolve('2.5 MB')),
+    getImageFileSize: vi.fn(() => Promise.resolve('2.5 MB')),
 }));
 
 const mockPhotos: Photo[] = [
-    { id: '1', url: 'https://example.com/1.jpg', title: 'Photo 1', originalFilename: '1.jpg' },
-    { id: '2', url: 'https://example.com/2.jpg', title: 'Photo 2', originalFilename: '2.jpg' },
-    { id: '3', url: 'https://example.com/3.jpg', title: 'Photo 3', originalFilename: '3.jpg' },
+    { id: '1', albumId: 'album_1', photographerId: 'p_1', url: 'https://example.com/1.jpg', title: 'Photo 1', originalFilename: '1.jpg' },
+    { id: '2', albumId: 'album_1', photographerId: 'p_1', url: 'https://example.com/2.jpg', title: 'Photo 2', originalFilename: '2.jpg' },
+    { id: '3', albumId: 'album_1', photographerId: 'p_1', url: 'https://example.com/3.jpg', title: 'Photo 3', originalFilename: '3.jpg' },
 ];
 
 describe('ImmersiveLightboxV2', () => {
-    const mockOnClose = jest.fn();
-    const mockOnToggleFavorite = jest.fn();
-    const mockOnOpenAddToCartModal = jest.fn();
-    const mockOnShare = jest.fn();
+    const mockOnClose = vi.fn();
+    const mockOnToggleFavorite = vi.fn();
+    const mockOnOpenAddToCartModal = vi.fn();
+    const mockOnShare = vi.fn();
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     it('renders fullscreen with correct image src', () => {
@@ -158,7 +159,7 @@ describe('ImmersiveLightboxV2', () => {
         expect(wheelContainer).toBeDefined();
 
         // Fire wheel event (zoom in)
-        fireEvent.wheel(wheelContainer!, { deltaY: -50, preventDefault: jest.fn() });
+        fireEvent.wheel(wheelContainer!, { deltaY: -50, preventDefault: vi.fn() });
 
         // Check image style
         const img = screen.getByAltText('Photo 1');

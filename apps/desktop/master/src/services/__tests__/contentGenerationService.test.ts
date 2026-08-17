@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+import { describe, it, expect, beforeEach } from 'vitest';
 import { ContentGenerationService } from '../contentGenerationService';
 
 describe('ContentGenerationService', () => {

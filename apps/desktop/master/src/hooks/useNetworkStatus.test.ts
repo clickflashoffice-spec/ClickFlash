@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 /**
  * Unit tests for useNetworkStatus hook
  * @jest-environment jsdom
@@ -5,17 +7,17 @@
 import { renderHook, act } from '@testing-library/react';
 
 // Mock networkManager before importing the hook
-const mockUnsubscribe = jest.fn();
-const mockSubscribe = jest.fn(() => mockUnsubscribe);
-const mockCheckNetworkQuality = jest.fn();
-const mockGetState = jest.fn(() => ({
+const mockUnsubscribe = vi.fn();
+const mockSubscribe = vi.fn(() => mockUnsubscribe);
+const mockCheckNetworkQuality = vi.fn();
+const mockGetState = vi.fn(() => ({
     isOnline: true,
     quality: 'excellent' as const,
     latency: 50,
     lastChecked: new Date()
 }));
 
-jest.mock('../services/networkManager', () => ({
+vi.mock('../services/networkManager', () => ({
     networkManager: {
         getState: mockGetState,
         subscribe: mockSubscribe,
@@ -27,7 +29,7 @@ import { useNetworkStatus } from './useNetworkStatus';
 
 describe('useNetworkStatus', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     it('should return initial network state', () => {

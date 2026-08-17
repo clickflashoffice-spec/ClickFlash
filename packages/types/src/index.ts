@@ -11,19 +11,6 @@ import { z } from 'zod';
 
 
 import type {
-  Photo as ValidationPhoto,
-  Album as ValidationAlbum,
-  User as ValidationUser,
-  CartItem as ValidationCartItem,
-  OrderItem as ValidationOrderItem,
-  Order as ValidationOrder,
-  Product as ValidationProduct,
-  Booking as ValidationBooking,
-  Destination as ValidationDestination,
-  TouchKiosk as ValidationTouchKiosk,
-  SyncLog as ValidationSyncLog,
-  SessionType as ValidationSessionType,
-  Currency as ValidationCurrency,
   UserRole,
   ManualEdits
 } from '@clickflash/validation';
@@ -50,6 +37,8 @@ export {
 export * from './ble.js';
 export * from './phase3.js';
 export * from './auth.js';
+export * from './magicShot.js';
+export * from './rover-telemetry.js';
 
 export type {
   PhotoCreate,
@@ -87,6 +76,16 @@ export interface BaseRecord {
   updated?: string;
   created_at?: string;
   updated_at?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  tenantId?: string;
+}
+
+export interface Tenant extends BaseRecord {
+  name: string;
+  region?: string;
+  baseCurrency?: string;
+  config?: Record<string, unknown>;
 }
 
 // =============================================================================
@@ -139,7 +138,7 @@ export interface DayWorkingHours {
 
 export type WorkingHours = Record<DayOfWeek, DayWorkingHours>;
 
-export interface User extends BaseRecord , ValidationUser{
+export interface User extends BaseRecord {
   name: string;
   email: string;
   role: UserRole;
@@ -237,7 +236,7 @@ export interface AnomalyEvent extends BaseRecord {
  * ClickFlash Photo Model
  * Standardized for Master, Touch, and Cloud ecosystem.
  */
-export interface Photo extends BaseRecord , ValidationPhoto{
+export interface Photo extends BaseRecord {
   id: string;
   albumId: string;
   spotId?: string;
@@ -308,7 +307,7 @@ export interface PhotoUpdateInput extends Partial<Omit<Photo, 'id' | 'created' |
 // CART & ORDERS
 // =============================================================================
 
-export interface CartItem extends BaseRecord, ValidationCartItem {
+export interface CartItem extends BaseRecord {
   id: string;
   photoId: string;
   photo: Photo;
@@ -335,7 +334,7 @@ export interface CartItemCreateInput {
 export type OrderStatus = 'Completed' | 'Pending' | 'Processing' | 'Cancelled' | 'Delivered';
 export type PaymentMethod = 'Cash' | 'Card';
 
-export interface OrderItem extends BaseRecord, ValidationOrderItem {
+export interface OrderItem extends BaseRecord {
   id: string;
   name: string;
   format?: string;
@@ -347,7 +346,7 @@ export interface OrderItem extends BaseRecord, ValidationOrderItem {
   checksum?: string; // Integrity check for individuals
 }
 
-export interface Order extends BaseRecord , ValidationOrder{
+export interface Order extends BaseRecord {
   date: string;
   clientName: string;
   email: string;
@@ -399,7 +398,7 @@ export interface OrderUpdateInput extends Partial<Omit<Order, 'id' | 'created' |
 
 export type AlbumStatus = 'Draft' | 'Finalized' | 'Archived';
 
-export interface Album extends BaseRecord , ValidationAlbum{
+export interface Album extends BaseRecord {
   title: string;
   date: string;
   photographerId: string | number;
@@ -435,7 +434,7 @@ export interface AlbumUpdateInput extends Partial<Omit<Album, 'id' | 'created' |
 // PRODUCTS & PRICING
 // =============================================================================
 
-export interface Product extends BaseRecord , ValidationProduct{
+export interface Product extends BaseRecord {
   name: string;
   category?: string;
   price: number;
@@ -456,13 +455,13 @@ export interface Pack extends BaseRecord {
   yieldMultiplier?: number;
 }
 
-export interface SessionType extends BaseRecord , ValidationSessionType{
+export interface SessionType extends BaseRecord {
   name: string;
   numberOfPhotos: number;
   price: number;
 }
 
-export interface Currency extends BaseRecord , ValidationCurrency{
+export interface Currency extends BaseRecord {
   code: string;
   name: string;
   symbol: string;
@@ -475,7 +474,7 @@ export interface Currency extends BaseRecord , ValidationCurrency{
 
 export type KioskStatus = 'Active' | 'Inactive' | 'Maintenance' | 'Connected' | 'Disconnected';
 
-export interface TouchKiosk extends BaseRecord , ValidationTouchKiosk{
+export interface TouchKiosk extends BaseRecord {
   name: string;
   status: KioskStatus;
   lastHeartbeat?: string;
@@ -486,7 +485,7 @@ export interface TouchKiosk extends BaseRecord , ValidationTouchKiosk{
   ordersFolderPath?: string;
 }
 
-export interface Destination extends BaseRecord , ValidationDestination{
+export interface Destination extends BaseRecord {
   name: string;
   country: string;
   type: 'Resort' | 'City';
@@ -537,7 +536,7 @@ export interface GalleryConfig {
   aiPermissions: AIPermission[];
 }
 
-export interface SyncLog extends BaseRecord , ValidationSyncLog{
+export interface SyncLog extends BaseRecord {
   masterId: string;
   destinationId?: string;
   level: 'info' | 'warn' | 'error';
@@ -701,7 +700,7 @@ export interface FileSystemItem {
   photo?: Photo;
 }
 
-export interface Booking extends BaseRecord , ValidationBooking{
+export interface Booking extends BaseRecord {
   clientName: string;
   email: string;
   phone?: string;
@@ -1504,7 +1503,7 @@ export interface EnhanceJob extends BaseRecord {
 }
 
 export type Mesh3DStyle = 'realistic' | 'stylized' | 'low-poly';
-export type Mesh3DFormat = 'gltf' | 'glb' | 'obj' | 'stl';
+export type Mesh3DFormat = 'gltf' | 'glb' | 'obj' | 'stl' | 'splat' | 'ply' | 'nerf';
 
 export interface MeshGenerationRequest {
   photoIds: string[];
@@ -1522,6 +1521,49 @@ export interface Mesh3DJob extends BaseRecord {
   modelUrl?: string;
   thumbnailUrl?: string;
   polygonCount?: number;
+  error?: string;
+}
+
+export type GaussianSplatQuality = 'fast_preview' | 'cinematic_6dof' | 'ultra_dense';
+export type GaussianSplatFormat = 'splat' | 'ply';
+
+export interface CameraIntrinsics {
+  focalLength?: number;
+  fovDegrees?: number;
+  sensorWidthMm?: number;
+  principalPoint?: { x: number; y: number };
+  focalLengthX?: number;
+  focalLengthY?: number;
+  principalPointX?: number;
+  principalPointY?: number;
+  distortionCoefficients?: number[];
+}
+
+export interface GaussianSplatRequest {
+  photoIds: string[];
+  sceneId?: string;
+  quality?: GaussianSplatQuality;
+  format?: GaussianSplatFormat;
+  cameraIntrinsics?: CameraIntrinsics;
+  pointBudget?: number;
+  boundingRadiusMeters?: number;
+  webhookUrl?: string;
+  guestId?: string;
+}
+
+export interface GaussianSplatJob extends BaseRecord {
+  photoIds?: string[];
+  sceneId?: string;
+  quality?: GaussianSplatQuality | 'STANDARD' | 'HIGH' | 'CINEMATIC_4K';
+  format?: GaussianSplatFormat;
+  status?: 'queued' | 'feature_matching' | 'structure_from_motion' | 'gaussian_rasterization' | 'completed' | 'failed' | 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  splatUrl?: string;
+  plyUrl?: string;
+  thumbnailUrl?: string;
+  splatCount?: number;
+  fileSizeBytes?: number;
+  compressionRatio?: number;
+  renderFpsEstimate?: number;
   error?: string;
 }
 
@@ -1595,3 +1637,557 @@ export interface SalesTriggerEvent extends BaseRecord {
   dispatchedToWhatsApp: boolean;
   dispatchedAt?: string;
 }
+
+// =============================================================================
+// WHATSAPP SALES SWARM & META WEBHOOKS
+// =============================================================================
+
+export interface MetaWebhookEntry {
+  id: string;
+  time?: number;
+  changes: Array<{
+    field: string;
+    value: {
+      messaging_product: string;
+      metadata: {
+        display_phone_number: string;
+        phone_number_id: string;
+      };
+      contacts?: Array<{
+        profile: { name: string };
+        wa_id: string;
+      }>;
+      messages?: Array<{
+        from: string;
+        id: string;
+        timestamp: string;
+        type: 'text' | 'interactive' | 'button' | 'image' | 'location' | 'unknown' | string;
+        text?: { body: string };
+        interactive?: {
+          type: 'button_reply' | 'list_reply' | string;
+          button_reply?: { id: string; title: string };
+          list_reply?: { id: string; title: string; description?: string };
+        };
+        button?: { text: string; payload?: string };
+      }>;
+      statuses?: Array<{
+        id: string;
+        status: 'sent' | 'delivered' | 'read' | 'failed' | string;
+        timestamp: string;
+        recipient_id: string;
+      }>;
+    };
+  }>;
+}
+
+export interface MetaWebhookPayload {
+  object: string;
+  entry: MetaWebhookEntry[];
+}
+
+export interface SwarmLeadEngagement {
+  guestId?: string;
+  customerPhone?: string;
+  customerEmail?: string;
+  customerName?: string;
+  resortName?: string;
+  albumId?: string;
+  galleryId?: string;
+  totalOpened?: number;
+  totalFavorites?: number;
+  cartTotal?: number;
+  lastActiveAt?: number;
+  topActivity?: string;
+  whatsappOptIn?: boolean;
+}
+
+export interface SwarmNegotiationSession extends BaseRecord {
+  phoneNumber: string;
+  guestId?: string;
+  albumId?: string;
+  engagementLevel: 'COLD' | 'WARM' | 'HOT';
+  offeredDiscountPercentage: number;
+  offeredDiscountCode?: string;
+  magicLinkUrl?: string;
+  status: 'active' | 'converted' | 'expired' | 'declined';
+  messages: Array<{
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    timestamp: string;
+  }>;
+}
+
+export interface SwarmDispatchResult {
+  success: boolean;
+  leadId?: string;
+  recipientPhone: string;
+  message: string;
+  discountCode?: string;
+  discountPercentage?: number;
+  magicLinkUrl?: string;
+  urgencyLevel: 'low' | 'medium' | 'high';
+}
+
+// -------------------------------------------------------------------------
+// AI Grading & VLM Emotional Bypass Data Contracts
+// -------------------------------------------------------------------------
+
+export type PhotoGradeCategory =
+  | 'HERO_GRADE'
+  | 'COMMERCIAL_GRADE'
+  | 'EMOTIONAL_SAVED_GRADE'
+  | 'DISCARD_GRADE';
+
+export interface TechnicalMetrics {
+  sharpnessScore: number;
+  contrastScore: number;
+  lightingScore: number;
+  exposureScore: number;
+  blurScore: number;
+  compositionScore: number;
+}
+
+export interface VlmEmotionalMetrics {
+  emotionalScore: number;
+  smileScore: number;
+  eyeContactScore: number;
+  candidBondingScore: number;
+  triumphMomentScore: number;
+  emotionalKeywords: string[];
+  sceneDescription: string;
+}
+
+export interface AIGradingResult {
+  photoId: string;
+  filePath: string;
+  galleryId?: string;
+  category: PhotoGradeCategory;
+  overallScore: number;
+  technicalMetrics: TechnicalMetrics;
+  emotionalMetrics: VlmEmotionalMetrics;
+  emotionalBypassTriggered: boolean;
+  emotionalBypassReason?: string;
+  suggestedCrop?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  monetizationTags: string[];
+  gradeReason: string;
+  processedAt: string;
+}
+
+export interface AIGradeBatchRequest {
+  photos: Array<{
+    filePath: string;
+    photoId?: string;
+    galleryId?: string;
+  }>;
+  concurrencyLimit?: number;
+  bypassThreshold?: number;
+  minHeroScore?: number;
+}
+
+export interface AIGradeBatchResult {
+  total: number;
+  heroCount: number;
+  commercialCount: number;
+  emotionalSavedCount: number;
+  discardCount: number;
+  durationMs: number;
+  results: AIGradingResult[];
+}
+
+// -------------------------------------------------------------------------
+// Phase 7: The V9.0 Quantum Autonomous Concession Paradigm Contracts
+// -------------------------------------------------------------------------
+
+export interface SpatialHoloGalleryConfig {
+  fov: number;
+  ambientLightIntensity: number;
+  spatialDepthScale: number;
+  enableHeadTracking: boolean;
+  enableSpatialAudio: boolean;
+  theme: 'CRYSTAL_ORBIT' | 'CYBER_GALLERY' | 'VOLUMETRIC_HORIZON';
+}
+
+export interface WebGPUProcessingPipeline {
+  supported: boolean;
+  deviceType?: 'discrete' | 'integrated' | 'cpu';
+  maxTextureDimension2D?: number;
+  superResolutionFactor: 2 | 4;
+  activeModel: 'EDSR_QUANTIZED' | 'ESRGAN_COMPACT' | 'BOKEH_NEURAL_SEGMENT';
+}
+
+export interface VoiceConciergeSession extends BaseRecord {
+  sessionId: string;
+  guestLanguage: string;
+  voiceStyle: 'ENERGETIC_RESORT_GUIDE' | 'LUXURY_VIP_CONCIERGE' | 'FRIENDLY_LOCAL_PHOTOGRAPHER';
+  activeIntent?: 'BROWSE_PHOTOS' | 'SELECT_BUNDLE' | 'MAGIC_EDIT' | 'CHECKOUT' | 'FAQ';
+  transcriptLog: Array<{
+    speaker: 'guest' | 'concierge';
+    text: string;
+    timestamp: string;
+  }>;
+}
+
+export interface AutonomousRoboticTelemetry extends BaseRecord {
+  nodeType: 'DRONE_DOCK' | 'COASTER_HIGH_SPEED_CAM' | 'ROVING_ROVER_CAM';
+  batteryPercentage: number;
+  connectionStatus: 'ONLINE_5G' | 'LAN_UWB' | 'DEGRADED';
+  activeMission?: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+    altitudeMeters?: number;
+  };
+  capturesPerMinute: number;
+  storageAvailableGb: number;
+}
+
+export interface GaussianSplatModel extends BaseRecord {
+  splatUrl: string;
+  pointCount: number;
+  boundsRadius: number;
+  focalLength: number;
+  sceneClassification: 'COASTER_LOOP' | 'CHARACTER_MEET' | 'WATER_SPLASH' | 'SCENIC_PANORAMA';
+  qualityScore: number;
+  lodLevels: number;
+}
+
+export interface TranscodeChunk {
+  chunkIndex: number;
+  startTimeSec: number;
+  durationSec: number;
+  assignedNodeId: string;
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  chunkOutputUrl?: string;
+  renderTimeMs?: number;
+  error?: string;
+}
+
+export interface TranscodeGridNode {
+  nodeId: string;
+  role: 'MASTER' | 'TOUCH_KIOSK' | 'WORKER_EDGE';
+  ipAddress: string;
+  port: number;
+  hardwareCores: number;
+  hasGpuAcceleration: boolean;
+  isBusy: boolean;
+  currentLoadPercent: number;
+  lastHeartbeatTimestamp: number;
+}
+
+export interface DistributedTranscodingJob extends BaseRecord {
+  jobId: string;
+  sourceAssetUrl: string;
+  targetFormat: '4K_H265' | 'PRORES_HERO' | 'TIKTOK_9_16_BEAT_SYNC';
+  chunkCount: number;
+  completedChunks: number;
+  assignedNodes: string[];
+  status: 'QUEUED' | 'SLICING' | 'TRANSCODING' | 'STITCHING' | 'COMPLETED' | 'FAILED';
+  renderTimeMs?: number;
+  outputUrl?: string;
+  chunks?: TranscodeChunk[];
+  error?: string;
+}
+
+export interface NlpSemanticQuery {
+  queryText: string;
+  queryEmbedding?: number[];
+  categoryFilter?: string;
+  minSimilarity: number;
+  maxResults: number;
+}
+
+export interface DroneMissionDispatch extends BaseRecord {
+  missionId: string;
+  droneNodeId: string;
+  vipGuestId: string;
+  flightPathMode: 'ORBIT_360' | 'HERO_FLYBY' | 'PULLBACK_REVEAL' | 'STATIONARY_HOVER';
+  targetGps: {
+    latitude: number;
+    longitude: number;
+    altitudeMeters: number;
+  };
+  status: 'PREFLIGHT' | 'AIRBORNE' | 'RECORDING' | 'RETURNING' | 'LANDED_CHARGING';
+  batteryRemainingPercent: number;
+}
+
+// Phase 10: The V12.0 Autonomous Hyper-Ecosystem Types
+
+export type LightingPreset = 'GOLDEN_HOUR' | 'CYBERPUNK_NEON' | 'DRAMATIC_SUNSET' | 'STUDIO_REMBRANDT' | 'FAIRY_TALE_DUSK' | 'MOONLIT_NIGHT';
+
+export interface NeuralRelightingConfig {
+  preset: LightingPreset;
+  intensity: number;
+  lightAzimuthDeg: number;
+  lightElevationDeg: number;
+  colorTemperatureK: number;
+  specularBoost: number;
+  depthThreshold: number;
+}
+
+export interface AtmosphericVfxJob extends BaseRecord {
+  photoId: string;
+  relightingConfig: NeuralRelightingConfig;
+  particleEffect?: 'FIREWORKS' | 'GOLDEN_DUST' | 'MAGICAL_SNOW' | 'AURORA_BOREALIS' | 'WATER_DROPLET_SPARKLE';
+  outputUrl?: string;
+  depthMapUrl?: string;
+  processingTimeMs?: number;
+  status: 'QUEUED' | 'ESTIMATING_DEPTH' | 'COMPUTING_PBR_RELIGHT' | 'COMPLETED' | 'FAILED';
+}
+
+export interface NeuromorphicCaptureFrame {
+  frameIndex: number;
+  timestampMicroseconds: number;
+  opticalFlowMagnitude: number;
+  velocityVector: { x: number; y: number };
+  motionBlurScore: number;
+  deblurredBufferUrl?: string;
+  coherenceConfidence: number;
+}
+
+export interface HighSpeedMotionDeblurConfig {
+  shutterSpeedMicroseconds: number;
+  coasterSpeedKmh: number;
+  targetResolution: '1080P_120FPS' | '4K_60FPS' | '8K_RAW';
+  motionVectorInterpolationPasses: number;
+  eventThreshold: number;
+}
+
+export interface GameTheoreticYieldQuote {
+  sessionId: string;
+  guestFamilySize: number;
+  parkDwellHours: number;
+  totalPhotosCaptured: number;
+  rawCartValueUsd: number;
+  elasticityScore: number;
+  recommendedBundleDiscountPercent: number;
+  optimizedPriceUsd: number;
+  includedVipPerks: string[];
+  expirationSeconds: number;
+  negotiationRound: number;
+}
+
+export interface ZeroTrustNodeAttestation {
+  nodeId: string;
+  hardwareFingerprintDigest: string;
+  tpmEnclavePublicKey: string;
+  leaseGrantedAt: string;
+  leaseExpiresAt: string;
+  allowedCapabilities: Array<'EDGE_INGESTION' | 'VECTOR_SEARCH' | 'TRANSCODE_GRID' | 'SPLATTING_3D' | 'PAYMENT_CAPTURE'>;
+  signatureEd25519: string;
+  nonce: string;
+}
+
+// -------------------------------------------------------------------------
+// Phase 10: The V12.0 Autonomous Quantum Concession & Global AI Symphony
+// -------------------------------------------------------------------------
+
+export interface AudioSteganographicPayload {
+  guestId: string;
+  albumId: string;
+  carrierFrequencyHz: number;
+  watermarkDigest: string;
+  forensicTimestamp: number;
+  inaudibleCarrierEnabled: boolean;
+}
+
+export interface StoryboardChapter {
+  title: string;
+  narrativeScript: string;
+  photoIds: string[];
+  durationSeconds: number;
+  cameraMotion: 'KEN_BURNS_PAN' | 'PARALLAX_ZOOM' | 'MATRIX_ORBIT';
+  bgmTrack: string;
+}
+
+export interface AiNarrativeFilmStoryboard extends BaseRecord {
+  storyboardId: string;
+  guestFamilyName: string;
+  totalDurationSeconds: number;
+  narratorVoice: 'DISNEY_WARM_STORYTELLER' | 'EPIC_CINEMATIC_HERO' | 'CHEERFUL_RESORT_HOST';
+  chapters: StoryboardChapter[];
+  status: 'DRAFTING' | 'GENERATING_VOICE' | 'COMPOSING_4K' | 'READY';
+  renderedFilmUrl?: string;
+}
+
+export interface FotaTelemetryHeartbeat extends BaseRecord {
+  nodeId: string;
+  nodeRole: 'MASTER_LAN_GATEWAY' | 'TOUCH_KIOSK' | 'MOBILE_PRO' | 'EDGE_CAMERA_UWB';
+  firmwareVersion: string;
+  cpuTempCelsius: number;
+  shutterActuationsTotal: number;
+  batteryPercentage?: number;
+  storageFreeGb: number;
+  pendingUpdateVersion?: string;
+  lastPingTimestamp: number;
+}
+
+export interface PppCurrencyRate extends BaseRecord {
+  currencyCode: string;
+  countryName: string;
+  pppMultiplier: number;
+  rawExchangeRateToUsd: number;
+  localizedSymbol: string;
+}
+
+// -------------------------------------------------------------------------
+// Phase 12: The V13.0 Hyper-Immersive Autonomous Resort Holoverse Contracts
+// -------------------------------------------------------------------------
+
+export interface FourDGaussianVideoSequence extends BaseRecord {
+  sequenceId: string;
+  sceneName: string;
+  totalFrames: number;
+  fps: number;
+  splatChunkUrls: string[];
+  boundsRadiusMeters: number;
+  compressionCodec: 'SPLAT_STREAM_V2' | 'DYNAMIC_LOD_4D';
+  streamingBitrateKbps: number;
+}
+
+export interface MultilingualDubbingJob extends BaseRecord {
+  jobId: string;
+  sourceFilmId: string;
+  targetLanguage: string;
+  translatedScript: string;
+  dubbedAudioUrl?: string;
+  lipSyncConfidenceScore: number;
+  status: 'QUEUED' | 'TRANSLATING' | 'VOICE_CLONING' | 'LIP_SYNCING' | 'COMPLETED' | 'FAILED';
+}
+
+export interface DroneSwarmFormation extends BaseRecord {
+  formationId: string;
+  activeDroneIds: string[];
+  landmarkTarget: string;
+  formationPattern: 'V_FORMATION' | 'SPIRAL_ASCENT' | 'PINWHEEL_360' | 'DYNAMIC_TRACKING';
+  minSeparationMeters: number;
+  collisionAvoidanceActive: boolean;
+  status: 'FORMING' | 'COORDINATED_SHOOT' | 'DISPERSING' | 'RETURN_TO_DOCK';
+}
+
+export interface ZkBiometricRevocationProof extends BaseRecord {
+  proofId: string;
+  guestCommitmentHash: string;
+  nullifierHash: string;
+  snarkProofHex: string;
+  verificationKeyDigest: string;
+  isVerified: boolean;
+  revokedAt: string;
+}
+
+// -------------------------------------------------------------------------
+// Phase 13: The V14.0 Quantum Edge-Cloud Synapse & Robotic Fleet Contracts
+// -------------------------------------------------------------------------
+
+export interface RoboticRoverTelemetry extends BaseRecord {
+  roverId: string;
+  batteryPercent: number;
+  dockingState: 'CHARGING' | 'PATROLLING' | 'COMPOSING_SHOT' | 'EMERGENCY_HALT';
+  currentZone: string;
+  capturesToday: number;
+  lidarHealth: 'OPERATIONAL' | 'DEGRADED' | 'CALIBRATING';
+  dockId?: string;
+}
+
+export interface SpatialAudioAcousticConfig {
+  reverbDecayTimeMs: number;
+  roomDimensionsMeters: { length: number; width: number; height: number };
+  absorptionCoefficients: { walls: number; floor: number; ceiling: number };
+  virtualSpeakerLayout: 'STEREO' | '5.1_SURROUND' | '7.1.4_DOLBY_ATMOS';
+  binauralHrtfEnabled: boolean;
+}
+
+export interface BiometricLivenessResult {
+  isLive: boolean;
+  confidenceScore: number;
+  depthMapVariance: number;
+  blinkDetected: boolean;
+  spoofTypeDetected: 'NONE' | 'PRINTED_2D_PHOTO' | 'SCREEN_REPLAY_3D' | 'LATEX_MASK';
+}
+
+export interface GeoFencedUpsellTrigger extends BaseRecord {
+  triggerId: string;
+  guestId: string;
+  exitGateZone: string;
+  distanceMeters: number;
+  triggerTime: string;
+  offerType: 'LAST_CHANCE_DIGITAL_PASS' | 'VIP_PRINT_BUNDLE' | 'SPLAT_3D_MEMORY';
+  discountPercent: number;
+  pushDelivered: boolean;
+}
+
+// -------------------------------------------------------------------------
+// Phase 14: The V15.0 Autonomous Quantum Holographic & Universal Matrix
+// -------------------------------------------------------------------------
+
+export interface HolographicLightFieldConfig {
+  viewsCount: 45 | 90 | 180;
+  displayTarget: 'LOOKING_GLASS_8K' | 'HOLOGRAPHIC_MEMORIAL_PILLAR' | 'LIGHTFIELD_PROJECTOR';
+  focalPlaneMeters: number;
+  depthBudgetMeters: { near: number; far: number };
+  quiltResolution: { width: number; height: number; columns: number; rows: number };
+}
+
+export interface HolographicStreamFrame {
+  frameId: string;
+  sourceSplatUrl: string;
+  quiltImageUrl: string;
+  viewsRendered: number;
+  encodingBitrateMbps: number;
+  renderLatencyMs: number;
+}
+
+export interface SubsurfaceSkinRadianceConfig {
+  epidermalScattering: number;
+  subdermalAbsorption: number;
+  melaninLevel: number;
+  sunFlareDiffraction: number;
+  poreMicroDetailRetention: number;
+}
+
+export interface SkinRadianceResult {
+  photoId: string;
+  originalUrl: string;
+  enhancedUrl: string;
+  radianceScore: number;
+  skinTonePreservationIndex: number;
+  processingTimeMs: number;
+}
+
+export interface ZkArchiveShard {
+  shardIndex: number;
+  shardHash: string;
+  byteSize: number;
+  storageNodeId: string;
+}
+
+export interface ZkArchiveShardManifest extends BaseRecord {
+  archiveId: string;
+  erasureCoding: { dataShards: number; parityShards: number; totalShards: number };
+  merkleRoot: string;
+  shards: ZkArchiveShard[];
+  zkPossessionProof: string;
+  totalByteSize: number;
+}
+
+export interface QuantumVenueArbitrageQuote {
+  originVenueId: string;
+  targetVenueId: string;
+  weatherCondition: 'HEAVY_RAIN' | 'TYPHOON' | 'HEATWAVE' | 'CLEAR_SUNNY';
+  passTransferEligibility: boolean;
+  currencyBasketRatio: number;
+  recommendedCrossParkOffer: string;
+  yieldArbitrageSavingsPercent: number;
+}
+
+
+
+
+
+
+
+

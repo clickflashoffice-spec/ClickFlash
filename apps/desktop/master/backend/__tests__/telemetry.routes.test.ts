@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 if (typeof TextEncoder === 'undefined') {
     const { TextEncoder, TextDecoder } = require('util');
     global.TextEncoder = TextEncoder;
@@ -14,7 +15,7 @@ describe('Telemetry Routes', () => {
 
     beforeEach(() => {
         mockTelemetryService = {
-            getTelemetry: jest.fn().mockReturnValue({
+            getTelemetry: vi.fn().mockReturnValue({
                 "sync.queue_depth": 5,
                 "sync.dlq_count": 0,
                 "db.write_latency_ms": 12.5,
@@ -30,7 +31,7 @@ describe('Telemetry Routes', () => {
         app.use(express.json());
         app.use('/api/telemetry', telemetryRoutes({
             telemetryService: mockTelemetryService,
-            logger: { error: jest.fn(), info: jest.fn() }
+            logger: { error: vi.fn(), info: vi.fn() }
         }));
     });
 

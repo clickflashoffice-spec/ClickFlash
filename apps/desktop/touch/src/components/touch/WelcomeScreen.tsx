@@ -93,7 +93,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const [isPasswordModalOpen, setPasswordModalOpen] = useState(false);
   const [isRoomNumberModalOpen, setRoomNumberModalOpen] = useState(false);
   const [helpRequested, setHelpRequested] = useState(false);
-  const [authAction, setAuthAction] = useState<"exit">("exit");
+  const [authAction, setAuthAction] = useState<"exit" | "settings">("exit");
 
   // Face Login State
   const [isFaceLoginOpen, setIsFaceLoginOpen] = useState(false);
@@ -163,7 +163,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     onBrowsePhotos(roomNumber);
   };
 
-  const handleAuthRequest = (action: "exit") => {
+  const handleAuthRequest = (action: "exit" | "settings") => {
     setAuthAction(action);
     setPasswordModalOpen(true);
   };

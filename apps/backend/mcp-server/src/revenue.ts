@@ -1,5 +1,5 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { logger } from "@clickflash/logger";
+import { logger } from "./logger.js";
 import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
@@ -59,24 +59,33 @@ export async function handleYieldSimulator(args: Record<string, unknown>) {
   const timeMultiplier: Record<string, number> = { morning: 0.90, midday: 1.0, afternoon: 1.10, evening: 1.30, night: 0.75 };
   const weatherMultiplier: Record<string, number> = { sunny: 1.15, cloudy: 1.0, rainy: 0.80, stormy: 0.60 };
 
-  const cm = crowdMultiplier[crowd] ?? 1.0;
-  const tm = timeMultiplier[time] ?? 1.0;
-  const wm = weatherMultiplier[weather] ?? 1.0;
+  let cm = crowdMultiplier[crowd] ?? 1.0;
+  let tm = timeMultiplier[time] ?? 1.0;
+  let wm = weatherMultiplier[weather] ?? 1.0;
+  
+  let synergy = 1.0;
+  if (crowd === "peak" && (time === "afternoon" || time === "evening")) {
+      synergy = 1.5;
+  } else if (crowd === "high" && time === "evening") {
+      synergy = 1.25;
+  }
 
-  const optimalPrice = Math.round(basePrice * cm * tm * wm * 100) / 100;
-  const projectedConversion = Math.round((0.35 / (cm * tm)) * 100) / 100;
+  const combinedMultiplier = cm * tm * wm * synergy;
+
+  const optimalPrice = Math.round(basePrice * combinedMultiplier * 100) / 100;
+  const projectedConversion = Math.round((0.35 / combinedMultiplier) * 100) / 100;
 
   const report = [
     `=== YIELD SIMULATION REPORT ===`,
     `Base Price: ${basePrice}`,
-    `Crowd: ${crowd} (×${cm}) | Time: ${time} (×${tm}) | Weather: ${weather} (×${wm})`,
+    `Crowd: ${crowd} (×${cm}) | Time: ${time} (×${tm}) | Weather: ${weather} (×${wm}) | Synergy: (×${synergy})`,
     ``,
     `Optimal Price: ${optimalPrice}`,
-    `Combined Multiplier: ×${Math.round(cm * tm * wm * 100) / 100}`,
+    `Combined Multiplier: ×${Math.round(combinedMultiplier * 100) / 100}`,
     `Projected Conversion Rate: ${Math.round(projectedConversion * 100)}%`,
     `Projected Revenue per 100 guests: ${Math.round(optimalPrice * projectedConversion * 100)}`,
     ``,
-    `Recommendation: ${cm * tm * wm > 1.3 ? "SURGE PRICING — maximize yield during high-demand window." : cm * tm * wm < 0.8 ? "DISCOUNT MODE — lower barriers to drive volume." : "STANDARD PRICING — balanced yield/volume."}`
+    `Recommendation: ${combinedMultiplier > 1.3 ? "SURGE PRICING — maximize yield during high-demand window." : combinedMultiplier < 0.8 ? "DISCOUNT MODE — lower barriers to drive volume." : "STANDARD PRICING — balanced yield/volume."}`
   ].join("\n");
 
   return { content: [{ type: "text", text: report }] };
@@ -162,6 +171,8 @@ export async function handleAbandonedCartScan(args: Record<string, unknown>) {
         WHERE o.id IS NULL
           AND g.viewed_at IS NOT NULL
           AND g.viewed_at >= datetime('now', '-${Math.min(hoursBack, 168)} hours')
+          AND g.viewed_at <= datetime('now', '-1 hours')
+          AND g.photo_count > 0
         ORDER BY g.viewed_at DESC
         LIMIT 50
       `).all();

@@ -10,6 +10,23 @@ use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64_STD};
 type HmacSha256 = Hmac<Sha256>;
 
 use rusqlite::{Connection, Result as SqlResult};
+use std::sync::OnceLock;
+
+static RUNTIME: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
+static HTTP_CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+
+fn get_runtime() -> &'static tokio::runtime::Runtime {
+    RUNTIME.get_or_init(|| {
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+    })
+}
+
+fn get_http_client() -> &'static reqwest::Client {
+    HTTP_CLIENT.get_or_init(|| reqwest::Client::new())
+}
 
 // -------------------------------------------------------------
 // Core Engine Functions
@@ -109,7 +126,7 @@ async fn sync_pending_photos(db_path: &str, master_url: &str) -> Result<String, 
         }));
     }
 
-    let client = reqwest::Client::new();
+    let client = get_http_client();
     let res = client.post(master_url)
         .json(&payload)
         .send()
@@ -154,7 +171,7 @@ async fn sync_pending_events(db_path: &str, target_url_prefix: &str) -> Result<S
         return Ok("0 events pending sync".to_string());
     }
 
-    let client = reqwest::Client::new();
+    let client = get_http_client();
     let mut success_count = 0;
 
     for event in &pending_events {
@@ -259,7 +276,7 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_sy
     let db_path_str: String = env.get_string(&db_path).unwrap().into();
     let master_url_str: String = env.get_string(&master_url).unwrap().into();
 
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = get_runtime();
     let result = rt.block_on(async {
         match sync_pending_photos(&db_path_str, &master_url_str).await {
             Ok(msg) => msg,
@@ -281,7 +298,7 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_sy
     let db_path_str: String = env.get_string(&db_path).unwrap().into();
     let prefix_str: String = env.get_string(&target_url_prefix).unwrap().into();
 
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = get_runtime();
     let result = rt.block_on(async {
         match sync_pending_events(&db_path_str, &prefix_str).await {
             Ok(msg) => msg,
@@ -390,7 +407,7 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_sc
     let uuid_str: String = env.get_string(&clickflash_uuid).unwrap().into();
     let secs = duration_secs as u64;
 
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = get_runtime();
     let result = rt.block_on(async {
         match ble::scan_clickflash_beacons(&uuid_str, secs).await {
             Ok(beacons) => {
@@ -429,7 +446,7 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_br
     let uuid_str: String = env.get_string(&ghost_link_uuid).unwrap().into();
     let secs = duration_secs as u64;
 
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = get_runtime();
     let result = rt.block_on(async {
         match ble::broadcast_and_scan_ghost_link(&uuid_str, secs).await {
             Ok(beacons) => {
@@ -452,6 +469,193 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_br
             Err(e) => format!("{{\"error\": \"{}\"}}", e),
         }
     });
+
+    let output = env.new_string(result).unwrap();
+    output.into_raw()
+}
+
+// -------------------------------------------------------------
+// Offline Booking Registration & Spot Intelligence
+// -------------------------------------------------------------
+
+/// Saves a guest booking to local SQLite and enqueues a sync event
+fn save_booking(db_path: &str, name: &str, whatsapp: &str, email: &str) -> Result<String, String> {
+    let conn = Connection::open(db_path)
+        .map_err(|e| format!("Failed to open DB: {}", e))?;
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS bookings (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            whatsapp TEXT,
+            email TEXT,
+            status TEXT NOT NULL,
+            created_at INTEGER NOT NULL
+        )",
+        (),
+    ).map_err(|e| format!("Failed to create bookings table: {}", e))?;
+
+    let now_millis = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as i64;
+    let id = format!("booking_{}_rust", now_millis);
+
+    conn.execute(
+        "INSERT INTO bookings (id, name, whatsapp, email, status, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        (&id, name, whatsapp, email, "pending_sync", now_millis),
+    ).map_err(|e| format!("Failed to insert booking: {}", e))?;
+
+    let booking_payload = serde_json::json!({
+        "id": id,
+        "name": name,
+        "whatsapp": whatsapp,
+        "email": email,
+        "createdAt": now_millis
+    }).to_string();
+
+    let _ = enqueue_sync_event(db_path, "booking_created", "/api/v1/bookings", "POST", &booking_payload, "HIGH");
+
+    Ok(format!("Booking {} registered offline via Rust Core", id))
+}
+
+/// Offline Spot Intelligence Engine: Evaluates spot yield, crowd density, and lighting to return optimal positioning recommendations.
+fn process_spot_intelligence(spot_data: &str) -> Result<String, String> {
+    let parsed: serde_json::Value = match serde_json::from_str(spot_data) {
+        Ok(v) => v,
+        Err(_) => {
+            // Fallback for simple spot name string
+            return Ok(serde_json::json!({
+                "spot": spot_data,
+                "yieldScore": 85.0,
+                "recommendation": "OPTIMAL_LIGHTING",
+                "predictedRevenueMultiplier": 1.35,
+                "offlineComputed": true
+            }).to_string());
+        }
+    };
+
+    let sample_count = parsed.get("sampleCount").and_then(|v| v.as_i64()).unwrap_or(20);
+    let avg_pose_quality = parsed.get("averagePoseQuality").and_then(|v| v.as_f64()).unwrap_or(0.85);
+    let blur_rate = parsed.get("blurRate").and_then(|v| v.as_f64()).unwrap_or(0.08);
+    let blink_rate = parsed.get("blinkRate").and_then(|v| v.as_f64()).unwrap_or(0.05);
+
+    let yield_score = (avg_pose_quality * 50.0) + ((1.0 - blur_rate) * 30.0) + ((1.0 - blink_rate) * 20.0);
+    let recommendation = if blur_rate > 0.2 {
+        "INCREASE_SHUTTER_SPEED"
+    } else if avg_pose_quality < 0.6 {
+        "CHANGE_ANGLE_AND_POSING"
+    } else if yield_score > 80.0 {
+        "HOLD_POSITION_PEAK_YIELD"
+    } else {
+        "MONITOR_PASSING_CROWD"
+    };
+
+    let result = serde_json::json!({
+        "sampleCount": sample_count,
+        "yieldScore": yield_score,
+        "recommendation": recommendation,
+        "blurRate": blur_rate,
+        "blinkRate": blink_rate,
+        "poseQuality": avg_pose_quality,
+        "offlineComputed": true
+    });
+
+    Ok(result.to_string())
+}
+
+/// Telemetry Queue Stats: Queries pending photos, events, and bookings counts
+fn get_queue_stats(db_path: &str) -> Result<String, String> {
+    let conn = Connection::open(db_path)
+        .map_err(|e| format!("Failed to open DB: {}", e))?;
+
+    let pending_photos: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM photos WHERE status = 'pending'",
+        [],
+        |r| r.get(0),
+    ).unwrap_or(0);
+
+    let pending_events: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM offline_queue",
+        [],
+        |r| r.get(0),
+    ).unwrap_or(0);
+
+    let pending_bookings: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM bookings WHERE status = 'pending_sync'",
+        [],
+        |r| r.get(0),
+    ).unwrap_or(0);
+
+    let oldest_timestamp: Option<i64> = conn.query_row(
+        "SELECT MIN(timestamp) FROM offline_queue",
+        [],
+        |r| r.get(0),
+    ).unwrap_or(None);
+
+    let stats = serde_json::json!({
+        "pendingPhotos": pending_photos,
+        "pendingEvents": pending_events,
+        "pendingBookings": pending_bookings,
+        "oldestTimestamp": oldest_timestamp,
+        "totalPending": pending_photos + pending_events + pending_bookings
+    });
+
+    Ok(stats.to_string())
+}
+
+#[no_mangle]
+pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_saveBooking<'local>(
+    mut env: JNIEnv<'local>,
+    _this: JObject<'local>,
+    db_path: JString<'local>,
+    name: JString<'local>,
+    whatsapp: JString<'local>,
+    email: JString<'local>,
+) -> jstring {
+    let db_path_str: String = env.get_string(&db_path).unwrap().into();
+    let name_str: String = env.get_string(&name).unwrap().into();
+    let whatsapp_str: String = env.get_string(&whatsapp).unwrap().into();
+    let email_str: String = env.get_string(&email).unwrap().into();
+
+    let result = match save_booking(&db_path_str, &name_str, &whatsapp_str, &email_str) {
+        Ok(msg) => msg,
+        Err(e) => format!("ERROR: {}", e),
+    };
+
+    let output = env.new_string(result).unwrap();
+    output.into_raw()
+}
+
+#[no_mangle]
+pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_processSpotIntelligence<'local>(
+    mut env: JNIEnv<'local>,
+    _this: JObject<'local>,
+    spot_data: JString<'local>,
+) -> jstring {
+    let spot_data_str: String = env.get_string(&spot_data).unwrap().into();
+
+    let result = match process_spot_intelligence(&spot_data_str) {
+        Ok(msg) => msg,
+        Err(e) => format!("ERROR: {}", e),
+    };
+
+    let output = env.new_string(result).unwrap();
+    output.into_raw()
+}
+
+#[no_mangle]
+pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_getQueueStats<'local>(
+    mut env: JNIEnv<'local>,
+    _this: JObject<'local>,
+    db_path: JString<'local>,
+) -> jstring {
+    let db_path_str: String = env.get_string(&db_path).unwrap().into();
+
+    let result = match get_queue_stats(&db_path_str) {
+        Ok(msg) => msg,
+        Err(e) => format!("ERROR: {}", e),
+    };
 
     let output = env.new_string(result).unwrap();
     output.into_raw()

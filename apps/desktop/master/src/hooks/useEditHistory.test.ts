@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+import { describe, it, expect } from 'vitest';
 /**
  * Unit tests for useEditHistory hook
  * @jest-environment jsdom

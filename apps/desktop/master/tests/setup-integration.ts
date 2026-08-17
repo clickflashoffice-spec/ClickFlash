@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { initializeDatabase, resetDatabase, closeDatabase } from './mocks/database';
 
 beforeAll(() => {
@@ -9,7 +10,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 afterAll(async () => {

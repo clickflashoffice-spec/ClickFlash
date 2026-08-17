@@ -1,23 +1,24 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { vi } from 'vitest';
 
-jest.mock('../../../src/services/pb', () => ({
+
+vi.mock('../../../src/services/pb', () => ({
   pb: {
-    collection: jest.fn().mockReturnValue({
-      getFullList: jest.fn().mockResolvedValue([]),
-      getList: jest.fn().mockResolvedValue({ items: [], totalItems: 0, page: 1, perPage: 20, totalPages: 0 }),
-      getOne: jest.fn().mockResolvedValue({}),
-      create: jest.fn().mockResolvedValue({}),
-      update: jest.fn().mockResolvedValue({}),
-      delete: jest.fn().mockResolvedValue(true),
+    collection: vi.fn().mockReturnValue({
+      getFullList: vi.fn().mockResolvedValue([]),
+      getList: vi.fn().mockResolvedValue({ items: [], totalItems: 0, page: 1, perPage: 20, totalPages: 0 }),
+      getOne: vi.fn().mockResolvedValue({}),
+      create: vi.fn().mockResolvedValue({}),
+      update: vi.fn().mockResolvedValue({}),
+      delete: vi.fn().mockResolvedValue(true),
     }),
     baseUrlValue: 'http://localhost:8090',
-    getCsrfToken: jest.fn().mockResolvedValue('csrf-token'),
+    getCsrfToken: vi.fn().mockResolvedValue('csrf-token'),
   },
 }));
 
 describe('photoService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     jest.resetModules();
   });
 

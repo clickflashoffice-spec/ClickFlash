@@ -77,6 +77,26 @@ export default function syncRoutes(context: SyncContext): Router {
         
         const payload = JSON.parse(decrypted);
 
+        // 2.5. Cryptographic Timestamp Verification (Phase 3 Fraud Monitoring)
+        const payloadTimestamp = payload.timestamp;
+        if (!payloadTimestamp || typeof payloadTimestamp !== 'number') {
+            logger.warn(`[Security] Rejected LAN request from ${kioskId} due to missing or invalid timestamp.`);
+            return res.status(401).json({
+                error: "Unauthorized",
+                message: "Payload timestamp is required to prevent replay attacks."
+            });
+        }
+        
+        const now = Date.now();
+        const MAX_SKEW_MS = 5 * 60 * 1000; // 5 minutes
+        if (Math.abs(now - payloadTimestamp) > MAX_SKEW_MS) {
+            logger.warn(`[Security] Rejected LAN request from ${kioskId} due to expired timestamp (skew: ${Math.abs(now - payloadTimestamp)}ms). Possible replay attack or extreme offline drift.`);
+            return res.status(401).json({
+                error: "Unauthorized",
+                message: "Payload timestamp expired or severely out of sync."
+            });
+        }
+
         // 3. Process Payload
         const clientId = payload.clientId || req.headers["x-client-id"] || kioskId;
         await syncManager.handleMutation(payload, clientId);

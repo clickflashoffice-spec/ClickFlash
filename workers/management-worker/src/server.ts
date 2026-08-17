@@ -295,7 +295,7 @@ const managementHandler = {
       );
 
       if (abandonedCarts && abandonedCarts.length > 0) {
-        for (const cart of abandonedCarts) {
+        await Promise.all(abandonedCarts.map(async (cart) => {
           try {
             // In a real app, this would route to their specific gallery URL
             const galleryUrl = `https://gallery.clicketflash.com/${cart.gallery_pin}`;
@@ -355,7 +355,7 @@ const managementHandler = {
               itemErr,
             );
           }
-        }
+        }));
       }
     } catch (err) {
       console.error("[Cron] Uncaught error during scheduled execution:", err);

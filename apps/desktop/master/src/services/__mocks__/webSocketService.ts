@@ -1,17 +1,18 @@
+import { vi } from 'vitest';
 /**
  * Mock WebSocket Service for Testing
  */
 
 export const webSocketService = {
-    connect: jest.fn(),
-    disconnect: jest.fn(),
-    sendMessage: jest.fn(),
-    on: jest.fn(),
-    off: jest.fn(),
-    isConnected: jest.fn(() => false),
-    updateClientInfo: jest.fn(),
-    requestAssistance: jest.fn(),
-    subscribeToPhotoStream: jest.fn(() => jest.fn()), // returns unsubscribe function
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+    sendMessage: vi.fn(),
+    on: vi.fn(),
+    off: vi.fn(),
+    isConnected: vi.fn(() => false),
+    updateClientInfo: vi.fn(),
+    requestAssistance: vi.fn(),
+    subscribeToPhotoStream: vi.fn(() => vi.fn()), // returns unsubscribe function
 };
 
 export default webSocketService;

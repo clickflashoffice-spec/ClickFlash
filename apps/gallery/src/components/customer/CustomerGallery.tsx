@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import VirtualGrid from '@/components/common/VirtualGrid';
 import BulkActionsBar from '@/components/customer/BulkActionsBar';
+import MagicShotViewer from '@/components/customer/MagicShotViewer';
 import type { Photo } from '@/types.ts';
 import { getPhotoStyle } from '@/utils/styleUtils';
+import { Sparkles } from 'lucide-react';
 
 const VIRTUAL_SCROLL_THRESHOLD = 100;
 
@@ -190,6 +192,7 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
     const [sortOption, setSortOption] = useState<SortOption>('date-desc');
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set());
+    const [magicShotPhoto, setMagicShotPhoto] = useState<Photo | null>(null);
 
     const useVirtualScrolling = photos.length >= VIRTUAL_SCROLL_THRESHOLD;
 
@@ -305,6 +308,19 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
                         </div>
                         <div className="h-8 w-px bg-white/10 mx-2 hidden sm:block"></div>
                         <div className="flex items-center space-x-2">
+                            <button
+                                onClick={() => {
+                                    const targetPhoto = selectedPhotoIds.size > 0 
+                                        ? filteredAndSortedPhotos.find(p => selectedPhotoIds.has(p.id)) 
+                                        : filteredAndSortedPhotos[0];
+                                    if (targetPhoto) setMagicShotPhoto(targetPhoto);
+                                }}
+                                disabled={filteredAndSortedPhotos.length === 0}
+                                className="px-4 py-2 min-h-[48px] bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 hover:from-cyan-500/30 hover:to-indigo-500/30 border border-cyan-400/30 text-cyan-300 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 shadow-lg disabled:opacity-40"
+                            >
+                                <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                                <span>Magic Shots 3D</span>
+                            </button>
                             {onOpenProofing && (
                                 <button onClick={onOpenProofing} className="px-4 py-2 min-h-[48px] bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
@@ -484,6 +500,16 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
                         setIsSelectionMode(false);
                         setSelectedPhotoIds(new Set());
                     }}
+                />
+            )}
+
+            {/* Magic Shot 3D WebXR Studio Modal */}
+            {magicShotPhoto && (
+                <MagicShotViewer
+                    isOpen={!!magicShotPhoto}
+                    onClose={() => setMagicShotPhoto(null)}
+                    photoUrl={magicShotPhoto.url}
+                    photoId={magicShotPhoto.id}
                 />
             )}
         </main>

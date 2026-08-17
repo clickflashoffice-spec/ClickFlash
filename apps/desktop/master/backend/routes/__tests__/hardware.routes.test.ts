@@ -1,11 +1,12 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import { createHardwareRouter } from '../hardware.routes';
 import { hardwareTriggerService } from '../../services/hardwareTriggerService';
 
-jest.mock('../../services/hardwareTriggerService', () => ({
+vi.mock('../../services/hardwareTriggerService', () => ({
     hardwareTriggerService: {
-        handleTrigger: jest.fn()
+        handleTrigger: vi.fn()
     }
 }));
 
@@ -13,7 +14,7 @@ describe('Hardware API Routes', () => {
     let app: express.Express;
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         
         app = express();
         app.use(express.json());
@@ -29,7 +30,7 @@ describe('Hardware API Routes', () => {
                 message: 'Shutter triggered successfully'
             };
             
-            (hardwareTriggerService.handleTrigger as jest.Mock).mockResolvedValue(mockResponse);
+            (hardwareTriggerService.handleTrigger as vi.Mock).mockResolvedValue(mockResponse);
 
             const payload = {
                 sensorId: 'sensor-1',
@@ -46,7 +47,7 @@ describe('Hardware API Routes', () => {
         });
 
         it('should return 400 when payload is invalid', async () => {
-            (hardwareTriggerService.handleTrigger as jest.Mock).mockRejectedValue(new Error('Invalid hardware trigger payload'));
+            (hardwareTriggerService.handleTrigger as vi.Mock).mockRejectedValue(new Error('Invalid hardware trigger payload'));
 
             const invalidPayload = {
                 sensorId: 'sensor-1'

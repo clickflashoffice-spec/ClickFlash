@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeAll } from '@jest/globals';
+import { describe, it, expect, beforeAll } from 'vitest';
+
 import fs from 'fs';
 import path from 'path';
 import { validateImageMagicNumber } from '../../services/validateImage';

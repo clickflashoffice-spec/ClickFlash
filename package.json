@@ -32,7 +32,7 @@
     "dev:mobile:pro": "pnpm --filter @clickflash/mobile-pro start",
     "dev:mobile:consumer": "pnpm --filter @clickflash/mobile-consumer start",
     "dev:ai-worker": "cd apps/backend/ai-worker && uvicorn main:app --reload --port 8000",
-    "build:all": "pnpm --filter clickflash-master run build && pnpm --filter clickflash-master run build:backend && pnpm --filter clickflash-touch run build && pnpm --filter clickflash-touch run build:backend && pnpm --filter @clickflash/management run build && pnpm --filter moneytrash-uploader run build && pnpm --filter clickflash-installer run build && pnpm --filter clickflash-license-generator run build && pnpm --filter clickflash-mcp run build && pnpm --filter @clickflash/docs run build",
+    "build:all": "pnpm --filter clickflash-master run build && pnpm --filter clickflash-master run build:backend && pnpm --filter clickflash-touch run build && pnpm --filter clickflash-touch run build:backend && pnpm --filter @clickflash/management run build && pnpm --filter @clickflash/gallery run build && pnpm --filter moneytrash-uploader run build && pnpm --filter clickflash-installer run build && pnpm --filter clickflash-license-generator run build && pnpm --filter clickflash-mcp run build && pnpm --filter @clickflash/docs run build",
     "build:master": "pnpm --filter clickflash-master run build && pnpm --filter clickflash-master run build:backend",
     "build:touch": "pnpm --filter clickflash-touch run build && pnpm --filter clickflash-touch run build:backend",
     "build:management": "pnpm --filter @clickflash/management run build",
@@ -66,7 +66,7 @@
     "test:report": "npx playwright show-report",
     "lint:all": "pnpm --filter clickflash-master run lint && pnpm --filter clickflash-touch run lint && pnpm --filter @clickflash/management run lint && pnpm --filter moneytrash-uploader run lint && pnpm --filter clickflash-installer run lint && pnpm --filter clickflash-license-generator run lint && pnpm --filter @clickflash/mobile-pro run lint && pnpm --filter @clickflash/mobile-consumer run lint",
     "lint:mobile": "pnpm --filter @clickflash/mobile-pro run lint && pnpm --filter @clickflash/mobile-consumer run lint",
-    "typecheck:all": "pnpm --filter clickflash-master run typecheck:ci && pnpm --filter clickflash-touch run typecheck && pnpm --filter @clickflash/management run typecheck && pnpm --filter moneytrash-uploader run typecheck && pnpm --filter clickflash-installer run typecheck && pnpm --filter clickflash-license-generator run typecheck && pnpm --filter @clickflash/mobile-pro run typecheck && pnpm --filter @clickflash/mobile-consumer run typecheck && pnpm --filter cloud-backend run typecheck && pnpm --filter clickflash-mcp run build",
+    "typecheck:all": "pnpm --filter clickflash-master run typecheck:ci && pnpm --filter clickflash-touch run typecheck && pnpm --filter @clickflash/management run typecheck && pnpm --filter @clickflash/gallery run typecheck && pnpm --filter moneytrash-uploader run typecheck && pnpm --filter clickflash-installer run typecheck && pnpm --filter clickflash-license-generator run typecheck && pnpm --filter @clickflash/mobile-pro run typecheck && pnpm --filter @clickflash/mobile-consumer run typecheck && pnpm --filter cloud-backend run typecheck && pnpm --filter clickflash-mcp run build",
     "typecheck:mobile": "pnpm --filter @clickflash/mobile-pro run typecheck && pnpm --filter @clickflash/mobile-consumer run typecheck",
     "docker:up": "docker-compose -f docker-compose.dev.yml up -d",
     "docker:down": "docker-compose -f docker-compose.dev.yml down",
@@ -78,6 +78,7 @@
     "benchmark:ipc": "npx tsx scripts/benchmark-ipc.ts",
     "benchmark:ai": "npx tsx scripts/benchmark-ai-scoring.ts",
     "benchmark:face": "npx tsx scripts/benchmark-face-search.ts",
+    "benchmark:yield": "npx tsx scripts/benchmark-yield-arbitrage.ts",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -94,58 +95,12 @@
     "turbo": "^2.10.0",
     "vitest": "^4.1.10"
   },
-  "pnpm.overrides": {
-    "minimatch@>=5.0.0 <5.1.8": "5.1.8",
-    "minimatch@>=9.0.0 <9.0.7": "9.0.7",
-    "next@>=12.0.0 <15.5.22": "15.5.22",
-    "nodemailer@<9.0.1": "9.0.1",
-    "path-to-regexp@>=8.0.0 <8.4.0": "8.4.2",
-    "picomatch@<2.3.2": "2.3.2",
-    "postcss@<=8.5.17": "8.5.23",
-    "qs": "^6.15.3",
-    "rollup@>=4.0.0 <4.59.0": "4.62.3",
-    "serialize-javascript": "^7.0.5",
-    "sharp@<0.35.0": "0.35.1",
-    "shell-quote@<=1.8.3": "1.10.0",
-    "socket.io-parser@>=4.0.0 <4.2.7": "4.2.7",
-    "svgo@>=3.0.0 <3.3.4": "3.3.4",
-    "tar@<=7.5.18": "7.5.22",
-    "tmp@<0.2.6": "0.2.7",
-    "undici": "^6.28.0",
-    "uuid": "^11.1.1",
-    "webpack-dev-server": "^5.2.6",
-    "ws@>=8.0.0 <8.21.0": "8.21.1",
-    "yaml": "^1.10.3",
-    "zod": "^3.22.3",
-    "@aws-sdk/core": "^3.977.6",
-    "@tootallnate/once": "^2.0.1",
-    "react-dom": "19.2.7",
-    "image-size": "2.0.2"
-  },
-  "pnpm.onlyBuiltDependencies": [
-    "@sentry/cli",
-    "@serialport/bindings-cpp",
-    "@swc/core",
-    "bcrypt",
-    "better-sqlite3",
-    "better-sqlite3-multiple-ciphers",
-    "core-js",
-    "electron",
-    "electron-winstaller",
-    "esbuild",
-    "msw",
-    "onnxruntime-node",
-    "protobufjs",
-    "sharp",
-    "unrs-resolver",
-    "workerd"
-  ],
   "engines": {
     "node": ">=20.0.0"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.9.0",
-    "esbuild": "0.28.1"
+    "esbuild": "0.28.2"
   }
 }

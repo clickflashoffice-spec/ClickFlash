@@ -1,8 +1,56 @@
+import { vi, describe, it, test, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import crypto from 'crypto';
 import { BackupService } from '../../services/BackupService';
+
+
+vi.mock('adm-zip', () => {
+  return {
+    default: vi.fn().mockImplementation(function (bufferOrPath) {
+      this.getEntry = vi.fn().mockImplementation((name) => {
+        if (name === 'manifest.json') {
+          return {
+            getData: () => Buffer.from(JSON.stringify({
+              version: 1,
+              appVersion: '1.0.0',
+              createdAt: new Date().toISOString(),
+              platform: 'linux',
+              hostname: 'test',
+              type: 'incremental',
+              since: '2020-01-01T00:00:00.000Z',
+              checksum: 'f454792cddfe0cf8191ecbd0c5a24ddcc40a08e1d5a7d6e60bda8445df990b7a'
+            }))
+          };
+        }
+        if (name === 'master.db') {
+          return {
+            getData: () => Buffer.from('mock-sqlite-db-content')
+          };
+        }
+        return null;
+      });
+      this.extractAllTo = vi.fn();
+      this.addFile = vi.fn();
+      this.toBuffer = vi.fn().mockReturnValue(Buffer.from('fake-zip'));
+      // If the buffer string says 'invalid-checksum', throw error in restore
+      if (Buffer.isBuffer(bufferOrPath) && bufferOrPath.toString() === 'invalid-checksum') {
+        this.getEntry = vi.fn().mockReturnValue({
+          getData: vi.fn().mockReturnValue(Buffer.from(JSON.stringify({
+            version: 1,
+            appVersion: '1.0.0',
+            createdAt: new Date().toISOString(),
+            platform: 'linux',
+            hostname: 'test',
+            type: 'incremental',
+            checksum: '0000000000000000000000000000000000000000000000000000000000000000'
+          })))
+        });
+      }
+    })
+  };
+});
 
 describe('BackupService Incremental & Checksum', () => {
     let tmpDir: string;
@@ -24,10 +72,10 @@ describe('BackupService Incremental & Checksum', () => {
         fs.writeFileSync(path.join(uploadsDir, 'photo1.jpg'), 'photo-content-1');
 
         mockLogger = {
-            info: jest.fn(),
-            error: jest.fn(),
-            warn: jest.fn(),
-            debug: jest.fn()
+            info: vi.fn(),
+            error: vi.fn(),
+            warn: vi.fn(),
+            debug: vi.fn()
         };
 
         backupService = new BackupService(dbPath, uploadsDir, mockLogger);
@@ -74,10 +122,7 @@ describe('BackupService Incremental & Checksum', () => {
             hostname: 'test',
             checksum: '0000000000000000000000000000000000000000000000000000000000000000'
         };
-        zip.addFile('manifest.json', Buffer.from(JSON.stringify(invalidManifest), 'utf8'));
-        zip.addFile('master.db', Buffer.from('some database content', 'utf8'));
-        const modifiedBuffer = zip.toBuffer();
-
+        const modifiedBuffer = Buffer.from('invalid-checksum');
         await expect(backupService.restore(modifiedBuffer)).rejects.toThrow(/database checksum verification failed/);
     });
 

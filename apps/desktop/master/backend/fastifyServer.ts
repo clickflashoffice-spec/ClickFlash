@@ -161,8 +161,8 @@ async function buildServer() {
   YjsWebsocketServer.initialize(rawServer, "/yjs");
 
   // Initialize WebRTC Signaling Server for spontaneous video check-ins
-  const { WebRTCSignalingServer } = await import("./services/webrtcSignaling");
-  new WebRTCSignalingServer(rawServer as any);
+  const { webRtcSignalingService } = await import("./services/webrtcSignaling");
+  webRtcSignalingService.init(rawServer as any);
 
   // Initialize self-hosted GlitchTip error tracking
   const { glitchtipService } = await import("./services/glitchtipService");

@@ -1,43 +1,47 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import GuestFaceSearchModal from '../GuestFaceSearchModal';
-import { cloudApiService } from '../../../services/cloudApiService';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import GuestFaceSearchModal from './GuestFaceSearchModal';
+import { cloudApiService } from '../../services/cloudApiService';
 
-jest.mock('@clickflash/ui', () => ({
+vi.mock('@clickflash/ui', () => ({
     Modal: ({ children, isOpen, title }: any) => isOpen ? <div data-testid="modal" title={title}>{children}</div> : null,
 }));
 
-jest.mock('../../../services/cloudApiService', () => ({
+vi.mock('../../services/cloudApiService', () => ({
     cloudApiService: {
-        searchPhotosByFace: jest.fn(),
+        searchPhotosByFace: vi.fn(),
     },
 }));
 
 describe('GuestFaceSearchModal', () => {
-    const mockOnClose = jest.fn();
-    const mockOnAddAllToCart = jest.fn();
+    const mockOnClose = vi.fn();
+    const mockOnAddAllToCart = vi.fn();
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         Object.defineProperty(global.navigator, 'mediaDevices', {
             value: {
-                getUserMedia: jest.fn().mockResolvedValue({
-                    getTracks: () => [{ stop: jest.fn() }],
+                getUserMedia: vi.fn().mockResolvedValue({
+                    getTracks: () => [{ stop: vi.fn() }],
                 }),
             },
             writable: true,
             configurable: true,
         });
         
-        // Mock FileReader
-        const mockFileReader = {
-            readAsDataURL: jest.fn(function(this: any) {
+        // Mock constructible FileReader
+        class MockFileReader {
+            onload: any = null;
+            readAsDataURL() {
                 setTimeout(() => {
-                    this.onload({ target: { result: 'data:image/jpeg;base64,mock' } });
+                    if (this.onload) {
+                        this.onload({ target: { result: 'data:image/jpeg;base64,mock' } });
+                    }
                 }, 10);
-            }),
-        };
-        (global as any).FileReader = jest.fn(() => mockFileReader);
+            }
+        }
+        (global as any).FileReader = MockFileReader;
     });
 
     it('renders selfie capture view by default', () => {
@@ -55,7 +59,7 @@ describe('GuestFaceSearchModal', () => {
     });
 
     it('file input accepts image and calls search', async () => {
-        (cloudApiService.searchPhotosByFace as jest.Mock).mockResolvedValue([
+        (cloudApiService.searchPhotosByFace as any).mockResolvedValue([
             { photo: { id: 'p1', url: 'test.jpg' } as any, matchScore: 0.95 }
         ]);
 
@@ -80,7 +84,7 @@ describe('GuestFaceSearchModal', () => {
     });
 
     it('confidence score badges show percentage', async () => {
-        (cloudApiService.searchPhotosByFace as jest.Mock).mockResolvedValue([
+        (cloudApiService.searchPhotosByFace as any).mockResolvedValue([
             { photo: { id: 'p1', url: 'test.jpg' } as any, matchScore: 0.955 }
         ]);
 
@@ -102,7 +106,7 @@ describe('GuestFaceSearchModal', () => {
     });
 
     it('empty results shows "No matching photos found" message', async () => {
-        (cloudApiService.searchPhotosByFace as jest.Mock).mockResolvedValue([]);
+        (cloudApiService.searchPhotosByFace as any).mockResolvedValue([]);
 
         const { container } = render(
             <GuestFaceSearchModal
@@ -127,7 +131,7 @@ describe('GuestFaceSearchModal', () => {
             { id: 'p2', url: 'test2.jpg' }
         ];
 
-        (cloudApiService.searchPhotosByFace as jest.Mock).mockResolvedValue([
+        (cloudApiService.searchPhotosByFace as any).mockResolvedValue([
             { photo: mockPhotos[0] as any, matchScore: 0.95 },
             { photo: mockPhotos[1] as any, matchScore: 0.85 }
         ]);

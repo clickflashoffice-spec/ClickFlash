@@ -1,3 +1,4 @@
+import { vi, describe, it, test, expect, beforeEach, beforeAll, afterAll } from 'vitest';
 import crypto from "crypto";
 import express from "express";
 import fs from "fs";
@@ -5,6 +6,7 @@ import os from "os";
 import path from "path";
 import request from "supertest";
 import Database from "better-sqlite3-multiple-ciphers";
+import { redisCache } from "../services/redisCacheService";
 
 import {
   mobileCaptureAdminRoutes,
@@ -23,19 +25,19 @@ import {
 } from "../services/mobileCaptureProtocol";
 import type { DatabaseManager } from "../database/db";
 
-jest.mock("../services/redisCacheService", () => ({
+vi.mock("../services/redisCacheService", () => ({
   redisCache: {
-    publishEvent: jest.fn().mockResolvedValue(true)
+    publishEvent: vi.fn().mockResolvedValue(true)
   }
 }));
 
 const _dirname = __dirname;
 
 const mockLogger = {
-  info: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  debug: vi.fn(),
 };
 
 describe("Android mobile capture ingest", () => {
@@ -101,7 +103,7 @@ describe("Android mobile capture ingest", () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     resetMobileCapturePairingCodesForTest();
     database.exec(`
       DELETE FROM mobile_capture_processing_queue;
@@ -115,7 +117,7 @@ describe("Android mobile capture ingest", () => {
       "Test Photographer",
       "Photographer"
     );
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("pairs once, rejects replay/tampering, resumes chunks, and signs a durable receipt", async () => {
@@ -518,12 +520,12 @@ describe("Android mobile capture ingest", () => {
     expect(upload.state).toBe("READY");
     expect(fs.readFileSync(upload.finalPath)).toEqual(asset);
     
-    const { redisCache } = require("../services/redisCacheService");
     expect(redisCache.publishEvent).toHaveBeenCalledWith(
       "mobile_capture_processing_queue",
       expect.objectContaining({
-        deviceId: "A-TEST-DEVICE",
-        photoId: expect.any(String),
+        asset_sha256: expect.any(String),
+        id: expect.any(String),
+        local_path: expect.any(String),
       })
     );
 

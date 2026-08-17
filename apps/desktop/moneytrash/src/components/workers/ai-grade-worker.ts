@@ -1,7 +1,7 @@
 import { GeminiClient } from '@clickflash/ai';
 import { EdgeAIGradingResult, AIGrade } from './grade-worker';
 
-const AI_API_KEY = process.env.GEMINI_API_KEY || 'demo-api-key';
+const AI_API_KEY = process.env.GEMINI_API_KEY || '';
 
 export interface AIGradeRequest {
   type: 'AI_GRADE_FILE';

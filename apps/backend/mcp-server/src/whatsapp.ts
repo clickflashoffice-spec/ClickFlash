@@ -1,5 +1,5 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { logger } from "@clickflash/logger";
+import { logger } from "./logger.js";
 
 export const getWhatsappTools = (): Tool[] => [
   {

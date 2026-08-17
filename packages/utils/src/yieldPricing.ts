@@ -7,11 +7,18 @@ export class YieldPricingService {
      */
     public evaluateYield(
         config: YieldPricingConfig,
-        telemetry: { crowdDensity?: CrowdDensity; weather?: WeatherCondition; timeOfDay?: TimeOfDay }
+        telemetry: { crowdDensity?: CrowdDensity; weather?: WeatherCondition; timeOfDay?: TimeOfDay },
+        experimentCohortId?: string
     ): number {
         if (!config.isActive) return config.basePrice;
 
         let multiplier = 1.0;
+
+        // Apply experiment cohort multiplier if defined
+        if (experimentCohortId && config.rules.experimentMultipliers) {
+            const mod = config.rules.experimentMultipliers[experimentCohortId];
+            if (mod !== undefined) multiplier *= mod;
+        }
 
         // 1. Time-of-day surge
         if (config.rules.timeOfDayMultipliers && telemetry.timeOfDay) {
@@ -29,6 +36,20 @@ export class YieldPricingService {
         if (config.rules.crowdDensityMultiplier && telemetry.crowdDensity) {
             const mod = config.rules.crowdDensityMultiplier[telemetry.crowdDensity];
             if (mod !== undefined) multiplier *= mod;
+        }
+
+        // 4. Aggressive Surge Synergy (Peak Demand)
+        // Maximize yield when the park is packed during prime hours
+        if (
+            telemetry.crowdDensity === 'Peak' && 
+            (telemetry.timeOfDay === 'Afternoon' || telemetry.timeOfDay === 'Evening')
+        ) {
+            multiplier *= 1.5; // Additional 50% aggressive surge
+        } else if (
+            telemetry.crowdDensity === 'High' && 
+            telemetry.timeOfDay === 'Evening'
+        ) {
+            multiplier *= 1.25; // Additional 25% surge
         }
 
         // Calculate final bounded price

@@ -366,14 +366,14 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
-                          item.type === 'physical' ? 'bg-amber-500/20 text-amber-300' :
-                          item.type === 'reel' ? 'bg-purple-500/20 text-purple-300' :
-                          item.type === '3d-figure' ? 'bg-pink-500/20 text-pink-300' :
-                          item.type === 'magic-shot' ? 'bg-blue-500/20 text-blue-300' :
-                          item.type === 'pass' ? 'bg-emerald-500/20 text-emerald-300' :
+                          (item as any).type === 'physical' ? 'bg-amber-500/20 text-amber-300' :
+                          (item as any).type === 'reel' ? 'bg-purple-500/20 text-purple-300' :
+                          (item as any).type === '3d-figure' ? 'bg-pink-500/20 text-pink-300' :
+                          (item as any).type === 'magic-shot' ? 'bg-blue-500/20 text-blue-300' :
+                          (item as any).type === 'pass' ? 'bg-emerald-500/20 text-emerald-300' :
                           'bg-cyan-500/20 text-cyan-300'
                         }`}>
-                          {item.type || 'Digital'}
+                          {(item as any).type || item.format || 'Digital'}
                         </span>
                       </div>
                       <p className="truncate font-bold text-white text-sm">{item.name}</p>

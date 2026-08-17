@@ -158,7 +158,7 @@ const App: React.FC = () => {
           </div>
           <div>
             <h1 className="text-sm font-semibold text-slate-100">ClickFlash Studio Setup</h1>
-            <p className="text-xs text-slate-400">v5.0.0 — Multi-Master Global Sync</p>
+            <p className="text-xs text-slate-400">v6.0.0 — Autonomous Ecosystem Paradigm</p>
           </div>
         </div>
         <div className="flex items-center gap-2">

@@ -208,6 +208,7 @@ export function Uploader({
           // Get BRISQUE score from IPC
           let brisqueScore = null;
           if ((fileItem.file as any).path) {
+            // @ts-expect-error electron is injected but not in global types
             brisqueScore = await window.electron.invoke('process:brisque', { filePath: (fileItem.file as any).path }) as number | null;
           }
 

@@ -6,6 +6,8 @@ export interface BiometricVectorResult {
   syncedToMaster: boolean;
 }
 
+import { antiSpoofingEngine } from '@clickflash/ai';
+
 export class BiometricSelfieService {
   private masterApiUrl: string;
 
@@ -19,7 +21,12 @@ export class BiometricSelfieService {
    */
   public async registerGuestSelfie(userId: string, imageBase64: string): Promise<BiometricVectorResult> {
     try {
-      console.log(`[BiometricService] Generating facial vector embedding for user ${userId}...`);
+      console.log(`[BiometricService] Verifying liveness and generating facial vector embedding for user ${userId}...`);
+
+      const livenessResult = await antiSpoofingEngine.verifyLiveness(imageBase64);
+      if (!livenessResult.isGenuine) {
+        throw new Error(`Anti-spoofing check failed. Detected spoof type: ${livenessResult.detectedType} with probability ${livenessResult.spoofProbability.toFixed(3)}`);
+      }
 
       // In native environment, local ArcFace / MobileNet models generate a 512-d vector
       // Mocking 512-dimension normalized embedding array

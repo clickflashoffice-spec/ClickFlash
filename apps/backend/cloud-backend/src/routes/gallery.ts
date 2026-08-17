@@ -339,6 +339,8 @@ app.get('/photos/:id/file', async (c) => {
     headers.set('etag', object.httpEtag);
     headers.set('Accept-Ranges', 'bytes');
     headers.set('Content-Disposition', `attachment; filename="ClickFlash_${photoId}.jpg"`);
+    headers.set('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
+    headers.set('Access-Control-Allow-Origin', '*');
 
     if (parsedRange) {
       headers.set(

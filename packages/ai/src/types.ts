@@ -97,4 +97,27 @@ export interface QualityGateOptions {
   minBrandSafetyScore?: number;
 }
 
+export interface PhotoSemanticMetadata {
+  id: string;
+  title?: string;
+  category?: string;
+  aiTags?: {
+    scene?: string;
+    clothing_colors?: string[];
+    accessories?: string[];
+    context?: string;
+  };
+  embedding?: number[];
+  qualityScore?: number;
+  capturedAt?: string;
+}
+
+export interface HybridSearchResult {
+  photoId: string;
+  relevanceScore: number;
+  denseVectorScore: number;
+  lexicalScore: number;
+  matchedTerms: string[];
+}
+
 

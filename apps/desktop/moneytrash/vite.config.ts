@@ -8,6 +8,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@clickflash/ai': path.resolve(__dirname, '../../../packages/ai/src'),
+      '@clickflash/types': path.resolve(__dirname, '../../../packages/types/src'),
+      '@clickflash/logger': path.resolve(__dirname, '../../../packages/logger/src'),
+      '@clickflash/ui': path.resolve(__dirname, '../../../packages/ui/src'),
     },
   },
   clearScreen: false,

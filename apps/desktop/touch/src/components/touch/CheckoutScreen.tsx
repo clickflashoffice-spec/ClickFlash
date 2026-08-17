@@ -1,10 +1,8 @@
-// @ts-nocheck
 import React, { useState } from 'react';
 import { CartItem, OrderItem } from '../../types.ts';
 import { useCurrency } from '../CurrencyContext.tsx';
 import ThankYouScreen from './ThankYouScreen';
-import { offlineStorage } from '../../services/offlineStorage.ts';
-import { syncService } from '../../services/syncService.ts';
+import { offlineSyncQueue } from '../../services/OfflineSyncQueue.ts';
 import OnScreenKeyboard from './OnScreenKeyboard';
 import { pb } from '../../services/pb.ts';
 import { logger } from '../../utils/logger.ts';
@@ -90,7 +88,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
             appliedDiscount: appliedDiscount,
             destinationId: 'dest1',
             items: orderItems,
-            photographerId: cart[0]?.photo.photographerId ?? 0,
+            photographerId: cart[0]?.photo.photographerId !== undefined ? Number(cart[0].photo.photographerId) : 0,
             status: 'Pending' as const,
             date: orderDate,
             source: 'kiosk' as const,
@@ -100,13 +98,13 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
         };
 
         try {
-            // OFFLINE-FIRST: Always save to Service Worker Cache first (works completely offline)
+            // OFFLINE-FIRST: Enqueue to RxDB for background syncing
             try {
-                await offlineStorage.saveOrder(orderData);
-                logger.info("Order saved to offline cache successfully", { orderId: tempId, clientMutationId });
+                await offlineSyncQueue.enqueueOperation('ORDER_CREATE', orderData);
+                logger.info("Order queued to RxDB successfully", { orderId: tempId, clientMutationId });
             } catch (error: unknown) {
                 const offlineError = error instanceof Error ? error : new Error(String(error));
-                logger.error("Failed to save to offline cache", offlineError, { orderId: tempId });
+                logger.error("Failed to enqueue to RxDB", offlineError, { orderId: tempId });
                 analytics.trackError(offlineError, "Checkout_OfflineSave");
             }
 
@@ -119,7 +117,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ cart, total, appliedDis
                     total: total + tipAmount,
                     items: orderItems,
                     destinationId: 'dest1',
-                    photographerId: cart[0]?.photo.photographerId ?? 0,
+                    photographerId: Number(cart[0]?.photo.photographerId) || 0,
                     roomNumber: customerDetails.roomNumber,
                     appliedDiscount: appliedDiscount,
                 });

@@ -1,26 +1,27 @@
+import { vi } from 'vitest';
 export const mockCollection = {
-    getFullList: jest.fn(),
-    getOne: jest.fn(),
-    getFirstListItem: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    getList: jest.fn(),
+    getFullList: vi.fn(),
+    getOne: vi.fn(),
+    getFirstListItem: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    getList: vi.fn(),
 };
 
 export const pb = {
-    collection: jest.fn(() => mockCollection),
+    collection: vi.fn(() => mockCollection),
     baseUrlValue: 'http://localhost:8090',
     authStore: {
         token: 'mock-token',
         isValid: true,
-        clear: jest.fn(),
+        clear: vi.fn(),
     },
-    getCsrfToken: jest.fn().mockResolvedValue('mock-csrf-token'),
+    getCsrfToken: vi.fn().mockResolvedValue('mock-csrf-token'),
 };
 
 export const resetPbMocks = () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockCollection.getFullList.mockReset();
     mockCollection.getOne.mockReset();
     mockCollection.getFirstListItem.mockReset();

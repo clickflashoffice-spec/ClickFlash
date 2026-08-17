@@ -65,6 +65,8 @@ interface ErrorBoundaryState {
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   static displayName = 'ErrorBoundary';
+  public state: ErrorBoundaryState;
+  public props: ErrorBoundaryProps;
 
   constructor(props: ErrorBoundaryProps) {
     super(props);

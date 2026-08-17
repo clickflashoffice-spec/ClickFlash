@@ -47,7 +47,7 @@ describe('CloudSyncService', () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   describe('service initialization', () => {

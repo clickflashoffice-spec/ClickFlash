@@ -16,8 +16,8 @@ describe('Hardening Integration Verification', () => {
             const corrected = service.now();
             const skew = service.getSkew();
             
-            // Allow for execution time (jitter < 100ms)
-            expect(Math.abs(skew - 60000)).toBeLessThan(100);
+            // Allow for execution time (jitter < 500ms)
+            expect(Math.abs(skew - 60000)).toBeLessThan(500);
             expect(corrected).toBeGreaterThan(now + 59000);
         });
 

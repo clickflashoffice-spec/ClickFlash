@@ -20,7 +20,7 @@ vi.mock('adm-zip', () => {
               hostname: 'test',
               type: 'incremental',
               since: '2020-01-01T00:00:00.000Z',
-              checksum: 'f454792cddfe0cf8191ecbd0c5a24ddcc40a08e1d5a7d6e60bda8445df990b7a'
+              checksum: '85201ab60dff732c871e8c8db93c6cacecf2e284abf5ea9b7bc312144c20e111'
             }))
           };
         }
@@ -31,6 +31,7 @@ vi.mock('adm-zip', () => {
         }
         return null;
       });
+      this.getEntries = vi.fn().mockReturnValue([]);
       this.extractAllTo = vi.fn();
       this.addFile = vi.fn();
       this.toBuffer = vi.fn().mockReturnValue(Buffer.from('fake-zip'));

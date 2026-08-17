@@ -40,6 +40,7 @@ import fastifyRateLimit from "@fastify/rate-limit";
 import { getTLSConfig } from "./config/tlsConfig";
 import { mountRoutes } from "./setup/routes";
 import { whatsappRoutes } from "./routes/whatsappRoutes";
+import { ingestionRoutes } from "./routes/ingestionRoutes";
 import initWebSocketServer from "./services/websocket";
 import { setupServices } from "./setup/services";
 import { setupExpressMiddleware } from "./setup/middlewareSetup";
@@ -130,6 +131,9 @@ async function buildServer() {
 
   // Register native Fastify WhatsApp routes
   await fastify.register(whatsappRoutes);
+
+  // Register native Fastify Ingestion routes
+  await fastify.register(ingestionRoutes);
 
   // Mount all existing Express middleware and routes through compatibility layer
   setupExpressMiddleware(fastify.express, context);

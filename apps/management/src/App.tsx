@@ -12,7 +12,8 @@ import {
   Settings,
   MessageCircle,
   Activity,
-  Sparkles
+  Sparkles,
+  HardDrive
 } from 'lucide-react';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import { LoginView } from './views/LoginView';
@@ -29,8 +30,9 @@ import { WhatsappSwarmView } from './views/WhatsappSwarmView';
 import { MagicShotStudioView } from './views/MagicShotStudioView';
 import { AutonomousCeo } from './pages/AutonomousCeo';
 import { FranchiseOverview } from './pages/FranchiseOverview';
+import { IngestionStudioPage } from './modules/ingestion-studio/IngestionStudioPage';
 
-type TabPath = '/' | '/fleet' | '/staff' | '/customers' | '/galleries' | '/pricing' | '/magic-shots' | '/ai-command' | '/whatsapp-swarm' | '/autonomous-ceo' | '/financials' | '/settings' | '/franchise';
+type TabPath = '/' | '/fleet' | '/staff' | '/customers' | '/galleries' | '/pricing' | '/magic-shots' | '/ai-command' | '/whatsapp-swarm' | '/autonomous-ceo' | '/financials' | '/settings' | '/franchise' | '/ingestion-studio';
 
 interface NavItem {
   path: TabPath;
@@ -50,6 +52,7 @@ const navItems: NavItem[] = [
   { path: '/ai-command', label: 'AI Command', icon: Bot },
   { path: '/autonomous-ceo', label: 'Autonomous CEO', icon: Activity },
   { path: '/whatsapp-swarm', label: 'WhatsApp Swarm', icon: MessageCircle },
+  { path: '/ingestion-studio', label: 'Ingestion Studio', icon: HardDrive },
   { path: '/financials', label: 'Financials', icon: CreditCard },
   { path: '/settings', label: 'System Settings', icon: Settings },
 ];
@@ -160,6 +163,7 @@ export default function App() {
       case '/ai-command': return <AICommandView />;
       case '/autonomous-ceo': return <AutonomousCeo />;
       case '/whatsapp-swarm': return <WhatsappSwarmView />;
+      case '/ingestion-studio': return <IngestionStudioPage />;
       case '/financials': return <FinancialsView />;
       case '/settings': return <SystemSettingsView />;
       default: return <DashboardView />;

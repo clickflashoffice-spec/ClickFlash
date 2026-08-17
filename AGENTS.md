@@ -56,10 +56,10 @@ After every code change, execute the following non-negotiable verification seque
 
 ## Code Style & Invariants (V6.0 Autonomous Rules)
 
-1. **Event-Driven Over SQL**: Direct SQLite inserts for ingestion are deprecated. The Master OS must push events to Redis Streams `publishEvent`, mimicking an enterprise Kafka pipeline.
+1. **The "Redis" Queue (Actually SQLite)**: While documentation claims Event-Driven Redis Streams, the system currently uses a custom in-memory JavaScript queue (`DbWriteQueue.ts`) backed by a triple-write SQLite table. Be aware of this bottleneck and do not assume a true Redis instance exists on the Edge.
 2. **Zero-Friction Linking**: Do NOT build QR code or barcode scanners. All linking is done via Biometric Vector DB (Selfie-First) or BLE/UWB Proximity.
-3. **Headless Master**: Do not add UI views to `apps/master`. It is a headless orchestrator. Add all UI to `apps/management` Command Center.
-4. **Rust First on Mobile**: For performance-heavy tasks in `apps/mobile-pro` (like offline sync queues, WebRTC, BLE), push logic to the `clickflash-rust-core` module.
+3. **Headless Master (Electron Bloat)**: The Master OS acts as a headless orchestrator, but it is currently packaged as a full Electron application with massive frontend dependencies (React, Tailwind). Do not add new UI views to it, and prioritize migrating it to pure Node.js/Fastify.
+4. **Rust Mobile Core (Mocked)**: The `clickflash-rust-core` module is currently a facade that falls back to mocked JavaScript logic. When working on mobile offline sync, be aware that the high-performance Rust layer is not fully implemented yet.
 5. **No Camera-Card Deletion**: Field mobile apps must NEVER delete original photos from camera memory cards.
 6. **Offline-First Resilience**: Mobile apps must function completely offline. Syncing happens instantly via Redis Streams when connectivity returns.
 

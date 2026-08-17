@@ -19,7 +19,7 @@ vi.mock('../../../src/services/pb', () => ({
 describe('photoService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    jest.resetModules();
+    vi.resetModules();
   });
 
   describe('validateManualEdits', () => {

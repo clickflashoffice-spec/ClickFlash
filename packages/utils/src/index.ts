@@ -5,3 +5,4 @@ export * from './format.js';
 export * from './id.js';
 export * from './guards.js';
 export * from './yieldPricing.js';
+export * from './imgproxy.js';

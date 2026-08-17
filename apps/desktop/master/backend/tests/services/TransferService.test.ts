@@ -22,16 +22,23 @@ const mockWss = {
     clients: []
 };
 
-vi.mock('fs', () => {
-    const original = vi.requireActual('fs');
-    return {
-        ...original,
+vi.mock('fs', async () => {
+    const original = await vi.importActual('fs') as any;
+    const overrides = {
         existsSync: vi.fn(),
         mkdirSync: vi.fn(),
         promises: {
             ...original.promises,
             copyFile: vi.fn(),
             writeFile: vi.fn()
+        }
+    };
+    return {
+        ...original,
+        ...overrides,
+        default: {
+            ...original,
+            ...overrides
         }
     };
 });

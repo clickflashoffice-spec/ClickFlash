@@ -180,7 +180,7 @@ describe('Offline -> Online Sync Integration', () => {
         );
 
         // Create a new DbWriteQueue that should recover and flush
-        const { DbWriteQueue } = require('../services/DbWriteQueue');
+        const { DbWriteQueue } = await import('../services/DbWriteQueue');
         const queue = new DbWriteQueue(db, { logger: logger as any, flushInterval: 5000 });
 
         // Allow constructor's async recovery flush to complete

@@ -10,6 +10,12 @@ import type {
 } from '@clickflash/types';
 import * as path from 'path';
 import * as fs from 'fs';
+import {
+    cullingPipeline,
+    CullingPipeline,
+    blurDetector,
+    BlurDetector
+} from '../wasm';
 
 // AI API Key from environment or fallback
 const AI_API_KEY = process.env.GEMINI_API_KEY || '';
@@ -22,13 +28,17 @@ export const aiGradeRedisPublisher = {
 
 export class AiGradeWorker {
     private client: GeminiClient;
+    public cullingPipeline: CullingPipeline;
+    public blurDetector: BlurDetector;
 
-    constructor(geminiClient?: GeminiClient) {
+    constructor(geminiClient?: GeminiClient, customPipeline?: CullingPipeline) {
         this.client = geminiClient || new GeminiClient({
             apiKey: AI_API_KEY,
             model: 'gemini-2.0-flash',
             temperature: 0.2,
         });
+        this.cullingPipeline = customPipeline || cullingPipeline;
+        this.blurDetector = blurDetector;
     }
 
     /**
@@ -47,6 +57,10 @@ export class AiGradeWorker {
             // Ignore in virtual test environments
         }
         void fileSize;
+
+        // Use WASM Blur Detector for multi-gradient analysis
+        const blurMetrics = this.blurDetector.evaluateFromMetadata(fileName, fileSize);
+
         let hash = 0;
         for (let i = 0; i < fileName.length; i++) {
             hash = (hash << 5) - hash + fileName.charCodeAt(i);
@@ -54,8 +68,8 @@ export class AiGradeWorker {
         }
         const absHash = Math.abs(hash);
 
-        let sharpnessScore = Math.min(100, Math.max(10, Math.round(((absHash * 13) % 80) + 20)));
-        let blurScore = 100 - sharpnessScore;
+        let sharpnessScore = blurMetrics.sharpnessScore;
+        let blurScore = blurMetrics.blurScore;
         const contrastScore = Math.min(100, Math.max(30, Math.round(((absHash * 7) % 65) + 35)));
         const lightingScore = Math.min(100, Math.max(25, Math.round(((absHash * 19) % 70) + 30)));
         const exposureScore = Math.min(100, Math.max(40, Math.round(((absHash * 23) % 55) + 45)));
@@ -322,6 +336,20 @@ Return only valid JSON matching this schema:
             durationMs,
             results
         };
+    }
+
+    /**
+     * Advanced WASM Culling Pipeline Execution
+     */
+    public async evaluateWasmCulling(shot: ShotMetadata, options?: CullingOptions): Promise<EvaluatedShot> {
+        return this.cullingPipeline.evaluateShot(shot, options);
+    }
+
+    /**
+     * Advanced WASM Batch Culling Execution with Duplicate Burst Grouping
+     */
+    public async processWasmCullingBatch(photos: ShotMetadata[], options?: CullingOptions): Promise<CullingBatchResult> {
+        return this.cullingPipeline.processBatch(photos, options);
     }
 }
 

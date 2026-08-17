@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ClickFlash Cinematic - The Deep Dive</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="/src/style.css" rel="stylesheet">
+  </head>
+  <body class="bg-black text-white font-sans overflow-x-hidden selection:bg-blue-300 selection:text-blue-900">
+    
+    <!-- Three.js Canvas Container -->
+    <div id="canvas-container" class="fixed top-0 left-0 w-full h-full z-0 pointer-events-none"></div>
+
+    <!-- UI Overlay (Fixed) -->
+    <nav class="fixed top-0 left-0 w-full p-8 flex justify-between items-center z-50 text-white mix-blend-difference">
+      <div class="text-2xl font-bold tracking-tighter">ClickFlash.</div>
+      <div class="text-sm font-bold tracking-widest uppercase cursor-pointer hover:opacity-50 transition-opacity">Book Now</div>
+    </nav>
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 text-white/50 text-xs tracking-widest uppercase animate-pulse">
+      Scroll to Dive
+    </div>
+
+    <!-- Text Overlays (Driven by GSAP) -->
+    <div id="text-overlays" class="fixed top-0 left-0 w-full h-full z-10 pointer-events-none flex items-center justify-center">
+      
+      <!-- Scene 1 Text -->
+      <div class="scene-text absolute text-center opacity-100 transform scale-100" id="text-1">
+        <h1 class="text-5xl md:text-8xl font-black mb-4 tracking-tighter drop-shadow-2xl">
+          THE DEEP<br/>
+          <span class="font-serif italic font-normal text-blue-400">Dive</span>
+        </h1>
+        <p class="text-lg md:text-2xl font-light tracking-wide uppercase drop-shadow-md">Cinematic Photography</p>
+      </div>
+
+      <!-- Scene 2 Text -->
+      <div class="scene-text absolute text-center opacity-0 transform scale-50" id="text-2">
+        <h2 class="text-5xl md:text-8xl font-black mb-4 tracking-tighter drop-shadow-2xl">
+          IMMERSIVE<br/>
+          <span class="font-serif italic font-normal text-teal-400">Moments</span>
+        </h2>
+      </div>
+
+      <!-- Scene 3 Text -->
+      <div class="scene-text absolute text-center opacity-0 transform scale-50" id="text-3">
+        <h2 class="text-5xl md:text-8xl font-black mb-4 tracking-tighter drop-shadow-2xl">
+          RAW<br/>
+          <span class="font-serif italic font-normal text-cyan-400">Emotion</span>
+        </h2>
+      </div>
+
+      <!-- Scene 4 Text -->
+      <div class="scene-text absolute text-center opacity-0 transform scale-50" id="text-4">
+        <h2 class="text-6xl md:text-8xl font-black mb-12 tracking-tight drop-shadow-2xl">
+          Ready to Dive In?
+        </h2>
+        <button class="pointer-events-auto px-12 py-5 border-2 border-white bg-black/50 backdrop-blur-sm text-white rounded-full font-bold text-xl tracking-wide transition-all duration-300 hover:bg-white hover:text-black">
+          Book Your Session
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Fake Scroll Container -->
+    <!-- We make this extremely tall so the user can scroll. GSAP ScrollTrigger will map this scroll to the 3D camera timeline. -->
+    <div class="scroll-container w-full h-[500vh] relative z-20 pointer-events-none"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

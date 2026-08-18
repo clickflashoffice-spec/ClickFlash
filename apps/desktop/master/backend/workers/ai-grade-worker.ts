@@ -14,7 +14,11 @@ import {
     cullingPipeline,
     CullingPipeline,
     blurDetector,
-    BlurDetector
+    BlurDetector,
+    type ShotMetadata,
+    type CullingOptions,
+    type EvaluatedShot,
+    type CullingBatchResult
 } from '../wasm';
 
 // AI API Key from environment or fallback

@@ -1,4 +1,3 @@
-import React from 'react';
 import { useIngestionStore } from '../stores/ingestionStore';
 import { Loader2, XCircle } from 'lucide-react';
 

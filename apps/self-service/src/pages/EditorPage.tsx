@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from '../router';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Save, Sliders, Type, Square, Crop } from 'lucide-react';
 import { Button } from '../components/common/Button';

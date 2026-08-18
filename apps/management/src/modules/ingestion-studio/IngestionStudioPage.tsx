@@ -1,4 +1,3 @@
-import React from 'react';
 import { HardDrive, Play } from 'lucide-react';
 import { useIngestionStore } from './stores/ingestionStore';
 import { useGrading } from './hooks/useGrading';

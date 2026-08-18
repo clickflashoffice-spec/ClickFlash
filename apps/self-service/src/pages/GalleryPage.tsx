@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Search, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ShoppingCart, Search, LogOut, Camera } from 'lucide-react';
+import { useNavigate } from '../router';
 import { PhotoGrid } from '../components/gallery/PhotoGrid';
 import { useAuthStore } from '../stores/authStore';
 import { useCartStore } from '../stores/cartStore';

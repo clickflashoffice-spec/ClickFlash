@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Title, Text, Grid, Metric, Flex, BadgeDelta, BarChart } from '@tremor/react';
+import { Building2, DollarSign, ShoppingBag, Users, TrendingUp } from 'lucide-react';
 
 interface TenantStats {
   id: string;
@@ -23,55 +23,77 @@ export function FranchiseOverview() {
         { id: '3', name: 'ClickFlash Tokyo', region: 'APAC', totalRevenue: 210000, totalOrders: 5800, activePhotographers: 60 }
       ]);
       setLoading(false);
-    }, 1000);
+    }, 400);
   }, []);
 
-  const totalGlobalRevenue = stats.reduce((acc, curr) => acc + curr.totalRevenue, 0);
+  const totalRevenue = stats.reduce((acc, curr) => acc + curr.totalRevenue, 0);
+  const totalOrders = stats.reduce((acc, curr) => acc + curr.totalOrders, 0);
 
-  const chartData = stats.map(s => ({
-    name: s.name,
-    'Revenue (USD)': s.totalRevenue
-  }));
-
-  if (loading) return <div>Loading Franchise Data...</div>;
+  if (loading) {
+    return <div className="p-8 text-slate-400">Loading multi-tenant franchise telemetry...</div>;
+  }
 
   return (
-    <div className="p-6">
-      <Title>Global Franchise Overview</Title>
-      <Text>Real-time telemetry across all ClickFlash theme park tenants.</Text>
-      
-      <Grid numItemsSm={2} numItemsLg={3} className="gap-6 mt-6">
-        <Card>
-          <Text>Global Gross Revenue</Text>
-          <Metric>${totalGlobalRevenue.toLocaleString()}</Metric>
-          <Flex className="mt-4">
-            <Text>vs last month</Text>
-            <BadgeDelta deltaType="increase">+12.5%</BadgeDelta>
-          </Flex>
-        </Card>
-        <Card>
-          <Text>Active Global Franchises</Text>
-          <Metric>{stats.length}</Metric>
-        </Card>
-        <Card>
-          <Text>Total Photographers Deployed</Text>
-          <Metric>{stats.reduce((acc, curr) => acc + curr.activePhotographers, 0)}</Metric>
-        </Card>
-      </Grid>
+    <div className="p-8 space-y-6 text-slate-100">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <Building2 className="text-cyan-400" /> Franchise & Regional Performance
+          </h1>
+          <p className="text-sm text-slate-400">Global multi-tenant edge node deployment overview</p>
+        </div>
+      </div>
 
-      <div className="mt-6">
-        <Card>
-          <Title>Revenue by Franchise</Title>
-          <BarChart
-            className="mt-6 h-72"
-            data={chartData}
-            index="name"
-            categories={["Revenue (USD)"]}
-            colors={["blue"]}
-            yAxisWidth={80}
-          />
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl">
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span>Global Multi-Tenant Revenue</span>
+            <DollarSign className="text-emerald-400" size={16} />
+          </div>
+          <div className="text-3xl font-extrabold text-white mt-2">
+            ${totalRevenue.toLocaleString()}
+          </div>
+          <div className="text-xs text-emerald-400 flex items-center gap-1 mt-2 font-medium">
+            <TrendingUp size={14} /> +18.4% vs last month
+          </div>
+        </div>
+
+        <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl">
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span>Total Completed Resort Orders</span>
+            <ShoppingBag className="text-cyan-400" size={16} />
+          </div>
+          <div className="text-3xl font-extrabold text-white mt-2">
+            {totalOrders.toLocaleString()}
+          </div>
+          <div className="text-xs text-cyan-400 flex items-center gap-1 mt-2 font-medium">
+            <TrendingUp size={14} /> +12.1% conversion efficiency
+          </div>
+        </div>
+      </div>
+
+      <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl">
+        <h3 className="text-base font-bold text-white mb-4">Franchise Destinations by Region</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {stats.map((tenant) => (
+            <div key={tenant.id} className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-white text-sm">{tenant.name}</span>
+                <span className="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/20 font-bold">
+                  {tenant.region}
+                </span>
+              </div>
+              <div className="text-lg font-bold text-emerald-400">${tenant.totalRevenue.toLocaleString()}</div>
+              <div className="text-xs text-slate-400 flex justify-between pt-1 border-t border-slate-800">
+                <span>Orders: {tenant.totalOrders}</span>
+                <span className="flex items-center gap-1"><Users size={12} /> {tenant.activePhotographers} active</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
+
+export default FranchiseOverview;

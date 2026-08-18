@@ -1,0 +1,24 @@
+versionGroups:
+  - dependencies:
+      - react
+      - react-dom
+      - typescript
+      - tailwindcss
+      - electron
+      - vitest
+      - "@types/node"
+    isBanned: false
+    policy: sameRange
+  - dependencies:
+      - "@clickflash/*"
+    dependencyTypes:
+      - dev
+      - prod
+      - peer
+    pinVersion: "workspace:*"
+  - dependencies:
+      - electron
+    isBanned: true
+    label: "No caret ranges for electron"
+    policy: sameRange
+    bannedRange: "^*"

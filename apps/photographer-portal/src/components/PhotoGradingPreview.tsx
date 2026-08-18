@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, XCircle, Trash2, Zap, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, XCircle, Trash2, AlertTriangle } from 'lucide-react';
 import { usePhotographerStore, UploadBatchItem } from '../stores/photographerStore';
 
 export const PhotoGradingPreview: React.FC<{ item: UploadBatchItem }> = ({ item }) => {

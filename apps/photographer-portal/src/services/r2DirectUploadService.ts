@@ -8,12 +8,6 @@ export interface UploadProgressCallback {
 }
 
 export class R2DirectUploadService {
-  private apiBaseUrl: string;
-
-  constructor(apiBaseUrl: string = '/api') {
-    this.apiBaseUrl = apiBaseUrl;
-  }
-
   /**
    * Uploads a single photo file with simulated / actual chunking to Cloudflare R2
    */
@@ -32,10 +26,15 @@ export class R2DirectUploadService {
     const cleanEventId = metadata.eventId.toLowerCase().replace(/\s+/g, '-');
     const r2Path = `events/${cleanEventId}/${photoId}.jpg`;
 
-    // Multipart simulation with progressive updates
+    // Process file metadata to ensure usage
+    if (!file || file.size === 0) {
+      throw new Error('Invalid file buffer');
+    }
+
+    // Multipart chunking simulation with progressive updates
     const totalChunks = 5;
     for (let chunk = 1; chunk <= totalChunks; chunk++) {
-      await new Promise((r) => setTimeout(r, 120 + Math.random() * 100));
+      await new Promise((r) => setTimeout(r, 100 + Math.random() * 80));
       if (onProgress) {
         onProgress(Math.round((chunk / totalChunks) * 100));
       }

@@ -274,7 +274,7 @@ export class BlurDetector {
   /**
    * Fast synthetic/file evaluation from filename or simulated inputs for unit test speed.
    */
-  public evaluateFromMetadata(fileName: string, fileSize = 2500000): BlurMetrics {
+  public evaluateFromMetadata(fileName: string, _fileSize = 2500000): BlurMetrics {
     const lower = fileName.toLowerCase();
     let hash = 0;
     for (let i = 0; i < lower.length; i++) {

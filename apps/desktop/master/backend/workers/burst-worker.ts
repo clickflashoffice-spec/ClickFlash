@@ -1,6 +1,7 @@
 import { logger } from '../utils/logger';
 import { spawn } from 'child_process';
 import * as path from 'path';
+import * as fs from 'fs';
 import { type DuplicateGroup, type ShotMetadata } from '../wasm';
 import { cullingPipeline } from '../wasm/culling-pipeline';
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { QrCode, Tag, Sparkles, Check } from 'lucide-react';
+import { Tag, Check } from 'lucide-react';
 import { usePhotographerStore } from '../stores/photographerStore';
 
 export const EventQrScanner: React.FC = () => {

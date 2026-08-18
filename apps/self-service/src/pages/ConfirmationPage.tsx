@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '../router';
 import { motion } from 'framer-motion';
 import { CheckCircle, Download, Share2, Home } from 'lucide-react';
 import { Button } from '../components/common/Button';

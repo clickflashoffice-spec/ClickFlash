@@ -1,8 +1,8 @@
-# MoneyTrash Uploader Desktop
+# MoneyTrash (DEPRECATED - MERGED INTO MASTER)
 
-> **Professional photography upload gateway - Now as a Desktop App!**
->
-> Built with Electron (Node.js/TypeScript + React) for native performance and file system access.
+> [!WARNING]
+> This standalone AI Auto-Culler application has been officially deprecated. Its heavy AI workload (sharpness inference, burst deduplication, etc.) has been merged directly into the `master` edge daemon using Node.js Worker Threads to prevent event loop starvation. 
+> Do not attempt to run this standalone app on new physical sites.
 
 ## ✨ What's New in Desktop Version
 

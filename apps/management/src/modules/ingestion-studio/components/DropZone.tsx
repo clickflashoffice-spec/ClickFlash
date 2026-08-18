@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { UploadCloud, Folder, FileImage } from 'lucide-react';
 import { useIngestionStore } from '../stores/ingestionStore';
 

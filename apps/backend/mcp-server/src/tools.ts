@@ -22,7 +22,8 @@ import { getCodeIntelTools, handleApiEndpointLister, handleEnvValidator, handleM
 import { getProductionTools, handleAuditAppBoundaries, handleSearchArchitectureGaps, handleUiUxAccessibilityFixer, handleFinalProductionReadiness } from './production.js';
 import { infiniteLoopTools, handleInfiniteLoopCall } from './infinite-loop.js';
 import { getInnovationTools, handleAuditUxFlow, handleGenerateFeatureIdea, handleStartInfiniteFeatureLoop } from './innovation.js';
-import { getDeepIntelTools, handleDeepThinkAnalyze, handleDeepScanAst, handleDeepSearchSymbols, handleDeepPlanSynthesizer, handleDeepScanArchitecture } from './deep_intel.js';
+import { getDeepIntelTools, handleDeepThinkAnalyze, handleDeepScanAst, handleDeepSearchSymbols, handleDeepPlanSynthesizer, handleDeepScanArchitecture, handleDeepModifyAst, handleRescanArchitectures } from './deep_intel.js';
+import { getUiUxInnovatorTools, handleSuggestBetterUi } from './ui_ux_innovator.js';
 import { getChaosTools, handleChaosEdgeFaultInjector, handleOfflineStoragePressureTester } from './chaos.js';
 import { getVisionTools, handleArcfaceVectorBenchmarker, handleBurstActionShotScorer } from './vision.js';
 import { getYieldArbitrageTools, handleDynamicYieldArbitrageEngine, handleWhaleLeadNegotiator } from './yield_arbitrage.js';
@@ -82,6 +83,7 @@ export function registerTools(): Tool[] {
     ...getProductionTools(),
     ...infiniteLoopTools,
     ...getInnovationTools(),
+    ...getUiUxInnovatorTools(),
     ...getDeepIntelTools(),
     ...getChaosTools(),
     ...getVisionTools(),
@@ -777,6 +779,12 @@ export async function handleToolCall(name: string, args: any) {
     return await handleSyntheticParkSimulator(args);
   } else if (name === "load_stress_benchmark") {
     return await handleLoadStressBenchmark(args);
+  } else if (name === "deep_modify_ast") {
+    return await handleDeepModifyAst(args);
+  } else if (name === "rescan_architectures") {
+    return await handleRescanArchitectures(args);
+  } else if (name === "suggest_better_ui") {
+    return await handleSuggestBetterUi(args);
   }
 
   

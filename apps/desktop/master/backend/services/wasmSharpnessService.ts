@@ -9,6 +9,7 @@ export class WasmSharpnessService {
   public static async init(): Promise<void> {
     if (this.isInitialized) return;
     try {
+      // @ts-ignore
       sharpnessModule = await import('@clickflash/wasm-sharpness');
       this.isInitialized = true;
       logger.info('[WasmSharpnessService] Loaded @clickflash/wasm-sharpness successfully');

@@ -1,12 +1,11 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '../router';
 import { motion } from 'framer-motion';
-import { ArrowLeft, DollarSign, TrendingUp, ShieldCheck, CreditCard, ArrowUpRight, Zap, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, DollarSign, TrendingUp, CreditCard } from 'lucide-react';
 import { usePhotographerStore } from '../stores/photographerStore';
 
 export const EarningsPayoutPage: React.FC = () => {
   const navigate = useNavigate();
-  const session = usePhotographerStore((state) => state.session);
   const stats = usePhotographerStore((state) => state.stats);
 
   const formattedEarnings = (stats.earnedCommissionsCents / 100).toLocaleString('en-US', {

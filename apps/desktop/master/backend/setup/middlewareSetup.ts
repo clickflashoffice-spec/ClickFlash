@@ -51,7 +51,7 @@ export function setupExpressMiddleware(app: Application, context: any): void {
 
   // SEC-007: Cleartext Denial
   app.use((req: Request, res: Response, next: NextFunction) => {
-    if (process.env.TEST_E2E !== "1") {
+    if (process.env.TEST_E2E !== "1" && process.env.NODE_ENV !== "development") {
       const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
       if (!isSecure) {
         logger.warn("[Security] Cleartext denial: rejected non-HTTPS request", { ip: req.ip, url: req.url });

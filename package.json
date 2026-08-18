@@ -103,6 +103,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "append-field": "^2.0.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.9.0",
     "esbuild": "0.28.2"

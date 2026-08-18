@@ -1,4 +1,4 @@
-import { randomFillSync } from 'crypto';
+// isomorphic id generation
 
 export function slugify(str: string): string {
   return str
@@ -13,7 +13,13 @@ export function generateId(length = 21): string {
   const chars = 'useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict';
   let id = '';
   const bytes = new Uint8Array(length);
-  randomFillSync(bytes);
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(bytes);
+  } else {
+    // fallback for node
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require('crypto').randomFillSync(bytes);
+  }
   for (let i = 0; i < length; i++) {
     id += chars[bytes[i] % 64];
   }

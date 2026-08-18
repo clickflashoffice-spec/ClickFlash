@@ -1,5 +1,8 @@
 import { Server } from 'http';
-import { WebSocketServer, WebSocket } from 'ws';
+import type { WebSocket, WebSocketServer } from 'ws';
+import * as wsModule from 'ws';
+const WS_Server = wsModule.WebSocketServer || (wsModule as any).default?.WebSocketServer;
+const WS_Client = wsModule.WebSocket || (wsModule as any).default?.WebSocket;
 import crypto from 'crypto';
 import DatabaseManager from '../database/db';
 import { Logger } from '../utils/logger';
@@ -125,7 +128,7 @@ const initWebSocketServer = (server: Server, context: WebSocketContext): WebSock
         logger
     );
 
-    const wss = new WebSocketServer({
+    const wss = new WS_Server({
         server,
         path: '/ws',
         // Verify connecting clients: must be localhost (admin UI) or a registered kiosk.
@@ -231,7 +234,7 @@ const initWebSocketServer = (server: Server, context: WebSocketContext): WebSock
         const BACKPRESSURE_LIMIT = 1024 * 1024; // 1MB limit for 4-core 16GB PC stability
         wss.clients.forEach((client: WebSocket) => {
             const customClient = client as CustomWebSocket;
-            if (client !== sender && client.readyState === WebSocket.OPEN) {
+            if (client !== sender && client.readyState === WS_Client.OPEN) {
                 if (filter && !filter(customClient)) return;
                 if (client.bufferedAmount > BACKPRESSURE_LIMIT) {
                     logger.warn(`[WebSocket] Client backpressure (${client.bufferedAmount} bytes). Dropping broadcast.`);

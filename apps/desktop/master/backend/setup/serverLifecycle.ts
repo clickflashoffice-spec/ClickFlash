@@ -21,14 +21,25 @@ import { MOBILE_CAPTURE_MASTER_ID } from "../services/mobileCaptureProtocol";
 export function setupStaticAndErrorFallback(app: Application, context: any): void {
   const { logger } = context;
 
-  app.get(/.*/, (_req: Request, res: Response) => {
-    if (_req.url.startsWith("/api")) {
-      sendNotFoundError(res, "API endpoint");
-      return;
-    }
-    // DSK-GAP-001: Enforce Headless Master Invariant
-    res.status(404).send("Headless Master OS. UI is available in Command Center.");
-  });
+  const uiPath = path.resolve(process.cwd(), "dist-ui");
+  if (fs.existsSync(uiPath)) {
+    app.use(express.static(uiPath));
+    app.get(/.*/, (_req: Request, res: Response) => {
+      if (_req.url.startsWith("/api")) {
+        sendNotFoundError(res, "API endpoint");
+        return;
+      }
+      res.sendFile(path.join(uiPath, "index.html"));
+    });
+  } else {
+    app.get(/.*/, (_req: Request, res: Response) => {
+      if (_req.url.startsWith("/api")) {
+        sendNotFoundError(res, "API endpoint");
+        return;
+      }
+      res.status(404).send("Headless Master OS. UI not built yet.");
+    });
+  }
 
   // Error handling middleware — ApiError (4xx/5xx structured) + catch-all 500
   app.use(createErrorMiddleware(logger));

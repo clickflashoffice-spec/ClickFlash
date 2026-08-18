@@ -1,5 +1,8 @@
 import { EventEmitter } from 'events';
-import { WebSocketServer, WebSocket } from 'ws';
+import type { WebSocket, WebSocketServer } from 'ws';
+import * as wsModule from 'ws';
+const WS_Server = wsModule.WebSocketServer || (wsModule as any).default?.WebSocketServer;
+const WS_Client = wsModule.WebSocket || (wsModule as any).default?.WebSocket;
 import { Bonjour } from 'bonjour-service';
 import { logger } from '@clickflash/logger';
 
@@ -62,7 +65,7 @@ export class LanSyncBroker extends EventEmitter {
     this.port = port;
     return new Promise((resolve, reject) => {
       try {
-        this.wss = new WebSocketServer({ port: this.port });
+        this.wss = new WS_Server({ port: this.port });
 
         this.wss.on('connection', (ws: WebSocket, req: any) => {
           const clientIp = req.socket.remoteAddress || 'unknown';
@@ -199,7 +202,7 @@ export class LanSyncBroker extends EventEmitter {
         }
 
         const target = this.connectedClients.get(targetId);
-        if (!target || target.ws.readyState !== WebSocket.OPEN) {
+        if (!target || target.ws.readyState !== WS_Client.OPEN) {
           this.sendMessageToClient(ws, {
             type: 'BROADCAST_EVENT',
             senderId: 'master',
@@ -282,14 +285,14 @@ export class LanSyncBroker extends EventEmitter {
 
     const serialized = JSON.stringify(msg);
     for (const [kioskId, client] of this.connectedClients.entries()) {
-      if (kioskId !== excludeSenderId && client.ws.readyState === WebSocket.OPEN) {
+      if (kioskId !== excludeSenderId && client.ws.readyState === WS_Client.OPEN) {
         client.ws.send(serialized);
       }
     }
   }
 
   private sendMessageToClient(ws: WebSocket, message: SyncMessage): void {
-    if (ws.readyState === WebSocket.OPEN) {
+    if (ws.readyState === WS_Client.OPEN) {
       ws.send(JSON.stringify(message));
     }
   }

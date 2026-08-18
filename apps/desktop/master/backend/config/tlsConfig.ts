@@ -78,17 +78,9 @@ export function createSecureServer(
     } else {
       throw new Error('TLS enabled but no certificate configuration provided');
     }
-  } else if (process.env.TEST_E2E !== '1') {
-    // Phase 2: SEC-008 - Fall back to the managed self-signed identity
-    logger.info('[TLS] Using auto-generated managed TLS identity for strict local HTTPS');
-    const managedIdentity = getOrCreateManagedIdentity();
-    httpsOptions = {
-      key: managedIdentity.key,
-      cert: managedIdentity.cert,
-    };
-  } else if (process.env.TEST_E2E === '1') {
-    // E2E Test environment without explicit TLS enabled
-    logger.info('[HTTP] E2E Mode detected, using unencrypted HTTP');
+  } else if (process.env.TEST_E2E === '1' || process.env.NODE_ENV === 'development') {
+    // Dev/E2E Test environment without explicit TLS enabled
+    logger.info('[HTTP] Dev/E2E Mode detected, using unencrypted HTTP');
     const server = http.createServer(app);
     return {
       server,

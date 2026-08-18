@@ -110,6 +110,8 @@ export const faces = sqliteTable('faces', {
   boundingBox: text('bounding_box', { mode: 'json' }).notNull(), // { x, y, width, height }
   confidence: real('confidence').default(1.0),
   personClusterId: text('person_cluster_id'),
+  hasConsent: integer('has_consent').default(0),
+  expiresAt: text('expires_at'), // ISO string for TTL cleanup of orphaned embeddings
   createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
 });
 

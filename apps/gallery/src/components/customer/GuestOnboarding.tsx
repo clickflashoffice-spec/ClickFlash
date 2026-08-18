@@ -20,6 +20,7 @@ export const GuestOnboarding: React.FC<GuestOnboardingProps> = ({ isOpen, onClos
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [consentGiven, setConsentGiven] = useState(false);
 
     const startCamera = async () => {
         try {
@@ -53,6 +54,7 @@ export const GuestOnboarding: React.FC<GuestOnboardingProps> = ({ isOpen, onClos
             setPreviewUrl(null);
             setName('');
             setEmail('');
+            setConsentGiven(false);
         } else {
             // Optional: Auto-start camera when modal opens
             // startCamera();
@@ -156,6 +158,20 @@ export const GuestOnboarding: React.FC<GuestOnboardingProps> = ({ isOpen, onClos
                         value={email} 
                         onChange={(e) => setEmail(e.target.value)} 
                     />
+                    
+                    {/* GDPR / Biometric Consent */}
+                    <div className="flex items-start space-x-3 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+                        <input 
+                            type="checkbox" 
+                            id="biometricConsent" 
+                            className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                            checked={consentGiven}
+                            onChange={(e) => setConsentGiven(e.target.checked)}
+                        />
+                        <label htmlFor="biometricConsent" className="text-xs text-gray-600 dark:text-gray-400 leading-tight">
+                            I consent to ClickFlash capturing and processing my biometric data (facial geometry) to find my photos. I acknowledge this data is securely processed and will be automatically deleted in accordance with the <a href="/privacy" className="text-blue-500 underline" target="_blank">Privacy Policy</a>.
+                        </label>
+                    </div>
                 </div>
 
                 <div className="flex flex-col items-center justify-center space-y-4">
@@ -177,10 +193,10 @@ export const GuestOnboarding: React.FC<GuestOnboardingProps> = ({ isOpen, onClos
                             ) : (
                                 <div className="flex flex-col items-center space-y-4 p-6">
                                     <div className="flex space-x-4">
-                                        <Button onClick={startCamera} variant="primary">
+                                        <Button onClick={startCamera} variant="primary" disabled={!consentGiven}>
                                             Open Camera
                                         </Button>
-                                        <Button onClick={triggerFileInput} variant="outline">
+                                        <Button onClick={triggerFileInput} variant="outline" disabled={!consentGiven}>
                                             Upload Photo
                                         </Button>
                                     </div>

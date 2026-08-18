@@ -1,4 +1,7 @@
-import { WebSocketServer, WebSocket } from 'ws';
+import type { WebSocket, WebSocketServer } from 'ws';
+import * as wsModule from 'ws';
+const WS_Server = wsModule.WebSocketServer || (wsModule as any).default?.WebSocketServer;
+const WS_Client = wsModule.WebSocket || (wsModule as any).default?.WebSocket;
 import { logger } from '../utils/logger';
 import * as http from 'http';
 import * as crypto from 'crypto';
@@ -18,7 +21,7 @@ export class WebRtcSignalingService {
 
     public init(server: http.Server) {
         // Run WebSocket on a different path to not conflict with the Hotspot/Touch WS
-        this.wss = new WebSocketServer({ server, path: '/webrtc-signaling' });
+        this.wss = new WS_Server({ server, path: '/webrtc-signaling' });
 
         // Ping interval to clear dead connections
         const interval = setInterval(() => {

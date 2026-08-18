@@ -1,0 +1,1 @@
+(function(){"use strict";self.onmessage=s=>{const{type:a,data:t}=s.data;if(a==="PARSE_MESSAGE")try{const e=JSON.parse(t);self.postMessage({type:"MESSAGE_PARSED",payload:e})}catch{self.postMessage({type:"ERROR",error:"Failed to parse message"})}}})();

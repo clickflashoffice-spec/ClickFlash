@@ -1,0 +1,75 @@
+/**
+ * EditorCanvas.module.css
+ *
+ * Uses CSS custom properties injected via the style prop for dynamic values.
+ * This pattern satisfies the "no inline styles" lint rule while still
+ * allowing fully computed, per-frame values (transforms, clip-path, etc.).
+ */
+
+/* ─── Transform Container ─────────────────────────────────────────────────── */
+.transformContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+  transform: var(--editor-transform);
+  transition: var(--editor-transition);
+  cursor: var(--editor-cursor);
+}
+
+/* ─── Before (Original) Image Layer ─────────────────────────────────────── */
+.beforeImage {
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+  opacity: 1;
+  position: absolute;
+  z-index: 0;
+  width: var(--img-width, auto);
+  height: var(--img-height, auto);
+  max-width: var(--img-max-width, 100%);
+  max-height: var(--img-max-height, 100%);
+}
+
+/* ─── After (Edited) Wrapper — clipped for comparison mode ───────────────── */
+.afterWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  width: var(--img-width, auto);
+  height: var(--img-height, auto);
+  clip-path: var(--clip-path, none);
+}
+
+/* ─── Main (filtered) Image ─────────────────────────────────────────────── */
+.mainImage {
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  width: var(--img-width, auto);
+  height: var(--img-height, auto);
+  max-width: var(--img-max-width, 100%);
+  max-height: var(--img-max-height, 100%);
+  filter: var(--img-filter, none);
+}
+
+/* ─── Comparison Slider Handle ───────────────────────────────────────────── */
+.comparisonSlider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: col-resize;
+  transform: translateX(-50%);
+  left: var(--slider-left, 50%);
+}

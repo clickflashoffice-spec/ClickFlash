@@ -1,0 +1,1 @@
+import{r as n,s as c}from"./index-D4wC7huW.js";function S(e,u){const s=()=>{const t=c.getItem(e);return t?JSON.parse(t):u},[o,r]=n.useState(s),f=t=>{const a=t instanceof Function?t(o):t;r(a),c.setItem(e,JSON.stringify(a))};return n.useEffect(()=>{r(s())},[]),[o,f]}export{S as u};

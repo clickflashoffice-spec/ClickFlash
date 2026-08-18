@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from '../router';
 import { motion } from 'framer-motion';
 import { Camera, QrCode } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';

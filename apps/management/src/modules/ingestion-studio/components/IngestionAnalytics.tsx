@@ -1,4 +1,3 @@
-import React from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Camera, CheckCircle, Clock, Zap } from 'lucide-react';
 

@@ -15,7 +15,23 @@ RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 COPY package*.json ./
 COPY pnpm-workspace.yaml ./
 COPY .npmrc ./
-COPY apps/*/package*.json ./apps/*/
+COPY apps/backend/ai-worker/package*.json ./apps/backend/ai-worker/
+COPY apps/backend/cloud-backend/package*.json ./apps/backend/cloud-backend/
+COPY apps/backend/mcp-server/package*.json ./apps/backend/mcp-server/
+COPY apps/backend/ride-node/package*.json ./apps/backend/ride-node/
+COPY apps/cinematic-preview/package*.json ./apps/cinematic-preview/
+COPY apps/desktop/installer/package*.json ./apps/desktop/installer/
+COPY apps/desktop/license-generator/package*.json ./apps/desktop/license-generator/
+COPY apps/desktop/master/package*.json ./apps/desktop/master/
+COPY apps/desktop/moneytrash/package*.json ./apps/desktop/moneytrash/
+COPY apps/desktop/touch/package*.json ./apps/desktop/touch/
+COPY apps/docs/package*.json ./apps/docs/
+COPY apps/gallery/package*.json ./apps/gallery/
+COPY apps/management/package*.json ./apps/management/
+COPY apps/mobile/consumer/package*.json ./apps/mobile/consumer/
+COPY apps/mobile/pro/package*.json ./apps/mobile/pro/
+COPY apps/photographer-portal/package*.json ./apps/photographer-portal/
+COPY apps/self-service/package*.json ./apps/self-service/
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
@@ -35,12 +51,10 @@ USER node
 WORKDIR /app
 
 # Copy built applications
-COPY --from=base /app/apps/master/dist ./master
-COPY --from=base /app/apps/touch/dist ./touch
-COPY --from=base /app/apps/moneytrash/.next ./moneytrash
+COPY --from=base /app/apps/desktop/master/dist ./master
+COPY --from=base /app/apps/desktop/touch/dist ./touch
 COPY --from=base /app/apps/management/dist ./management
 COPY --from=base /app/apps/gallery/dist ./gallery
-COPY --from=base /app/apps/website/.next ./website
 
 EXPOSE 8090 8091 3000 5173 5174 3001
 

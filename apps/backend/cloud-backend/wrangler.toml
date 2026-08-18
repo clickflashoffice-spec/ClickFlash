@@ -26,20 +26,20 @@ migrations_dir = "migrations"
 [[d1_databases]]
 binding = "DB_MENA"
 database_name = "clickflash-db-mena"
-database_id = "74b44376-3e3b-4f94-8ddd-61bf30dffa5d"
+database_id = "85c55487-4f4c-4e55-9eee-72ca41eaab6e"
 
 [[d1_databases]]
 binding = "DB_EU"
 database_name = "clickflash-db-eu"
-database_id = "74b44376-3e3b-4f94-8ddd-61bf30dffa5d"
+database_id = "96d66598-5d5d-4e66-0fff-83da52faac7f"
 
 [[d1_databases]]
 binding = "DB_AMER"
 database_name = "clickflash-db-amer"
-database_id = "74b44376-3e3b-4f94-8ddd-61bf30dffa5d"
+database_id = "a7e776a9-6e6e-4f77-1ddd-94ea63faad8e"
 
 [[d1_databases]]
 binding = "DB_APAC"
 database_name = "clickflash-db-apac"
-database_id = "74b44376-3e3b-4f94-8ddd-61bf30dffa5d"
+database_id = "b8f887ba-7f7f-4b88-2ccc-a5fa74faaf9a"
 

@@ -1,7 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '../router';
 import { motion } from 'framer-motion';
-import { Camera, DollarSign, UploadCloud, CheckCircle2, XCircle, Trash2, ArrowUpRight, ShieldCheck, Zap } from 'lucide-react';
+import { Camera, DollarSign, UploadCloud, CheckCircle2, XCircle } from 'lucide-react';
 import { DropzoneArea } from '../components/DropzoneArea';
 import { PhotoGradingPreview } from '../components/PhotoGradingPreview';
 import { EventQrScanner } from '../components/EventQrScanner';

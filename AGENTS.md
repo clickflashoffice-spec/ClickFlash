@@ -13,8 +13,9 @@ ClickFlash is an enterprise-grade automated photography concession and edge-to-c
 - Start Master Studio OS (Headless Orchestrator): `pnpm run dev:master` (Port 8090)
 - Start Touch Kiosk: `pnpm run dev:touch` (Port 8091)
 - Start Management Hub (Command Center): `pnpm run dev:management` (Port 5175)
+- Start Guest Self-Service PWA: `pnpm run dev:self-service` (Port 5177)
+- Start External Photographer Edge Portal: `pnpm run dev:photographer` (Port 5178)
 - Start Gallery Portal: `pnpm run dev:gallery` (Port 5176)
-- Start Website: `pnpm run dev:website` (Port 3001)
 - Run All Tests: `npm run test:all`
 - Typecheck All Apps: `npm run typecheck:all`
 
@@ -22,14 +23,15 @@ ClickFlash is an enterprise-grade automated photography concession and edge-to-c
 
 | Application / Package | Technology Stack | Primary Purpose |
 | --- | --- | --- |
-| `apps/desktop/master` | Electron 39 + Fastify + Redis Streams | Headless Edge Node, LAN Gateway (Port 8090), WebRTC Command Hub |
-| `apps/desktop/touch` | Electron 39 + React 19 | Guest Touch Kiosk, Attract Screensaver |
-| `apps/desktop/moneytrash` | Electron 39 + Vite + React 19 | AI Auto-Culling, Burst-to-Video Engine, Unsold Batch Pipeline |
+| `apps/desktop/master` | Electron 39 + Fastify + Redis Streams | Headless Edge Node, LAN Gateway (Port 8090), Ingestion Engine |
+| `apps/desktop/touch` | Electron 39 + React 19 | Guest Touch Kiosk, Attract Screensaver (Port 8091) |
+| `apps/management` | Vite + React 19 + Radix UI | Command Center, Live WebRTC Tracking, Ingestion Studio (Port 5175) |
+| `apps/self-service` | Vite + React 19 + PWA | Guest Self-Service PWA, Instant Downloads & Home Albums (Port 5177) |
+| `apps/photographer-portal` | Vite + React 19 + WASM | Zero-Install Edge Web Uploader for Freelance Photographers (Port 5178) |
+| `apps/gallery` | React 19 + Tailwind + Stripe | Guest 3D Holographic Gallery Showcase (Port 5176) |
 | `apps/desktop/installer` | Electron 39 | Cross-Platform Desktop Installer & Auto-Updater Generator |
 | `apps/desktop/license-generator`| Electron 39 | Cryptographic Hardware-Locked License Generator |
-| `apps/management` | Vite + React 19 | Command Center, Live WebRTC Tracking, ClickFlash Agent CRM |
-| `apps/gallery` | React 19 + Tailwind + Stripe | Guest Self-Service, Selfie-to-Vector DB Biometric Linking |
-| `apps/backend/cloud-backend` | Cloudflare Worker (D1 + R2) | Edge API, Dynamic Yield Pricing Engine, Webhooks, Payouts |
+| `apps/backend/cloud-backend` | Cloudflare Worker (D1 + R2) | Edge API, Dynamic Yield Pricing, Ingest & Webhooks |
 | `apps/backend/mcp-server` | Model Context Protocol SDK | Autonomous AI Agent Studio Toolchain & Automation Engine |
 | `apps/backend/ai-worker` | FastAPI / Python | Local/Cloud Computer Vision, ArcFace & Sharpness Inferencing |
 | `apps/mobile/pro` | Expo React Native + Rust | Field App, Rust Core (Offline First), WebRTC Receiver, UWB/BLE Beacon |

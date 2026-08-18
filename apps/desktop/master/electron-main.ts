@@ -14,6 +14,7 @@
 
 import {
   app,
+  BrowserWindow,
   ipcMain,
   globalShortcut,
   dialog,
@@ -89,7 +90,7 @@ function getDataDir(): string {
   if (app.isPackaged) {
     return path.join(app.getPath("userData"), "pb_data");
   }
-  return path.resolve(__dirname, "../../pb_data");
+  return path.join(__dirname, "pb_data");
 }
 
 function sha256OfFile(filePath: string): string {
@@ -116,6 +117,7 @@ function loadConfiguredLicensePublicKey(): string | null {
 // ─── MasterApp ────────────────────────────────────────────────────────────────
 
 class MasterApp {
+  private mainWindow: BrowserWindow | null = null;
   private backendProcess: ChildProcess | null = null;
   private guardianProcess: ChildProcess | null = null;
   private isQuitting = false;
@@ -125,12 +127,12 @@ class MasterApp {
   private pinAttempts = { count: 0, lockedUntil: 0 };
   private repos: Repositories | null = null;
   private localDb: DatabaseManager | null = null;
-  private initAutoUpdater: (() => void) | null = null;
+  private initAutoUpdater: ((win: BrowserWindow) => void) | null = null;
 
   constructor() {
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      this.initAutoUpdater = require(path.join(__dirname, "..", "backend", "main", "autoUpdater.js")).initAutoUpdater as () => void;
+      this.initAutoUpdater = require(path.join(__dirname, "..", "backend", "main", "autoUpdater.js")).initAutoUpdater as (win: BrowserWindow) => void;
     } catch (_) {
       logger.warn(String("[Main] autoUpdater module not available (run `npm run build:backend` first)"));
     }
@@ -157,13 +159,7 @@ class MasterApp {
     }
 
     app.on("second-instance", () => {
-      logger.info("[Main] Second instance attempted to start.");
-    });
-
-    // DSK-GAP-001: Enforce Headless Master Invariant
-    app.on("browser-window-created", (event, window) => {
-      logger.error("[Security] Headless Invariant Violation! A BrowserWindow was spawned in Master OS. Terminating window.");
-      window.destroy();
+      if (this.mainWindow) { this.mainWindow.show(); this.mainWindow.focus(); }
     });
 
     app.on("web-contents-created", (_e, wc) => {
@@ -179,6 +175,12 @@ class MasterApp {
 
     app.on("before-quit", () => this.shutdown());
 
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0 && this.mainWindow === null) {
+         this.loadRenderer();
+      }
+    });
+
     process.on("uncaughtException", (err: Error) => {
       logger.error("[Main] Uncaught exception:", { args: [err] });
       this.shutdown();
@@ -189,9 +191,8 @@ class MasterApp {
     });
 
     app.whenReady().then(() => this.onAppReady()).catch((err: unknown) => {
-      console.error("[Main] Fatal startup error details:", err);
-      logger.error("[Main] Fatal startup error: " + (err instanceof Error ? err.stack : String(err)));
-      dialog.showErrorBox("Startup Error", String(err instanceof Error ? err.stack : err));
+      logger.error("[Main] Fatal startup error:", { args: [err] });
+      dialog.showErrorBox("Startup Error", String(err));
       app.quit();
     });
   }
@@ -219,12 +220,24 @@ class MasterApp {
       });
     });
 
-    session.defaultSession.setPermissionCheckHandler(() => {
-      return false;
+    session.defaultSession.setPermissionCheckHandler((webContents, permission, requestingOrigin) => {
+      return Boolean(
+        this.mainWindow
+        && !this.mainWindow.isDestroyed()
+        && webContents === this.mainWindow.webContents
+        && ALLOWED_RENDERER_PERMISSIONS.has(permission)
+        && isTrustedAppOrigin(requestingOrigin),
+      );
     });
 
-    session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => {
-      callback(false);
+    session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
+      callback(Boolean(
+        this.mainWindow
+        && !this.mainWindow.isDestroyed()
+        && webContents === this.mainWindow.webContents
+        && ALLOWED_RENDERER_PERMISSIONS.has(permission)
+        && isTrustedAppOrigin(details.requestingUrl),
+      ));
     });
 
     if (!await this.enforceDesktopLicense()) {
@@ -286,16 +299,8 @@ class MasterApp {
       }
     }
 
-    if (app.isPackaged && this.initAutoUpdater) {
-      this.initAutoUpdater();
-      logger.info(String("[Main] Auto-updater initialized"));
-    }
-
-    if (this.powerSaveId === null) {
-      this.powerSaveId = powerSaveBlocker.start("prevent-display-sleep");
-      logger.info("[Main] Power save blocker started (id:", { args: [this.powerSaveId, ")"] });
-    }
-
+    logger.info(String("[Main] Loading renderer..."));
+    await this.loadRenderer();
     this.createTray();
     this.scheduleBackups();
   }
@@ -462,7 +467,223 @@ class MasterApp {
     });
   }
 
-  // ─── Window Logic Removed (Headless Invariant) ──────────────────────────────
+  // ─── Window ─────────────────────────────────────────────────────────────────
+
+  private getPreloadPath(): string {
+    const candidates = [
+      path.join(__dirname, "preload.js"),
+      path.join(app.getAppPath(), "preload.js"),
+      path.join(process.resourcesPath ?? "", "preload.js"),
+    ];
+    for (const p of candidates) {
+      if (fs.existsSync(p)) return p;
+    }
+    logger.error(String("[Main] preload.js not found — IPC unavailable"));
+    return candidates[0];
+  }
+
+  private async loadRenderer(): Promise<void> {
+    const preload = this.getPreloadPath();
+    logger.info("[Main] Preload:", { args: [preload] });
+
+    this.mainWindow = new BrowserWindow({
+      width: 1920,
+      height: 1080,
+      fullscreen: app.isPackaged,
+      kiosk: app.isPackaged,
+      alwaysOnTop: app.isPackaged,
+      skipTaskbar: app.isPackaged,
+      title: "ClickFlash Master OS",
+      icon: path.join(__dirname, "build/icon.ico"),
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+        sandbox: true,
+        preload,
+        devTools: !app.isPackaged,
+        allowRunningInsecureContent: false,
+      },
+    });
+
+    this.mainWindow.setMenuBarVisibility(false);
+    this.mainWindow.setAutoHideMenuBar(true);
+    this.setupSecurity(this.mainWindow);
+    this.setupWindowEvents(this.mainWindow);
+
+    const splash = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+      *{margin:0;padding:0;box-sizing:border-box}
+      body{background:#0f172a;display:flex;align-items:center;justify-content:center;
+           height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+      .wrap{text-align:center}
+      .logo{color:#06b6d4;font-size:26px;font-weight:700;letter-spacing:4px;
+            text-transform:uppercase;margin-bottom:28px}
+      .spin{width:36px;height:36px;border:3px solid #1e293b;border-top-color:#06b6d4;
+            border-radius:50%;animation:s 1s linear infinite;margin:0 auto 20px}
+      @keyframes s{to{transform:rotate(360deg)}}
+      .msg{color:#64748b;font-size:12px;letter-spacing:2px}
+    </style></head><body>
+      <div class="wrap">
+        <div class="logo">ClickFlash</div>
+        <div class="spin"></div>
+        <div class="msg" id="m">Loading app...</div>
+      </div>
+    </body></html>`;
+
+    await this.mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(splash)}`);
+    this.mainWindow.show();
+    this.mainWindow.focus();
+
+    if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
+
+    try {
+      if ((global as any).backendError === "EADDRINUSE") {
+        await this.mainWindow.loadURL(`data:text/html;charset=utf-8,
+          <html>
+            <body style="background:#111;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;text-align:center;">
+              <h1>Port Conflict Detected</h1>
+              <p style="font-size:1.2rem;">Another application or instance is already using port 8090.</p>
+              <p>Please close any other running ClickFlash instances and restart.</p>
+            </body>
+          </html>
+        `);
+        return;
+      }
+
+      logger.info("[Main] Loading app via Express:", { args: [APP_URL] });
+      await this.mainWindow.loadURL(APP_URL);
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logger.error("[Main] Failed to load renderer:", { args: [error.message] });
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+        const safeMsg = error.message.replace(/[<>&"']/g, "");
+        let title = "Failed to Load Application";
+        let body  = `<p>Error: ${safeMsg}</p>`;
+        if (!app.isPackaged && safeMsg.includes("ERR_CONNECTION_REFUSED")) {
+          title = "Dev Servers Not Running";
+          body  = '<p>Start the dev servers first:</p>'
+            + '<ol class="steps">'
+            + "<li>Open a terminal: <code>cd apps/master</code></li>"
+            + "<li>Run: <code>npm run dev:electron</code></li>"
+            + "<li>This starts the backend, builds the frontend, then launches Electron</li>"
+            + "<li>Or manually: <code>npm run dev:backend</code> + <code>npm run dev:watch</code>, then relaunch</li>"
+            + "</ol>";
+        }
+        const errorHtml = "<!DOCTYPE html><html><head><meta charset='utf-8'><style>"
+          + "*{margin:0;padding:0;box-sizing:border-box}"
+          + "body{background:#0f172a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;"
+          + "height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}"
+          + ".wrap{max-width:520px;text-align:center;padding:40px}"
+          + "h1{color:#f87171;font-size:22px;margin-bottom:16px}"
+          + "p{color:#94a3b8;font-size:14px;line-height:1.6;margin-bottom:12px}"
+          + "code{background:#1e293b;padding:6px 12px;border-radius:6px;display:inline-block;color:#38bdf8;font-size:13px;margin:4px 0}"
+          + ".steps{text-align:left;margin:20px 0;padding:20px;background:#1e293b;border-radius:8px}"
+          + ".steps li{margin:8px 0;color:#cbd5e1;font-size:13px}"
+          + ".retry{margin-top:20px;padding:10px 24px;background:#0ea5e9;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px}"
+          + ".retry:hover{background:#0284c7}"
+          + `</style></head><body><div class='wrap'><h1>${title}</h1>${body}`
+          + "<button class='retry' onclick='window.location.reload()'>Retry</button>"
+          + "</div></body></html>";
+        await this.mainWindow.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(errorHtml));
+      }
+    }
+
+    if (app.isPackaged && this.initAutoUpdater && this.mainWindow && !this.mainWindow.isDestroyed()) {
+      this.initAutoUpdater(this.mainWindow);
+      logger.info(String("[Main] Auto-updater initialized"));
+    }
+
+    if (this.powerSaveId === null) {
+      this.powerSaveId = powerSaveBlocker.start("prevent-display-sleep");
+      logger.info("[Main] Power save blocker started (id:", { args: [this.powerSaveId, ")"] });
+    }
+
+    logger.info(String("[Main] Window ready"));
+  }
+
+  // ─── Security ─────────────────────────────────────────────────────────────────
+
+  private isAllowedUrl(url: string): boolean {
+    if (url.startsWith("file://") || url.startsWith("data:") || url.startsWith("clickflash://")) return true;
+    try {
+      const { hostname } = new URL(url);
+      return hostname === "localhost" || hostname === "127.0.0.1";
+    } catch (_) { return false; }
+  }
+
+  private setupSecurity(win: BrowserWindow): void {
+    const wc = win.webContents;
+
+    wc.on("will-navigate", (event, url) => {
+      if (!this.isAllowedUrl(url)) {
+        logger.warn("[Security] Blocked navigation:", { args: [url] });
+        event.preventDefault();
+      }
+    });
+
+    wc.on("will-redirect", (event, url) => {
+      if (!this.isAllowedUrl(url)) {
+        logger.warn("[Security] Blocked redirect:", { args: [url] });
+        event.preventDefault();
+      }
+    });
+
+    wc.setWindowOpenHandler(({ url }) => {
+      logger.warn("[Security] Blocked new window:", { args: [url] });
+      return { action: "deny" };
+    });
+
+    wc.on("context-menu", (e) => e.preventDefault());
+
+    wc.on("before-input-event", (event, input) => {
+      const k = input.key.toLowerCase();
+      if (/^f(1[0-2]|[1-9])$/.test(k)) { event.preventDefault(); return; }
+      if (input.control && ["i", "r", "u", "=", "-", "0"].includes(k)) {
+        event.preventDefault(); return;
+      }
+      if (input.alt && k === "f4") event.preventDefault();
+    });
+  }
+
+  private setupWindowEvents(win: BrowserWindow): void {
+    const crashTracker = { count: 0, windowStart: Date.now() };
+    const MAX_CRASHES  = 3;
+    const CRASH_WINDOW = 60_000;
+
+    win.webContents.on("render-process-gone", (_e, details) => {
+      logger.error("[Main] Renderer crashed:", { args: [details.reason] });
+
+      const now = Date.now();
+      if (now - crashTracker.windowStart > CRASH_WINDOW) {
+        crashTracker.count = 0;
+        crashTracker.windowStart = now;
+      }
+      crashTracker.count += 1;
+
+      if (crashTracker.count > MAX_CRASHES) {
+        logger.error(String(`[Main] Renderer crashed ${crashTracker.count} times — stopping auto-reload`));
+        if (!win.isDestroyed()) {
+          win.loadURL("data:text/html,<h2 style='font-family:sans-serif;padding:2rem'>ClickFlash encountered a fatal error.<br>Please restart the application.</h2>").catch(() => {});
+        }
+        return;
+      }
+
+      setTimeout(() => {
+        if (!win || win.isDestroyed()) return;
+        if (app.isPackaged && !win.isKiosk()) {
+          win.setKiosk(true); win.setFullScreen(true); win.setAlwaysOnTop(true);
+        }
+        logger.info(String(`[Main] Reloading renderer (attempt ${crashTracker.count}/${MAX_CRASHES})`));
+        win.reload();
+      }, 2000);
+    });
+
+    win.webContents.on("did-fail-load", (_e, code, desc) => {
+      logger.error("[Main] did-fail-load:", { args: [code, desc] });
+    });
+
+    win.on("closed", () => { this.mainWindow = null; });
+  }
 
   // ─── Guardian ─────────────────────────────────────────────────────────────────
 
@@ -496,7 +717,7 @@ class MasterApp {
     this.guardianProcess = spawn(gPath, [], { detached: false });
     this.guardianProcess.on("error", (err: Error) => logger.error("[Main] Guardian error:", { args: [err.message] }));
     this.guardianProcess.on("exit", () => {
-      if (!this.isQuitting) {
+      if (!this.isQuitting && this.mainWindow && !this.mainWindow.isDestroyed() && this.mainWindow.isKiosk()) {
         logger.warn(String("[Main] Guardian exited — respawning in 1 s"));
         setTimeout(() => this.spawnGuardian(), 1000);
       }
@@ -518,8 +739,12 @@ class MasterApp {
     listener: (event: IpcMainInvokeEvent, ...args: Args) => Result,
   ): void {
     ipcMain.handle(channel, (event, ...args) => {
-      // In headless mode, we should verify the sender is local, but we don't have mainWindow to check against.
-      // We will allow IPC but it shouldn't be used by a renderer if headless.
+      if (!isTrustedIpcSender(event, this.mainWindow)) {
+        logger.warn("[Security] Blocked IPC from untrusted frame", {
+          args: [channel, event.senderFrame?.url],
+        });
+        throw new Error("Unauthorized IPC sender");
+      }
       return listener(event, ...(args as Args));
     });
   }
@@ -616,19 +841,130 @@ class MasterApp {
       }
     });
 
-
+    // ─── Legacy HTTP Proxy IPC (for kiosk routes and backward compat) ───
+    this.registerIpcHandler("api:request", async (_e: IpcMainInvokeEvent, req: any) => {
+      try {
+        const { path: apiPath, options } = req;
+        const url = `http://127.0.0.1:${BACKEND_PORT}${apiPath}`;
+        
+        let body: any = options.body;
+        
+        if (options.isFormData && body) {
+          const formData = new FormData();
+          for (const key of Object.keys(body)) {
+            const field = body[key];
+            if (field && typeof field === 'object' && field.type === 'file') {
+              const buffer = fs.readFileSync(field.path);
+              const blob = new Blob([buffer], { type: field.mime });
+              formData.append(key, blob, field.name);
+            } else if (field && typeof field === 'object' && field.type === 'blob') {
+              const blob = new Blob([field.buffer], { type: field.mime });
+              formData.append(key, blob, field.name);
+            } else {
+              formData.append(key, field);
+            }
+          }
+          options.body = formData;
+          if (options.headers) {
+             delete options.headers['Content-Type'];
+             delete options.headers['content-type'];
+          }
+        } else if (body && typeof body === 'object') {
+          options.body = JSON.stringify(body);
+        }
+        
+        const response = await fetch(url, options as RequestInit);
+        const dataText = await response.text();
+        let data;
+        try {
+           data = JSON.parse(dataText);
+        } catch {
+           data = dataText;
+        }
+        
+        return {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+          data
+        };
+      } catch (err: any) {
+        logger.error(`[IPC API] Request failed: ${err.message}`);
+        return { status: 500, ok: false, statusText: "Internal Server Error", data: { error: err.message } };
+      }
+    });
 
     this.registerIpcHandler("kiosk:unlock", (_e: IpcMainInvokeEvent, rawPin: unknown) => {
-      return { success: false, error: "Headless Master OS has no Kiosk UI." };
+      const expected = ADMIN_PIN ?? (!app.isPackaged ? "000000" : null);
+
+      if (!expected) {
+        logger.error(String("[IPC] kiosk:unlock — ADMIN_PIN env not set; cannot unlock in production"));
+        return { success: false, error: "Kiosk unlock not configured — set ADMIN_PIN" };
+      }
+
+      const now = Date.now();
+      if (this.pinAttempts.lockedUntil > now) {
+        const secsLeft = Math.ceil((this.pinAttempts.lockedUntil - now) / 1000);
+        logger.warn(String(`[IPC] kiosk:unlock — locked out for ${secsLeft}s`));
+        return { success: false, error: `Too many attempts. Try again in ${secsLeft}s` };
+      }
+
+      let pin: string;
+      try {
+        pin = parseKioskPin(rawPin);
+      } catch {
+        return { success: false, error: "Invalid PIN format" };
+      }
+
+      let isValid: boolean;
+      if (pin.length !== expected.length) {
+        isValid = false;
+        // Dummy compare to maintain constant-time-ish behaviour
+        const dummy = Buffer.alloc(expected.length);
+        crypto.timingSafeEqual(dummy, dummy);
+      } else {
+        const pinBuffer      = Buffer.from(pin, "utf8");
+        const expectedBuffer = Buffer.from(expected, "utf8");
+        isValid = crypto.timingSafeEqual(pinBuffer, expectedBuffer);
+      }
+
+      if (!isValid) {
+        this.pinAttempts.count += 1;
+        logger.warn(String(`[IPC] kiosk:unlock — wrong PIN (attempt ${this.pinAttempts.count}/${PIN_MAX_ATTEMPTS})`));
+        if (this.pinAttempts.count >= PIN_MAX_ATTEMPTS) {
+          this.pinAttempts.lockedUntil = now + PIN_LOCKOUT_MS;
+          this.pinAttempts.count = 0;
+          return { success: false, error: "Too many attempts. Locked for 15 minutes" };
+        }
+        return { success: false, error: "Invalid PIN" };
+      }
+
+      this.pinAttempts.count      = 0;
+      this.pinAttempts.lockedUntil = 0;
+
+      if (this.mainWindow) {
+        this.mainWindow.setKiosk(false);
+        this.mainWindow.setFullScreen(false);
+        this.mainWindow.setAlwaysOnTop(false);
+        this.killGuardian();
+      }
+      return { success: true };
     });
 
     this.registerIpcHandler("kiosk:lock", () => {
+      if (this.mainWindow) {
+        this.mainWindow.setKiosk(true);
+        this.mainWindow.setFullScreen(true);
+        this.mainWindow.setAlwaysOnTop(true);
+        this.spawnGuardian();
+      }
       return { success: true };
     });
 
     this.registerIpcHandler("dialog:openDirectory", async (_e: IpcMainInvokeEvent, rawOptions: unknown) => {
+      if (!this.mainWindow) return null;
       const opts = parseOpenDirectoryOptions(rawOptions);
-      const { canceled, filePaths } = await dialog.showOpenDialog({
+      const { canceled, filePaths } = await dialog.showOpenDialog(this.mainWindow, {
         properties: ["openDirectory"],
         title: opts?.title ?? "Select Folder",
         buttonLabel: opts?.buttonLabel ?? "Select",
@@ -637,9 +973,10 @@ class MasterApp {
     });
 
     this.registerIpcHandler("dialog:openFile", async (_e: IpcMainInvokeEvent, rawOptions: unknown) => {
+      if (!this.mainWindow) return null;
       const opts = parseOpenFileOptions(rawOptions);
       const props: Array<"openFile" | "multiSelections"> = opts?.multiple ? ["openFile", "multiSelections"] : ["openFile"];
-      const { canceled, filePaths } = await dialog.showOpenDialog({
+      const { canceled, filePaths } = await dialog.showOpenDialog(this.mainWindow, {
         properties: props,
         title: opts?.title ?? "Select File",
         filters: opts?.filters,
@@ -649,8 +986,9 @@ class MasterApp {
     });
 
     this.registerIpcHandler("dialog:saveFile", async (_e: IpcMainInvokeEvent, rawOptions: unknown) => {
+      if (!this.mainWindow) return null;
       const opts = parseSaveFileOptions(rawOptions);
-      const { canceled, filePath } = await dialog.showSaveDialog({
+      const { canceled, filePath } = await dialog.showSaveDialog(this.mainWindow, {
         title: opts?.title ?? "Save File",
         filters: opts?.filters,
         defaultPath: opts?.defaultPath,
@@ -659,7 +997,8 @@ class MasterApp {
     });
 
     this.registerIpcHandler("printing:getPrinters", async () => {
-      return [];
+      if (!this.mainWindow) return [];
+      return this.mainWindow.webContents.getPrintersAsync();
     });
 
     this.registerIpcHandler("ai:remove-background", async (_e: IpcMainInvokeEvent, args: unknown) => {
@@ -681,7 +1020,19 @@ class MasterApp {
     });
 
     this.registerIpcHandler("printing:print", (_e: IpcMainInvokeEvent, rawOptions: unknown) => {
-      throw new Error("Printing is unavailable in Headless Master");
+      const options = parsePrintOptions(rawOptions);
+      if (!this.mainWindow) throw new Error("Print window is unavailable");
+
+      return new Promise<{ success: true }>((resolve, reject) => {
+        this.mainWindow!.webContents.print({
+          silent: options.silent,
+          printBackground: true,
+          deviceName: options.printer,
+        }, (success, errorType) => {
+          if (!success) reject(new Error(errorType || "Print failed"));
+          else resolve({ success: true });
+        });
+      });
     });
   }
 
@@ -689,7 +1040,10 @@ class MasterApp {
 
   private setupShortcuts(): void {
     globalShortcut.register(ADMIN_SHORTCUT, () => {
-      logger.info(String("[Main] Admin shortcut triggered — Headless Master has no UI."));
+      logger.info(String("[Main] Admin shortcut — requesting PIN"));
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+        this.mainWindow.webContents.send("kiosk:show-unlock-dialog");
+      }
     });
 
     const toBlock = ["Alt+Tab", "Alt+F4", "Escape",
@@ -707,6 +1061,7 @@ class MasterApp {
     globalShortcut.unregisterAll();
     this.killGuardian();
     if (this.backendProcess && !this.backendProcess.killed) this.backendProcess.kill();
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) this.mainWindow.destroy();
     if (this.powerSaveId !== null && powerSaveBlocker.isStarted(this.powerSaveId)) {
       powerSaveBlocker.stop(this.powerSaveId);
       this.powerSaveId = null;
@@ -760,20 +1115,25 @@ class MasterApp {
   private createTray(): void {
     const iconPath = app.isPackaged
       ? path.join(process.resourcesPath, "tray-icon.png")
-      : path.resolve(__dirname, "../../public/favicon.png");
+      : path.join(__dirname, "public", "favicon.png");
 
     try {
       this.tray = new Tray(iconPath);
       const contextMenu = Menu.buildFromTemplate([
         {
-          label: "Master OS Headless Mode",
-          enabled: false,
+          label: "Show ClickFlash",
+          click: () => { if (this.mainWindow) { this.mainWindow.show(); this.mainWindow.focus(); } },
+        },
+        {
+          label: "Lock Kiosk",
+          click: () => { if (this.mainWindow && !this.mainWindow.isDestroyed()) this.mainWindow.webContents.send("kiosk:show-unlock-dialog"); },
         },
         { type: "separator" },
         { label: "Quit ClickFlash", click: () => this.shutdown() },
       ]);
-      this.tray.setToolTip("ClickFlash Master OS (Headless)");
+      this.tray.setToolTip("ClickFlash Master OS");
       this.tray.setContextMenu(contextMenu);
+      this.tray.on("double-click", () => { if (this.mainWindow) { this.mainWindow.show(); this.mainWindow.focus(); } });
       logger.info(String("[Main] System tray created"));
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
@@ -786,7 +1146,7 @@ class MasterApp {
   private scheduleBackups(): void {
     const backupServicePath = app.isPackaged
       ? getUnpackedPath("dist/backend/main/backupService.js")
-      : path.resolve(__dirname, "../backend/main/backupService.js");
+      : path.join(__dirname, "dist/backend/main/backupService.js");
 
     const runBackup = () => {
       try {

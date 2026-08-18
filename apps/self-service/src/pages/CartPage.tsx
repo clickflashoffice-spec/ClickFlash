@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '../router';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Trash2, Plus, Minus, ShoppingCart, Zap, Truck, Sparkles } from 'lucide-react';
 import { Button } from '../components/common/Button';

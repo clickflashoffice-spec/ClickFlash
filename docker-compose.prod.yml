@@ -42,25 +42,7 @@ services:
       timeout: 5s
       retries: 3
 
-  # ==========================================
-  # Website (Next.js Node server)
-  # ==========================================
-  website:
-    build:
-      context: .
-      dockerfile: apps/website/Dockerfile.prod
-    container_name: clickflash-website-prod
-    restart: always
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-    networks:
-      - clickflash-prod-network
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
+
 
   # ==========================================
   # MoneyTrash API (Node/Cloudflare Worker emulation if local)
@@ -68,7 +50,7 @@ services:
   moneytrash:
     build:
       context: .
-      dockerfile: apps/moneytrash/Dockerfile.prod
+      dockerfile: apps/desktop/moneytrash/Dockerfile.prod
     container_name: clickflash-moneytrash-prod
     restart: always
     environment:
@@ -162,7 +144,6 @@ services:
     networks:
       - clickflash-prod-network
     depends_on:
-      - website
       - gallery
       - management
       - moneytrash

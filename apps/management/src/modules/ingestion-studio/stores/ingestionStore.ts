@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { GradeResult, IngestionSession } from '../types';
+import { GradeResult } from '../types';
 
 interface IngestionState {
   activeTab: 'ingest' | 'sessions' | 'analytics';

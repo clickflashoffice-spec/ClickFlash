@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from './router';
 import { AuthPage } from './pages/AuthPage';
 import { UploadDashboardPage } from './pages/UploadDashboardPage';
 import { EarningsPayoutPage } from './pages/EarningsPayoutPage';

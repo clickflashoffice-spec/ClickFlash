@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from '../router';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ShoppingCart, Share2, Edit2, Zap, Truck, BookOpen, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { Button } from '../components/common/Button';

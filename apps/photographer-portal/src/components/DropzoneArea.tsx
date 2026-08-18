@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { UploadCloud, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { UploadCloud, Sparkles } from 'lucide-react';
 import { evaluateClientPhotoQuality } from '../services/wasmClientScorer';
 import { usePhotographerStore, UploadBatchItem } from '../stores/photographerStore';
 

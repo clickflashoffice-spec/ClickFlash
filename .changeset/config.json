@@ -1,10 +1,10 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
-  "changelog": "@changesets/cli/changelog",
-  "commit": false,
+  "changelog": "@changesets/changelog-github",
+  "commit": true,
   "fixed": [],
   "linked": [
-    ["@clickflash/ui", "@clickflash/types", "@clickflash/ai", "@clickflash/ai-core", "@clickflash/logger", "@clickflash/wasm-sharpness"]
+    ["@clickflash/*"]
   ],
   "access": "restricted",
   "baseBranch": "main",

@@ -1,4 +1,3 @@
-import React from 'react';
 import { useIngestionSession } from '../hooks/useIngestionSession';
 import { PlayCircle, CheckCircle, AlertCircle } from 'lucide-react';
 

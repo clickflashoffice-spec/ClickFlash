@@ -160,7 +160,7 @@ export class IngestionStudioService extends EventEmitter {
           const buffer = await fs.promises.readFile(file.file_path);
           const sharpness = await this.sharpnessService.evaluateSharpness(buffer, 100);
           
-          const isKeeper = sharpness.isKeeper;
+          const isKeeper = sharpness.isSharp;
           
           const result: GradeResult = {
             filePath: file.file_path,

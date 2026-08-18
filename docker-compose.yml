@@ -10,7 +10,7 @@ services:
   # ==========================================
   master:
     build:
-      context: ./apps/master
+      context: ./apps/desktop/master
       dockerfile: Dockerfile
     container_name: clickflash-master
     ports:
@@ -41,7 +41,7 @@ services:
   # ==========================================
   touch:
     build:
-      context: ./apps/touch
+      context: ./apps/desktop/touch
       dockerfile: Dockerfile
     container_name: clickflash-touch
     ports:
@@ -125,7 +125,7 @@ services:
   # ==========================================
   moneytrash:
     build:
-      context: ./apps/moneytrash
+      context: ./apps/desktop/moneytrash
       dockerfile: Dockerfile
     container_name: clickflash-moneytrash
     ports:
@@ -143,28 +143,7 @@ services:
       retries: 3
       start_period: 15s
 
-  # ==========================================
-  # Website (Next.js static export)
-  # ==========================================
-  website:
-    build:
-      context: ./apps/website
-      dockerfile: Dockerfile
-    container_name: clickflash-website
-    ports:
-      - "3001:3000"
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-    networks:
-      - clickflash-frontend
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
+
 
   # ==========================================
   # PostgreSQL (for production data)

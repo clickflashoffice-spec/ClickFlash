@@ -1,4 +1,3 @@
-import React from 'react';
 import { useIngestionStore } from '../stores/ingestionStore';
 
 export function SharpnessPreview() {

@@ -49,7 +49,6 @@ nsis:
   runAfterFinish: true
   shortcutName: ClickFlash Studio Setup
   artifactName: ClickFlash-Studio-Setup-${version}-${arch}.${ext}
-  include: scripts/nsis-installer.nsh
 
 compression: normal
 

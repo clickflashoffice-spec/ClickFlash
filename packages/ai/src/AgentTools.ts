@@ -98,7 +98,7 @@ export const AgentTools = {
 
       const dbModule = await import('better-sqlite3');
       const DatabaseConstructor: any = (dbModule as any).default || dbModule;
-      const db = new DatabaseConstructor(dbPath, { readonly: true });
+      const db = new (DatabaseConstructor as any)(dbPath, { readonly: true });
       const rows = db.prepare(sanitized).all();
       db.close();
 

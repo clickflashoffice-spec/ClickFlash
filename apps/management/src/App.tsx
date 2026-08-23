@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { 
   LayoutDashboard, 
   MonitorSmartphone, 
@@ -28,11 +28,12 @@ import { FinancialsView } from './views/FinancialsView';
 import { SystemSettingsView } from './views/SystemSettingsView';
 import { WhatsappSwarmView } from './views/WhatsappSwarmView';
 import { MagicShotStudioView } from './views/MagicShotStudioView';
+import { AgentStudioView } from './views/AgentStudioView';
 import { AutonomousCeo } from './pages/AutonomousCeo';
 import { FranchiseOverview } from './pages/FranchiseOverview';
 import { IngestionStudioPage } from './modules/ingestion-studio/IngestionStudioPage';
 
-type TabPath = '/' | '/fleet' | '/staff' | '/customers' | '/galleries' | '/pricing' | '/magic-shots' | '/ai-command' | '/whatsapp-swarm' | '/autonomous-ceo' | '/financials' | '/settings' | '/franchise' | '/ingestion-studio';
+type TabPath = '/' | '/fleet' | '/staff' | '/customers' | '/galleries' | '/pricing' | '/magic-shots' | '/ai-command' | '/agent-studio' | '/whatsapp-swarm' | '/autonomous-ceo' | '/financials' | '/settings' | '/franchise' | '/ingestion-studio';
 
 interface NavItem {
   path: TabPath;
@@ -50,6 +51,7 @@ const navItems: NavItem[] = [
   { path: '/pricing', label: 'Pricing & Products', icon: Tag },
   { path: '/magic-shots', label: 'Magic Shot VFX', icon: Sparkles },
   { path: '/ai-command', label: 'AI Command', icon: Bot },
+  { path: '/agent-studio', label: 'Agent Studio', icon: Bot },
   { path: '/autonomous-ceo', label: 'Autonomous CEO', icon: Activity },
   { path: '/whatsapp-swarm', label: 'WhatsApp Swarm', icon: MessageCircle },
   { path: '/ingestion-studio', label: 'Ingestion Studio', icon: HardDrive },
@@ -145,6 +147,17 @@ export default function App() {
     return navItems.some(i => i.path === hash) ? hash : '/';
   });
 
+  useEffect(() => {
+    const onHashChange = () => {
+      const hash = window.location.hash.replace('#', '') as TabPath;
+      if (navItems.some(i => i.path === hash)) {
+        setCurrentPath(hash);
+      }
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
   const handleNavigate = (path: TabPath) => {
     setCurrentPath(path);
     window.location.hash = path;
@@ -161,6 +174,7 @@ export default function App() {
       case '/pricing': return <PricingView />;
       case '/magic-shots': return <MagicShotStudioView />;
       case '/ai-command': return <AICommandView />;
+      case '/agent-studio': return <AgentStudioView />;
       case '/autonomous-ceo': return <AutonomousCeo />;
       case '/whatsapp-swarm': return <WhatsappSwarmView />;
       case '/ingestion-studio': return <IngestionStudioPage />;

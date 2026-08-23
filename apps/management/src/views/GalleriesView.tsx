@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { fetchAlbums } from '../lib/api';
 import { GalleryListPane } from '../components/GalleryListPane';
 import { PhotoGridPane } from '../components/PhotoGridPane';
-import { RefreshCw } from 'lucide-react';
+import { GalleryConfigPanel } from '../components/GalleryConfigPanel';
+import { LiveGalleryPreviewPanel } from '../components/LiveGalleryPreviewPanel';
+import { RefreshCw, LayoutGrid, Sliders } from 'lucide-react';
+import { GalleryTheme, type DestinationGalleryConfig } from '@clickflash/types';
 
 export type GalleryStatus = 'Preview' | 'Partial' | 'Anchor' | 'Sold' | 'Expired';
 
@@ -25,6 +28,8 @@ export function GalleriesView() {
   const [galleries, setGalleries] = useState<Gallery[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedGalleryId, setSelectedGalleryId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'oversight' | 'studio'>('oversight');
+  const [activeConfig, setActiveConfig] = useState<DestinationGalleryConfig | null>(null);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -63,24 +68,53 @@ export function GalleriesView() {
   const soldPercent = totalGalleries ? Math.round((soldGalleries / totalGalleries) * 100) : 0;
   
   const aiLeads = galleries.filter(g => g.aiStatus === 'Hot Lead').length;
-  
   const selectedGallery = galleries.find(g => g.id === selectedGalleryId) || null;
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] -m-8">
       {/* Header Bar */}
       <div className="px-8 py-6 border-b border-slate-800 bg-slate-950 flex-none shrink-0">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
           <div>
             <h1 className="text-3xl font-bold text-white flex items-center gap-2">
-              <span role="img" aria-label="🖼️">🖼️</span> Customer Galleries Oversight
+              <span role="img" aria-label="🖼️">🖼️</span> Customer Galleries & Customization Studio
             </h1>
             <p className="text-base font-normal text-slate-400 mt-1">
-              Monitor digital passes, AI upsells, and customer engagement.
+              Monitor digital passes, customize destination feature sets, and preview live themes in real-time.
             </p>
           </div>
-          <div className="flex gap-4">
-            <button onClick={loadData} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors bg-slate-900 border border-slate-800 rounded-xl px-4 py-2">
+
+          <div className="flex items-center gap-3">
+            {/* View Mode Switcher */}
+            <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1">
+              <button
+                onClick={() => setViewMode('oversight')}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  viewMode === 'oversight'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                Galleries Oversight
+              </button>
+              <button
+                onClick={() => setViewMode('studio')}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  viewMode === 'studio'
+                    ? 'bg-cyan-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                Studio & Theming Engine
+              </button>
+            </div>
+
+            <button 
+              onClick={loadData} 
+              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-sm font-medium"
+            >
               <RefreshCw className="w-4 h-4" /> Refresh
             </button>
           </div>
@@ -114,23 +148,44 @@ export function GalleriesView() {
         </div>
       </div>
 
-      {/* Split View Container */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Master Pane */}
-        <div className="w-[380px] min-w-[320px] max-w-[420px] bg-slate-950 border-r border-slate-800 flex flex-col">
-          <GalleryListPane 
-            galleries={galleries} 
-            isLoading={isLoading} 
-            selectedGalleryId={selectedGalleryId}
-            onSelectGallery={setSelectedGalleryId} 
-          />
+      {/* Main Body */}
+      {viewMode === 'oversight' ? (
+        <div className="flex-1 flex overflow-hidden">
+          {/* Master Pane */}
+          <div className="w-[380px] min-w-[320px] max-w-[420px] bg-slate-950 border-r border-slate-800 flex flex-col">
+            <GalleryListPane 
+              galleries={galleries} 
+              isLoading={isLoading} 
+              selectedGalleryId={selectedGalleryId}
+              onSelectGallery={setSelectedGalleryId} 
+            />
+          </div>
+          
+          {/* Detail Pane */}
+          <div className="flex-1 flex flex-col bg-slate-950 overflow-hidden relative">
+            <PhotoGridPane gallery={selectedGallery} />
+          </div>
         </div>
-        
-        {/* Detail Pane */}
-        <div className="flex-1 flex flex-col bg-slate-950 overflow-hidden relative">
-          <PhotoGridPane gallery={selectedGallery} />
+      ) : (
+        /* Studio & Customization Split View */
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden bg-slate-950 divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
+          {/* Left: Configuration Controls */}
+          <div className="lg:col-span-6 overflow-y-auto p-6">
+            <GalleryConfigPanel
+              onConfigChange={(cfg) => setActiveConfig(cfg)}
+            />
+          </div>
+
+          {/* Right: Live Preview Frame */}
+          <div className="lg:col-span-6 overflow-hidden flex flex-col p-6">
+            <LiveGalleryPreviewPanel
+              config={activeConfig}
+              theme={activeConfig?.theme || GalleryTheme.GLASSMORPHIC}
+              galleryId={selectedGalleryId || 'demo'}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

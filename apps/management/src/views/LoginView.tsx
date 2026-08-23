@@ -26,7 +26,7 @@ export function LoginView() {
           </div>
         </div>
         
-        <h1 className="text-2xl font-bold text-center text-white mb-2">Command Center</h1>
+        <h1 className="text-2xl font-bold text-center text-white mb-2">Management Hub</h1>
         <p className="text-slate-400 text-center mb-8 text-sm">Enter admin credentials to continue</p>
         
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -80,6 +80,21 @@ export function LoginView() {
             className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             Access System
+          </button>
+
+          <div className="relative flex py-2 items-center">
+            <div className="flex-grow border-t border-slate-800"></div>
+            <span className="flex-shrink mx-4 text-slate-500 text-xs uppercase tracking-wider font-semibold">Or Quick Access</span>
+            <div className="flex-grow border-t border-slate-800"></div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => login('admin@example.com', 'admin123')}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-medium text-slate-300 bg-slate-800/80 hover:bg-slate-800 hover:text-white border border-slate-700/60 transition-all"
+          >
+            <Bot className="w-4 h-4 text-blue-400" />
+            Instant CEO & Fleet Command Preview
           </button>
         </form>
       </div>

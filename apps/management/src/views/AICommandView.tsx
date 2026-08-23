@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Bot,
+  Cpu,
   Play,
   Activity,
   Settings2,
@@ -97,10 +97,12 @@ export function AICommandView() {
       {/* Header */}
       <div className="flex justify-between items-end">
         <div>
-          <h2 className="text-3xl font-bold flex items-center gap-3">
-            <Bot className="w-8 h-8 text-indigo-500" />
-            AI Engine — Command Center
-          </h2>
+          <div className="flex items-center space-x-4">
+            <Cpu className="h-8 w-8 text-blue-400" />
+            <h1 className="text-2xl font-bold text-slate-100">
+              AI Engine — Management Hub
+            </h1>
+          </div>
           <p className="text-slate-400 mt-1">Primary AI control plane. All AI operations are dispatched and monitored from here.</p>
         </div>
         <div className="flex bg-slate-800 p-1 rounded-lg">

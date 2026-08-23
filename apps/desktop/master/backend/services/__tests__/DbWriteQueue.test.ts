@@ -6,10 +6,10 @@ const mockShutdown = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('../../workers/workerPool', () => {
   return {
-    WorkerPool: vi.fn().mockImplementation(() => ({
-      execute: mockExecute,
-      shutdown: mockShutdown,
-    }))
+    WorkerPool: class WorkerPool {
+      execute = mockExecute;
+      shutdown = mockShutdown;
+    }
   };
 });
 

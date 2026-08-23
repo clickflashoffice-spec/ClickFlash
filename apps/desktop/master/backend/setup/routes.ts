@@ -40,6 +40,7 @@ import reelRoutes from "../routes/reels.routes";
 import transcodeRoutes from "../routes/transcode.routes";
 import semanticSearchRoutes from "../routes/semanticSearch.routes";
 import createEntaggedRouter from "../routes/entagged.routes";
+import { createConcessionRouter } from "../routes/concession.routes";
 
 import bridgeRoutes from "../routes/bridge.routes";
 import tlsRoutes from "../routes/tls.routes";
@@ -61,6 +62,7 @@ export function mountRoutes(app: Application, context: any) {
   app.use("/api/v1/mobile-capture", mobileCapturePublicRoutes(context));
   app.use("/api/entagged", createEntaggedRouter(context));
   app.use("/api/hardware", createHardwareRouter());
+  app.use("/api/concession", createConcessionRouter(context.dbManager));
   app.use("/api/auth", strictRateLimiter, authRoutes(context));
   app.use("/api/collections", collectionRoutes(context));
   app.use("/api/albums", albumsRoutes(context));

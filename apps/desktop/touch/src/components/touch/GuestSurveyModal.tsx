@@ -1,18 +1,28 @@
 import React, { memo, useState, useEffect } from 'react';
+import { Gift, Star, ThumbsUp, QrCode } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
   onComplete: () => void;
+  guestName?: string;
+  galleryId?: string;
 }
 
 export const GuestSurveyModal: React.FC<Props> = memo(({
   isOpen,
-  onComplete
+  onComplete,
+  guestName = 'Resort Guest',
+  galleryId = 'gal_kiosk_current'
 }) => {
   const [satisfaction, setSatisfaction] = useState<number | null>(null);
   const [easeOfUse, setEaseOfUse] = useState<number | null>(null);
   const [npsScore, setNpsScore] = useState<number | null>(null);
+  const [feedbackText, setFeedbackText] = useState<string>('');
   const [isFinished, setIsFinished] = useState(false);
+  const [interceptionResult, setInterceptionResult] = useState<{
+    routingResult?: string;
+    compensationOffered?: string;
+  } | null>(null);
 
   const emojis = ['😡', '😕', '😐', '🙂', '😍'];
 
@@ -21,7 +31,7 @@ export const GuestSurveyModal: React.FC<Props> = memo(({
     if (isFinished) {
       timeout = setTimeout(() => {
         onComplete();
-      }, 5000);
+      }, 7000);
     }
     return () => clearTimeout(timeout);
   }, [isFinished, onComplete]);
@@ -32,15 +42,45 @@ export const GuestSurveyModal: React.FC<Props> = memo(({
       setSatisfaction(null);
       setEaseOfUse(null);
       setNpsScore(null);
+      setFeedbackText('');
       setIsFinished(false);
+      setInterceptionResult(null);
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleFinish = () => {
-    // Here you would typically submit the survey data to the backend
-    // const surveyData = { satisfaction, easeOfUse, npsScore };
+  const handleFinish = async () => {
+    const starRating = (satisfaction ?? 2) + 1; // Convert 0-4 to 1-5 stars
+
+    try {
+      const res = await fetch('http://localhost:8090/api/concession/reviews/intercept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          venueId: 'venue-touch-kiosk',
+          guestName,
+          ratingScore: starRating,
+          feedbackText: feedbackText || `NPS: ${npsScore}, Ease: ${easeOfUse}`,
+          galleryId
+        })
+      });
+      const data = await res.json();
+      setInterceptionResult(data);
+    } catch {
+      // Fallback local logic if offline
+      if (starRating <= 3) {
+        setInterceptionResult({
+          routingResult: 'INTERNAL_RESOLUTION_INTERCEPTED',
+          compensationOffered: 'Complimentary High-Res Digital Upgrade Voucher'
+        });
+      } else {
+        setInterceptionResult({
+          routingResult: 'GOOGLE_TRIPADVISOR_REDIRECT'
+        });
+      }
+    }
+
     setIsFinished(true);
   };
 
@@ -52,18 +92,18 @@ export const GuestSurveyModal: React.FC<Props> = memo(({
         
         {!isFinished ? (
           <>
-            <div className="text-center mb-10">
-              <h2 className="text-3xl font-bold text-white">Thank You!</h2>
-              <p className="text-neutral-400 mt-3 text-lg">
-                Please take a moment to share your experience.
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white">How Was Your Experience?</h2>
+              <p className="text-neutral-400 mt-2 text-base">
+                Your direct feedback helps us continuously improve our resort photography.
               </p>
             </div>
 
-            <div className="space-y-10">
-              {/* Question 1 */}
+            <div className="space-y-8">
+              {/* Question 1: Experience */}
               <div>
-                <p className="text-lg font-medium text-white text-center mb-4">
-                  1. How satisfied were you with your photo session?
+                <p className="text-base font-semibold text-white text-center mb-3">
+                  1. How happy are you with your resort photos?
                 </p>
                 <div className="flex justify-center gap-4 md:gap-8">
                   {emojis.map((emoji, idx) => (
@@ -78,12 +118,12 @@ export const GuestSurveyModal: React.FC<Props> = memo(({
                 </div>
               </div>
 
-              {/* Question 2 */}
+              {/* Question 2: Kiosk Ease */}
               <div className="pt-6 border-t border-neutral-800">
-                <p className="text-lg font-medium text-white text-center mb-4">
-                  2. How easy was it to use this kiosk?
+                <p className="text-base font-semibold text-white text-center mb-3">
+                  2. How fast and easy was the touch kiosk to use?
                 </p>
-                <div className="flex justify-center gap-2 md:gap-4">
+                <div className="flex justify-center gap-3 md:gap-5">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
@@ -98,10 +138,10 @@ export const GuestSurveyModal: React.FC<Props> = memo(({
                 </div>
               </div>
 
-              {/* Question 3 */}
+              {/* Question 3: NPS */}
               <div className="pt-6 border-t border-neutral-800">
-                <p className="text-lg font-medium text-white text-center mb-4">
-                  3. Would you recommend ClickFlash to other guests?
+                <p className="text-base font-semibold text-white text-center mb-3">
+                  3. Would you recommend ClickFlash to friends and family?
                 </p>
                 <div className="flex justify-between items-center bg-neutral-950 p-2 rounded-xl border border-neutral-800">
                   <span className="text-xs text-neutral-500 uppercase tracking-wider px-2 hidden md:block">Not Likely</span>
@@ -125,39 +165,59 @@ export const GuestSurveyModal: React.FC<Props> = memo(({
               </div>
             </div>
 
-            <div className="mt-12 flex justify-between gap-4">
+            <div className="mt-8 flex justify-between gap-4">
               <button
                 onClick={onComplete}
-                className="py-4 px-8 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold transition-colors border border-neutral-700"
+                className="py-3 px-6 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-semibold transition-colors border border-neutral-700 text-sm"
               >
                 Skip
               </button>
               <button
                 onClick={handleFinish}
                 disabled={!isComplete}
-                className="flex-1 py-4 px-8 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-700 disabled:text-neutral-500 text-neutral-950 font-bold transition-colors shadow-lg text-lg"
+                className="flex-1 py-3 px-6 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-700 disabled:text-neutral-500 text-neutral-950 font-bold transition-colors shadow-lg text-base"
               >
                 Submit Feedback
               </button>
             </div>
           </>
         ) : (
-          <div className="text-center py-16 flex flex-col items-center justify-center">
-            <div className="w-24 h-24 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mb-6">
-              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-            </div>
-            <h2 className="text-4xl font-bold text-white mb-4">You're All Set!</h2>
-            <p className="text-neutral-400 text-xl mb-8">
-              Thank you for your feedback.
-            </p>
-            <p className="text-sm text-neutral-500">
-              Returning to welcome screen...
-            </p>
+          <div className="text-center py-8 flex flex-col items-center justify-center space-y-4">
+            {interceptionResult?.routingResult === 'INTERNAL_RESOLUTION_INTERCEPTED' ? (
+              // Negative / neutral feedback intercepted with a gift voucher
+              <div className="p-6 bg-amber-500/10 border border-amber-500/30 rounded-2xl max-w-md w-full space-y-3">
+                <div className="w-16 h-16 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto">
+                  <Gift className="w-8 h-8" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">We Value Your Experience!</h2>
+                <p className="text-neutral-300 text-sm">
+                  We are sorry things were not 100% perfect. Our resort management team has been notified.
+                </p>
+                <div className="p-3 bg-neutral-950 rounded-xl border border-amber-500/40 text-amber-300 text-xs font-semibold">
+                  🎁 Gift Voucher Added: {interceptionResult.compensationOffered || 'Complimentary High-Res Digital Upgrade'}
+                </div>
+              </div>
+            ) : (
+              // Positive 5-star feedback directed to public reviews
+              <div className="p-6 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl max-w-md w-full space-y-3">
+                <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto">
+                  <ThumbsUp className="w-8 h-8" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">Thank You So Much!</h2>
+                <p className="text-neutral-300 text-sm">
+                  We are thrilled you had a magical experience! Scan below to leave a 5-star review on TripAdvisor / Google:
+                </p>
+                <div className="w-28 h-28 bg-white p-2 rounded-xl flex items-center justify-center mx-auto shadow-lg">
+                  <QrCode className="w-24 h-24 text-neutral-950" />
+                </div>
+              </div>
+            )}
+
             <button
               onClick={onComplete}
-              className="mt-8 px-6 py-3 rounded-full border border-neutral-700 text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+              className="mt-4 px-6 py-2.5 rounded-full border border-neutral-700 text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors text-sm"
             >
-              Finish Now
+              Done / Return to Start
             </button>
           </div>
         )}

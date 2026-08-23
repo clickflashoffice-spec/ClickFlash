@@ -1,0 +1,44 @@
+name: AI Autonomous Agent & Curated Registry CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feat/**'
+  pull_request:
+
+jobs:
+  validate-ai-agent-ecosystem:
+    name: Verify Curated Prompts & AI Agent Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build @clickflash/ai Package
+        run: pnpm --filter @clickflash/ai run build
+
+      - name: Run AI Agent Vitest Suite (93 tests)
+        run: pnpm exec vitest run packages/ai/src/
+
+      - name: Run ClickFlash MCP Server Test Suite (15 tests)
+        run: pnpm --filter clickflash-mcp run test
+
+      - name: Execute E2E Scenario Demo Script
+        run: pnpm run ai:demo

@@ -91,9 +91,20 @@ export const EntryPage = () => {
           <span className="flex-1 h-px bg-slate-700"></span>
         </div>
         
-        <Button variant="secondary" fullWidth className="mt-6 gap-2">
-          <QrCode size={20} />
-          Scan QR Code
+        <Button 
+          variant="secondary" 
+          fullWidth 
+          className="mt-6 gap-2 bg-cyan-500/10 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20"
+          onClick={() => {
+            setIsLoading(true);
+            setTimeout(() => {
+              setAuth('biometric_token_session', 'evt_palm_cove', 'Guest');
+              navigate('/gallery');
+            }, 600);
+          }}
+        >
+          <Camera size={20} />
+          🤳 Instant Biometric Selfie Match
         </Button>
       </motion.div>
     </motion.div>

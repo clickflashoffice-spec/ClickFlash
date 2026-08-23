@@ -9,3 +9,6 @@ export * from './anti-spoofing.js';
 export * from './PromptBuilder.js';
 export * from './AgentTools.js';
 export * from './AgentOrchestrator.js';
+export * from './yield_arbitrage.js';
+export * from './vision_bridge.js';
+export * from './edge_sentinel.js';

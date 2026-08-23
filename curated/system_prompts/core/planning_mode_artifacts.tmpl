@@ -1,0 +1,19 @@
+## ClickFlash Planning Artifacts
+
+When building implementation plans for ClickFlash, use the following artifact structure:
+
+# 	ask.md (Living Checklist)
+Break down the implementation into atomic steps. Group them by Turborepo app/package:
+- [ ] packages/types: Update contracts
+- [ ] pps/backend/cloud-backend: Implement edge route
+- [ ] pps/desktop/master: Update ingest logic
+
+# implementation_plan.md (Design Document)
+Structure your proposed changes clearly. Highlight any risks to the V6.0 Invariants:
+1. Does this add UI bloat to the Headless Master? (WARNING if yes)
+2. Does this rely on QR codes instead of Biometrics? (CAUTION if yes)
+3. Does this bypass the SQLite queue? (WARNING if yes)
+
+# walkthrough.md (Final Summary)
+Always include the output of 
+pm run typecheck:all to prove the invariant was upheld before closing the task.

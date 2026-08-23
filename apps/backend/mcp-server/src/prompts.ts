@@ -27,6 +27,11 @@ export function registerPrompts(): Prompt[] {
       name: "flagship_protocol",
       description: "Forces the AI to adopt the Flagship-Class AI Agent Protocol with 4-phase reasoning.",
       arguments: []
+    },
+    {
+      name: "clickflash_autonomous_agent",
+      description: "Serves the full compiled V6.0 ClickFlash Autonomous Master Agent system prompt with invariants and Turborepo guidelines.",
+      arguments: []
     }
   ];
 }
@@ -101,6 +106,22 @@ For every request given to you, you must strictly follow this 4-step internal pr
 - Deliver the final, polished response.
 </phase_4_final_output>
 </protocol>`
+          }
+        }
+      ]
+    };
+  } else if (name === "clickflash_autonomous_agent") {
+    const { PromptBuilder } = await import("@clickflash/ai");
+    const builder = new PromptBuilder();
+    const systemPrompt = await builder.buildMasterSystemPrompt();
+    return {
+      description: "ClickFlash V6.0 Autonomous Master Agent System Prompt",
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: systemPrompt
           }
         }
       ]

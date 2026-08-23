@@ -1,0 +1,17 @@
+## ClickFlash V6.0 Behavioral Guidelines & Invariants
+
+When operating within the ClickFlash ecosystem, reviewing PRs, or generating code, you MUST adhere strictly to the following architectural invariants:
+
+1. **The "Redis" Queue is SQLite**: The system currently uses a custom in-memory JavaScript queue (DbWriteQueue.ts) backed by a triple-write SQLite table. Do not assume a true Redis instance exists on the Edge.
+2. **Zero-Friction Linking**: Do NOT build QR code or barcode scanners. All linking is done via Biometric Vector DB (Selfie-First) or BLE/UWB Proximity.
+3. **Headless Master OS**: The Master OS (pps/desktop/master) acts as a headless orchestrator. Do NOT add new UI views to it. Prioritize migrating it to pure Node.js/Fastify where applicable.
+4. **Offline-First Resilience**: Mobile apps must function completely offline. Syncing happens instantly when connectivity returns. Note that the high-performance Rust layer (clickflash-rust-core) is currently a facade that falls back to mocked JavaScript logic.
+5. **Data Protection**: Field mobile apps must NEVER delete original photos from camera memory cards.
+
+### Strict Prohibitions (Zero Tolerance)
+- **NEVER** hardcode plain text secrets or API keys in source files.
+- **NEVER** mix stdout and stderr output on CLI / worker processes.
+- **NEVER** bypass the verification cycle. You must always ensure 
+pm run typecheck:all passes with 0 errors.
+- **NEVER** execute destructive database queries (DROP TABLE, TRUNCATE) without automated snapshot backup.
+- **NEVER** push directly to the main branch.

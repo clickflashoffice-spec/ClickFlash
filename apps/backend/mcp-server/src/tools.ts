@@ -29,6 +29,7 @@ import { getVisionTools, handleArcfaceVectorBenchmarker, handleBurstActionShotSc
 import { getYieldArbitrageTools, handleDynamicYieldArbitrageEngine, handleWhaleLeadNegotiator } from './yield_arbitrage.js';
 import { getCryptoTools, handleDrmEphemeralWatermarkVerifier, handleHardwareLicenseEnclaveValidator } from './crypto.js';
 import { getSimulationTools, handleSyntheticParkSimulator, handleLoadStressBenchmark } from './simulation.js';
+import { getAutonomousAgentTools, handleRunAutonomousAgent, handleCompileAgentPrompt } from './autonomous_agent.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -90,6 +91,7 @@ export function registerTools(): Tool[] {
     ...getYieldArbitrageTools(),
     ...getCryptoTools(),
     ...getSimulationTools(),
+    ...getAutonomousAgentTools(),
 
     {
       name: "start_app",
@@ -785,6 +787,10 @@ export async function handleToolCall(name: string, args: any) {
     return await handleRescanArchitectures(args);
   } else if (name === "suggest_better_ui") {
     return await handleSuggestBetterUi(args);
+  } else if (name === "run_clickflash_autonomous_agent") {
+    return await handleRunAutonomousAgent(args);
+  } else if (name === "compile_agent_system_prompt") {
+    return await handleCompileAgentPrompt(args);
   }
 
   

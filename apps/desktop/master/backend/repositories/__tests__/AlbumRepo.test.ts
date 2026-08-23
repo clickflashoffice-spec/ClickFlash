@@ -62,7 +62,7 @@ describe('AlbumRepo', () => {
       
       const result = repo.create({ name: 'New Album' });
       
-      expect(redisCache.publishEvent).toHaveBeenCalledWith('album_ingestion', expect.any(Object));
+      expect(redisCache.publishEvent).toHaveBeenCalledWith('album_created', expect.any(Object));
       expect(dbManagerMock.get).toHaveBeenCalled();
       expect(result).toEqual({ id: 'mock-uuid', name: 'New Album' });
     });

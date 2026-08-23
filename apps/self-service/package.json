@@ -12,6 +12,7 @@
     "lint": "eslint src/"
   },
   "dependencies": {
+    "@clickflash/analytics": "workspace:*",
     "@clickflash/types": "workspace:*",
     "@clickflash/ui": "workspace:*",
     "@stripe/stripe-js": "^5.7.0",

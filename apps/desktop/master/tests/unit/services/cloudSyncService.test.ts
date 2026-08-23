@@ -1,8 +1,8 @@
 import { vi } from 'vitest';
+import { CloudSyncService } from '../../../backend/services/cloudSyncService';
 
 
 describe('CloudSyncService', () => {
-  let CloudSyncService: any;
   let mockDb: any;
   let mockLogger: any;
   let mockEmailService: any;
@@ -10,8 +10,6 @@ describe('CloudSyncService', () => {
   let mockResortAnalytics: any;
 
   beforeEach(() => {
-    vi.useFakeTimers();
-
     mockDb = {
       run: vi.fn().mockReturnValue({ changes: 1 }),
       get: vi.fn(),
@@ -43,7 +41,7 @@ describe('CloudSyncService', () => {
       syncMetrics: vi.fn().mockResolvedValue(true),
     };
 
-    CloudSyncService = require('../../../backend/services/cloudSyncService').CloudSyncService;
+    
   });
 
   afterEach(() => {

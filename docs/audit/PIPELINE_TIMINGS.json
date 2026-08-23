@@ -1,5 +1,5 @@
 {
-  "date": "2026-07-15T17:37:45.049Z",
+  "date": "2026-08-23T16:26:36.914Z",
   "platform": "win32 x64",
   "nodeVersion": "v24.13.1",
   "sharpVersion": "0.35.1",
@@ -9,40 +9,40 @@
     "format": "jpeg",
     "bytes": 2631
   },
-  "totalDurationMs": 262,
+  "totalDurationMs": 359,
   "totalBytesIn": 10202,
   "totalBytesOut": 33852,
   "stages": [
     {
       "stage": "1. Generate synthetic JPEG (1024x768)",
-      "durationMs": 36,
+      "durationMs": 59,
       "bytesIn": 0,
       "bytesOut": 2631
     },
     {
       "stage": "2. SHA-256 hash",
-      "durationMs": 0,
+      "durationMs": 1,
       "bytesIn": 2631,
       "bytesOut": 64,
       "notes": "hash=e2916fc3f256653b…"
     },
     {
       "stage": "3. Sharp resize (4 derivatives, parallel)",
-      "durationMs": 45,
+      "durationMs": 56,
       "bytesIn": 2631,
       "bytesOut": 24862,
       "notes": "2048=18700 1024=4876 320=868 160=418"
     },
     {
       "stage": "4. Watermark + WebP encode",
-      "durationMs": 126,
+      "durationMs": 155,
       "bytesIn": 4876,
       "bytesOut": 5144,
       "notes": "webp=5144B"
     },
     {
       "stage": "5. SQLite insert + 3 indexes",
-      "durationMs": 33,
+      "durationMs": 56,
       "bytesIn": 0,
       "bytesOut": 1,
       "notes": "1 row, 3 indexes"
@@ -56,7 +56,7 @@
     },
     {
       "stage": "7. Idempotency: same hash in different album allowed",
-      "durationMs": 2,
+      "durationMs": 5,
       "bytesIn": 0,
       "bytesOut": 2,
       "notes": "count=2"
@@ -73,7 +73,7 @@
       "durationMs": 1,
       "bytesIn": 0,
       "bytesOut": 119,
-      "notes": "sig=7faddfce7421a29c…"
+      "notes": "sig=6d9d34f10975797a…"
     },
     {
       "stage": "10. Signed URL validation (constant-time compare)",
@@ -84,28 +84,28 @@
     },
     {
       "stage": "11. MoneyTrash expiry (mark expired)",
-      "durationMs": 3,
+      "durationMs": 4,
       "bytesIn": 0,
       "bytesOut": 1,
       "notes": "status=expired"
     },
     {
       "stage": "12. MoneyTrash recovery (un-expire)",
-      "durationMs": 3,
+      "durationMs": 4,
       "bytesIn": 0,
       "bytesOut": 1,
       "notes": "status=ready"
     },
     {
       "stage": "13. Query album photos",
-      "durationMs": 0,
+      "durationMs": 1,
       "bytesIn": 0,
       "bytesOut": 1,
       "notes": "1 photos"
     },
     {
       "stage": "14. Cleanup (close DB, rm test dir)",
-      "durationMs": 10,
+      "durationMs": 14,
       "bytesIn": 0,
       "bytesOut": 0
     }

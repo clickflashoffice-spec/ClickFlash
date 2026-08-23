@@ -27,21 +27,11 @@ export class PromptBuilder {
       this.baseDir = baseDir || '/curated';
       return;
     }
-    try {
-      const path = require('path');
-      const fs = require('fs');
-      if (baseDir) {
-        this.baseDir = path.resolve(process.cwd(), baseDir);
-      } else {
-        const candidates = [
-          path.resolve(process.cwd(), 'curated'),
-          path.resolve(process.cwd(), '../../curated'),
-          path.resolve(process.cwd(), '../../../curated'),
-        ];
-        this.baseDir = candidates.find((c: string) => fs.existsSync(c)) || path.resolve(process.cwd(), 'curated');
-      }
-    } catch {
-      this.baseDir = baseDir || '/curated';
+    const cwd = process.cwd().replace(/\\/g, '/');
+    if (baseDir) {
+      this.baseDir = baseDir.startsWith('/') || baseDir.includes(':') ? baseDir : `${cwd}/${baseDir}`;
+    } else {
+      this.baseDir = `${cwd}/curated`;
     }
   }
 

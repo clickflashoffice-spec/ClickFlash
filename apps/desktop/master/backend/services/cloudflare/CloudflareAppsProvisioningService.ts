@@ -406,10 +406,10 @@ export class CloudflareAppsProvisioningService {
       }
 
       const dnsResult = createResult.data?.result || createResult.data;
-      createdRecords.push(dnsResult);
+      createdRecords.push(dnsResult as unknown as DnsRecord);
       rollbackActions.push({
         type: 'delete_dns',
-        id: dnsResult.id,
+        id: (dnsResult as any).id,
         description: `Delete DNS record ${record.name}`,
       });
 

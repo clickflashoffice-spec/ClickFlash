@@ -23,16 +23,16 @@ const mockFind = vi.fn().mockReturnValue({
 const mockDestroy = vi.fn();
 
 vi.mock('bonjour-service', () => {
-  const MockBonjour = vi.fn().mockImplementation(() => ({
-    publish: mockPublish,
-    find: mockFind,
-    destroy: mockDestroy,
-  }));
-  return Object.assign(MockBonjour, {
+  class MockBonjour {
+    publish = mockPublish;
+    find = mockFind;
+    destroy = mockDestroy;
+  }
+  return {
     __esModule: true,
     default: MockBonjour,
     Bonjour: MockBonjour,
-  });
+  };
 });
 
 // --------------- Logger mock ---------------

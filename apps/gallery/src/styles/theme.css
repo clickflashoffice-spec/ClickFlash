@@ -1,34 +1,51 @@
+@import "tailwindcss";
+
 /* apps/gallery/src/styles/theme.css */
-:root, [data-theme="CLASSIC"] {
-  --gallery-bg: #ffffff;
-  --gallery-text: #333333;
-  --gallery-primary: #1a73e8;
-  --gallery-accent: #fbbc04;
-  /* Override default @clickflash/ui tokens */
+:root, [data-theme="CLASSIC"], [data-theme="classic"] {
+  --gallery-bg: #090d16;
+  --gallery-surface: #0f172a;
+  --gallery-card: #1e293b;
+  --gallery-border: rgba(255, 255, 255, 0.08);
+  --gallery-text: #f8fafc;
+  --gallery-text-muted: #94a3b8;
+  --gallery-primary: #3b82f6;
+  --gallery-accent: #06b6d4;
+  --gallery-glow: rgba(59, 130, 246, 0.25);
+  /* UI token bridges */
   --ui-bg: var(--gallery-bg);
   --ui-text: var(--gallery-text);
   --ui-primary: var(--gallery-primary);
 }
 
-[data-theme="FILMSTRIP"] {
-  --gallery-bg: #121212;
-  --gallery-text: #e0e0e0;
-  --gallery-primary: #ff5252;
-  --gallery-accent: #ffb400;
-  /* Override default @clickflash/ui tokens */
+[data-theme="FILMSTRIP"], [data-theme="filmstrip"] {
+  --gallery-bg: #0c0a09;
+  --gallery-surface: #1c1917;
+  --gallery-card: #292524;
+  --gallery-border: rgba(245, 158, 11, 0.15);
+  --gallery-text: #fafaf9;
+  --gallery-text-muted: #a8a29e;
+  --gallery-primary: #f59e0b;
+  --gallery-accent: #ef4444;
+  --gallery-glow: rgba(245, 158, 11, 0.3);
+  /* UI token bridges */
   --ui-bg: var(--gallery-bg);
   --ui-text: var(--gallery-text);
   --ui-primary: var(--gallery-primary);
 }
 
-[data-theme="GLASSMORPHIC"] {
-  --gallery-bg: rgba(255, 255, 255, 0.1);
+[data-theme="GLASSMORPHIC"], [data-theme="glassmorphic"] {
+  --gallery-bg: #030712;
+  --gallery-surface: rgba(17, 24, 39, 0.7);
+  --gallery-card: rgba(31, 41, 55, 0.6);
+  --gallery-border: rgba(34, 211, 238, 0.25);
   --gallery-text: #ffffff;
-  --gallery-primary: rgba(144, 202, 249, 0.8);
-  --gallery-accent: rgba(255, 171, 64, 0.8);
-  /* Override default @clickflash/ui tokens */
+  --gallery-text-muted: #9ca3af;
+  --gallery-primary: #06b6d4;
+  --gallery-accent: #a855f7;
+  --gallery-glow: rgba(6, 182, 212, 0.4);
+  /* UI token bridges */
   --ui-bg: var(--gallery-bg);
   --ui-text: var(--gallery-text);
   --ui-primary: var(--gallery-primary);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(16px);
 }

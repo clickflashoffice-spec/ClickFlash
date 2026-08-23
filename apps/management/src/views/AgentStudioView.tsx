@@ -8,8 +8,14 @@ import {
   CheckCircle2,
   FileCode,
   ShieldCheck,
-  Users
+  Users,
+  Percent,
+  Camera,
+  MessageSquare,
+  Sparkles,
+  Award
 } from 'lucide-react';
+import { YieldArbitrageEngine, VisionBridge, type GuestCart, type PhotoQualityMetrics } from '@clickflash/ai';
 
 interface AgentLog {
   timestamp: string;
@@ -21,7 +27,7 @@ export function AgentStudioView() {
   const [taskPrompt, setTaskPrompt] = useState('Audit biometric linking logic and check pending SQLite writes.');
   const [isExecuting, setIsExecuting] = useState(false);
   const [mode, setMode] = useState<'single' | 'swarm'>('single');
-  const [activeTab, setActiveTab] = useState<'runner' | 'prompts' | 'queue'>('runner');
+  const [activeTab, setActiveTab] = useState<'runner' | 'yield' | 'vision' | 'prompts' | 'queue'>('runner');
   const [logs, setLogs] = useState<AgentLog[]>([
     {
       timestamp: new Date().toLocaleTimeString(),
@@ -31,11 +37,40 @@ export function AgentStudioView() {
   ]);
   const [agentResult, setAgentResult] = useState<string | null>(null);
 
+  // Yield Simulator State
+  const [cartState, setCartState] = useState<GuestCart>({
+    guestId: 'guest_8829',
+    guestName: 'Jessica Taylor',
+    resortName: 'Grand Hyatt Beach Resort',
+    photoCount: 42,
+    basePrice: 120,
+    hoursSinceAbandonment: 26,
+    activityType: 'Parasailing Adventure',
+    isVip: false
+  });
+
+  const yieldOffer = YieldArbitrageEngine.calculateOffer(cartState);
+  const whatsAppMessage = YieldArbitrageEngine.formatWhatsAppPitch(cartState, yieldOffer);
+
+  // Vision Culling Lab State
+  const [visionMetrics, setVisionMetrics] = useState<PhotoQualityMetrics>({
+    photoId: 'IMG_2026_HERO_042',
+    sharpnessScore: 88,
+    exposureScore: 92,
+    compositionScore: 85,
+    eyesOpenConfidence: 0.98,
+    smileConfidence: 0.94,
+    faceCount: 2
+  });
+
+  const cullingResult = VisionBridge.evaluateCulling(visionMetrics);
+
   const [queueStats] = useState({
     pending: 3,
     flushing: 1,
     failed: 0,
     oldestPending: '24s ago',
+    sentinelUptime: '99.98%',
     dbPath: 'apps/desktop/master/star_master.db (SQLite triple-write)'
   });
 
@@ -100,6 +135,26 @@ export function AgentStudioView() {
             }`}
           >
             <Play className="w-3.5 h-3.5" /> Task Runner
+          </button>
+          <button
+            onClick={() => setActiveTab('yield')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              activeTab === 'yield'
+                ? 'bg-cyan-500 text-slate-950 shadow-md'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Percent className="w-3.5 h-3.5" /> Yield Arbitrage
+          </button>
+          <button
+            onClick={() => setActiveTab('vision')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              activeTab === 'vision'
+                ? 'bg-cyan-500 text-slate-950 shadow-md'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Camera className="w-3.5 h-3.5" /> Biometric Culling
           </button>
           <button
             onClick={() => setActiveTab('prompts')}
@@ -182,66 +237,263 @@ export function AgentStudioView() {
               </div>
 
               <button
-                disabled={isExecuting}
                 onClick={handleRun}
-                className="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-lg text-xs flex items-center justify-center gap-2 transition-all shadow-lg disabled:opacity-50"
+                disabled={isExecuting}
+                className="w-full py-2.5 px-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-lg text-xs flex items-center justify-center gap-2 shadow-lg transition-all disabled:opacity-50"
               >
                 {isExecuting ? (
                   <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    Executing Agent Loop...
+                    <RefreshCw className="w-4 h-4 animate-spin" /> Executing Task...
                   </>
                 ) : (
                   <>
-                    <Play className="w-4 h-4" />
-                    Dispatch Task to Agent
+                    <Play className="w-4 h-4" /> Run Autonomous Task
                   </>
                 )}
               </button>
             </div>
           </div>
 
-          {/* Right: Live Logs & Execution Result */}
+          {/* Right: Real-time Terminal Log & Output */}
           <div className="lg:col-span-2 space-y-4">
-            {/* Live Terminal */}
-            <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs space-y-2 h-64 overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-slate-900 pb-2 text-slate-500">
-                <span className="flex items-center gap-2">
-                  <Terminal className="w-3.5 h-3.5 text-cyan-400" /> Real-Time Tool Execution Log
-                </span>
-                <span className="text-[10px]">stdio stream active</span>
-              </div>
-              {logs.map((log, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <span className="text-slate-600">[{log.timestamp}]</span>
-                  <span
-                    className={
-                      log.type === 'tool'
-                        ? 'text-amber-400'
-                        : log.type === 'result'
-                        ? 'text-emerald-400 font-bold'
-                        : 'text-slate-300'
-                    }
-                  >
-                    {log.type === 'tool' ? '🛠️ ' : log.type === 'result' ? '✅ ' : 'ℹ️ '}
-                    {log.message}
+            <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-slate-300 min-h-[300px] flex flex-col justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+                  <span className="text-slate-400 flex items-center gap-1.5 font-sans font-semibold">
+                    <Terminal className="w-3.5 h-3.5 text-cyan-400" /> Real-Time Tool Execution Log
                   </span>
+                  <span className="text-[10px] text-slate-500">Auto-scrolling</span>
                 </div>
-              ))}
+                {logs.map((log, index) => (
+                  <div key={index} className="flex items-start gap-2 leading-relaxed">
+                    <span className="text-slate-500 select-none">[{log.timestamp}]</span>
+                    {log.type === 'tool' ? (
+                      <span className="text-amber-400">⚡ {log.message}</span>
+                    ) : log.type === 'result' ? (
+                      <span className="text-emerald-400 font-bold">✨ {log.message}</span>
+                    ) : (
+                      <span className="text-slate-300">ℹ️ {log.message}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Agent Result Display */}
             {agentResult && (
-              <div className="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-4 text-xs space-y-2">
-                <div className="flex items-center gap-2 text-emerald-400 font-bold">
-                  <CheckCircle2 className="w-4 h-4" />
-                  Agent Response & Execution Plan
+              <div className="bg-slate-900/90 border border-cyan-500/40 rounded-xl p-4">
+                <div className="flex items-center gap-2 text-cyan-400 font-bold text-xs mb-2">
+                  <CheckCircle2 className="w-4 h-4" /> Execution Synthesis
                 </div>
-                <div className="text-slate-300 whitespace-pre-line leading-relaxed bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                <div className="text-xs text-slate-200 leading-relaxed whitespace-pre-line bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono">
                   {agentResult}
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Yield Simulator Tab */}
+      {activeTab === 'yield' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+            <h3 className="text-sm font-bold text-cyan-400 flex items-center gap-2">
+              <Percent className="w-4 h-4" /> Dynamic Yield Elasticity Simulator
+            </h3>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="text-slate-400 block mb-1">Guest Name:</label>
+                <input
+                  type="text"
+                  value={cartState.guestName}
+                  onChange={e => setCartState({ ...cartState, guestName: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded p-2 text-slate-200"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-slate-400 block mb-1">Photo Count ({cartState.photoCount}):</label>
+                  <input
+                    type="range"
+                    min="5"
+                    max="100"
+                    value={cartState.photoCount}
+                    onChange={e => setCartState({ ...cartState, photoCount: Number(e.target.value) })}
+                    className="w-full accent-cyan-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-slate-400 block mb-1">Hours Elapsed ({cartState.hoursSinceAbandonment}h):</label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="72"
+                    value={cartState.hoursSinceAbandonment}
+                    onChange={e => setCartState({ ...cartState, hoursSinceAbandonment: Number(e.target.value) })}
+                    className="w-full accent-cyan-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-slate-400 block mb-1">Base Price ($):</label>
+                  <input
+                    type="number"
+                    value={cartState.basePrice}
+                    onChange={e => setCartState({ ...cartState, basePrice: Number(e.target.value) })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded p-2 text-slate-200"
+                  />
+                </div>
+                <div className="flex items-center pt-5">
+                  <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={cartState.isVip}
+                      onChange={e => setCartState({ ...cartState, isVip: e.target.checked })}
+                      className="rounded accent-cyan-500"
+                    />
+                    VIP Guest Protection
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 grid grid-cols-3 gap-3 text-center">
+              <div>
+                <span className="text-[10px] text-slate-500 uppercase">Discount</span>
+                <p className="text-lg font-bold text-cyan-400">{yieldOffer.discountPercent}%</p>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-500 uppercase">Offer Price</span>
+                <p className="text-lg font-bold text-emerald-400">${yieldOffer.discountedPrice}</p>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-500 uppercase">Urgency</span>
+                <p className="text-lg font-bold text-amber-400">{yieldOffer.urgencyLevel}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+            <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" /> WhatsApp Recovery Pitch Preview
+            </h3>
+            <div className="bg-emerald-950/20 border border-emerald-800/40 rounded-xl p-4 font-sans text-xs text-slate-200 whitespace-pre-wrap leading-relaxed">
+              {whatsAppMessage}
+            </div>
+            <div className="text-[11px] font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-800">
+              Magic Link: <span className="text-cyan-400">{yieldOffer.magicLink}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Vision Culling Tab */}
+      {activeTab === 'vision' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+            <h3 className="text-sm font-bold text-purple-400 flex items-center gap-2">
+              <Camera className="w-4 h-4" /> ArcFace Biometric & Culling Lab
+            </h3>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="text-slate-400 block mb-1">Sharpness ({visionMetrics.sharpnessScore}/100):</label>
+                <input
+                  type="range"
+                  min="10"
+                  max="100"
+                  value={visionMetrics.sharpnessScore}
+                  onChange={e => setVisionMetrics({ ...visionMetrics, sharpnessScore: Number(e.target.value) })}
+                  className="w-full accent-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-400 block mb-1">Exposure Balance ({visionMetrics.exposureScore}/100):</label>
+                <input
+                  type="range"
+                  min="10"
+                  max="100"
+                  value={visionMetrics.exposureScore}
+                  onChange={e => setVisionMetrics({ ...visionMetrics, exposureScore: Number(e.target.value) })}
+                  className="w-full accent-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-400 block mb-1">Eyes Open Confidence ({Math.round(visionMetrics.eyesOpenConfidence * 100)}%):</label>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="1.0"
+                  step="0.05"
+                  value={visionMetrics.eyesOpenConfidence}
+                  onChange={e => setVisionMetrics({ ...visionMetrics, eyesOpenConfidence: Number(e.target.value) })}
+                  className="w-full accent-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-400 block mb-1">Smile Confidence ({Math.round(visionMetrics.smileConfidence * 100)}%):</label>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="1.0"
+                  step="0.05"
+                  value={visionMetrics.smileConfidence}
+                  onChange={e => setVisionMetrics({ ...visionMetrics, smileConfidence: Number(e.target.value) })}
+                  className="w-full accent-purple-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+            <h3 className="text-sm font-bold text-cyan-400 flex items-center gap-2">
+              <Award className="w-4 h-4" /> Automated Grading Result
+            </h3>
+
+            <div className="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-400">Assigned Grade:</span>
+                <span className={`text-2xl font-black ${
+                  cullingResult.grade === 'A+' ? 'text-emerald-400' :
+                  cullingResult.grade === 'A' ? 'text-cyan-400' :
+                  cullingResult.grade === 'B' ? 'text-blue-400' :
+                  cullingResult.grade === 'C' ? 'text-amber-400' : 'text-rose-500'
+                }`}>
+                  {cullingResult.grade}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-400">Overall Quality Score:</span>
+                <span className="font-mono text-slate-200">{cullingResult.overallScore} / 100</span>
+              </div>
+
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-400">Hero Shot Status:</span>
+                <span className={`font-semibold flex items-center gap-1 ${cullingResult.isHeroShot ? 'text-amber-400' : 'text-slate-500'}`}>
+                  {cullingResult.isHeroShot ? <Sparkles className="w-3.5 h-3.5" /> : null}
+                  {cullingResult.isHeroShot ? 'HERO SHOT' : 'Standard Shot'}
+                </span>
+              </div>
+
+              {cullingResult.rejectReasons.length > 0 && (
+                <div className="bg-rose-950/30 border border-rose-800/40 p-2.5 rounded text-xs text-rose-300">
+                  <span className="font-bold block mb-1">Rejection Flags:</span>
+                  <ul className="list-disc list-inside">
+                    {cullingResult.rejectReasons.map((r, i) => (
+                      <li key={i}>{r}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -279,11 +531,11 @@ export function AgentStudioView() {
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
               <Database className="w-4 h-4 text-cyan-400" />
-              SQLite Persistent Write Queue (DbWriteQueue.ts)
+              SQLite Persistent Write Queue (DbWriteQueue.ts) & Edge Sentinel
             </h3>
             <span className="text-xs text-emerald-400 flex items-center gap-1 font-mono">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Healthy
+              Sentinel Active ({queueStats.sentinelUptime})
             </span>
           </div>
 

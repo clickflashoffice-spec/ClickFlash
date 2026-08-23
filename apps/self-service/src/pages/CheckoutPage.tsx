@@ -5,6 +5,7 @@ import { ArrowLeft, CreditCard, Lock, Truck, Zap, Building, Banknote, ShieldChec
 import { Button } from '../components/common/Button';
 import { PriceTag } from '../components/common/PriceTag';
 import { useCartStore, PaymentMethodType, ShippingAddress } from '../stores/cartStore';
+import { analytics } from '../services/analytics';
 
 export const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -32,12 +33,34 @@ export const CheckoutPage = () => {
   const tax = subtotal * 0.08;
   const total = subtotal + shippingFee + tax;
 
+  React.useEffect(() => {
+    analytics.track({
+      event: "checkout_started",
+      timestamp: new Date().toISOString(),
+      properties: {
+        cart_value: total,
+        item_count: items.length
+      }
+    });
+  }, [items.length]);
+
   const handlePay = (e: React.FormEvent) => {
     e.preventDefault();
     if (requiresShipping) {
       setShippingAddress(shipping);
     }
     setIsProcessing(true);
+    
+    analytics.track({
+      event: "checkout_completed",
+      timestamp: new Date().toISOString(),
+      properties: {
+        cart_value: total,
+        currency: "USD",
+        yield_tier: "standard"
+      }
+    });
+
     // Mock processing delay
     setTimeout(() => {
       navigate('/confirmation');

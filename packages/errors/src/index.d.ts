@@ -74,3 +74,4 @@ export declare function toErrorResponse(error: unknown): {
  * If it is already an AppError it is returned as-is.
  */
 export declare function wrapError(error: unknown, fallbackMessage?: string): AppError;
+//# sourceMappingURL=index.d.ts.map

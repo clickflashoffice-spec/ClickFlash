@@ -12,9 +12,6 @@ process.env.HOME = TEMP_DIR;
 import { getOrCreateManagedIdentity, rotateManagedIdentity } from '../config/tlsIdentityService';
 
 describe('TLS Identity Service', () => {
-  // Increase timeout for RSA key generation
-  vi.setTimeout(15000);
-
   afterAll(() => {
     if (fs.existsSync(TEMP_DIR)) {
       fs.rmSync(TEMP_DIR, { recursive: true, force: true });

@@ -105,6 +105,52 @@ describe("clickflash-mcp", () => {
     expect(contentText).toMatch(/Unknown application/);
   });
 
+  it("should handle yield, vision, and sentinel MCP tools correctly", async () => {
+    // 1. Yield offer
+    const yieldRes = await handleToolCall("calculate_yield_offer", {
+      guestId: "guest_vip",
+      guestName: "Elena Rostova",
+      resortName: "Palm Cove Resort",
+      photoCount: 40,
+      basePrice: 120,
+      hoursSinceAbandonment: 28,
+      activityType: "Jet Ski Tour"
+    });
+    const yieldData = JSON.parse((yieldRes.content[0] as any).text);
+    expect(yieldData.offer.discountPercent).toBeGreaterThanOrEqual(25);
+    expect(yieldData.whatsAppPitch).toContain("Elena Rostova");
+
+    // 2. Face matching
+    const vecA = new Array(512).fill(0.1);
+    const vecB = new Array(512).fill(0.1);
+    const matchRes = await handleToolCall("match_face_embedding", {
+      selfieEmbedding: vecA,
+      candidateEmbedding: vecB,
+      threshold: 0.68
+    });
+    const matchData = JSON.parse((matchRes.content[0] as any).text);
+    expect(matchData.matched).toBe(true);
+
+    // 3. Photo culling
+    const cullingRes = await handleToolCall("evaluate_photo_culling", {
+      photoId: "photo_test_99",
+      sharpnessScore: 92,
+      exposureScore: 88,
+      compositionScore: 85,
+      eyesOpenConfidence: 0.99,
+      smileConfidence: 0.92,
+      faceCount: 1
+    });
+    const cullingData = JSON.parse((cullingRes.content[0] as any).text);
+    expect(cullingData.grade).toBe("A+");
+    expect(cullingData.isHeroShot).toBe(true);
+
+    // 4. Edge Sentinel
+    const sentinelRes = await handleToolCall("get_edge_sentinel_status", {});
+    const sentinelData = JSON.parse((sentinelRes.content[0] as any).text);
+    expect(sentinelData.totalChecksRun).toBeGreaterThanOrEqual(1);
+  });
+
   it("should register resources correctly", () => {
     const resources = registerResources();
     expect(resources.length).toBe(5);

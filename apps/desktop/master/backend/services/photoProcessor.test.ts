@@ -5,41 +5,46 @@ import fs from "fs";
 
 // fs will be mocked via spyOn in beforeEach
 // Mock worker_threads to prevent actual worker instantiation
-vi.mock("worker_threads", () => ({
-  Worker: vi.fn().mockImplementation(() => {
-    const listeners: Record<string, Function[]> = {};
-    const emitter = {
-      on: vi.fn((event, callback) => {
-        if (!listeners[event]) listeners[event] = [];
-        listeners[event].push(callback);
-        if (event === "online") {
-          setTimeout(callback, 5);
+vi.mock("worker_threads", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("worker_threads")>();
+  class MockWorker {
+    listeners: Record<string, Function[]> = {};
+    threadId = Math.floor(Math.random() * 1000);
+    on = vi.fn((event: string, callback: Function) => {
+      if (!this.listeners[event]) this.listeners[event] = [];
+      this.listeners[event].push(callback);
+      if (event === "online") {
+        setTimeout(callback, 5);
+      }
+      return this;
+    });
+    off = vi.fn((event: string, callback: Function) => {
+      if (this.listeners[event]) {
+        this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
+      }
+      return this;
+    });
+    postMessage = vi.fn(() => {
+      setTimeout(() => {
+        if (this.listeners["message"]) {
+          this.listeners["message"].forEach(cb => cb({
+            success: true,
+            assets: { highres: "test.jpg", tiny: "tiny.jpg", thumbnail: "thumb.jpg", preview: "prev.jpg" },
+            hash: "fakehash123",
+            metadata: { width: 1000, height: 1000, format: "jpeg", orientation: 1 }
+          }));
         }
-      }),
-      off: vi.fn((event, callback) => {
-        if (listeners[event]) {
-          listeners[event] = listeners[event].filter(cb => cb !== callback);
-        }
-      }),
-      postMessage: vi.fn(() => {
-        setTimeout(() => {
-          if (listeners["message"]) {
-            listeners["message"].forEach(cb => cb({
-              success: true,
-              assets: { highres: "test.jpg", tiny: "tiny.jpg", thumbnail: "thumb.jpg", preview: "prev.jpg" },
-              hash: "fakehash123",
-              metadata: { width: 1000, height: 1000, format: "jpeg", orientation: 1 }
-            }));
-          }
-        }, 10);
-      }),
-      terminate: vi.fn().mockResolvedValue(undefined),
-      unref: vi.fn(),
-      threadId: Math.floor(Math.random() * 1000),
-    };
-    return emitter;
-  }),
-}));
+      }, 10);
+    });
+    terminate = vi.fn().mockResolvedValue(undefined);
+    unref = vi.fn();
+  }
+
+  return {
+    ...actual,
+    Worker: MockWorker,
+  };
+});
 
 describe("PhotoProcessor Robustness", () => {
   let processor: any;

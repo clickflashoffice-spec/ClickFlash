@@ -26,7 +26,7 @@ describe("VectorIndexService.normalizeL2", () => {
     const nonFinite = new Float32Array(128);
     nonFinite[0] = Number.NaN;
     expect(() => VectorIndexService.normalizeL2(nonFinite)).toThrow(
-      "Vector magnitude must be finite and non-zero.",
+      "Vector must contain at least one finite value.",
     );
 
     expect(() => VectorIndexService.normalizeL2(new Float32Array(64))).toThrow(

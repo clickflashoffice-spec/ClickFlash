@@ -31,7 +31,3 @@ export function debugKiosks(dbDir: string = _dirname) {
     }
   }
 }
-
-if (require.main === module || process.argv[1] === fileURLToPath(import.meta.url)) {
-    debugKiosks();
-}

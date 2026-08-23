@@ -51,6 +51,9 @@ const config: Config = {
     '/node_modules/',
     '/dist/',
   ],
+  transformIgnorePatterns: [
+    'node_modules/(?!@clickflash/logger|winston|logform|triple-beam)'
+  ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   roots: ['<rootDir>'],
   clearMocks: true,

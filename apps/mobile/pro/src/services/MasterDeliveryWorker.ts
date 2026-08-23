@@ -107,8 +107,31 @@ class MasterDeliveryWorker {
 
   drain(): Promise<void> {
     if (this.activeDrain) return this.activeDrain;
+    
+    // Lazy load analytics to prevent cyclic imports
+    import('./analytics').then(({ analytics }) => {
+      analytics.track({
+        event: 'upload_batch_started',
+        timestamp: new Date().toISOString(),
+        properties: {
+          photo_count: 0 // Will refine
+        }
+      });
+    }).catch(e => logger.error("Analytics load failed", e));
+
     this.activeDrain = this.runDrain().finally(() => {
       this.activeDrain = null;
+      
+      import('./analytics').then(({ analytics }) => {
+        analytics.track({
+          event: 'upload_batch_completed',
+          timestamp: new Date().toISOString(),
+          properties: {
+            success_count: this.status.bytesSent > 0 ? 1 : 0,
+            fail_count: this.status.phase === 'ERROR' ? 1 : 0
+          }
+        });
+      }).catch(e => logger.error("Analytics load failed", e));
     });
     return this.activeDrain;
   }

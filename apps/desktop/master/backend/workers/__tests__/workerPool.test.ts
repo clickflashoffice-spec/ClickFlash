@@ -2,34 +2,42 @@ import { vi, describe, it, test, expect, beforeEach, afterEach } from 'vitest';
 import { WorkerPool } from '../workerPool';
 
 vi.mock('worker_threads', () => {
+  const WorkerMock = vi.fn().mockImplementation(function() {
+    const listeners: Record<string, Function[]> = {};
+    return {
+      on: vi.fn((event, callback) => {
+        if (!listeners[event]) listeners[event] = [];
+        listeners[event].push(callback);
+        return this;
+      }),
+      postMessage: vi.fn(function(this: any, msg) {
+        // Simulate successful execution asynchronously
+        setTimeout(() => {
+          if (listeners['message']) {
+            listeners['message'].forEach(cb => {
+              if (msg.payload === 'fail') {
+                cb({ taskId: msg.taskId, success: false, error: 'Task failed' });
+              } else {
+                cb({ taskId: msg.taskId, success: true, result: 'done' });
+              }
+            });
+          }
+        }, 0);
+      }),
+      terminate: vi.fn().mockResolvedValue(undefined),
+      removeAllListeners: vi.fn(),
+      emit: function(event: string, ...args: any[]) {
+        if (listeners[event]) {
+          listeners[event].forEach(cb => cb(...args));
+        }
+      }
+    };
+  });
   return {
-    Worker: vi.fn().mockImplementation(function() {
-      const listeners: Record<string, Function[]> = {};
-      return {
-        on: vi.fn((event, callback) => {
-          if (!listeners[event]) listeners[event] = [];
-          listeners[event].push(callback);
-        }),
-        postMessage: vi.fn(function(this: any, msg) {
-          // Simulate successful execution asynchronously
-          setTimeout(() => {
-            if (listeners['message']) {
-              listeners['message'].forEach(cb => {
-                if (msg.payload === 'fail') {
-                  cb({ taskId: msg.taskId, success: false, error: 'Task failed' });
-                } else {
-                  cb({ taskId: msg.taskId, success: true, result: 'done' });
-                }
-              });
-            }
-          }, 0);
-        }),
-        terminate: vi.fn().mockResolvedValue(undefined)
-      };
-    })
+    Worker: WorkerMock,
+    default: { Worker: WorkerMock }
   };
 });
-
 describe('WorkerPool', () => {
   let pool: WorkerPool;
 

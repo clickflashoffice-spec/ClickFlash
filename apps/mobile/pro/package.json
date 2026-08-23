@@ -3,6 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@clickflash/analytics": "workspace:*",
     "@clickflash/ai-core": "workspace:*",
     "@clickflash/logger": "workspace:*",
     "@clickflash/types": "workspace:*",

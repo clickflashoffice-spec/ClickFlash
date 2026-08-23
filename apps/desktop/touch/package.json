@@ -38,6 +38,7 @@
     "typecheck:ci": "tsc --noEmit && tsc --noEmit -p tsconfig.electron.json"
   },
   "dependencies": {
+    "@clickflash/analytics": "workspace:*",
     "@clickflash/logger": "workspace:*",
     "@clickflash/telemetry-web": "workspace:*",
     "@clickflash/types": "workspace:*",

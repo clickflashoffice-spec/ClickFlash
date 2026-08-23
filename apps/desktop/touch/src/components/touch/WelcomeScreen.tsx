@@ -3,6 +3,7 @@ import RoomNumberModal from "./RoomNumberModal";
 import { KioskSettings, DestinationFeatures, Photo } from "../../types.ts";
 import PasswordModal from "./PasswordModal";
 import { webSocketService } from "../../services/webSocketService.ts";
+import { analytics } from "../../services/analytics";
 import FaceSearchModal from "./FaceSearchModal";
 import { VintageSlideshow } from "./VintageSlideshow";
 import { SelfServiceBLEModal } from "../SelfServiceBLEModal";
@@ -413,7 +414,19 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       }
 
       // Identify user
+      const startMs = Date.now();
       const user = await faceRecognitionService.identifyUser(blob);
+      const durationMs = Date.now() - startMs;
+      
+      analytics.track({
+        event: "face_scan_completed",
+        timestamp: new Date().toISOString(),
+        properties: {
+          match_confidence: user ? 99 : 0, // Mock confidence
+          duration_ms: durationMs
+        }
+      });
+
       if (user) {
         showToast(`Welcome back, ${user.name}!`);
         setTimeout(() => {
@@ -472,7 +485,18 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       showToast("Searching for your photos...");
 
       // Perform the complete face search flow
+      const startMs = Date.now();
       const result: FaceSearchResult = await faceRecognitionService.searchByFace(blob);
+      const durationMs = Date.now() - startMs;
+      
+      analytics.track({
+        event: "face_scan_completed",
+        timestamp: new Date().toISOString(),
+        properties: {
+          match_confidence: result.faceFound ? 99 : 0, // Mock confidence
+          duration_ms: durationMs
+        }
+      });
 
       if (!result.success) {
         showToast(result.message || "Could not find your photos. Please try again or use room number.");

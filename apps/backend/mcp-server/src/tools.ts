@@ -29,7 +29,15 @@ import { getVisionTools, handleArcfaceVectorBenchmarker, handleBurstActionShotSc
 import { getYieldArbitrageTools, handleDynamicYieldArbitrageEngine, handleWhaleLeadNegotiator } from './yield_arbitrage.js';
 import { getCryptoTools, handleDrmEphemeralWatermarkVerifier, handleHardwareLicenseEnclaveValidator } from './crypto.js';
 import { getSimulationTools, handleSyntheticParkSimulator, handleLoadStressBenchmark } from './simulation.js';
-import { getAutonomousAgentTools, handleRunAutonomousAgent, handleCompileAgentPrompt } from './autonomous_agent.js';
+import { 
+  getAutonomousAgentTools, 
+  handleRunAutonomousAgent, 
+  handleCompileAgentPrompt,
+  handleCalculateYieldOffer,
+  handleMatchFaceEmbedding,
+  handleEvaluatePhotoCulling,
+  handleGetEdgeSentinelStatus
+} from './autonomous_agent.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -791,6 +799,14 @@ export async function handleToolCall(name: string, args: any) {
     return await handleRunAutonomousAgent(args);
   } else if (name === "compile_agent_system_prompt") {
     return await handleCompileAgentPrompt(args);
+  } else if (name === "calculate_yield_offer") {
+    return await handleCalculateYieldOffer(args);
+  } else if (name === "match_face_embedding") {
+    return await handleMatchFaceEmbedding(args);
+  } else if (name === "evaluate_photo_culling") {
+    return await handleEvaluatePhotoCulling(args);
+  } else if (name === "get_edge_sentinel_status") {
+    return await handleGetEdgeSentinelStatus(args);
   }
 
   

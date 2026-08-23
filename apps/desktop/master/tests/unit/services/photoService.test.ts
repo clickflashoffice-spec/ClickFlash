@@ -1,3 +1,4 @@
+import { validateManualEdits, getAssetPath, getPhotoUrl } from '../../../src/services/api/photoService';
 import { vi } from 'vitest';
 
 
@@ -24,8 +25,6 @@ describe('photoService', () => {
 
   describe('validateManualEdits', () => {
     it('should clamp values to valid ranges', async () => {
-      const { validateManualEdits } = await import('../../../src/services/api/photoService');
-      
       const result = validateManualEdits({
         exposure: 500,
         contrast: -500,
@@ -38,8 +37,6 @@ describe('photoService', () => {
     });
 
     it('should handle NaN values', async () => {
-      const { validateManualEdits } = await import('../../../src/services/api/photoService');
-      
       const result = validateManualEdits({
         exposure: NaN,
       } as any);
@@ -48,8 +45,6 @@ describe('photoService', () => {
     });
 
     it('should preserve valid values', async () => {
-      const { validateManualEdits } = await import('../../../src/services/api/photoService');
-      
       const result = validateManualEdits({
         exposure: 50,
         contrast: 10,
@@ -62,8 +57,6 @@ describe('photoService', () => {
 
   describe('getAssetPath', () => {
     it('should generate correct path for album and photo', async () => {
-      const { getAssetPath } = await import('../../../src/services/api/photoService');
-      
       const path = getAssetPath('album-1', 'photo-1', 'highres');
       
       expect(path).toContain('album-1');
@@ -71,16 +64,12 @@ describe('photoService', () => {
     });
 
     it('should generate path for thumbs', async () => {
-      const { getAssetPath } = await import('../../../src/services/api/photoService');
-      
       const path = getAssetPath('album-1', 'photo-1', 'thumbs');
       
       expect(path).toContain('album-1');
     });
 
     it('should return empty string for missing albumId', async () => {
-      const { getAssetPath } = await import('../../../src/services/api/photoService');
-      
       const path = getAssetPath('', 'photo-1', 'highres');
       
       expect(path).toBe('');
@@ -89,24 +78,18 @@ describe('photoService', () => {
 
   describe('getPhotoUrl', () => {
     it('should return full URLs unchanged', async () => {
-      const { getPhotoUrl } = await import('../../../src/services/api/photoService');
-      
       const url = getPhotoUrl({ url: 'https://example.com/photo.jpg', id: 'p1' } as any);
       
       expect(url).toBe('https://example.com/photo.jpg');
     });
 
     it('should return blob URLs unchanged', async () => {
-      const { getPhotoUrl } = await import('../../../src/services/api/photoService');
-      
       const url = getPhotoUrl({ url: 'blob:http://localhost:8090/abc123', id: 'p1' } as any);
       
       expect(url).toBe('blob:http://localhost:8090/abc123');
     });
 
     it('should construct URL for relative paths', async () => {
-      const { getPhotoUrl } = await import('../../../src/services/api/photoService');
-      
       const url = getPhotoUrl({ url: 'photo.jpg', id: 'photo-1' } as any);
       
       expect(url).toContain('localhost:8090');
@@ -114,3 +97,4 @@ describe('photoService', () => {
     });
   });
 });
+

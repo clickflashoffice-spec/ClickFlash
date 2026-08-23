@@ -1,37 +1,49 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { checkDbRobustness } from './check_db_robust';
 import fs from 'fs';
-import Database from 'better-sqlite3';
 
-vi.mock('fs');
-vi.mock('better-sqlite3');
-vi.mock('@/utils/logger', () => ({
+const { mockPrepare } = vi.hoisted(() => {
+  return { mockPrepare: vi.fn() };
+});
+
+vi.mock('better-sqlite3', () => {
+  return {
+    default: class MockDatabase {
+      prepare = mockPrepare;
+    }
+  };
+});
+
+vi.mock('./utils/logger', () => ({
   logger: {
+    info: vi.fn(),
+    error: vi.fn(),
+  },
+  Logger: {
     info: vi.fn(),
     error: vi.fn(),
   }
 }));
 
+import { checkDbRobustness } from './check_db_robust';
+
 describe('checkDbRobustness', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
+    vi.spyOn(process, 'exit').mockImplementation((() => undefined) as any);
   });
 
   it('should return false if db is not found', () => {
-    vi.mocked(fs.existsSync).mockReturnValue(false);
+    vi.spyOn(fs, 'existsSync').mockReturnValue(false);
     const result = checkDbRobustness();
     expect(result).toBe(false);
   });
 
   it('should return true and log tables if db is found', () => {
-    vi.mocked(fs.existsSync).mockImplementation((path) => String(path).includes('local.db'));
+    vi.spyOn(fs, 'existsSync').mockImplementation((p: any) => String(p).includes('local.db'));
     
-    const mockPrepare = vi.fn().mockReturnValue({
+    mockPrepare.mockReturnValue({
       all: vi.fn().mockReturnValue([{ name: 'orders' }, { name: 'prospects' }])
     });
-    vi.mocked(Database).mockImplementation(() => ({
-      prepare: mockPrepare,
-    } as any));
 
     const result = checkDbRobustness();
     expect(result).toBe(true);

@@ -34,6 +34,18 @@
       ],
       "@clickflash/ui": [
         "../../../packages/ui/src/index.ts"
+      ],
+      "@clickflash/analytics": [
+        "../../../packages/analytics/src/index.ts"
+      ],
+      "@clickflash/analytics/*": [
+        "../../../packages/analytics/src/*"
+      ],
+      "@clickflash/types": [
+        "../../../packages/types/src/index.ts"
+      ],
+      "@clickflash/types/*": [
+        "../../../packages/types/src/*"
       ]
     },
     "allowImportingTsExtensions": true,

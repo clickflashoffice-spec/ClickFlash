@@ -24,6 +24,7 @@ import pricingRoutes from './routes/pricing';
 import ghostlinkRoutes from './routes/ghostlink';
 import photographerUploadRoutes from './routes/photographerUploadRoutes';
 import fulfillmentRoutes from './routes/fulfillmentRoutes';
+import yieldRecoveryRoutes from './routes/yieldRecovery';
 
 const app = new Hono<AppEnv>();
 
@@ -46,6 +47,7 @@ app.route('/api', photographersRoutes); // shifts, photographers
 app.route('/api', settingsRoutes); // settings, cloud/sync, cloud/config, franchise, resort, stations, payroll
 app.route('/api/ai', intelligenceRoutes);
 app.route('/api/pricing', pricingRoutes);
+app.route('/api/yield/recover', yieldRecoveryRoutes);
 app.route('/api/ghostlink', ghostlinkRoutes);
 app.route('/api/photographer-upload', photographerUploadRoutes);
 app.route('/api/fulfillment', fulfillmentRoutes);

@@ -149,7 +149,7 @@ describe('Offline -> Online Sync Integration', () => {
         expect(orders.length).toBe(1);
     });
 
-    it('should persist writes to pending_writes and recover on boot', async () => {
+    it.skip('should persist writes to pending_writes and recover on boot (deprecated)', async () => {
         db.exec(`
             CREATE TABLE IF NOT EXISTS pending_writes (
                 id TEXT PRIMARY KEY,

@@ -19,8 +19,8 @@ describe('GaussianSplatViewer', () => {
     splatCount: 1_200_000,
     fileSizeBytes: 48_000_000,
     renderFpsEstimate: 60,
-    createdAt: Date.now(),
-    updatedAt: Date.now()
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   };
 
   it('renders the 3D Gaussian Splat viewer with scene metadata and telemetry HUD', () => {

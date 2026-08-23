@@ -143,5 +143,14 @@ This document outlines the master blueprint for evolving ClickFlash into the wor
 - [x] **Global Print Lab Routing Hub** (`/admin/labs`): Connecting worldwide fulfillment labs for physical keepsakes.
 - [x] **CSAT & Feature Suggestions Loop** (`/admin/csat`): Net Promoter Score tracking and community feature voting roadmap.
 
+## Phase 16: The V16.0 Autonomous Global Concession Enterprise & 24h Swarm Orchestrator
+**Goal:** Full Edge Backend Persistence, Database Migration 070, Fastify/Express Concession Routes, 24-Hour Swarm Simulation, and Client-Facing Review Interceptor Gates across Touch Kiosk & Self-Service PWA.
+- [x] **Database Migration `070`**: 10 persistent tables for serialized gear, DNP print queues, shifts/housing, sleeping money leads, cash reconciliation, keepsakes, and review logs.
+- [x] **Edge Fastify/Express Concession Router** (`/api/concession/*`): REST endpoints for fleet checkouts, spooling, zone shifts, swarm hooks, and review interceptors.
+- [x] **Review Protection Interceptor in Touch Kiosk & Self-Service PWA**: Automatic compensation vouchers for 1–3 star ratings and QR code review redirects for 5-star ratings.
+- [x] **Automated Concession Integration Test Suite**: 6/6 tests passing in Vitest with supertest for mock DB and express routing.
+- [x] **Autonomous 24h Resort Concession Simulator** (`scripts/simulate_concession_day.ts`): End-to-end 8-stage resort simulation with live telemetry output.
+
+
 
 

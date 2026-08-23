@@ -1,7 +1,7 @@
 
 import { logger } from '@clickflash/logger';
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { Order, Photo, Product } from "../../types";
+import { Order, Photo, Product, GalleryConfig, AIPermission } from "../../types";
 import { cloudApiService } from "../../services/cloudApiService";
 import CustomerGallery from "./CustomerGallery";
 import StorePage from "./StorePage";
@@ -39,17 +39,17 @@ type CustomerView =
   | "Status"
   | "Buy Photos";
 
-// ShopCartItem type moved/replaced by CartItem from @clickflash/types
-
 interface CustomerLayoutProps {
   order?: Order;
   trashGallery?: TrashGallery;
+  config?: GalleryConfig | null;
   onLogout: () => void;
 }
 
 const CustomerLayout: React.FC<CustomerLayoutProps> = ({
   order,
   trashGallery,
+  config,
   onLogout,
 }) => {
   const [view, setView] = useState<CustomerView>(
@@ -560,17 +560,19 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
           </nav>
 
           <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setIsFaceSearchOpen(true)}
-              className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-600/30 via-indigo-600/30 to-purple-600/30 border border-blue-500/40 text-blue-300 hover:text-white hover:border-blue-400 transition-all text-xs font-bold shadow-lg shadow-blue-500/10"
-              title="Find all photos of you with AI Facial Recognition"
-            >
-              <svg className="w-3.5 h-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="hidden md:inline">Find My Photos</span>
-            </button>
+            {config?.features?.enableFaceSearch !== false && (
+              <button
+                onClick={() => setIsFaceSearchOpen(true)}
+                className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-600/30 via-indigo-600/30 to-purple-600/30 border border-blue-500/40 text-blue-300 hover:text-white hover:border-blue-400 transition-all text-xs font-bold shadow-lg shadow-blue-500/10"
+                title="Find all photos of you with AI Facial Recognition"
+              >
+                <svg className="w-3.5 h-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="hidden md:inline">Find My Photos</span>
+              </button>
+            )}
 
             <button
               onClick={() => setIsPassModalOpen(true)}

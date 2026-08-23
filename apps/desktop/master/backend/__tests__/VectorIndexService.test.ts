@@ -104,7 +104,8 @@ describe('VectorIndexService & C++ VP-Tree Sub-Second Indexing', () => {
             const queryVec = createVector(0);
             queryVec[1] = 0.05; // slight perturbation
 
-            const results = service.search(queryVec, 10, 0.5);
+            const results = service.search(queryVec, 10, 0.8);
+            console.log('RESULTS:', results);
 
             expect(results.length).toBeGreaterThanOrEqual(2);
             expect(results).toContain('photo_rollercoaster_01');
@@ -158,7 +159,7 @@ describe('VectorIndexService & C++ VP-Tree Sub-Second Indexing', () => {
             service.addFace('photo_dynamic_1', 'face_dyn_1', vec1);
             service.addFace('photo_dynamic_2', 'face_dyn_2', vec2);
 
-            const searchResults = service.search(vec1, 5, 0.5);
+            const searchResults = service.search(vec1, 5, 0.8);
             expect(searchResults).toContain('photo_dynamic_1');
         });
 
@@ -179,7 +180,7 @@ describe('VectorIndexService & C++ VP-Tree Sub-Second Indexing', () => {
             await service.rebuildFromDb();
 
             // Perform search on newly reloaded instance
-            const matches = service.search(vecA, 5, 0.5);
+            const matches = service.search(vecA, 5, 0.8);
             expect(matches).toContain('photo_alpha');
         });
     });

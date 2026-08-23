@@ -1,4 +1,5 @@
-import { vi } from 'vitest';
+// import { vi } from 'vitest';
+const vi = jest;
 import { initializeDatabase, resetDatabase, closeDatabase } from './mocks/database';
 
 beforeAll(() => {

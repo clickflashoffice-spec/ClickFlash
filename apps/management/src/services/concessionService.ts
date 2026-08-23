@@ -6,7 +6,6 @@ import {
   ShiftSchedule,
   StaffHousingUnit,
   AcademyCourse,
-  StaffAcademyProgress,
   JobApplicant,
   SleepingMoneyGallery,
   CashReconciliation,

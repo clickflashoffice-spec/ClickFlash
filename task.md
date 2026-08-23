@@ -29,3 +29,10 @@
 - [x] **Multimodal NLP Semantic Photo Search**
   - [x] Implement multi-vector hybrid CLIP + ArcFace semantic search for guest albums (`semantic-search.ts`, `NlpSemanticSearchService.ts`).
   - [x] Add natural language photo search routes (`semanticSearch.routes.ts`) and unit tests.
+- [x] **Phase 15: Full Fotiqo Feature-Parity & Enterprise Concession Moat**
+  - [x] **Pillar 1: Operations & Hardware Edge Hub** (Equipment Tracking, Print Queue Spooler, Attraction Anchors, Kiosk Anti-Piracy in `EquipmentView.tsx`, `PrintQueueView.tsx`, `EquipmentPrintHubView.tsx`).
+  - [x] **Pillar 2: People & HR Resort Operations** (Shift Scheduler & 90-min Zone Rotations, Staff Housing, Academy & Certification, ATS Recruitment in `ShiftsHousingView.tsx`, `StaffView.tsx`).
+  - [x] **Pillar 3: Financial Engine & Sleeping Money Recovery** (Sleeping Money Cockpit, Cash Drawer Reconciliation, Consumables Expense Tracker, Fraud & Leakage Detector in `SleepingMoneyView.tsx`, `SleepingMoneyRecoveryView.tsx`).
+  - [x] **Pillar 4: Sales, Store & Keepsakes** (Keepsake Store & Print Labs, Gamification & Leaderboards, Guest CRM & VIP Rooms, Review Protection Gatekeeper in `KeepsakeStoreView.tsx`).
+  - [x] **Pillar 5: Content & AI Suite** (AI Photographer Coach, Autonomous SEO Blog Generator, AI Face Retouching & Magic Elements in `AICoachingView.tsx`, `AiCoachBlogView.tsx`).
+  - [x] **Pillar 6: HQ Super-Admin Infrastructure** (HQ Impersonation Mode, Global Print Lab Routing Hub, CSAT & Feature Feedback Loop in `FranchiseOverview.tsx`).

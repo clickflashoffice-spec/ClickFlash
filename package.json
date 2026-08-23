@@ -10,6 +10,7 @@
     "lint": "npx turbo run lint",
     "typecheck": "npx turbo run typecheck",
     "ai:agent": "npx tsx packages/ai/src/cli.ts",
+    "ai:demo": "npx tsx packages/ai/src/demo.ts",
     "dev": "npx turbo run dev",
     "deploy": "turbo run deploy",
     "clean": "turbo run clean",

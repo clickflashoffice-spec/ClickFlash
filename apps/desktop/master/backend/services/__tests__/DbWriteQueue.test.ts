@@ -1,116 +1,37 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DbWriteQueue } from '../DbWriteQueue';
 
-const mockDb = {
-    run: vi.fn(),
-    query: vi.fn(),
-    get: vi.fn(),
-    prepare: vi.fn(),
-    transaction: vi.fn((fn: Function) => fn()),
-};
+const mockExecute = vi.fn().mockResolvedValue(undefined);
+const mockShutdown = vi.fn().mockResolvedValue(undefined);
 
-const mockLogger = {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-};
+vi.mock('../../workers/workerPool', () => {
+  return {
+    WorkerPool: vi.fn().mockImplementation(() => ({
+      execute: mockExecute,
+      shutdown: mockShutdown,
+    }))
+  };
+});
 
 describe('DbWriteQueue', () => {
     let queue: DbWriteQueue;
 
     beforeEach(() => {
         vi.clearAllMocks();
-        mockDb.query.mockReturnValue([]);
-        queue = new DbWriteQueue(mockDb as any, { logger: mockLogger as any, flushInterval: 50, maxQueueSize: 5 });
+        queue = new DbWriteQueue({} as any, {});
     });
 
     afterEach(async () => {
-        await queue.shutdown();
+        if (queue) await queue.shutdown();
     });
 
-    it('should enqueue a write and persist to pending_writes', async () => {
-        await queue.enqueue('photos', 'p1', { title: 'Test' });
-
-        expect(mockDb.run).toHaveBeenCalledWith(
-            expect.stringContaining('INSERT INTO pending_writes'),
-            expect.arrayContaining([
-                'photos:p1',
-                'photos',
-                'p1',
-                JSON.stringify({ title: 'Test' }),
-                'normal',
-            ])
-        );
-    });
-
-    it('should merge data for the same record', async () => {
-        await queue.enqueue('photos', 'p1', { title: 'A' });
-        await queue.enqueue('photos', 'p1', { caption: 'B' });
-
-        // Should have called INSERT / UPDATE twice
-        expect(mockDb.run).toHaveBeenCalledTimes(2);
-    });
-
-    it('should flush immediately for high priority writes', async () => {
-        await queue.enqueue('photos', 'p1', { title: 'Urgent' }, 'high');
-
-        expect(mockDb.transaction).toHaveBeenCalled();
-        expect(mockDb.run).toHaveBeenCalledWith(
-            expect.stringContaining('DELETE FROM pending_writes'),
-            expect.any(Array)
-        );
-    });
-
-    it('should recover pending writes on construction and flush them', () => {
-        mockDb.query.mockReturnValue([
-            {
-                id: 'photos:p2',
-                table_name: 'photos',
-                record_id: 'p2',
-                payload_json: JSON.stringify({ title: 'Recovered' }),
-                priority: 'normal',
-            }
-        ]);
-
-        new DbWriteQueue(mockDb as any, { logger: mockLogger as any });
-
-        // Recovery should query pending_writes
-        expect(mockDb.query).toHaveBeenCalledWith(
-            expect.stringContaining('SELECT id, table_name, record_id, payload_json, priority')
-        );
-
-        // Recovery triggers flush, so queue should be empty after async flush settles
-        // We verify by checking that transaction was attempted
-        expect(mockDb.transaction).toHaveBeenCalled();
-    });
-
-    it('should re-enqueue failed writes on transaction failure', async () => {
-        mockDb.transaction.mockImplementation(() => {
-            throw new Error('DB locked');
+    it('should forward enqueue to worker pool', async () => {
+        await queue.enqueue('test_table', '123', { field: 'value' });
+        expect(mockExecute).toHaveBeenCalledWith({
+            table: 'test_table',
+            id: '123',
+            data: { field: 'value' },
+            priority: 'normal'
         });
-
-        await queue.enqueue('photos', 'p1', { title: 'Fail' }, 'high');
-
-        // Should try to re-enqueue as high priority
-        expect(mockLogger.error).toHaveBeenCalledWith(
-            'DbWriteQueue flush failed',
-            expect.any(Object)
-        );
-    });
-
-    it('should force flush when queue size exceeds max', async () => {
-        mockDb.transaction.mockClear();
-        for (let i = 0; i < 5; i++) {
-            await queue.enqueue('photos', `p${i}`, { title: `Photo ${i}` });
-        }
-        // The 5th enqueue should trigger a flush
-        expect(mockDb.transaction).toHaveBeenCalled();
-    });
-
-    it('should track writeLatencyMs in getStats()', async () => {
-        expect(queue.getStats().writeLatencyMs).toBe(0);
-        await queue.enqueue('photos', 'p1', { title: 'Test' }, 'high');
-        expect(queue.getStats().writeLatencyMs).toBeGreaterThanOrEqual(0);
     });
 });

@@ -89,8 +89,8 @@ export default function exportRoutes(context: ExportContext): Router {
       // Server-side path validation — must not rely on client-side checks alone.
       const pathCheck = validateExportPath(targetDir);
       if (!pathCheck.ok) {
-        logger.warn(`[Export] Rejected unsafe targetDir: ${JSON.stringify(targetDir)} — ${pathCheck.reason}`);
-        return res.status(400).json({ error: "INVALID_EXPORT_PATH", message: pathCheck.reason });
+        logger.warn(`[Export] Rejected unsafe targetDir: ${JSON.stringify(targetDir)} — ${(pathCheck as any).reason}`);
+        return res.status(400).json({ error: "INVALID_EXPORT_PATH", message: (pathCheck as any).reason });
       }
 
       // In-progress guard: one concurrent export per album.

@@ -23,7 +23,7 @@ export interface DesktopLicenseResult {
   license?: {
     plan: "starter" | "pro" | "enterprise" | "trial";
     maxMasters: number;
-    expiresAt: string | null;
+    expiresAt?: string | null;
     machineId: string;
   };
 }
@@ -81,7 +81,7 @@ export function verifySignedDesktopLicense(
       if (expiration < today) return { valid: false, error: "License has expired" };
     }
 
-    return { valid: true, license: payload.data };
+    return { valid: true, license: payload.data as any };
   } catch {
     return { valid: false, error: "License data is malformed" };
   }

@@ -24,6 +24,7 @@ import 'winston-daily-rotate-file';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
+import { BrowserLogger } from './browser.js';
 
 // =============================================================================
 // TYPES
@@ -63,9 +64,8 @@ export interface ILogger {
 // REDACT FORMAT MIDDLEWARE
 // =============================================================================
 
-/** Fields whose values will be replaced with '[REDACTED]' */
 const SENSITIVE_FIELDS = new Set(
-  process.env.LOGGER_SENSITIVE_FIELDS
+  typeof process !== 'undefined' && process.env?.LOGGER_SENSITIVE_FIELDS
     ? process.env.LOGGER_SENSITIVE_FIELDS.split(',')
     : [
         'password',
@@ -118,28 +118,34 @@ export function redactSensitiveFields(obj: unknown, seen = new WeakSet()): unkno
  * Redacted fields: password, token, secret, apiKey, authorization, creditCard, ssn, cookie.
  * Matching is case-insensitive. Works recursively on nested objects and arrays.
  */
-export const redactFormat = winston.format((info: winston.Logform.TransformableInfo) => {
-  // Walk every top-level key in the info object (excluding Winston internals)
-  const winstonInternals = new Set(['level', 'message', 'splat', Symbol.for('level'), Symbol.for('splat')]);
+export const redactFormat = typeof winston?.format === 'function'
+  ? winston.format((info: winston.Logform.TransformableInfo) => {
+      // Walk every top-level key in the info object (excluding Winston internals)
+      const winstonInternals = new Set(['level', 'message', 'splat', Symbol.for('level'), Symbol.for('splat')]);
 
-  for (const key of Object.keys(info)) {
-    if (winstonInternals.has(key)) continue;
+      for (const key of Object.keys(info)) {
+        if (winstonInternals.has(key)) continue;
 
-    if (SENSITIVE_FIELDS.has(key.toLowerCase())) {
-      info[key] = '[REDACTED]';
-    } else if (typeof info[key] === 'object' && info[key] !== null) {
-      info[key] = redactSensitiveFields(info[key]) as string;
-    }
-  }
+        if (SENSITIVE_FIELDS.has(key.toLowerCase())) {
+          info[key] = '[REDACTED]';
+        } else if (typeof info[key] === 'object' && info[key] !== null) {
+          info[key] = redactSensitiveFields(info[key]) as string;
+        }
+      }
 
-  return info;
-});
+      return info;
+    })
+  : (((info: any) => info) as any);
 
 // =============================================================================
 // LOGGER FACTORY
 // =============================================================================
 
 export function createLogger(config: LoggerConfig): ILogger {
+  if (typeof window !== 'undefined' || typeof process === 'undefined' || !process.versions?.node) {
+    return new BrowserLogger(config.serviceName);
+  }
+
   let logDir = config.logDir || path.join(process.cwd(), 'logs');
   const level = config.level || 'info';
   const maxFiles = config.maxFiles || '14d';

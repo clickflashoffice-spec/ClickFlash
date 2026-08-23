@@ -5,6 +5,7 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "types": ["vite/client", "node"],
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
@@ -14,8 +15,19 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@clickflash/analytics": ["../../packages/analytics/src/index.ts"],
+      "@clickflash/analytics/*": ["../../packages/analytics/src/*"],
+      "@clickflash/types": ["../../packages/types/src/index.ts"],
+      "@clickflash/types/*": ["../../packages/types/src/*"],
+      "@clickflash/ui": ["../../packages/ui/src/index.ts"],
+      "@clickflash/ui/*": ["../../packages/ui/src/*"]
     }
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "../../packages/analytics/src/**/*",
+    "../../packages/types/src/**/*",
+    "../../packages/ui/src/**/*"
+  ]
 }

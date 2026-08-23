@@ -39,6 +39,7 @@ export * from './phase3.js';
 export * from './auth.js';
 export * from './magicShot.js';
 export * from './rover-telemetry.js';
+export * from './concession-enterprise.js';
 
 export type {
   PhotoCreate,
@@ -526,14 +527,46 @@ export enum AIPermission {
   WATERMARK_FREE = 'WATERMARK_FREE'
 }
 
+export interface AIToolPricingConfig {
+  toolId: string;
+  name: string;
+  permission: 'free' | 'premium' | 'disabled';
+  priceMinor: number;
+  currency: string;
+}
+
 export interface GalleryConfig {
   theme: GalleryTheme;
   features: {
     enablePhotoBooks: boolean;
     enableReels: boolean;
     enableAiFigures: boolean;
+    enableMagicShots?: boolean;
+    enableProRetouch?: boolean;
+    enableFullGalleryDownload?: boolean;
+    enableSinglePhotoPurchase?: boolean;
+    enableFaceSearch?: boolean;
   };
   aiPermissions: AIPermission[];
+  aiToolTiers?: Record<string, AIToolPricingConfig>;
+}
+
+export interface DestinationGalleryConfig extends BaseRecord {
+  destinationId: string;
+  destinationName: string;
+  theme: GalleryTheme;
+  features: {
+    enablePhotoBooks: boolean;
+    enableReels: boolean;
+    enableAiFigures: boolean;
+    enableMagicShots: boolean;
+    enableProRetouch: boolean;
+    enableFullGalleryDownload: boolean;
+    enableSinglePhotoPurchase: boolean;
+    enableFaceSearch: boolean;
+  };
+  aiToolTiers: Record<string, AIToolPricingConfig>;
+  updatedAt?: string;
 }
 
 export interface SyncLog extends BaseRecord {
@@ -2183,6 +2216,42 @@ export interface QuantumVenueArbitrageQuote {
   recommendedCrossParkOffer: string;
   yieldArbitrageSavingsPercent: number;
 }
+
+// =============================================================================
+// PHASE 15: ENTERPRISE CONCESSION & FOTIQO PARITY TYPES
+// =============================================================================
+
+export interface SerializedEquipment extends BaseRecord {
+  assetTag: string;
+  category: 'CAMERA_BODY' | 'LENS' | 'BATTERY' | 'SD_CARD' | 'FLASH_SPEEDLITE' | 'DRONE_UAV';
+  model: string;
+  serialNumber: string;
+  batteryHealthPercent?: number;
+  shutterCount?: number;
+  assignedPhotographerId?: string;
+  assignedPhotographerName?: string;
+  status: 'AVAILABLE' | 'CHECKED_OUT' | 'MAINTENANCE' | 'DECOMMISSIONED';
+  conditionRating: 1 | 2 | 3 | 4 | 5; // 5 = Mint
+  lastAuditDate: string;
+}
+
+export interface DnpSublimationPrintJob extends BaseRecord {
+  galleryId: string;
+  photoId: string;
+  photoUrl: string;
+  printSize: '4x6' | '5x7' | '6x8' | '8x10' | 'METALLIC_CANVAS';
+  copies: number;
+  printerId: string;
+  printerModel: string;
+  paperRemainingPercent: number;
+  ribbonRemainingPercent: number;
+  iccProfile: string;
+  status: 'QUEUED' | 'PRINTING' | 'COMPLETED' | 'FAILED' | 'REPRINT_REQUESTED';
+  cropAlignment: { x: number; y: number; zoom: number };
+  submittedAt: string;
+  completedAt?: string;
+}
+
 
 
 

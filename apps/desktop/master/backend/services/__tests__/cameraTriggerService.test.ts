@@ -24,49 +24,48 @@ describe('CameraTriggerService', () => {
     let client: dgram.Socket;
     let testPort: number = 0;
 
-    beforeAll((done) => {
-        // Start the service on port 0 for an ephemeral test port
+    beforeAll(() => new Promise<void>((resolve) => {
         cameraTriggerService.start(0, () => {
             testPort = cameraTriggerService.getPort() || 5556;
             client = dgram.createSocket('udp4');
-            done();
+            resolve();
         });
-    });
+    }));
 
-    afterAll((done) => {
+    afterAll(() => new Promise<void>((resolve) => {
         cameraTriggerService.stop(() => {
             if (client) {
-                client.close(() => done());
+                client.close(() => resolve());
             } else {
-                done();
+                resolve();
             }
         });
-    });
+    }));
 
     afterEach(() => {
         vi.clearAllMocks();
     });
 
-    it('should process JSON payloads correctly', (done) => {
+    it('should process JSON payloads correctly', () => new Promise<void>((resolve, reject) => {
         const payload = { sensorId: 'TEST_S1', rideId: 'TEST_R1' };
         const message = Buffer.from(JSON.stringify(payload));
 
         client.send(message, testPort, '127.0.0.1', (err) => {
-            expect(err).toBeNull();
+            if (err) return reject(err);
             
             // Wait for the async processing to occur
             setTimeout(() => {
                 expect(hardwareTriggerService.handleTrigger).toHaveBeenCalledWith(payload);
-                done();
+                resolve();
             }, 100);
         });
-    });
+    }));
 
-    it('should process raw byte trigger (0x01)', (done) => {
+    it('should process raw byte trigger (0x01)', () => new Promise<void>((resolve, reject) => {
         const message = Buffer.from([0x01]);
 
         client.send(message, testPort, '127.0.0.1', (err) => {
-            expect(err).toBeNull();
+            if (err) return reject(err);
             
             setTimeout(() => {
                 expect(hardwareTriggerService.handleTrigger).toHaveBeenCalledWith(
@@ -74,21 +73,22 @@ describe('CameraTriggerService', () => {
                         rideId: 'GENERIC_RIDE'
                     })
                 );
-                done();
+                resolve();
             }, 100);
         });
-    });
+    }));
 
-    it('should ignore invalid payloads', (done) => {
+    it('should ignore invalid payloads', () => new Promise<void>((resolve, reject) => {
         const message = Buffer.from('invalid-payload');
 
         client.send(message, testPort, '127.0.0.1', (err) => {
-            expect(err).toBeNull();
+            if (err) return reject(err);
             
             setTimeout(() => {
                 expect(hardwareTriggerService.handleTrigger).not.toHaveBeenCalled();
-                done();
+                resolve();
             }, 100);
         });
-    });
+    }));
 });
+

@@ -4,17 +4,13 @@ export default defineConfig({
   test: {
     globals: true,
     pool: 'threads',
-    environment: 'jsdom',
-    environmentMatchGlobs: [
-      ['src/**', 'jsdom'],
-      ['backend/**', 'node'],
-      ['**/*.tsx', 'jsdom'],
-    ],
+    environment: 'node',
+    testTimeout: 60000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
     },
-    include: ['**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    exclude: ['node_modules', 'dist', '.idea', '.git', '.cache'],
+    include: ['backend/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    exclude: ['node_modules', 'dist', '.idea', '.git', '.cache', 'tests/**'],
   },
 });

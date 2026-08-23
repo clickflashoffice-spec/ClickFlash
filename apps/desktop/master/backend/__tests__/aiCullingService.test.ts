@@ -41,6 +41,11 @@ vi.mock('sharp', () => {
     }));
 });
 
+vi.mock('fs', () => ({
+    existsSync: vi.fn().mockReturnValue(true),
+    default: { existsSync: vi.fn().mockReturnValue(true) }
+}));
+
 describe('AICullingService', () => {
     let service: AICullingService;
 
@@ -56,9 +61,6 @@ describe('AICullingService', () => {
             faceCount: 1,
             closedEyesCount: 0
         });
-        // Mock sharp and fs.existsSync via spy/require in node environment or provide mock imagePath
-        const fs = require('fs');
-        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
         
         // Act
         await service.analyzePhoto('photo-123', 'path/to/test.jpg');
@@ -72,12 +74,10 @@ describe('AICullingService', () => {
 
     it('should fallback gracefully and log error if analysis fails', async () => {
         // Arrange
-        const fs = require('fs');
-        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
         vi.spyOn(AICullingService, 'evaluateImage').mockRejectedValue(new Error('Analysis failed'));
 
         // Act
-        await service.analyzePhoto('photo-fail', 'path/to/fail.jpg');
+        await service.analyzePhoto('photo-456', 'path/to/fail.jpg');
 
         // Assert
         expect(logger.error).toHaveBeenCalled();

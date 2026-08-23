@@ -200,7 +200,7 @@ export class VectorIndexService {
     limit: number = 20,
     threshold: number = 0.8366,
   ): string[] {
-    if (!this.root || !this.binaryBuffer) return [];
+    if (!this.root) return [];
 
     const typedQuery = VectorIndexService.normalizeL2(
       queryVector,
@@ -208,7 +208,7 @@ export class VectorIndexService {
     );
 
     // If WASM is available, use it!
-    if (this.wasmModule && this.wasmMemory) {
+    if (this.wasmModule && this.wasmMemory && this.binaryBuffer && !this.isDirty) {
       const searchVPTreeWasm = this.wasmModule.exports.searchVPTreeWasm as Function;
       
       // Calculate layout
@@ -475,6 +475,7 @@ export class VectorIndexService {
     }
 
     fs.writeFileSync(BINARY_INDEX_FILE, buffer);
+    this.binaryBuffer = buffer;
     this.logger.info(
       `[VectorIndex] Saved binary index: ${nodes.length} nodes (dim=${dim}), ${(buffer.length / 1024 / 1024).toFixed(2)} MB`,
     );

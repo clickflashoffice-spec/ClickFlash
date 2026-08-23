@@ -284,7 +284,7 @@ const initWebSocketServer = (server: Server, context: WebSocketContext): WebSock
             }
         });
 
-        ws.on('message', (message: WebSocket.Data) => {
+        ws.on('message', (message: any) => {
             try {
                 // SECURITY: Reject oversized messages (1MB limit)
                 const raw = message.toString();

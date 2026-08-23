@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, BatteryCharging, Wrench, Plus, CheckCircle, Clock } from 'lucide-react';
+import { Camera, BatteryCharging, Plus, CheckCircle, Clock } from 'lucide-react';
 import { MOCK_GEAR_ASSETS } from '../services/concessionService';
 import { GearAsset } from '@clickflash/types';
 

@@ -4,39 +4,93 @@
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "module": "ESNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "skipLibCheck": true,
-    "types": ["react", "react-dom", "jest", "node", "vite/client"],
-    "moduleResolution": "bundler",
+    "types": [
+      "jest",
+      "node"
+    ],
+    "moduleResolution": "node",
     "isolatedModules": true,
     "moduleDetection": "force",
     "allowJs": true,
-    "jsx": "react-jsx",
+    "jsx": null,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@components/*": ["./src/components/*"],
-      "@services/*": ["./src/services/*"],
-      "@hooks/*": ["./src/hooks/*"],
-      "@utils/*": ["./src/utils/*"],
-      "@types/*": ["./src/types/*"],
-      "@clickflash/ui/*": ["../../../packages/ui/src/*"],
-      "@clickflash/ui": ["../../../packages/ui/src/index.ts"],
-      "@clickflash/types": ["../../../packages/types/src/index.ts"],
-      "@clickflash/types/*": ["../../../packages/types/src/*"],
-      "@clickflash/logger": ["../../../packages/logger/src/index.ts"],
-      "@clickflash/logger/*": ["../../../packages/logger/src/*"],
-      "@clickflash/ai": ["../../../packages/ai/src/index.ts"],
-      "@clickflash/ai/*": ["../../../packages/ai/src/*"],
-      "@clickflash/ai-core": ["../../../packages/ai-core/src/index.ts"],
-      "@clickflash/ai-core/*": ["../../../packages/ai-core/src/*"],
-      "@clickflash/database": ["../../../packages/database/src/index.ts"],
-      "@clickflash/database/*": ["../../../packages/database/src/*"],
-      "@clickflash/validation": ["../../../packages/validation/src/index.ts"],
-      "@clickflash/validation/*": ["../../../packages/validation/src/*"],
-      "@clickflash/utils": ["../../../packages/utils/src/index.ts"],
-      "@clickflash/utils/*": ["../../../packages/utils/src/*"],
-      "*": ["./node_modules/*", "../../../node_modules/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@components/*": [
+        "./src/components/*"
+      ],
+      "@services/*": [
+        "./src/services/*"
+      ],
+      "@hooks/*": [
+        "./src/hooks/*"
+      ],
+      "@utils/*": [
+        "./src/utils/*"
+      ],
+      "@types/*": [
+        "./src/types/*"
+      ],
+      "@clickflash/ui/*": [
+        "../../../packages/ui/src/*"
+      ],
+      "@clickflash/ui": [
+        "../../../packages/ui/src/index.ts"
+      ],
+      "@clickflash/types": [
+        "../../../packages/types/src/index.ts"
+      ],
+      "@clickflash/types/*": [
+        "../../../packages/types/src/*"
+      ],
+      "@clickflash/logger": [
+        "../../../packages/logger/src/index.ts"
+      ],
+      "@clickflash/logger/*": [
+        "../../../packages/logger/src/*"
+      ],
+      "@clickflash/ai": [
+        "../../../packages/ai/src/index.ts"
+      ],
+      "@clickflash/ai/*": [
+        "../../../packages/ai/src/*"
+      ],
+      "@clickflash/ai-core": [
+        "../../../packages/ai-core/src/index.ts"
+      ],
+      "@clickflash/ai-core/*": [
+        "../../../packages/ai-core/src/*"
+      ],
+      "@clickflash/database": [
+        "../../../packages/database/src/index.ts"
+      ],
+      "@clickflash/database/*": [
+        "../../../packages/database/src/*"
+      ],
+      "@clickflash/validation": [
+        "../../../packages/validation/src/index.ts"
+      ],
+      "@clickflash/validation/*": [
+        "../../../packages/validation/src/*"
+      ],
+      "@clickflash/utils": [
+        "../../../packages/utils/src/index.ts"
+      ],
+      "@clickflash/utils/*": [
+        "../../../packages/utils/src/*"
+      ],
+      "*": [
+        "./node_modules/*",
+        "../../../node_modules/*"
+      ]
     },
     "allowImportingTsExtensions": true,
     "noEmit": true,
@@ -49,23 +103,15 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src"],
+  "include": [
+    "backend",
+    "index.ts"
+  ],
   "exclude": [
     "node_modules",
     "dist",
     "release",
-    "backend",
-    "scripts",
-    "src/wasm",
-    "src/test-utils.tsx",
-    "src/setupTests.ts",
-    "**/*.test.tsx",
     "**/*.test.ts",
-    "**/*.spec.tsx",
-    "**/*.spec.ts",
-    "src/**/__tests__",
-    "playwright.config.ts",
-    "jest.config.ts",
-    "vite.config.ts"
+    "scripts"
   ]
 }

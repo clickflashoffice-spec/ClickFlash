@@ -40,13 +40,13 @@ export const AgentTools = {
   /**
    * Locates the active SQLite database for Master OS or Touch Kiosk.
    */
-  resolveDatabasePath: (dbName?: string): string | null => {
+  resolveDatabasePath: async (dbName?: string): Promise<string | null> => {
     if (typeof window !== 'undefined' || typeof process === 'undefined' || !process?.versions?.node) {
       return null;
     }
     try {
-      const fs = require('fs');
-      const path = require('path');
+      const { existsSync } = await import('fs');
+      const path = await import('path');
       const candidates = [
         path.resolve(process.cwd(), 'apps/desktop/master/star_master.db'),
         path.resolve(process.cwd(), 'apps/desktop/master/database.sqlite'),
@@ -57,7 +57,7 @@ export const AgentTools = {
       if (dbName) {
         candidates.unshift(path.resolve(process.cwd(), dbName));
       }
-      return candidates.find((p: string) => fs.existsSync(p)) || null;
+      return candidates.find((p: string) => existsSync(p)) || null;
     } catch {
       return null;
     }
@@ -84,7 +84,7 @@ export const AgentTools = {
         }, null, 2);
       }
 
-      const dbPath = AgentTools.resolveDatabasePath(dbPathOverride);
+      const dbPath = await AgentTools.resolveDatabasePath(dbPathOverride);
       if (!dbPath) {
         return JSON.stringify({
           status: "NOT_FOUND",

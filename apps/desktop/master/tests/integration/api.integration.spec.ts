@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { Express } from 'express';
-import { createApp } from '../../backend/app';
+import { app as serverApp } from '../../backend/server';
 import { initializeDatabase, closeDatabase, resetDatabase } from '../mocks/database';
 import { syncServer, closeServer } from '../mocks/server';
 
@@ -8,7 +8,7 @@ let app: Express;
 
 beforeAll(async () => {
   initializeDatabase();
-  app = await createApp();
+  app = serverApp as unknown as Express;
   await new Promise(resolve => setTimeout(resolve, 500));
 });
 

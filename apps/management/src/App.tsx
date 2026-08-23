@@ -29,11 +29,16 @@ import { SystemSettingsView } from './views/SystemSettingsView';
 import { WhatsappSwarmView } from './views/WhatsappSwarmView';
 import { MagicShotStudioView } from './views/MagicShotStudioView';
 import { AgentStudioView } from './views/AgentStudioView';
+import { EquipmentPrintHubView } from './views/EquipmentPrintHubView';
+import { SleepingMoneyRecoveryView } from './views/SleepingMoneyRecoveryView';
+import { KeepsakeStoreView } from './views/KeepsakeStoreView';
+import { AiCoachBlogView } from './views/AiCoachBlogView';
 import { AutonomousCeo } from './pages/AutonomousCeo';
 import { FranchiseOverview } from './pages/FranchiseOverview';
 import { IngestionStudioPage } from './modules/ingestion-studio/IngestionStudioPage';
+import { Camera, Gift, Sparkles as SparklesIcon, CircleDollarSign } from 'lucide-react';
 
-type TabPath = '/' | '/fleet' | '/staff' | '/customers' | '/galleries' | '/pricing' | '/magic-shots' | '/ai-command' | '/agent-studio' | '/whatsapp-swarm' | '/autonomous-ceo' | '/financials' | '/settings' | '/franchise' | '/ingestion-studio';
+type TabPath = '/' | '/franchise' | '/fleet' | '/equipment' | '/staff' | '/customers' | '/galleries' | '/keepsakes' | '/pricing' | '/magic-shots' | '/ai-command' | '/agent-studio' | '/ai-coach' | '/autonomous-ceo' | '/whatsapp-swarm' | '/sleeping-money' | '/ingestion-studio' | '/financials' | '/settings';
 
 interface NavItem {
   path: TabPath;
@@ -45,15 +50,19 @@ const navItems: NavItem[] = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/franchise', label: 'Franchise Overview', icon: Activity },
   { path: '/fleet', label: 'Live Ops', icon: MonitorSmartphone },
+  { path: '/equipment', label: 'Equipment & Print Hub', icon: Camera },
   { path: '/staff', label: 'Staff & HR', icon: Users },
   { path: '/customers', label: 'CRM', icon: UserCircle },
   { path: '/galleries', label: 'Galleries', icon: Images },
+  { path: '/keepsakes', label: 'Keepsake Store & Reviews', icon: Gift },
   { path: '/pricing', label: 'Pricing & Products', icon: Tag },
   { path: '/magic-shots', label: 'Magic Shot VFX', icon: Sparkles },
+  { path: '/ai-coach', label: 'AI Coach & SEO Blog', icon: SparklesIcon },
   { path: '/ai-command', label: 'AI Command', icon: Bot },
   { path: '/agent-studio', label: 'Agent Studio', icon: Bot },
   { path: '/autonomous-ceo', label: 'Autonomous CEO', icon: Activity },
   { path: '/whatsapp-swarm', label: 'WhatsApp Swarm', icon: MessageCircle },
+  { path: '/sleeping-money', label: 'Sleeping Money Recovery', icon: CircleDollarSign },
   { path: '/ingestion-studio', label: 'Ingestion Studio', icon: HardDrive },
   { path: '/financials', label: 'Financials', icon: CreditCard },
   { path: '/settings', label: 'System Settings', icon: Settings },
@@ -168,15 +177,19 @@ export default function App() {
       case '/': return <DashboardView />;
       case '/franchise': return <FranchiseOverview />;
       case '/fleet': return <FleetView />;
+      case '/equipment': return <EquipmentPrintHubView />;
       case '/staff': return <StaffView />;
       case '/customers': return <CustomerView />;
       case '/galleries': return <GalleriesView />;
+      case '/keepsakes': return <KeepsakeStoreView />;
       case '/pricing': return <PricingView />;
       case '/magic-shots': return <MagicShotStudioView />;
+      case '/ai-coach': return <AiCoachBlogView />;
       case '/ai-command': return <AICommandView />;
       case '/agent-studio': return <AgentStudioView />;
       case '/autonomous-ceo': return <AutonomousCeo />;
       case '/whatsapp-swarm': return <WhatsappSwarmView />;
+      case '/sleeping-money': return <SleepingMoneyRecoveryView />;
       case '/ingestion-studio': return <IngestionStudioPage />;
       case '/financials': return <FinancialsView />;
       case '/settings': return <SystemSettingsView />;

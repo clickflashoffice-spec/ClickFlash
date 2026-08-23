@@ -14,7 +14,7 @@ export class DatabaseManager {
   private dbPath: string;
   private db: DatabaseType | null;
 
-  constructor(dbPath: string) {
+  constructor(dbPath: string = path.join(process.cwd(), 'database.sqlite')) {
     this.dbPath = dbPath;
     this.db = null;
   }

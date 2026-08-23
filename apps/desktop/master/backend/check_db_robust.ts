@@ -47,9 +47,3 @@ export function checkDbRobustness(): boolean {
   
   return true;
 }
-
-if (require.main === module || process.argv[1] === fileURLToPath(import.meta.url)) {
-    if (!checkDbRobustness()) {
-        process.exit(1);
-    }
-}

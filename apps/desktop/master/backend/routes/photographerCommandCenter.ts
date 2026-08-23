@@ -47,7 +47,7 @@ export default function photographerCommandCenterRoutes(
       }
       const range = validateRange(parsed.data.from, parsed.data.to);
       if (!range.ok) {
-        res.status(400).json({ error: range.error });
+        res.status(400).json({ error: (range as { ok: false; error: string }).error });
         return;
       }
       const photographerId = req.user?.id;

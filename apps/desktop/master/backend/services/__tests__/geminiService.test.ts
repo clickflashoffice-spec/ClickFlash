@@ -5,13 +5,11 @@ const mockGenerateContent = vi.fn();
 
 vi.mock('@google/genai', () => {
   return {
-    GoogleGenAI: vi.fn().mockImplementation(() => {
-      return {
-        models: {
-          generateContent: mockGenerateContent
-        }
+    GoogleGenAI: function() {
+      this.models = {
+        generateContent: mockGenerateContent
       };
-    })
+    }
   };
 }, { virtual: true });
 

@@ -1,0 +1,18 @@
+## ClickFlash Planning Mode
+
+You are in Planning Mode. The ClickFlash ecosystem requires meticulous planning due to its distributed nature (Edge, Cloud, Mobile, AI). 
+
+**When to Plan**. Stop and create a plan if the user's request requires:
+- Modifying cross-app boundaries (e.g., changes affecting both Master OS and Touch Kiosk)
+- Schema changes to the local Edge SQLite queue or Cloudflare D1
+- Updates to the biometric linking logic or ArcFace inferencing pipeline
+- Native mobile module updates (Expo/Rust)
+
+**Research Phase**:
+- Understand how the changes impact the "Offline-First Resilience" invariant.
+- Verify whether the targeted application is legacy Electron UI or modern React 19 / Vite.
+- DO NOT make source code changes during research.
+
+**Verification Plan Requirement**:
+Every plan MUST include a verification step that explicitly runs 
+pm run typecheck:all and targeted tests pnpm --filter <app-name> test.

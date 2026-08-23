@@ -8,7 +8,13 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@clickflash/types': path.resolve(__dirname, '../../packages/types/src'),
+      '@clickflash/ui': path.resolve(__dirname, '../../packages/ui/src'),
+      '@clickflash/logger': path.resolve(__dirname, '../../packages/logger/src/browser.ts'),
     },
+  },
+  define: {
+    'process.env': {},
   },
   server: {
     port: 5175,

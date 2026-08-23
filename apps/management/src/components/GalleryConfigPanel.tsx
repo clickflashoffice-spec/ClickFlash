@@ -6,137 +6,314 @@ import {
   Sparkles, 
   Paintbrush, 
   BookOpen, 
-  MonitorPlay, 
   DownloadCloud, 
   Image as ImageIcon,
   Settings,
-  Info,
-  Lightbulb
+  Lightbulb,
+  Palette,
+  MapPin,
+  CheckCircle2,
+  ScanFace
 } from 'lucide-react';
+import { GalleryTheme, type DestinationGalleryConfig, type AIToolPricingConfig } from '@clickflash/types';
 
-interface Feature {
+export interface DestinationOption {
   id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  enabled: boolean;
+  name: string;
+  location: string;
 }
 
-interface AIToolPermission {
-  id: string;
-  title: string;
-  isPremium: boolean;
+export const destinations: DestinationOption[] = [
+  { id: 'dest_atlantis_01', name: 'Atlantis Resort & Waterpark', location: 'Dubai, UAE' },
+  { id: 'dest_hyatt_02', name: 'Grand Hyatt Beach Club', location: 'Maui, Hawaii' },
+  { id: 'dest_paradise_03', name: 'Paradise Cove Lagoon', location: 'Cancún, Mexico' },
+  { id: 'dest_universal_04', name: 'Universal Concession Studio', location: 'Orlando, USA' },
+];
+
+export interface GalleryConfigPanelProps {
+  onConfigChange?: (config: DestinationGalleryConfig) => void;
+  selectedDestinationId?: string;
+  onSelectDestination?: (id: string) => void;
 }
 
-export const GalleryConfigPanel: React.FC = () => {
-  const [features, setFeatures] = useState<Feature[]>([
-    { id: 'reels', title: 'AI Auto-Reels', description: 'Automatically generate engaging video reels from gallery photos.', icon: <Video size={20} />, enabled: false },
-    { id: '3d', title: '3D Figurines', description: 'Offer 3D printed figurines from multi-angle shots.', icon: <Box size={20} />, enabled: false },
-    { id: 'magic', title: 'Magic Shots AR', description: 'Add augmented reality elements and characters to photos.', icon: <Wand2 size={20} />, enabled: false },
-    { id: 'enhance', title: 'AI Enhancement', description: 'Automatic lighting, color, and sharpness correction.', icon: <Sparkles size={20} />, enabled: true },
-    { id: 'retouch', title: 'Pro Retouch', description: 'Advanced blemish removal and skin smoothing.', icon: <Paintbrush size={20} />, enabled: true },
-    { id: 'books', title: 'Photo Books', description: 'Custom printed photo books mailed to guests.', icon: <BookOpen size={20} />, enabled: false },
-    { id: 'slideshow', title: 'Slideshows', description: 'Digital slideshows with music and transitions.', icon: <MonitorPlay size={20} />, enabled: true },
-    { id: 'full-dl', title: 'Full Gallery Download', description: 'Allow guests to download all their photos at once.', icon: <DownloadCloud size={20} />, enabled: true },
-    { id: 'single-pic', title: 'Single Photo Purchase', description: 'Allow à la carte digital or print photo purchases.', icon: <ImageIcon size={20} />, enabled: true },
-  ]);
+export const GalleryConfigPanel: React.FC<GalleryConfigPanelProps> = ({
+  onConfigChange,
+  selectedDestinationId = 'dest_atlantis_01',
+  onSelectDestination,
+}) => {
+  const [currentDestId, setCurrentDestId] = useState(selectedDestinationId);
+  const [selectedTheme, setSelectedTheme] = useState<GalleryTheme>(GalleryTheme.GLASSMORPHIC);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
-  const [aiPermissions, setAiPermissions] = useState<AIToolPermission[]>([
-    { id: 'reels-perm', title: 'AI Auto-Reels', isPremium: true },
-    { id: 'enhance-perm', title: 'AI Enhancement', isPremium: false },
-    { id: 'magic-perm', title: 'Magic Shots AR', isPremium: true },
-  ]);
+  const [features, setFeatures] = useState({
+    enableReels: true,
+    enableAiFigures: true,
+    enableMagicShots: true,
+    enablePhotoBooks: false,
+    enableProRetouch: true,
+    enableFullGalleryDownload: true,
+    enableSinglePhotoPurchase: true,
+    enableFaceSearch: true,
+  });
 
-  const toggleFeature = (id: string) => {
-    setFeatures(features.map(f => f.id === id ? { ...f, enabled: !f.enabled } : f));
+  const [aiToolTiers, setAiToolTiers] = useState<Record<string, AIToolPricingConfig>>({
+    'reels': { toolId: 'reels', name: 'AI Auto-Reels', permission: 'premium', priceMinor: 1499, currency: 'USD' },
+    '3d_figures': { toolId: '3d_figures', name: '3D Figurines', permission: 'premium', priceMinor: 4999, currency: 'USD' },
+    'magic_shots': { toolId: 'magic_shots', name: 'Magic Shots AR', permission: 'free', priceMinor: 499, currency: 'USD' },
+    'bg_removal': { toolId: 'bg_removal', name: 'Background Removal', permission: 'free', priceMinor: 299, currency: 'USD' },
+    'super_res': { toolId: 'super_res', name: '4K Super-Resolution', permission: 'free', priceMinor: 399, currency: 'USD' },
+    'pro_retouch': { toolId: 'pro_retouch', name: 'Pro Blemish Retouch', permission: 'premium', priceMinor: 799, currency: 'USD' },
+  });
+
+  const activeDestination = destinations.find(d => d.id === currentDestId) || destinations[0];
+
+  const notifyChanges = (
+    updatedTheme: GalleryTheme,
+    updatedFeatures: typeof features,
+    updatedTiers: typeof aiToolTiers
+  ) => {
+    const config: DestinationGalleryConfig = {
+      id: currentDestId,
+      destinationId: currentDestId,
+      destinationName: activeDestination.name,
+      theme: updatedTheme,
+      features: updatedFeatures,
+      aiToolTiers: updatedTiers,
+      updatedAt: new Date().toISOString(),
+    };
+    onConfigChange?.(config);
+    setSaveStatus('saving');
+    setTimeout(() => setSaveStatus('saved'), 400);
+    setTimeout(() => setSaveStatus('idle'), 2500);
   };
 
-  const togglePermission = (id: string) => {
-    setAiPermissions(aiPermissions.map(p => p.id === id ? { ...p, isPremium: !p.isPremium } : p));
+  const handleDestinationChange = (id: string) => {
+    setCurrentDestId(id);
+    onSelectDestination?.(id);
+    notifyChanges(selectedTheme, features, aiToolTiers);
+  };
+
+  const handleThemeSelect = (theme: GalleryTheme) => {
+    setSelectedTheme(theme);
+    notifyChanges(theme, features, aiToolTiers);
+  };
+
+  const toggleFeature = (key: keyof typeof features) => {
+    const updated = { ...features, [key]: !features[key] };
+    setFeatures(updated);
+    notifyChanges(selectedTheme, updated, aiToolTiers);
+  };
+
+  const cyclePermission = (toolId: string) => {
+    const current = aiToolTiers[toolId];
+    if (!current) return;
+    const cycle: Array<'free' | 'premium' | 'disabled'> = ['free', 'premium', 'disabled'];
+    const nextIdx = (cycle.indexOf(current.permission) + 1) % cycle.length;
+    const updated = {
+      ...aiToolTiers,
+      [toolId]: { ...current, permission: cycle[nextIdx] }
+    };
+    setAiToolTiers(updated);
+    notifyChanges(selectedTheme, features, updated);
+  };
+
+  const updatePrice = (toolId: string, priceDollars: number) => {
+    const current = aiToolTiers[toolId];
+    if (!current) return;
+    const updated = {
+      ...aiToolTiers,
+      [toolId]: { ...current, priceMinor: Math.round(priceDollars * 100) }
+    };
+    setAiToolTiers(updated);
+    notifyChanges(selectedTheme, features, updated);
   };
 
   return (
     <div className="flex flex-col gap-6 w-full text-slate-200">
-      {/* AI Suggestion Banner */}
-      <div className="bg-amber-950/40 border border-amber-500/50 rounded-lg p-4 flex items-start gap-4">
-        <div className="bg-amber-500/20 p-2 rounded-full text-amber-400 shrink-0">
-          <Lightbulb size={24} />
+      {/* Destination Selector & Header */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+            <MapPin size={22} />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-white">Target Resort Destination</h2>
+            <p className="text-xs text-slate-400">Configure feature availability, theming & AI monetization</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-amber-400 font-semibold text-lg mb-1">AI Suggestion</h3>
-          <p className="text-amber-200/80">
-            Based on past performance at this location, we recommend enabling Reels and Magic Shots for a projected <span className="font-bold text-amber-400">+32% revenue increase</span>.
-          </p>
+
+        <div className="flex items-center gap-3">
+          <select
+            value={currentDestId}
+            onChange={(e) => handleDestinationChange(e.target.value)}
+            className="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500"
+          >
+            {destinations.map(dest => (
+              <option key={dest.id} value={dest.id}>{dest.name} ({dest.location})</option>
+            ))}
+          </select>
+
+          {saveStatus === 'saving' && (
+            <span className="text-xs text-amber-400 animate-pulse font-medium">Syncing...</span>
+          )}
+          {saveStatus === 'saved' && (
+            <span className="text-xs text-emerald-400 font-medium flex items-center gap-1">
+              <CheckCircle2 size={14} /> Saved & Synced
+            </span>
+          )}
         </div>
-        <button 
-          onClick={() => {
-            toggleFeature('reels');
-            toggleFeature('magic');
-          }}
-          className="ml-auto mt-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-medium px-4 py-2 rounded transition-colors whitespace-nowrap"
-        >
-          Apply Suggestion
-        </button>
       </div>
 
-      {/* Feature Grid */}
-      <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-          <Settings size={24} className="text-cyan-400" />
-          À la carte Gallery Features
-        </h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {features.map(feature => (
-            <div 
-              key={feature.id} 
-              className={`border rounded-lg p-4 flex flex-col gap-3 transition-colors ${feature.enabled ? 'bg-slate-800/80 border-cyan-500/50' : 'bg-slate-950 border-slate-800 hover:border-slate-700'}`}
+      {/* Theme Selector */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Palette size={18} className="text-cyan-400" />
+          Gallery UI Theme Template
+        </h3>
+        <p className="text-xs text-slate-400 mb-4">Choose the visual styling presented to guests in their 3D & web gallery.</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[
+            { key: GalleryTheme.GLASSMORPHIC, title: 'Glassmorphic Dark', desc: 'Frosted cyan neon glass surfaces with ambient glow & deep contrast.' },
+            { key: GalleryTheme.FILMSTRIP, title: 'Cinematic Filmstrip', desc: 'Warm amber tones on dark matte slate, designed for luxury resorts.' },
+            { key: GalleryTheme.CLASSIC, title: 'Classic Editorial', desc: 'Clean, high-contrast crisp grid layout for fast navigation.' },
+          ].map(t => (
+            <button
+              key={t.key}
+              onClick={() => handleThemeSelect(t.key)}
+              className={`p-4 rounded-xl border text-left transition-all ${
+                selectedTheme === t.key
+                  ? 'bg-cyan-950/40 border-cyan-500 shadow-md shadow-cyan-500/10 ring-1 ring-cyan-500/50'
+                  : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+              }`}
             >
-              <div className="flex justify-between items-start">
-                <div className={`p-2 rounded-lg ${feature.enabled ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800 text-slate-400'}`}>
-                  {feature.icon}
-                </div>
-                {/* Toggle Switch */}
-                <button 
-                  onClick={() => toggleFeature(feature.id)}
-                  className={`w-11 h-6 rounded-full relative transition-colors ${feature.enabled ? 'bg-cyan-500' : 'bg-slate-700'}`}
-                >
-                  <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${feature.enabled ? 'translate-x-5' : ''}`} />
-                </button>
+              <div className="flex items-center justify-between mb-1">
+                <span className={`text-sm font-bold ${selectedTheme === t.key ? 'text-cyan-400' : 'text-white'}`}>{t.title}</span>
+                {selectedTheme === t.key && <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />}
               </div>
-              <div>
-                <h4 className={`font-medium ${feature.enabled ? 'text-slate-100' : 'text-slate-300'}`}>{feature.title}</h4>
-                <p className="text-sm text-slate-500 mt-1 leading-relaxed">{feature.description}</p>
-              </div>
-            </div>
+              <p className="text-xs text-slate-400 leading-relaxed">{t.desc}</p>
+            </button>
           ))}
         </div>
       </div>
 
-      {/* AI Tool Permissions */}
-      <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Wand2 size={24} className="text-amber-400" />
-          AI Tool Permissions
-        </h2>
-        <p className="text-slate-400 text-sm mb-6">Choose whether AI features are provided for free or kept behind a premium paywall for guests.</p>
+      {/* AI Suggestion Banner */}
+      <div className="bg-amber-950/30 border border-amber-500/40 rounded-xl p-4 flex items-start gap-4">
+        <div className="bg-amber-500/20 p-2 rounded-full text-amber-400 shrink-0">
+          <Lightbulb size={22} />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-amber-400 font-bold text-sm mb-1">Autonomous CEO Insight</h3>
+          <p className="text-xs text-amber-200/80 leading-relaxed">
+            Historical guest conversion at <span className="font-bold text-white">{activeDestination.name}</span> shows a <span className="font-bold text-amber-400">+32% revenue lift</span> when AI Reels and Magic Shots are enabled with 3D Figurine upselling.
+          </p>
+        </div>
+        <button 
+          onClick={() => {
+            const updated = { ...features, enableReels: true, enableMagicShots: true, enableAiFigures: true };
+            setFeatures(updated);
+            notifyChanges(selectedTheme, updated, aiToolTiers);
+          }}
+          className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap"
+        >
+          Apply Recommended
+        </button>
+      </div>
+
+      {/* Feature Grid */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+          <Settings size={18} className="text-cyan-400" />
+          Modular Destination Features
+        </h3>
         
-        <div className="space-y-3">
-          {aiPermissions.map(perm => (
-            <div key={perm.id} className="flex items-center justify-between p-4 bg-slate-950 border border-slate-800 rounded-lg">
-              <span className="font-medium text-slate-200">{perm.title}</span>
-              <div className="flex bg-slate-800 p-1 rounded-lg">
-                <button 
-                  onClick={() => togglePermission(perm.id)}
-                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${!perm.isPremium ? 'bg-cyan-500 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            { key: 'enableReels', title: 'AI Auto-Reels', desc: 'Beat-synced video highlights', icon: <Video size={18} /> },
+            { key: 'enableAiFigures', title: '3D Figurines', desc: 'Spatial WebGPU 3D avatar preview', icon: <Box size={18} /> },
+            { key: 'enableMagicShots', title: 'Magic Shots AR', desc: 'Augmented reality overlays & characters', icon: <Wand2 size={18} /> },
+            { key: 'enableFaceSearch', title: 'Biometric Face Search', desc: 'Instant selfie-based photo linking', icon: <ScanFace size={18} /> },
+            { key: 'enablePhotoBooks', title: 'Printed Photo Books', desc: 'Custom souvenir albums shipped to room', icon: <BookOpen size={18} /> },
+            { key: 'enableProRetouch', title: 'Pro Retouch', desc: 'AI skin smoothing & lighting boost', icon: <Paintbrush size={18} /> },
+            { key: 'enableFullGalleryDownload', title: 'Full Gallery Pass', desc: 'Single-click high-res ZIP unlock', icon: <DownloadCloud size={18} /> },
+            { key: 'enableSinglePhotoPurchase', title: 'Single Downloads', desc: 'À la carte photo purchase', icon: <ImageIcon size={18} /> },
+          ].map(f => {
+            const isEnabled = features[f.key as keyof typeof features];
+            return (
+              <div 
+                key={f.key} 
+                className={`border rounded-xl p-3.5 flex flex-col justify-between transition-all ${
+                  isEnabled ? 'bg-slate-800/80 border-cyan-500/50 shadow-sm' : 'bg-slate-950 border-slate-800'
+                }`}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className={`p-2 rounded-lg ${isEnabled ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800 text-slate-500'}`}>
+                    {f.icon}
+                  </div>
+                  <button 
+                    onClick={() => toggleFeature(f.key as keyof typeof features)}
+                    className={`w-10 h-5 rounded-full relative transition-colors ${isEnabled ? 'bg-cyan-500' : 'bg-slate-700'}`}
+                  >
+                    <span className={`absolute top-0.5 left-0.5 bg-white w-4 h-4 rounded-full transition-transform ${isEnabled ? 'translate-x-5' : ''}`} />
+                  </button>
+                </div>
+                <div>
+                  <h4 className={`text-xs font-bold ${isEnabled ? 'text-white' : 'text-slate-400'}`}>{f.title}</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{f.desc}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* AI Tool Permissions & Monetization */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <Sparkles size={18} className="text-amber-400" />
+              Granular AI Permissions & Pricing Tiers
+            </h3>
+            <p className="text-xs text-slate-400 mt-1">Configure whether AI features are free, locked behind a paywall with custom pricing, or disabled.</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {Object.values(aiToolTiers).map(tier => (
+            <div key={tier.toolId} className="flex items-center justify-between p-3.5 bg-slate-950 border border-slate-800 rounded-xl">
+              <div>
+                <span className="text-xs font-bold text-white block">{tier.name}</span>
+                <span className="text-[10px] text-slate-500">
+                  {tier.permission === 'free' ? 'Available to all guests' : tier.permission === 'premium' ? `Paywall: $${(tier.priceMinor / 100).toFixed(2)}` : 'Hidden from UI'}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {tier.permission === 'premium' && (
+                  <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
+                    <span className="text-xs text-slate-400">$</span>
+                    <input
+                      type="number"
+                      step="0.50"
+                      min="0.99"
+                      value={(tier.priceMinor / 100).toFixed(2)}
+                      onChange={(e) => updatePrice(tier.toolId, parseFloat(e.target.value) || 0)}
+                      className="w-14 bg-transparent text-xs text-amber-400 font-bold focus:outline-none"
+                    />
+                  </div>
+                )}
+
+                <button
+                  onClick={() => cyclePermission(tier.toolId)}
+                  className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                    tier.permission === 'free' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                    tier.permission === 'premium' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                    'bg-slate-800 text-slate-500 border border-slate-700'
+                  }`}
+                  title="Click to cycle: Free → Premium → Disabled"
                 >
-                  Free
-                </button>
-                <button 
-                  onClick={() => togglePermission(perm.id)}
-                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1 ${perm.isPremium ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
-                >
-                  Premium <Info size={14} className={perm.isPremium ? 'text-amber-900' : ''} />
+                  {tier.permission}
                 </button>
               </div>
             </div>

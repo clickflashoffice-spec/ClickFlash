@@ -33,14 +33,15 @@ ClickFlash_Release_*/
 **/dist-bundle/
 
 # Database and Data
-pb_data/*.bin
-pb_data/*.json
-database.sqlite-journal
-database.sqlite-wal
+pb_data/
+**/pb_data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite-journal
 *.db
-!apps/master/database.sqlite
-**/pb_data/*.bin
-**/pb_data/*.json
+logs/
+**/logs/
 
 # Environment variables
 .env

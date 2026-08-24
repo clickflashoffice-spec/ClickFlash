@@ -72,7 +72,9 @@ export class DatabaseManager {
       this.db.pragma("busy_timeout = 5000");
       this.db.pragma("temp_store = MEMORY");
       this.db.pragma("cache_size = -20000");
-      logger.info(`[Database] Connected to ${this.dbPath} (WAL Mode Active)`);
+      this.db.pragma("mmap_size = 268435456");
+      this.db.pragma("wal_autocheckpoint = 1000");
+      logger.info(`[Database] Connected to ${this.dbPath} (WAL Mode Active, MMAP=256MB)`);
 
       // P2-B: Startup assertion for processing_queue schema
       try {

@@ -142,12 +142,12 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
 
 
     const handleAddToCart = (mode: 'Normal') => {
-        const product = products.find(p => p.name === selectedSize);
-        if (!product) return;
+        const product = products.find(p => p.name === selectedSize) || products[0];
+        const sizeName = product?.name || selectedSize || 'Standard Print 10x15';
+        const price = product?.price ?? 10;
+        const productId = product?.id || 'default-prod';
 
-        const price = product.price;
-
-        const cartItemId = `${photo.id}-${selectedSize}-${deliveryType}`; // Include delivery type in ID to allow different delivery modes for same size if needed
+        const cartItemId = `${photo.id}-${sizeName}-${deliveryType}`;
         const existingItem = cart.find(i => i.id === cartItemId);
         const newQuantity = (existingItem ? existingItem.quantity : 0) + quantity;
 
@@ -155,11 +155,11 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
             id: cartItemId,
             photo: photo,
             quantity: newQuantity,
-            size: selectedSize,
+            size: sizeName,
             price,
             mode: 'Normal',
             deliveryType,
-            productId: product.id
+            productId: productId
         };
         onUpdateCart(cartItem);
     };
@@ -205,7 +205,7 @@ const PhotoPreviewScreen: React.FC<PhotoPreviewScreenProps> = ({
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                         <span>Back to Gallery</span>
                     </button>
-                    <h2 className="text-xl font-bold truncate max-w-md hidden sm:block" role="heading" aria-level={2}>{photo.title}</h2>
+                    <h2 className="text-xl font-bold truncate max-w-md hidden sm:block">{photo.title}</h2>
                     <div className="w-48 hidden sm:block"></div>
                 </header>
 

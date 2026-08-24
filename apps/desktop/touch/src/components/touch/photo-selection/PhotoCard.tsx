@@ -9,11 +9,13 @@ export const PhotoCard: React.FC<{
 }> = React.memo(
   ({ photo, isInCart, onClick, style }) => (
     <div
+      data-testid="photo-card"
       className="group cursor-pointer aspect-square relative"
       onClick={onClick}
       style={style}
     >
       <img
+        data-testid="photo-card-image"
         src={photo.url}
         alt={photo.title}
         className="w-full h-full object-cover rounded-lg shadow-md transition-transform group-hover:scale-105"

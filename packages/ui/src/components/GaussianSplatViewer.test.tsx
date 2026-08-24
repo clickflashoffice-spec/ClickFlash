@@ -1,12 +1,15 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import React from 'react';
 import { GaussianSplatViewer } from './GaussianSplatViewer';
 import type { GaussianSplatJob } from '@clickflash/types';
 
 describe('GaussianSplatViewer', () => {
+  afterEach(() => {
+    cleanup();
+  });
   const mockJob: GaussianSplatJob = {
     id: 'splat-job-12345',
     photoIds: ['p1', 'p2', 'p3'],

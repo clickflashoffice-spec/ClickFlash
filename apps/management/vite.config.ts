@@ -19,4 +19,24 @@ export default defineConfig({
   server: {
     port: 5175,
   },
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-charts': ['recharts', '@tremor/react'],
+          'vendor-radix': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-slot',
+            '@radix-ui/react-tabs'
+          ],
+          'vendor-icons': ['lucide-react', '@remixicon/react'],
+          'vendor-table': ['@tanstack/react-table'],
+          'vendor-socket': ['socket.io-client', 'zustand']
+        }
+      }
+    }
+  }
 });

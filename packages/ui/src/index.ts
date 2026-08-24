@@ -6,6 +6,8 @@ export { default as PhotoCard } from './components/PhotoCard';
 export { Spinner } from './components/Spinner';
 export { default as Toast } from './components/Toast';
 export { default as Photo } from './components/Photo';
+export { default as Badge, type BadgeProps } from './components/Badge';
+export { default as StatCard, type StatCardProps } from './components/StatCard';
 export { ErrorBoundary } from './components/ErrorBoundary';
 export { OfflineScreen } from './components/OfflineScreen';
 export { default as Skeleton } from './components/Skeleton';
@@ -15,3 +17,4 @@ export { GaussianSplatViewer, type GaussianSplatViewerProps, type ViewPreset } f
 export * from './providers/ThemeProvider';
 export * from './providers/CurrencyProvider';
 export * from './utils/styleUtils';
+

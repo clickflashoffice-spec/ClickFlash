@@ -2252,11 +2252,109 @@ export interface DnpSublimationPrintJob extends BaseRecord {
   completedAt?: string;
 }
 
+// =============================================================================
+// FREELANCE PHOTOGRAPHER PORTAL & WEB UPLOAD CONTRACTS
+// =============================================================================
 
+export interface UploadBatchItem {
+  id: string;
+  file?: File;
+  previewUrl: string;
+  fileName: string;
+  fileSize: number;
+  sharpnessScore: number; // 0-100 calculated by browser WASM
+  isKeeper: boolean;
+  status: 'pending' | 'grading' | 'uploading' | 'completed' | 'error';
+  progress: number; // 0-100
+  r2Path?: string;
+  error?: string;
+}
 
+export interface PhotographerSession {
+  photographerId: string;
+  photographerName: string;
+  token: string;
+  stationId?: string;
+  activeEventName: string;
+  activeAccessCode: string;
+  activeWristbandId?: string;
+}
 
+export interface PhotographerStats {
+  totalUploaded: number;
+  totalKeepers: number;
+  guestViews: number;
+  completedOrders: number;
+  earnedCommissionsCents: number;
+  payoutStatus: 'connected' | 'pending_onboarding' | 'ready';
+}
 
+// =============================================================================
+// INGESTION STUDIO & COMPUTER VISION WORKER CONTRACTS
+// =============================================================================
 
+export interface GradeResult {
+  id: string;
+  filename: string;
+  sharpnessScore: number;
+  status: 'keeper' | 'reject' | 'borderline';
+  thumbnailUrl?: string;
+}
 
+export interface IngestionSession {
+  id: string;
+  date: string;
+  source: string;
+  totalPhotos: number;
+  keepers: number;
+  rejectRate: number;
+  status: 'processing' | 'completed' | 'failed';
+  duration: string;
+}
 
+export interface FaceBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
+export interface FaceResult {
+  descriptor: Float32Array;
+  box: FaceBox;
+}
+
+export interface FaceAnalysis {
+  faces: FaceResult[];
+  scores?: {
+    overall: number;
+    sharpness: number;
+    expression: number;
+  };
+  faceCount: number;
+  width?: number;
+  height?: number;
+}
+
+export interface FaceWorkerJob {
+  type: 'get-descriptors';
+  imagePath: string;
+  modelsPath: string;
+}
+
+export interface FaceWorkerResult {
+  success: boolean;
+  error?: string;
+  faces?: Array<{
+    descriptor: number[];
+    box: FaceBox;
+  }>;
+  scores?: {
+    overall: number;
+    sharpness: number;
+    expression: number;
+  };
+  faceCount?: number;
+  width?: number;
+  height?: number;
+}

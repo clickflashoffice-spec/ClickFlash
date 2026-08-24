@@ -9,12 +9,16 @@ buildscript {
   repositories {
     google()
     mavenCentral()
+    maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
     classpath 'com.android.tools.build:gradle:8.0.2'
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    classpath "org.mozilla.rust-android-gradle:plugin:0.9.3"
   }
 }
+
+apply plugin: 'org.mozilla.rust-android-gradle.rust-android'
 
 android {
   compileSdkVersion 34
@@ -28,6 +32,19 @@ android {
   lintOptions {
     abortOnError false
   }
+}
+
+cargo {
+    module  = "../src-rust"
+    libname = "clickflash_rust_core"
+    targets = ["arm", "arm64", "x86", "x86_64"]
+    profile = "release"
+}
+
+tasks.whenTaskAdded { task ->
+    if ((task.name == 'javaPreCompileDebug' || task.name == 'javaPreCompileRelease')) {
+        task.dependsOn 'cargoBuild'
+    }
 }
 
 dependencies {

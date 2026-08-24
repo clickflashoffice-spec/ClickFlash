@@ -1,38 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { UploadBatchItem, PhotographerSession, PhotographerStats } from '@clickflash/types';
 
-export interface UploadBatchItem {
-  id: string;
-  file: File;
-  previewUrl: string;
-  fileName: string;
-  fileSize: number;
-  sharpnessScore: number; // 0-100 calculated by browser WASM
-  isKeeper: boolean;
-  status: 'pending' | 'grading' | 'uploading' | 'completed' | 'error';
-  progress: number; // 0-100
-  r2Path?: string;
-  error?: string;
-}
-
-export interface PhotographerSession {
-  photographerId: string;
-  photographerName: string;
-  token: string;
-  stationId?: string;
-  activeEventName: string;
-  activeAccessCode: string;
-  activeWristbandId?: string;
-}
-
-export interface PhotographerStats {
-  totalUploaded: number;
-  totalKeepers: number;
-  guestViews: number;
-  completedOrders: number;
-  earnedCommissionsCents: number;
-  payoutStatus: 'connected' | 'pending_onboarding' | 'ready';
-}
+export type { UploadBatchItem, PhotographerSession, PhotographerStats };
 
 interface PhotographerStoreState {
   session: PhotographerSession | null;

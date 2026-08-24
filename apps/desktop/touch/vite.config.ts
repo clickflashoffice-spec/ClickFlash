@@ -19,7 +19,7 @@ export default defineConfig({
     drop: ['console', 'debugger'], // Rule 09: Binary Stripping
   },
   optimizeDeps: {
-    include: ['react-window'],
+    include: ['react-window', 'dexie'],
   },
   build: {
     outDir: 'dist/touch',
@@ -51,6 +51,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 600,
   },
   resolve: {
+    dedupe: ['dexie', 'react', 'react-dom'],
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@clickflash/ui': path.resolve(__dirname, '../../../packages/ui/src'),

@@ -36,7 +36,7 @@
     "dev:mobile:pro": "pnpm --filter @clickflash/mobile-pro start",
     "dev:mobile:consumer": "pnpm --filter @clickflash/mobile-consumer start",
     "dev:ai-worker": "cd apps/backend/ai-worker && uvicorn main:app --reload --port 8000",
-    "build:all": "pnpm --filter clickflash-master run build && pnpm --filter clickflash-master run build:backend && pnpm --filter clickflash-touch run build && pnpm --filter clickflash-touch run build:backend && pnpm --filter @clickflash/management run build && pnpm --filter @clickflash/self-service run build && pnpm --filter @clickflash/photographer-portal run build && pnpm --filter @clickflash/gallery run build && pnpm --filter clickflash-installer run build && pnpm --filter clickflash-license-generator run build && pnpm --filter clickflash-mcp run build && pnpm --filter @clickflash/docs run build",
+    "build:all": "pnpm --filter clickflash-master run build && pnpm --filter clickflash-touch run build && pnpm --filter clickflash-touch run build:backend && pnpm --filter @clickflash/management run build && pnpm --filter @clickflash/self-service run build && pnpm --filter @clickflash/photographer-portal run build && pnpm --filter @clickflash/gallery run build && pnpm --filter clickflash-installer run build && pnpm --filter clickflash-license-generator run build && pnpm --filter clickflash-mcp run build",
     "build:self-service": "pnpm --filter @clickflash/self-service run build",
     "build:photographer": "pnpm --filter @clickflash/photographer-portal run build",
     "build:master": "pnpm --filter clickflash-master run build && pnpm --filter clickflash-master run build:backend",

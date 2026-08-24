@@ -47,3 +47,11 @@ if (typeof (globalThis as any).expect === 'undefined') {
     assert.ok(arg1, typeof arg2 === 'string' ? arg2 : undefined);
   };
 }
+
+// Mock AsyncStorage for RustCore fallback tests
+import { vi } from 'vitest';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+(AsyncStorage as any).getItem = async () => null;
+(AsyncStorage as any).setItem = async () => {};
+(AsyncStorage as any).removeItem = async () => {};

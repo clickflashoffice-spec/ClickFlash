@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { GalleryConfig, GalleryTheme, Photo, Order } from '@clickflash/types';
-import { WebRtcViewer } from './components/WebRtcViewer';
-import { SpatialHoloGallery } from './components/SpatialHoloGallery';
 import { VoiceAiConcierge } from './components/VoiceAiConcierge';
-import CustomerLayout from './components/customer/CustomerLayout';
-import CustomerLogin from './components/customer/CustomerLogin';
 import { cloudApiService } from './services/cloudApiService';
-import { Sparkles, ShoppingBag, Box, LogIn, Radio, ShieldCheck } from 'lucide-react';
+import { Sparkles, ShoppingBag, Box, LogIn, Radio, ShieldCheck, Loader2 } from 'lucide-react';
 import './styles/theme.css';
+
+// Lazy load route modes and spatial canvas components
+const CustomerLayout = lazy(() => import('./components/customer/CustomerLayout'));
+const CustomerLogin = lazy(() => import('./components/customer/CustomerLogin'));
+const SpatialHoloGallery = lazy(() => import('./components/SpatialHoloGallery').then(m => ({ default: m.SpatialHoloGallery })));
+const WebRtcViewer = lazy(() => import('./components/WebRtcViewer').then(m => ({ default: m.WebRtcViewer })));
 
 export const samplePhotos: Photo[] = [
   {
@@ -222,65 +224,72 @@ export default function App() {
 
       {/* Main View Port */}
       <main className="flex-1 w-full">
-        {activeMode === 'ecommerce' && (
-          <div className="w-full">
-            <CustomerLayout
-              order={activeOrder || sampleOrder}
-              config={config}
-              onLogout={() => {
-                setActiveOrder(null);
-                setActiveMode('login');
-              }}
-            />
+        <Suspense fallback={
+          <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-cyan-400">
+            <Loader2 className="w-8 h-8 animate-spin" />
+            <p className="text-sm font-medium text-slate-400">Loading Holographic Media Portal...</p>
           </div>
-        )}
-
-        {activeMode === 'holo_3d' && (
-          <div className="p-8 space-y-8 max-w-7xl mx-auto">
-            <div className="text-center max-w-2xl mx-auto space-y-2">
-              <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">
-                Spatial WebXR & Holographic Viewing Stage
-              </h2>
-              <p className="text-sm text-slate-400">
-                Experience Apple Vision Pro & Meta Quest 3 3D depth pop-out with local WebGPU 4x Neural Super-Resolution.
-              </p>
+        }>
+          {activeMode === 'ecommerce' && (
+            <div className="w-full">
+              <CustomerLayout
+                order={activeOrder || sampleOrder}
+                config={config}
+                onLogout={() => {
+                  setActiveOrder(null);
+                  setActiveMode('login');
+                }}
+              />
             </div>
-            
-            <SpatialHoloGallery photos={samplePhotos} />
+          )}
 
-            {config && (
-              <div className="space-y-4 max-w-xl mx-auto p-6 border border-slate-800 rounded-2xl bg-slate-900/50 backdrop-blur-md">
-                <h3 className="text-lg font-semibold text-white">Active Ecosystem Capabilities</h3>
-                <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-300">
-                  {config.features.enablePhotoBooks && <li>✅ Premium Automated Photo Books</li>}
-                  {config.features.enableReels && <li>✅ AI Highlight Beat-Synced Reels</li>}
-                  {config.features.enableAiFigures && <li>✅ 3D Avatar Meshes & Physical Statues</li>}
-                </ul>
+          {activeMode === 'holo_3d' && (
+            <div className="p-8 space-y-8 max-w-7xl mx-auto">
+              <div className="text-center max-w-2xl mx-auto space-y-2">
+                <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">
+                  Spatial WebXR & Holographic Viewing Stage
+                </h2>
+                <p className="text-sm text-slate-400">
+                  Experience Apple Vision Pro & Meta Quest 3 3D depth pop-out with local WebGPU 4x Neural Super-Resolution.
+                </p>
               </div>
-            )}
-          </div>
-        )}
+              
+              <SpatialHoloGallery photos={samplePhotos} />
 
-        {activeMode === 'login' && (
-          <div className="p-6">
-            <CustomerLogin
-              authService={cloudApiService}
-              onLoginSuccess={(payload: any) => {
-                if (payload && payload.items) {
-                  setActiveOrder(payload);
-                }
-                setActiveMode('ecommerce');
-              }}
-              onBack={() => setActiveMode('ecommerce')}
-            />
-          </div>
-        )}
+              {config && (
+                <div className="space-y-4 max-w-xl mx-auto p-6 border border-slate-800 rounded-2xl bg-slate-900/50 backdrop-blur-md">
+                  <h3 className="text-lg font-semibold text-white">Active Ecosystem Capabilities</h3>
+                  <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-300">
+                    {config.features.enablePhotoBooks && <li>✅ Premium Automated Photo Books</li>}
+                    {config.features.enableReels && <li>✅ AI Highlight Beat-Synced Reels</li>}
+                    {config.features.enableAiFigures && <li>✅ 3D Avatar Meshes & Physical Statues</li>}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
 
-        {activeMode === 'stream' && sessionToken && (
-          <div className="p-8 max-w-5xl mx-auto">
-            <WebRtcViewer sessionToken={sessionToken} signalingUrl="ws://localhost:8090/webrtc-signaling" />
-          </div>
-        )}
+          {activeMode === 'login' && (
+            <div className="p-6">
+              <CustomerLogin
+                authService={cloudApiService}
+                onLoginSuccess={(payload: any) => {
+                  if (payload && payload.items) {
+                    setActiveOrder(payload);
+                  }
+                  setActiveMode('ecommerce');
+                }}
+                onBack={() => setActiveMode('ecommerce')}
+              />
+            </div>
+          )}
+
+          {activeMode === 'stream' && sessionToken && (
+            <div className="p-8 max-w-5xl mx-auto">
+              <WebRtcViewer sessionToken={sessionToken} signalingUrl="ws://localhost:8090/webrtc-signaling" />
+            </div>
+          )}
+        </Suspense>
       </main>
     </div>
   );

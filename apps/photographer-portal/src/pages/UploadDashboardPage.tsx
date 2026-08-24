@@ -27,7 +27,7 @@ export const UploadDashboardPage: React.FC = () => {
     setIsUploading(true);
 
     for (const item of keepers) {
-      if (item.status === 'completed') continue;
+      if (!item.file || item.status === 'completed') continue;
 
       updateBatchItem(item.id, { status: 'uploading', progress: 0 });
 

@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { Button } from './Button';
 
 describe('Button', () => {
+  afterEach(() => {
+    cleanup();
+  });
   it('renders the button with children', () => {
     render(<Button>Click Me</Button>);
     expect(screen.getByText('Click Me')).toBeInTheDocument();

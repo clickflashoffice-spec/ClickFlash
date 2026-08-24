@@ -101,17 +101,18 @@ export const mockDestinations = [
 export async function installMockRoutes(page: Page) {
   await page.route("**/api/collections/albums/records*", async (route) => {
     const url = route.request().url();
-    if (url.includes("filter=kiosk_ready%3D1") || url.includes("filter=kiosk_ready=1")) {
+    if (url.includes("roomNumber") || url.includes("101")) {
+      const filtered = mockAlbums.filter(a => a.roomNumber === "101" || url.includes(a.roomNumber));
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ items: mockAlbums, page: 1, perPage: 50, totalItems: mockAlbums.length, totalPages: 1 }),
+        body: JSON.stringify({ items: filtered.length > 0 ? filtered : mockAlbums, page: 1, perPage: 50, totalItems: filtered.length > 0 ? filtered.length : mockAlbums.length, totalPages: 1 }),
       });
     } else {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ items: [], page: 1, perPage: 50, totalItems: 0, totalPages: 1 }),
+        body: JSON.stringify({ items: mockAlbums, page: 1, perPage: 50, totalItems: mockAlbums.length, totalPages: 1 }),
       });
     }
   });

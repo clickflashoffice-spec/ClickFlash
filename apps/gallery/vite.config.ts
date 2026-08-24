@@ -20,4 +20,16 @@ export default defineConfig({
     port: 5176,
     strictPort: true,
   },
+  build: {
+    chunkSizeWarningLimit: 500,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-framer': ['framer-motion'],
+          'vendor-icons': ['lucide-react'],
+          'vendor-i18n': ['react-i18next'],
+        }
+      }
+    }
+  }
 });

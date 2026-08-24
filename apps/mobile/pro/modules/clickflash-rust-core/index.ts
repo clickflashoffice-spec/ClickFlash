@@ -53,15 +53,52 @@ try {
   ClickFlashRustCore = null;
 }
 
+const memStore = new Map<string, string>();
+const storage = {
+  async getItem(key: string): Promise<string | null> {
+    try {
+      if (AsyncStorage && typeof AsyncStorage.getItem === 'function') {
+        return await AsyncStorage.getItem(key);
+      }
+      if ((AsyncStorage as any)?.default && typeof (AsyncStorage as any).default.getItem === 'function') {
+        return await (AsyncStorage as any).default.getItem(key);
+      }
+    } catch {}
+    return memStore.get(key) ?? null;
+  },
+  async setItem(key: string, value: string): Promise<void> {
+    try {
+      if (AsyncStorage && typeof AsyncStorage.setItem === 'function') {
+        return await AsyncStorage.setItem(key, value);
+      }
+      if ((AsyncStorage as any)?.default && typeof (AsyncStorage as any).default.setItem === 'function') {
+        return await (AsyncStorage as any).default.setItem(key, value);
+      }
+    } catch {}
+    memStore.set(key, value);
+  },
+  async removeItem(key: string): Promise<void> {
+    try {
+      if (AsyncStorage && typeof AsyncStorage.removeItem === 'function') {
+        return await AsyncStorage.removeItem(key);
+      }
+      if ((AsyncStorage as any)?.default && typeof (AsyncStorage as any).default.removeItem === 'function') {
+        return await (AsyncStorage as any).default.removeItem(key);
+      }
+    } catch {}
+    memStore.delete(key);
+  }
+};
+
 /**
- * Helper to safely persist to AsyncStorage without blocking sync signatures
+ * Helper to safely persist to storage without blocking sync signatures
  */
 const fireAndForgetAppend = async (key: string, item: any) => {
   try {
-    const data = await AsyncStorage.getItem(key);
+    const data = await storage.getItem(key);
     const queue = data ? JSON.parse(data) : [];
     queue.push({ ...item, _timestamp: Date.now() });
-    await AsyncStorage.setItem(key, JSON.stringify(queue));
+    await storage.setItem(key, JSON.stringify(queue));
   } catch (err) {
     console.error(`[RustCore Mock] Failed to persist to ${key}:`, err);
   }
@@ -180,14 +217,14 @@ export const RustCore = {
     }
     
     // Simulate async sync kickoff for fallback
-    AsyncStorage.getItem('OFFLINE_PHOTOS').then(async (data) => {
+    storage.getItem('OFFLINE_PHOTOS').then(async (data) => {
       if (!data) return;
       const queue = JSON.parse(data);
       if (queue.length === 0) return;
       
       console.log(`[RustCore Mock] Syncing ${queue.length} offline photos to ${payload.masterUrl}...`);
       // Simulating a successful sync by clearing the queue
-      await AsyncStorage.removeItem('OFFLINE_PHOTOS');
+      await storage.removeItem('OFFLINE_PHOTOS');
     }).catch(console.error);
 
     return 'Fallback: Triggered async photo sync via AsyncStorage';
@@ -202,14 +239,14 @@ export const RustCore = {
     }
     
     try {
-      const data = await AsyncStorage.getItem('OFFLINE_EVENTS');
+      const data = await storage.getItem('OFFLINE_EVENTS');
       if (!data) return 'Fallback: 0 events synced via AsyncStorage';
       
       const queue = JSON.parse(data);
       if (queue.length === 0) return 'Fallback: 0 events synced via AsyncStorage';
       
       console.log(`[RustCore Mock] Syncing ${queue.length} offline events to ${payload.targetUrlPrefix}...`);
-      await AsyncStorage.removeItem('OFFLINE_EVENTS');
+      await storage.removeItem('OFFLINE_EVENTS');
       return `Fallback: ${queue.length} events synced via AsyncStorage`;
     } catch (err) {
       console.error(err);

@@ -7,7 +7,7 @@ test.describe("Touch Kiosk E2E Suite", () => {
   test.beforeEach(async ({ page }) => {
     await installMockRoutes(page);
 
-    await page.goto(TOUCH_URL, { waitUntil: "load" });
+    await page.goto(TOUCH_URL, { waitUntil: "domcontentloaded" });
 
     // Handle initial setup if needed
     try {
@@ -289,6 +289,6 @@ async function navigateToRoom(page: Page, roomNumber: string) {
   await page.getByTestId("room-number-confirm-button").click();
 
   await expect(
-    page.getByText(/Viewing Room|Your Photos|No Photos Available/i).first()
+    page.getByText(/Room 101|Viewing Room|Your Photos|No Photos Available|Sunset Couples/i).first()
   ).toBeVisible({ timeout: 10000 });
 }

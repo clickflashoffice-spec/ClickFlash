@@ -117,11 +117,28 @@ export async function installMockRoutes(page: Page) {
     }
   });
 
+  const allPhotos = mockAlbums.flatMap((a) => (a.expand as any)?.photos_via_album || []);
   await page.route("**/api/collections/photos/records*", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ items: [], page: 1, perPage: 50, totalItems: 0, totalPages: 1 }),
+      body: JSON.stringify({ items: allPhotos, page: 1, perPage: 50, totalItems: allPhotos.length, totalPages: 1 }),
+    });
+  });
+
+  await page.route("**/api/orders*", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "ord_12345", status: "Completed", magicLinkUrl: "https://photos.resort.com/gallery/101" }),
+    });
+  });
+
+  await page.route("**/api/collections/orders/records*", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "ord_12345", status: "Completed" }),
     });
   });
 

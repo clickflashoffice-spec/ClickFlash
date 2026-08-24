@@ -1,11 +1,14 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom';
 import React from 'react';
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, afterEach } from 'vitest';
+import { render, screen, cleanup } from '@testing-library/react';
 import { Badge } from './Badge';
 
 describe('Badge Component', () => {
+  afterEach(() => {
+    cleanup();
+  });
   it('renders badge with default styles and children', () => {
     render(<Badge>Operational</Badge>);
     const badge = screen.getByText('Operational');

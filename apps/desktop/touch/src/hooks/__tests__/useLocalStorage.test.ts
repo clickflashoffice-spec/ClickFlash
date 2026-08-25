@@ -34,6 +34,14 @@ describe('useLocalStorage', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    let store: { [key: string]: string } = {};
+    localStorageMock.getItem.mockImplementation((key: string) => store[key] || null);
+    localStorageMock.setItem.mockImplementation((key: string, value: string) => {
+      store[key] = value;
+    });
+  });
+
   it('should return initial value when localStorage is empty', () => {
     const { result } = renderHook(() => useLocalStorage('testKey', 'initial'));
     expect(result.current[0]).toBe('initial');

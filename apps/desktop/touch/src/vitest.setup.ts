@@ -369,9 +369,15 @@ const indexedDBMock = {
   deleteDatabase: vi.fn(),
 };
 
-Object.defineProperty(window, "indexedDB", {
-  value: indexedDBMock,
-});
+try {
+  Object.defineProperty(window, "indexedDB", {
+    value: indexedDBMock,
+    configurable: true,
+    writable: true,
+  });
+} catch {
+  (window as any).indexedDB = indexedDBMock;
+}
 
 // Suppress console errors during tests unless explicitly enabled
 const originalConsoleError = console.error;

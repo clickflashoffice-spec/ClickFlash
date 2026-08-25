@@ -82,17 +82,13 @@ export class SharedSeed {
     const masterMigrationsDir2 = path.resolve(__dirname, "../../../apps/desktop/master/backend/migrations");
     runMigrationsForDb(masterDb, [masterMigrationsDir1, masterMigrationsDir2]);
 
-    // Seed Master with Admin & Test Site
+    // Seed Master with CEO & Test Site
     masterDb.exec(`
       INSERT OR IGNORE INTO users (email, password, name, role, created_at, updated_at) 
-      VALUES ('${TEST_EMAIL}', '${TEST_PASS}', 'Admin', 'Admin', datetime('now'), datetime('now'));
+      VALUES ('${TEST_EMAIL}', '${TEST_PASS}', 'Admin', 'CEO', datetime('now'), datetime('now'));
       
       INSERT OR REPLACE INTO settings (id, key, value) VALUES ('1', 'site_id', 'TN-E2E-TEST');
       INSERT OR REPLACE INTO settings (id, key, value) VALUES ('2', 'desk_id', 'DESK-001');
-
-      INSERT OR IGNORE INTO role_permissions (role, permission) VALUES ('Admin', 'manageAllAlbums');
-      INSERT OR IGNORE INTO role_permissions (role, permission) VALUES ('Admin', 'viewAlbums');
-      INSERT OR IGNORE INTO role_permissions (role, permission) VALUES ('Admin', 'viewDashboard');
 
       INSERT OR IGNORE INTO kiosks (id, name, status, signingSecret, created_at, updated_at) 
       VALUES ('test-kiosk-1', 'Test Kiosk 1', 'active', 'test-secret', datetime('now'), datetime('now'));

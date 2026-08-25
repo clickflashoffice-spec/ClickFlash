@@ -99,32 +99,31 @@ export default class MaintenanceService {
       const { spawn } = require("child_process");
 
       await new Promise<void>((resolve) => {
-        const child = spawn("wmic", [
-          "logicaldisk",
-          "where",
-          `Caption = "${drive}"`,
-          "get",
-          "FreeSpace,Size",
-          "/Value",
+        const child = spawn("powershell", [
+          "-NoProfile",
+          "-Command",
+          `Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='${drive}'" | Select-Object Size, FreeSpace | ConvertTo-Json`,
         ]);
         let stdout = "";
 
         child.stdout.on("data", (d: any) => (stdout += d.toString()));
         child.on("close", () => {
-          const freeMatch = stdout.match(/FreeSpace=(\d+)/);
-          const sizeMatch = stdout.match(/Size=(\d+)/);
+          try {
+            const data = JSON.parse(stdout);
+            if (data && data.Size && data.FreeSpace) {
+              const free = parseInt(data.FreeSpace, 10);
+              const size = parseInt(data.Size, 10);
+              const usedPercent = ((size - free) / size) * 100;
 
-          if (freeMatch && sizeMatch) {
-            const free = parseInt(freeMatch[1]);
-            const size = parseInt(sizeMatch[1]);
-            const usedPercent = ((size - free) / size) * 100;
-
-            if (usedPercent > 90) {
-              this.logger.warn(
-                `[DriveSentinel] CRITICAL: Disk usage at ${usedPercent.toFixed(1)}%`,
-              );
-              this.autoPrune(usedPercent);
+              if (usedPercent > 90) {
+                this.logger.warn(
+                  `[DriveSentinel] CRITICAL: Disk usage at ${usedPercent.toFixed(1)}%`,
+                );
+                this.autoPrune(usedPercent);
+              }
             }
+          } catch (e) {
+            // Parse error or invalid response
           }
           resolve();
         });

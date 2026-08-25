@@ -12,6 +12,8 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/vitest.setup.ts'],
     fileParallelism: false,
+    isolate: false,
+    pool: 'threads',
     testTimeout: 10000,
     hookTimeout: 10000,
     include: [

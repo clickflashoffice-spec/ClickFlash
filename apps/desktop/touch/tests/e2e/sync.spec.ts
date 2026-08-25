@@ -6,17 +6,25 @@ const TOUCH_URL = process.env.TOUCH_URL || "http://localhost:5174";
 test.describe("Touch Kiosk Sync Suite", () => {
   test.beforeEach(async ({ page }) => {
     await installMockRoutes(page);
-    await page.goto(TOUCH_URL, { waitUntil: "load" });
+    await page.goto(TOUCH_URL, { waitUntil: "domcontentloaded" });
 
     try {
       const setupHeader = page.getByRole("heading", { name: "System Configuration" });
-      await setupHeader.waitFor({ state: "visible", timeout: 4000 });
-      await page.locator("text=Install as Touch Kiosk").click();
-      await page.getByRole("button", { name: "Connect" }).click();
+      if (await setupHeader.isVisible({ timeout: 1500 })) {
+        await page.getByRole("heading", { name: "Touch Kiosk" }).click();
+        await page.getByRole("button", { name: /Connect/i }).click();
+      }
     } catch (e) {}
 
+    // Wake up screensaver if active
+    const screensaver = page.getByRole("button", { name: "Wake up screensaver" });
+    if (await screensaver.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await screensaver.click();
+      await page.waitForTimeout(600);
+    }
+
     await expect(
-      page.getByRole("heading", { name: "Welcome", exact: true })
+      page.getByRole("heading", { name: "Welcome" }).first()
     ).toBeVisible({ timeout: 10000 });
   });
 

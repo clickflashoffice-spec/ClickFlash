@@ -115,12 +115,27 @@ describe('TouchSyncClient WebRTC Transfer', () => {
         return Promise.resolve(new ArrayBuffer(this.size));
       }
     }
+    const originalBlob = global.Blob;
+    const originalWebSocket = global.WebSocket;
+    const originalRTCPeerConnection = global.RTCPeerConnection;
+    const originalRTCDataChannel = global.RTCDataChannel;
+    
     global.Blob = vi.fn(function (chunks?: any[], options?: any) {
       return new MockBlob(chunks, options);
     }) as any;
+
+    (globalThis as any).__restoreGlobals = () => {
+      global.Blob = originalBlob;
+      global.WebSocket = originalWebSocket;
+      global.RTCPeerConnection = originalRTCPeerConnection;
+      global.RTCDataChannel = originalRTCDataChannel;
+    };
   });
 
   afterEach(() => {
+    if (typeof (globalThis as any).__restoreGlobals === 'function') {
+      (globalThis as any).__restoreGlobals();
+    }
     vi.useRealTimers();
   });
 

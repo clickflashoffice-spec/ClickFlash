@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useId } from 'react';
-import { Photo } from '../../types';
+import { Photo, GalleryConfig } from '../../types';
 import { getPhotoStyle } from '../../utils/styleUtils';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { MagicEraserTool } from './MagicEraserTool';
@@ -11,6 +11,7 @@ interface EnhancedLightboxProps {
   favoritePhotoIds: Set<string>;
   onToggleFavorite: (photoId: string) => void;
   onOpenAddToCartModal: (photo: Photo) => void;
+  config?: GalleryConfig | null;
 }
 
 type ZoomMode = 'fit' | number;
@@ -67,7 +68,8 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
   onClose,
   favoritePhotoIds,
   onToggleFavorite,
-  onOpenAddToCartModal
+  onOpenAddToCartModal,
+  config
 }) => {
   const initialIndex = Math.min(Math.max(startIndex, 0), Math.max(photos.length - 1, 0));
   const [[currentIndex, direction], setPage] = useState([initialIndex, 0]);
@@ -253,9 +255,11 @@ const EnhancedLightbox: React.FC<EnhancedLightboxProps> = ({
             <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M12 16v-4m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </button>
 
-          <button type="button" onClick={(e) => { e.stopPropagation(); setShowMagicEraser(true); }} className="p-2.5 bg-purple-500/20 text-purple-400 rounded-xl border border-purple-500/30 hover:bg-purple-500/40 hover:text-white transition-all shadow-lg" title="Magic Eraser" aria-label="Magic Eraser">
-            <span className="font-bold tracking-widest px-1 text-xs uppercase flex items-center gap-1">✨ Erase</span>
-          </button>
+          {(config?.features?.enableMagicShots !== false) && (
+            <button type="button" onClick={(e) => { e.stopPropagation(); setShowMagicEraser(true); }} className="p-2.5 bg-purple-500/20 text-purple-400 rounded-xl border border-purple-500/30 hover:bg-purple-500/40 hover:text-white transition-all shadow-lg" title="Magic Eraser" aria-label="Magic Eraser">
+              <span className="font-bold tracking-widest px-1 text-xs uppercase flex items-center gap-1">✨ Erase</span>
+            </button>
+          )}
 
           <button type="button" onClick={(e) => { e.stopPropagation(); onToggleFavorite(activePhoto.id); }} aria-pressed={isFavorite} aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'} className={`p-2.5 rounded-xl transition-all border ${isFavorite ? 'bg-red-500 text-white border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-white/5 text-slate-400 border-white/10 hover:border-white/20'}`} title="Favorite">
             <svg className="w-4.5 h-4.5" fill="currentColor" viewBox="0 0 20 20"><path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" /></svg>

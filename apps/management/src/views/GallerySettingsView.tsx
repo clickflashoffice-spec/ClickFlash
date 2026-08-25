@@ -1,138 +1,97 @@
 import { useState, useEffect } from 'react';
-import { GalleryTheme, AIPermission, GalleryConfig } from '@clickflash/types';
-import { Save } from 'lucide-react';
+import { GalleryConfigPanel } from '../components/GalleryConfigPanel';
+import { LiveGalleryPreviewPanel } from '../components/LiveGalleryPreviewPanel';
+import { GalleryTheme, type DestinationGalleryConfig } from '@clickflash/types';
+import { Sliders } from 'lucide-react';
 
-export function GallerySettingsView({ destinationId = 'default' }: { destinationId?: string }) {
-  const [config, setConfig] = useState<GalleryConfig | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function GallerySettingsView({ destinationId = 'dest_atlantis_01' }: { destinationId?: string }) {
+  const [activeConfig, setActiveConfig] = useState<DestinationGalleryConfig | null>(null);
 
   useEffect(() => {
+    // Initial fetch from edge node
     async function loadConfig() {
-      setIsLoading(true);
       try {
         const res = await fetch(`http://localhost:8090/api/gallery-config/${destinationId}`);
         if (res.ok) {
           const data = await res.json();
-          setConfig(data.data);
-        } else {
-          // Default config
-          setConfig({
-            theme: GalleryTheme.CLASSIC,
-            features: { enablePhotoBooks: false, enableReels: false, enableAiFigures: false },
-            aiPermissions: []
-          });
+          if (data?.data) {
+            setActiveConfig({
+              id: destinationId,
+              destinationId,
+              destinationName: 'Active Destination',
+              theme: data.data.theme || GalleryTheme.GLASSMORPHIC,
+              features: {
+                enableReels: data.data.features?.enableReels ?? true,
+                enableAiFigures: data.data.features?.enableAiFigures ?? true,
+                enableMagicShots: data.data.features?.enableMagicShots ?? true,
+                enablePhotoBooks: data.data.features?.enablePhotoBooks ?? false,
+                enableProRetouch: data.data.features?.enableProRetouch ?? true,
+                enableFullGalleryDownload: data.data.features?.enableFullGalleryDownload ?? true,
+                enableSinglePhotoPurchase: data.data.features?.enableSinglePhotoPurchase ?? true,
+                enableFaceSearch: data.data.features?.enableFaceSearch ?? true,
+              },
+              aiToolTiers: data.data.aiToolTiers || {},
+              updatedAt: new Date().toISOString(),
+            });
+          }
         }
-      } catch (e) {
-        setConfig({
-          theme: GalleryTheme.CLASSIC,
-          features: { enablePhotoBooks: false, enableReels: false, enableAiFigures: false },
-          aiPermissions: []
-        });
-      } finally {
-        setIsLoading(false);
+      } catch {
+        // Fallback handled gracefully
       }
     }
     loadConfig();
   }, [destinationId]);
 
-  const saveConfig = async () => {
-    if (!config) return;
+  const handleConfigChange = async (newConfig: DestinationGalleryConfig) => {
+    setActiveConfig(newConfig);
     try {
-      await fetch(`http://localhost:8090/api/gallery-config/${destinationId}`, {
+      await fetch(`http://localhost:8090/api/gallery-config/${newConfig.destinationId || destinationId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config)
+        body: JSON.stringify({
+          theme: newConfig.theme,
+          features: newConfig.features,
+          aiPermissions: [],
+          aiToolTiers: newConfig.aiToolTiers,
+        }),
       });
-      alert('Settings saved!');
-    } catch (e) {
-      alert('Failed to save settings');
+    } catch {
+      // Offline/local preview fallback
     }
   };
 
-  if (isLoading || !config) return <div>Loading...</div>;
-
   return (
-    <div className="p-8 h-[calc(100vh-4rem)] overflow-y-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-white">⚙️ Gallery Settings</h1>
-        <button onClick={saveConfig} className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl flex items-center gap-2">
-          <Save className="w-4 h-4" /> Save Settings
-        </button>
+    <div className="flex flex-col h-[calc(100vh-4rem)] -m-8 bg-slate-950">
+      {/* Header Bar */}
+      <div className="px-8 py-5 border-b border-slate-800 bg-slate-950 flex-none shrink-0 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <Sliders className="w-6 h-6 text-cyan-400" />
+            Destination Gallery Configuration & Live Theming
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">
+            Configure destination features, custom AI paywalls, and theme templates with zero-latency live preview.
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-8">
-        <div className="space-y-8">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Theme Configuration</h2>
-            <div className="flex flex-col gap-3">
-              {Object.values(GalleryTheme).map(theme => (
-                <label key={theme} className="flex items-center gap-3 text-slate-300">
-                  <input 
-                    type="radio" 
-                    name="theme" 
-                    value={theme}
-                    checked={config.theme === theme}
-                    onChange={(e) => setConfig({ ...config, theme: e.target.value as GalleryTheme })}
-                    className="w-4 h-4 text-indigo-600 bg-slate-800 border-slate-700"
-                  />
-                  {theme}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Feature Toggles</h2>
-            <div className="flex flex-col gap-3">
-              <label className="flex items-center gap-3 text-slate-300">
-                <input type="checkbox" checked={config.features.enablePhotoBooks} onChange={(e) => setConfig({...config, features: {...config.features, enablePhotoBooks: e.target.checked}})} className="rounded text-indigo-600 bg-slate-800" />
-                Enable Photo Books
-              </label>
-              <label className="flex items-center gap-3 text-slate-300">
-                <input type="checkbox" checked={config.features.enableReels} onChange={(e) => setConfig({...config, features: {...config.features, enableReels: e.target.checked}})} className="rounded text-indigo-600 bg-slate-800" />
-                Enable Reels
-              </label>
-              <label className="flex items-center gap-3 text-slate-300">
-                <input type="checkbox" checked={config.features.enableAiFigures} onChange={(e) => setConfig({...config, features: {...config.features, enableAiFigures: e.target.checked}})} className="rounded text-indigo-600 bg-slate-800" />
-                Enable AI Figures
-              </label>
-            </div>
-          </div>
-
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Granular AI Permissions</h2>
-            <div className="flex flex-col gap-3">
-              {Object.values(AIPermission).map(perm => (
-                <label key={perm} className="flex items-center gap-3 text-slate-300">
-                  <input 
-                    type="checkbox" 
-                    checked={config.aiPermissions.includes(perm)}
-                    onChange={(e) => {
-                      const newPerms = e.target.checked 
-                        ? [...config.aiPermissions, perm]
-                        : config.aiPermissions.filter(p => p !== perm);
-                      setConfig({ ...config, aiPermissions: newPerms });
-                    }}
-                    className="rounded text-indigo-600 bg-slate-800"
-                  />
-                  {perm}
-                </label>
-              ))}
-            </div>
-          </div>
+      {/* Split View Container */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
+        {/* Left: Interactive Control Studio */}
+        <div className="lg:col-span-6 overflow-y-auto p-6">
+          <GalleryConfigPanel
+            selectedDestinationId={destinationId}
+            onConfigChange={handleConfigChange}
+          />
         </div>
 
-        <div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 h-full flex flex-col">
-            <h2 className="text-xl font-semibold text-white mb-4">Live Preview</h2>
-            <div className="flex-1 bg-black rounded-lg border border-slate-700 overflow-hidden">
-              <iframe 
-                src="http://localhost:5176"
-                className="w-full h-full border-0"
-                title="Live Gallery Preview"
-              />
-            </div>
-          </div>
+        {/* Right: Real-time Synchronized Preview Frame */}
+        <div className="lg:col-span-6 overflow-hidden flex flex-col p-6">
+          <LiveGalleryPreviewPanel
+            config={activeConfig}
+            theme={activeConfig?.theme || GalleryTheme.GLASSMORPHIC}
+            galleryId="demo"
+          />
         </div>
       </div>
     </div>

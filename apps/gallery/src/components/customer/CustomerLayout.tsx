@@ -618,6 +618,46 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
           </div>
         </div>
       </header>
+
+      {/* Favorites Notification & Action Bar */}
+      {favoritePhotoIds.size > 0 && (
+        <FavoritesBar
+          favorites={Array.from(favoritePhotoIds)}
+          totalPhotos={lightboxPhotos.length}
+          galleryId={order?.id || trashGallery?.id || 'guest-gallery'}
+          onShare={handleShareFavorites}
+          onDownloadFavorites={handleDownloadFavorites}
+          onClearFavorites={() => setFavoritePhotoIds(new Set())}
+        />
+      )}
+
+      {/* Main Dynamic View Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-36">
+        {checkoutNotice && (
+          <div
+            className={`mb-6 p-4 rounded-2xl border text-sm font-medium flex items-center justify-between ${
+              checkoutNotice.tone === 'success'
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                : checkoutNotice.tone === 'warning'
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                : 'bg-red-500/10 border-red-500/30 text-red-400'
+            }`}
+          >
+            <span>{checkoutNotice.message}</span>
+            <button
+              onClick={() => setCheckoutNotice(null)}
+              className="text-xs uppercase font-bold opacity-70 hover:opacity-100"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+        {renderView()}
+      </main>
+
+      {/* Floating Bottom AI Product Bar */}
+      <AIProductBar onAction={handleAIAction} config={config} />
+
       {isLightboxOpen && (
         <EnhancedLightbox
           photos={lightboxPhotos}
@@ -625,6 +665,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
           onClose={() => setIsLightboxOpen(false)}
           favoritePhotoIds={favoritePhotoIds}
           onToggleFavorite={onToggleFavorite}
+          config={config}
           onOpenAddToCartModal={(photo) => {
             setIsLightboxOpen(false);
             if (trashGallery) {

@@ -42,19 +42,27 @@ const ADMIN_PASSWORD = "1234";
 test.describe("Admin Settings Flow", () => {
   test.beforeEach(async ({ page }) => {
     await installMockRoutes(page);
-    await page.goto("/", { waitUntil: "load" });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
 
     try {
       const setupHeader = page.getByRole("heading", { name: "System Configuration" });
-      await setupHeader.waitFor({ state: "visible", timeout: 4000 });
-      await page.locator("text=Install as Touch Kiosk").click();
-      await page.getByRole("button", { name: "Connect" }).click();
+      if (await setupHeader.isVisible({ timeout: 1500 })) {
+        await page.getByRole("heading", { name: "Touch Kiosk" }).click();
+        await page.getByRole("button", { name: /Connect/i }).click();
+      }
     } catch (e) {
       // Setup already done
     }
 
+    // Wake up screensaver if active
+    const screensaver = page.getByRole("button", { name: "Wake up screensaver" });
+    if (await screensaver.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await screensaver.click();
+      await page.waitForTimeout(600);
+    }
+
     await expect(
-      page.getByRole("heading", { name: /Welcome/i })
+      page.getByRole("heading", { name: /Welcome/i }).first()
     ).toBeVisible({ timeout: 10000 });
   });
 

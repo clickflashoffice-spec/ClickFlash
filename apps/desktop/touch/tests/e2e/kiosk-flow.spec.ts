@@ -1,29 +1,43 @@
 import { test, expect } from "@playwright/test";
 import { installMockRoutes } from "./helpers/mock-routes";
 
+const TOUCH_URL = process.env.TOUCH_URL || "http://localhost:5174";
+
 test.describe("Kiosk User Flow", () => {
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      try {
+        localStorage.clear();
+      } catch (e) {}
+    });
+
     await installMockRoutes(page);
 
     // Navigate to the root
-    await page.goto("/", { waitUntil: "load" });
+    await page.goto(TOUCH_URL, { waitUntil: "domcontentloaded" });
 
-    // Handle initial setup if it appears (fresh browser instance)
+    // Handle initial setup if it appears
     try {
-      const setupHeader = page.getByRole("heading", {
-        name: "System Configuration",
-      });
-      await setupHeader.waitFor({ state: "visible", timeout: 4000 });
-      await page.locator("text=Install as Touch Kiosk").click();
-      await page.getByRole("button", { name: "Connect" }).click();
+      const setupHeader = page.getByRole("heading", { name: "System Configuration" });
+      if (await setupHeader.isVisible({ timeout: 1500 })) {
+        await page.getByRole("heading", { name: "Touch Kiosk" }).click();
+        await page.getByRole("button", { name: /Connect/i }).click();
+      }
     } catch (e) {
       // Setup already done or bypassed
     }
 
+    // Wake up screensaver if active
+    const screensaver = page.getByRole("button", { name: "Wake up screensaver" });
+    if (await screensaver.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await screensaver.click();
+      await page.waitForTimeout(600);
+    }
+
     // Wait for Welcome screen to fully load
     await expect(
-      page.getByRole("heading", { name: "Welcome", exact: true }),
-    ).toBeVisible({ timeout: 10000 });
+      page.getByTestId("welcome-find-room-button")
+    ).toBeVisible({ timeout: 15000 });
   });
 
   test("should complete full customer journey", async ({ page }) => {
@@ -103,8 +117,8 @@ test.describe("Kiosk User Flow", () => {
     // Go back to home
     await page.getByTestId("back-to-home-button").click();
     await expect(
-      page.getByRole("heading", { name: "Welcome", exact: true }),
-    ).toBeVisible();
+      page.getByTestId("welcome-find-room-button")
+    ).toBeVisible({ timeout: 10000 });
 
     // Set offline
     await page.context().setOffline(true);

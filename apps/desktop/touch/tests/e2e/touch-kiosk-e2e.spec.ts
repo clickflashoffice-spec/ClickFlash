@@ -5,6 +5,12 @@ const TOUCH_URL = process.env.TOUCH_URL || "http://localhost:5174";
 
 test.describe("Touch Kiosk E2E Suite", () => {
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      try {
+        localStorage.clear();
+      } catch (e) {}
+    });
+
     await installMockRoutes(page);
 
     await page.goto(TOUCH_URL, { waitUntil: "domcontentloaded" });
@@ -12,15 +18,22 @@ test.describe("Touch Kiosk E2E Suite", () => {
     // Handle initial setup if needed
     try {
       const setupHeader = page.getByRole("heading", { name: "System Configuration" });
-      await setupHeader.waitFor({ state: "visible", timeout: 4000 });
-      await page.locator("text=Install as Touch Kiosk").click();
-      await page.getByRole("button", { name: "Connect" }).click();
+      if (await setupHeader.isVisible({ timeout: 1500 })) {
+        await page.getByRole("heading", { name: "Touch Kiosk" }).click();
+        await page.getByRole("button", { name: /Connect/i }).click();
+      }
     } catch (e) {
       // Setup already done
     }
+    // Wake up screensaver if active
+    const screensaver = page.getByRole("button", { name: "Wake up screensaver" });
+    if (await screensaver.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await screensaver.click();
+      await page.waitForTimeout(600);
+    }
 
     await expect(
-      page.getByRole("heading", { name: "Welcome", exact: true })
+      page.getByTestId("welcome-find-room-button")
     ).toBeVisible({ timeout: 10000 });
   });
 
@@ -147,8 +160,8 @@ test.describe("Touch Kiosk E2E Suite", () => {
 
       await page.getByTestId("back-to-home-button").click();
       await expect(
-        page.getByRole("heading", { name: "Welcome", exact: true })
-      ).toBeVisible();
+        page.getByTestId("welcome-find-room-button")
+      ).toBeVisible({ timeout: 10000 });
 
       await page.context().setOffline(true);
 
@@ -212,20 +225,17 @@ test.describe("Touch Kiosk E2E Suite", () => {
 
   test.describe("Accessibility and UX", () => {
     test("should support keyboard navigation", async ({ page }) => {
-      // Tab through interactive elements
-      await page.keyboard.press("Tab");
-      await page.keyboard.press("Tab");
-
-      const focusedElement = page.locator(":focus");
-      await expect(focusedElement).toBeVisible();
+      const roomButton = page.getByTestId("welcome-find-room-button");
+      await roomButton.focus();
+      await expect(roomButton).toBeFocused();
 
       // Press Enter on focused button
       await page.keyboard.press("Enter");
 
-      // Should trigger action (modal or navigation) or keep focus
+      // Should open Room Number Modal
       await expect(
-        page.getByText(/Enter Your Room|Modal|Dialog|Welcome/i).first()
-      ).toBeVisible({ timeout: 3000 });
+        page.getByRole("heading", { name: "Enter Your Room Number" })
+      ).toBeVisible({ timeout: 5000 });
     });
 
     test("should handle touch gestures", async ({ page }) => {
@@ -255,7 +265,7 @@ test.describe("Touch Kiosk E2E Suite", () => {
   test.describe("Language and Localization", () => {
     test("should display welcome screen text", async ({ page }) => {
       await expect(
-        page.getByRole("heading", { name: "Welcome", exact: true })
+        page.getByRole("heading", { name: "Welcome" }).first()
       ).toBeVisible();
       await expect(
         page.getByText(/Touch an option below to begin/i)

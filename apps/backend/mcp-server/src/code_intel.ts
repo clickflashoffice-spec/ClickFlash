@@ -157,16 +157,22 @@ export async function handleApiEndpointLister(args: Record<string, unknown>) {
 
     try {
       // Fastify routes
-      const { stdout: fastifyRoutes } = await execAsync(
-        `git grep -n "\\.(get\\|post\\|put\\|delete\\|patch)\\s*(" -- "${searchPath}" 2>/dev/null || true`,
-        { cwd: rootDir, timeout: 15000 }
-      );
+      let fastifyRoutes = "";
+      try {
+        const res = await execAsync(`git grep -n "\\.(get\\|post\\|put\\|delete\\|patch)\\s*(" -- "${searchPath}"`, { cwd: rootDir, timeout: 15000 });
+        fastifyRoutes = res.stdout;
+      } catch (err: any) {
+        if (err.stdout) fastifyRoutes = err.stdout;
+      }
 
       // FastAPI routes
-      const { stdout: fastapiRoutes } = await execAsync(
-        `git grep -n "@app\\.(get\\|post\\|put\\|delete\\|patch)" -- "${searchPath}" 2>/dev/null || true`,
-        { cwd: rootDir, timeout: 15000 }
-      );
+      let fastapiRoutes = "";
+      try {
+        const res = await execAsync(`git grep -n "@app\\.(get\\|post\\|put\\|delete\\|patch)" -- "${searchPath}"`, { cwd: rootDir, timeout: 15000 });
+        fastapiRoutes = res.stdout;
+      } catch (err: any) {
+        if (err.stdout) fastapiRoutes = err.stdout;
+      }
 
       const routes = (fastifyRoutes + fastapiRoutes).trim();
       if (routes) {
@@ -251,7 +257,7 @@ export async function handleMonorepoHealthScore(_args: Record<string, unknown>) 
 
   // Typecheck
   try {
-    await execAsync("npm run typecheck:all", { cwd: rootDir, timeout: 240000 });
+    await execAsync("pnpm run typecheck:all", { cwd: rootDir, timeout: 240000 });
     details.push("✅ TypeCheck: PASS (+0)");
   } catch (err: any) {
     logger.warn(`[CodeIntel] Typecheck check encountered: ${err?.message || err}`);
@@ -259,32 +265,33 @@ export async function handleMonorepoHealthScore(_args: Record<string, unknown>) 
     details.push(`❌ TypeCheck: FAIL (-30) [${err?.message?.slice(0, 80) || "error"}]`);
   }
 
+  // Cross-platform git grep line counter
+  const countGitGrepFiles = async (pattern: string) => {
+    try {
+      const { stdout } = await execAsync(`git grep -l "${pattern}" -- apps packages`, { cwd: rootDir, timeout: 15000 });
+      return stdout.trim().split(/\r?\n/).filter(Boolean).length;
+    } catch {
+      return 0;
+    }
+  };
+
   // TODO count
-  try {
-    const { stdout } = await execAsync("git grep -c TODO -- 'apps/' 'packages/' 2>/dev/null | wc -l || echo 0", { cwd: rootDir, timeout: 15000 });
-    const count = parseInt(stdout.trim()) || 0;
-    const penalty = Math.min(count, 15);
-    score -= penalty;
-    details.push(`📝 TODOs: ${count} files (-${penalty})`);
-  } catch { /* skip */ }
+  const todoCount = await countGitGrepFiles("TODO");
+  const todoPenalty = Math.min(todoCount, 15);
+  score -= todoPenalty;
+  details.push(`📝 TODOs: ${todoCount} files (-${todoPenalty})`);
 
   // as any count
-  try {
-    const { stdout } = await execAsync("git grep -c 'as any' -- 'apps/' 'packages/' 2>/dev/null | wc -l || echo 0", { cwd: rootDir, timeout: 15000 });
-    const count = parseInt(stdout.trim()) || 0;
-    const penalty = Math.min(count * 2, 20);
-    score -= penalty;
-    details.push(`🔴 Type assertions: ${count} files (-${penalty})`);
-  } catch { /* skip */ }
+  const anyCount = await countGitGrepFiles("as any");
+  const anyPenalty = Math.min(anyCount * 2, 20);
+  score -= anyPenalty;
+  details.push(`🔴 Type assertions: ${anyCount} files (-${anyPenalty})`);
 
   // Console.log count
-  try {
-    const { stdout } = await execAsync("git grep -c 'console.log' -- 'apps/' 'packages/' 2>/dev/null | wc -l || echo 0", { cwd: rootDir, timeout: 15000 });
-    const count = parseInt(stdout.trim()) || 0;
-    const penalty = Math.min(count, 10);
-    score -= penalty;
-    details.push(`📢 Console.logs: ${count} files (-${penalty})`);
-  } catch { /* skip */ }
+  const consoleCount = await countGitGrepFiles("console.log");
+  const consolePenalty = Math.min(consoleCount, 10);
+  score -= consolePenalty;
+  details.push(`📢 Console.logs: ${consoleCount} files (-${consolePenalty})`);
 
   score = Math.max(0, Math.min(100, score));
   details.push(``);

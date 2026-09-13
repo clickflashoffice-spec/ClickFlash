@@ -16,14 +16,14 @@
 | **QW-004** | Docker Redis Authentication & Healthcheck | Quick Win | 7 | 1 | 1 | **7.00** | Completed |
 | **ARCH-001** | SQLite Write Queue (`DbWriteQueue`) Journal | Architecture | 9 | 4 | 2 | **1.01** | Completed |
 | **ARCH-002** | Modular Split of AgentStudioView (1,200 LOC) | Architecture | 8 | 3 | 1 | **2.40** | Completed |
-| **ARCH-003** | Real Rust Core Implementation (`@clickflash/mobile-pro`) | Architecture | 10 | 8 | 3 | **0.38** | Proposed |
-| **ARCH-004** | RxDB / ElectricSQL Kiosk-to-Cloud Sync Layer | Architecture | 9 | 7 | 3 | **0.40** | Proposed |
+| **ARCH-003** | Real Rust Core Implementation (`@clickflash/mobile-pro`) | Architecture | 10 | 8 | 3 | **0.38** | Completed |
+| **ARCH-004** | RxDB / ElectricSQL Kiosk-to-Cloud Sync Layer | Architecture | 9 | 7 | 3 | **0.40** | Completed |
 | **SEC-001** | Hardware DPAPI/TPM Master SQLite Key Custody | Security | 10 | 4 | 2 | **1.13** | Completed |
 | **SEC-002** | Biometric Air-Gap CI AST Linter Guard | Security | 9 | 3 | 1 | **2.70** | Completed |
 | **SEC-003** | Fastify LAN Endpoint HMAC Request Signing | Security | 8 | 3 | 2 | **1.20** | Completed |
 | **PERF-001** | Turborepo Remote Caching in GitHub Actions | Performance | 8 | 2 | 1 | **3.60** | Completed |
 | **PERF-002** | Sharp Stream Concurrency Pool & Backpressure | Performance | 9 | 4 | 2 | **1.01** | Completed |
-| **PERF-003** | OpenTelemetry Distributed Tracing across Nodes | Observability | 8 | 5 | 2 | **0.72** | Proposed |
+| **PERF-003** | OpenTelemetry Distributed Tracing across Nodes | Observability | 8 | 5 | 2 | **0.72** | Completed |
 | **PERF-004** | Gallery & Management Bundle Code-Splitting | Performance | 8 | 3 | 2 | **1.20** | Completed |
 | **FRONTEND-005** | Gallery Prop-Drilling Elimination (`CustomerGalleryContext`) | Architecture | 8 | 3 | 1 | **2.40** | Completed |
 | **DX-001** | Consolidated `pnpm test:fast` Test Runner | Developer Exp | 7 | 2 | 1 | **3.15** | Completed |
@@ -96,6 +96,15 @@
 - **Acceptance Criteria**:
   - UniFFI scaffolding compiling to `.so` and `.dylib`.
   - Zero-copy photo buffer hashing and L2 normalization in native Rust.
+- **Status**: Completed (`Cargo.toml`, `clickflash.udl`, `lib.rs`, zero-copy buffer hashing and L2 normalization).
+
+### [ARCH-004] RxDB / ElectricSQL Kiosk-to-Cloud Sync Layer
+- **Target**: `apps/desktop/master/backend/services/SyncManager.ts`
+- **Rationale**: Support conflict-free replicated data types (CRDT) for offline kiosk-to-cloud synchronization.
+- **Acceptance Criteria**:
+  - Intercept `/graphql` WebSocket upgrades.
+  - Implement foundational `handleRxDBReplication` handler for CRDT operations over WebSockets.
+- **Status**: Completed (`SyncManager.ts`).
 
 ---
 

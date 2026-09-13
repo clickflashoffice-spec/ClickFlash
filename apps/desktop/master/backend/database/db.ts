@@ -3,6 +3,8 @@ import Database, { Database as DatabaseType } from "better-sqlite3-multiple-ciph
 import path from "path";
 import fs from "fs";
 import { logger } from '../utils/logger';
+import { DPAPI } from '../utils/dpapi';
+
 
 interface Migration {
   id: number;
@@ -51,8 +53,18 @@ export class DatabaseManager {
       // Encryption — enabled when DB_ENCRYPTION_KEY env var is present.
       // If the database already exists and has the plaintext SQLite header,
       // we skip applying the key to preserve compatibility (it crashes otherwise).
-      const encKey = process.env.DB_ENCRYPTION_KEY;
+      let encKey = process.env.DB_ENCRYPTION_KEY;
       if (encKey) {
+        // SEC-001: Hardware DPAPI Master SQLite Key Custody
+        if (encKey.startsWith('DPAPI:')) {
+            try {
+                encKey = DPAPI.unprotect(encKey.substring(6));
+                logger.info('[Database] Successfully unlocked SQLite encryption key via DPAPI.');
+            } catch (err) {
+                throw new Error('[Database] FATAL: Failed to decrypt DPAPI DB_ENCRYPTION_KEY.');
+            }
+        }
+        
         if (!/^[0-9a-fA-F]{64}$/.test(encKey)) {
           throw new Error('[Database] FATAL: DB_ENCRYPTION_KEY must be 64 hex characters (256-bit).');
         }

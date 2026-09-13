@@ -40,6 +40,7 @@
     "typecheck:ci": "tsc --noEmit -p tsconfig.server.json",
     "provision": "npx tsx backend/scripts/provision-hardware.ts",
     "bootstrap": "npx tsx scripts/generate-bootstrap.ts",
+    "key:protect": "tsx scripts/protect-key.ts",
     "typecheck": "tsc --noEmit -p tsconfig.server.json",
     "build:hotels": "node scripts/build-hotel-installers.js --all",
     "build:hotel": "node scripts/build-hotel-installers.js"

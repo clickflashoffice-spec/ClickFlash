@@ -71,14 +71,14 @@ services:
   redis:
     image: redis:7-alpine
     container_name: clickflash-redis-prod
-    command: redis-server --requirepass ${REDIS_PASSWORD:-clickflash_redis_dev_secret}
+    command: redis-server --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     restart: always
     volumes:
       - redis-prod-data:/data
     networks:
       - clickflash-prod-network
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-clickflash_redis_dev_secret}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?REDIS_PASSWORD is required}", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5

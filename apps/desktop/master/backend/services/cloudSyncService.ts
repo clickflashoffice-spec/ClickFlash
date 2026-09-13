@@ -127,7 +127,7 @@ export class CloudSyncService {
         "SELECT value FROM settings WHERE key = 'cloud_url'",
       );
       if (row && row.value) return row.value;
-    } catch (e) {}
+    } catch (e) { this.logger.error(`[CloudSync] Unhandled error: ${e}`); }
 
     // 2. Try Env
     const url = process.env.CLOUD_API_URL;
@@ -144,7 +144,7 @@ export class CloudSyncService {
         "SELECT value FROM settings WHERE key = 'cloud_failover_url'",
       );
       if (row && row.value) return row.value;
-    } catch (e) {}
+    } catch (e) { this.logger.error(`[CloudSync] Unhandled error: ${e}`); }
     return process.env.CLOUD_FAILOVER_URL || process.env.CLOUD_API_FAILOVER_URL;
   }
 
@@ -218,7 +218,7 @@ export class CloudSyncService {
         "SELECT value FROM settings WHERE key = 'cloud_gallery_url' OR key = 'cloud_url'",
       );
       if (row && row.value) return row.value;
-    } catch (e) {}
+    } catch (e) { this.logger.error(`[CloudSync] Unhandled error: ${e}`); }
 
     return (
       process.env.CLOUD_GALLERY_URL ||
@@ -233,7 +233,7 @@ export class CloudSyncService {
         "SELECT value FROM settings WHERE key = 'cloud_email'",
       );
       if (row && row.value) return row.value;
-    } catch (e) {}
+    } catch (e) { this.logger.error(`[CloudSync] Unhandled error: ${e}`); }
 
     // 2. Try Env
     const email = process.env.CLOUD_EMAIL;
@@ -251,7 +251,7 @@ export class CloudSyncService {
         "SELECT value FROM settings WHERE key = 'cloud_password'",
       );
       if (row && row.value) return row.value;
-    } catch (e) {}
+    } catch (e) { this.logger.error(`[CloudSync] Unhandled error: ${e}`); }
 
     // 2. Try Env
     const password = process.env.CLOUD_PASSWORD;
@@ -269,7 +269,7 @@ export class CloudSyncService {
         "SELECT value FROM settings WHERE key = 'desk_id'",
       );
       if (row && row.value) return row.value;
-    } catch (e) {}
+    } catch (e) { this.logger.error(`[CloudSync] Unhandled error: ${e}`); }
 
     // 2. Try Env
     return process.env.DESK_ID || "MASTER_01";
@@ -1511,7 +1511,7 @@ export class CloudSyncService {
           method: "POST",
           body: heartbeatStr,
         });
-      } catch (err) {}
+      } catch (err) { this.logger.error(`[CloudSync] Unhandled error: ${err}`); }
     }
   }
 

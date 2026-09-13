@@ -77,7 +77,7 @@ const StorePage: React.FC<StorePageProps> = ({ products, photos, onAddToCart }) 
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-[60vh] overflow-y-auto px-2 pb-8">
                         {photos.map(photo => (
-                            <div key={photo.id} className="relative group cursor-pointer aspect-square rounded-xl overflow-hidden border border-white/5 bg-slate-900" onClick={() => handlePhotoSelect(photo)}>
+                            <div key={photo.id} className="relative group cursor-pointer aspect-square rounded-xl overflow-hidden border border-white/5 bg-slate-900" role="button" tabIndex={0} onClick={() => handlePhotoSelect(photo)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handlePhotoSelect(photo); } }}>
                                 <img src={photo.url} alt={photo.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70 group-hover:opacity-100" />
                                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 p-3 opacity-0 group-hover:opacity-100 transition-opacity flex justify-center">
                                     <span className="text-[9px] font-black uppercase tracking-widest text-cyan-400">Select Asset</span>

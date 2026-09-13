@@ -8,7 +8,7 @@
  *
  * Fully compatible with better-sqlite3 and better-sqlite3-multiple-ciphers.
  */
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
 
 export const destinations = sqliteTable('destinations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -101,7 +101,7 @@ export const photos = sqliteTable('photos', {
   tags: text('tags', { mode: 'json' }), // string[]
   metadata: text('metadata', { mode: 'json' }), // EXIF data
   createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
-});
+}, (table) => ({ albumIdx: index('photos_album_id_idx').on(table.albumId) }));
 
 export const faces = sqliteTable('faces', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -113,7 +113,7 @@ export const faces = sqliteTable('faces', {
   hasConsent: integer('has_consent').default(0),
   expiresAt: text('expires_at'), // ISO string for TTL cleanup of orphaned embeddings
   createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
-});
+}, (table) => ({ photoIdx: index('faces_photo_id_idx').on(table.photoId) }));
 
 export const orders = sqliteTable('orders', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -137,7 +137,7 @@ export const kioskTransferQueue = sqliteTable('kiosk_transfer_queue', {
   attempts: integer('attempts').default(0),
   lastAttemptAt: text('last_attempt_at'),
   createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
-});
+}, (table) => ({ statusIdx: index('kiosk_queue_status_idx').on(table.status) }));
 
 export const auditLogs = sqliteTable('audit_logs', {
   id: integer('id').primaryKey({ autoIncrement: true }),

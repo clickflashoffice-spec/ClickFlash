@@ -75,7 +75,7 @@ const ProductSelectionModal: React.FC<ProductSelectionModalProps> = ({ product, 
                     {displayPhotos.map(photo => {
                         const isNewUpload = photo.id.startsWith('upload-');
                         return (
-                            <div key={photo.id} className="relative group cursor-pointer" onClick={() => onSelect(photo)}>
+                            <div key={photo.id} className="relative group cursor-pointer" role="button" tabIndex={0} onClick={() => onSelect(photo)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(photo); } }}>
                                 <img src={photo.url} alt={photo.title} className="w-full h-full object-cover rounded-lg" />
                                 <div className={`absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center ${isNewUpload ? 'ring-2 ring-green-500' : ''}`}>
                                     <span className="text-white font-bold text-center">Select Photo</span>

@@ -60,10 +60,8 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
   );
   
   // Zustand Cart Store
-  const { cart, clearCart } = useCartStore((state: any) => ({
-    cart: state.items,
-    clearCart: state.clearCart,
-  }));
+  const cart = useCartStore((state: any) => state.items);
+  const clearCart = useCartStore((state: any) => state.clearCart);
   const activeCart = useMemo(
     () => cart.filter((item: any) => trashGallery
       ? item.productId === "moneytrash_single" && item.photo?.albumId === trashGallery.id
@@ -777,3 +775,4 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
 };
 
 export default CustomerLayout;
+

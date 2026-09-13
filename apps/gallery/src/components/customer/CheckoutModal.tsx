@@ -7,10 +7,7 @@ import {
   useElements,
   useStripe,
 } from '@stripe/react-stripe-js';
-import {
-  loadStripe,
-  type Appearance,
-} from '@stripe/stripe-js';
+import type { Appearance } from '@stripe/stripe-js';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -90,7 +87,15 @@ export const stripeNightAppearance: Appearance = {
   },
 };
 
-const stripePromise = config.stripeKey ? loadStripe(config.stripeKey) : null;
+
+let stripePromise: Promise<any> | null = null;
+const getStripe = () => {
+  if (!getStripe() && config.stripeKey) {
+    stripePromise = import('@stripe/stripe-js').then((m) => m.loadStripe(config.stripeKey));
+  }
+  return stripePromise;
+};
+
 
 const EmbeddedPaymentForm: React.FC<EmbeddedPaymentFormProps> = ({
   amountLabel,
@@ -227,7 +232,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   const createPaymentIntent = async () => {
-    if (!stripePromise) {
+    if (!getStripe()) {
       setCheckoutError('Card payments are not configured for this gallery.');
       return;
     }
@@ -455,8 +460,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </button>
             </div>
           </div>
-        ) : elementsOptions && stripePromise ? (
-          <Elements stripe={stripePromise} options={elementsOptions}>
+        ) : elementsOptions && getStripe() ? (
+          <Elements stripe={getStripe()} options={elementsOptions}>
             <EmbeddedPaymentForm amountLabel={formatCurrency(finalTotal)} onBack={() => setStep(1)} onComplete={completePayment} />
           </Elements>
         ) : (

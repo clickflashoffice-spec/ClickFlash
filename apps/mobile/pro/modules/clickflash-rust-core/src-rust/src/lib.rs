@@ -660,3 +660,28 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_ge
     let output = env.new_string(result).unwrap();
     output.into_raw()
 }
+
+// -------------------------------------------------------------
+// UniFFI Implementations (ARCH-003)
+// -------------------------------------------------------------
+
+uniffi::include_scaffolding!(""clickflash"");
+
+pub fn hash_photo_buffer(buffer: &[u8]) -> String {
+    use sha2::Digest;
+    let mut hasher = Sha256::new();
+    hasher.update(buffer);
+    format!(""{:x}"", hasher.finalize())
+}
+
+pub fn l2_normalize(vector: Vec<f32>) -> Vec<f32> {
+    let mut mag_sq = 0.0;
+    for &v in &vector {
+        mag_sq += v * v;
+    }
+    let mag = mag_sq.sqrt();
+    if mag == 0.0 {
+        return vector;
+    }
+    vector.into_iter().map(|v| v / mag).collect()
+}

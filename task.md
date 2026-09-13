@@ -23,25 +23,25 @@
 - [x] **TASK-205**: Launch specialized parallel subagents for comprehensive coverage.
 
 ## Phase 3 — Foundation, Rules, Agents, Workflows & Structure
-- [ ] **TASK-301**: Enforce clean structure and Docker-first setup for all services.
-- [ ] **TASK-302**: Complete Rules system (.agents/rules/ + AGENTS.md + GEMINI.md).
-- [ ] **TASK-303**: Author Comprehensive Workflows (deep-audit, improvement-cycle, etc.).
+- [x] **TASK-301**: Enforce clean structure and Docker-first setup for all services.
+- [x] **TASK-302**: Complete Rules system (.agents/rules/ + AGENTS.md + GEMINI.md).
+- [x] **TASK-303**: Author Comprehensive Workflows (deep-audit, improvement-cycle, etc.).
 - [ ] **TASK-304**: Expand Custom Agents (ecosystem-mapper, deep-code-auditor, improvement-hunter, orchestrator).
 
 ## Phase 4 — Git Excellence & Remote Integration
-- [ ] **TASK-401**: Ensure full local + GitHub MCP Git mastery.
-- [ ] **TASK-402**: Verify PR creation with rich descriptions and review workflows.
+- [x] **TASK-401**: Ensure full local + GitHub MCP Git mastery.
+- [x] **TASK-402**: Verify PR creation with rich descriptions and review workflows.
 
 ## Phase 5 — Hardening, Remediation of Critical Items & Full Verification
-- [ ] **TASK-501**: Systematically fix Critical and selected High findings from Phase 2.
-- [ ] **TASK-502**: Implement highest-ROI items from improvements_backlog.md (upon approval).
-- [ ] **TASK-503**: Add missing critical tests, observability, and health checks.
+- [x] **TASK-501**: Systematically fix Critical and selected High findings from Phase 2.
+- [x] **TASK-502**: Implement highest-ROI items from improvements_backlog.md (upon approval).
+- [x] **TASK-503**: Add missing critical tests, observability, and health checks.
 - [ ] **TASK-504**: Run exhaustive verification suite (tests, linters, docker, browser).
 - [ ] **TASK-505**: Produce complete walkthrough.md with evidence.
 
 ## Phase 6 — Continuous Improvement & Self-Optimizing Loop
-- [ ] **TASK-601**: Re-run deep scans and Improvement Ideas Discovery Engine periodically.
-- [ ] **TASK-602**: Implement meta-prompts / self-optimizing workflows.
+- [x] **TASK-601**: Re-run deep scans and Improvement Ideas Discovery Engine periodically.
+- [x] **TASK-602**: Implement meta-prompts / self-optimizing workflows.
 - [ ] **TASK-603**: Propose multi-agent swarm executions for large modernization efforts.
 
 ## Phase 7 — Active Milestone Execution
@@ -59,6 +59,7 @@
   - [x] Implement online `createSnapshot()`, `startAutoSnapshotScheduler()`, `rotateSnapshots(7)`, `getWalHealth()` in `DatabaseManager` (`apps/desktop/master/backend/database/db.ts`).
   - [x] Author unit tests in `db_snapshot.test.ts` (5/5 passed).
   - [x] Finalize `docs/SQLITE_RESILIENCE.md` disaster recovery procedures.
+
 
 
 

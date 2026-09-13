@@ -395,6 +395,27 @@ describe('SalesSwarmOrchestrator', () => {
       expect(res.discountCode).toBe('MEMORIES20');
     });
 
+    it('handles rule based for GENERAL_CONCIERGE', async () => {
+      const res = await salesSwarm.handleIncomingMessage({
+        from: '123', message: 'hello', env: {} as any
+      });
+      expect(res.urgencyLevel).toBe('low');
+    });
+
+    it('handles rule based for PRICE_SENSITIVITY', async () => {
+      const res = await salesSwarm.handleIncomingMessage({
+        from: '123', message: 'discount', env: {} as any
+      });
+      expect(res.discountCode).toBe('FLASH20');
+    });
+
+    it('handles rule based for PHOTOBOOK_CUSTOMIZATION', async () => {
+      const res = await salesSwarm.handleIncomingMessage({
+        from: '123', message: 'photobook', env: {} as any
+      });
+      expect(res.discountCode).toBe('BOOKUPGRADE');
+    });
+
     it('handles rule based for DELIVERY_ACCESS_TECHNICAL', async () => {
       const res = await salesSwarm.handleIncomingMessage({
         from: '123', message: 'how to download', env: {} as any

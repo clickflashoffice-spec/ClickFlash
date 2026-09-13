@@ -322,6 +322,8 @@ export default [
       "**/*.test.tsx",
       "**/*.spec.ts",
       "src/wasm/**",
+      "backend/scripts/**",
+      "backend/scratch/**",
     ],
   },
 ];

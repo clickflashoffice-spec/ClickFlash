@@ -594,7 +594,7 @@ async function handleRequest(request) {
     for (const action of actions.reverse()) {
       try {
         switch (action.type) {
-          case 'delete_tunnel':
+          case 'delete_tunnel': {
             const accountId = config?.accountId || process.env.CLOUDFLARE_ACCOUNT_ID;
             if (accountId) {
               await this.cfRequest(
@@ -605,8 +605,9 @@ async function handleRequest(request) {
               this.logger.info('[Cloudflare Apps] Rollback: Deleted tunnel', { id: action.id });
             }
             break;
+          }
 
-          case 'delete_dns':
+          case 'delete_dns': {
             const zoneId = config?.zoneId || process.env.CLOUDFLARE_ZONE_ID;
             if (zoneId) {
               await this.cfRequest(
@@ -617,6 +618,7 @@ async function handleRequest(request) {
               this.logger.info('[Cloudflare Apps] Rollback: Deleted DNS record', { id: action.id });
             }
             break;
+          }
 
           case 'delete_workers_script':
             if (action.endpoint) {

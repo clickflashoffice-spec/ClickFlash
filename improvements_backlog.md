@@ -27,6 +27,9 @@
 | **PERF-004** | Gallery & Management Bundle Code-Splitting | Performance | 8 | 3 | 2 | **1.20** | Completed |
 | **FRONTEND-005** | Gallery Prop-Drilling Elimination (`CustomerGalleryContext`) | Architecture | 8 | 3 | 1 | **2.40** | Completed |
 | **DX-001** | Consolidated `pnpm test:fast` Test Runner | Developer Exp | 7 | 2 | 1 | **3.15** | Completed |
+| **LINT-001** | Master OS ESLint 106-Error Remediation | Code Quality | 8 | 2 | 1 | **3.80** | In Progress |
+| **PERF-005** | Self-Service & Photographer Acyclic Vite Chunking | Performance | 7 | 1 | 1 | **6.65** | In Progress |
+| **PERF-006** | AI Pipeline Multi-Path Vector Index Detection | Observability | 7 | 2 | 1 | **3.15** | In Progress |
 
 ---
 
@@ -169,3 +172,13 @@
 - **Rationale**: Provide sub-15s local developer testing across security guards, shared packages, and core unit tests without launching headless browser instances.
 - **Status**: Completed (`package.json`, runs in ~8s with 100% pass rate).
 
+
+### [PERF-003] OpenTelemetry Distributed Tracing across Nodes
+- **Target**: pps/desktop/master, pps/management
+- **Rationale**: No unified tracing between Kiosk, Master Edge Node, and Cloud Backend.
+- **Status**: Completed (OpenTelemetry Web and Node SDKs installed, 	elemetry.ts injected).
+
+### [ARCH-004] RxDB / ElectricSQL Kiosk-to-Cloud Sync Layer
+- **Target**: pps/desktop/master/backend/services/SyncManager.ts
+- **Rationale**: Current sync logic relies on manual timestamp diffing and batch HTTP calls, which often conflict under partitioned network scenarios (e.g. resort internet drops).
+- **Status**: Completed (RxDB GraphQL Replication over WebSockets implemented).

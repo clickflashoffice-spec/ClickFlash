@@ -29,7 +29,7 @@
 - [x] **TASK-301**: Docker-first posture: Node 22 upgrade, pnpm-lock caching, Redis password auth & healthcheck.
 - [x] **TASK-302**: Complete Rules system in [`.agents/rules/`](file:///c:/Users/alamo/Desktop/ClickFlash/.agents/rules/) + canonical [`AGENTS.md`](file:///c:/Users/alamo/Desktop/ClickFlash/AGENTS.md) + [`GEMINI.md`](file:///c:/Users/alamo/Desktop/ClickFlash/GEMINI.md).
 - [x] **TASK-303**: Author 8 production workflows in [`.agents/workflows/`](file:///c:/Users/alamo/Desktop/ClickFlash/.agents/workflows/).
-- [ ] **TASK-304**: Expand Custom Agents with `ecosystem-mapper.md`, `deep-code-auditor.md`, and `improvement-hunter.md`.
+- [x] **TASK-304**: Expand Custom Agents with `ecosystem-mapper.md`, `deep-code-auditor.md`, and `improvement-hunter.md`.
 
 ## Phase 4 — Git Excellence & Remote Integration
 - [x] **TASK-401**: Authored [`scripts/git-hygiene.ps1`](file:///c:/Users/alamo/Desktop/ClickFlash/scripts/git-hygiene.ps1) with automated branch protection and Conventional Commit verification.
@@ -45,5 +45,5 @@
 
 ## Phase 6 — Continuous Improvement & Self-Optimizing Loop
 - [x] **TASK-601**: Maintain living `improvements_backlog.md` with active priority ranking.
-- [/] **TASK-602**: Execute highest-ROI items from backlog upon user selection (e.g. Modular View splitting, SafeAreaView augmentation).
+- [x] **TASK-602**: Execute highest-ROI items from backlog upon user selection (Modular View splitting ARCH-002, SafeAreaView augmentation QW-001).
 - [ ] **TASK-603**: Coordinate multi-agent swarm modernizations for recurring health audits.

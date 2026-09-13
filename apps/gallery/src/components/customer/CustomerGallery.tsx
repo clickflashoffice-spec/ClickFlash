@@ -61,8 +61,21 @@ const PhotoCard: React.FC<{
 
     return (
         <div
-            className={`relative group overflow-hidden rounded-2xl cursor-pointer bg-slate-900 border border-white/5 transition-all duration-500 hover:shadow-[0_0_30px_rgba(34,211,238,0.2)] hover:-translate-y-1.5 ${isSelected ? 'ring-4 ring-cyan-500 border-transparent shadow-[0_0_40px_rgba(34,211,238,0.4)]' : ''}`}
+            role="button"
+            tabIndex={0}
+            className={`relative group overflow-hidden rounded-2xl cursor-pointer bg-slate-900 border border-white/5 transition-all duration-500 hover:shadow-[0_0_30px_rgba(34,211,238,0.2)] hover:-translate-y-1.5 ${isSelected ? 'ring-4 ring-cyan-500 border-transparent shadow-[0_0_40px_rgba(34,211,238,0.4)]' : ''} block w-full text-left`}
             onClick={isSelectionMode && onToggleSelection ? onToggleSelection : onClick}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (isSelectionMode && onToggleSelection) {
+                        onToggleSelection();
+                    } else {
+                        onClick();
+                    }
+                }
+            }}
+            aria-label={isSelectionMode ? `Select photo ${photo.title}` : `View photo ${photo.title}`}
         >
             <div
                 ref={overlayRef}
@@ -116,18 +129,22 @@ const PhotoCard: React.FC<{
                         </div>
                         <div className="flex space-x-2 flex-shrink-0">
                             <button
+                                type="button"
                                 onClick={(e) => { e.stopPropagation(); onToggleFavorite(photo.id); }}
                                 className={`p-2.5 rounded-xl min-h-[48px] min-w-[48px] flex items-center justify-center backdrop-blur-md border border-white/20 transition-all ${isFavorite ? 'bg-red-500/90 text-white border-red-400/50 shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'bg-white/10 text-white hover:bg-white/20'}`}
                                 title="Favorite"
+                                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                                 </svg>
                             </button>
                             <button
+                                type="button"
                                 onClick={(e) => { e.stopPropagation(); onOpenAddToCartModal(photo); }}
                                 className="p-2.5 rounded-xl min-h-[48px] min-w-[48px] flex items-center justify-center bg-cyan-500/90 text-white backdrop-blur-md border border-cyan-400/50 hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)]"
                                 title="Order Print"
+                                aria-label="Order print"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -135,9 +152,11 @@ const PhotoCard: React.FC<{
                             </button>
                             {photo.originalFilename && isOrderPaid && onDownloadHighRes && (
                                 <button
+                                    type="button"
                                     onClick={(e) => { e.stopPropagation(); onDownloadHighRes(photo); }}
                                     className="p-2.5 rounded-xl min-h-[48px] min-w-[48px] flex items-center justify-center bg-green-500/90 text-white backdrop-blur-md border border-green-400/50 hover:bg-green-400 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)]"
                                     title="Download High-Res"
+                                    aria-label="Download high-resolution image"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />

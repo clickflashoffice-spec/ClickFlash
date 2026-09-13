@@ -33,9 +33,15 @@ repos:
         entry: node scripts/check-tracked-private-key-filenames.mjs
         language: system
         pass_filenames: false
+      - id: biometric-airgap-guard
+        name: Biometric Air-Gap CI Guard
+        entry: node scripts/check-biometric-airgap.mjs
+        language: system
+        pass_filenames: false
       - id: monorepo-typecheck
         name: Turborepo Strict TypeCheck
         entry: npm run typecheck:all
         language: system
         pass_filenames: false
         stages: [push]
+

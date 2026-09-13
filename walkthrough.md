@@ -175,6 +175,22 @@ RESULT: ZERO CRITICAL VULNERABILITIES REMAINING
 - Authored disaster recovery runbook in [`SQLITE_RESILIENCE.md`](file:///c:/Users/alamo/Desktop/ClickFlash/docs/SQLITE_RESILIENCE.md).
 - 5 comprehensive unit tests passing in `db_snapshot.test.ts`.
 
+### E. SQLite Write Queue Durable Journal — ARCH-001
+- **Problem**: Queue writes were kept only in volatile worker memory, vulnerable to resort power outages.
+- **Solution**:
+  - Implemented synchronous append-only write-ahead log (`queue-journal.jsonl`) in [`DbWriteQueue.ts`](file:///c:/Users/alamo/Desktop/ClickFlash/apps/desktop/master/backend/services/DbWriteQueue.ts).
+  - Fixed SQL parameter interpolation in [`dbWorker.ts`](file:///c:/Users/alamo/Desktop/ClickFlash/apps/desktop/master/backend/workers/dbWorker.ts) with identifier sanitization.
+  - Implemented automatic recovery on boot: replays pending writes from both the SQLite `pending_writes` table and disk journal, truncating the journal upon successful replay.
+  - Un-skipped and passed the integration test in [`sync-integration.test.ts`](file:///c:/Users/alamo/Desktop/ClickFlash/apps/desktop/master/backend/tests/sync-integration.test.ts).
+  - Authored 3 unit tests in [`DbWriteQueue.journal.test.ts`](file:///c:/Users/alamo/Desktop/ClickFlash/apps/desktop/master/backend/tests/services/DbWriteQueue.journal.test.ts) (100% pass).
+
+### F. Biometric Air-Gap CI AST Guard — SEC-002
+- **Problem**: Need automated guarantee that future code changes never leak raw 512D ArcFace biometric vectors to kiosks or public clouds.
+- **Solution**:
+  - Authored AST security scanner in [`scripts/check-biometric-airgap.mjs`](file:///c:/Users/alamo/Desktop/ClickFlash/scripts/check-biometric-airgap.mjs) flagging any un-sanitized descriptor exports or disabled air-gap parameters (`excludeBiometrics: false`).
+  - Authored companion test in [`scripts/check-biometric-airgap.test.mjs`](file:///c:/Users/alamo/Desktop/ClickFlash/scripts/check-biometric-airgap.test.mjs) (100% pass).
+  - Wired into `pnpm run test:security-guards`, root `test:ci`, and [`.pre-commit-config.yaml`](file:///c:/Users/alamo/Desktop/ClickFlash/.pre-commit-config.yaml).
+
 ---
 
 ## 5. Confidence Assessment

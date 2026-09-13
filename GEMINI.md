@@ -28,3 +28,14 @@
 2. **Strike 2**: Distinct alternative approach -> log alternative -> re-verify.
 3. **Strike 3**: Broader architectural rethink -> search codebase/web -> log.
 4. **Escalation**: If unresolved after Strike 3, escalate directly to the user.
+
+
+## V6 Production Exhaustive Test Invariants
+1. Exhaustive testing is non-negotiable. Every code change must be accompanied by a matching test.
+2. The production-test-engineer and chaos_engineer subagents hold authority over test validations.
+3. Treat all testing as a mechanism to prove system reliability under extreme duress (Chaos & Load).
+
+## V6 Production Exhaustive Test Invariants
+1. Exhaustive testing is non-negotiable. Every code change must be accompanied by a matching test.
+2. The production-test-engineer and chaos_engineer subagents hold authority over test validations.
+3. Treat all testing as a mechanism to prove system reliability under extreme duress (Chaos & Load).

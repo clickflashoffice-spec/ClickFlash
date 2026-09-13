@@ -239,4 +239,14 @@
 - **Score**: Impact (4) x Effort (5) x Risk (5) = 100
 - **Category**: Performance / Reliability
 
+### [TEST-101] Cloud Backend Test Coverage Gaps
+- **Target**: `apps/backend/cloud-backend/src/routes/gallery.ts`, `workers/sales-swarm.ts`, `utils/*`
+- **Rationale**: Current vitest coverage for `cloud-backend` is at ~42.3% statement coverage. Missing coverage for gallery routes and AI sales swarm edge cases. `apps/desktop/master` has better coverage but worker/db process crash handling is currently unhandled or partially verified.
+- **Score**: Impact (4) x Effort (3) x Risk (2) = 24
+- **Category**: Reliability / Testing
 
+### [CHAOS-101] Automated Edge Node Chaos Engineering
+- **Target**: `apps/desktop/master`, `tests/e2e/chaos`
+- **Rationale**: We can inject simulated failures (`network_partition`, `camera_tether_drop`, `redis_stream_outage`) using ClickFlash MCP `chaos_edge_fault_injector` and `offline_storage_pressure_tester`. Manual validation shows the circuit breaker drops to `LOCAL_AUTONOMOUS` without data loss, but this must be automated into a continuous chaos testing suite in Playwright E2E or GitHub Actions.
+- **Score**: Impact (5) x Effort (4) x Risk (3) = 41
+- **Category**: Reliability / Testing

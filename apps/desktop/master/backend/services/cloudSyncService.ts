@@ -463,33 +463,29 @@ export class CloudSyncService {
         },
       );
 
-      // Apply each setting to local SQLite (INSERT OR REPLACE)
-      for (const setting of data.settings ?? []) {
-        try {
-          this.dbManager.run(
-            `INSERT INTO settings (id, key, value) VALUES (?, ?, ?)
-             ON CONFLICT(id) DO UPDATE SET value = excluded.value, key = excluded.key`,
-            [setting.id, setting.id, setting.value],
-          );
-          this.dbManager.run(
-            `INSERT INTO global_settings (id, key, value, version, updated_at) VALUES (?, ?, ?, 1, datetime('now'))
-             ON CONFLICT(id) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`,
-            [setting.id, setting.id, setting.value],
-          );
-        } catch (e: any) {
-          this.logger.warn("[CloudSync] Failed to apply remote setting", {
-            key: setting.id,
-            error: e.message,
-          });
-        }
-      }
+      // Apply each setting to local SQLite atomically (INSERT OR REPLACE)
+      this.dbManager.transaction(() => {
+        const stmtSettings = this.dbManager.prepare(
+          `INSERT INTO settings (id, key, value) VALUES (?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET value = excluded.value, key = excluded.key`,
+        );
+        const stmtGlobal = this.dbManager.prepare(
+          `INSERT INTO global_settings (id, key, value, version, updated_at) VALUES (?, ?, ?, 1, datetime('now'))
+           ON CONFLICT(id) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`,
+        );
 
-      // Store the new hash so we skip next poll if unchanged
-      this.dbManager.run(
-        `INSERT INTO settings (id, key, value) VALUES ('remote_settings_hash', 'remote_settings_hash', ?)
-         ON CONFLICT(id) DO UPDATE SET value = excluded.value`,
-        [data.hash],
-      );
+        for (const setting of data.settings ?? []) {
+          stmtSettings.run(setting.id, setting.id, setting.value);
+          stmtGlobal.run(setting.id, setting.id, setting.value);
+        }
+
+        // Store the new hash so we skip next poll if unchanged
+        const stmtHash = this.dbManager.prepare(
+          `INSERT INTO settings (id, key, value) VALUES ('remote_settings_hash', 'remote_settings_hash', ?)
+           ON CONFLICT(id) DO UPDATE SET value = excluded.value`,
+        );
+        stmtHash.run(data.hash);
+      });
 
       this.logger.info("[CloudSync] Remote settings applied successfully", {
         hash: data.hash,

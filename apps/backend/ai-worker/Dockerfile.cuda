@@ -25,8 +25,12 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 # Install PyTorch with CUDA 12.1 support explicitly if needed (usually handled by requirements, but ensuring CUDA version matches)
 RUN pip3 install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
+# Create unprivileged user (least privilege security principle)
+RUN groupadd -g 10001 appuser && \
+    useradd -u 10001 -g 10001 -m -s /bin/bash appuser
+
 # Copy application files
-COPY . .
+COPY --chown=appuser:appuser . .
 
 # Expose port 8000
 EXPOSE 8000
@@ -36,6 +40,13 @@ ENV NODE_ENV=production
 ENV PYTHONUNBUFFERED=1
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+# Native healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+
+# Switch to non-root user
+USER appuser
 
 # Command to run the Uvicorn server with multiple workers
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]

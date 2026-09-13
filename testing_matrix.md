@@ -1,24 +1,24 @@
-# ClickFlash Testing Matrix & Strategy
+# ClickFlash V6 Testing Matrix
 
-> **V5 Quality Gates and Coverage Grid**
+## Test Methodologies
+1. **Unit Testing (Vitest)**: Fast, deterministic logic verification (Current state: 100% Pass across UI and Touch apps).
+2. **Component Integration**: React Testing Library rendering interactive DOM graphs.
+3. **End-to-End (Playwright)**: Full browser automation across the Management Hub, Gallery, and Self-Service apps.
+4. **Load & Stress (k6 / Artillery)**: Simulating 5,000 concurrent guest WebSockets.
+5. **Chaos Engineering**: Random failure injection in network layers, Redis queue truncation, and disk quotas.
+6. **Security & SAST**: Continuous vulnerability scanning.
 
-## 1. Unit Testing
-- **Framework**: Vitest (`vitest.config.ts`) across all packages.
-- **Coverage Target**: 85% business logic, 95% utility/math/crdt logic.
-- **Rust Core**: Native `cargo test` for hash collisions and vector math.
+## Application Coverage Map
+| App/Service | Unit | Integration | E2E | Load | Chaos |
+| --- | --- | --- | --- | --- | --- |
+| pps/desktop/master | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ |
+| pps/desktop/touch | ✅ | ✅ | ⚠️ | ❌ | ❌ |
+| pps/desktop/installer | ✅ | ✅ | ✅ | ❌ | ❌ |
+| pps/management | ⚠️ | ⚠️ | ⚠️ | ❌ | ❌ |
+| pps/gallery | ⚠️ | ⚠️ | ⚠️ | ❌ | ❌ |
+| pps/backend/cloud-backend| ⚠️ | ⚠️ | ❌ | ⚠️ | ⚠️ |
 
-## 2. Integration Testing
-- **Edge Sync**: RxDB CRDT replication multi-peer tests via WebSockets (`SyncManager.test.ts`).
-- **Database**: SQLite WAL and hardware DPAPI decryption paths (`db.test.ts`).
-- **Cloud Backend**: Hono Request/Response testing with Miniflare/Wrangler.
+*Legend: ✅ Excellent, ⚠️ Needs Improvement, ❌ Missing*
 
-## 3. End-to-End (E2E) Testing
-- **Framework**: Playwright (`playwright.config.ts`) on Desktop & Kiosk.
-- **Scenarios**:
-  1. Guest Kiosk Selfie Link -> Photo Purchase -> Stripe Checkout.
-  2. Mobile Pro Field Upload -> Rust Hash -> Sync to Master Node.
-  3. Master Node Offline Mode -> Reconnect -> Cloud Replication.
-
-## 4. Property-based & Chaos Testing
-- **Chaos Scenarios**: Disconnect WebSockets mid-transaction, simulated OOM in photo processing.
-- **Property Testing**: Arbitrary sync payloads into RxDB CRDT to verify convergence.
+## Upcoming Phase 4 Expansion
+During the Phase 4 Controlled Takeover, we will inject real k6 load tests and chaos simulation against the local dockerized variants of these services to shift the ❌ and ⚠️ markers to ✅.

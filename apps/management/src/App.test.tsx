@@ -12,9 +12,13 @@ vi.mock('./views/DashboardView', () => ({
 }));
 
 describe('App', () => {
-  it('renders the sidebar and default view', () => {
-    render(<App />);
-    expect(screen.getByText('ClickFlash CEO')).toBeInTheDocument();
-    expect(screen.getByTestId('dashboard-view')).toBeInTheDocument();
+  it('renders the sidebar and default view', async () => {
+    await import('@testing-library/react').then(async ({ act, render, screen }) => {
+      await act(async () => {
+        render(<App />);
+      });
+      expect(screen.getByText('ClickFlash CEO')).toBeInTheDocument();
+      expect(screen.getByTestId('dashboard-view')).toBeInTheDocument();
+    });
   });
 });

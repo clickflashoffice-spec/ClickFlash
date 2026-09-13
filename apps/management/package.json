@@ -8,7 +8,9 @@
     "dev": "node ../../node_modules/vite/bin/vite.js",
     "build": "node ../../node_modules/vite/bin/vite.js build",
     "lint": "node ../../node_modules/eslint/bin/eslint.js src --max-warnings 1000",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@clickflash/ai": "workspace:*",

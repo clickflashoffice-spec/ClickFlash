@@ -1,4 +1,4 @@
-# ClickFlash V5 Ecosystem Map
+# ClickFlash V6 Ecosystem Map
 
 > **Comprehensive Architecture & Dependency Graph**
 
@@ -25,3 +25,4 @@
 - **Stripe**: Handles payments in `cloud-backend` via webhooks.
 - **Resend**: Transactional emails for ghost links and receipts.
 - **Twilio/WhatsApp**: Alerting and chat interfaces.
+

@@ -1,3 +1,4 @@
+import { useCustomerGallery } from './CustomerGalleryContext';
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import VirtualGrid from '@/components/common/VirtualGrid';
 import BulkActionsBar from '@/components/customer/BulkActionsBar';
@@ -13,16 +14,6 @@ type FilterOption = 'all' | 'favorites' | 'approved' | 'rejected' | 'pending';
 
 interface CustomerGalleryProps {
     photos: Photo[];
-    favoritePhotoIds: Set<string>;
-    onToggleFavorite: (photoId: string) => void;
-    onOpenAddToCartModal: (photo: Photo) => void;
-    onPhotoClick: (photo: Photo) => void;
-    onNavigateToDownload?: () => void;
-    onUpdateProofingStatus?: (photoId: string, status: 'approved' | 'rejected' | 'pending') => void;
-    onBulkShare?: (photoIds: string[]) => void;
-    onOpenProofing?: () => void;
-    onDownloadHighRes?: (photo: Photo) => void;
-    isOrderPaid?: boolean;
     isLoading?: boolean;
 }
 
@@ -41,16 +32,16 @@ export const PhotoCardSkeleton: React.FC = () => (
 
 const PhotoCard: React.FC<{
     photo: Photo;
-    isFavorite: boolean;
-    onToggleFavorite: () => void;
-    onAddToCart: () => void;
-    onClick: () => void;
     isSelectionMode?: boolean;
     isSelected?: boolean;
     onToggleSelection?: () => void;
-    onDownloadHighRes?: () => void;
-    isOrderPaid?: boolean;
-}> = ({ photo, isFavorite, onToggleFavorite, onAddToCart, onClick, isSelectionMode, isSelected, onToggleSelection, onDownloadHighRes, isOrderPaid }) => {
+}> = ({ photo, isSelectionMode, isSelected, onToggleSelection }) => {
+    const { favoritePhotoIds, onToggleFavorite, onOpenAddToCartModal, onPhotoClick, onDownloadHighRes, isOrderPaid } = useCustomerGallery();
+    const isFavorite = favoritePhotoIds.has(photo.id);
+    const onAddToCart = () => onOpenAddToCartModal(photo);
+    const onClick = () => onPhotoClick(photo);
+    const downloadAction = onDownloadHighRes ? () => onDownloadHighRes(photo) : undefined;
+
     const editStyle = useMemo(
         () => photo.manualEdits
             ? getPhotoStyle(photo.manualEdits)
@@ -125,7 +116,7 @@ const PhotoCard: React.FC<{
                         </div>
                         <div className="flex space-x-2 flex-shrink-0">
                             <button
-                                onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+                                onClick={(e) => { e.stopPropagation(); onToggleFavorite(photo.id); }}
                                 className={`p-2.5 rounded-xl min-h-[48px] min-w-[48px] flex items-center justify-center backdrop-blur-md border border-white/20 transition-all ${isFavorite ? 'bg-red-500/90 text-white border-red-400/50 shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'bg-white/10 text-white hover:bg-white/20'}`}
                                 title="Favorite"
                             >
@@ -134,7 +125,7 @@ const PhotoCard: React.FC<{
                                 </svg>
                             </button>
                             <button
-                                onClick={(e) => { e.stopPropagation(); onAddToCart(); }}
+                                onClick={(e) => { e.stopPropagation(); onOpenAddToCartModal(photo); }}
                                 className="p-2.5 rounded-xl min-h-[48px] min-w-[48px] flex items-center justify-center bg-cyan-500/90 text-white backdrop-blur-md border border-cyan-400/50 hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)]"
                                 title="Order Print"
                             >
@@ -144,7 +135,7 @@ const PhotoCard: React.FC<{
                             </button>
                             {photo.originalFilename && isOrderPaid && onDownloadHighRes && (
                                 <button
-                                    onClick={(e) => { e.stopPropagation(); onDownloadHighRes(); }}
+                                    onClick={(e) => { e.stopPropagation(); onDownloadHighRes(photo); }}
                                     className="p-2.5 rounded-xl min-h-[48px] min-w-[48px] flex items-center justify-center bg-green-500/90 text-white backdrop-blur-md border border-green-400/50 hover:bg-green-400 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)]"
                                     title="Download High-Res"
                                 >
@@ -170,20 +161,19 @@ const PhotoCard: React.FC<{
     );
 };
 
-const CustomerGallery: React.FC<CustomerGalleryProps> = ({
-    photos,
-    favoritePhotoIds,
-    onToggleFavorite,
-    onOpenAddToCartModal,
-    onPhotoClick,
-    onNavigateToDownload,
-    onUpdateProofingStatus,
-    onBulkShare,
-    onOpenProofing,
-    onDownloadHighRes,
-    isOrderPaid,
-    isLoading = false,
-}) => {
+const CustomerGallery: React.FC<CustomerGalleryProps> = ({ photos, isLoading = false }) => {
+    const {
+        favoritePhotoIds,
+        onToggleFavorite,
+        onOpenAddToCartModal,
+        onPhotoClick,
+        onNavigateToDownload,
+        onUpdateProofingStatus,
+        onBulkShare,
+        onOpenProofing,
+        onDownloadHighRes,
+        isOrderPaid
+    } = useCustomerGallery();
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerHeight, setContainerHeight] = useState(window.innerHeight - 300);
     const [searchTerm, setSearchTerm] = useState('');
@@ -444,15 +434,9 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
                         <PhotoCard
                             key={photo.id}
                             photo={photo}
-                            isFavorite={favoritePhotoIds.has(photo.id)}
-                            onToggleFavorite={() => onToggleFavorite(photo.id)}
-                            onAddToCart={() => onOpenAddToCartModal(photo)}
-                            onClick={() => onPhotoClick(photo)}
                             isSelectionMode={isSelectionMode}
                             isSelected={selectedPhotoIds.has(photo.id)}
                             onToggleSelection={() => togglePhotoSelection(photo.id)}
-                            onDownloadHighRes={() => onDownloadHighRes && onDownloadHighRes(photo)}
-                            isOrderPaid={isOrderPaid}
                         />
                     )}
                 />
@@ -462,15 +446,9 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({
                         <PhotoCard
                             key={photo.id}
                             photo={photo}
-                            isFavorite={favoritePhotoIds.has(photo.id)}
-                            onToggleFavorite={() => onToggleFavorite(photo.id)}
-                            onAddToCart={() => onOpenAddToCartModal(photo)}
-                            onClick={() => onPhotoClick(photo)}
                             isSelectionMode={isSelectionMode}
                             isSelected={selectedPhotoIds.has(photo.id)}
                             onToggleSelection={() => togglePhotoSelection(photo.id)}
-                            onDownloadHighRes={() => onDownloadHighRes && onDownloadHighRes(photo)}
-                            isOrderPaid={isOrderPaid}
                         />
                     ))}
                 </div>

@@ -1,3 +1,4 @@
+import { CustomerGalleryProvider } from './CustomerGalleryContext';
 
 import { logger } from '@clickflash/logger';
 import React, { useState, useCallback, useMemo, useEffect } from "react";
@@ -440,25 +441,23 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     switch (view) {
       case "Gallery":
         return (
+          <CustomerGalleryProvider value={{
+            favoritePhotoIds,
+            onToggleFavorite,
+            onOpenAddToCartModal: handleOpenAddToCartModal,
+            onPhotoClick: (photo: Photo) => openLightbox(photosWithProofing.findIndex((p: Photo) => p.id === photo.id)),
+            onNavigateToDownload: () => setView("Download"),
+            onUpdateProofingStatus: handleUpdateProofingStatus,
+            onBulkShare: handleBulkShare,
+            onOpenProofing: () => setIsProofingModalOpen(true),
+            onDownloadHighRes: handleDownloadHighRes,
+            isOrderPaid: ["paid", "completed", "delivered", "fulfilled"].includes(String(order?.status || "").toLowerCase())
+          }}>
           <CustomerGallery
             photos={photosWithProofing}
-            favoritePhotoIds={favoritePhotoIds}
-            onToggleFavorite={onToggleFavorite}
-            onOpenAddToCartModal={handleOpenAddToCartModal}
-            onPhotoClick={(photo) =>
-              openLightbox(
-                photosWithProofing.findIndex((p) => p.id === photo.id),
-              )
-            }
-            onNavigateToDownload={() => setView("Download")}
-            onUpdateProofingStatus={handleUpdateProofingStatus}
-            onBulkShare={handleBulkShare}
-            onOpenProofing={() => setIsProofingModalOpen(true)}
-            onDownloadHighRes={handleDownloadHighRes}
-            isOrderPaid={["paid", "completed", "delivered", "fulfilled"].includes(
-              String(order?.status || "").toLowerCase(),
-            )}
+            isLoading={!config}
           />
+          </CustomerGalleryProvider>
         );
       case "Store":
         return (

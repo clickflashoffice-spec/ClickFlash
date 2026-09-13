@@ -4,6 +4,7 @@ import {
   dialog,
   ipcMain,
   IpcMainInvokeEvent,
+  safeStorage
 } from 'electron';
 import crypto from 'crypto';
 import fs from 'fs';
@@ -35,7 +36,7 @@ const DEVELOPMENT_ORIGIN = 'http://localhost:5176';
 const RENDERER_ENTRY = path.join(__dirname, '../dist/renderer/index.html');
 const MAX_SIGNING_KEY_FILE_BYTES = 4_096;
 let mainWindow: BrowserWindow | null = null;
-let signingKeyBytes: Buffer | null = null;
+let encryptedSigningKey: Buffer | null = null;
 let signingPublicKeyB64: string | null = null;
 
 function isTrustedRendererUrl(value: string): boolean {
@@ -50,8 +51,8 @@ function isTrustedRendererUrl(value: string): boolean {
 }
 
 function clearSigningKey(): void {
-  signingKeyBytes?.fill(0);
-  signingKeyBytes = null;
+  encryptedSigningKey?.fill(0);
+  encryptedSigningKey = null;
   signingPublicKeyB64 = null;
 }
 
@@ -101,12 +102,22 @@ function setupIpcHandlers(): void {
         return { selected: false, error: 'The signing key has an invalid length' };
       }
       clearSigningKey();
-      signingKeyBytes = nextKey;
+      
+      if (safeStorage.isEncryptionAvailable()) {
+        encryptedSigningKey = safeStorage.encryptString(encodedKey);
+      } else {
+        logger.warn('safeStorage is not available. Using plaintext storage.');
+        encryptedSigningKey = Buffer.from(encodedKey, 'utf8');
+      }
+      
       signingPublicKeyB64 = nextKey.subarray(32).toString('base64');
+      const keyId = crypto.createHash('sha256').update(nextKey.subarray(32)).digest('hex').slice(0, 16);
+      nextKey.fill(0);
+
       return {
         selected: true,
         fileName: path.basename(selectedPath),
-        keyId: crypto.createHash('sha256').update(nextKey.subarray(32)).digest('hex').slice(0, 16),
+        keyId,
       };
     } finally {
       fileBytes.fill(0);
@@ -119,8 +130,16 @@ function setupIpcHandlers(): void {
 
   registerIpcHandler('license:generate', async (_event, rawRequest: unknown) => {
     const request = generateLicenseRequestSchema.parse(rawRequest);
-    if (!signingKeyBytes) throw new Error('Select a private signing-key file first');
-    const generated = await generateLicenseKeys(request, signingKeyBytes.toString('base64'));
+    if (!encryptedSigningKey) throw new Error('Select a private signing-key file first');
+
+    let plainKeyBase64 = '';
+    if (safeStorage.isEncryptionAvailable()) {
+      plainKeyBase64 = safeStorage.decryptString(encryptedSigningKey);
+    } else {
+      plainKeyBase64 = encryptedSigningKey.toString('utf8');
+    }
+
+    const generated = await generateLicenseKeys(request, plainKeyBase64);
     
     // Log each generated key to the audit database
     for (const item of generated) {

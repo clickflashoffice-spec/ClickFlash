@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense, type ReactNode } from 'react';
+import { ErrorBoundary } from '@clickflash/ui';
 import { 
   LayoutDashboard, 
   MonitorSmartphone, 
@@ -281,13 +282,15 @@ export default function App() {
   };
 
   return (
-    <AuthProvider>
-      <MainLayout currentPath={currentPath} onNavigate={handleNavigate}>
-        <Suspense fallback={<ViewLoadingSkeleton />}>
-          {renderView()}
-        </Suspense>
-      </MainLayout>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <MainLayout currentPath={currentPath} onNavigate={handleNavigate}>
+          <Suspense fallback={<ViewLoadingSkeleton />}>
+            {renderView()}
+          </Suspense>
+        </MainLayout>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

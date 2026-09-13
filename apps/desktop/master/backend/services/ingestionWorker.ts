@@ -77,6 +77,9 @@ export function createIngestionWorker(deps: IngestionWorkerDeps): RedisStreamCon
       );
 
       logger.debug(`[IngestionWorker] Photo ${id} (${filename}) persisted to SQLite.`);
+      
+      // Explicit GC yield to prevent V8 memory leaks under severe tethering load
+      await new Promise(resolve => setImmediate(resolve));
     },
   });
 

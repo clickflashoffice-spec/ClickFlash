@@ -50,6 +50,7 @@
     "build:docs": "pnpm --filter @clickflash/docs run build",
     "dev:mcp": "pnpm --filter clickflash-mcp run dev",
     "test:all": "vitest run && node --test scripts/check-tracked-private-key-filenames.test.mjs && pnpm --filter @clickflash/mobile-pro test && pnpm --filter @clickflash/mobile-consumer test",
+    "test:fast": "pnpm run test:security-guards && pnpm run test:packages && node --test apps/mobile/pro/tests/rust-core-foundation.test.ts",
     "test:packages": "vitest run packages/",
     "test:master": "pnpm --filter clickflash-master test",
     "test:touch": "pnpm --filter clickflash-touch test",

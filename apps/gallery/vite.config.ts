@@ -26,7 +26,7 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react/') || id.includes('react-dom/')) return 'vendor-react';
+            if (id.includes('react/') || id.includes('react-dom/') || id.includes('scheduler/') || id.includes('use-sync-external-store')) return 'vendor-react';
             if (id.includes('framer-motion')) return 'vendor-framer';
             if (id.includes('lucide-react')) return 'vendor-icons';
             if (id.includes('react-i18next') || id.includes('i18next')) return 'vendor-i18n';

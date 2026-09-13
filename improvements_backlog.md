@@ -10,12 +10,12 @@
 
 | ID | Title | Category | Impact (1-10) | Effort (1-10) | Risk (1-5) | ROI Score | Status |
 |---|---|---|---|---|---|---|---|
-| **QW-001** | NativeWind SafeAreaView Type Augmentation | Quick Win | 8 | 1 | 1 | **8.00** | Approved / Ready |
+| **QW-001** | NativeWind SafeAreaView Type Augmentation | Quick Win | 8 | 1 | 1 | **8.00** | Completed |
 | **QW-002** | Master Vitest Forks Pool Permanent Config | Quick Win | 9 | 1 | 1 | **9.00** | Completed |
 | **QW-003** | Shared Packages Pre-Build in GitHub CI | Quick Win | 9 | 1 | 1 | **9.00** | Completed |
 | **QW-004** | Docker Redis Authentication & Healthcheck | Quick Win | 7 | 1 | 1 | **7.00** | Completed |
 | **ARCH-001** | SQLite Write Queue (`DbWriteQueue`) Journal | Architecture | 9 | 4 | 2 | **1.01** | Proposed |
-| **ARCH-002** | Modular Split of AgentStudioView (1,200 LOC) | Architecture | 8 | 3 | 1 | **2.40** | Approved / In Progress |
+| **ARCH-002** | Modular Split of AgentStudioView (1,200 LOC) | Architecture | 8 | 3 | 1 | **2.40** | Completed |
 | **ARCH-003** | Real Rust Core Implementation (`@clickflash/mobile-pro`) | Architecture | 10 | 8 | 3 | **0.38** | Proposed |
 | **ARCH-004** | RxDB / ElectricSQL Kiosk-to-Cloud Sync Layer | Architecture | 9 | 7 | 3 | **0.40** | Proposed |
 | **SEC-001** | Hardware DPAPI/TPM Master SQLite Key Custody | Security | 10 | 4 | 2 | **1.13** | Proposed |
@@ -37,7 +37,7 @@
 - **Acceptance Criteria**:
   - `declare module 'react-native-safe-area-context' { interface NativeSafeAreaViewProps { className?: string; } }` declared.
   - `pnpm --filter @clickflash/mobile-pro run typecheck` passes with exit code 0.
-- **Status**: Approved / Ready to merge.
+- **Status**: Completed in `feat/v4-deep-optimizations`.
 
 ### [QW-002] Master Vitest Forks Pool Configuration
 - **Target**: `apps/desktop/master/vitest.config.ts`
@@ -84,8 +84,9 @@
   5. `YieldArbitrageTab` (Dynamic pricing curves, demand surges, revenue uplift)
 - **Acceptance Criteria**:
   - Split into `apps/management/src/views/agent-studio/` directory.
-  - Main view reduced to clean tab orchestrator (<180 lines).
+  - Main view reduced to clean tab orchestrator (<90 lines).
   - Strict typecheck and zero UI regression.
+- **Status**: Completed in `refactor/frontend-4-agent-studio`.
 
 ### [ARCH-003] Real Rust Core Implementation (`@clickflash/mobile-pro`)
 - **Target**: `apps/mobile/pro/clickflash-rust-core`

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="script-src 'unsafe-inline' 'self' http://localhost:* http://127.0.0.1:* data: blob:; style-src 'unsafe-inline' 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; object-src 'none'; connect-src 'self' http: is: ws: wss: data: blob:; img-src 'self' data: blob: https: http:;"
+      content="default-src 'self'; script-src 'self' http://localhost:* http://127.0.0.1:* blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; object-src 'none'; connect-src 'self' http: https: ws: wss:; img-src 'self' data: blob: https: http:; worker-src 'self' blob:;"
     />
     <title>ClickFlash - Touch Kiosk</title>
     <link rel="icon" type="image/png" href="/icon.png" />
@@ -30,17 +30,5 @@
   >
     <div id="root"></div>
     <script type="module" src="./src/main.tsx"></script>
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("./service-worker.js")
-            .then((reg) =>
-              console.log("SW registration successful:", reg.scope),
-            )
-            .catch((err) => console.log("SW registration failed:", err));
-        });
-      }
-    </script>
   </body>
 </html>

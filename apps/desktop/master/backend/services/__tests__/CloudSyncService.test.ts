@@ -108,6 +108,53 @@ describe('CloudSyncService', () => {
 
         expect((service as any).consecutiveFailures).toBeGreaterThanOrEqual(1);
     });
+
+    it('should atomically apply settings within a transaction and record new hash', async () => {
+        (service as any).token = 'mock-jwt-token';
+        (service as any).config.enabled = true;
+        (service as any).authenticate = vi.fn().mockResolvedValue(true);
+
+        mockFetch.mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            json: async () => ({
+                changed: true,
+                hash: 'new_hash_999',
+                settings: [{ id: 'watermark_opacity', value: '0.85' }],
+            }),
+        });
+
+        const mockStmt = { run: vi.fn() };
+        mockDbManager.prepare.mockReturnValue(mockStmt);
+
+        await service.syncRemoteSettings();
+
+        expect(mockDbManager.transaction).toHaveBeenCalled();
+        expect(mockStmt.run).toHaveBeenCalledWith('watermark_opacity', 'watermark_opacity', '0.85');
+        expect(mockStmt.run).toHaveBeenCalledWith('new_hash_999');
+    });
+
+    it('should handle transaction errors gracefully in syncRemoteSettings without crashing', async () => {
+        (service as any).token = 'mock-jwt-token';
+        (service as any).config.enabled = true;
+        (service as any).authenticate = vi.fn().mockResolvedValue(true);
+
+        mockFetch.mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            json: async () => ({
+                changed: true,
+                hash: 'crash_hash',
+                settings: [{ id: 'kiosk_timeout', value: '60' }],
+            }),
+        });
+
+        mockDbManager.transaction.mockImplementationOnce(() => {
+            throw new Error('SQLite disk full / transaction rollback');
+        });
+
+        await expect(service.syncRemoteSettings()).resolves.not.toThrow();
+    });
 });
 
 import { OperationLogsPipeline } from '../sync/pipelines/OperationLogsPipeline';

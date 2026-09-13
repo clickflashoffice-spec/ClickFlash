@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Hono } from 'hono';
-import routerApp from '../src/routes/gallery';
+import routerApp, { parseSingleByteRange } from '../src/routes/gallery';
 import { AuthConfigurationError, createGalleryToken, getGalleryPrincipal, requireGalleryAuth, requireServiceAuth, verifyGalleryToken } from '../src/auth';
 
 vi.mock('../src/auth', () => ({
@@ -28,8 +28,27 @@ const mockBucket = {
   put: vi.fn()
 };
 
-const app = new Hono();
-app.use('*', async (c, next) => {
+describe('parseSingleByteRange', () => {
+  it('parses bounded, open-ended, and suffix byte ranges', () => {
+    expect(parseSingleByteRange('bytes=0-99', 1_000)).toEqual({ start: 0, end: 99, length: 100 });
+    expect(parseSingleByteRange('bytes=900-', 1_000)).toEqual({ start: 900, end: 999, length: 100 });
+    expect(parseSingleByteRange('bytes=-25', 1_000)).toEqual({ start: 975, end: 999, length: 25 });
+    expect(parseSingleByteRange('bytes=950-5000', 1_000)).toEqual({ start: 950, end: 999, length: 50 });
+  });
+
+  it('rejects malformed, multiple, reversed, and unsatisfiable ranges', () => {
+    expect(() => parseSingleByteRange('items=0-10', 1_000)).toThrow();
+    expect(() => parseSingleByteRange('bytes=0-1,4-5', 1_000)).toThrow();
+    expect(() => parseSingleByteRange('bytes=20-10', 1_000)).toThrow();
+    expect(() => parseSingleByteRange('bytes=1000-', 1_000)).toThrow();
+    expect(() => parseSingleByteRange('bytes=-0', 1_000)).toThrow();
+    expect(() => parseSingleByteRange('bytes=a-b', 1_000)).toThrow();
+    expect(() => parseSingleByteRange('bytes=0-99', -1)).toThrow();
+  });
+});
+
+const app = new Hono<any>();
+app.use('*', async (c: any, next: any) => {
   c.set('DB', mockDb);
   c.set('regionId', 'test-region');
   await next();
@@ -41,7 +60,7 @@ const getEnv = (overrides = {}) => ({
   SESSION_KV: mockKv,
   PHOTO_BUCKET: mockBucket,
   ...overrides
-});
+} as any);
 
 describe('gallery routes', () => {
   beforeEach(() => {
@@ -77,14 +96,14 @@ describe('gallery routes', () => {
         headers: { 'Content-Type': 'application/json' }
       }, getEnv());
       expect(res.status).toBe(200);
-      const data = await res.json();
+      const data = (await res.json()) as any;
       expect(data.token).toBe('test_token');
       expect(data.event).toEqual({ id: 1, name: 'Test' });
     });
 
     it('handles AuthConfigurationError', async () => {
       mockDb.prepare.mockReturnValue({ bind: () => ({ first: async () => ({ id: 1 }) }) });
-      vi.mocked(createGalleryToken).mockRejectedValue(new AuthConfigurationError());
+      vi.mocked(createGalleryToken).mockRejectedValue(new AuthConfigurationError('config error'));
       const res = await app.request('/login', {
         method: 'POST',
         body: JSON.stringify({ accessCode: '123' }),
@@ -208,7 +227,7 @@ describe('gallery routes', () => {
       }, getEnv());
       
       expect(res.status).toBe(200);
-      const data = await res.json();
+      const data = (await res.json()) as any;
       expect(data.token).toBe('signed_token');
       expect(mockKv.delete).toHaveBeenCalledWith('qr:123');
     });
@@ -228,14 +247,14 @@ describe('gallery routes', () => {
       }, getEnv({ SESSION_KV: undefined }));
       
       expect(res.status).toBe(200);
-      const data = await res.json();
+      const data = (await res.json()) as any;
       expect(data.token).toBe('signed_token');
     });
 
     it('handles AuthConfigurationError in validate', async () => {
       mockKv.get.mockResolvedValue({ eventId: '1', expiresAt: Date.now() + 10000 });
       mockDb.prepare.mockReturnValue({ bind: () => ({ run: vi.fn(), first: async () => ({ id: 1 }) }) });
-      vi.mocked(createGalleryToken).mockRejectedValue(new AuthConfigurationError());
+      vi.mocked(createGalleryToken).mockRejectedValue(new AuthConfigurationError('config error'));
       
       const res = await app.request('/qr/validate', {
         method: 'POST',
@@ -269,7 +288,7 @@ describe('gallery routes', () => {
       
       const res = await app.request('/photos', {}, getEnv());
       expect(res.status).toBe(200);
-      const data = await res.json();
+      const data = (await res.json()) as any;
       expect(data.photos[0].id).toBe(1);
       expect(data.photos[0].aiTags).toEqual(['tag1']);
     });
@@ -315,7 +334,7 @@ describe('gallery routes', () => {
         headers: { 'Authorization': 'Bearer token123' }
       }, getEnv());
       expect(res.status).toBe(200);
-      const data = await res.json();
+      const data = (await res.json()) as any;
       expect(data.downloadUrl).toContain('token=token123');
     });
 
@@ -335,7 +354,7 @@ describe('gallery routes', () => {
     });
 
     it('returns 503 if AuthConfigurationError', async () => {
-      vi.mocked(verifyGalleryToken).mockRejectedValue(new AuthConfigurationError());
+      vi.mocked(verifyGalleryToken).mockRejectedValue(new AuthConfigurationError('config error'));
       const res = await app.request('/photos/1/file?token=123', {}, getEnv());
       expect(res.status).toBe(503);
     });

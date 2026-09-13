@@ -220,7 +220,7 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
                             finalKioskId = legacyId;
                         }
                     }
-                } catch (e) { }
+                } catch (_) { /* intentional: localStorage migration failure — use generated ID */ }
             }
 
             // 3. Fallback: Auto-Generate if we have no ID (or just purged 123)
@@ -250,7 +250,7 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
                     localStorage.setItem('kioskSettingsV2', JSON.stringify(settings));
                 }
                 localStorage.setItem('kioskId', finalKioskId); // Legacy fallback
-            } catch (e) { }
+            } catch (_) { /* intentional: localStorage persistence failure — session still functional */ }
 
             logger.info(`[KioskSetup] Final Kiosk ID: ${currentKioskId}`);
 
@@ -261,7 +261,7 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
                 if (existingSettingsRaw) {
                     try {
                         parsedExisting = JSON.parse(existingSettingsRaw) as Partial<KioskSettings>;
-                    } catch (e) { }
+                    } catch (_) { /* intentional: malformed settings JSON — use empty defaults */ }
                 }
 
                 const currentHost = window.location.hostname;
@@ -315,7 +315,7 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
                         const timeoutSecs = Number(savedSettings.screensaverTimeout);
                         setIdleTimeoutMs(timeoutSecs > 0 ? timeoutSecs * 1000 : 0);
                     }
-                } catch (e) { }
+                } catch (_) { /* intentional: settings parse failure — use defaults */ }
             }
 
             // Skip valid check - we know LEGACY_KIOSK_ID is valid
@@ -338,7 +338,7 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
                             savedSettings.serverUrl = `${url.protocol}//${url.hostname}:8090`;
                             localStorage.setItem('kioskSettingsV2', JSON.stringify(savedSettings));
                         }
-                    } catch (e) { }
+                    } catch (_) { /* intentional: URL parse/correction failure — auto-discovery fallback */ }
                 }
 
                 if (masterIp) {
@@ -610,7 +610,7 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
                                         return newAlbums;
                                     });
                                     showToast("New photos have arrived!");
-                                } catch (e) { }
+                                } catch (e) { logger.warn('[Kiosk] Failed to hydrate album from WebSocket', { error: String(e) }); }
                             }
 
                             // BROADCAST_DATA_REFRESH support for Products & Packs
@@ -628,7 +628,7 @@ export const KioskProvider: React.FC<KioskProviderProps> = ({ children, showToas
                                 brandingService.checkForUpdates(true).catch(() => {});
                                 refreshProductData();
                             }
-                        } catch (e) { }
+                        } catch (e) { logger.warn('[Kiosk] WebSocket message processing error', { error: String(e) }); }
                     },
                     async (status) => {
                         if (!isSubscribed) return;

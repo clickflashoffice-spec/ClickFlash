@@ -98,7 +98,7 @@ export class NetworkDetectionManager {
             } else {
                 this.dbManager.run("INSERT INTO settings (key, value, created_at, updated_at) VALUES (?, ?, ?, ?)", ['networkWhitelist', JSON.stringify(config), new Date().toISOString(), new Date().toISOString()]);
             }
-        } catch (error) { }
+        } catch (_) { /* intentional: DB persistence failure — in-memory whitelist still active */ }
     }
 
     public addToWhitelist(ip: string): void { if (ip) { this.whitelist.add(ip); this.saveWhitelist(); } }

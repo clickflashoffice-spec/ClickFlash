@@ -222,7 +222,10 @@ export async function startServer(
   });
 
   // ─── Phase 55: Global Crash Monitoring ──────────────────────────────────────
-  process.on("uncaughtException", async (err: Error) => {
+  process.on("uncaughtException", async (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EPIPE') {
+      process.exit(1);
+    }
     context.logger.error(`[FATAL] Uncaught Exception: ${err.message}`, { stack: err.stack });
     try {
       const { Logger: LoggerC } = await import("../utils/logger");

@@ -1,9 +1,10 @@
+console.log("=== SERVER BOOT SEQUENCE STARTED ===");
 import { createRequire } from "module";
 const esmRequire = createRequire(import.meta.url);
 (globalThis as any).require = (globalThis as any).require || esmRequire;
 
-import { initTelemetry } from './utils/telemetry';
-initTelemetry();
+// import { initTelemetry } from './utils/telemetry';
+// initTelemetry();
 console.log("Starting server.ts...");
 import dotenv from "dotenv";
 dotenv.config();

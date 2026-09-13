@@ -264,7 +264,7 @@ export default class MaintenanceService {
               if (fs.readdirSync(fullPath).length === 0) {
                 fs.rmdirSync(fullPath);
               }
-            } catch (e) {}
+            } catch (_) { /* intentional: skip if dir removal fails (permissions, race condition) */ }
           } else if (
             (item.includes("_preview") ||
               item.includes("_tiny") ||

@@ -203,15 +203,17 @@
 - **Score**: Impact (3) x Effort (5) x Risk (5) = 75
 - **Category**: Localization & Tech Debt
 
-### [SEC-101] Eliminate Hardcoded Fallback Secrets in Production
+### [SEC-101] [VERIFIED MITIGATED] Eliminate Hardcoded Fallback Secrets in Production
 - **Target**: `docker-compose.prod.yml`
 - **Rationale**: Default fallback secrets (e.g. `:-clickflash_redis_dev_secret`) exist in production files, risking silent OWASP misconfigurations.
+- **Resolution**: Prod compose already uses `${REDIS_PASSWORD:?REDIS_PASSWORD is required}` (fail-hard syntax). Fallback secrets only in `docker-compose.dev.yml` (acceptable for local dev).
 - **Score**: Impact (5) x Effort (5) x Risk (4) = 100
 - **Category**: Security
 
-### [INFRA-101] Mitigate Supply-Chain Risk in CI/CD
+### [INFRA-101] [COMPLETED] Mitigate Supply-Chain Risk in CI/CD
 - **Target**: `.github/workflows/ci.yml`
 - **Rationale**: Unverified 3rd-party GitHub action uses mutable tags. Pin to SHA or replace.
+- **Resolution**: All GitHub Actions pinned to immutable SHA hashes (`actions/checkout@11bd719...`, `pnpm/action-setup@a7487c7...`, `actions/setup-node@4993...`).
 - **Score**: Impact (4) x Effort (5) x Risk (4) = 80
 - **Category**: Infra/DevOps
 
@@ -244,6 +246,12 @@
 - **Rationale**: Current vitest coverage for `cloud-backend` is at ~42.3% statement coverage. Missing coverage for gallery routes and AI sales swarm edge cases. `apps/desktop/master` has better coverage but worker/db process crash handling is currently unhandled or partially verified.
 - **Score**: Impact (4) x Effort (3) x Risk (2) = 24
 - **Category**: Reliability / Testing
+
+### [TEST-102] Fix Cloud Backend WebCrypto Global Mock
+- **Target**: `apps/backend/cloud-backend/src/tests/auth.test.ts`, `apps/backend/cloud-backend/src/tests/stripe.test.ts`
+- **Rationale**: Fix `crypto.subtle` undefined error in `cloud-backend` tests (`auth.test.ts`, `stripe.test.ts`). This is due to Node.js `webcrypto` not being globally mocked in Vitest for the Hono worker environment.
+- **Score**: Impact (4) x Effort (2) x Risk (3) = 24
+- **Category**: Testing
 
 ### [CHAOS-101] Automated Edge Node Chaos Engineering
 - **Target**: `apps/desktop/master`, `tests/e2e/chaos`

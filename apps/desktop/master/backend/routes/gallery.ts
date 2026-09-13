@@ -274,7 +274,7 @@ export default function galleryRoutes(context: GalleryContext) {
                         if (highres) highres = highres.replace(/(_highres|_preview)\.[^.]+$/, '_preview_edited.jpg');
                         if (preview) preview = preview.replace(/(_highres|_preview)\.[^.]+$/, '_preview_edited.jpg');
                     }
-                } catch(e) {}
+                } catch(_) { /* intentional: malformed edits JSON — serve unedited path */ }
 
                 const tierToCol: Record<string, string> = {
                     highres: highres,

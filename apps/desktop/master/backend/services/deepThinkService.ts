@@ -110,7 +110,7 @@ export class DeepThinkService {
       let flags: string[] = [];
       try {
         flags = typeof p.quality_flags === 'string' ? JSON.parse(p.quality_flags) : p.quality_flags || [];
-      } catch (e) {}
+      } catch (_) { /* intentional: malformed quality_flags fallback to empty array */ }
       if (flags.includes('BLUR')) blurCount++;
     });
 

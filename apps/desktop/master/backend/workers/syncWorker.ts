@@ -65,7 +65,9 @@ async function runSyncCycle() {
     let transactions: any[] = [];
     try {
         transactions = db.prepare(`SELECT * FROM orders WHERE synced_to_cloud = 0 LIMIT 100`).all();
-    } catch(e) {}
+    } catch(e) {
+        // Table or synced_to_cloud column might not exist yet
+    }
 
     // Prepare Up-Sync Payload
     const upSyncPayload = {

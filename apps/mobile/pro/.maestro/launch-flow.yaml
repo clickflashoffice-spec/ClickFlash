@@ -1,0 +1,9 @@
+appId: com.clickflash.pro
+---
+- launchApp:
+    clearState: true
+
+# Wait for the app to fully load to the first screen
+- extendedWaitUntil:
+    visible: "Login"
+    timeout: 10000

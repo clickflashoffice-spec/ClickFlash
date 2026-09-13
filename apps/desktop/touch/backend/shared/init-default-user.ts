@@ -66,7 +66,7 @@ export async function initDefaultUser(dbManagerOrPath?: DatabaseManager | string
                     });
                 }
             }
-        } catch (e) { }
+        } catch (_) { /* intentional: role_permissions table may not exist yet during migration */ }
 
         const defaultUser = dbManager.get<{ role: string }>('SELECT * FROM users WHERE email = ?', [DEFAULT_USER.email]);
         if (userCount === 0 || !defaultUser) {
@@ -82,10 +82,10 @@ export async function initDefaultUser(dbManagerOrPath?: DatabaseManager | string
                     placeholders.push('?');
                     values.push(DEFAULT_USER.password_must_change);
                 }
-            } catch (e) { }
+            } catch (_) { /* intentional: password_must_change column detection — skip if unavailable */ }
 
             const insertSql = `INSERT INTO users (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`;
             dbManager.run(insertSql, values);
         }
-    } catch (error) { }
+    } catch (error) { console.error('[initDefaultUser] CRITICAL: Default user initialization failed', error); }
 }

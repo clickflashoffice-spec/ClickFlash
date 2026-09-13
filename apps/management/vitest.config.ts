@@ -11,12 +11,21 @@ export default defineConfig({
     fileParallelism: false,
     isolate: false,
     pool: 'threads',
+    testTimeout: 10000,
+    hookTimeout: 10000,
     restoreMocks: true,
     clearMocks: true,
+    include: ['src/**/*.test.{ts,tsx}'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**', '**/*.spec.ts'],
   },
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),
     },
+  },
+  define: {
+    'import.meta.env.DEV': JSON.stringify(true),
+    'import.meta.env.PROD': JSON.stringify(false),
+    'import.meta.env.MODE': JSON.stringify('test'),
   },
 });

@@ -32,10 +32,7 @@
 
 ## V6 Production Exhaustive Test Invariants
 1. Exhaustive testing is non-negotiable. Every code change must be accompanied by a matching test.
-2. The production-test-engineer and chaos_engineer subagents hold authority over test validations.
+2. The `production-test-engineer` and `chaos-engineer` subagents hold authority over test validations.
 3. Treat all testing as a mechanism to prove system reliability under extreme duress (Chaos & Load).
-
-## V6 Production Exhaustive Test Invariants
-1. Exhaustive testing is non-negotiable. Every code change must be accompanied by a matching test.
-2. The production-test-engineer and chaos_engineer subagents hold authority over test validations.
-3. Treat all testing as a mechanism to prove system reliability under extreme duress (Chaos & Load).
+4. Local production testing must use isolated Docker Compose configuration (`docker-compose.sim.yml`) or worktree environments (`ClickFlash-Prod-Sim`).
+5. Live production orchestration requires the explicit presence of the `.agents/V6_PROD_TAKEOVER_APPROVED` gatefile.

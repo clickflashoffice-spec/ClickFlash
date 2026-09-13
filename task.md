@@ -45,5 +45,5 @@
 
 ## Phase 6 — Continuous Improvement & Self-Optimizing Loop
 - [x] **TASK-601**: Maintain living `improvements_backlog.md` with active priority ranking.
-- [x] **TASK-602**: Execute highest-ROI items from backlog upon user selection (Modular View splitting ARCH-002, SafeAreaView augmentation QW-001).
+- [x] **TASK-602**: Execute highest-ROI items from backlog: Modular View splitting (ARCH-002), SafeAreaView augmentation (QW-001), SQLite Write Queue Durable Journal (ARCH-001), Biometric Air-Gap CI AST Guard (SEC-002).
 - [ ] **TASK-603**: Coordinate multi-agent swarm modernizations for recurring health audits.

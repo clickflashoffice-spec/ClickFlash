@@ -14,12 +14,12 @@
 | **QW-002** | Master Vitest Forks Pool Permanent Config | Quick Win | 9 | 1 | 1 | **9.00** | Completed |
 | **QW-003** | Shared Packages Pre-Build in GitHub CI | Quick Win | 9 | 1 | 1 | **9.00** | Completed |
 | **QW-004** | Docker Redis Authentication & Healthcheck | Quick Win | 7 | 1 | 1 | **7.00** | Completed |
-| **ARCH-001** | SQLite Write Queue (`DbWriteQueue`) Journal | Architecture | 9 | 4 | 2 | **1.01** | Proposed |
+| **ARCH-001** | SQLite Write Queue (`DbWriteQueue`) Journal | Architecture | 9 | 4 | 2 | **1.01** | Completed |
 | **ARCH-002** | Modular Split of AgentStudioView (1,200 LOC) | Architecture | 8 | 3 | 1 | **2.40** | Completed |
 | **ARCH-003** | Real Rust Core Implementation (`@clickflash/mobile-pro`) | Architecture | 10 | 8 | 3 | **0.38** | Proposed |
 | **ARCH-004** | RxDB / ElectricSQL Kiosk-to-Cloud Sync Layer | Architecture | 9 | 7 | 3 | **0.40** | Proposed |
 | **SEC-001** | Hardware DPAPI/TPM Master SQLite Key Custody | Security | 10 | 4 | 2 | **1.13** | Proposed |
-| **SEC-002** | Biometric Air-Gap CI AST Linter Guard | Security | 9 | 3 | 1 | **2.70** | Proposed |
+| **SEC-002** | Biometric Air-Gap CI AST Linter Guard | Security | 9 | 3 | 1 | **2.70** | Completed |
 | **SEC-003** | Fastify LAN Endpoint HMAC Request Signing | Security | 8 | 3 | 2 | **1.20** | Proposed |
 | **PERF-001** | Turborepo Remote Caching in GitHub Actions | Performance | 8 | 2 | 1 | **3.60** | Proposed |
 | **PERF-002** | Sharp Stream Concurrency Pool & Backpressure | Performance | 9 | 4 | 2 | **1.01** | Proposed |
@@ -73,6 +73,7 @@
   - Write-ahead append-only JSONL log (`queue-journal.jsonl`) written synchronously before memory enqueue.
   - On startup, replay pending journal entries to SQLite.
   - Truncate journal upon successful SQLite batch transaction.
+- **Status**: Completed (Dual-durability: sync WAL journal + pending_writes table recovery).
 
 ### [ARCH-002] Modular Split of `AgentStudioView.tsx`
 - **Target**: `apps/management/src/views/AgentStudioView.tsx`
@@ -111,6 +112,7 @@
 - **Rationale**: Guarantee that no code changes ever introduce raw ArcFace 512D float embeddings into `metadata.json`, WebSocket broadcasts, or public cloud endpoints.
 - **Acceptance Criteria**:
   - Custom ESLint rule or AST scan flagging any export of `descriptor` or vector arrays to kiosk sync payloads.
+- **Status**: Completed (`scripts/check-biometric-airgap.mjs` + `test:security-guards` in CI).
 
 ---
 

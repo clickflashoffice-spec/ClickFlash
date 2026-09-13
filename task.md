@@ -52,4 +52,7 @@
   - [x] **TASK-603C**: Sharp stream concurrency pooling & derivative pipeline optimization in `photoWorker.ts` (PERF-002).
   - [x] **TASK-603D**: Hardware DPAPI Master SQLite key custody in `db.ts` and `dpapi.ts` (SEC-001).
   - [x] **TASK-603E**: Prop-drilling elimination via `CustomerGalleryContext` in `@clickflash/gallery` (FRONTEND-005).
+  - [x] **TASK-603F**: Mobile Pro Rust Core syntax defect remediation and test expansion (`apps/mobile/pro/modules/clickflash-rust-core/index.ts`, `rust-core-foundation.test.ts`).
+  - [x] **TASK-603G**: Vite bundler circular chunk elimination (PERF-004) and consolidated `pnpm test:fast` test runner (DX-001).
 - [x] **TASK-604**: Coordinate multi-agent swarm modernizations for recurring health audits (Executed multi-app consistency check and verified Monorepo Health Score: 100/100 🟢 HEALTHY).
+

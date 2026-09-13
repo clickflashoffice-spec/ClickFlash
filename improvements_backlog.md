@@ -24,9 +24,9 @@
 | **PERF-001** | Turborepo Remote Caching in GitHub Actions | Performance | 8 | 2 | 1 | **3.60** | Completed |
 | **PERF-002** | Sharp Stream Concurrency Pool & Backpressure | Performance | 9 | 4 | 2 | **1.01** | Completed |
 | **PERF-003** | OpenTelemetry Distributed Tracing across Nodes | Observability | 8 | 5 | 2 | **0.72** | Proposed |
-| **PERF-004** | Gallery & Management Bundle Code-Splitting | Performance | 8 | 3 | 2 | **1.20** | Proposed |
+| **PERF-004** | Gallery & Management Bundle Code-Splitting | Performance | 8 | 3 | 2 | **1.20** | Completed |
 | **FRONTEND-005** | Gallery Prop-Drilling Elimination (`CustomerGalleryContext`) | Architecture | 8 | 3 | 1 | **2.40** | Completed |
-| **DX-001** | Consolidated `pnpm test:fast` Test Runner | Developer Exp | 7 | 2 | 1 | **3.15** | Proposed |
+| **DX-001** | Consolidated `pnpm test:fast` Test Runner | Developer Exp | 7 | 2 | 1 | **3.15** | Completed |
 
 ---
 
@@ -149,3 +149,14 @@
 - **Target**: `apps/gallery/src/components/customer/`
 - **Rationale**: Clean up 10+ prop drillings across `CustomerLayout`, `CustomerGallery`, and `PhotoCard`.
 - **Status**: Completed (`CustomerGalleryContext.tsx`, `CustomerGallery.tsx`, `CustomerLayout.tsx`).
+
+### [PERF-004] Web Bundler Code-Splitting & Acyclic Chunking
+- **Target**: `apps/gallery/vite.config.ts`, `apps/management/vite.config.ts`
+- **Rationale**: Prevent monolithic bundle bloat and eliminate circular chunk warnings (`vendor-core <-> vendor-react`) by co-locating `scheduler` and `use-sync-external-store` with React dependencies.
+- **Status**: Completed (`apps/gallery/vite.config.ts`, `apps/management/vite.config.ts`).
+
+### [DX-001] Consolidated `pnpm test:fast` Test Runner
+- **Target**: `package.json`
+- **Rationale**: Provide sub-15s local developer testing across security guards, shared packages, and core unit tests without launching headless browser instances.
+- **Status**: Completed (`package.json`, runs in ~8s with 100% pass rate).
+

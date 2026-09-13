@@ -26,7 +26,7 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react/') || id.includes('react-dom/') || id.includes('react-router')) return 'vendor-react';
+            if (id.includes('react/') || id.includes('react-dom/') || id.includes('react-router') || id.includes('scheduler/') || id.includes('use-sync-external-store')) return 'vendor-react';
             if (id.includes('recharts') || id.includes('@tremor/react')) return 'vendor-charts';
             if (id.includes('@radix-ui')) return 'vendor-radix';
             if (id.includes('lucide-react') || id.includes('@remixicon')) return 'vendor-icons';

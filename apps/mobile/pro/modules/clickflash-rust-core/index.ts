@@ -276,7 +276,7 @@ export const RustCore = {
       return await ClickFlashRustCore.broadcastAndScanGhostLink(payload.dbPath, payload.ghostLinkUuid, secs);
     }
     return JSON.stringify({ status: 'mock', discovered: 0, linked: 0 });
-  }
+  },
   /**
    * Hashes a local massive RAW photo using native Rust for extreme performance.
    */
@@ -285,7 +285,7 @@ export const RustCore = {
       return ClickFlashRustCore.hashPhotoBuffer(filePath);
     }
     // JS mock fallback - extremely slow in reality
-    return hash_mock_${Math.random()};
+    return `hash_mock_${Math.random()}`;
   },
 
   /**
@@ -301,3 +301,4 @@ export const RustCore = {
     return vector.map(val => val / (mag || 1));
   }
 };
+

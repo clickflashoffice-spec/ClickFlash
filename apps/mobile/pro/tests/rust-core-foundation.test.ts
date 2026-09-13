@@ -117,3 +117,22 @@ test('RustCore.scanAndLinkBeacons and broadcastAndScanGhostLink return JSON stat
   const ghostJson = JSON.parse(ghostRes);
   assert.ok('status' in ghostJson || 'discovered' in ghostJson);
 });
+
+test('RustCore.hashPhotoBuffer returns non-empty hash string for RAW file', () => {
+  const hash = RustCore.hashPhotoBuffer('/storage/emulated/0/DCIM/CF_0042.CR3');
+  assert.equal(typeof hash, 'string');
+  assert.ok(hash.length > 0);
+});
+
+test('RustCore.l2NormalizeVector produces unit length normalized vector', () => {
+  const inputVec = [3.0, 4.0];
+  const normalized = RustCore.l2NormalizeVector(inputVec);
+
+  assert.equal(normalized.length, 2);
+  // 3 / 5 = 0.6, 4 / 5 = 0.8
+  assert.ok(Math.abs(normalized[0] - 0.6) < 1e-5);
+  assert.ok(Math.abs(normalized[1] - 0.8) < 1e-5);
+
+  const magnitude = Math.sqrt(normalized[0] * normalized[0] + normalized[1] * normalized[1]);
+  assert.ok(Math.abs(magnitude - 1.0) < 1e-5);
+});

@@ -60,16 +60,24 @@ export function TeamLiveWidget() {
     });
 
     socket.on('answer', async (data: SDPMessage) => {
-      const pc = peerConnections.current.get(data.senderId);
-      if (pc && data.sdp) {
-        await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+      try {
+        const pc = peerConnections.current.get(data.senderId);
+        if (pc && data.sdp) {
+          await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+        }
+      } catch (err) {
+        console.error('[WebRTC] Error setting remote description:', err);
       }
     });
 
     socket.on('ice-candidate', async (data: ICECandidateMessage) => {
-      const pc = peerConnections.current.get(data.senderId);
-      if (pc && data.candidate) {
-        await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+      try {
+        const pc = peerConnections.current.get(data.senderId);
+        if (pc && data.candidate) {
+          await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+        }
+      } catch (err) {
+        console.error('[WebRTC] Error adding ICE candidate:', err);
       }
     });
 
@@ -111,16 +119,20 @@ export function TeamLiveWidget() {
       }, 100);
     };
 
-    const offer = await pc.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: true });
-    await pc.setLocalDescription(offer);
+    try {
+      const offer = await pc.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: true });
+      await pc.setLocalDescription(offer);
 
-    const msg: SDPMessage = {
-      type: 'offer',
-      senderId: 'manager',
-      targetId: deviceId,
-      sdp: offer as RTCSessionDescriptionInit
-    };
-    socketRef.current.emit('request_check_in', msg);
+      const msg: SDPMessage = {
+        type: 'offer',
+        senderId: 'manager',
+        targetId: deviceId,
+        sdp: offer as RTCSessionDescriptionInit
+      };
+      socketRef.current.emit('request_check_in', msg);
+    } catch (err) {
+      console.error('[WebRTC] Error initiating check-in:', err);
+    }
   };
 
   const liveCount = feeds.filter(f => f.status === 'live').length;

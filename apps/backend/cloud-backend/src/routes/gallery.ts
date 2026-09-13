@@ -367,7 +367,6 @@ app.post('/photos/raw/export-batch', requireServiceAuth, async (c) => {
     const { results: photos } = await db.prepare(`SELECT * FROM photos WHERE event_id = ?`).bind(eventId).all();
 
     let filteredPhotos = photos;
-    console.log("FILTER TAGS:", filterTags, Array.isArray(filterTags), filterTags?.length);
     if (Array.isArray(filterTags) && filterTags.length > 0) {
       filteredPhotos = photos.filter((p: any) => {
         if (!p.ai_tags) return false;

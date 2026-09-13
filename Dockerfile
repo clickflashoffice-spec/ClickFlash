@@ -52,11 +52,12 @@ USER node
 WORKDIR /app
 
 # Copy built applications
-COPY --from=base /app/apps/desktop/master/dist ./master
-COPY --from=base /app/apps/desktop/touch/dist ./touch
-COPY --from=base /app/apps/management/dist ./management
-COPY --from=base /app/apps/gallery/dist ./gallery
+COPY --from=base --chown=node:node /app/apps/desktop/master/dist ./master
+COPY --from=base --chown=node:node /app/apps/desktop/touch/dist ./touch
+COPY --from=base --chown=node:node /app/apps/management/dist ./management
+COPY --from=base --chown=node:node /app/apps/gallery/dist ./gallery
 
+COPY --from=base --chown=node:node /app/scripts ./scripts
 EXPOSE 8090 8091 3000 5173 5174 3001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \

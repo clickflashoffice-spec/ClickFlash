@@ -29,10 +29,15 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Turbo Build (PR)
-        if: github.event_name == 'pull_request'
-        run: npx turbo run typecheck lint test --filter=...[origin/main]
+      - name: Strict Monorepo TypeCheck
+        run: pnpm run typecheck:all
 
-      - name: Turbo Build (Main)
-        if: github.event_name == 'push'
-        run: npx turbo run typecheck lint test
+      - name: Run Shared Packages Tests
+        run: pnpm run test:packages
+
+      - name: Run Master Station Tests
+        run: pnpm --filter clickflash-master test
+
+      - name: Run Touch Kiosk Tests
+        run: pnpm --filter clickflash-touch test
+

@@ -1,4 +1,4 @@
-import type { D1Database } from '@cloudflare/workers-types';
+import type { D1Database, D1PreparedStatement } from '@cloudflare/workers-types';
 
 export interface PhotographerEvent {
   id: string;
@@ -17,13 +17,15 @@ export async function projectLedgerEvents(db: D1Database): Promise<void> {
 
   if (!events || events.length === 0) return;
 
+  const statements: D1PreparedStatement[] = [];
+
   for (const event of events) {
     const payload = JSON.parse(event.payload);
 
     try {
       switch (event.event_type) {
         case 'ORDER_COMPLETED':
-          await db.prepare(
+          statements.push(db.prepare(
             `INSERT INTO order_state (id, photographer_id, session_id, status, total_amount, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)
              ON CONFLICT(id) DO UPDATE SET status = excluded.status, updated_at = excluded.updated_at`
@@ -35,11 +37,11 @@ export async function projectLedgerEvents(db: D1Database): Promise<void> {
             payload.gross?.amountMinor || 0,
             event.created_at,
             event.created_at
-          ).run();
+          ));
           break;
 
         case 'PAYMENT_CAPTURED':
-          await db.prepare(
+          statements.push(db.prepare(
             `INSERT INTO payment_state (id, order_id, amount, status, processed_at) VALUES (?, ?, ?, ?, ?)`
           ).bind(
             payload.paymentId || crypto.randomUUID(),
@@ -47,21 +49,21 @@ export async function projectLedgerEvents(db: D1Database): Promise<void> {
             payload.amount?.amountMinor || 0,
             'CAPTURED',
             event.created_at
-          ).run();
+          ));
 
-          await db.prepare(
+          statements.push(db.prepare(
             `UPDATE order_state SET status = 'PAID', updated_at = ? WHERE id = ?`
-          ).bind(event.created_at, payload.orderId || event.aggregate_id).run();
+          ).bind(event.created_at, payload.orderId || event.aggregate_id));
           break;
           
         case 'REFUND_POSTED':
-          await db.prepare(
+          statements.push(db.prepare(
             `UPDATE payment_state SET status = 'REFUNDED', processed_at = ? WHERE id = ?`
-          ).bind(event.created_at, payload.paymentId).run();
+          ).bind(event.created_at, payload.paymentId));
           
-          await db.prepare(
+          statements.push(db.prepare(
             `UPDATE order_state SET status = 'REFUNDED', updated_at = ? WHERE id = ?`
-          ).bind(event.created_at, payload.orderId || event.aggregate_id).run();
+          ).bind(event.created_at, payload.orderId || event.aggregate_id));
           break;
           
         case 'ATTRIBUTION_ASSIGNED':
@@ -69,9 +71,13 @@ export async function projectLedgerEvents(db: D1Database): Promise<void> {
           break;
       }
 
-      await db.prepare(`UPDATE photographer_events_v1 SET processed = 1 WHERE id = ?`).bind(event.id).run();
+      statements.push(db.prepare(`UPDATE photographer_events_v1 SET processed = 1 WHERE id = ?`).bind(event.id));
     } catch (err) {
       console.error(`Failed to process event ${event.id}:`, err);
     }
+  }
+  
+  if (statements.length > 0) {
+    await db.batch(statements);
   }
 }

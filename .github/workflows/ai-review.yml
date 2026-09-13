@@ -7,10 +7,11 @@ on:
 jobs:
   review:
     runs-on: ubuntu-latest
+    if: ${{ secrets.OPENAI_API_KEY != '' }}
     steps:
       - uses: actions/checkout@v4
       - name: Open Source AI Code Review
         uses: coderabbitai/coderabbit-action@v1
         with:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
-          model: "llama-3-70b-instruct" # Force open source model via liteLLM or similar router if supported
+          model: "llama-3-70b-instruct"

@@ -20,9 +20,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Install pnpm
-        run: npm i -g pnpm@10.28.1
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -51,3 +52,4 @@ jobs:
           publish: pnpm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

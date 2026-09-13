@@ -6,6 +6,7 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import formidable from "formidable";
+import { verifyLanSignatureCore } from '../middleware/lanSigningMiddleware';
 import { validateRequest } from '../utils/validation';
 import { hashPassword } from '../utils/passwordUtils';
 import {

@@ -29,6 +29,19 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Cache Turborepo
+        uses: actions/cache@v4
+        with:
+          path: |
+            .turbo
+            node_modules/.cache/turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Biometric Air-Gap & Security Guards
+        run: pnpm run test:security-guards
+
       - name: Build Shared Packages
         run: pnpm --filter "./packages/*" --filter "!@clickflash/wasm-sharpness" run build
 

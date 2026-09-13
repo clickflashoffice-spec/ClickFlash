@@ -156,6 +156,7 @@ export class PhotoProcessor {
   private static sanitizeFilename(filename: string): string {
     // Reject null bytes and control characters immediately — these are never
     // legitimate in filenames and are commonly used in truncation exploits.
+    // eslint-disable-next-line no-control-regex
     if (/[\x00-\x1f]/.test(filename)) {
       throw new Error(
         `SECURITY_VIOLATION: Filename contains illegal control characters: ${JSON.stringify(filename)}`,

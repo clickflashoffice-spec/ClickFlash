@@ -56,7 +56,7 @@ export function validatePassword(password: string): PasswordValidationResult {
 
     let strength: 'weak' | 'medium' | 'strong' = 'weak';
     if (errors.length === 0) {
-        const hasSpecialChars = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+        const hasSpecialChars = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
         const hasMultipleNumbers = (password.match(/[0-9]/g) || []).length >= 2;
         const isLongEnough = password.length >= 12;
 

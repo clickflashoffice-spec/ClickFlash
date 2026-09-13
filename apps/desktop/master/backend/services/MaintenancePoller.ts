@@ -131,7 +131,7 @@ export class MaintenancePoller {
           setTimeout(() => process.exit(0), 1500);
           return "ok: restart initiated";
 
-        case "clear_temp":
+        case "clear_temp": {
           const tempDir = path.join(dataDir, "import", "temp");
           if (fs.existsSync(tempDir)) {
             const files = fs.readdirSync(tempDir);
@@ -146,6 +146,7 @@ export class MaintenancePoller {
             return `ok: cleared ${files.length} temp files`;
           }
           return "ok: temp dir empty";
+        }
 
         case "force_sync":
           if (cloudSyncService) {
@@ -161,7 +162,7 @@ export class MaintenancePoller {
           }
           return "skipped: faceService unavailable";
 
-        case "push_to_kiosk":
+        case "push_to_kiosk": {
           const { kioskId, albumId } = (cmd.args || {}) as {
             kioskId?: string;
             albumId?: string;
@@ -173,8 +174,9 @@ export class MaintenancePoller {
             return `ok: pushed album ${albumId} to kiosk ${kioskId}`;
           }
           return "skipped: transferService unavailable";
+        }
 
-        case "log_report":
+        case "log_report": {
           const errorsFile = path.join(dataDir, "logs", "errors.jsonl");
           if (!fs.existsSync(errorsFile)) return "ok: no errors.jsonl";
           const lines = fs
@@ -183,8 +185,9 @@ export class MaintenancePoller {
             .filter(Boolean);
           const last50 = lines.slice(-50).join("\n");
           return `ok: last ${Math.min(50, lines.length)} error entries:\n${last50}`;
+        }
 
-        case "suspend_kiosk":
+        case "suspend_kiosk": {
           // Kill the C# Guardian process so remote VNC inputs aren't blocked
           const { exec } = require("child_process");
           return new Promise<string>((resolve, reject) => {
@@ -201,6 +204,7 @@ export class MaintenancePoller {
               }
             });
           });
+        }
 
         default:
           return `rejected: unhandled command`;

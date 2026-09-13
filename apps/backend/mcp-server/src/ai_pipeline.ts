@@ -95,28 +95,54 @@ export async function handleVectorIndexHealth(_args: Record<string, unknown>) {
   logger.info("[AI Pipeline] Vector index health check");
 
   const rootDir = path.resolve(__dirname, "../../../..");
-  const indexPath = path.join(rootDir, "services", "master-cpp", "data", "vp_tree.idx");
+  const candidatePaths = [
+    { engine: "C++ Native VP-Tree", path: path.join(rootDir, "services", "master-cpp", "data", "vp_tree.idx") },
+    { engine: "Master OS Node Binary Index", path: path.join(rootDir, "apps", "desktop", "master", "data", "face_vectors.bin") },
+    { engine: "Master Root Data Binary Index", path: path.join(rootDir, "data", "face_vectors.bin") },
+    { engine: "Master PocketBase Storage Index", path: path.join(rootDir, "apps", "desktop", "master", "pb_data", "face_vectors.bin") },
+  ];
 
-  let indexInfo = "Index file not found.";
-  if (fs.existsSync(indexPath)) {
-    const stats = fs.statSync(indexPath);
-    const sizeMB = Math.round(stats.size / 1024 / 1024 * 100) / 100;
-    const lastModified = stats.mtime.toISOString();
-    // Estimate embeddings: 512D × 4 bytes = 2048 bytes per embedding + overhead
-    const estimatedEmbeddings = Math.floor(stats.size / 2100);
-    indexInfo = `Size: ${sizeMB} MB\nEstimated Embeddings: ~${estimatedEmbeddings}\nLast Rebuild: ${lastModified}`;
+  const foundIndexes: Array<{ engine: string; path: string; sizeMB: number; embeddings: number; lastModified: string }> = [];
+
+  for (const candidate of candidatePaths) {
+    if (fs.existsSync(candidate.path)) {
+      const stats = fs.statSync(candidate.path);
+      const sizeMB = Math.round((stats.size / 1024 / 1024) * 100) / 100;
+      // 512 float32 = 2048 bytes per embedding vector + header/ID padding
+      const embeddings = Math.floor(stats.size / 2100);
+      foundIndexes.push({
+        engine: candidate.engine,
+        path: candidate.path,
+        sizeMB,
+        embeddings,
+        lastModified: stats.mtime.toISOString(),
+      });
+    }
+  }
+
+  let indexSection = "";
+  if (foundIndexes.length > 0) {
+    indexSection = foundIndexes
+      .map(
+        (idx) =>
+          `[${idx.engine}]\nPath: ${idx.path}\nSize: ${idx.sizeMB} MB\nEstimated Embeddings: ~${idx.embeddings}\nLast Rebuild: ${idx.lastModified}`
+      )
+      .join("\n\n");
+  } else {
+    indexSection = `Status: No persistent index file detected on disk.\nChecked Paths:\n` +
+      candidatePaths.map((c) => `  - ${c.path} (${c.engine})`).join("\n") +
+      `\nNote: In-memory fallback index active in VectorIndexService.`;
   }
 
   const report = [
-    `=== C++ VP-TREE VECTOR INDEX HEALTH ===`,
-    `Engine: Native C++ VP-Tree (VectorIndexService.cpp)`,
+    `=== BIOMETRIC VECTOR INDEX HEALTH ===`,
     `Dimensions: 512D (ArcFace / InsightFace)`,
     `Distance Metric: Cosine Similarity`,
     ``,
-    indexInfo,
+    indexSection,
     ``,
     `Query Latency: <1ms (sub-millisecond for k-NN on 10K+ embeddings)`,
-    `Thread Safety: Mutex-protected read/write`
+    `Thread Safety: Mutex-protected read/write / atomic append`
   ].join("\n");
 
   return { content: [{ type: "text", text: report }] };

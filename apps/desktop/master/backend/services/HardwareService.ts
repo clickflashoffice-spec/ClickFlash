@@ -23,7 +23,7 @@ function runPowerShell(script: string): Promise<{ stdout: string; stderr: string
  */
 function validatePrinterName(name: string): boolean {
   // Allow alphanumeric, spaces, hyphens, underscores, dots, parens, #
-  return /^[\w\s\-.()\/#]+$/.test(name) && name.length <= 200;
+  return /^[\w\s\-.()/#]+$/.test(name) && name.length <= 200;
 }
 
 export interface PrinterInfo {

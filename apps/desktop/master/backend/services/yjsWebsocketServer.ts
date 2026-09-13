@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 const WebSocketServer = (WebSocket as any).WebSocketServer || (WebSocket as any).Server;
-type WebSocketServer = any;
+type WSServer = any;
 // @ts-ignore
 import { setupWSConnection } from 'y-websocket/bin/utils';
 import { Server } from 'http';
@@ -8,7 +8,7 @@ import { Server as HttpsServer } from 'https';
 import { logger } from '../utils/logger';
 
 export class YjsWebsocketServer {
-  private static wss: WebSocketServer | null = null;
+  private static wss: WSServer | null = null;
 
   public static initialize(server: Server | HttpsServer, path: string = '/yjs'): void {
     if (this.wss) return;

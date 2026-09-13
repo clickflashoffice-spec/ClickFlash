@@ -96,7 +96,7 @@ export default function operationsRoutes(context: OperationsContext): Router {
       const orderId = String(req.params.orderId);
 
       // SECURITY: Validate orderId to prevent path traversal
-      if (!orderId || /[\/\\]|\.\./.test(orderId)) {
+      if (!orderId || /[/\\]|\.\./.test(orderId)) {
         return sendInvalidInputError(res, "Invalid order ID");
       }
 

@@ -363,7 +363,7 @@ export default function orderRoutes(context: OrdersContext): Router {
       let filename = path.basename(targetUrl);
       if (filename.includes("?")) filename = filename.split("?")[0];
       // Additional path traversal protection
-      filename = filename.replace(/\.{2,}[\/\\]/g, "").replace(/[\/\\]/g, "");
+      filename = filename.replace(/\.{2,}[/\\]/g, "").replace(/[/\\]/g, "");
       if (!filename || filename === "." || filename === "..") {
         return sendInvalidInputError(res, "Invalid filename");
       }

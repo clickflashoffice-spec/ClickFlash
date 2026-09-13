@@ -290,7 +290,7 @@ export default function galleryRoutes(context: GalleryContext) {
                     // The files route expects /files/uploads/<albumId>/<subdir>/<filename>
                     // so we always prefix with /api/files/uploads/ and the rest is the stored relPath.
                     // relPath might be e.g. "/uploads/somealbum/highres/foo.jpg"
-                    const cleanRelPath = relPath.replace(/^[\/\\]?uploads[\/\\]/, '');
+                    const cleanRelPath = relPath.replace(/^[/\\]?uploads[/\\]/, '');
                     const filePath = `/api/files/uploads/${cleanRelPath}`;
                     urls[tier] = signFilePath(filePath, { ttlSeconds: ttl });
                 }

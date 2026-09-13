@@ -182,6 +182,7 @@ export class ExportService {
         // Save Result — sanitize filename to strip any path separators or
         // traversal sequences injected via item.filename.
         const rawFilename = item.filename || `export_${item.photoId}_${Date.now()}.jpg`;
+        // eslint-disable-next-line no-control-regex
         const outFilename = path.basename(rawFilename).replace(/[<>:"/\\|?*\x00-\x1f]/g, "_");
         const outPath = path.join(targetDir, outFilename);
         // Final containment check: ensure the resolved output path is still

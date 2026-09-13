@@ -13,6 +13,8 @@ interface Migration {
 export class DatabaseManager {
   private dbPath: string;
   private db: DatabaseType | null;
+  private walInterval: NodeJS.Timeout | null = null;
+  private snapshotInterval: NodeJS.Timeout | null = null;
 
   constructor(dbPath: string = path.join(process.cwd(), 'database.sqlite')) {
     this.dbPath = dbPath;
@@ -259,8 +261,6 @@ export class DatabaseManager {
     return stmt;
   }
 
-  private walInterval: NodeJS.Timeout | null = null;
-
   public getDb(): DatabaseType {
     if (!this.db) throw new Error("Database not connected");
     return this.db;
@@ -325,6 +325,96 @@ export class DatabaseManager {
     } catch (err) {
       logger.error("[Database] REINDEX failed:", err);
       throw err;
+    }
+  }
+
+  /**
+   * ARCH-MED-001: Online point-in-time snapshotting.
+   * Creates an isolated backup of the SQLite database while live writes are active,
+   * without table locks or reader starvation.
+   */
+  public async createSnapshot(snapshotDir?: string): Promise<{ snapshotPath: string; sizeBytes: number; timestamp: string }> {
+    if (!this.db) throw new Error("Database not connected");
+
+    const targetDir = snapshotDir || path.join(path.dirname(this.dbPath), 'snapshots');
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const dbName = path.basename(this.dbPath, path.extname(this.dbPath));
+    const snapshotPath = path.join(targetDir, `${dbName}-snapshot-${timestamp}.db`);
+
+    logger.info(`[Database] Initiating online point-in-time snapshot to ${snapshotPath}...`);
+
+    // Ensure WAL is checkpointed prior to snapshot
+    this.walCheckpoint('PASSIVE');
+
+    // Online backup via VACUUM INTO
+    const sanitized = snapshotPath.replace(/'/g, "''");
+    this.db.exec(`VACUUM INTO '${sanitized}'`);
+
+    const stat = fs.statSync(snapshotPath);
+    logger.info(`[Database] Snapshot created successfully (${Math.round(stat.size / 1024)} KB).`);
+
+    // Rotate older snapshots: keep last 7
+    this.rotateSnapshots(targetDir, 7);
+
+    return {
+      snapshotPath,
+      sizeBytes: stat.size,
+      timestamp
+    };
+  }
+
+  private rotateSnapshots(dir: string, maxKeep: number = 7): void {
+    try {
+      if (!fs.existsSync(dir)) return;
+      const files = fs.readdirSync(dir)
+        .filter(f => f.endsWith('.db'))
+        .map(f => ({ name: f, path: path.join(dir, f), time: fs.statSync(path.join(dir, f)).mtimeMs }))
+        .sort((a, b) => b.time - a.time);
+
+      if (files.length > maxKeep) {
+        const toDelete = files.slice(maxKeep);
+        for (const file of toDelete) {
+          fs.unlinkSync(file.path);
+          logger.info(`[Database] Rotated older snapshot: ${file.name}`);
+        }
+      }
+    } catch (err: any) {
+      logger.warn(`[Database] Snapshot rotation non-fatal warning: ${err.message}`);
+    }
+  }
+
+  public startAutoSnapshotScheduler(intervalMs: number = 6 * 60 * 60 * 1000): void {
+    if (this.snapshotInterval) {
+      clearInterval(this.snapshotInterval);
+    }
+    logger.info(`[Database] Starting automated snapshot scheduler (every ${Math.round(intervalMs / 3600000)} hours).`);
+    this.snapshotInterval = setInterval(async () => {
+      try {
+        await this.createSnapshot();
+      } catch (err: any) {
+        logger.error(`[Database] Scheduled snapshot failed: ${err.message}`);
+      }
+    }, intervalMs);
+    if (this.snapshotInterval.unref) {
+      this.snapshotInterval.unref();
+    }
+  }
+
+  public getWalHealth(): { journalMode: string; walSize: number; isHealthy: boolean } {
+    if (!this.db) return { journalMode: 'UNKNOWN', walSize: 0, isHealthy: false };
+    try {
+      const mode = this.db.pragma('journal_mode', { simple: true }) as string;
+      const walFile = `${this.dbPath}-wal`;
+      const walSize = fs.existsSync(walFile) ? fs.statSync(walFile).size : 0;
+      // If WAL file grows over 50MB, it needs checkpointing
+      const isHealthy = walSize < 50 * 1024 * 1024;
+      return { journalMode: mode, walSize, isHealthy };
+    } catch (err: any) {
+      return { journalMode: 'ERROR', walSize: 0, isHealthy: false };
     }
   }
 }

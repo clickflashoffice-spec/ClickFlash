@@ -1,53 +1,64 @@
-# Antigravity Master Execution Plan — Task Registry
+# Antigravity V4 Master Execution Plan - Task Registry
 
-## Phase 0 — Initialization, Deep Project Intelligence & Memory Bootstrap
-- [x] **TASK-001**: Deep-scan workspace structure, languages, package managers, configs, and git topology.
-- [x] **TASK-002**: Initialize persistent session memory (`.agents/session-state.md`, `.agents/context-snapshot.md`, `.agents/error-log.md`).
-- [x] **TASK-003**: Create root living tracking files (`task.md`, `findings.md`, `progress.md`, `walkthrough.md`, `GEMINI.md`).
-- [x] **TASK-004**: Update root `AGENTS.md` with enhanced Antigravity Master directives and tool boundaries.
-- [x] **TASK-005**: Draft initial `findings.md` and comprehensive `implementation_plan.md` artifact for user approval.
+> Continuation from V3 (Phases 0-7 complete). Transitioning to V4 Ultra-Deep Ecosystem Operations.
 
-## Phase 1 — Maximum Tooling & MCP Build/Install/Secure
-- [x] **TASK-101**: Audit active MCP registry across global and workspace configs.
-- [x] **TASK-102**: Configure workspace `.agents/mcp_config.json` with GitHub MCP.
-- [x] **TASK-103**: Add Sequential Thinking, Filesystem, and SQLite MCPs.
-- [x] **TASK-104**: Secure token permissions & enforce zero secret hardcoding.
-- [x] **TASK-105**: Smoke test and list all registered MCP server endpoints.
+## Phase 0 — Initialization, Maximum Intelligence Bootstrap & Deep Ecosystem Mapping
+- [x] **TASK-001**: Deep recursive scan of entire workspace & file system structure.
+- [x] **TASK-002**: Map the complete ecosystem (apps, services, tech stacks, data flows).
+- [x] **TASK-003**: Create/update living artifacts (progress.md, findings.md, improvements_backlog.md, Ecosystem_Map.md).
+- [x] **TASK-004**: Assess current tool & MCP availability.
+- [x] **TASK-005**: Produce initial Ecosystem Map and V4 Implementation Plan.
 
-## Phase 2 — Comprehensive Deep Analysis & Multi-Dimensional Audits
-- [x] **TASK-201**: Full Architecture & Data-Flow Audit.
-- [x] **TASK-202**: Tech-Stack & Dependency CVE Audit.
-- [x] **TASK-203**: Security Audit (OWASP Top 10).
-- [x] **TASK-204**: Code Quality & Technical Debt Audit.
-- [x] **TASK-205**: Frontend Accessibility, Performance & SEO Audit.
-- [x] **TASK-206**: Git Hygiene and CI/CD Gap Analysis.
-- [x] **TASK-207**: MCP & Tool Coverage Gap Analysis.
+## Phase 1 — Maximum Tooling, MCP Build & Secure Installation
+- [x] **TASK-101**: Install and configure maximum relevant MCP servers.
+- [x] **TASK-102**: Ensure environment variables are used for all secrets.
+- [x] **TASK-103**: Test every server and list available tools.
+- [x] **TASK-104**: Scaffold custom MCP servers if project-specific tools are missing.
 
-## Phase 3 — Foundation Installation & Structure
-- [x] **TASK-301**: Monorepo layout cleanup — moved 6 orphaned scripts to `scripts/archive/`, updated `.gitignore`.
-- [x] **TASK-302**: Docker hardening — Node 22 upgrade, removed deprecated `version` key, added `pnpm-lock.yaml` COPY.
-- [x] **TASK-303**: Pre-commit & Husky enhancement — added Gitleaks staged scanning to `.husky/pre-commit`.
-- [x] **TASK-304**: Rules quality audit — created `observability-policy.md` (14 rules, 6 sections).
-- [x] **TASK-305**: Skills verification — 880+ skills intact and operational.
-- [x] **TASK-306**: Workflows quality audit — all 8 workflows verified, +1 new `health-check.md`.
-- [x] **TASK-307**: Created `orchestrator.md` agent — 6/6 agents now complete.
+## Phase 2 — Ultra-Deep Code Scan + Deep Files Scan + Full Ecosystem Audit
+- [x] **TASK-201**: Deep Files & Structure Scan (dead files, configuration drift, secret leakage).
+- [x] **TASK-202**: Deep Code Scan (dependency graph, dead code, bottlenecks, security, reliability).
+- [x] **TASK-203**: Improvement Ideas Discovery Engine (Actively search for high-value improvements).
+- [x] **TASK-204**: Score ideas (Impact × Effort × Risk) and populate improvements_backlog.md.
+- [x] **TASK-205**: Launch specialized parallel subagents for comprehensive coverage.
+
+## Phase 3 — Foundation, Rules, Agents, Workflows & Structure
+- [ ] **TASK-301**: Enforce clean structure and Docker-first setup for all services.
+- [ ] **TASK-302**: Complete Rules system (.agents/rules/ + AGENTS.md + GEMINI.md).
+- [ ] **TASK-303**: Author Comprehensive Workflows (deep-audit, improvement-cycle, etc.).
+- [ ] **TASK-304**: Expand Custom Agents (ecosystem-mapper, deep-code-auditor, improvement-hunter, orchestrator).
 
 ## Phase 4 — Git Excellence & Remote Integration
-- [x] **TASK-401**: Created feature branch `feat/v3-hardening-remediation` from HEAD.
-- [x] **TASK-402**: GitHub MCP registered in workspace config — `gh` CLI auth verified.
-- [x] **TASK-403**: Authored `scripts/git-hygiene.ps1` (branch validation, commit checks, PR automation).
-- [x] **TASK-404**: Verified `ai-review.yml` GitHub Actions workflow exists and triggers on PRs.
-- [x] **TASK-405**: Enhanced PR template with `typecheck:all`, architecture boundary checks.
+- [ ] **TASK-401**: Ensure full local + GitHub MCP Git mastery.
+- [ ] **TASK-402**: Verify PR creation with rich descriptions and review workflows.
 
-## Phase 5 — Hardening, Remediation & Verification
-- [x] **TASK-501**: CVE overrides verified in `pnpm-workspace.yaml` (multer ≥2.3.0, protobufjs ≥7.5.5, vitest ≥3.2.6, next ≥15.5.24).
-- [x] **TASK-502**: Created `docs/SQLITE_RESILIENCE.md` (WAL healthcheck, snapshotting, recovery).
-- [x] **TASK-503**: Full verification suite — `npm run typecheck:all` EXIT CODE 0, 0 errors.
-- [x] **TASK-504**: Docker Compose validation — YAML structurally valid (Docker CLI not in PATH per ERR-005).
-- [x] **TASK-505**: Walkthrough generation — complete in walkthrough.md with all test transcripts.
+## Phase 5 — Hardening, Remediation of Critical Items & Full Verification
+- [ ] **TASK-501**: Systematically fix Critical and selected High findings from Phase 2.
+- [ ] **TASK-502**: Implement highest-ROI items from improvements_backlog.md (upon approval).
+- [ ] **TASK-503**: Add missing critical tests, observability, and health checks.
+- [ ] **TASK-504**: Run exhaustive verification suite (tests, linters, docker, browser).
+- [ ] **TASK-505**: Produce complete walkthrough.md with evidence.
 
-## Phase 6 — Continuous Expansion & Self-Improvement Loop
-- [x] **TASK-601**: Updated `findings.md` with living backlog (4 Medium, 4 Low items tracked).
-- [x] **TASK-602**: Created `.agents/workflows/health-check.md` (7-step periodic verification).
-- [x] **TASK-603**: Multi-agent swarm readiness verified — orchestrator agent + Titan Swarm Pipeline + 880 skills.
-- [x] **TASK-604**: Final commit and PR creation workflow operational via scripts/git_hygiene.ps1.
+## Phase 6 — Continuous Improvement & Self-Optimizing Loop
+- [ ] **TASK-601**: Re-run deep scans and Improvement Ideas Discovery Engine periodically.
+- [ ] **TASK-602**: Implement meta-prompts / self-optimizing workflows.
+- [ ] **TASK-603**: Propose multi-agent swarm executions for large modernization efforts.
+
+## Phase 7 — Active Milestone Execution
+- [/] **TRACK 1: Review and Merge PR #1**
+  - [x] Analyze PR diff and review against `.agents/workflows/code-review.md`.
+  - [x] Fix CI pipeline workflows (`ci.yml`, `ai-agent-ecosystem.yml`, `ai-review.yml`, `release.yml`).
+  - [ ] Push fixes to `feat/master-v3-hardening`.
+  - [ ] Await green GitHub Actions checks and merge PR #1 into `main`.
+- [x] **TRACK 2: ADR-012 Phase 1 Implementation**
+  - [x] Inspect `TransferService.ts`.
+  - [x] Implement biometric air-gapping: `excludeBiometrics` option in `sendAlbumToTouch()` stripping face descriptors.
+  - [x] Implement zero-click SD card import: `importFromRemovableDrive()` copying DCIM photos with zero card deletion.
+  - [x] Author unit tests in `TransferService.test.ts` (5/5 passed).
+- [x] **TRACK 3: SQLite Automated Snapshotting (ARCH-MED-001)**
+  - [x] Implement online `createSnapshot()`, `startAutoSnapshotScheduler()`, `rotateSnapshots(7)`, `getWalHealth()` in `DatabaseManager` (`apps/desktop/master/backend/database/db.ts`).
+  - [x] Author unit tests in `db_snapshot.test.ts` (5/5 passed).
+  - [x] Finalize `docs/SQLITE_RESILIENCE.md` disaster recovery procedures.
+
+
+

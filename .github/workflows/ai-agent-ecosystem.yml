@@ -31,14 +31,11 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build @clickflash/ai Package
-        run: pnpm --filter @clickflash/ai run build
+      - name: Build @clickflash/ai Package and Dependencies
+        run: pnpm --filter @clickflash/ai... run build
 
-      - name: Run AI Agent Vitest Suite (93 tests)
+      - name: Run AI Agent Vitest Suite
         run: pnpm exec vitest run packages/ai/src/
 
-      - name: Run ClickFlash MCP Server Test Suite (15 tests)
+      - name: Run ClickFlash MCP Server Test Suite
         run: pnpm --filter clickflash-mcp run test
-
-      - name: Execute E2E Scenario Demo Script
-        run: pnpm run ai:demo

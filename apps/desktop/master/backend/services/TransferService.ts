@@ -1,5 +1,6 @@
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { Logger } from '../utils/logger';
 import DatabaseManager from '../database/db';
 import { UPLOAD_DIR, IMPORT_DIR } from "../config/constants";
@@ -12,10 +13,26 @@ interface TransferContext {
   wss?: any;
 }
 
-interface TransferResult {
+export interface TransferResult {
   success: boolean;
   copiedCount: number;
   destinations: string[];
+  errors?: string[];
+}
+
+export interface SdCardImportOptions {
+  photographerId?: string | number;
+  autoAssignAlbum?: boolean;
+  albumTitle?: string;
+  concurrency?: number;
+}
+
+export interface SdCardImportResult {
+  success: boolean;
+  albumId: string;
+  importedCount: number;
+  skippedCount: number;
+  totalFound: number;
   errors?: string[];
 }
 
@@ -201,7 +218,8 @@ export class TransferService {
     albumId: string,
     destinations: Set<string>,
     photoIds?: string[],
-    metadataOnly: boolean = false
+    metadataOnly: boolean = false,
+    options?: { excludeBiometrics?: boolean }
   ): Promise<TransferResult> {
     // 1. Fetch Photos
     let query = "SELECT * FROM photos WHERE albumId = ?";
@@ -318,15 +336,33 @@ export class TransferService {
                 pathCopiedCount++; // Ensure metadata is generated even if file is not physically copied
               }
 
+              // Biometric Air-Gap (ADR-012 / GDPR Art. 9)
+              // Raw 512D ArcFace embeddings are strictly air-gapped from metadata.json
+              let sanitizedFaces: any[] | undefined = undefined;
+              if (photo.faces && Array.isArray(photo.faces)) {
+                if (options?.excludeBiometrics !== false) {
+                  sanitizedFaces = photo.faces.map((f: any) => ({
+                    faceId: f.faceId || f.id || String(f),
+                    box: f.box || undefined,
+                  }));
+                } else {
+                  sanitizedFaces = photo.faces;
+                }
+              }
+
               // Add to metadata (Biometric Air-Gap: No raw face vectors in metadata.json)
-              photoMetadataList.push({
+              const photoEntry: any = {
                 id: photo.id,
                 url: `photos/${destFilename}`,
                 title: photo.title || "",
                 category: photo.category || "",
                 manualEdits: photo.manualEdits || {},
                 roomNumber: photo.roomNumber || "",
-              });
+              };
+              if (sanitizedFaces && sanitizedFaces.length > 0) {
+                photoEntry.faces = sanitizedFaces;
+              }
+              photoMetadataList.push(photoEntry);
 
               // Progress Update (Throttle to every 5%)
               if (
@@ -424,6 +460,218 @@ export class TransferService {
             type: "KIOSK_SEND_PROGRESS",
             payload: { albumId, destination, progress, current, total },
           }),
+        );
+      }
+    });
+  }
+
+  /**
+   * ADR-012 Phase 1: High-level alias to send album to Touch Kiosk(s) with biometric air-gapping.
+   */
+  public async sendAlbumToTouch(
+    albumId: string,
+    destinations: Set<string>,
+    options?: {
+      photoIds?: string[];
+      metadataOnly?: boolean;
+      excludeBiometrics?: boolean;
+    }
+  ): Promise<TransferResult> {
+    return this.sendAlbumToKiosks(
+      albumId,
+      destinations,
+      options?.photoIds,
+      options?.metadataOnly ?? false,
+      { excludeBiometrics: options?.excludeBiometrics ?? true }
+    );
+  }
+
+  /**
+   * ADR-012 Phase 1: Zero-Click SD Auto-Ingest.
+   * Scans removable drive / DCIM trees, copies photos into local UPLOAD_DIR,
+   * prevents duplicate ingestion via SHA-256 hash checks, registers the album in DB,
+   * and emits real-time WebSocket progress updates.
+   *
+   * CRITICAL INVARIANT: ZERO-DELETION GUARANTEE.
+   * Source photos on the camera card are NEVER deleted, moved, or altered.
+   */
+  public async importFromRemovableDrive(
+    mountPath: string,
+    options?: SdCardImportOptions
+  ): Promise<SdCardImportResult> {
+    if (!mountPath || !fs.existsSync(mountPath)) {
+      throw new Error(`Mount path does not exist: ${mountPath}`);
+    }
+
+    this.logger.info(`[TransferService] Starting Zero-Click SD import from: ${mountPath}`);
+
+    const dcimPath = path.join(mountPath, "DCIM");
+    const scanRoot = fs.existsSync(dcimPath) ? dcimPath : mountPath;
+
+    const SUPPORTED_EXTS = new Set([
+      ".jpg", ".jpeg", ".cr2", ".cr3", ".nef", ".arw", ".png", ".webp", ".dng"
+    ]);
+
+    const discoveredFiles: string[] = [];
+
+    const walk = (dir: string) => {
+      try {
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+        for (const entry of entries) {
+          const fullPath = path.join(dir, entry.name);
+          if (entry.isDirectory()) {
+            walk(fullPath);
+          } else if (entry.isFile()) {
+            const ext = path.extname(entry.name).toLowerCase();
+            if (SUPPORTED_EXTS.has(ext)) {
+              discoveredFiles.push(fullPath);
+            }
+          }
+        }
+      } catch (err: any) {
+        this.logger.warn(`[TransferService] Failed to read directory ${dir}: ${err.message}`);
+      }
+    };
+
+    walk(scanRoot);
+
+    const totalFound = discoveredFiles.length;
+    if (totalFound === 0) {
+      this.logger.info(`[TransferService] No matching photos found in ${scanRoot}`);
+      return {
+        success: true,
+        albumId: "",
+        importedCount: 0,
+        skippedCount: 0,
+        totalFound: 0
+      };
+    }
+
+    // Auto-create target album
+    const albumId = `album-${uuidv4()}`;
+    const today = new Date().toISOString().slice(0, 10);
+    const timeStr = new Date().toTimeString().slice(0, 5);
+    const title = options?.albumTitle || `SD Import ${today} ${timeStr}`;
+
+    this.dbManager.run(
+      `INSERT INTO albums (id, title, date, photographerId, source, status) VALUES (?, ?, ?, ?, ?, ?)`,
+      [albumId, title, today, options?.photographerId || null, "sd_card_zero_click", "Draft"]
+    );
+
+    // Ensure target storage directory exists
+    if (!fs.existsSync(UPLOAD_DIR)) {
+      fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    }
+
+    let importedCount = 0;
+    let skippedCount = 0;
+    const errors: string[] = [];
+
+    for (let i = 0; i < discoveredFiles.length; i++) {
+      const sourceFile = discoveredFiles[i];
+      const filename = path.basename(sourceFile);
+
+      try {
+        // Calculate SHA-256 hash for deduplication
+        const fileBuffer = await fs.promises.readFile(sourceFile);
+        const fileHash = crypto.createHash("sha256").update(fileBuffer).digest("hex");
+
+        // Check if hash already exists in DB
+        const existing = this.dbManager.get<{ id: string }>(
+          "SELECT id FROM photos WHERE fileHash = ?",
+          [fileHash]
+        );
+
+        if (existing) {
+          skippedCount++;
+          continue;
+        }
+
+        // Copy file to UPLOAD_DIR (CRITICAL: ZERO-DELETION INVARIANT - copyFile only!)
+        const photoId = uuidv4();
+        const destFilename = `${photoId}-${filename}`;
+        const destPath = path.join(UPLOAD_DIR, destFilename);
+
+        await fs.promises.copyFile(sourceFile, destPath);
+
+        const stat = await fs.promises.stat(destPath);
+
+        this.dbManager.run(
+          `INSERT INTO photos (id, albumId, title, url, originalFilename, fileSize, fileHash, photographerId)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            photoId,
+            albumId,
+            filename,
+            `/uploads/${destFilename}`,
+            filename,
+            stat.size,
+            fileHash,
+            options?.photographerId || null
+          ]
+        );
+
+        importedCount++;
+
+        // Broadcast progress event via WebSocket
+        this.broadcastSdProgress(albumId, filename, importedCount + skippedCount, totalFound);
+      } catch (err: any) {
+        this.logger.error(`[TransferService] Failed importing file ${sourceFile}: ${err.message}`);
+        errors.push(`${filename}: ${err.message}`);
+      }
+    }
+
+    // Broadcast completion event
+    this.broadcastSdComplete(albumId, importedCount, skippedCount, totalFound);
+
+    this.logger.info(
+      `[TransferService] Zero-Click SD Import complete: ${importedCount} imported, ${skippedCount} skipped, ${errors.length} errors.`
+    );
+
+    return {
+      success: errors.length === 0 || importedCount > 0,
+      albumId,
+      importedCount,
+      skippedCount,
+      totalFound,
+      errors: errors.length > 0 ? errors : undefined
+    };
+  }
+
+  private broadcastSdProgress(
+    albumId: string,
+    currentFilename: string,
+    processed: number,
+    total: number
+  ) {
+    if (!this.wss || !this.wss.clients) return;
+    const percent = Math.round((processed / total) * 100);
+    this.wss.clients.forEach((client: any) => {
+      if (client.readyState === 1) {
+        client.send(
+          JSON.stringify({
+            type: "SD_CARD_IMPORT_PROGRESS",
+            payload: { albumId, current: currentFilename, processed, total, percent }
+          })
+        );
+      }
+    });
+  }
+
+  private broadcastSdComplete(
+    albumId: string,
+    importedCount: number,
+    skippedCount: number,
+    totalFound: number
+  ) {
+    if (!this.wss || !this.wss.clients) return;
+    this.wss.clients.forEach((client: any) => {
+      if (client.readyState === 1) {
+        client.send(
+          JSON.stringify({
+            type: "SD_CARD_IMPORT_COMPLETE",
+            payload: { albumId, importedCount, skippedCount, totalFound }
+          })
         );
       }
     });

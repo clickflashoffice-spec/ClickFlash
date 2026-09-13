@@ -1,6 +1,5 @@
-import { logger } from '@/utils/logger';
-
 #!/usr/bin/env node
+import { logger } from '@/utils/logger';
 // ClickFlash production entrypoint placeholder
 // This monorepo is normally deployed via per-app Docker images / Cloudflare Pages / Electron builders.
 // The root Dockerfile copies built artifacts and lands here as a safe fallback.

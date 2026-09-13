@@ -106,20 +106,31 @@ app.post('/cloud/config/push', async (c) => {
     if (!config) return c.json({ error: 'Missing config payload' }, 400);
 
     const now = Date.now();
+    const statements = [];
+    const db = c.get('DB');
+
     for (const [key, val] of Object.entries(config)) {
       if (val === undefined) continue;
       const id = crypto.randomUUID();
       const strValue = typeof val === 'string' ? val : JSON.stringify(val);
-      await c.get('DB').prepare(
-        `INSERT INTO global_settings (id, key, value, version, updated_at) VALUES (?, ?, ?, 1, ?)
-         ON CONFLICT(key) DO UPDATE SET value=excluded.value, version=global_settings.version + 1, updated_at=excluded.updated_at`
-      ).bind(id, key, strValue, now).run();
+      statements.push(
+        db.prepare(
+          `INSERT INTO global_settings (id, key, value, version, updated_at) VALUES (?, ?, ?, 1, ?)
+           ON CONFLICT(key) DO UPDATE SET value=excluded.value, version=global_settings.version + 1, updated_at=excluded.updated_at`
+        ).bind(id, key, strValue, now)
+      );
     }
 
-    await c.get('DB').prepare(
-      `INSERT INTO global_settings (id, key, value, version, updated_at) VALUES ('remote_settings_hash', 'remote_settings_hash', ?, 1, ?)
-       ON CONFLICT(key) DO UPDATE SET value=excluded.value, version=global_settings.version + 1, updated_at=excluded.updated_at`
-    ).bind(String(now), now).run();
+    statements.push(
+      db.prepare(
+        `INSERT INTO global_settings (id, key, value, version, updated_at) VALUES ('remote_settings_hash', 'remote_settings_hash', ?, 1, ?)
+         ON CONFLICT(key) DO UPDATE SET value=excluded.value, version=global_settings.version + 1, updated_at=excluded.updated_at`
+      ).bind(String(now), now)
+    );
+
+    if (statements.length > 0) {
+      await db.batch(statements);
+    }
 
     return c.json({ success: true, deliveredTo: 1, failedTargets: [], version: String(now) });
   } catch (error: any) {

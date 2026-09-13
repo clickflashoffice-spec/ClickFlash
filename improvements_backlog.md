@@ -233,7 +233,7 @@
 - **Score**: Impact (4) x Effort (5) x Risk (4) = 80
 - **Category**: Reliability / Data Integrity
 
-### [BACKEND-103] Missing Scalability Indexes for D1 Telemetry
+### [BACKEND-103] [COMPLETED] Missing Scalability Indexes for D1 Telemetry
 - **Target**: `apps/backend/cloud-backend/src/routes/intelligence.ts`, `migrations`
 - **Rationale**: Lack of composite indexes on `tenant_id, timestamp DESC` causes full table scans on Cloudflare D1.
 - **Score**: Impact (4) x Effort (5) x Risk (5) = 100
@@ -250,3 +250,4 @@
 - **Rationale**: We can inject simulated failures (`network_partition`, `camera_tether_drop`, `redis_stream_outage`) using ClickFlash MCP `chaos_edge_fault_injector` and `offline_storage_pressure_tester`. Manual validation shows the circuit breaker drops to `LOCAL_AUTONOMOUS` without data loss, but this must be automated into a continuous chaos testing suite in Playwright E2E or GitHub Actions.
 - **Score**: Impact (5) x Effort (4) x Risk (3) = 41
 - **Category**: Reliability / Testing
+

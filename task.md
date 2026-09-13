@@ -54,5 +54,6 @@
   - [x] **TASK-603E**: Prop-drilling elimination via `CustomerGalleryContext` in `@clickflash/gallery` (FRONTEND-005).
   - [x] **TASK-603F**: Mobile Pro Rust Core syntax defect remediation and test expansion (`apps/mobile/pro/modules/clickflash-rust-core/index.ts`, `rust-core-foundation.test.ts`).
   - [x] **TASK-603G**: Vite bundler circular chunk elimination (PERF-004) and consolidated `pnpm test:fast` test runner (DX-001).
+  - [x] **TASK-603H**: OpenTelemetry 2.x API alignment (PERF-003), RxDB CRDT replication handler (ARCH-004), Real Rust Core UniFFI (ARCH-003), and MCP cross-platform Windows hardening.
 - [x] **TASK-604**: Coordinate multi-agent swarm modernizations for recurring health audits (Executed multi-app consistency check and verified Monorepo Health Score: 100/100 🟢 HEALTHY).
 

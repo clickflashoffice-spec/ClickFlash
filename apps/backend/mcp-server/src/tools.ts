@@ -362,8 +362,21 @@ export async function handleToolCall(name: string, args: any) {
   } else if (name === "audit_architecture") {
     const rootDir = path.resolve(__dirname, "../../..");
     try {
-      const { stdout: consoleLogs } = await execAsync("git grep -n 'console\\.log' -- 'apps/' || true", { cwd: rootDir });
-      const { stdout: bannedSaaS } = await execAsync("git grep -E -n '(Auth0|@clerk|pusher|firebase|vercel)' -- 'apps/' || true", { cwd: rootDir });
+      let consoleLogs = "";
+      try {
+        const res = await execAsync(`git grep -n "console\\.log" -- apps`, { cwd: rootDir });
+        consoleLogs = res.stdout;
+      } catch (e: any) {
+        if (e.stdout) consoleLogs = e.stdout;
+      }
+
+      let bannedSaaS = "";
+      try {
+        const res = await execAsync(`git grep -E -n "(Auth0|@clerk|pusher|firebase|vercel)" -- apps`, { cwd: rootDir });
+        bannedSaaS = res.stdout;
+      } catch (e: any) {
+        if (e.stdout) bannedSaaS = e.stdout;
+      }
       
       let report = "Architecture Audit Report:\n\n";
       report += "1. logger.info usage (violates Zero logger.info mandate):\n";

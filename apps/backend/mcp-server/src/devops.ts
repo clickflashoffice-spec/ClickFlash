@@ -187,10 +187,16 @@ export async function handleIssueScanner(args: Record<string, unknown>) {
     if (!p) continue;
 
     try {
-      const { stdout } = await execAsync(
-        `git grep -c "${p.grep}" -- ${targetPath} 2>/dev/null || true`,
-        { cwd: rootDir, timeout: 30000 }
-      );
+      let stdout = "";
+      try {
+        const res = await execAsync(
+          `git grep -c "${p.grep}" -- ${targetPath}`,
+          { cwd: rootDir, timeout: 30000 }
+        );
+        stdout = res.stdout;
+      } catch (err: any) {
+        if (err.stdout) stdout = err.stdout;
+      }
 
       const lines = stdout.trim().split("\n").filter(Boolean);
       const totalCount = lines.reduce((sum, line) => {
@@ -218,8 +224,8 @@ export async function handleBuildStatus(_args: Record<string, unknown>) {
   logger.info("[DevOps] Build status check");
 
   try {
-    const { stdout, stderr } = await execAsync("npm run typecheck:all 2>&1", { cwd: rootDir, timeout: 120000 });
-    const output = stdout + stderr;
+    const { stdout, stderr } = await execAsync("pnpm run typecheck:all", { cwd: rootDir, timeout: 120000 });
+    const output = stdout + (stderr || "");
     const hasErrors = output.includes("error TS");
 
     return {
@@ -240,8 +246,13 @@ export async function handleDependencyAudit(_args: Record<string, unknown>) {
   logger.info("[DevOps] Dependency audit");
 
   try {
-    const { stdout, stderr } = await execAsync("pnpm audit --json 2>&1 || true", { cwd: rootDir, timeout: 60000 });
-    const output = stdout + stderr;
+    let output = "";
+    try {
+      const { stdout, stderr } = await execAsync("pnpm audit --json", { cwd: rootDir, timeout: 60000 });
+      output = stdout + (stderr || "");
+    } catch (err: any) {
+      output = (err.stdout || "") + (err.stderr || "");
+    }
     return { content: [{ type: "text", text: `=== DEPENDENCY AUDIT ===\n\n${output.substring(0, 3000)}` }] };
   } catch (e: unknown) {
     return { content: [{ type: "text", text: `Audit error: ${(e as Error).message}` }] };

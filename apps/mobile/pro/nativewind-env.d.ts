@@ -26,3 +26,10 @@ declare module 'react-native' {
     contentContainerClassName?: string;
   }
 }
+
+declare module 'react-native-safe-area-context' {
+  interface NativeSafeAreaViewProps {
+    className?: string;
+  }
+}
+

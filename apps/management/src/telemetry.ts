@@ -7,31 +7,36 @@ import { ZoneContextManager } from '@opentelemetry/context-zone';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 
-const exporter = new OTLPTraceExporter({
-  url: 'http://localhost:4318/v1/traces',
-});
+const isTest = (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') ||
+               (typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'test');
 
-const provider = new WebTracerProvider({
-  resource: resourceFromAttributes({
-    [SemanticResourceAttributes.SERVICE_NAME]: 'clickflash-management-hub',
-    [SemanticResourceAttributes.SERVICE_VERSION]: '1.0.0',
-  }),
-  spanProcessors: [new BatchSpanProcessor(exporter)],
-});
+if (!isTest) {
+  const exporter = new OTLPTraceExporter({
+    url: 'http://localhost:4318/v1/traces',
+  });
 
-provider.register({
-  contextManager: new ZoneContextManager(),
-});
-
-registerInstrumentations({
-  instrumentations: [
-    getWebAutoInstrumentations({
-      '@opentelemetry/instrumentation-fetch': {
-        propagateTraceHeaderCorsUrls: [
-          /localhost/,
-          /api\.clickflash\.com/
-        ],
-      },
+  const provider = new WebTracerProvider({
+    resource: resourceFromAttributes({
+      [SemanticResourceAttributes.SERVICE_NAME]: 'clickflash-management-hub',
+      [SemanticResourceAttributes.SERVICE_VERSION]: '1.0.0',
     }),
-  ],
-});
+    spanProcessors: [new BatchSpanProcessor(exporter)],
+  });
+
+  provider.register({
+    contextManager: new ZoneContextManager(),
+  });
+
+  registerInstrumentations({
+    instrumentations: [
+      getWebAutoInstrumentations({
+        '@opentelemetry/instrumentation-fetch': {
+          propagateTraceHeaderCorsUrls: [
+            /localhost/,
+            /api\.clickflash\.com/
+          ],
+        },
+      }),
+    ],
+  });
+}

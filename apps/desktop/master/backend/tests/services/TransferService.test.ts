@@ -93,8 +93,14 @@ describe('TransferService', () => {
         // Verify
         expect(result.success).toBe(true);
         expect(result.copiedCount).toBe(4); // 2 photos * 2 destinations
-        expect(mockDbManager.query).toHaveBeenCalledTimes(4); // 2 for kiosks, 1 for photos, 1 for faces
+        // 2 for kiosks authorization, 1 for photos (0 for faces due to Biometric Air-Gap)
+        expect(mockDbManager.query).toHaveBeenCalledTimes(3);
         expect(fs.promises.copyFile).toHaveBeenCalledTimes(4);
+
+        // Biometric Air-Gap (ADR-012 / GDPR Art. 9): Raw face descriptors must NOT be in metadata.json
+        expect(fs.promises.writeFile).toHaveBeenCalled();
+        const writtenPayload = JSON.parse((fs.promises.writeFile as any).mock.calls[0][1]);
+        expect(writtenPayload.photos[0].faces).toBeUndefined();
     });
 
     it('should handle concurrency limit', async () => {

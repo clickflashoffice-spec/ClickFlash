@@ -1,3 +1,8 @@
-# Run security containment check
+# ClickFlash Pre-Commit Hygiene Gate
+# 1. Block accidental tracking of private key files
 pnpm run security:tracked-private-key-filenames
 
+# 2. Run Gitleaks secret scanning on staged files (if available)
+if command -v gitleaks &> /dev/null; then
+  gitleaks protect --staged --no-banner
+fi

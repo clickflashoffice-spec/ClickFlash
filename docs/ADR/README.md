@@ -14,6 +14,7 @@
 | [ADR 004](./004-sqlite-encryption.md) | Encrypted SQLite for Local Data | Accepted | 2026-06 |
 | [ADR 005](./005-migration-strategy.md) | Incremental Migration Strategy | Accepted | 2026-06 |
 | [ADR 006](./006-installer-architecture.md) | Unified Ecosystem Installer | Accepted | 2026-06 |
+| [ADR 012](./012-hardened-hybrid-appliance.md) | Hardened Hybrid Appliance Architecture for Master Edge Stations | Accepted | 2026-09 |
 
 ---
 

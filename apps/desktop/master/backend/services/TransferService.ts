@@ -217,44 +217,10 @@ export class TransferService {
     if (photos.length === 0)
       throw new Error("No photos found to send (check selection)");
 
-    // 2. Batch Fetch Face Descriptors (N+1 Optimization)
-    const photoIdMap = new Map<string | number, any>();
-    photos.forEach((p) => photoIdMap.set(p.id, p));
-
-    const photoIdsToFetch = photos.map((p) => p.id);
-    // Removed unused 'placeholders' variable
-
-    // We might need to chunk this if > 999 items due to SQLite limits,
-    // but for now let's assume valid range or implement simple chunking.
-    const BATCH_SIZE = 900;
-    const faceMap = new Map<string | number, any[]>();
-
-    for (let i = 0; i < photoIdsToFetch.length; i += BATCH_SIZE) {
-      const chunk = photoIdsToFetch.slice(i, i + BATCH_SIZE);
-      const chunkPlaceholders = chunk.map(() => "?").join(",");
-
-      try {
-        const faces = this.dbManager.query<{
-          photoId: number | string;
-          descriptor: string;
-        }>(
-          `SELECT photoId, descriptor FROM photo_faces WHERE photoId IN (${chunkPlaceholders})`,
-          chunk,
-        );
-
-        faces.forEach((f) => {
-          const existing = faceMap.get(f.photoId) || [];
-          try {
-            existing.push(JSON.parse(f.descriptor));
-            faceMap.set(f.photoId, existing);
-          } catch (e) {
-            /* ignore parse error */
-          }
-        });
-      } catch (err: any) {
-        this.logger.warn(`Failed to fetch face batch: ${err.message}`);
-      }
-    }
+    // 2. Biometric Air-Gap (ADR-012 / GDPR Art. 9 / BIPA)
+    // Raw ArcFace 512D biometric vectors are strictly confined to encrypted SQLCipher
+    // storage on the appliance or touch kiosk local vector store. They are NEVER exported
+    // into unencrypted metadata.json files written to disk or SMB shares.
 
     const totalPhotos = photos.length;
     const errors: string[] = [];
@@ -352,7 +318,7 @@ export class TransferService {
                 pathCopiedCount++; // Ensure metadata is generated even if file is not physically copied
               }
 
-              // Add to metadata
+              // Add to metadata (Biometric Air-Gap: No raw face vectors in metadata.json)
               photoMetadataList.push({
                 id: photo.id,
                 url: `photos/${destFilename}`,
@@ -360,7 +326,6 @@ export class TransferService {
                 category: photo.category || "",
                 manualEdits: photo.manualEdits || {},
                 roomNumber: photo.roomNumber || "",
-                faces: faceMap.get(photo.id) || [],
               });
 
               // Progress Update (Throttle to every 5%)

@@ -31,7 +31,7 @@ export const AlbumCreate = z.object({
   source: z.string().optional(),
   categories: z.string().optional(), // JSON array stored as string
   eventType: z.string().optional(),
-  customerEmail: z.string().email().optional(),
+  customerEmail: z.string().email().optional().or(z.literal("")).nullable(),
 });
 
 export const AlbumUpdate = AlbumCreate.partial().extend({
@@ -71,7 +71,7 @@ export const PhotoUpdate = PhotoCreate.partial().extend({
 export const OrderCreate = z.object({
   orderNumber: z.string().optional(),
   clientName: z.string().optional(),
-  email: z.string().email().optional(),
+  email: z.string().email().optional().or(z.literal("")).nullable(),
   customer: z.string().optional(), // JSON object stored as string
   items: z.string(), // JSON array stored as string
   total: z.number().min(0),
@@ -146,3 +146,16 @@ export const RepoRequest = z.object({
 });
 
 export type RepoRequestType = z.infer<typeof RepoRequest>;
+
+// ─── Quick-Print Schemas (ADR-012: DEC-002) ───────────────────────────────
+
+export const QuickPrintRequest = z.object({
+  photoId: z.string(),
+  albumId: z.string().optional(),
+  printerName: z.string().optional(),
+  copies: z.number().int().min(1).max(50).default(1),
+  paperSize: z.enum(["4x6", "6x8", "8x10"]).default("6x8"),
+  autoEnhance: z.boolean().default(true),
+});
+
+export type QuickPrintRequestType = z.infer<typeof QuickPrintRequest>;

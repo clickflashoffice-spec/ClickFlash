@@ -2,7 +2,6 @@
 # Run with: docker-compose up -d
 # Includes all 6 apps + shared services
 
-version: '3.8'
 
 services:
   # ==========================================

@@ -1,0 +1,41 @@
+# ClickFlash Autonomous Monorepo Pre-Commit Configuration
+# Enforces zero-secret leakage, format hygiene, and monorepo compilation integrity.
+
+default_stages: [commit, push]
+fail_fast: true
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.(splat|ply|wasm|onnx|lock)$'
+      - id: end-of-file-fixer
+        exclude: '\.(splat|ply|wasm|onnx|lock)$'
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=25000']
+      - id: check-merge-conflict
+      - id: no-commit-to-branch
+        args: ['--branch', 'main']
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.0
+    hooks:
+      - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: private-key-guard
+        name: Private Key Filename Guard
+        entry: node scripts/check-tracked-private-key-filenames.mjs
+        language: system
+        pass_filenames: false
+      - id: monorepo-typecheck
+        name: Turborepo Strict TypeCheck
+        entry: npm run typecheck:all
+        language: system
+        pass_filenames: false
+        stages: [push]

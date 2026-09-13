@@ -27,10 +27,11 @@
 
 ## Testing Checklist
 
-- [ ] `tsc --noEmit` passes for affected apps
-- [ ] `npm run lint` passes for affected apps
-- [ ] Unit tests pass (`npm test`)
+- [ ] `npm run typecheck:all` passes (0 errors across all apps)
+- [ ] `npm run lint:all` passes for affected apps
+- [ ] Unit tests pass (`pnpm --filter <app> test`)
 - [ ] E2E tests pass for affected flows (if applicable)
+- [ ] Architecture boundaries respected (no cross-app imports)
 - [ ] Manually tested in dev environment
 
 ## Security Checklist (if applicable)

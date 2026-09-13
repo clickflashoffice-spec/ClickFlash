@@ -18,13 +18,14 @@
 | **ARCH-002** | Modular Split of AgentStudioView (1,200 LOC) | Architecture | 8 | 3 | 1 | **2.40** | Completed |
 | **ARCH-003** | Real Rust Core Implementation (`@clickflash/mobile-pro`) | Architecture | 10 | 8 | 3 | **0.38** | Proposed |
 | **ARCH-004** | RxDB / ElectricSQL Kiosk-to-Cloud Sync Layer | Architecture | 9 | 7 | 3 | **0.40** | Proposed |
-| **SEC-001** | Hardware DPAPI/TPM Master SQLite Key Custody | Security | 10 | 4 | 2 | **1.13** | Proposed |
+| **SEC-001** | Hardware DPAPI/TPM Master SQLite Key Custody | Security | 10 | 4 | 2 | **1.13** | Completed |
 | **SEC-002** | Biometric Air-Gap CI AST Linter Guard | Security | 9 | 3 | 1 | **2.70** | Completed |
-| **SEC-003** | Fastify LAN Endpoint HMAC Request Signing | Security | 8 | 3 | 2 | **1.20** | Proposed |
-| **PERF-001** | Turborepo Remote Caching in GitHub Actions | Performance | 8 | 2 | 1 | **3.60** | Proposed |
-| **PERF-002** | Sharp Stream Concurrency Pool & Backpressure | Performance | 9 | 4 | 2 | **1.01** | Proposed |
+| **SEC-003** | Fastify LAN Endpoint HMAC Request Signing | Security | 8 | 3 | 2 | **1.20** | Completed |
+| **PERF-001** | Turborepo Remote Caching in GitHub Actions | Performance | 8 | 2 | 1 | **3.60** | Completed |
+| **PERF-002** | Sharp Stream Concurrency Pool & Backpressure | Performance | 9 | 4 | 2 | **1.01** | Completed |
 | **PERF-003** | OpenTelemetry Distributed Tracing across Nodes | Observability | 8 | 5 | 2 | **0.72** | Proposed |
 | **PERF-004** | Gallery & Management Bundle Code-Splitting | Performance | 8 | 3 | 2 | **1.20** | Proposed |
+| **FRONTEND-005** | Gallery Prop-Drilling Elimination (`CustomerGalleryContext`) | Architecture | 8 | 3 | 1 | **2.40** | Completed |
 | **DX-001** | Consolidated `pnpm test:fast` Test Runner | Developer Exp | 7 | 2 | 1 | **3.15** | Proposed |
 
 ---
@@ -101,11 +102,12 @@
 ## 3. Security Hardening
 
 ### [SEC-001] Hardware DPAPI / TPM Master SQLite Key Custody
-- **Target**: `apps/desktop/master/backend/database/db.ts`
+- **Target**: `apps/desktop/master/backend/database/db.ts`, `apps/desktop/master/backend/utils/dpapi.ts`
 - **Rationale**: Prevent extraction of the 256-bit AES database encryption key from process environment variables.
 - **Acceptance Criteria**:
-  - Windows DPAPI (`CryptProtectData`) wrapper used to encrypt key at rest.
+  - Windows DPAPI (`ProtectedData.Protect` / `Unprotect`) wrapper used to encrypt key at rest (`DB_ENCRYPTION_KEY="DPAPI:..."`).
   - Key unlocked in-memory only during master process lifecycle.
+- **Status**: Completed (`dpapi.ts`, `dpapi.test.ts`, `db.ts`, `scripts/protect-key.ts`).
 
 ### [SEC-002] Biometric Air-Gap CI AST Linter Guard
 - **Target**: `packages/config/eslint` / `.agents/rules/security-policy.md`
@@ -114,6 +116,15 @@
   - Custom ESLint rule or AST scan flagging any export of `descriptor` or vector arrays to kiosk sync payloads.
 - **Status**: Completed (`scripts/check-biometric-airgap.mjs` + `test:security-guards` in CI).
 
+### [SEC-003] Fastify LAN Endpoint HMAC Request Signing
+- **Target**: `apps/desktop/master/backend/middleware/lanSigningMiddleware.ts`
+- **Rationale**: Authenticate all Touch Kiosk LAN requests to Master OS Fastify & Express endpoints via HMAC-SHA256 headers with constant-time verification.
+- **Acceptance Criteria**:
+  - Unified `verifyLanSignatureCore` with `crypto.timingSafeEqual`.
+  - Fastify `preHandler` hook and Express middleware exported.
+  - 100% test coverage with replay protection and private network checks.
+- **Status**: Completed (`lanSigningMiddleware.ts` + `lanSigningMiddleware.test.ts` 12/12 passing).
+
 ---
 
 ## 4. Performance & Observability
@@ -121,7 +132,20 @@
 ### [PERF-001] Turborepo Remote Caching in GitHub Actions
 - **Target**: `.github/workflows/ci.yml`
 - **Rationale**: Accelerate monorepo build and test runs from 2.5 minutes down to <30 seconds via remote hash caching.
+- **Acceptance Criteria**:
+  - GitHub Actions cache for `.turbo` and `node_modules/.cache/turbo`.
+  - CI security guard step enabled on all PRs/pushes.
+- **Status**: Completed (`.github/workflows/ci.yml`).
 
 ### [PERF-002] Sharp Stream Concurrency Pooling with Backpressure
 - **Target**: `apps/desktop/master/backend/workers/photoWorker.ts`
 - **Rationale**: Prevent CPU starvation during rapid multi-camera tethered burst ingestion (e.g. 10 fps roller coaster cameras).
+- **Acceptance Criteria**:
+  - Constrain libvips thread pool via `sharp.concurrency(1)` per worker thread.
+  - Cascaded derivative generation: derive `thumb` (400x400) and `tiny` (100x100 webp) from 2048px intermediate preview, eliminating 2 full-res file decodes.
+- **Status**: Completed (`photoWorker.ts`).
+
+### [FRONTEND-005] Gallery Prop-Drilling Elimination (`CustomerGalleryContext`)
+- **Target**: `apps/gallery/src/components/customer/`
+- **Rationale**: Clean up 10+ prop drillings across `CustomerLayout`, `CustomerGallery`, and `PhotoCard`.
+- **Status**: Completed (`CustomerGalleryContext.tsx`, `CustomerGallery.tsx`, `CustomerLayout.tsx`).

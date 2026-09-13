@@ -46,8 +46,10 @@
 ## Phase 6 — Continuous Improvement & Self-Optimizing Loop
 - [x] **TASK-601**: Maintain living `improvements_backlog.md` with active priority ranking.
 - [x] **TASK-602**: Execute highest-ROI items from backlog: Modular View splitting (ARCH-002), SafeAreaView augmentation (QW-001), SQLite Write Queue Durable Journal (ARCH-001), Biometric Air-Gap CI AST Guard (SEC-002).
-- [ ] **TASK-603**: Execute Phase 6.2 High-ROI Wave:
-  - [ ] **TASK-603A**: Turborepo remote caching & CI security guards in `.github/workflows/ci.yml` (PERF-001).
-  - [ ] **TASK-603B**: Fastify & Express unified HMAC LAN signing with constant-time verification & tests (SEC-003).
-  - [ ] **TASK-603C**: Sharp stream concurrency pooling & derivative pipeline optimization in `photoWorker.ts` (PERF-002).
+- [x] **TASK-603**: Execute Phase 6.2 High-ROI Wave:
+  - [x] **TASK-603A**: Turborepo remote caching & CI security guards in `.github/workflows/ci.yml` (PERF-001).
+  - [x] **TASK-603B**: Fastify & Express unified HMAC LAN signing with constant-time verification & tests (SEC-003).
+  - [x] **TASK-603C**: Sharp stream concurrency pooling & derivative pipeline optimization in `photoWorker.ts` (PERF-002).
+  - [x] **TASK-603D**: Hardware DPAPI Master SQLite key custody in `db.ts` and `dpapi.ts` (SEC-001).
+  - [x] **TASK-603E**: Prop-drilling elimination via `CustomerGalleryContext` in `@clickflash/gallery` (FRONTEND-005).
 - [ ] **TASK-604**: Coordinate multi-agent swarm modernizations for recurring health audits.

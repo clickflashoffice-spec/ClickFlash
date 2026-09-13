@@ -22,7 +22,7 @@ import {
 // PILLAR 1: OPERATIONS & HARDWARE FLEET
 // =============================================================================
 
-const MOCK_GEAR_ASSETS: GearAsset[] = [
+export const MOCK_GEAR_ASSETS: GearAsset[] = [
   {
     id: 'gear-1',
     venueId: 'dest-mallorca',
@@ -85,7 +85,7 @@ const MOCK_GEAR_ASSETS: GearAsset[] = [
   }
 ];
 
-const MOCK_PRINTERS: PrinterStatus[] = [
+export const MOCK_PRINTERS: PrinterStatus[] = [
   {
     id: 'prn-1',
     name: 'Main Pavilion Kiosk DNP 1',
@@ -121,7 +121,7 @@ const MOCK_PRINTERS: PrinterStatus[] = [
   }
 ];
 
-const MOCK_PRINT_JOBS: PrintJob[] = [
+export const MOCK_PRINT_JOBS: PrintJob[] = [
   {
     id: 'pj-101',
     venueId: 'dest-mallorca',
@@ -164,7 +164,7 @@ const MOCK_PRINT_JOBS: PrintJob[] = [
   }
 ];
 
-const MOCK_ATTRACTION_ANCHORS: AttractionAnchor[] = [
+export const MOCK_ATTRACTION_ANCHORS: AttractionAnchor[] = [
   {
     id: 'anc-1',
     venueId: 'dest-mallorca',
@@ -197,7 +197,7 @@ const MOCK_ATTRACTION_ANCHORS: AttractionAnchor[] = [
 // PILLAR 2: PEOPLE, SHIFTS, HOUSING & ACADEMY
 // =============================================================================
 
-const MOCK_SHIFTS: ShiftSchedule[] = [
+export const MOCK_SHIFTS: ShiftSchedule[] = [
   {
     id: 'shift-1',
     venueId: 'dest-mallorca',
@@ -242,7 +242,7 @@ const MOCK_SHIFTS: ShiftSchedule[] = [
   }
 ];
 
-const MOCK_HOUSING_UNITS: StaffHousingUnit[] = [
+export const MOCK_HOUSING_UNITS: StaffHousingUnit[] = [
   {
     id: 'house-1',
     venueId: 'dest-mallorca',
@@ -278,7 +278,7 @@ const MOCK_HOUSING_UNITS: StaffHousingUnit[] = [
   }
 ];
 
-const MOCK_ACADEMY_COURSES: AcademyCourse[] = [
+export const MOCK_ACADEMY_COURSES: AcademyCourse[] = [
   {
     id: 'acad-1',
     title: 'Resort Dynamic Posing & Emotion Capture',
@@ -311,7 +311,7 @@ const MOCK_ACADEMY_COURSES: AcademyCourse[] = [
   }
 ];
 
-const MOCK_APPLICANTS: JobApplicant[] = [
+export const MOCK_APPLICANTS: JobApplicant[] = [
   {
     id: 'app-1',
     venueId: 'dest-mallorca',
@@ -346,7 +346,7 @@ const MOCK_APPLICANTS: JobApplicant[] = [
 // PILLAR 3: FINANCIALS & SLEEPING MONEY
 // =============================================================================
 
-const MOCK_SLEEPING_MONEY: SleepingMoneyGallery[] = [
+export const MOCK_SLEEPING_MONEY: SleepingMoneyGallery[] = [
   {
     id: 'slp-1',
     venueId: 'dest-mallorca',
@@ -394,7 +394,7 @@ const MOCK_SLEEPING_MONEY: SleepingMoneyGallery[] = [
   }
 ];
 
-const MOCK_CASH_RECONCILIATION: CashReconciliation = {
+export const MOCK_CASH_RECONCILIATION: CashReconciliation = {
   id: 'cash-rec-today',
   venueId: 'dest-mallorca',
   terminalId: 'POS-MAIN-01',
@@ -412,7 +412,7 @@ const MOCK_CASH_RECONCILIATION: CashReconciliation = {
   status: 'BALANCED'
 };
 
-const MOCK_CONSUMABLES: ConsumableExpense[] = [
+export const MOCK_CONSUMABLES: ConsumableExpense[] = [
   {
     id: 'exp-1',
     venueId: 'dest-mallorca',
@@ -437,7 +437,7 @@ const MOCK_CONSUMABLES: ConsumableExpense[] = [
   }
 ];
 
-const MOCK_FRAUD_ALERTS: FraudAlertEvent[] = [
+export const MOCK_FRAUD_ALERTS: FraudAlertEvent[] = [
   {
     id: 'fa-1',
     venueId: 'dest-mallorca',
@@ -456,7 +456,7 @@ const MOCK_FRAUD_ALERTS: FraudAlertEvent[] = [
 // PILLAR 4: STORE, GAMIFICATION & REVIEW DEFENSE
 // =============================================================================
 
-const MOCK_KEEPSAKE_PRODUCTS: KeepsakeProductItem[] = [
+export const MOCK_KEEPSAKE_PRODUCTS: KeepsakeProductItem[] = [
   {
     id: 'prod-c1',
     venueId: 'dest-mallorca',
@@ -498,7 +498,7 @@ const MOCK_KEEPSAKE_PRODUCTS: KeepsakeProductItem[] = [
   }
 ];
 
-const MOCK_GAMIFICATION_PROFILES: GamificationProfile[] = [
+export const MOCK_GAMIFICATION_PROFILES: GamificationProfile[] = [
   {
     id: 'gp-1',
     userId: 'usr-101',
@@ -537,7 +537,7 @@ const MOCK_GAMIFICATION_PROFILES: GamificationProfile[] = [
   }
 ];
 
-const MOCK_REVIEW_INTERCEPTIONS: ReviewInterceptionLog[] = [
+export const MOCK_REVIEW_INTERCEPTIONS: ReviewInterceptionLog[] = [
   {
     id: 'rev-1',
     venueId: 'dest-mallorca',
@@ -565,7 +565,7 @@ const MOCK_REVIEW_INTERCEPTIONS: ReviewInterceptionLog[] = [
 // PILLAR 5: AI SUITE
 // =============================================================================
 
-const MOCK_AI_COACHING_CARDS: AICoachingCard[] = [
+export const MOCK_AI_COACHING_CARDS: AICoachingCard[] = [
   {
     id: 'coach-1',
     photographerId: 'usr-101',
@@ -600,7 +600,7 @@ const MOCK_AI_COACHING_CARDS: AICoachingCard[] = [
   }
 ];
 
-const MOCK_RESORT_BLOGS: ResortBlogPostItem[] = [
+export const MOCK_RESORT_BLOGS: ResortBlogPostItem[] = [
   {
     id: 'blog-1',
     venueId: 'dest-mallorca',

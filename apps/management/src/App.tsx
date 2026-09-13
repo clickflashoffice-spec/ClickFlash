@@ -33,7 +33,7 @@ const PricingView = lazy(() => import('./views/PricingView').then(m => ({ defaul
 const AICommandView = lazy(() => import('./views/AICommandView').then(m => ({ default: m.AICommandView })));
 const FinancialsView = lazy(() => import('./views/FinancialsView').then(m => ({ default: m.FinancialsView })));
 const SystemSettingsView = lazy(() => import('./views/SystemSettingsView').then(m => ({ default: m.SystemSettingsView })));
-const WhatsappSwarmView = lazy(() => import('./views/WhatsappSwarmView').then(m => ({ default: m.WhatsappSwarmView })));
+const WhatsappSwarmView = lazy(() => import('./views/WhatsappSwarmView').then(m => ({ default: m.WhatsappSwarmView || m.default })));
 const MagicShotStudioView = lazy(() => import('./views/MagicShotStudioView').then(m => ({ default: m.MagicShotStudioView })));
 const AgentStudioView = lazy(() => import('./views/AgentStudioView').then(m => ({ default: m.AgentStudioView })));
 const EquipmentPrintHubView = lazy(() => import('./views/EquipmentPrintHubView').then(m => ({ default: m.EquipmentPrintHubView })));
@@ -41,7 +41,7 @@ const SleepingMoneyRecoveryView = lazy(() => import('./views/SleepingMoneyRecove
 const KeepsakeStoreView = lazy(() => import('./views/KeepsakeStoreView').then(m => ({ default: m.KeepsakeStoreView })));
 const AiCoachBlogView = lazy(() => import('./views/AiCoachBlogView').then(m => ({ default: m.AiCoachBlogView })));
 const AutonomousCeo = lazy(() => import('./pages/AutonomousCeo').then(m => ({ default: m.AutonomousCeo })));
-const FranchiseOverview = lazy(() => import('./pages/FranchiseOverview').then(m => ({ default: m.FranchiseOverview })));
+const FranchiseOverview = lazy(() => import('./pages/FranchiseOverview').then(m => ({ default: m.FranchiseOverview || m.default })));
 const IngestionStudioPage = lazy(() => import('./modules/ingestion-studio/IngestionStudioPage').then(m => ({ default: m.IngestionStudioPage })));
 
 type TabPath = '/' | '/franchise' | '/fleet' | '/equipment' | '/staff' | '/customers' | '/galleries' | '/keepsakes' | '/pricing' | '/magic-shots' | '/ai-command' | '/agent-studio' | '/ai-coach' | '/autonomous-ceo' | '/whatsapp-swarm' | '/sleeping-money' | '/ingestion-studio' | '/financials' | '/settings';

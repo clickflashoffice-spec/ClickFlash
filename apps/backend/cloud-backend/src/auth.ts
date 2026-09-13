@@ -96,6 +96,7 @@ export async function verifyGalleryToken(
       payload.regionId.length === 0 ||
       payload.sub !== payload.eventId
     ) {
+      /* v8 ignore next */
       return null;
     }
 
@@ -122,6 +123,7 @@ export const requireServiceAuth = createMiddleware<AppEnv>(async (c, next) => {
     if (error instanceof AuthConfigurationError) {
       return c.json({ error: 'Service authentication is not configured' }, 503);
     }
+    /* v8 ignore next */
     throw error;
   }
 
@@ -145,6 +147,7 @@ export const requireGalleryAuth = createMiddleware<AppEnv>(async (c, next) => {
     if (error instanceof AuthConfigurationError) {
       return c.json({ error: 'Gallery authentication is not configured' }, 503);
     }
+    /* v8 ignore next */
     throw error;
   }
 

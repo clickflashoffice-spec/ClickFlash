@@ -277,5 +277,27 @@ export const RustCore = {
     }
     return JSON.stringify({ status: 'mock', discovered: 0, linked: 0 });
   }
-};
+  /**
+   * Hashes a local massive RAW photo using native Rust for extreme performance.
+   */
+  hashPhotoBuffer(filePath: string): string {
+    if (ClickFlashRustCore?.hashPhotoBuffer) {
+      return ClickFlashRustCore.hashPhotoBuffer(filePath);
+    }
+    // JS mock fallback - extremely slow in reality
+    return hash_mock_${Math.random()};
+  },
 
+  /**
+   * Performs L2 Normalization on a floating point embedding vector using zero-copy Rust.
+   */
+  l2NormalizeVector(vector: number[]): number[] {
+    if (ClickFlashRustCore?.l2NormalizeVector) {
+      // Assuming JNI passes array
+      return ClickFlashRustCore.l2NormalizeVector(vector);
+    }
+    // JS mock fallback
+    const mag = Math.sqrt(vector.reduce((acc, val) => acc + val * val, 0));
+    return vector.map(val => val / (mag || 1));
+  }
+};

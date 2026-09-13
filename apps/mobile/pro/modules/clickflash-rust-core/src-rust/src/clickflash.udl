@@ -1,0 +1,4 @@
+namespace clickflash {
+    string hash_photo_buffer([ByRef] bytes buffer);
+    sequence<f32> l2_normalize(sequence<f32> vector);
+};

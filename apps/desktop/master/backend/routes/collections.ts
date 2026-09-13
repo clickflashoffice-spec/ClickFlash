@@ -1110,8 +1110,14 @@ export default function collectionRoutes(context: CollectionsContext): Router {
                   let fileHash: string | null = null;
                   try {
                     const crypto = require('crypto');
-                    const fileBuffer = require('fs').readFileSync(filePath);
-                    fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+                    const fs = require('fs');
+                    fileHash = await new Promise<string>((resolve, reject) => {
+                      const hash = crypto.createHash('sha256');
+                      const stream = fs.createReadStream(filePath);
+                      stream.on('error', reject);
+                      stream.on('data', (chunk: any) => hash.update(chunk));
+                      stream.on('end', () => resolve(hash.digest('hex')));
+                    });
                     
                     // Check for duplicate by hash before processing
                     const existingByHash = dbManager.get(

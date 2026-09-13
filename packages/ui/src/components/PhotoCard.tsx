@@ -47,6 +47,9 @@ export const PhotoCard = memo<PhotoCardProps>(
 
     return (
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={`Select photo ${photo.title || 'Untitled'}`}
         className={twMerge(
           clsx(
             'relative group cursor-pointer overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800',
@@ -60,6 +63,12 @@ export const PhotoCard = memo<PhotoCardProps>(
         style={{ aspectRatio }}
         onClick={handleSelect}
         onDoubleClick={handlePreview}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleSelect(e as any);
+          }
+        }}
       >
         <div className="absolute inset-0">
           <Photo

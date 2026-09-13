@@ -32,7 +32,7 @@ export default defineConfig({
 
 
   use: {
-    baseURL: 'http://127.0.0.1:8090',
+    baseURL: 'http://localhost:8090',
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -56,7 +56,7 @@ export default defineConfig({
   webServer: [
     {
       command: 'npm run dev:master',
-      url: 'http://127.0.0.1:8090/api/health',
+      url: 'http://localhost:8090/api/health',
       timeout: 120000,
       reuseExistingServer: !process.env.CI,
       env: {
@@ -67,7 +67,7 @@ export default defineConfig({
     },
     {
       command: 'npm run dev:touch',
-      url: 'http://127.0.0.1:5174', // Touch Vite port or whatever Touch expects
+      url: 'http://localhost:5174', // Touch Vite port or whatever Touch expects
       timeout: 120000,
       reuseExistingServer: !process.env.CI,
       env: {
@@ -78,7 +78,7 @@ export default defineConfig({
     },
     {
       command: 'npm run dev:management',
-      url: 'http://127.0.0.1:5175',
+      url: 'http://localhost:5175',
       timeout: 120000,
       reuseExistingServer: !process.env.CI,
       env: { TEST_E2E: '1' },
@@ -87,7 +87,7 @@ export default defineConfig({
     },
     {
       command: 'npm run dev:gallery',
-      url: 'http://127.0.0.1:5176/api/health',
+      url: 'http://localhost:5176/api/health',
       timeout: 120000,
       reuseExistingServer: !process.env.CI,
       env: { TEST_E2E: '1' },
@@ -96,7 +96,7 @@ export default defineConfig({
     },
     {
       command: 'pnpm --filter moneytrash-uploader run dev',
-      url: 'http://127.0.0.1:1420',
+      url: 'http://localhost:1420',
       timeout: 120000,
       reuseExistingServer: !process.env.CI,
       env: { TEST_E2E: '1' },

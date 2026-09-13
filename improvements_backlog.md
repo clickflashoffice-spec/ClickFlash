@@ -238,3 +238,5 @@
 - **Rationale**: Lack of composite indexes on `tenant_id, timestamp DESC` causes full table scans on Cloudflare D1.
 - **Score**: Impact (4) x Effort (5) x Risk (5) = 100
 - **Category**: Performance / Reliability
+
+

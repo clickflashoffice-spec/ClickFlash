@@ -1,7 +1,7 @@
 # ClickFlash Root Dockerfile
 # Used for CI/CD builds
 
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 
 # Install dependencies
 RUN apk add --no-cache python3 make g++ git
@@ -13,6 +13,7 @@ RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 
 # Copy package files
 COPY package*.json ./
+COPY pnpm-lock.yaml ./
 COPY pnpm-workspace.yaml ./
 COPY .npmrc ./
 COPY apps/backend/ai-worker/package*.json ./apps/backend/ai-worker/
@@ -43,7 +44,7 @@ COPY . .
 RUN npm run build:all
 
 # Production stage
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 
 # Add non-root user
 USER node

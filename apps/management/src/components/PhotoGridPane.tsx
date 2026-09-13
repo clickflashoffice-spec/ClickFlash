@@ -1,7 +1,13 @@
-import { Sparkles, Download, Flag, MoreVertical, MousePointerClick } from 'lucide-react';
+import { useState } from 'react';
+import { Sparkles, Download, Flag, MoreVertical, MousePointerClick, Loader2 } from 'lucide-react';
 import type { Gallery } from '../views/GalleriesOversightView';
+import Toast from './Toast';
 
 export function PhotoGridPane({ gallery }: { gallery: Gallery | null }) {
+  const [isUpselling, setIsUpselling] = useState(false);
+  const [isFlagging, setIsFlagging] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{message: string, variant: 'success' | 'error'} | null>(null);
+
   if (!gallery) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
@@ -20,8 +26,43 @@ export function PhotoGridPane({ gallery }: { gallery: Gallery | null }) {
     resolution: '24'
   }));
 
+  const handleAIUpsell = async () => {
+    setIsUpselling(true);
+    try {
+      // Mock API call to Intelligence Service
+      await fetch(`/api/intelligence/upsell/${gallery.id}`, { method: 'POST' });
+      await new Promise(r => setTimeout(r, 800)); // simulate latency
+      setToastMessage({ message: 'AI Upsell triggered successfully!', variant: 'success' });
+    } catch (e) {
+      setToastMessage({ message: 'Failed to trigger AI Upsell', variant: 'error' });
+    } finally {
+      setIsUpselling(false);
+    }
+  };
+
+  const handleFlagForReview = async () => {
+    setIsFlagging(true);
+    try {
+      // Mock API call to Gallery Service
+      await fetch(`/api/gallery/${gallery.id}/flag`, { method: 'POST' });
+      await new Promise(r => setTimeout(r, 600)); // simulate latency
+      setToastMessage({ message: 'Gallery flagged for review', variant: 'success' });
+    } catch (e) {
+      setToastMessage({ message: 'Failed to flag gallery', variant: 'error' });
+    } finally {
+      setIsFlagging(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      {toastMessage && (
+        <Toast 
+          message={toastMessage.message} 
+          variant={toastMessage.variant} 
+          onClose={() => setToastMessage(null)} 
+        />
+      )}
       {/* Detail Header */}
       <div className="p-6 border-b border-slate-800 bg-slate-950/80 backdrop-blur-sm sticky top-0 z-10 flex flex-col shrink-0">
         <div className="flex justify-between items-start">
@@ -33,10 +74,10 @@ export function PhotoGridPane({ gallery }: { gallery: Gallery | null }) {
               </span>
             </h2>
             <div className="text-sm text-slate-400 mt-2 flex items-center gap-2">
-              <span>📷 {gallery.photographer}</span>
-              <span>·</span>
+              <span>👤 {gallery.photographer}</span>
+              <span>•</span>
               <span>📧 {gallery.customerEmail || 'No email'}</span>
-              <span>·</span>
+              <span>•</span>
               <span>📱 {gallery.customerPhone || 'No phone'}</span>
             </div>
           </div>
@@ -69,16 +110,21 @@ export function PhotoGridPane({ gallery }: { gallery: Gallery | null }) {
         </div>
         <div className="flex items-center gap-3">
           <button 
-            disabled={gallery.aiStatus !== 'Hot Lead'} 
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-500 hover:to-purple-500"
+            disabled={gallery.aiStatus !== 'Hot Lead' || isUpselling} 
+            onClick={handleAIUpsell}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-500 hover:to-purple-500 min-w-[120px] justify-center"
           >
-            <Sparkles className="w-4 h-4" /> AI Upsell
+            {isUpselling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} AI Upsell
           </button>
           <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white border border-slate-700 bg-slate-800 hover:bg-slate-700 transition-colors">
             <Download className="w-4 h-4" /> Export
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-red-400 border border-red-900/30 bg-red-950/20 hover:bg-red-900/40 transition-colors">
-            <Flag className="w-4 h-4" /> Flag for Review
+          <button 
+            disabled={isFlagging}
+            onClick={handleFlagForReview}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-red-400 border border-red-900/30 bg-red-950/20 hover:bg-red-900/40 transition-colors min-w-[150px] justify-center disabled:opacity-50"
+          >
+            {isFlagging ? <Loader2 className="w-4 h-4 animate-spin" /> : <Flag className="w-4 h-4" />} Flag for Review
           </button>
           <button className="p-2 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
             <MoreVertical className="w-4 h-4" />

@@ -22,6 +22,7 @@ import {
   ArrowUpRight,
   ShieldCheck
 } from 'lucide-react';
+import { CeoAgentInsightsWidget } from '../components/CeoAgentInsightsWidget';
 
 const revenueData = [
   { name: '08:00', revenue: 1200, yieldMultiplier: 1.0, kioskUptime: 99 },
@@ -205,6 +206,9 @@ export function DashboardView() {
           </div>
         </div>
       </div>
+
+      {/* Autonomous CEO Swarm Intelligence Stream */}
+      <CeoAgentInsightsWidget />
 
       {/* Real-time Heatmap & Hotspot Dispatch Grid */}
       <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl space-y-6">

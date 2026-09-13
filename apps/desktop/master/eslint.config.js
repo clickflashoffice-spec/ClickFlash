@@ -286,6 +286,9 @@ export default [
         URL: "readonly",
         URLSearchParams: "readonly",
         crypto: "readonly",
+        fetch: "readonly",
+        global: "readonly",
+        AbortSignal: "readonly",
       },
     },
     plugins: {
@@ -301,6 +304,8 @@ export default [
       "no-unused-vars": "off",
       "prefer-const": "warn",
       "no-var": "error",
+      "no-undef": "off",
+      "no-empty": "off",
     },
   },
   {

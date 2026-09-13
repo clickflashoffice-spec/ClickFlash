@@ -1,92 +1,70 @@
-import { HardDrive, Play } from 'lucide-react';
-import { useIngestionStore } from './stores/ingestionStore';
-import { useGrading } from './hooks/useGrading';
-import { DropZone } from './components/DropZone';
-import { GradingGrid } from './components/GradingGrid';
-import { UploadProgress } from './components/UploadProgress';
-import { SessionHistory } from './components/SessionHistory';
-import { IngestionAnalytics } from './components/IngestionAnalytics';
-import { SharpnessPreview } from './components/SharpnessPreview';
+import { useState } from 'react';
+import { HardDrive } from 'lucide-react';
+import { SessionListPane, type IngestionSession } from './components/SessionListPane';
+import { IngestionDetailPane } from './components/IngestionDetailPane';
+
+// Mock data for the UI
+const mockSessions: IngestionSession[] = [
+  { id: '1', sourceName: 'Edge Node: Main Lobby', type: 'edge', status: 'Syncing', progress: 84, photoCount: 412, time: '2m ago' },
+  { id: '2', sourceName: 'Edge Node: Cabana 1', type: 'edge', status: 'Complete', progress: 100, photoCount: 128, time: '15m ago' },
+  { id: '3', sourceName: 'Web Upload (Admin)', type: 'web', status: 'Complete', progress: 100, photoCount: 24, time: '1h ago' },
+];
 
 export function IngestionStudioPage() {
-  const { activeTab, setActiveTab, files } = useIngestionStore();
-  const { isGrading, startGrading } = useGrading();
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>('1');
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-gradient-to-r from-slate-900 via-slate-900/90 to-indigo-950/40 p-6 rounded-2xl border border-slate-800 shadow-xl">
-        <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-3xl font-extrabold text-white">Ingestion Studio</h2>
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold uppercase tracking-wider">
-              <HardDrive className="w-3.5 h-3.5" />
-              Master OS Linked
-            </span>
+    <div className="flex flex-col h-[calc(100vh-4rem)] -m-8">
+      {/* Header Bar */}
+      <div className="px-8 py-6 border-b border-slate-800 bg-slate-950 flex-none shrink-0">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+              Ingestion Studio
+              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold uppercase tracking-wider">
+                <HardDrive className="w-3.5 h-3.5" /> Master OS Linked
+              </span>
+            </h1>
+            <p className="text-sm font-normal text-slate-400 mt-1">
+              Monitor edge node syncing, evaluate AI culling, and manually upload media.
+            </p>
           </div>
-          <p className="text-slate-400 text-sm mt-1">Upload, grade, and ingest raw media to the ClickFlash Master OS.</p>
         </div>
-        
-        {activeTab === 'ingest' && files.length > 0 && (
-          <button 
-            onClick={startGrading}
-            disabled={isGrading}
-            className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50"
-          >
-            {isGrading ? (
-              'Grading...'
-            ) : (
-              <>
-                <Play className="w-4 h-4 fill-current" />
-                Start AI Grading
-              </>
-            )}
-          </button>
-        )}
-      </div>
 
-      <div className="flex gap-2 border-b border-slate-800 pb-px">
-        <button
-          onClick={() => setActiveTab('ingest')}
-          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'ingest' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
-        >
-          Ingest & Grade
-        </button>
-        <button
-          onClick={() => setActiveTab('sessions')}
-          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'sessions' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
-        >
-          Session History
-        </button>
-        <button
-          onClick={() => setActiveTab('analytics')}
-          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'analytics' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
-        >
-          Analytics
-        </button>
-      </div>
-
-      {activeTab === 'ingest' && (
-        <div className="space-y-6">
-          <DropZone />
-          <UploadProgress />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <GradingGrid />
-            </div>
+        {/* KPI Strip */}
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 flex items-center gap-3 min-w-fit">
             <div>
-              <SharpnessPreview />
+              <div className="text-3xl font-bold text-emerald-400">8,412</div>
+              <div className="text-sm text-slate-400 mt-1">Total Ingested (Today)</div>
+            </div>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 flex items-center gap-3 min-w-fit">
+            <div>
+              <div className="text-3xl font-bold text-cyan-400">4</div>
+              <div className="text-sm text-slate-400 mt-1">Active Edge Nodes</div>
+            </div>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 flex items-center gap-3 min-w-fit">
+            <div>
+              <div className="text-3xl font-bold text-amber-400">12%</div>
+              <div className="text-sm text-slate-400 mt-1">AI Culling Drop Rate</div>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
-      {activeTab === 'sessions' && (
-        <SessionHistory />
-      )}
-
-      {activeTab === 'analytics' && (
-        <IngestionAnalytics />
-      )}
+      {/* Main Split View */}
+      <div className="flex-1 flex overflow-hidden">
+        <SessionListPane 
+          sessions={mockSessions} 
+          selectedId={selectedSessionId} 
+          onSelect={setSelectedSessionId} 
+        />
+        <IngestionDetailPane 
+          selectedId={selectedSessionId} 
+        />
+      </div>
     </div>
   );
 }

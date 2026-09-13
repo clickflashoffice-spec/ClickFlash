@@ -10,6 +10,7 @@ export default defineConfig({
     'tests/ecosystem/**/*.spec.ts',
     'apps/desktop/master/tests/e2e/**/*.spec.ts',
     'apps/desktop/touch/tests/e2e/**/*.spec.ts',
+    'apps/management/tests/e2e/**/*.spec.ts',
     'e2e/comprehensive-flows.spec.ts',
     'e2e/accessibility/**/*.spec.ts',
     'e2e/visual-regression/**/*.spec.ts',

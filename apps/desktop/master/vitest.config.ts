@@ -4,6 +4,8 @@ export default defineConfig({
   test: {
     globals: true,
     pool: 'threads',
+    isolate: true,
+    fileParallelism: false,
     environment: 'node',
     testTimeout: 60000,
     coverage: {

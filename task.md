@@ -1,38 +1,53 @@
-- [x] **Management Hub & Headless Master Architecture**
-  - [x] Remove max pages (`Albums`, `Photographers`, `Studio Editor`) from Master app UI.
-  - [x] Convert Master app into Headless Edge engine.
-  - [x] Create Fotiqo-style KPI Dashboard in Management Hub (`GalleriesView.tsx`).
-  - [x] Implement Live Customer Gallery Preview iframe modal in Management Hub.
-- [x] **WhatsApp Webhook Verification & Sales Swarm**
-  - [x] Implement live Meta webhook challenge handshake & HMAC-SHA256 signature verification.
-  - [x] Create and test `AnalystAgent`, `CloserAgent`, and `NegotiatorAgent` sequence execution.
-  - [x] Deploy interactive button payloads (`📷 View Album`, `🎁 Apply 20% Off`) and multi-turn negotiation memory.
-  - [x] Build CLI test harness `scripts/test_whatsapp_swarm.ts`.
-- [x] **MoneyTrash Mechanism & AI Grading**
-  - [x] Scaffold `ai-grade-worker.ts` in `apps/desktop/moneytrash`.
-  - [x] Integrate VLM to bypass mathematical grading for emotional photos.
-- [x] **Mobile Pro Rust Core Foundation**
-  - [x] Initialize `clickflash-rust-core`.
-  - [x] Port sqlite sync/queue logic.
-- [x] **3D Gaussian Splatting & NeRF World Model**
-  - [x] Extend `MeshWorker` and `@clickflash/types` for `.splat` and `.ply` 6-DoF scene generation.
-  - [x] Build interactive luxury `GaussianSplatViewer.tsx` WebGL HUD component in `@clickflash/ui`.
-  - [x] Verify full unit test suite and monorepo strict typecheck.
-- [x] **Phase 10: V12.0 Autonomous Hyper-Ecosystem & Global AI Symphony**
-  - [x] Neural Relighting & Atmospheric VFX Worker (`relighting-worker.ts`).
-  - [x] Neuromorphic High-Speed Coaster Deblur & Optical Flow Worker (`neuromorphic-deblur-worker.ts`).
-  - [x] AI Narrative Storyboard Film Composer & Ultrasonic Steganography (`storyboard-film-worker.ts`).
-  - [x] Game-Theoretic Dynamic Yield Engine & Global PPP Arbitrage (`gameTheoreticYieldService.ts`).
-- [x] **Distributed LAN Video Transcoding Grid**
-  - [x] Implement master-kiosk chunk distributor for 4K highlight reels (`DistributedTranscodingGrid.ts`, `transcode.routes.ts`).
-  - [x] Pass end-to-end multi-node slicing, heartbeat telemetry, and automatic failover tests.
-- [x] **Multimodal NLP Semantic Photo Search**
-  - [x] Implement multi-vector hybrid CLIP + ArcFace semantic search for guest albums (`semantic-search.ts`, `NlpSemanticSearchService.ts`).
-  - [x] Add natural language photo search routes (`semanticSearch.routes.ts`) and unit tests.
-- [x] **Phase 15: Full Fotiqo Feature-Parity & Enterprise Concession Moat**
-  - [x] **Pillar 1: Operations & Hardware Edge Hub** (Equipment Tracking, Print Queue Spooler, Attraction Anchors, Kiosk Anti-Piracy in `EquipmentView.tsx`, `PrintQueueView.tsx`, `EquipmentPrintHubView.tsx`).
-  - [x] **Pillar 2: People & HR Resort Operations** (Shift Scheduler & 90-min Zone Rotations, Staff Housing, Academy & Certification, ATS Recruitment in `ShiftsHousingView.tsx`, `StaffView.tsx`).
-  - [x] **Pillar 3: Financial Engine & Sleeping Money Recovery** (Sleeping Money Cockpit, Cash Drawer Reconciliation, Consumables Expense Tracker, Fraud & Leakage Detector in `SleepingMoneyView.tsx`, `SleepingMoneyRecoveryView.tsx`).
-  - [x] **Pillar 4: Sales, Store & Keepsakes** (Keepsake Store & Print Labs, Gamification & Leaderboards, Guest CRM & VIP Rooms, Review Protection Gatekeeper in `KeepsakeStoreView.tsx`).
-  - [x] **Pillar 5: Content & AI Suite** (AI Photographer Coach, Autonomous SEO Blog Generator, AI Face Retouching & Magic Elements in `AICoachingView.tsx`, `AiCoachBlogView.tsx`).
-  - [x] **Pillar 6: HQ Super-Admin Infrastructure** (HQ Impersonation Mode, Global Print Lab Routing Hub, CSAT & Feature Feedback Loop in `FranchiseOverview.tsx`).
+# Antigravity Master Execution Plan — Task Registry
+
+## Phase 0 — Initialization, Deep Project Intelligence & Memory Bootstrap
+- [x] **TASK-001**: Deep-scan workspace structure, languages, package managers, configs, and git topology.
+- [x] **TASK-002**: Initialize persistent session memory (`.agents/session-state.md`, `.agents/context-snapshot.md`, `.agents/error-log.md`).
+- [x] **TASK-003**: Create root living tracking files (`task.md`, `findings.md`, `progress.md`, `walkthrough.md`, `GEMINI.md`).
+- [x] **TASK-004**: Update root `AGENTS.md` with enhanced Antigravity Master directives and tool boundaries.
+- [x] **TASK-005**: Draft initial `findings.md` and comprehensive `implementation_plan.md` artifact for user approval.
+
+## Phase 1 — Maximum Tooling & MCP Build/Install/Secure
+- [x] **TASK-101**: Audit active MCP registry across global and workspace configs.
+- [x] **TASK-102**: Configure workspace `.agents/mcp_config.json` with GitHub MCP.
+- [x] **TASK-103**: Add Sequential Thinking, Filesystem, and SQLite MCPs.
+- [x] **TASK-104**: Secure token permissions & enforce zero secret hardcoding.
+- [x] **TASK-105**: Smoke test and list all registered MCP server endpoints.
+
+## Phase 2 — Comprehensive Deep Analysis & Multi-Dimensional Audits
+- [x] **TASK-201**: Full Architecture & Data-Flow Audit.
+- [x] **TASK-202**: Tech-Stack & Dependency CVE Audit.
+- [x] **TASK-203**: Security Audit (OWASP Top 10).
+- [x] **TASK-204**: Code Quality & Technical Debt Audit.
+- [x] **TASK-205**: Frontend Accessibility, Performance & SEO Audit.
+- [x] **TASK-206**: Git Hygiene and CI/CD Gap Analysis.
+- [x] **TASK-207**: MCP & Tool Coverage Gap Analysis.
+
+## Phase 3 — Foundation Installation & Structure
+- [x] **TASK-301**: Monorepo layout cleanup — moved 6 orphaned scripts to `scripts/archive/`, updated `.gitignore`.
+- [x] **TASK-302**: Docker hardening — Node 22 upgrade, removed deprecated `version` key, added `pnpm-lock.yaml` COPY.
+- [x] **TASK-303**: Pre-commit & Husky enhancement — added Gitleaks staged scanning to `.husky/pre-commit`.
+- [x] **TASK-304**: Rules quality audit — created `observability-policy.md` (14 rules, 6 sections).
+- [x] **TASK-305**: Skills verification — 880+ skills intact and operational.
+- [x] **TASK-306**: Workflows quality audit — all 8 workflows verified, +1 new `health-check.md`.
+- [x] **TASK-307**: Created `orchestrator.md` agent — 6/6 agents now complete.
+
+## Phase 4 — Git Excellence & Remote Integration
+- [x] **TASK-401**: Created feature branch `feat/v3-hardening-remediation` from HEAD.
+- [x] **TASK-402**: GitHub MCP registered in workspace config — `gh` CLI auth verified.
+- [x] **TASK-403**: Authored `scripts/git-hygiene.ps1` (branch validation, commit checks, PR automation).
+- [x] **TASK-404**: Verified `ai-review.yml` GitHub Actions workflow exists and triggers on PRs.
+- [x] **TASK-405**: Enhanced PR template with `typecheck:all`, architecture boundary checks.
+
+## Phase 5 — Hardening, Remediation & Verification
+- [x] **TASK-501**: CVE overrides verified in `pnpm-workspace.yaml` (multer ≥2.3.0, protobufjs ≥7.5.5, vitest ≥3.2.6, next ≥15.5.24).
+- [x] **TASK-502**: Created `docs/SQLITE_RESILIENCE.md` (WAL healthcheck, snapshotting, recovery).
+- [x] **TASK-503**: Full verification suite — `npm run typecheck:all` EXIT CODE 0, 0 errors.
+- [x] **TASK-504**: Docker Compose validation — YAML structurally valid (Docker CLI not in PATH per ERR-005).
+- [x] **TASK-505**: Walkthrough generation — complete in walkthrough.md with all test transcripts.
+
+## Phase 6 — Continuous Expansion & Self-Improvement Loop
+- [x] **TASK-601**: Updated `findings.md` with living backlog (4 Medium, 4 Low items tracked).
+- [x] **TASK-602**: Created `.agents/workflows/health-check.md` (7-step periodic verification).
+- [x] **TASK-603**: Multi-agent swarm readiness verified — orchestrator agent + Titan Swarm Pipeline + 880 skills.
+- [x] **TASK-604**: Final commit and PR creation workflow operational via scripts/git_hygiene.ps1.

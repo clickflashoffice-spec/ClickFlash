@@ -57,7 +57,7 @@ export class SyncManager {
 
     public handleConnection(ws: WebSocket, req: any) {
         if (this.isRxDbReplicationActive && req.url?.includes('graphql')) {
-            this.logger.info([SyncManager] Initializing RxDB GraphQL CRDT Replication Socket);
+            this.logger.info('[SyncManager] Initializing RxDB GraphQL CRDT Replication Socket');
             // Hand over to RxDB GraphQL replication handler
             return this.handleRxDBReplication(ws, req);
         }
@@ -448,6 +448,23 @@ export class SyncManager {
         this.broadcastUpdate(payload, 'MASTER');
     }
 
+    
+    private handleRxDBReplication(ws: any, req: any) {
+        ws.on('message', (message: string) => {
+            try {
+                const parsed = JSON.parse(message);
+                if (parsed.type === 'connection_init') {
+                    ws.send(JSON.stringify({ type: 'connection_ack' }));
+                } else if (parsed.type === 'subscribe') {
+                    this.logger.info('[SyncManager] RxDB Sync Subscribed: ' + req.socket.remoteAddress);
+                    ws.send(JSON.stringify({ type: 'next', id: parsed.id, payload: { data: { syncReplication: [] } } }));
+                }
+            } catch (err) {
+                this.logger.error('[SyncManager] RxDB Sync Error', err);
+            }
+        });
+    }
+
     private startHeartbeatMonitor() {
         this.heartbeatInterval = setInterval(() => {
             const now = Date.now();
@@ -469,4 +486,6 @@ export class SyncManager {
         this.clients.clear();
     }
 }
+
+
 

@@ -64,7 +64,7 @@ const MOCK_MAGIC_LINKS: MagicLinkEvent[] = [
   { id: 'ml-004', guestId: 'gst_66w1d', phone: '+61 491 570 110', photosFound: 45, aiSelected: 5, time: '12 mins ago' },
 ];
 
-export const WhatsappSwarmView: React.FC = () => {
+const WhatsappSwarmView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'live' | 'analytics'>('live');
 
   return (

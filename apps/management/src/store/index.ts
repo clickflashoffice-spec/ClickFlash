@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export interface AdminUser {
+interface AdminUser {
   id: string;
   role: 'admin' | 'manager' | 'operator';
   name: string;

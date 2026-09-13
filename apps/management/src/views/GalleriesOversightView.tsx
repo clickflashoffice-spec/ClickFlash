@@ -4,7 +4,7 @@ import { GalleryListPane } from '../components/GalleryListPane';
 import { PhotoGridPane } from '../components/PhotoGridPane';
 import { RefreshCw } from 'lucide-react';
 
-export type GalleryStatus = 'Preview' | 'Partial' | 'Anchor' | 'Sold' | 'Expired';
+type GalleryStatus = 'Pending AI' | 'Ready' | 'Delivered' | 'Archived' | 'Sold' | 'Expired';
 
 export interface Gallery {
   id: string;
@@ -21,7 +21,7 @@ export interface Gallery {
   aiStatus?: 'Hot Lead' | 'Discount Sent' | 'Upsold';
 }
 
-export function GalleriesOversightView() {
+function GalleriesOversightView() {
   const [galleries, setGalleries] = useState<Gallery[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedGalleryId, setSelectedGalleryId] = useState<string | null>(null);

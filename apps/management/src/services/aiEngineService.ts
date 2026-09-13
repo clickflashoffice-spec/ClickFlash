@@ -11,7 +11,7 @@
  */
 
 export type AIWorkerType = 'curation' | 'enhancement' | 'reels' | 'mesh' | '3d-figure' | 'watermark' | 'blog';
-export type AIWorkerStatus = 'idle' | 'processing' | 'completed' | 'error';
+type AIWorkerStatus = 'idle' | 'processing' | 'completed' | 'error';
 export type AIPermission = 'free' | 'premium' | 'disabled';
 
 export interface AIJob {
@@ -38,7 +38,7 @@ export interface AIWorkerConfig {
 }
 
 // Default worker configurations
-export const defaultWorkerConfigs: AIWorkerConfig[] = [
+const defaultWorkerConfigs: AIWorkerConfig[] = [
   {
     type: 'curation',
     name: 'AI Culling & Hero Selection',

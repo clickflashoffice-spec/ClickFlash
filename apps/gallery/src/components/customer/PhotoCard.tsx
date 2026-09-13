@@ -35,9 +35,22 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
 }) => {
     return (
         <div
-            className={`relative group overflow-hidden rounded-2xl cursor-pointer bg-slate-900 border border-white/5 transition-all duration-500 hover:shadow-[0_0_30px_rgba(34,211,238,0.2)] hover:-translate-y-1.5 ${isSelected ? 'ring-4 ring-cyan-500 border-transparent shadow-[0_0_40px_rgba(34,211,238,0.4)]' : ''} ${className}`}
+            role="button"
+            tabIndex={0}
+            className={`relative group overflow-hidden rounded-2xl cursor-pointer bg-slate-900 border border-white/5 transition-all duration-500 hover:shadow-[0_0_30px_rgba(34,211,238,0.2)] hover:-translate-y-1.5 ${isSelected ? 'ring-4 ring-cyan-500 border-transparent shadow-[0_0_40px_rgba(34,211,238,0.4)]' : ''} ${className} block w-full text-left`}
             style={style}
             onClick={isSelectionMode && onToggleSelection ? onToggleSelection : onClick}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (isSelectionMode && onToggleSelection) {
+                        onToggleSelection();
+                    } else {
+                        onClick();
+                    }
+                }
+            }}
+            aria-label={isSelectionMode ? `Select photo ${photo.title || 'Untitled'}` : `View photo ${photo.title || 'Untitled'}`}
         >
             <div className="absolute inset-0 z-0">
                 <Photo 

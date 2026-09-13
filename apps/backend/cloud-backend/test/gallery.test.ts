@@ -92,6 +92,17 @@ describe('gallery routes', () => {
       }, getEnv());
       expect(res.status).toBe(503);
     });
+
+    it('handles generic error', async () => {
+      mockDb.prepare.mockReturnValue({ bind: () => ({ first: async () => ({ id: 1 }) }) });
+      vi.mocked(createGalleryToken).mockRejectedValue(new Error('Generic'));
+      const res = await app.request('/login', {
+        method: 'POST',
+        body: JSON.stringify({ accessCode: '123' }),
+        headers: { 'Content-Type': 'application/json' }
+      }, getEnv());
+      expect(res.status).toBe(500);
+    });
   });
 
   describe('POST /qr/generate', () => {
@@ -233,6 +244,20 @@ describe('gallery routes', () => {
       }, getEnv());
       
       expect(res.status).toBe(503);
+    });
+
+    it('handles generic error in validate', async () => {
+      mockKv.get.mockResolvedValue({ eventId: '1', expiresAt: Date.now() + 10000 });
+      mockDb.prepare.mockReturnValue({ bind: () => ({ run: vi.fn(), first: async () => ({ id: 1 }) }) });
+      vi.mocked(createGalleryToken).mockRejectedValue(new Error('Generic'));
+      
+      const res = await app.request('/qr/validate', {
+        method: 'POST',
+        body: JSON.stringify({ token: '123' }),
+        headers: { 'Content-Type': 'application/json' }
+      }, getEnv());
+      
+      expect(res.status).toBe(500);
     });
   });
 

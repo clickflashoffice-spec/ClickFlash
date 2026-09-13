@@ -182,3 +182,59 @@
 - **Target**: pps/desktop/master/backend/services/SyncManager.ts
 - **Rationale**: Current sync logic relies on manual timestamp diffing and batch HTTP calls, which often conflict under partitioned network scenarios (e.g. resort internet drops).
 - **Status**: Completed (RxDB GraphQL Replication over WebSockets implemented).
+
+## V5 Prioritized Improvements (Phase 2 Audits)
+
+### [FRONTEND-101] Modularize Monolithic UI Components & Optimize React Hooks
+- **Target**: `apps/gallery/src/components/customer/CustomerGallery.tsx`, `apps/desktop/touch/src/components/touch/PhotoSelectionScreen.tsx`
+- **Rationale**: 500+ line monoliths. Search debouncing uses raw `setTimeout` inside `useEffect`, causing re-renders. Iterating photo arrays blocks render thread.
+- **Score**: Impact (4) x Effort (3) x Risk (4) = 48
+- **Category**: Tech Debt & Performance
+
+### [FRONTEND-102] Remediate Accessibility (WCAG) Violations in Photo Grids
+- **Target**: `CustomerGallery.tsx`, `PhotoCard`
+- **Rationale**: Interactive elements use simple `div`s. Missing `tabIndex`, `onKeyDown`, and `aria-labels`. 
+- **Score**: Impact (4) x Effort (4) x Risk (5) = 80
+- **Category**: Accessibility (WCAG)
+
+### [FRONTEND-103] Implement Internationalization (i18n) for Hardcoded Strings
+- **Target**: `CustomerGallery.tsx`, `DashboardView.tsx`
+- **Rationale**: Hardcoded English strings bypass `react-i18next`.
+- **Score**: Impact (3) x Effort (5) x Risk (5) = 75
+- **Category**: Localization & Tech Debt
+
+### [SEC-101] Eliminate Hardcoded Fallback Secrets in Production
+- **Target**: `docker-compose.prod.yml`
+- **Rationale**: Default fallback secrets (e.g. `:-clickflash_redis_dev_secret`) exist in production files, risking silent OWASP misconfigurations.
+- **Score**: Impact (5) x Effort (5) x Risk (4) = 100
+- **Category**: Security
+
+### [INFRA-101] Mitigate Supply-Chain Risk in CI/CD
+- **Target**: `.github/workflows/ci.yml`
+- **Rationale**: Unverified 3rd-party GitHub action uses mutable tags. Pin to SHA or replace.
+- **Score**: Impact (4) x Effort (5) x Risk (4) = 80
+- **Category**: Infra/DevOps
+
+### [INFRA-102] Container Hardening & Multi-Stage Build
+- **Target**: `apps/backend/ai-worker/Dockerfile`
+- **Rationale**: Single stage, runs as `root`. Violates principle of least privilege.
+- **Score**: Impact (3) x Effort (4) x Risk (4) = 48
+- **Category**: Infra/DevOps
+
+### [BACKEND-101] Sync File Ops Blocking Event Loop
+- **Target**: `apps/desktop/master/backend/routes/collections.ts`
+- **Rationale**: `fs.readFileSync` blocks Express main thread during batch photo ingestion.
+- **Score**: Impact (5) x Effort (5) x Risk (4) = 100
+- **Category**: Performance / Concurrency
+
+### [BACKEND-102] Missing Transaction Wrapper for Settings Sync
+- **Target**: `apps/desktop/master/backend/services/cloudSyncService.ts`
+- **Rationale**: Multiple independent `dbManager.run()` queries inside loops without `BEGIN TRANSACTION`. Data corruption risk if failure occurs mid-loop.
+- **Score**: Impact (4) x Effort (5) x Risk (4) = 80
+- **Category**: Reliability / Data Integrity
+
+### [BACKEND-103] Missing Scalability Indexes for D1 Telemetry
+- **Target**: `apps/backend/cloud-backend/src/routes/intelligence.ts`, `migrations`
+- **Rationale**: Lack of composite indexes on `tenant_id, timestamp DESC` causes full table scans on Cloudflare D1.
+- **Score**: Impact (4) x Effort (5) x Risk (5) = 100
+- **Category**: Performance / Reliability

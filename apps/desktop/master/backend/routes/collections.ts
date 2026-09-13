@@ -65,57 +65,40 @@ export default function collectionRoutes(context: CollectionsContext): Router {
 
   const verifyKioskHmac = async (req: Request, res: Response, next: NextFunction) => {
     const kioskId = req.headers["x-kiosk-id"] as string;
-    
     if (!kioskId) {
       return next();
     }
-    
+
     const clientIp = req.ip || req.get('x-forwarded-for') || '';
-    if (!clientIp || clientIp === '127.0.0.1' || clientIp.startsWith('192.168.') || clientIp.startsWith('10.') || clientIp.startsWith('172.')) {
-    } else {
-      logger.warn(`[Collections] Rejected LAN request from non-private IP: ${clientIp}`);
-      return res.status(403).json({ error: "Forbidden", message: "LAN requests only from private network." });
-    }
-    
     const timestamp = req.headers["x-timestamp"] as string;
     const signature = req.headers["x-signature"] as string;
-    
-    if (!timestamp || !signature) {
-      logger.warn(`[Collections] Missing HMAC headers from kiosk ${kioskId}`);
-      return res.status(401).json({ error: "Unauthorized", message: "Missing timestamp or signature." });
+
+    const result = verifyLanSignatureCore({
+      clientIp,
+      kioskId,
+      timestamp,
+      signature,
+      method: req.method,
+      path: req.originalUrl || req.path,
+      body: req.body,
+      getSigningSecret: (id) => {
+        const kiosk = dbManager.get<{ signingSecret: string }>(
+          "SELECT signingSecret FROM kiosks WHERE id = ?",
+          [id],
+        );
+        return kiosk?.signingSecret;
+      },
+    });
+
+    if (!result.valid) {
+      logger.warn(`[Collections] HMAC verification rejected from kiosk ${kioskId}: ${result.message}`);
+      return res.status(result.statusCode || 401).json({
+        error: result.error,
+        message: result.message,
+      });
     }
-    
-    const requestTime = parseInt(timestamp, 10);
-    const now = Date.now();
-    if (isNaN(requestTime) || Math.abs(now - requestTime) > 5 * 60 * 1000) {
-      logger.warn(`[Collections] Invalid timestamp from kiosk ${kioskId}: ${timestamp}`);
-      return res.status(401).json({ error: "Unauthorized", message: "Request timestamp invalid or too old." });
-    }
-    
-    try {
-      const kiosk = dbManager.get<{ signingSecret: string }>("SELECT signingSecret FROM kiosks WHERE id = ?", [kioskId]);
-      if (!kiosk || !kiosk.signingSecret) {
-        logger.warn(`[Collections] Unknown kiosk: ${kioskId}`);
-        return res.status(401).json({ error: "Unauthorized", message: "Kiosk not registered." });
-      }
-      
-      const bodyStr = req.body && Object.keys(req.body).length > 0 ? JSON.stringify(req.body) : "";
-      const fullPath = req.originalUrl.split('?')[0];
-      const payload = `${kioskId}:${timestamp}:${req.method}:${fullPath}:${bodyStr}`;
-      const expectedSignature = crypto.createHmac("sha256", kiosk.signingSecret).update(payload).digest("hex");
-      
-      if (signature !== expectedSignature) {
-        logger.warn(`[Collections] Invalid signature from kiosk ${kioskId}`);
-        logger.warn(`[Collections] Expected payload string: ${payload}`);
-        logger.warn(`[Collections] Provided signature: ${signature}, Expected: ${expectedSignature}`);
-        return res.status(401).json({ error: "Unauthorized", message: "Invalid signature." });
-      }
-      
-      next();
-    } catch (error: any) {
-      logger.error(`[Collections] HMAC verification failed: ${error.message}`);
-      res.status(500).json({ error: "Internal Server Error", message: "HMAC verification failed." });
-    }
+
+    next();
   };
 
   const checkSensitiveFields = (req: Request, table: string, data: any) => {

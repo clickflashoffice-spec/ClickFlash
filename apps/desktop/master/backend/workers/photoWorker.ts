@@ -25,6 +25,10 @@ if (!parentPort) {
 
 // Windows EBUSY Fix: Disable libvips cache to prevent file locking
 sharp.cache(false);
+// PERF-002: Constrain libvips internal thread pool to 1 thread per worker thread.
+// Since WorkerPool orchestrates dedicated worker threads, unconstrained sharp
+// concurrency causes excessive context-switching during burst ingestion.
+sharp.concurrency(1);
 
 // Thread started
 

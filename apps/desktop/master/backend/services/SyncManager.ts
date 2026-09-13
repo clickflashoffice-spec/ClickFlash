@@ -46,7 +46,8 @@ export class SyncManager {
     private logger: Logger;
     private db: DatabaseManager;
     private heartbeatInterval: NodeJS.Timeout | null = null;
-    private readonly HEARTBEAT_TIMEOUT = 30000; // 30 seconds
+    private readonly HEARTBEAT_TIMEOUT = 30000;
+    private isRxDbReplicationActive = true; // 30 seconds
 
     constructor(logger: Logger, db: DatabaseManager) {
         this.logger = logger;
@@ -55,6 +56,11 @@ export class SyncManager {
     }
 
     public handleConnection(ws: WebSocket, req: any) {
+        if (this.isRxDbReplicationActive && req.url?.includes('graphql')) {
+            this.logger.info([SyncManager] Initializing RxDB GraphQL CRDT Replication Socket);
+            // Hand over to RxDB GraphQL replication handler
+            return this.handleRxDBReplication(ws, req);
+        }
         const clientId = this.extractClientId(req);
         const ip = req.socket.remoteAddress || 'unknown';
 
@@ -463,3 +469,4 @@ export class SyncManager {
         this.clients.clear();
     }
 }
+

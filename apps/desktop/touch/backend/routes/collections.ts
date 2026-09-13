@@ -461,7 +461,7 @@ export default function createCollectionsRouter(
         if ((saved as any)[c] && typeof (saved as any)[c] === "string") {
           try {
             responseData[c] = JSON.parse((saved as any)[c]);
-          } catch (e) {}
+          } catch (_) { /* intentional: malformed JSON column — keep raw string */ }
         }
       });
 
@@ -508,18 +508,12 @@ export default function createCollectionsRouter(
             }
           }
 
-          if (!fs.existsSync(targetFolder)) {
-            fs.mkdirSync(targetFolder, { recursive: true });
-          }
-
+          await fs.promises.mkdir(targetFolder, { recursive: true });
           const orderFolderName = `order-${responseData.id}`;
           const orderPath = path.join(targetFolder, orderFolderName);
-          if (!fs.existsSync(orderPath))
-            fs.mkdirSync(orderPath, { recursive: true });
-
+          await fs.promises.mkdir(orderPath, { recursive: true });
           const photosPath = path.join(orderPath, "photos");
-          if (!fs.existsSync(photosPath))
-            fs.mkdirSync(photosPath, { recursive: true });
+          await fs.promises.mkdir(photosPath, { recursive: true });
 
           // Copy photos into the bundle
           if (responseData.items && Array.isArray(responseData.items)) {
@@ -548,7 +542,7 @@ export default function createCollectionsRouter(
             }
 
             if (importDir && fs.existsSync(importDir)) {
-              responseData.items.forEach((item: any) => {
+              for (const item of responseData.items) {
                 let photoUrl = item.photo?.url || item.url;
                 if (photoUrl) {
                   // Handle absolute URLs by extracting the filename
@@ -568,39 +562,41 @@ export default function createCollectionsRouter(
                       path.basename(photoUrl),
                     );
 
-                    if (!fs.existsSync(sourcePath)) {
-                      const findFileRecursive = (
+                    const exists = await fs.promises.access(sourcePath).then(() => true).catch(() => false);
+                    if (!exists) {
+                      const findFileRecursive = async (
                         dir: string,
                         targetName: string,
-                      ): string | null => {
+                      ): Promise<string | null> => {
                         try {
-                          const items = fs.readdirSync(dir, {
+                          const items = await fs.promises.readdir(dir, {
                             withFileTypes: true,
                           });
-                          for (const item of items) {
-                            const fullPath = path.join(dir, item.name);
-                            if (item.isDirectory()) {
-                              const found = findFileRecursive(
+                          for (const it of items) {
+                            const fullPath = path.join(dir, it.name);
+                            if (it.isDirectory()) {
+                              const found = await findFileRecursive(
                                 fullPath,
                                 targetName,
                               );
                               if (found) return found;
-                            } else if (item.name === targetName) {
+                            } else if (it.name === targetName) {
                               return fullPath;
                             }
                           }
-                        } catch (e) {}
+                        } catch (_) { /* intentional: dir read failure — file not found */ }
                         return null;
                       };
-                      const foundPath = findFileRecursive(
+                      const foundPath = await findFileRecursive(
                         importDir,
                         path.basename(photoUrl),
                       );
                       if (foundPath) sourcePath = foundPath;
                     }
 
-                    if (fs.existsSync(sourcePath)) {
-                      fs.copyFileSync(sourcePath, destPath);
+                    const finalExists = await fs.promises.access(sourcePath).then(() => true).catch(() => false);
+                    if (finalExists) {
+                      await fs.promises.copyFile(sourcePath, destPath);
                       logger.info(
                         `[HotFolder] Copied photo: ${path.basename(sourcePath)} to order bundle`,
                       );
@@ -616,12 +612,12 @@ export default function createCollectionsRouter(
                     );
                   }
                 }
-              });
+              }
             }
           }
 
           const metadataPath = path.join(orderPath, "metadata.json");
-          fs.writeFileSync(metadataPath, JSON.stringify(responseData, null, 2));
+          await fs.promises.writeFile(metadataPath, JSON.stringify(responseData, null, 2));
           logger.info(`[HotFolder] Created order bundle: ${orderPath}`);
         } catch (err: any) {
           logger.error("[HotFolder] Failed to create order file", {
@@ -830,7 +826,7 @@ export default function createCollectionsRouter(
             if (parsedRow[c] && typeof parsedRow[c] === "string") {
               try {
                 parsedRow[c] = JSON.parse(parsedRow[c]);
-              } catch (e) {}
+              } catch (_) { /* intentional: malformed JSON column — keep raw string */ }
             }
           });
 
@@ -908,7 +904,7 @@ export default function createCollectionsRouter(
         ) {
           try {
             responseData[c] = JSON.parse((responseData as any)[c]);
-          } catch (e) {}
+          } catch (_) { /* intentional: malformed JSON column — keep raw string */ }
         }
       });
 
@@ -975,22 +971,23 @@ export default function createCollectionsRouter(
 
               const copyToImportFolder = async () => {
                 try {
-                  if (!file || !file.filepath || !fs.existsSync(file.filepath))
-                    return;
-                  if (!fs.existsSync(IMPORT_DIR))
-                    fs.mkdirSync(IMPORT_DIR, { recursive: true });
+                  if (!file || !file.filepath) return;
+                  const fileExists = await fs.promises.access(file.filepath).then(() => true).catch(() => false);
+                  if (!fileExists) return;
+
+                  await fs.promises.mkdir(IMPORT_DIR, { recursive: true });
 
                   const today = new Date();
                   const dateFolder = today.toISOString().split("T")[0];
                   const dateImportDir = path.join(IMPORT_DIR, dateFolder);
-                  if (!fs.existsSync(dateImportDir))
-                    fs.mkdirSync(dateImportDir, { recursive: true });
+                  
+                  await fs.promises.mkdir(dateImportDir, { recursive: true });
 
-                  const originalName =
-                    file.originalFilename || file.newFilename;
+                  const originalName = file.originalFilename || file.newFilename;
                   const importFilename = `${photoId}${path.extname(originalName)}`;
                   const importPath = path.join(dateImportDir, importFilename);
-                  fs.copyFileSync(file.filepath, importPath);
+                  
+                  await fs.promises.copyFile(file.filepath, importPath);
                 } catch (e: any) {
                   logger.error("Failed to copy to import folder", {
                     error: e.message,

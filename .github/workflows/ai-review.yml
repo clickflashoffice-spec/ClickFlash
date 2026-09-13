@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ secrets.OPENAI_API_KEY != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Open Source AI Code Review
-        uses: coderabbitai/coderabbit-action@v1
+        uses: coderabbitai/coderabbit-action@5126839352bfcb9c063cf4eb826e7b26e2e58ec8 # v1
         with:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
           model: "llama-3-70b-instruct"

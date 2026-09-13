@@ -9,23 +9,27 @@ vi.mock('@clickflash/utils', () => ({
 }));
 
 describe('SalesSwarmOrchestrator', () => {
-  let originalFetch: typeof global.fetch;
+  let originalFetch: typeof globalThis.fetch;
 
   beforeEach(() => {
-    originalFetch = global.fetch;
-    global.fetch = vi.fn();
+    originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn();
     vi.mocked(yieldPricingService.calculateCadenceEscalation).mockReturnValue({
+      cadenceStage: '24hr_golden',
       discountPercentage: 20,
       discountCode: 'TEST20',
-      incentiveType: 'discount',
+      incentiveType: 'gift_retouch',
       incentiveDescription: '20% off test',
       urgencyLevel: 'medium',
-      expiresInHours: 24
+      expiresInHours: 24,
+      calculatedPrice: 80,
+      savings: 20,
+      suggestedAction: 'Send WhatsApp nudge'
     });
   });
 
   afterEach(() => {
-    global.fetch = originalFetch;
+    globalThis.fetch = originalFetch;
     vi.clearAllMocks();
   });
 
@@ -287,38 +291,38 @@ describe('SalesSwarmOrchestrator', () => {
     };
 
     it('returns true if no token provided', async () => {
-      const res = await salesSwarm.dispatchWhatsApp(payload, {});
+      const res = await salesSwarm.dispatchWhatsApp(payload, {} as any);
       expect(res).toBe(true);
-      expect(global.fetch).not.toHaveBeenCalled();
+      expect(globalThis.fetch).not.toHaveBeenCalled();
     });
 
     it('sends interactive message and returns true on success', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({ ok: true } as any);
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({ ok: true } as any);
       const res = await salesSwarm.dispatchWhatsApp(payload, { WHATSAPP_ACCESS_TOKEN: 'tok', WHATSAPP_PHONE_NUMBER_ID: 'pid' } as any);
       expect(res).toBe(true);
-      expect(global.fetch).toHaveBeenCalledWith('https://graph.facebook.com/v17.0/pid/messages', expect.any(Object));
+      expect(globalThis.fetch).toHaveBeenCalledWith('https://graph.facebook.com/v17.0/pid/messages', expect.any(Object));
       
-      const body = JSON.parse(vi.mocked(global.fetch).mock.calls[0][1]!.body as string);
+      const body = JSON.parse(vi.mocked(globalThis.fetch).mock.calls[0][1]!.body as string);
       expect(body.type).toBe('interactive');
     });
 
     it('sends text message and returns true on success', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({ ok: true } as any);
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({ ok: true } as any);
       const res = await salesSwarm.dispatchWhatsApp({ ...payload, interactiveButtons: [] }, { WHATSAPP_ACCESS_TOKEN: 'tok', WHATSAPP_PHONE_NUMBER_ID: 'pid' } as any);
       expect(res).toBe(true);
       
-      const body = JSON.parse(vi.mocked(global.fetch).mock.calls[0][1]!.body as string);
+      const body = JSON.parse(vi.mocked(globalThis.fetch).mock.calls[0][1]!.body as string);
       expect(body.type).toBe('text');
     });
 
     it('returns false on fetch error', async () => {
-      vi.mocked(global.fetch).mockRejectedValueOnce(new Error('Network error'));
+      vi.mocked(globalThis.fetch).mockRejectedValueOnce(new Error('Network error'));
       const res = await salesSwarm.dispatchWhatsApp(payload, { WHATSAPP_ACCESS_TOKEN: 'tok', WHATSAPP_PHONE_NUMBER_ID: 'pid' } as any);
       expect(res).toBe(false);
     });
 
     it('returns false on non-ok response', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({ ok: false, text: () => Promise.resolve('err') } as any);
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({ ok: false, text: () => Promise.resolve('err') } as any);
       const res = await salesSwarm.dispatchWhatsApp(payload, { WHATSAPP_ACCESS_TOKEN: 'tok', WHATSAPP_PHONE_NUMBER_ID: 'pid' } as any);
       expect(res).toBe(false);
     });
@@ -332,7 +336,7 @@ describe('SalesSwarmOrchestrator', () => {
     };
 
     it('uses gemini if enabled and successful', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ candidates: [{ content: { parts: [{ text: 'Gemini reply' }] } }] })
       } as any);
@@ -344,7 +348,7 @@ describe('SalesSwarmOrchestrator', () => {
     });
 
     it('falls back to rule engine if gemini fails', async () => {
-      vi.mocked(global.fetch).mockRejectedValueOnce(new Error('Gemini error'));
+      vi.mocked(globalThis.fetch).mockRejectedValueOnce(new Error('Gemini error'));
       
       const res = await salesSwarm.handleIncomingMessage({
         ...baseContext,
@@ -357,7 +361,7 @@ describe('SalesSwarmOrchestrator', () => {
     });
 
     it('falls back to rule engine if gemini returns empty', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({ ok: false } as any);
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({ ok: false } as any);
       
       const res = await salesSwarm.handleIncomingMessage({
         ...baseContext,
@@ -420,7 +424,17 @@ describe('SalesSwarmOrchestrator', () => {
       const res = await salesSwarm.handleIncomingMessage({
         from: '123', message: 'how to download', env: {} as any
       });
-      expect(res.message).toContain('safely stored');
+      expect(res.urgencyLevel).toBe('low');
+    });
+
+    it('getInteractiveButtonsForCategory covers all branches', () => {
+      const getBtns = (salesSwarm as any).getInteractiveButtonsForCategory.bind(salesSwarm);
+      expect(getBtns('PHOTOBOOK_CUSTOMIZATION')[0].id).toBe('preview_photobook');
+      expect(getBtns('RAW_MEDIA_DOWNLOAD')[0].id).toBe('download_raw_bundle');
+      expect(getBtns('VIP_FAMILY_GROUP')[0].id).toBe('unlock_vip_family');
+      expect(getBtns('DECISION_DELAY_SPOUSE')[0].id).toBe('share_preview_link');
+      expect(getBtns('PRICE_SENSITIVITY')[0].id).toBe('checkout_now');
+      expect(getBtns('GENERAL_CONCIERGE')[0].id).toBe('view_gallery');
     });
   });
 

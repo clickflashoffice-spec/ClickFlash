@@ -150,7 +150,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           ...prev,
           ...parsed,
         }));
-      } catch (e) {}
+      } catch (_) { /* intentional: ignore invalid JSON in localStorage and stick to defaults */ }
     }
 
     if (isConfigRequired) {

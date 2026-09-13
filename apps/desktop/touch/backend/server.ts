@@ -447,7 +447,10 @@ try {
     if (logger && logger.info)
       logger.info(`[Server] Using custom monitored folder: ${watchPath}`);
   }
-} catch (e) {}
+} catch (e) {
+  // Graceful fallback: use default watchPath if DB query fails
+  if (logger && logger.warn) logger.warn('[Server] Failed to read custom monitored folder setting, using default', { error: String(e) });
+}
 
 const watcherService = new WatcherService(
   dbManager,
@@ -468,7 +471,10 @@ try {
     const config = JSON.parse(setting.value);
     if (config.kioskId) kioskId = config.kioskId;
   }
-} catch (e) {}
+} catch (e) {
+  // Graceful fallback: use 'unpaired' kioskId if config read fails
+  if (logger && logger.warn) logger.warn('[Server] Failed to read pairing config, using unpaired default', { error: String(e) });
+}
 
 try {
   mdnsDiscovery.advertise(kioskId, "4.2.0");

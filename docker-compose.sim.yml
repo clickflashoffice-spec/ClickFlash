@@ -1,0 +1,118 @@
+# ClickFlash Isolated Production Simulation Environment
+# Executed under Phase 4 Production Takeover protocol
+# Designed for zero collision with host development ports
+
+version: '3.8'
+
+services:
+  # ==========================================
+  # Redis Simulation Node
+  # ==========================================
+  redis-sim:
+    image: redis:7-alpine
+    container_name: clickflash-redis-sim
+    command: redis-server --requirepass clickflash_sim_redis_secret --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "16379:6379"
+    networks:
+      clickflash-sim-net:
+        ipv4_address: 172.28.0.10
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "clickflash_sim_redis_secret", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  # ==========================================
+  # Management Hub Simulation
+  # ==========================================
+  management-sim:
+    build:
+      context: .
+      dockerfile: apps/management/Dockerfile.prod
+    container_name: clickflash-management-sim
+    ports:
+      - "15175:80"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=http://localhost:18090
+    networks:
+      clickflash-sim-net:
+        ipv4_address: 172.28.0.20
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  # ==========================================
+  # Customer Gallery Simulation
+  # ==========================================
+  gallery-sim:
+    build:
+      context: .
+      dockerfile: apps/gallery/Dockerfile.prod
+    container_name: clickflash-gallery-sim
+    ports:
+      - "15176:80"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=http://localhost:18090
+    networks:
+      clickflash-sim-net:
+        ipv4_address: 172.28.0.30
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  # ==========================================
+  # AI Worker Simulation (CPU Fallback)
+  # ==========================================
+  ai-worker-sim:
+    build:
+      context: apps/backend/ai-worker
+      dockerfile: Dockerfile
+    container_name: clickflash-ai-worker-sim
+    ports:
+      - "18000:8000"
+    environment:
+      - NODE_ENV=production
+      - PYTHONUNBUFFERED=1
+    networks:
+      clickflash-sim-net:
+        ipv4_address: 172.28.0.40
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+
+networks:
+  clickflash-sim-net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16

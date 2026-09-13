@@ -54,7 +54,7 @@ export default function ordersCollectionRoutes(context: any): Router {
       if (savedRecord && savedRecord.items && typeof savedRecord.items === "string") {
         try {
           savedRecord.items = JSON.parse(savedRecord.items);
-        } catch(e) {}
+        } catch(_) { /* intentional: malformed items JSON — keep raw string */ }
       }
 
       // Offline Order Fulfillment (Hot Folders)
@@ -149,7 +149,7 @@ export default function ordersCollectionRoutes(context: any): Router {
       if (savedRecord && savedRecord.items && typeof savedRecord.items === "string") {
         try {
           savedRecord.items = JSON.parse(savedRecord.items);
-        } catch(e) {}
+        } catch(_) { /* intentional: malformed items JSON — keep raw string */ }
       }
 
       // Order Validation Trigger

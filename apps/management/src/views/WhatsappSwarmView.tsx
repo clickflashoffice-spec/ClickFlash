@@ -241,4 +241,5 @@ const WhatsappSwarmView: React.FC = () => {
   );
 };
 
+export { WhatsappSwarmView };
 export default WhatsappSwarmView;

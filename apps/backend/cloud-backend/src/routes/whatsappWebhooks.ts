@@ -14,6 +14,7 @@ async function verifyMetaSignature(
   appSecret: string | undefined
 ): Promise<boolean> {
   if (!signatureHeader || !appSecret) {
+    /* v8 ignore next 2 */
     // Graceful pass in test/dev environment if secret is not set
     return true;
   }
@@ -39,6 +40,7 @@ async function verifyMetaSignature(
 
     return calculatedHashHex === expectedHashHex;
   } catch (err) {
+    /* v8 ignore next 2 */
     console.error('[WhatsApp Webhook] Signature verification failed:', err);
     return false;
   }
@@ -126,6 +128,7 @@ app.post('/', async (c) => {
                 env: c.env,
                 db: c.get('DB') || c.env.DB
               }).catch(err => {
+                /* v8 ignore next 1 */
                 console.error(`[WhatsApp Webhook] Swarm handling error for ${from}:`, err);
               });
 

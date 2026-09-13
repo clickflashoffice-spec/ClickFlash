@@ -7,22 +7,8 @@ import { LiveGalleryPreviewPanel } from '../components/LiveGalleryPreviewPanel';
 import { RefreshCw, LayoutGrid, Sliders } from 'lucide-react';
 import { GalleryTheme, type DestinationGalleryConfig } from '@clickflash/types';
 
-export type GalleryStatus = 'Preview' | 'Partial' | 'Anchor' | 'Sold' | 'Expired';
-
-export interface Gallery {
-  id: string;
-  coverUrl: string;
-  status: GalleryStatus;
-  date: string;
-  title: string;
-  photographer: string;
-  totalPhotos: number;
-  boughtPhotos: number;
-  customerEmail?: string;
-  customerPhone?: string;
-  downloadedAt?: string;
-  aiStatus?: 'Hot Lead' | 'Discount Sent' | 'Upsold';
-}
+import { type Gallery, type GalleryStatus } from './GalleriesOversightView';
+export type { Gallery, GalleryStatus };
 
 export function GalleriesView() {
   const [galleries, setGalleries] = useState<Gallery[]>([]);

@@ -181,4 +181,5 @@ function FranchiseOverview() {
   );
 }
 
+export { FranchiseOverview };
 export default FranchiseOverview;

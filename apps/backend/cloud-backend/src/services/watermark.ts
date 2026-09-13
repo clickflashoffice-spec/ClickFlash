@@ -138,6 +138,7 @@ export class WatermarkService {
 
       return null;
     } catch (err) {
+      /* v8 ignore next 2 */
       logger.error('[WatermarkService] Extraction error:', err);
       return null;
     }

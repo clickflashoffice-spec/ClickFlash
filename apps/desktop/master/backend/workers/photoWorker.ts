@@ -251,38 +251,47 @@ async function handleProcessJob(job: WorkerJob) {
       }
     }
 
-    const promises: Promise<any>[] = [
-      // 1. Generate High-Res (Stripped & Corrected orientation & optional ICC)
-      applyFormatCompression(
-        sharp(filepath, { failOn: 'none' })
-          .rotate()
-          .withMetadata(
-             iccProfilePath && fs.existsSync(iccProfilePath)
-             ? { icc: iccProfilePath, exif: Buffer.alloc(0) } as any
-             : { exif: Buffer.alloc(0) } as any
-          ),
-        ext,
-        'highres'
-      ).toFile(strippedHighResPath),
-
-      // 2. Generate Assets
-      applyFormatCompression(
-        sharp(filepath, { failOn: 'none' })
-          .resize(400, 400, { fit: "inside", withoutEnlargement: true }),
-        ext,
-        'thumb'
-      ).toFile(thumbnailPath),
-      applyFormatCompression(
-        sharp(filepath, { failOn: 'none' })
-          .resize(2048, 2048, { fit: "inside", withoutEnlargement: true }),
-        ext,
-        'preview'
-      ).toFile(previewPath),
+    // PERF-002: Multi-tier asset generation pipeline.
+    // 1. High-Res generation (stripped metadata, corrected orientation, optional ICC profile).
+    const highResPromise = applyFormatCompression(
       sharp(filepath, { failOn: 'none' })
-        .resize(100, 100, { fit: "inside", withoutEnlargement: true })
-        .toFormat("webp", { quality: 80 })
-        .toFile(tinyPath),
-    ];
+        .rotate()
+        .withMetadata(
+           iccProfilePath && fs.existsSync(iccProfilePath)
+           ? { icc: iccProfilePath, exif: Buffer.alloc(0) } as any
+           : { exif: Buffer.alloc(0) } as any
+        ),
+      ext,
+      'highres'
+    ).toFile(strippedHighResPath);
+
+    // 2. Preview generation (2048px max dimension).
+    const previewPromise = applyFormatCompression(
+      sharp(filepath, { failOn: 'none' })
+        .rotate()
+        .resize(2048, 2048, { fit: "inside", withoutEnlargement: true }),
+      ext,
+      'preview'
+    ).toFile(previewPath);
+
+    // 3. Derive Thumbnail (400x400) and Tiny WebP (100x100) from the Preview tier.
+    // Reading from the 2048px intermediate eliminates 2 full-resolution RAW/JPEG decodes from disk.
+    const derivedAssetsPromise = previewPromise.then(async () => {
+      await Promise.all([
+        applyFormatCompression(
+          sharp(previewPath, { failOn: 'none' })
+            .resize(400, 400, { fit: "inside", withoutEnlargement: true }),
+          ext,
+          'thumb'
+        ).toFile(thumbnailPath),
+        sharp(previewPath, { failOn: 'none' })
+          .resize(100, 100, { fit: "inside", withoutEnlargement: true })
+          .toFormat("webp", { quality: 80 })
+          .toFile(tinyPath),
+      ]);
+    });
+
+    const promises: Promise<any>[] = [highResPromise, derivedAssetsPromise];
 
     if (autoEdits && Object.keys(autoEdits).length > 0) {
       const previewEditedFilename = `${photoId}_preview_edited.jpg`;

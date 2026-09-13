@@ -24,18 +24,17 @@ export default defineConfig({
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-charts': ['recharts', '@tremor/react'],
-          'vendor-radix': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-slot',
-            '@radix-ui/react-tabs'
-          ],
-          'vendor-icons': ['lucide-react', '@remixicon/react'],
-          'vendor-table': ['@tanstack/react-table'],
-          'vendor-socket': ['socket.io-client', 'zustand']
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react/') || id.includes('react-dom/') || id.includes('react-router')) return 'vendor-react';
+            if (id.includes('recharts') || id.includes('@tremor/react')) return 'vendor-charts';
+            if (id.includes('@radix-ui')) return 'vendor-radix';
+            if (id.includes('lucide-react') || id.includes('@remixicon')) return 'vendor-icons';
+            if (id.includes('@tanstack/react-table')) return 'vendor-table';
+            if (id.includes('socket.io-client') || id.includes('zustand')) return 'vendor-state-net';
+            if (id.includes('@clickflash/')) return 'vendor-internal';
+            return 'vendor-core';
+          }
         }
       }
     }

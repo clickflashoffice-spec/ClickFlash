@@ -24,10 +24,16 @@ export default defineConfig({
     chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-framer': ['framer-motion'],
-          'vendor-icons': ['lucide-react'],
-          'vendor-i18n': ['react-i18next'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react/') || id.includes('react-dom/')) return 'vendor-react';
+            if (id.includes('framer-motion')) return 'vendor-framer';
+            if (id.includes('lucide-react')) return 'vendor-icons';
+            if (id.includes('react-i18next') || id.includes('i18next')) return 'vendor-i18n';
+            if (id.includes('three') || id.includes('@react-three')) return 'vendor-three';
+            if (id.includes('@clickflash/')) return 'vendor-internal';
+            return 'vendor-core';
+          }
         }
       }
     }

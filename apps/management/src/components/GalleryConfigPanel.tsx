@@ -17,13 +17,13 @@ import {
 } from 'lucide-react';
 import { GalleryTheme, type DestinationGalleryConfig, type AIToolPricingConfig } from '@clickflash/types';
 
-export interface DestinationOption {
+interface DestinationOption {
   id: string;
   name: string;
   location: string;
 }
 
-export const destinations: DestinationOption[] = [
+const destinations: DestinationOption[] = [
   { id: 'dest_atlantis_01', name: 'Atlantis Resort & Waterpark', location: 'Dubai, UAE' },
   { id: 'dest_hyatt_02', name: 'Grand Hyatt Beach Club', location: 'Maui, Hawaii' },
   { id: 'dest_paradise_03', name: 'Paradise Cove Lagoon', location: 'Cancún, Mexico' },

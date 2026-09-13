@@ -12,7 +12,7 @@ interface TenantStats {
   activePrintLab: string;
 }
 
-export function FranchiseOverview() {
+function FranchiseOverview() {
   const [stats, setStats] = useState<TenantStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [impersonatingTenant, setImpersonatingTenant] = useState<TenantStats | null>(null);

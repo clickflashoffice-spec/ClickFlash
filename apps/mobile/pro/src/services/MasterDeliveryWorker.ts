@@ -1,5 +1,6 @@
 import * as Crypto from 'expo-crypto';
-import { File, FileMode, Paths, UploadType } from 'expo-file-system';
+import { File, Paths, UploadType } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 import { logger } from '@/utils/logger';
 
@@ -32,7 +33,7 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-function base64ToBytes(base64: string): Uint8Array {
+function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
@@ -293,12 +294,16 @@ class MasterDeliveryWorker {
     }
 
     let offset = status.expectedOffset;
-    const handle = source.open(FileMode.ReadOnly);
     try {
-      handle.offset = offset;
       while (offset < candidate.byteSize) {
         const requested = Math.min(CHUNK_BYTES, candidate.byteSize - offset);
-        const bytes = handle.readBytes(requested);
+        const base64Str = await FileSystem.readAsStringAsync(candidate.localUri, {
+          encoding: 'base64',
+          position: offset,
+          length: requested,
+        });
+        const bytes = base64ToBytes(base64Str);
+        
         if (bytes.length !== requested) {
           throw new DeliveryIntegrityError(
             `Local read ended early at ${offset} of ${candidate.byteSize} bytes.`
@@ -306,7 +311,7 @@ class MasterDeliveryWorker {
         }
         this.publish({
           phase: 'TRANSFERRING',
-          message: `Sending ${candidate.filename} to ${credential.masterId}…`,
+          message: `Sending ${candidate.filename} to ${credential.masterId}.`,
           filename: candidate.filename,
           bytesSent: offset,
           totalBytes: candidate.byteSize,
@@ -323,10 +328,9 @@ class MasterDeliveryWorker {
           );
         }
         offset = expectedOffset;
-        handle.offset = offset;
       }
-    } finally {
-      handle.close();
+    } catch (err) {
+      throw err;
     }
 
     this.publish({
@@ -430,13 +434,14 @@ class MasterDeliveryWorker {
           return serverOffset;
         }
       }
-      if (result.status < 200 || result.status >= 300) {
+      if (result.status !== 200) {
         throw new Error(this.responseError(body, result.status));
       }
-      const parsed = this.requireChunkResponse(body);
-      return parsed.expectedOffset;
+      return this.requireChunkResponse(body).expectedOffset;
     } finally {
-      if (staging.exists) staging.delete();
+      if (staging.exists) {
+        staging.delete();
+      }
     }
   }
 

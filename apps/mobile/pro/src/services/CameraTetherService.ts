@@ -247,6 +247,7 @@ class CameraTetherService {
           message
         );
       }
+      this.storageBlockedObjects.delete(objectKey);
       this.publishError({
         code: 'CAMERA_IMPORT_FAILED',
         message,

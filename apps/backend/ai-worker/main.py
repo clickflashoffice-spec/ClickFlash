@@ -124,15 +124,20 @@ async def remove_background(file: UploadFile = File(...)):
         pred = preds[0].squeeze()
         mask = T.ToPILImage()(pred).resize(input_image.size, Image.Resampling.LANCZOS)
         
-        output_image = input_image.copy()
-        output_image.putalpha(mask)
+        # Explicit garbage collection for GPU memory leak prevention (UX-401)
+        del input_tensor
+        del preds
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        # Apply mask
+        input_image.putalpha(mask)
         
-        # Convert back to bytes
-        img_byte_arr = io.BytesIO()
-        output_image.save(img_byte_arr, format='PNG')
-        img_byte_arr = img_byte_arr.getvalue()
+        output_io = io.BytesIO()
+        input_image.save(output_io, format="PNG")
+        output_bytes = output_io.getvalue()
         
-        return Response(content=img_byte_arr, media_type="image/png")
+        return Response(content=output_bytes, media_type="image/png")
     except Exception as e:
         return {"error": str(e)}
 

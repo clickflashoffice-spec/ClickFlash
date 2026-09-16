@@ -74,7 +74,7 @@ export const PhotoDetailPage = () => {
           <div className="glass-card p-6 border border-slate-800 rounded-2xl bg-slate-900/60 backdrop-blur-xl">
             <h2 className="text-2xl font-bold text-white mb-1">{photo.location}</h2>
             <p className="text-slate-400 text-sm mb-4">
-              Captured {new Date(photo.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              Captured <span suppressHydrationWarning>{new Date(photo.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
             </p>
 
             <div className="flex gap-2 mb-6 p-1 bg-slate-950/80 rounded-xl border border-slate-800">

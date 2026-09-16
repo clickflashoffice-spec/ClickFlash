@@ -1,6 +1,7 @@
 import React from 'react';
 import { PhotoCard } from './PhotoCard';
 import { Skeleton } from '../common/Skeleton';
+import { VirtuosoGrid } from 'react-virtuoso';
 
 interface PhotoGridProps {
   photos: Array<{
@@ -33,10 +34,14 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, isLoading }) => {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-      {photos.map(photo => (
+    <VirtuosoGrid
+      style={{ height: '100%', width: '100%' }}
+      useWindowScroll
+      data={photos}
+      listClassName="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4"
+      itemContent={(index, photo) => (
         <PhotoCard key={photo.id} photo={photo} />
-      ))}
-    </div>
+      )}
+    />
   );
 };

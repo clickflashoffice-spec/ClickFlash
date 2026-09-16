@@ -20,8 +20,10 @@ const CurrencyContext = React.createContext<CurrencyContextType | undefined>(und
 export function CurrencyProvider({ children, defaultCurrency = 'USD' }: CurrencyProviderProps) {
   const [currency, setCurrency] = React.useState<Currency>(defaultCurrency);
 
+  const value = React.useMemo(() => ({ currency, setCurrency }), [currency]);
+
   return (
-    <CurrencyContext.Provider value={{ currency, setCurrency }}>
+    <CurrencyContext.Provider value={value}>
       {children}
     </CurrencyContext.Provider>
   );

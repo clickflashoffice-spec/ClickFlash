@@ -115,9 +115,9 @@ class SyncService {
 
         this.loadFailedPhotoQueue();
 
-        this.processedPhotoIdsClearInterval = window.setInterval(() => {
+        this.processedPhotoIdsClearInterval = setInterval(() => {
             this.processedPhotoIds.clear();
-        }, 3600000);
+        }, 3600000) as any;
     }
 
     private loadFailedPhotoQueue() {

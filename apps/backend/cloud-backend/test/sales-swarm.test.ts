@@ -2,19 +2,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { salesSwarm, SalesSwarmOrchestrator } from '../src/workers/sales-swarm';
 import { yieldPricingService } from '@clickflash/utils';
 
-vi.mock('@clickflash/utils', () => ({
-  yieldPricingService: {
-    calculateCadenceEscalation: vi.fn()
-  }
-}));
-
 describe('SalesSwarmOrchestrator', () => {
   let originalFetch: typeof globalThis.fetch;
 
   beforeEach(() => {
     originalFetch = globalThis.fetch;
     globalThis.fetch = vi.fn();
-    vi.mocked(yieldPricingService.calculateCadenceEscalation).mockReturnValue({
+    vi.spyOn(yieldPricingService, 'calculateCadenceEscalation').mockReturnValue({
       cadenceStage: '24hr_golden',
       discountPercentage: 20,
       discountCode: 'TEST20',
@@ -23,14 +17,12 @@ describe('SalesSwarmOrchestrator', () => {
       urgencyLevel: 'medium',
       expiresInHours: 24,
       calculatedPrice: 80,
-      savings: 20,
-      suggestedAction: 'Send WhatsApp nudge'
-    });
+    } as any);
   });
 
   afterEach(() => {
     globalThis.fetch = originalFetch;
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('classifyObjection', () => {

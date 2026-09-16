@@ -7,7 +7,30 @@
 
 import { vi } from 'vitest';
 import "@testing-library/jest-dom/vitest";
+import 'fake-indexeddb/auto';
+import { indexedDB, IDBKeyRange } from 'fake-indexeddb';
+if (typeof window !== 'undefined') {
+  (window as any).indexedDB = indexedDB;
+  (window as any).IDBKeyRange = IDBKeyRange;
+}
+if (typeof globalThis !== 'undefined') {
+  (globalThis as any).indexedDB = indexedDB;
+  (globalThis as any).IDBKeyRange = IDBKeyRange;
+}
 import { logger } from '@/utils/logger';
+import { webcrypto } from 'node:crypto';
+
+// Polyfill crypto for RxDB and others
+if (typeof globalThis !== 'undefined') {
+  Object.defineProperty(globalThis, 'crypto', { value: webcrypto, writable: true });
+}
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'crypto', { value: webcrypto, writable: true });
+  if (!window.addEventListener) {
+    (window as any).addEventListener = vi.fn();
+    (window as any).removeEventListener = vi.fn();
+  }
+}
 
 // Intercept attempts to redefine window storage properties so test-local
 // mocks can be detected by helpers that read from `window.__TEST_LOCAL_STORAGE`.
@@ -150,15 +173,18 @@ HTMLCanvasElement.prototype.getContext = vi.fn((contextId: string) => {
 }) as typeof HTMLCanvasElement.prototype.getContext;
 
 // Mock window.URL.createObjectURL and revokeObjectURL
-Object.defineProperty(window.URL, "createObjectURL", {
-  writable: true,
-  value: vi.fn(() => "blob:mock-url"),
-});
+const mockCreateObjectURL = vi.fn(() => "blob:mock-url");
+const mockRevokeObjectURL = vi.fn();
 
-Object.defineProperty(window.URL, "revokeObjectURL", {
-  writable: true,
-  value: vi.fn(),
-});
+if (typeof window !== 'undefined' && window.URL) {
+  Object.defineProperty(window.URL, "createObjectURL", { writable: true, value: mockCreateObjectURL });
+  Object.defineProperty(window.URL, "revokeObjectURL", { writable: true, value: mockRevokeObjectURL });
+}
+
+if (typeof global !== 'undefined' && global.URL) {
+  global.URL.createObjectURL = mockCreateObjectURL as any;
+  global.URL.revokeObjectURL = mockRevokeObjectURL as any;
+}
 
 // Mock window.electron for Electron API
 Object.defineProperty(window, "electron", {
@@ -339,45 +365,7 @@ Object.defineProperty(global, "Image", {
   configurable: true,
 });
 
-// Mock IndexedDB
-const indexedDBMock = {
-  open: vi.fn(() => ({
-    onsuccess: null as ((event: Event) => void) | null,
-    onerror: null as ((event: Event) => void) | null,
-    onupgradeneeded: null as ((event: IDBVersionChangeEvent) => void) | null,
-    result: {
-      createObjectStore: vi.fn(),
-      transaction: vi.fn(() => ({
-        objectStore: vi.fn(() => ({
-          get: vi.fn(() => ({
-            onsuccess: null,
-            onerror: null,
-            result: undefined,
-          })),
-          put: vi.fn(() => ({ onsuccess: null, onerror: null })),
-          delete: vi.fn(() => ({ onsuccess: null, onerror: null })),
-          getAll: vi.fn(() => ({
-            onsuccess: null,
-            onerror: null,
-            result: [],
-          })),
-          clear: vi.fn(() => ({ onsuccess: null, onerror: null })),
-        })),
-      })),
-    },
-  })),
-  deleteDatabase: vi.fn(),
-};
 
-try {
-  Object.defineProperty(window, "indexedDB", {
-    value: indexedDBMock,
-    configurable: true,
-    writable: true,
-  });
-} catch {
-  (window as any).indexedDB = indexedDBMock;
-}
 
 // Suppress console errors during tests unless explicitly enabled
 const originalConsoleError = console.error;

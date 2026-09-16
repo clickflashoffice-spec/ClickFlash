@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { yieldPricingService, YieldPricingService } from '../yieldPricing.js';
+import { yieldPricingService, YieldPricingService } from '../yieldPricing.ts';
 import type { YieldPricingConfig } from '@clickflash/types';
 
 describe('YieldPricingService', () => {

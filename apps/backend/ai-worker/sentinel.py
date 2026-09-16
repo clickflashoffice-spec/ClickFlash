@@ -203,8 +203,9 @@ class AISentinel:
             return entries
         try:
             with open(JOURNAL_FILE, "r", encoding="utf-8") as f:
-                lines = f.readlines()
-                for line in lines[-limit:]:
+                import collections
+                last_lines = collections.deque(f, maxlen=limit)
+                for line in last_lines:
                     if line.strip():
                         entries.append(json.loads(line.strip()))
         except Exception as e:

@@ -25,7 +25,7 @@ async function verifyMetaSignature(
     const expectedHashHex = parts[1];
 
     const encoder = new TextEncoder();
-    const key = await crypto.subtle.importKey(
+    const key = await globalThis.crypto.subtle.importKey(
       'raw',
       encoder.encode(appSecret),
       { name: 'HMAC', hash: 'SHA-256' },
@@ -33,7 +33,7 @@ async function verifyMetaSignature(
       ['sign']
     );
 
-    const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(rawBody));
+    const signature = await globalThis.crypto.subtle.sign('HMAC', key, encoder.encode(rawBody));
     const calculatedHashHex = Array.from(new Uint8Array(signature))
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');

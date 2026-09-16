@@ -1,5 +1,6 @@
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useDeferredValue } from 'react';
+import PhotoCard from './PhotoCard';
 import { motion } from 'framer-motion';
 import { Album, Photo, PhotoCategory, CartItem, DestinationFeatures } from '../../types.ts';
 import SelectionCartBar from './SelectionCartBar';
@@ -14,68 +15,6 @@ import { analytics } from '../../utils/telemetry';
 
 // Threshold for enabling virtual scrolling (performance optimization)
 const VIRTUAL_SCROLL_THRESHOLD = 50; // Lower threshold for Touch kiosk performance
-
-/**
- * Photo Card Component
- * Memoized for performance optimization
- */
-const PhotoCard: React.FC<{
-    photo: Photo;
-    isInCart: boolean;
-    onClick: () => void;
-    style?: React.CSSProperties;
-}> = React.memo(({ photo, isInCart, onClick, style }) => {
-    const [isLoaded, setIsLoaded] = useState(false);
-    return (
-    <motion.div 
-        layoutId={`photo-container-${photo.id}`}
-        className="group cursor-pointer aspect-square relative focus:outline-none focus:ring-4 focus:ring-blue-500 rounded-2xl" 
-        onClick={onClick} 
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
-        tabIndex={0}
-        role="button"
-        aria-label={`Photo ${photo.title || photo.id}${isInCart ? ', currently in cart' : ''}`}
-        aria-pressed={isInCart}
-        style={style} 
-        data-testid="photo-card"
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.95 }}
-    >
-        {!isLoaded && (
-            <div className="absolute inset-0 bg-slate-200 dark:bg-slate-800 animate-pulse rounded-2xl" aria-hidden="true" />
-        )}
-        <motion.img
-            layoutId={`photo-img-${photo.id}`}
-            src={photo.url}
-            alt={photo.title}
-            onLoad={() => setIsLoaded(true)}
-            data-testid="photo-card-image"
-            className={`w-full h-full object-cover rounded-2xl shadow-lg transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-            loading="lazy"
-        />
-        {isInCart && (
-            <motion.div 
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="absolute top-3 right-3 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-xl" 
-                aria-label="Photo in cart"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-            </motion.div>
-        )}
-        <div className="absolute inset-0 rounded-2xl ring-2 ring-transparent group-hover:ring-blue-500/50 transition-all pointer-events-none" />
-    </motion.div>
-)}, (prevProps, nextProps) => {
-    // Custom comparison for better performance
-    return prevProps.photo.id === nextProps.photo.id &&
-        prevProps.photo.url === nextProps.photo.url &&
-        prevProps.isInCart === nextProps.isInCart &&
-        prevProps.style === nextProps.style; // Style prop from VirtualGrid is stable
-});
-
-PhotoCard.displayName = 'PhotoCard';
 
 interface PhotoSelectionScreenProps {
     albums: Album[];
@@ -108,6 +47,10 @@ const PhotoSelectionScreen: React.FC<PhotoSelectionScreenProps> = ({
     const [matchedPhotos, setMatchedPhotos] = useState<Photo[]>([]);
     // Default to true so the feature is visible immediately after upgrade
     const [enableFaceSearch, setEnableFaceSearch] = useState(true);
+    const deferredSelectedCategory = useDeferredValue(selectedCategory);
+    const deferredMatchedPhotos = useDeferredValue(matchedPhotos);
+    const deferredAlbums = useDeferredValue(albums);
+    const deferredRoomNumber = useDeferredValue(roomNumber);
 
     useEffect(() => {
         // Check settings
@@ -125,19 +68,19 @@ const PhotoSelectionScreen: React.FC<PhotoSelectionScreenProps> = ({
 
     const allCategories = useMemo((): (PhotoCategory | 'All' | 'Matched')[] => {
         const cats = new Set<PhotoCategory>();
-        albums.forEach(album => (album.categories || []).forEach(cat => cats.add(cat)));
+        deferredAlbums.forEach(album => (album.categories || []).forEach(cat => cats.add(cat)));
         const list: (PhotoCategory | 'All' | 'Matched')[] = ['All', ...Array.from(cats)];
-        if (matchedPhotos.length > 0) list.splice(1, 0, 'Matched');
+        if (deferredMatchedPhotos.length > 0) list.splice(1, 0, 'Matched');
         return list;
-    }, [albums, matchedPhotos]);
+    }, [deferredAlbums, deferredMatchedPhotos]);
 
 
     const filteredAlbums = useMemo(() => {
         // First apply room number filter if specified
-        let roomFilteredAlbums = albums;
-        if (roomNumber && roomNumber.trim()) {
-            const normalizedRoomNumber = roomNumber.trim();
-            roomFilteredAlbums = albums.filter(album => {
+        let roomFilteredAlbums = deferredAlbums;
+        if (deferredRoomNumber && deferredRoomNumber.trim()) {
+            const normalizedRoomNumber = deferredRoomNumber.trim();
+            roomFilteredAlbums = deferredAlbums.filter(album => {
                 // Match exact room number (case-insensitive)
                 const albumRoomNumber = album.roomNumber || '';
                 return albumRoomNumber.toLowerCase() === normalizedRoomNumber.toLowerCase() ||
@@ -146,23 +89,23 @@ const PhotoSelectionScreen: React.FC<PhotoSelectionScreenProps> = ({
         }
 
         // Then apply category filter
-        if (selectedCategory === 'Matched') {
+        if (deferredSelectedCategory === 'Matched') {
             // Create a virtual album for matches (already filtered by room if applicable)
-            return matchedPhotos.length > 0 ? [{
+            return deferredMatchedPhotos.length > 0 ? [{
                 id: 'matched-results',
-                title: roomNumber ? `Your Matched Photos - Room ${roomNumber}` : 'Your Matched Photos',
+                title: deferredRoomNumber ? `Your Matched Photos - Room ${deferredRoomNumber}` : 'Your Matched Photos',
                 date: new Date().toISOString(),
                 photographerId: 0,
                 source: 'AI',
-                roomNumber: roomNumber || '',
-                coverPhotoUrl: matchedPhotos[0].url,
-                photos: matchedPhotos
+                roomNumber: deferredRoomNumber || '',
+                coverPhotoUrl: deferredMatchedPhotos[0].url,
+                photos: deferredMatchedPhotos
             } as Album] : [];
         }
 
-        if (selectedCategory === 'All') return roomFilteredAlbums;
-        return roomFilteredAlbums.filter(album => (album.categories || []).includes(selectedCategory as PhotoCategory));
-    }, [albums, selectedCategory, matchedPhotos, roomNumber]);
+        if (deferredSelectedCategory === 'All') return roomFilteredAlbums;
+        return roomFilteredAlbums.filter(album => (album.categories || []).includes(deferredSelectedCategory as PhotoCategory));
+    }, [deferredAlbums, deferredSelectedCategory, deferredMatchedPhotos, deferredRoomNumber]);
 
     const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 

@@ -2801,14 +2801,16 @@ export class CloudSyncService {
         );
 
         // Mark as synced locally
-        this.dbManager.run(
-          "UPDATE daily_resort_stats SET sync_status = 'synced' WHERE date = ?",
-          [date],
-        );
-        this.dbManager.run(
-          "UPDATE photographer_performance SET sync_status = 'synced' WHERE date = ?",
-          [date],
-        );
+        this.dbManager.transaction(() => {
+          this.dbManager.run(
+            "UPDATE daily_resort_stats SET sync_status = 'synced' WHERE date = ?",
+            [date],
+          );
+          this.dbManager.run(
+            "UPDATE photographer_performance SET sync_status = 'synced' WHERE date = ?",
+            [date],
+          );
+        });
       } else {
         const txt = await res.text();
         this.logger.error(`[CloudSync] Resort BI Sync Failed: ${txt}`);

@@ -70,6 +70,7 @@ export class OfflineSyncQueue {
     };
 
     const collection = this.db.collections.operations;
+    if (!collection) return;
     await collection.insert(op);
 
     if (this.isOnline) {
@@ -81,6 +82,7 @@ export class OfflineSyncQueue {
     if (!this.db || !this.isOnline) return;
 
     const collection = this.db.collections.operations;
+    if (!collection) return;
     const pending = await collection.find({ selector: { status: 'PENDING' } }).exec();
 
     for (const doc of pending) {

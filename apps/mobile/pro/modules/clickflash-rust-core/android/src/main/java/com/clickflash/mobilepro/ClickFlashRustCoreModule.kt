@@ -20,6 +20,8 @@ class ClickFlashRustCoreModule : Module() {
   private external fun analyzeImage(imagePath: String): String
   private external fun scanAndLinkBeacons(dbPath: String, clickflashUuid: String, durationSecs: Long): String
   private external fun broadcastAndScanGhostLink(dbPath: String, ghostLinkUuid: String, durationSecs: Long): String
+  private external fun hashPhotoBuffer(filePath: String): String
+  private external fun l2NormalizeVector(vectorArray: FloatArray): FloatArray
 
   override fun definition() = ModuleDefinition {
     // Defines the name of the module that JavaScript will use
@@ -75,6 +77,16 @@ class ClickFlashRustCoreModule : Module() {
     // Export broadcastAndScanGhostLink to JS
     AsyncFunction("broadcastAndScanGhostLink") { dbPath: String, ghostLinkUuid: String, durationSecs: Long ->
       broadcastAndScanGhostLink(dbPath, ghostLinkUuid, durationSecs)
+    }
+
+    // Export hashPhotoBuffer to JS
+    Function("hashPhotoBuffer") { filePath: String ->
+      hashPhotoBuffer(filePath)
+    }
+
+    // Export l2NormalizeVector to JS
+    Function("l2NormalizeVector") { vectorArray: FloatArray ->
+      l2NormalizeVector(vectorArray)
     }
 
     // Stub method for startBleScan emitting onGuestUuidDetected event

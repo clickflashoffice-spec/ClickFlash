@@ -1,4 +1,4 @@
-import { NativeModules, NativeEventEmitter } from 'react-native';
+import { NativeModules, NativeEventEmitter, EmitterSubscription } from 'react-native';
 import { BLE_CONSTANTS, BleHandshakePayload, BleRole } from '@clickflash/types';
 
 const { BleBeaconModule } = NativeModules;
@@ -10,6 +10,7 @@ export class BleProximityService {
     private userId: string;
     private discoveredPhotographers: Set<string> = new Set();
     private onPhotographerDiscoveredCallback: ((photographerId: string, sessionId?: string) => void) | null = null;
+    private scanSubscription: EmitterSubscription | null = null;
 
     constructor(userId: string) {
         this.userId = userId;
@@ -75,7 +76,7 @@ export class BleProximityService {
 
             if (BleBeaconModule?.startScan) {
                 await BleBeaconModule.startScan('CLICKFLASH-V7-PROXIMITY');
-                bleEmitter.addListener('onBeaconDetected', (data: { photographerId: string; sessionId?: string; rssi: number }) => {
+                this.scanSubscription = bleEmitter.addListener('onBeaconDetected', (data: { photographerId: string; sessionId?: string; rssi: number }) => {
                     if (data.photographerId && !this.discoveredPhotographers.has(data.photographerId)) {
                         this.discoveredPhotographers.add(data.photographerId);
                         console.log(`[BleProximity] Auto-linked nearby photographer: ${data.photographerId} (RSSI: ${data.rssi})`);
@@ -99,7 +100,10 @@ export class BleProximityService {
             if (BleBeaconModule?.stopScan) {
                 await BleBeaconModule.stopScan();
             }
-            bleEmitter.removeAllListeners('onBeaconDetected');
+            if (this.scanSubscription) {
+                this.scanSubscription.remove();
+                this.scanSubscription = null;
+            }
             this.isScanning = false;
             console.log(`[BleProximity] Background scanning stopped.`);
         } catch (error) {

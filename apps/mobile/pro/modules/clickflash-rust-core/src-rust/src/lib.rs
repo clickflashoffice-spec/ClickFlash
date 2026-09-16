@@ -685,3 +685,41 @@ pub fn l2_normalize(vector: Vec<f32>) -> Vec<f32> {
     }
     vector.into_iter().map(|v| v / mag).collect()
 }
+
+#[no_mangle]
+pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_hashPhotoBuffer<'local>(
+    mut env: JNIEnv<'local>,
+    _this: JObject<'local>,
+    file_path: JString<'local>,
+) -> jstring {
+    let file_path_str: String = env.get_string(&file_path).unwrap().into();
+    
+    let result = match std::fs::read(&file_path_str) {
+        Ok(buffer) => hash_photo_buffer(&buffer),
+        Err(e) => format!("ERROR: Failed to read file - {}", e),
+    };
+
+    let output = env.new_string(result).unwrap();
+    output.into_raw()
+}
+
+#[no_mangle]
+pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_l2NormalizeVector<'local>(
+    env: JNIEnv<'local>,
+    _this: JObject<'local>,
+    vector_array: jni::objects::JFloatArray<'local>,
+) -> jni::objects::JFloatArray<'local> {
+    let len = env.get_array_length(&vector_array).unwrap_or(0);
+    let mut buf = vec![0.0f32; len as usize];
+    
+    if let Ok(_) = env.get_float_array_region(&vector_array, 0, &mut buf) {
+        let normalized = l2_normalize(buf);
+        if let Ok(result_array) = env.new_float_array(len) {
+            let _ = env.set_float_array_region(&result_array, 0, &normalized);
+            return result_array;
+        }
+    }
+    
+    // Fallback: return empty array or original if error
+    env.new_float_array(0).unwrap()
+}

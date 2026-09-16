@@ -12,9 +12,30 @@ app.post('/create-intent', async (c) => {
     return c.json({ error: 'Validation failed' }, 400);
   }
 
-  const { amount, currency, orderId, email } = body.data || body;
+  const { amount: frontendAmount, currency, orderId, email, cart, discountCode } = body.data || body;
 
-  if (typeof amount !== 'number' || amount <= 0) {
+  let calculatedAmount = 0;
+  if (cart && Array.isArray(cart)) {
+    let subtotal = 0;
+    // Assuming fixed price of 19.99 EUR per digital photo for now as per ecosystem standard
+    for (const item of cart) {
+      subtotal += (19.99 * (item.qty || 1));
+    }
+    
+    if (discountCode === 'SHARE15') {
+      subtotal = subtotal * 0.85; // 15% discount
+    }
+    calculatedAmount = Math.max(0, Math.round(subtotal * 100));
+  } else {
+    // Fallback if no cart is provided (legacy apps)
+    if (typeof frontendAmount !== 'number' || frontendAmount <= 0) {
+      return c.json({ error: 'Validation failed' }, 400);
+    }
+    calculatedAmount = frontendAmount;
+  }
+  const amount = calculatedAmount;
+
+  if (amount <= 0) {
     return c.json({ error: 'Validation failed' }, 400);
   }
   

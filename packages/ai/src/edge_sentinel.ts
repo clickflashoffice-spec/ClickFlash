@@ -91,7 +91,7 @@ export class EdgeSentinel {
   /**
    * Autonomous remediation strategy for stuck writes.
    */
-  private triggerRemediation(row: any): void {
+  private triggerRemediation(_row: any): void {
     this.remediations++;
     // Log remediation action - in full production, resets retry_count or flags circuit breaker
   }

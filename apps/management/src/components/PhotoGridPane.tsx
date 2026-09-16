@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Sparkles, Download, Flag, MoreVertical, MousePointerClick, Loader2 } from 'lucide-react';
+import { VirtuosoGrid } from 'react-virtuoso';
 import type { Gallery } from '../views/GalleriesOversightView';
 import Toast from './Toast';
 
@@ -85,9 +86,12 @@ export function PhotoGridPane({ gallery }: { gallery: Gallery | null }) {
       </div>
 
       {/* Photo Grid */}
-      <div className="flex-1 overflow-y-auto p-6 relative">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-          {photos.map(photo => (
+      <div className="flex-1 relative p-6">
+        <VirtuosoGrid
+          style={{ height: '100%', width: '100%' }}
+          data={photos}
+          listClassName="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2"
+          itemContent={(_index, photo) => (
             <div key={photo.id} className="relative aspect-[3/2] rounded-lg overflow-hidden group cursor-pointer border border-slate-800">
               <img 
                 src={photo.url} 
@@ -99,8 +103,8 @@ export function PhotoGridPane({ gallery }: { gallery: Gallery | null }) {
                 <span className="text-[10px] text-white/70">{photo.resolution}MP</span>
               </div>
             </div>
-          ))}
-        </div>
+          )}
+        />
       </div>
 
       {/* Action Bar */}

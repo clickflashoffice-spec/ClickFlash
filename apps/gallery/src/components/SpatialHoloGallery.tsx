@@ -99,46 +99,54 @@ export const SpatialHoloGallery: React.FC<SpatialHoloGalleryProps> = ({
           className="holo-carousel relative w-72 h-96 transition-transform duration-700 ease-out preserve-3d"
           style={{ transform: `rotateY(${rotationAngle * 0.4}deg)` }}
         >
-          {photos.slice(0, 7).map((photo, idx) => {
-            const offset = (idx - activeIndex + photos.length) % photos.length;
-            const isCenter = offset === 0;
-            const translateX = (offset - Math.min(3, photos.length / 2)) * 140;
-            const translateZ = isCenter ? 100 : -150 - Math.abs(offset) * 50;
-            const rotateY = (offset - Math.min(3, photos.length / 2)) * -20;
-            const opacity = isCenter ? 1 : Math.max(0.2, 1 - Math.abs(offset) * 0.35);
+          {(() => {
+            const displayCount = Math.min(7, photos.length);
+            const items = [];
+            for (let i = 0; i < displayCount; i++) {
+              const offset = i - Math.floor(displayCount / 2);
+              const idx = (activeIndex + offset + photos.length) % photos.length;
+              items.push({ photo: photos[idx], offset, idx });
+            }
+            return items.map(({ photo, offset, idx }) => {
+              const isCenter = offset === 0;
+              const translateX = offset * 140;
+              const translateZ = isCenter ? 100 : -150 - Math.abs(offset) * 50;
+              const rotateY = offset * -20;
+              const opacity = isCenter ? 1 : Math.max(0.2, 1 - Math.abs(offset) * 0.35);
 
-            return (
-              <div
-                key={photo.id || idx}
-                onClick={() => {
-                  setActiveIndex(idx);
-                  if (onSelectPhoto) onSelectPhoto(photo);
-                }}
-                className={`absolute inset-0 rounded-2xl overflow-hidden cursor-pointer border transition-all duration-500 ${
-                  isCenter 
-                    ? 'border-cyan-400/80 shadow-[0_0_40px_rgba(6,182,212,0.4)] scale-105 z-30 ring-2 ring-cyan-400/50' 
-                    : 'border-slate-700/50 hover:border-slate-500 scale-90 z-10'
-                }`}
-                style={{
-                  transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`,
-                  opacity
-                }}
-              >
-                <img
-                  src={isCenter && enhancedUrl ? enhancedUrl : photo.previewUrl || photo.url}
-                  alt={photo.title || 'Spatial frame'}
-                  className="w-full h-full object-cover select-none pointer-events-none"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-                {isCenter && (
-                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
-                    <span className="text-xs font-semibold truncate">{photo.title || 'Resort Moment'}</span>
-                    <Maximize2 className="w-4 h-4 text-cyan-400" />
-                  </div>
-                )}
-              </div>
-            );
-          })}
+              return (
+                <div
+                  key={photo.id || idx}
+                  onClick={() => {
+                    setActiveIndex(idx);
+                    if (onSelectPhoto) onSelectPhoto(photo);
+                  }}
+                  className={`absolute inset-0 rounded-2xl overflow-hidden cursor-pointer border transition-all duration-500 ${
+                    isCenter 
+                      ? 'border-cyan-400/80 shadow-[0_0_40px_rgba(6,182,212,0.4)] scale-105 z-30 ring-2 ring-cyan-400/50' 
+                      : 'border-slate-700/50 hover:border-slate-500 scale-90 z-10'
+                  }`}
+                  style={{
+                    transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`,
+                    opacity
+                  }}
+                >
+                  <img
+                    src={isCenter && enhancedUrl ? enhancedUrl : photo.previewUrl || photo.url}
+                    alt={photo.title || 'Spatial frame'}
+                    className="w-full h-full object-cover select-none pointer-events-none"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                  {isCenter && (
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
+                      <span className="text-xs font-semibold truncate">{photo.title || 'Resort Moment'}</span>
+                      <Maximize2 className="w-4 h-4 text-cyan-400" />
+                    </div>
+                  )}
+                </div>
+              );
+            });
+          })()}
         </div>
       </div>
 

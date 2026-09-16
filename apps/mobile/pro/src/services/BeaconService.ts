@@ -1,5 +1,5 @@
 import { logger } from '@/utils/logger';
-
+import { getRustDbPath } from './OfflineQueueService';
 import { RustCore } from '../../modules/clickflash-rust-core';
 
 export interface BeaconPayload {
@@ -12,7 +12,9 @@ export class BeaconService {
   private isScanning = false;
   private scanInterval: NodeJS.Timeout | null = null;
   private currentPayload: BeaconPayload | null = null;
-  private dbPath: string = 'offline_queue.db'; // SQLite DB managed by Rust
+  private dbPath: string = getRustDbPath(); // SQLite DB managed by Rust
+
+  private isExecutingScan = false;
 
   /**
    * Starts high-performance background BLE scanning using Rust Core.
@@ -32,8 +34,14 @@ export class BeaconService {
     this.isScanning = true;
     logger.info(`[BeaconService] Started BLE background scanning for photographer: ${photographerId}`);
 
-    // Loop to continuously scan in chunks of 5 seconds via Rust JNI
-    this.scanInterval = setInterval(async () => {
+    const runScanLoop = async () => {
+      if (!this.isScanning) return;
+      if (this.isExecutingScan) {
+         this.scanInterval = setTimeout(runScanLoop, 500);
+         return;
+      }
+      
+      this.isExecutingScan = true;
       this.currentPayload!.timestamp = Date.now();
       
       try {
@@ -48,15 +56,23 @@ export class BeaconService {
         }
       } catch (error) {
         logger.error(`[BeaconService] Rust BLE Scanner Error:`, error);
+      } finally {
+        this.isExecutingScan = false;
+        if (this.isScanning) {
+          this.scanInterval = setTimeout(runScanLoop, 500);
+        }
       }
-    }, 5500); // Wait 500ms between 5-second scans
+    };
+
+    // Kick off the scanning loop
+    runScanLoop();
   }
 
   public stopScanning() {
     if (!this.isScanning) return;
 
     if (this.scanInterval) {
-      clearInterval(this.scanInterval);
+      clearTimeout(this.scanInterval);
       this.scanInterval = null;
     }
 

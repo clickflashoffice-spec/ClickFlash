@@ -15,6 +15,7 @@
   "dependencies": {
     "@clickflash/ai": "workspace:*",
     "@clickflash/types": "workspace:*",
+    "@clickflash/ui": "workspace:*",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/auto-instrumentations-web": "^0.67.0",
     "@opentelemetry/context-zone": "^2.11.0",
@@ -35,6 +36,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router": "^8.3.0",
+    "react-virtuoso": "^4.18.13",
     "recharts": "^3.10.1",
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.4.0",

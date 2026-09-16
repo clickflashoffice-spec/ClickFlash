@@ -321,8 +321,9 @@ class SpotIntelligenceService {
       if ((tier === 'ONLINE_HYBRID' || tier === 'ONLINE_MASTER_ONLY') && masterIp) {
         logger.info('[SpotIntelligence] Syncing offline proximity links to Master Edge Node...');
         const targetUrlPrefix = `http://${masterIp}:8090`;
+        const { getRustDbPath } = require('./OfflineQueueService');
         const result = await RustCore.syncPendingEvents({
-          dbPath: 'offline_queue.db',
+          dbPath: getRustDbPath(),
           targetUrlPrefix
         });
         logger.info(`[SpotIntelligence] Proximity Sync Result: ${result}`);

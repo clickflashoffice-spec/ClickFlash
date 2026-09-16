@@ -3,6 +3,7 @@
  * Combines dense vector similarity (CLIP / ArcFace) with lexical domain tags and sharpness weighting.
  */
 import type { PhotoSemanticMetadata, HybridSearchResult } from './types.js';
+import { HierarchicalNSW } from 'hnswlib-node';
 
 export interface SemanticSearchOptions {
   queryText: string;
@@ -26,7 +27,6 @@ export function generateTextEmbedding(text: string, dimensions = 512): number[] 
     return Array.from(vec);
   }
 
-  // Multi-hash token feature projection
   for (let w = 0; w < words.length; w++) {
     const word = words[w];
     for (let i = 0; i < word.length; i++) {
@@ -38,7 +38,6 @@ export function generateTextEmbedding(text: string, dimensions = 512): number[] 
     }
   }
 
-  // L2 normalization to unit sphere
   let normSq = 0;
   for (let i = 0; i < dimensions; i++) {
     normSq += vec[i] * vec[i];
@@ -54,52 +53,31 @@ export function generateTextEmbedding(text: string, dimensions = 512): number[] 
   return Array.from(vec);
 }
 
-/**
- * Computes cosine similarity between two numeric vectors
- */
 export function cosineSimilarity(a: number[], b: number[]): number {
-  if (!a || !b || a.length === 0 || b.length === 0 || a.length !== b.length) {
-    return 0;
-  }
-
-  let dot = 0;
-  let normA = 0;
-  let normB = 0;
-
+  if (!a || !b || a.length === 0 || b.length === 0 || a.length !== b.length) return 0;
+  let dot = 0, normA = 0, normB = 0;
   for (let i = 0; i < a.length; i++) {
     dot += a[i] * b[i];
     normA += a[i] * a[i];
     normB += b[i] * b[i];
   }
-
   const denominator = Math.sqrt(normA) * Math.sqrt(normB);
   if (denominator === 0) return 0;
-
   return Math.max(0, Math.min(1, dot / denominator));
 }
 
-/**
- * Calculates domain lexical relevance across photo metadata
- */
 export function calculateLexicalScore(
   queryTerms: string[],
   photo: PhotoSemanticMetadata
 ): { score: number; matchedTerms: string[] } {
   let score = 0;
   const matchedTerms: string[] = [];
-
   const titleLower = (photo.title || '').toLowerCase();
   const categoryLower = (photo.category || '').toLowerCase();
 
   for (const term of queryTerms) {
-    if (titleLower.includes(term)) {
-      score += 0.35;
-      matchedTerms.push(term);
-    }
-    if (categoryLower.includes(term)) {
-      score += 0.25;
-      matchedTerms.push(term);
-    }
+    if (titleLower.includes(term)) { score += 0.35; matchedTerms.push(term); }
+    if (categoryLower.includes(term)) { score += 0.25; matchedTerms.push(term); }
   }
 
   if (photo.aiTags) {
@@ -109,95 +87,102 @@ export function calculateLexicalScore(
     const scene = (photo.aiTags.scene || '').toLowerCase();
 
     for (const term of queryTerms) {
-      if (clothing.some((c) => c.toLowerCase().includes(term))) {
-        score += 0.30;
-        matchedTerms.push(`color:${term}`);
+      if (clothing.some((c) => c.toLowerCase().includes(term))) { score += 0.30; matchedTerms.push('color:' + term); }
+      if (accessories.some((a) => a.toLowerCase().includes(term))) { score += 0.30; matchedTerms.push('item:' + term); }
+      if (context.includes(term)) { score += 0.25; matchedTerms.push('context:' + term); }
+      if (scene.includes(term)) { score += 0.30; matchedTerms.push('scene:' + term); }
+    }
+  }
+  return { score: Math.min(1.0, score), matchedTerms: Array.from(new Set(matchedTerms)) };
+}
+
+export class SemanticIndex {
+  private index: HierarchicalNSW;
+  private photos: PhotoSemanticMetadata[] = [];
+  
+  constructor(dimensions = 512, maxElements = 100000) {
+    this.index = new HierarchicalNSW('cosine', dimensions);
+    this.index.initIndex(maxElements, 16, 200, 100);
+  }
+
+  public addPhotos(photos: PhotoSemanticMetadata[]) {
+    const startIdx = this.photos.length;
+    for (let i = 0; i < photos.length; i++) {
+      const photo = photos[i];
+      let embedding = photo.embedding;
+      if (!embedding || embedding.length === 0) {
+        const syntheticText = `${photo.title || ''} ${photo.category || ''} ${photo.aiTags?.scene || ''}`;
+        embedding = generateTextEmbedding(syntheticText);
       }
-      if (accessories.some((a) => a.toLowerCase().includes(term))) {
-        score += 0.30;
-        matchedTerms.push(`item:${term}`);
-      }
-      if (context.includes(term)) {
-        score += 0.25;
-        matchedTerms.push(`context:${term}`);
-      }
-      if (scene.includes(term)) {
-        score += 0.30;
-        matchedTerms.push(`scene:${term}`);
-      }
+      this.index.addPoint(embedding, startIdx + i);
+      this.photos.push(photo);
     }
   }
 
-  return {
-    score: Math.min(1.0, score),
-    matchedTerms: Array.from(new Set(matchedTerms))
-  };
+  public hybridSemanticRank(options: SemanticSearchOptions): HybridSearchResult[] {
+    const {
+      queryText,
+      categoryFilter,
+      minSimilarity = 0.20,
+      maxResults = 20,
+      denseWeight = 0.55,
+      lexicalWeight = 0.35,
+      qualityWeight = 0.10
+    } = options;
+
+    const queryTerms = queryText.toLowerCase().split(/\s+/).filter(Boolean);
+    const queryEmbedding = generateTextEmbedding(queryText);
+    const results: HybridSearchResult[] = [];
+
+    // Query HNSW index
+    let k = Math.min(this.photos.length, maxResults * 10);
+    if (k === 0) return [];
+    
+    const { neighbors, distances } = this.index.searchKnn(queryEmbedding, k);
+
+    for (let i = 0; i < neighbors.length; i++) {
+      const idx = neighbors[i];
+      const photo = this.photos[idx];
+      const distance = distances[i];
+      const denseScore = 1.0 - distance; // HNSW cosine distance to similarity
+
+      if (categoryFilter && photo.category && photo.category !== categoryFilter) {
+        continue;
+      }
+
+      const lexical = calculateLexicalScore(queryTerms, photo);
+      const qualityScore = (photo.qualityScore || 80) / 100;
+
+      const totalScore =
+        denseScore * denseWeight +
+        lexical.score * lexicalWeight +
+        qualityScore * qualityWeight;
+
+      const normalizedTotal = Math.min(1.0, Number(totalScore.toFixed(3)));
+
+      if (normalizedTotal >= minSimilarity || lexical.matchedTerms.length > 0) {
+        results.push({
+          photoId: photo.id,
+          relevanceScore: normalizedTotal,
+          denseVectorScore: Number(denseScore.toFixed(3)),
+          lexicalScore: Number(lexical.score.toFixed(3)),
+          matchedTerms: lexical.matchedTerms
+        });
+      }
+    }
+
+    return results
+      .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .slice(0, maxResults);
+  }
 }
 
-/**
- * Ranks photos using hybrid multi-vector + lexical scoring
- */
+// Backwards compatibility function
 export function hybridSemanticRank(
   options: SemanticSearchOptions,
   photos: PhotoSemanticMetadata[]
 ): HybridSearchResult[] {
-  const {
-    queryText,
-    categoryFilter,
-    minSimilarity = 0.20,
-    maxResults = 20,
-    denseWeight = 0.55,
-    lexicalWeight = 0.35,
-    qualityWeight = 0.10
-  } = options;
-
-  const queryTerms = queryText.toLowerCase().split(/\s+/).filter(Boolean);
-  const queryEmbedding = generateTextEmbedding(queryText);
-  const results: HybridSearchResult[] = [];
-
-  for (const photo of photos) {
-    // Optional category filtering
-    if (categoryFilter && photo.category && photo.category !== categoryFilter) {
-      continue;
-    }
-
-    // Dense Vector Cosine Similarity
-    let denseScore = 0;
-    if (photo.embedding && photo.embedding.length > 0) {
-      denseScore = cosineSimilarity(queryEmbedding, photo.embedding);
-    } else {
-      // Fall back to synthetic embedding generated from metadata
-      const syntheticText = `${photo.title || ''} ${photo.category || ''} ${photo.aiTags?.scene || ''} ${photo.aiTags?.context || ''}`;
-      const synthEmbedding = generateTextEmbedding(syntheticText);
-      denseScore = cosineSimilarity(queryEmbedding, synthEmbedding);
-    }
-
-    // Lexical Scoring
-    const lexical = calculateLexicalScore(queryTerms, photo);
-
-    // Quality Boost
-    const qualityScore = (photo.qualityScore || 80) / 100;
-
-    // Combined Hybrid Score
-    const totalScore =
-      denseScore * denseWeight +
-      lexical.score * lexicalWeight +
-      qualityScore * qualityWeight;
-
-    const normalizedTotal = Math.min(1.0, Number(totalScore.toFixed(3)));
-
-    if (normalizedTotal >= minSimilarity || lexical.matchedTerms.length > 0) {
-      results.push({
-        photoId: photo.id,
-        relevanceScore: normalizedTotal,
-        denseVectorScore: Number(denseScore.toFixed(3)),
-        lexicalScore: Number(lexical.score.toFixed(3)),
-        matchedTerms: lexical.matchedTerms
-      });
-    }
-  }
-
-  return results
-    .sort((a, b) => b.relevanceScore - a.relevanceScore)
-    .slice(0, maxResults);
+  const index = new SemanticIndex(512, Math.max(photos.length, 1000));
+  index.addPhotos(photos);
+  return index.hybridSemanticRank(options);
 }

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   generateTextEmbedding,
   cosineSimilarity,
@@ -6,6 +6,15 @@ import {
   hybridSemanticRank
 } from './semantic-search.js';
 import type { PhotoSemanticMetadata } from './types.js';
+
+vi.mock('hnswlib-node', () => ({
+  HierarchicalNSW: class HierarchicalNSW {
+    constructor() {}
+    initIndex() {}
+    addPoint() {}
+    searchKnn() { return { neighbors: [0, 1], distances: [0.1, 0.2] }; }
+  }
+}));
 
 describe('Multimodal Hybrid NLP Semantic Photo Search', () => {
   describe('generateTextEmbedding & cosineSimilarity', () => {

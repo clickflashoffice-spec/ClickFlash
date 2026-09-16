@@ -2,6 +2,15 @@ import { getDatabase } from '../backend/database';
 import { logger } from "@/utils/logger";
 import { appState } from '../store';
 import { RustCore } from '../../modules/clickflash-rust-core';
+import * as FileSystem from 'expo-file-system/legacy';
+
+export function getRustDbPath(): string {
+  let dbPath = 'clickflash.db';
+  if (FileSystem.documentDirectory) {
+    dbPath = FileSystem.documentDirectory.replace(/^file:\/\//, '') + 'SQLite/clickflash.db';
+  }
+  return dbPath;
+}
 
 export type QueueItemType = 'SHIFT_EVENT' | 'PHOTO_SYNC' | 'FACE_ENROLL' | 'GENERIC_API';
 
@@ -32,7 +41,19 @@ export class OfflineQueueService {
    * Load offline items from SQLite database.
    */
   public async initialize(): Promise<void> {
-    await getDatabase();
+    const db = await getDatabase();
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS offline_queue (
+        id TEXT PRIMARY KEY,
+        type TEXT NOT NULL,
+        endpoint TEXT NOT NULL,
+        method TEXT NOT NULL,
+        payload TEXT,
+        timestamp INTEGER NOT NULL,
+        retryCount INTEGER NOT NULL,
+        priority TEXT NOT NULL
+      )
+    `);
     appState.network.offlineQueueSize = await this.getQueueSize();
   }
 
@@ -47,10 +68,11 @@ export class OfflineQueueService {
     priority: 'HIGH' | 'NORMAL' | 'LOW' = 'NORMAL'
   ): Promise<OfflineQueueItem> {
     const payloadStr = JSON.stringify(payload);
-    
+    const dbPath = getRustDbPath();
+
     // Delegate strictly to Rust Core
     const result = RustCore.enqueueSyncEvent({
-      dbPath: 'offline_queue.db',
+      dbPath,
       eventType: type,
       endpoint,
       method,

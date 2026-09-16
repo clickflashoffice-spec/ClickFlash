@@ -6,6 +6,8 @@ import { useKioskInactivityGuard } from '../useKioskInactivityGuard';
 describe('useKioskInactivityGuard', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    if (!window.addEventListener) { window.addEventListener = vi.fn(); }
+    if (!window.removeEventListener) { window.removeEventListener = vi.fn(); }
   });
 
   afterEach(() => {

@@ -583,8 +583,11 @@ export default function collectionRoutes(context: CollectionsContext): Router {
           const orderNumber = responseData.orderNumber || responseData.id;
           const orderDir = path.join(dataDir, "orders", `order-${orderNumber}`);
 
-          if (!fs.existsSync(orderDir))
-            fs.mkdirSync(orderDir, { recursive: true });
+          try {
+            await fs.promises.access(orderDir);
+          } catch {
+            await fs.promises.mkdir(orderDir, { recursive: true });
+          }
 
           const items = Array.isArray(responseData.items)
             ? responseData.items

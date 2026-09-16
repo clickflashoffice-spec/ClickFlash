@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import CheckoutScreen from '../CheckoutScreen';
@@ -9,7 +10,7 @@ vi.mock('../../CurrencyContext', () => ({
     currency: 'USD',
     rate: 1,
     symbol: '$',
-    formatPrice: (price: number) => `$${price.toFixed(2)}`
+    formatCurrency: (price: number) => `$${price.toFixed(2)}`
   })
 }));
 
@@ -17,6 +18,13 @@ vi.mock('../../CurrencyContext', () => ({
 vi.mock('../../../services/orderService', () => ({
   orderService: {
     createOrder: vi.fn().mockResolvedValue({ id: 'order_123' })
+  }
+}));
+
+vi.mock('../../../services/OfflineSyncQueue', () => ({
+  offlineSyncQueue: {
+    enqueueOperation: vi.fn().mockResolvedValue(undefined),
+    isOnline: true,
   }
 }));
 
@@ -33,7 +41,7 @@ describe('CheckoutScreen', () => {
   const mockOnBack = vi.fn();
   const mockOnCheckoutSuccess = vi.fn();
   const mockCart = [
-    { id: '1', name: 'Digital Download', price: 10, quantity: 1 }
+    { id: '1', photo: { title: 'Digital Download' }, size: '8x10', price: 10, quantity: 1 }
   ];
 
   beforeEach(() => {
@@ -50,8 +58,8 @@ describe('CheckoutScreen', () => {
         onCheckoutSuccess={mockOnCheckoutSuccess}
       />
     );
-    expect(screen.getByText('Digital Download')).toBeDefined();
-    expect(screen.getByText('$10.00')).toBeDefined();
+    expect(screen.getByText(/Digital Download/)).toBeDefined();
+    expect(screen.getAllByText(/\$10\.00/)[0]).toBeDefined();
   });
 
   it('calls onBack when back button is clicked', () => {
@@ -66,7 +74,7 @@ describe('CheckoutScreen', () => {
     );
     
     // Use regex to find Back or Cancel
-    const backBtn = screen.getByText(/Back|Cancel/i);
+    const backBtn = screen.getAllByText(/Back|Cancel/i)[0];
     fireEvent.click(backBtn);
     expect(mockOnBack).toHaveBeenCalledTimes(1);
   });

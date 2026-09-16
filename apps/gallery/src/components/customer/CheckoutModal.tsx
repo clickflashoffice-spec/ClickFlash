@@ -247,17 +247,22 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     setCheckoutError(null);
     const cartSessionId = getOrCreateCartSessionId();
 
+    // Create a unique hash for the cart contents and price to ensure idempotency is broken when the cart changes
+    const cartHash = cart.map(i => `${i.id}-${i.quantity}`).join('_') + `_${finalTotal}`;
+
     try {
       const response = await fetch(`${config.apiUrl}/api/payments/create-intent`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'Idempotency-Key': `gallery-elements-${cartSessionId}`,
+          'Idempotency-Key': `gallery-elements-${cartSessionId}-${cartHash}`,
         },
         body: JSON.stringify({
           orderId: albumId,
-          amount: Math.round(finalTotal * 100),
+          amount: Math.round(finalTotal * 100), // kept for backwards compatibility in other places
+          cart: cart.map(item => ({ id: item.photoId, qty: item.quantity })),
+          discountCode: discountApplied ? discountCode : null,
           currency: 'eur',
           metadata: {
             cartSessionId,
@@ -265,7 +270,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
             fiscalReceipt: String(enableFiscalFriction),
           },
           fiscalMetadata: enableFiscalFriction ? fiscalData : undefined,
-          discountCode: discountApplied ? discountCode : undefined,
         }),
       });
       const payload: unknown = await response.json().catch(() => null);

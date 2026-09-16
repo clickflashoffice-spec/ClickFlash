@@ -52,6 +52,10 @@ describe('safeStorage', () => {
             value: storageMock,
             writable: true
         });
+        Object.defineProperty(globalThis, 'localStorage', {
+            value: storageMock,
+            writable: true
+        });
     });
 
     it('gets item successfully', () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { create } from 'zustand';
 import type { CartItem, Photo } from '../types';
 
 export interface CartStoreState {
@@ -18,19 +18,19 @@ export interface CartStoreState {
   total: number;
 }
 
-let state: CartStoreState = {
+export const useCartStore = create<CartStoreState>((set, get) => ({
   items: [],
   get cart() {
-    return this.items;
+    return get().items;
   },
   addItem: (
-    photo: Photo,
-    productId?: string,
-    productName: string = 'Digital High-Res',
-    price: number = 19.99,
-    _category?: string,
-    deliveryType: 'digital' | 'print' | 'both' = 'digital'
-  ) => {
+    photo,
+    productId,
+    productName = 'Digital High-Res',
+    price = 19.99,
+    _category,
+    deliveryType = 'digital'
+  ) => set((state) => {
     const newItem: CartItem = {
       id: `item_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       photoId: photo.id,
@@ -42,58 +42,27 @@ let state: CartStoreState = {
       price: typeof price === 'number' && !isNaN(price) ? price : 19.99,
       deliveryType
     };
-    state.items = [...state.items, newItem];
-    notify();
-  },
-  removeItem: (id: string) => {
-    state.items = state.items.filter(i => i.id !== id && i.photoId !== id);
-    notify();
-  },
-  updateQuantity: (photoIdOrItemId: string, newQuantity: number) => {
+    return { items: [...state.items, newItem] };
+  }),
+  removeItem: (id) => set((state) => ({
+    items: state.items.filter(i => i.id !== id && i.photoId !== id)
+  })),
+  updateQuantity: (photoIdOrItemId, newQuantity) => set((state) => {
     if (newQuantity <= 0) {
-      state.items = state.items.filter(i => i.id !== photoIdOrItemId && i.photoId !== photoIdOrItemId);
-    } else {
-      state.items = state.items.map(i => {
-        if (i.id === photoIdOrItemId || i.photoId === photoIdOrItemId) {
-          return { ...i, quantity: newQuantity };
-        }
-        return i;
-      });
+      return { items: state.items.filter(i => i.id !== photoIdOrItemId && i.photoId !== photoIdOrItemId) };
     }
-    notify();
-  },
-  clearCart: () => {
-    state.items = [];
-    notify();
-  },
-  get total() {
-    return this.items.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
-  }
-};
-
-const listeners = new Set<() => void>();
-
-function notify() {
-  listeners.forEach(l => l());
-}
-
-export function useCartStore<T = CartStoreState>(selector?: (state: CartStoreState) => T): T {
-  const [, setTick] = useState(0);
-
-  useEffect(() => {
-    const listener = () => setTick(t => t + 1);
-    listeners.add(listener);
-    return () => {
-      listeners.delete(listener);
+    return {
+      items: state.items.map(i => 
+        (i.id === photoIdOrItemId || i.photoId === photoIdOrItemId) 
+          ? { ...i, quantity: newQuantity } 
+          : i
+      )
     };
-  }, []);
-
-  if (typeof selector === 'function') {
-    return selector(state);
+  }),
+  clearCart: () => set({ items: [] }),
+  get total() {
+    return get().items.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
   }
-  return state as unknown as T;
-}
-
-useCartStore.getState = (): CartStoreState => state;
+}));
 
 export default useCartStore;

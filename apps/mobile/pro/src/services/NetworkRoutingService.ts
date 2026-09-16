@@ -2,7 +2,8 @@ import { discoveryService } from './discoveryService';
 import { meshSyncService } from './MeshSyncService';
 import { offlineQueueService } from './OfflineQueueService';
 import { appState } from '../store';
-import { logger } from "@/utils/logger";
+import { logger } from '@/utils/logger';
+import { getRustDbPath } from './OfflineQueueService';
 import { RustCore } from '../../modules/clickflash-rust-core';
 
 export type ConnectionTier = 
@@ -212,7 +213,7 @@ export class NetworkRoutingService {
 
       // Delegate to high-performance Rust core
       const resultMsg = await RustCore.syncPendingEvents({
-        dbPath: 'offline_queue.db',
+        dbPath: getRustDbPath(),
         targetUrlPrefix: targetPrefix
       });
 

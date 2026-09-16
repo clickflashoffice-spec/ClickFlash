@@ -1,5 +1,6 @@
+// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import FaceSearchModal from '../FaceSearchModal';
 import React from 'react';
 
@@ -18,6 +19,9 @@ vi.mock('@clickflash/ui', () => ({
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+    label: ({ children, ...props }: any) => <label {...props}>{children}</label>,
+    p: ({ children, ...props }: any) => <p {...props}>{children}</p>,
   },
   AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
@@ -32,6 +36,7 @@ describe('FaceSearchModal', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    cleanup();
   });
 
   it('renders nothing when closed', () => {

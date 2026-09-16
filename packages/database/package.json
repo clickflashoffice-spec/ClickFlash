@@ -14,6 +14,8 @@
   "dependencies": {
     "better-sqlite3-multiple-ciphers": "^12.8.0",
     "@clickflash/logger": "workspace:*",
+    "@clickflash/errors": "workspace:*",
+    "@clickflash/types": "workspace:*",
     "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {

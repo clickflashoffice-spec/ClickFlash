@@ -22,9 +22,9 @@ export const useKioskInactivityGuard = ({
   const countdownIntervalRef = useRef<number | null>(null);
 
   const clearAllTimers = useCallback(() => {
-    if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current);
-    if (warningTimerRef.current) window.clearTimeout(warningTimerRef.current);
-    if (countdownIntervalRef.current) window.clearInterval(countdownIntervalRef.current);
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     idleTimerRef.current = null;
     warningTimerRef.current = null;
     countdownIntervalRef.current = null;
@@ -37,11 +37,11 @@ export const useKioskInactivityGuard = ({
 
     const warningStartDelay = Math.max(0, idleTimeoutMs - warningWindowMs);
 
-    warningTimerRef.current = window.setTimeout(() => {
+    warningTimerRef.current = setTimeout(() => {
       setShowWarning(true);
       setRemainingSeconds(Math.ceil(warningWindowMs / 1000));
 
-      countdownIntervalRef.current = window.setInterval(() => {
+      countdownIntervalRef.current = setInterval(() => {
         setRemainingSeconds((prev) => {
           if (prev <= 1) {
             clearAllTimers();

@@ -217,9 +217,10 @@
 - **Score**: Impact (4) x Effort (5) x Risk (4) = 80
 - **Category**: Infra/DevOps
 
-### [INFRA-102] Container Hardening & Multi-Stage Build
+### [INFRA-102] [COMPLETED] Container Hardening & Multi-Stage Build
 - **Target**: `apps/backend/ai-worker/Dockerfile`
 - **Rationale**: Single stage, runs as `root`. Violates principle of least privilege.
+- **Resolution**: Verified `Dockerfile` is already multi-stage and uses an unprivileged `appuser`.
 - **Score**: Impact (3) x Effort (4) x Risk (4) = 48
 - **Category**: Infra/DevOps
 

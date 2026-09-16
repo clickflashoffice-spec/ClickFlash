@@ -4,6 +4,18 @@ import { Photo as PhotoType } from '../../types.ts';
 
 import { motion, AnimatePresence } from 'framer-motion';
 
+export const PhotoCardSkeleton: React.FC = () => (
+    <div
+        className="relative h-[350px] overflow-hidden rounded-2xl border border-white/5 bg-slate-900"
+        aria-hidden="true"
+    >
+        <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-white/10 via-white/[0.03] to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 space-y-3 bg-gradient-to-t from-slate-950 p-5 pt-20">
+            <div className="h-3 w-2/3 animate-pulse rounded-full bg-white/10" />
+            <div className="h-2 w-1/3 animate-pulse rounded-full bg-cyan-400/10" />
+        </div>
+    </div>
+);
 export interface PhotoCardProps {
     photo: PhotoType;
     isFavorite: boolean;

@@ -1,4 +1,5 @@
 import { logger } from '../utils/logger';
+import sharp from 'sharp';
 import { GeminiClient } from '@clickflash/ai';
 import type {
     AIGradingResult,
@@ -49,48 +50,63 @@ export class AiGradeWorker {
      * Mathematical & Computer Vision Technical Evaluation Engine
      * Evaluates Laplacian variance sharpness, contrast, lighting, exposure, motion blur, and composition.
      */
-    public assessTechnicalQuality(filePath: string): TechnicalMetrics {
-        const fileName = path.basename(filePath).toLowerCase();
-        // File-size grounded heuristic for simulated testing
-        let fileSize = 2500000;
+    public async assessTechnicalQuality(filePath: string): Promise<TechnicalMetrics> {
+        let grayscale: Uint8Array;
+        let width = 0;
+        let height = 0;
+        let mean = 0;
+        let stdDev = 0;
+
         try {
-            if (fs.existsSync(filePath)) {
-                fileSize = fs.statSync(filePath).size;
+            const image = sharp(filePath);
+            const metadata = await image.metadata();
+            width = metadata.width || 0;
+            height = metadata.height || 0;
+
+            const rawBuffer = await image.raw().toColorspace('b-w').toBuffer();
+            grayscale = new Uint8Array(rawBuffer);
+
+            // Compute mean and stdDev for lighting and contrast
+            let sum = 0;
+            for (let i = 0; i < grayscale.length; i++) {
+                sum += grayscale[i];
             }
-        } catch {
-            // Ignore in virtual test environments
+            mean = grayscale.length > 0 ? sum / grayscale.length : 0;
+
+            let diffSum = 0;
+            for (let i = 0; i < grayscale.length; i++) {
+                const diff = grayscale[i] - mean;
+                diffSum += diff * diff;
+            }
+            stdDev = grayscale.length > 0 ? Math.sqrt(diffSum / grayscale.length) : 0;
+
+        } catch (error) {
+            logger.warn(`[AiGradeWorker] Failed to load image for technical assessment: ${filePath}`, error);
+            return {
+                sharpnessScore: 0,
+                contrastScore: 0,
+                lightingScore: 0,
+                exposureScore: 0,
+                blurScore: 100,
+                compositionScore: 0
+            };
         }
-        void fileSize;
 
-        // Use WASM Blur Detector for multi-gradient analysis
-        const blurMetrics = this.blurDetector.evaluateFromMetadata(fileName, fileSize);
+        const blurMetrics = await this.blurDetector.analyzeBuffer(grayscale, width, height);
 
-        let hash = 0;
-        for (let i = 0; i < fileName.length; i++) {
-            hash = (hash << 5) - hash + fileName.charCodeAt(i);
-            hash |= 0;
-        }
-        const absHash = Math.abs(hash);
+        const sharpnessScore = blurMetrics.sharpnessScore;
+        const blurScore = blurMetrics.blurScore;
 
-        let sharpnessScore = blurMetrics.sharpnessScore;
-        let blurScore = blurMetrics.blurScore;
-        const contrastScore = Math.min(100, Math.max(30, Math.round(((absHash * 7) % 65) + 35)));
-        const lightingScore = Math.min(100, Math.max(25, Math.round(((absHash * 19) % 70) + 30)));
-        const exposureScore = Math.min(100, Math.max(40, Math.round(((absHash * 23) % 55) + 45)));
-        const compositionScore = Math.min(100, Math.max(30, Math.round(((absHash * 31) % 60) + 40)));
+        // Map mean (0-255) to lighting/exposure (0-100)
+        // Optimal lighting is around middle gray (128)
+        const lightingScore = Math.round(100 - (Math.abs(mean - 128) / 128) * 100);
+        const exposureScore = lightingScore;
 
-        // Contextual adjustments based on filename keywords
-        if (fileName.includes('blurry') || fileName.includes('defect') || fileName.includes('floor') || fileName.includes('lenscap')) {
-            sharpnessScore = Math.min(sharpnessScore, 25);
-            blurScore = Math.max(blurScore, 85);
-        } else if (fileName.includes('action') || fileName.includes('splash') || fileName.includes('rollercoaster')) {
-            // Action shots have natural motion blur
-            sharpnessScore = Math.min(sharpnessScore, 48);
-            blurScore = Math.max(blurScore, 65);
-        } else if (fileName.includes('hero') || fileName.includes('studio') || fileName.includes('portrait')) {
-            sharpnessScore = Math.max(sharpnessScore, 88);
-            blurScore = Math.min(blurScore, 12);
-        }
+        // Map stdDev (0-128) to contrast (0-100)
+        const contrastScore = Math.round(Math.min(100, (stdDev / 64) * 100));
+
+        // Stub composition score for now, would require object detection
+        const compositionScore = 60;
 
         return {
             sharpnessScore,
@@ -211,7 +227,7 @@ Return only valid JSON matching this schema:
         const bypassThreshold = options.bypassThreshold ?? 75;
 
         // 1. Run Mathematical & Technical Assessment
-        const technical = this.assessTechnicalQuality(filePath);
+        const technical = await this.assessTechnicalQuality(filePath);
 
         // 2. Run VLM Emotional Assessment
         const emotional = await this.assessVlmEmotionalMetrics(filePath);

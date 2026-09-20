@@ -5,6 +5,7 @@ import BulkActionsBar from '@/components/customer/BulkActionsBar';
 import MagicShotViewer from '@/components/customer/MagicShotViewer';
 import type { Photo } from '@/types.ts';
 import { getPhotoStyle } from '@/utils/styleUtils';
+import { downloadFromUrl } from '../../utils/download';
 import { Sparkles } from 'lucide-react';
 
 const VIRTUAL_SCROLL_THRESHOLD = 100;
@@ -267,16 +268,11 @@ const CustomerGallery: React.FC<CustomerGalleryProps> = ({ photos, isLoading = f
         if (onNavigateToDownload) {
             onNavigateToDownload();
         } else if (window.confirm(`Download ${photosToDownload.length} photos?`)) {
-            photosToDownload.forEach((photo, index) => {
-                setTimeout(() => {
-                    const link = document.createElement('a');
-                    link.href = photo.url;
-                    link.download = `${photo.title || 'photo'}.jpg`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }, index * 250);
-            });
+                photosToDownload.forEach((photo, index) => {
+                  setTimeout(() => {
+                      downloadFromUrl(photo.url, `${photo.title || 'photo'}.jpg`);
+                  }, index * 250);
+              });
         }
     };
 

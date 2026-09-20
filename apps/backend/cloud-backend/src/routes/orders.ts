@@ -149,7 +149,7 @@ app.get('/analytics/dashboard', requireServiceAuth, async (c) => {
     ).all();
     
     const { results: commissionState } = await db.prepare(
-      `SELECT * FROM commission_state`
+      `SELECT * FROM commission_state LIMIT 500`
     ).all();
 
     return c.json({ 

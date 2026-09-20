@@ -53,6 +53,9 @@ function getOrCreateSecret(name: string, envValue: string | undefined): string {
 
     if (!secrets[name]) {
         secrets[name] = crypto.randomBytes(64).toString('hex');
+        if (process.env.NODE_ENV === 'test') {
+            return secrets[name]; // Do not persist during tests
+        }
         try {
             fs.mkdirSync(path.dirname(secretsFile), { recursive: true });
             fs.writeFileSync(secretsFile, JSON.stringify(secrets, null, 2), { mode: 0o600 });

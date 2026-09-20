@@ -3,6 +3,7 @@ import { Photo } from '../../types';
 import PhotoMetadata from './PhotoMetadata';
 import ShareModal from './ShareModal';
 import { getPhotoStyle } from '../../utils/styleUtils';
+import { downloadFromUrl } from '../../utils/download';
 import { motion, AnimatePresence } from 'framer-motion';
 
 
@@ -163,14 +164,9 @@ const Lightbox: React.FC<LightboxProps> = ({
     const editStyle = activePhoto.manualEdits ? getPhotoStyle(activePhoto.manualEdits) : { filter: undefined, transform: undefined };
 
     const downloadPhoto = (photo: Photo) => {
-        const link = document.createElement('a');
-        link.href = photo.url;
         const safeTitle = photo.title || 'Untitled';
         const fileName = safeTitle.includes('.') ? safeTitle.substring(0, safeTitle.lastIndexOf('.')) : safeTitle;
-        link.download = `${fileName}.jpg`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        downloadFromUrl(photo.url, `${fileName}.jpg`);
     };
 
     const progress = ((currentIndex + 1) / photos.length) * 100;

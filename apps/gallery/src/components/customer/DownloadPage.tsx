@@ -1,6 +1,7 @@
 import { logger } from '@clickflash/logger';
 import React, { useState } from 'react';
 import { Photo } from '../../types';
+import { downloadFromUrl } from '../../utils/download';
 import { cloudApiService } from '../../services/cloudApiService';
 
 interface DownloadPageProps {
@@ -28,12 +29,7 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ photos }) => {
             downloadFileName = `${fileName}_highres.jpg`;
         }
 
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = downloadFileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        downloadFromUrl(downloadUrl, downloadFileName);
     };
 
     const handleDownloadAll = async () => {

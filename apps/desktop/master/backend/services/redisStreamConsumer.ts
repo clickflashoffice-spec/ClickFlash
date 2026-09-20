@@ -76,10 +76,16 @@ export class RedisStreamConsumer {
 
     logger.info(`[StreamConsumer] Started. Consuming ${this.configs.length} stream(s): ${this.configs.map(c => c.stream).join(', ')}`);
 
+    let lastClaimTime = 0;
     // Main loop
     while (this.running) {
+      const now = Date.now();
+      const shouldClaim = now - lastClaimTime > 60000;
+      if (shouldClaim) lastClaimTime = now;
+
       for (const config of this.configs) {
         try {
+          if (shouldClaim) await this.claimPendingMessages(config);
           await this.consumeBatch(config);
         } catch (err: unknown) {
           const msg = err instanceof Error ? err.message : String(err);
@@ -210,6 +216,58 @@ export class RedisStreamConsumer {
     } catch (dlqErr: unknown) {
       const msg = dlqErr instanceof Error ? dlqErr.message : String(dlqErr);
       logger.error(`[StreamConsumer] DLQ handling failed: ${msg}`);
+    }
+  }
+
+  /**
+   * Periodically claim and process messages stuck in the Pending Entries List (PEL)
+   */
+  private async claimPendingMessages(config: StreamConsumerConfig): Promise<void> {
+    const ping = await this.redis.ping();
+    if (ping.mode !== 'redis') return;
+    const client = (this.redis as any).client;
+    if (!client) return;
+
+    try {
+      let startId = '0-0';
+      while (true) {
+        // XAUTOCLAIM stream group consumer min-idle-time start COUNT count
+        // 60000ms = 1 minute idle time before a message can be claimed
+        const result = await client.xautoclaim(
+          config.stream, config.group, config.consumer,
+          60000, startId, 'COUNT', 100
+        );
+        if (!result) break;
+
+        const [nextId, messages] = result;
+        if (messages && messages.length > 0) {
+          logger.info(`[StreamConsumer] Auto-claimed ${messages.length} abandoned messages from PEL on ${config.stream}`);
+        }
+
+        for (const [messageId, fieldsArray] of messages) {
+          const fields: Record<string, string> = {};
+          for (let i = 0; i < fieldsArray.length; i += 2) {
+            fields[fieldsArray[i]] = fieldsArray[i + 1];
+          }
+
+          try {
+            await config.handler(messageId, fields);
+            await client.xack(config.stream, config.group, messageId);
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            logger.error(`[StreamConsumer] Handler failed for claimed message ${config.stream}/${messageId}: ${msg}`);
+            await this.handleFailedMessage(client, config, messageId, fields, msg);
+          }
+        }
+
+        if (nextId === '0-0') break;
+        startId = nextId;
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.includes('NOGROUP')) {
+        logger.error(`[StreamConsumer] XAUTOCLAIM failed on ${config.stream}: ${msg}`);
+      }
     }
   }
 

@@ -73,10 +73,15 @@ parentPort.on('message', async (job: any) => {
 
         if (type === 'get-descriptors') {
             const sharp = require('sharp');
-            // Similar to faceService.ts: imageToTensor logic
-            const { data, info } = await sharp(imagePath)
-                .removeAlpha()
+            // Decode and resize once to avoid 3x full-res decodes
+            const baseBuffer = await sharp(imagePath)
                 .resize({ width: 800, withoutEnlargement: true })
+                .jpeg({ quality: 90 }) // encode back to lightweight format in memory
+                .toBuffer();
+
+            // 1. Face recognition
+            const { data, info } = await sharp(baseBuffer)
+                .removeAlpha()
                 .raw()
                 .toBuffer({ resolveWithObject: true });
 
@@ -145,7 +150,7 @@ parentPort.on('message', async (job: any) => {
             // 2. Sharpness (Laplacian variance simulation using sharp)
             let sharpness = 0;
             try {
-                const laplacian = await sharp(imagePath)
+                const laplacian = await sharp(baseBuffer)
                     .greyscale()
                     .convolve({
                         width: 3,
@@ -155,15 +160,17 @@ parentPort.on('message', async (job: any) => {
                     .raw()
                     .toBuffer();
 
-                // Calculate variance
+                // Calculate variance on the much smaller 800px image
                 let sum = 0;
                 let sqSum = 0;
-                for (let i = 0; i < laplacian.length; i++) {
-                    sum += laplacian[i];
-                    sqSum += laplacian[i] * laplacian[i];
+                const len = laplacian.length;
+                for (let i = 0; i < len; i++) {
+                    const val = laplacian[i];
+                    sum += val;
+                    sqSum += val * val;
                 }
-                const mean = sum / laplacian.length;
-                sharpness = (sqSum / laplacian.length) - (mean * mean);
+                const mean = sum / len;
+                sharpness = (sqSum / len) - (mean * mean);
             } catch (e: any) {
                 logger.warn('[FaceWorker] Failed to calculate sharpness:', e.message);
             }
@@ -171,7 +178,7 @@ parentPort.on('message', async (job: any) => {
             // 3. Exposure statistics (mean brightness across channels)
             let exposureScore = 0.7;
             try {
-                const stats = await sharp(imagePath).stats();
+                const stats = await sharp(baseBuffer).stats();
                 const avgMean = stats.channels.reduce((sum: number, ch: any) => sum + ch.mean, 0) / stats.channels.length;
                 // Ideal exposure around 110-140 in 8-bit space [0-255]
                 const dev = Math.abs(avgMean - 128) / 128;

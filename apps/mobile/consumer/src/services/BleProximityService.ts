@@ -1,4 +1,4 @@
-import { NativeModules, NativeEventEmitter, EmitterSubscription } from 'react-native';
+import { NativeModules, NativeEventEmitter, EmitterSubscription, PermissionsAndroid, Platform } from 'react-native';
 import { BLE_CONSTANTS, BleHandshakePayload, BleRole } from '@clickflash/types';
 
 const { BleBeaconModule } = NativeModules;
@@ -9,11 +9,34 @@ export class BleProximityService {
     private isScanning = false;
     private userId: string;
     private discoveredPhotographers: Set<string> = new Set();
-    private onPhotographerDiscoveredCallback: ((photographerId: string, sessionId?: string) => void) | null = null;
+    private listeners: Set<(photographerId: string, sessionId?: string) => void> = new Set();
     private scanSubscription: EmitterSubscription | null = null;
 
     constructor(userId: string) {
         this.userId = userId;
+    }
+
+    public addListener(callback: (photographerId: string, sessionId?: string) => void) {
+        this.listeners.add(callback);
+    }
+
+    public removeListener(callback: (photographerId: string, sessionId?: string) => void) {
+        this.listeners.delete(callback);
+    }
+
+    private async requestPermissions(): Promise<boolean> {
+        if (Platform.OS === 'android') {
+            const granted = await PermissionsAndroid.requestMultiple([
+                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADVERTISE,
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+            ]);
+            return Object.values(granted).every(
+                (status) => status === PermissionsAndroid.RESULTS.GRANTED
+            );
+        }
+        return true;
     }
 
     /**
@@ -24,6 +47,12 @@ export class BleProximityService {
         if (this.isBroadcasting) return;
         
         try {
+            const hasPermissions = await this.requestPermissions();
+            if (!hasPermissions) {
+                console.error(`[BleProximity] Missing BLE permissions for broadcast`);
+                return;
+            }
+
             console.log(`[BleProximity] Starting BLE broadcast for guest ${this.userId}...`);
             
             const payload: BleHandshakePayload = {
@@ -68,9 +97,15 @@ export class BleProximityService {
      */
     public async startScanning(onDiscovered?: (photographerId: string, sessionId?: string) => void): Promise<void> {
         if (this.isScanning) return;
-        if (onDiscovered) this.onPhotographerDiscoveredCallback = onDiscovered;
+        if (onDiscovered) this.addListener(onDiscovered);
 
         try {
+            const hasPermissions = await this.requestPermissions();
+            if (!hasPermissions) {
+                console.error(`[BleProximity] Missing BLE permissions for scanning`);
+                return;
+            }
+
             console.log(`[BleProximity] Starting background scanning for ClickFlash beacons...`);
             this.isScanning = true;
 
@@ -80,9 +115,7 @@ export class BleProximityService {
                     if (data.photographerId && !this.discoveredPhotographers.has(data.photographerId)) {
                         this.discoveredPhotographers.add(data.photographerId);
                         console.log(`[BleProximity] Auto-linked nearby photographer: ${data.photographerId} (RSSI: ${data.rssi})`);
-                        if (this.onPhotographerDiscoveredCallback) {
-                            this.onPhotographerDiscoveredCallback(data.photographerId, data.sessionId);
-                        }
+                        this.listeners.forEach(listener => listener(data.photographerId, data.sessionId));
                     }
                 });
             } else {
@@ -91,6 +124,7 @@ export class BleProximityService {
             }
         } catch (error) {
             console.error(`[BleProximity] Failed to start scanning:`, error);
+            this.isScanning = false;
         }
     }
 
@@ -100,14 +134,15 @@ export class BleProximityService {
             if (BleBeaconModule?.stopScan) {
                 await BleBeaconModule.stopScan();
             }
+        } catch (error) {
+            console.error(`[BleProximity] Failed to stop scanning native module:`, error);
+        } finally {
             if (this.scanSubscription) {
                 this.scanSubscription.remove();
                 this.scanSubscription = null;
             }
             this.isScanning = false;
             console.log(`[BleProximity] Background scanning stopped.`);
-        } catch (error) {
-            console.error(`[BleProximity] Failed to stop scanning:`, error);
         }
     }
 }

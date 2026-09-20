@@ -211,12 +211,15 @@ export default function fileRoutes(context: FilesContext): Router {
         .digest("hex");
       const lastModified = stats.mtime.toUTCString();
 
-      // Law 07/08/09: Add Content MD5 for sync verification
-      const fileContent = await fs.promises.readFile(filepath);
-      const contentHash = crypto
-        .createHash("md5")
-        .update(fileContent)
-        .digest("hex");
+        // Law 07/08/09: Add Content MD5 for sync verification
+        const hash = crypto.createHash("md5");
+        await new Promise((resolve, reject) => {
+          const stream = fs.createReadStream(filepath);
+          stream.on("data", (chunk) => hash.update(chunk));
+          stream.on("error", reject);
+          stream.on("end", resolve);
+        });
+        const contentHash = hash.digest("hex");
 
       if (
         req.headers["if-none-match"] === etag ||

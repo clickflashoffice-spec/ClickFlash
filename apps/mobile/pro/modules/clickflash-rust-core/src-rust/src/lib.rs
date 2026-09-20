@@ -36,6 +36,7 @@ fn get_http_client() -> &'static reqwest::Client {
 fn queue_photo(db_path: &str, file_path: &str, metadata: &str) -> Result<String, String> {
     let conn = Connection::open(db_path)
         .map_err(|e| format!("Failed to open DB: {}", e))?;
+    conn.execute("PRAGMA busy_timeout = 5000;", []).unwrap_or(0);
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS photos (
@@ -59,6 +60,7 @@ fn queue_photo(db_path: &str, file_path: &str, metadata: &str) -> Result<String,
 fn enqueue_sync_event(db_path: &str, event_type: &str, endpoint: &str, method: &str, payload: &str, priority: &str) -> Result<String, String> {
     let conn = Connection::open(db_path)
         .map_err(|e| format!("Failed to open DB: {}", e))?;
+    conn.execute("PRAGMA busy_timeout = 5000;", []).unwrap_or(0);
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS offline_queue (
@@ -96,10 +98,9 @@ struct PhotoPayload<'a> {
 async fn sync_pending_photos(db_path: &str, master_url: &str) -> Result<String, String> {
     let mut conn = Connection::open(db_path)
         .map_err(|e| format!("Failed to open DB: {}", e))?;
+    conn.execute("PRAGMA busy_timeout = 5000;", []).unwrap_or(0);
 
-    let tx = conn.transaction().map_err(|e| format!("Tx failed: {}", e))?;
-
-    let mut stmt = tx.prepare("SELECT id, file_path, metadata FROM photos WHERE status = 'pending'")
+    let mut stmt = conn.prepare("SELECT id, file_path, metadata FROM photos WHERE status = 'pending'")
         .map_err(|e| format!("Prepare failed: {}", e))?;
     
     let mut pending_photos = Vec::new();
@@ -112,6 +113,7 @@ async fn sync_pending_photos(db_path: &str, master_url: &str) -> Result<String, 
             pending_photos.push((id, file_path, metadata));
         }
     }
+    drop(stmt);
 
     if pending_photos.is_empty() {
         return Ok("0 photos pending sync".to_string());
@@ -135,10 +137,9 @@ async fn sync_pending_photos(db_path: &str, master_url: &str) -> Result<String, 
 
     if res.status().is_success() {
         for p in &pending_photos {
-            tx.execute("UPDATE photos SET status = 'synced' WHERE id = ?1", [p.0])
+            conn.execute("UPDATE photos SET status = 'synced' WHERE id = ?1", [p.0])
                 .unwrap_or(0);
         }
-        tx.commit().unwrap_or(());
         Ok(format!("Successfully synced {} photos", pending_photos.len()))
     } else {
         Err(format!("Master Node rejected payload. Status: {}", res.status()))
@@ -149,10 +150,9 @@ async fn sync_pending_photos(db_path: &str, master_url: &str) -> Result<String, 
 async fn sync_pending_events(db_path: &str, target_url_prefix: &str) -> Result<String, String> {
     let mut conn = Connection::open(db_path)
         .map_err(|e| format!("Failed to open DB: {}", e))?;
+    conn.execute("PRAGMA busy_timeout = 5000;", []).unwrap_or(0);
 
-    let tx = conn.transaction().map_err(|e| format!("Tx failed: {}", e))?;
-
-    let mut stmt = tx.prepare("SELECT id, endpoint, method, payload FROM offline_queue ORDER BY timestamp ASC")
+    let mut stmt = conn.prepare("SELECT id, endpoint, method, payload FROM offline_queue ORDER BY timestamp ASC")
         .map_err(|e| format!("Prepare failed: {}", e))?;
     
     let mut pending_events = Vec::new();
@@ -166,6 +166,7 @@ async fn sync_pending_events(db_path: &str, target_url_prefix: &str) -> Result<S
             pending_events.push((id, endpoint, method, payload));
         }
     }
+    drop(stmt);
 
     if pending_events.is_empty() {
         return Ok("0 events pending sync".to_string());
@@ -201,16 +202,15 @@ async fn sync_pending_events(db_path: &str, target_url_prefix: &str) -> Result<S
         let res = req_builder.send().await;
         match res {
             Ok(r) if r.status().is_success() => {
-                tx.execute("DELETE FROM offline_queue WHERE id = ?1", [id]).unwrap_or(0);
+                conn.execute("DELETE FROM offline_queue WHERE id = ?1", [id]).unwrap_or(0);
                 success_count += 1;
             },
             Ok(_) | Err(_) => {
-                tx.execute("UPDATE offline_queue SET retryCount = retryCount + 1 WHERE id = ?1", [id]).unwrap_or(0);
+                conn.execute("UPDATE offline_queue SET retryCount = retryCount + 1 WHERE id = ?1", [id]).unwrap_or(0);
             }
         }
     }
 
-    tx.commit().unwrap_or(());
     Ok(format!("Successfully synced {}/{} events", success_count, pending_events.len()))
 }
 
@@ -226,9 +226,9 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_qu
     file_path: JString<'local>,
     metadata: JString<'local>,
 ) -> jstring {
-    let db_path_str: String = env.get_string(&db_path).unwrap().into();
-    let file_path_str: String = env.get_string(&file_path).unwrap().into();
-    let metadata_str: String = env.get_string(&metadata).unwrap().into();
+    let db_path_str: String = env.get_string(&db_path).map(|s| s.into()).unwrap_or_default();
+    let file_path_str: String = env.get_string(&file_path).map(|s| s.into()).unwrap_or_default();
+    let metadata_str: String = env.get_string(&metadata).map(|s| s.into()).unwrap_or_default();
 
     let result = match queue_photo(&db_path_str, &file_path_str, &metadata_str) {
         Ok(msg) => msg,
@@ -250,12 +250,12 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_en
     payload: JString<'local>,
     priority: JString<'local>,
 ) -> jstring {
-    let db_path_str: String = env.get_string(&db_path).unwrap().into();
-    let event_type_str: String = env.get_string(&event_type).unwrap().into();
-    let endpoint_str: String = env.get_string(&endpoint).unwrap().into();
-    let method_str: String = env.get_string(&method).unwrap().into();
-    let payload_str: String = env.get_string(&payload).unwrap().into();
-    let priority_str: String = env.get_string(&priority).unwrap().into();
+    let db_path_str: String = env.get_string(&db_path).map(|s| s.into()).unwrap_or_default();
+    let event_type_str: String = env.get_string(&event_type).map(|s| s.into()).unwrap_or_default();
+    let endpoint_str: String = env.get_string(&endpoint).map(|s| s.into()).unwrap_or_default();
+    let method_str: String = env.get_string(&method).map(|s| s.into()).unwrap_or_default();
+    let payload_str: String = env.get_string(&payload).map(|s| s.into()).unwrap_or_default();
+    let priority_str: String = env.get_string(&priority).map(|s| s.into()).unwrap_or_default();
 
     let result = match enqueue_sync_event(&db_path_str, &event_type_str, &endpoint_str, &method_str, &payload_str, &priority_str) {
         Ok(msg) => msg,
@@ -273,8 +273,8 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_sy
     db_path: JString<'local>,
     master_url: JString<'local>,
 ) -> jstring {
-    let db_path_str: String = env.get_string(&db_path).unwrap().into();
-    let master_url_str: String = env.get_string(&master_url).unwrap().into();
+    let db_path_str: String = env.get_string(&db_path).map(|s| s.into()).unwrap_or_default();
+    let master_url_str: String = env.get_string(&master_url).map(|s| s.into()).unwrap_or_default();
 
     let rt = get_runtime();
     let result = rt.block_on(async {
@@ -295,8 +295,8 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_sy
     db_path: JString<'local>,
     target_url_prefix: JString<'local>,
 ) -> jstring {
-    let db_path_str: String = env.get_string(&db_path).unwrap().into();
-    let prefix_str: String = env.get_string(&target_url_prefix).unwrap().into();
+    let db_path_str: String = env.get_string(&db_path).map(|s| s.into()).unwrap_or_default();
+    let prefix_str: String = env.get_string(&target_url_prefix).map(|s| s.into()).unwrap_or_default();
 
     let rt = get_runtime();
     let result = rt.block_on(async {
@@ -380,7 +380,7 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_an
     _this: JObject<'local>,
     image_path: JString<'local>,
 ) -> jstring {
-    let image_path_str: String = env.get_string(&image_path).unwrap().into();
+    let image_path_str: String = env.get_string(&image_path).map(|s| s.into()).unwrap_or_default();
 
     let result = match analyze_image(&image_path_str) {
         Ok(json) => json,
@@ -403,8 +403,8 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_sc
     clickflash_uuid: JString<'local>,
     duration_secs: jni::sys::jlong,
 ) -> jstring {
-    let db_path_str: String = env.get_string(&db_path).unwrap().into();
-    let uuid_str: String = env.get_string(&clickflash_uuid).unwrap().into();
+    let db_path_str: String = env.get_string(&db_path).map(|s| s.into()).unwrap_or_default();
+    let uuid_str: String = env.get_string(&clickflash_uuid).map(|s| s.into()).unwrap_or_default();
     let secs = duration_secs as u64;
 
     let rt = get_runtime();
@@ -442,8 +442,8 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_br
     ghost_link_uuid: JString<'local>,
     duration_secs: jni::sys::jlong,
 ) -> jstring {
-    let db_path_str: String = env.get_string(&db_path).unwrap().into();
-    let uuid_str: String = env.get_string(&ghost_link_uuid).unwrap().into();
+    let db_path_str: String = env.get_string(&db_path).map(|s| s.into()).unwrap_or_default();
+    let uuid_str: String = env.get_string(&ghost_link_uuid).map(|s| s.into()).unwrap_or_default();
     let secs = duration_secs as u64;
 
     let rt = get_runtime();
@@ -482,6 +482,7 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_br
 fn save_booking(db_path: &str, name: &str, whatsapp: &str, email: &str) -> Result<String, String> {
     let conn = Connection::open(db_path)
         .map_err(|e| format!("Failed to open DB: {}", e))?;
+    conn.execute("PRAGMA busy_timeout = 5000;", []).unwrap_or(0);
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS bookings (
@@ -568,6 +569,7 @@ fn process_spot_intelligence(spot_data: &str) -> Result<String, String> {
 fn get_queue_stats(db_path: &str) -> Result<String, String> {
     let conn = Connection::open(db_path)
         .map_err(|e| format!("Failed to open DB: {}", e))?;
+    conn.execute("PRAGMA busy_timeout = 5000;", []).unwrap_or(0);
 
     let pending_photos: i64 = conn.query_row(
         "SELECT COUNT(*) FROM photos WHERE status = 'pending'",
@@ -613,10 +615,10 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_sa
     whatsapp: JString<'local>,
     email: JString<'local>,
 ) -> jstring {
-    let db_path_str: String = env.get_string(&db_path).unwrap().into();
-    let name_str: String = env.get_string(&name).unwrap().into();
-    let whatsapp_str: String = env.get_string(&whatsapp).unwrap().into();
-    let email_str: String = env.get_string(&email).unwrap().into();
+    let db_path_str: String = env.get_string(&db_path).map(|s| s.into()).unwrap_or_default();
+    let name_str: String = env.get_string(&name).map(|s| s.into()).unwrap_or_default();
+    let whatsapp_str: String = env.get_string(&whatsapp).map(|s| s.into()).unwrap_or_default();
+    let email_str: String = env.get_string(&email).map(|s| s.into()).unwrap_or_default();
 
     let result = match save_booking(&db_path_str, &name_str, &whatsapp_str, &email_str) {
         Ok(msg) => msg,
@@ -633,7 +635,7 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_pr
     _this: JObject<'local>,
     spot_data: JString<'local>,
 ) -> jstring {
-    let spot_data_str: String = env.get_string(&spot_data).unwrap().into();
+    let spot_data_str: String = env.get_string(&spot_data).map(|s| s.into()).unwrap_or_default();
 
     let result = match process_spot_intelligence(&spot_data_str) {
         Ok(msg) => msg,
@@ -650,7 +652,7 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_ge
     _this: JObject<'local>,
     db_path: JString<'local>,
 ) -> jstring {
-    let db_path_str: String = env.get_string(&db_path).unwrap().into();
+    let db_path_str: String = env.get_string(&db_path).map(|s| s.into()).unwrap_or_default();
 
     let result = match get_queue_stats(&db_path_str) {
         Ok(msg) => msg,
@@ -692,7 +694,7 @@ pub extern "system" fn Java_com_clickflash_mobilepro_ClickFlashRustCoreModule_ha
     _this: JObject<'local>,
     file_path: JString<'local>,
 ) -> jstring {
-    let file_path_str: String = env.get_string(&file_path).unwrap().into();
+    let file_path_str: String = env.get_string(&file_path).map(|s| s.into()).unwrap_or_default();
     
     let result = match std::fs::read(&file_path_str) {
         Ok(buffer) => hash_photo_buffer(&buffer),

@@ -31,7 +31,8 @@ export function PhotoGridPane({ gallery }: { gallery: Gallery | null }) {
     setIsUpselling(true);
     try {
       // Mock API call to Intelligence Service
-      await fetch(`/api/intelligence/upsell/${gallery.id}`, { method: 'POST' });
+      const res = await fetch(`/api/intelligence/upsell/${gallery.id}`, { method: 'POST' });
+      if (!res.ok) throw new Error('API Error');
       await new Promise(r => setTimeout(r, 800)); // simulate latency
       setToastMessage({ message: 'AI Upsell triggered successfully!', variant: 'success' });
     } catch (e) {
@@ -45,7 +46,8 @@ export function PhotoGridPane({ gallery }: { gallery: Gallery | null }) {
     setIsFlagging(true);
     try {
       // Mock API call to Gallery Service
-      await fetch(`/api/gallery/${gallery.id}/flag`, { method: 'POST' });
+      const res = await fetch(`/api/gallery/${gallery.id}/flag`, { method: 'POST' });
+      if (!res.ok) throw new Error('API Error');
       await new Promise(r => setTimeout(r, 600)); // simulate latency
       setToastMessage({ message: 'Gallery flagged for review', variant: 'success' });
     } catch (e) {

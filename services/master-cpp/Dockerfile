@@ -52,8 +52,12 @@ WORKDIR /app
 COPY --from=0 /app/build/ClickFlashMasterService /app/
 COPY --from=0 /app/migrations /app/migrations
 
-# Create data directory
-RUN mkdir -p /app/data
+# Create data directory and non-root user
+RUN useradd -m -s /bin/bash appuser && \
+    mkdir -p /app/data && \
+    chown -R appuser:appuser /app
+
+USER appuser
 
 # Expose port
 EXPOSE 8090

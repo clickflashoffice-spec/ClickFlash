@@ -296,3 +296,7 @@ apps/touch/e2e_output*
 
 # Malformed directories from Docker
 apps/master/--no-cache/
+
+# Prevent secrets leaking
+secrets.json
+--passWithNoTests

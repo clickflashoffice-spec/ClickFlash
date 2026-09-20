@@ -345,8 +345,8 @@ export class VectorIndexService {
     const nodeMap = new Map<VPTreeNode, number>();
     nodes.forEach((n, i) => nodeMap.set(n, i));
 
-    const PADDING_SIZE = 3;
-    const nodeSize = 1 + 24 + 24 + PADDING_SIZE + 8 + VECTOR_DIM * 4 + 4 + 4;
+    const PADDING_SIZE = 7;
+    const nodeSize = 1 + 36 + 36 + PADDING_SIZE + 8 + VECTOR_DIM * 4 + 4 + 4;
 
     const buffer = Buffer.alloc(
       MAGIC_BYTES.length + 2 + 4 + 4 + nodes.length * nodeSize,
@@ -365,10 +365,10 @@ export class VectorIndexService {
     for (const node of nodes) {
       buffer.writeUInt8(1, offset);
       offset += 1;
-      buffer.write(node.id.padEnd(24, "\0"), offset, 24, "ascii");
-      offset += 24;
-      buffer.write(node.title.padEnd(24, "\0"), offset, 24, "ascii");
-      offset += 24;
+      buffer.write(node.id.padEnd(36, "\0"), offset, 36, "ascii");
+      offset += 36;
+      buffer.write(node.title.padEnd(36, "\0"), offset, 36, "ascii");
+      offset += 36;
 
       // Alignment padding
       buffer.fill(0, offset, offset + PADDING_SIZE);
@@ -425,15 +425,15 @@ export class VectorIndexService {
     for (let i = 0; i < nodeCount; i++) {
       offset += 1; // flag
       const id = buffer
-        .toString("ascii", offset, offset + 24)
+        .toString("ascii", offset, offset + 36)
         .replace(/\0/g, "");
-      offset += 24;
+      offset += 36;
       const title = buffer
-        .toString("ascii", offset, offset + 24)
+        .toString("ascii", offset, offset + 36)
         .replace(/\0/g, "");
-      offset += 24;
+      offset += 36;
 
-      offset += 3; // padding
+      offset += 7; // padding
 
       const radius = buffer.readDoubleLE(offset);
       offset += 8;

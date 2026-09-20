@@ -38,6 +38,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+MAX_CONCURRENT_TENSORS = 2
+tensor_semaphore = asyncio.Semaphore(MAX_CONCURRENT_TENSORS)
+
+async def safe_to_thread(func, *args, **kwargs):
+    async with tensor_semaphore:
+        return await safe_to_thread(func, *args, **kwargs)
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "service": "ai-worker"}
@@ -164,7 +171,7 @@ async def auto_enhance_pro_image(file: UploadFile = File(...)):
     """
     try:
         contents = await file.read()
-        enhanced_bytes = await asyncio.to_thread(enhancement_service.auto_enhance_pro, contents)
+        enhanced_bytes = await safe_to_thread(enhancement_service.auto_enhance_pro, contents)
 
         return Response(content=enhanced_bytes, media_type="image/jpeg")
     except ValueError as ve:
@@ -183,7 +190,7 @@ async def magic_eraser_image(image: UploadFile = File(...), mask: UploadFile = F
         image_contents = await image.read()
         mask_contents = await mask.read()
 
-        result_bytes = await asyncio.to_thread(inpainting_service.inpaint, image_contents, mask_contents)
+        result_bytes = await safe_to_thread(inpainting_service.inpaint, image_contents, mask_contents)
 
         return Response(content=result_bytes, media_type="image/jpeg")
     except ValueError as ve:
@@ -260,7 +267,7 @@ async def upscale_image(file: UploadFile = File(...), scale: int = 4):
     """
     try:
         contents = await file.read()
-        result = await asyncio.to_thread(upscale_service.upscale_image, contents, scale)
+        result = await safe_to_thread(upscale_service.upscale_image, contents, scale)
         return Response(content=result, media_type="image/jpeg")
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
@@ -287,11 +294,11 @@ async def segment_image(
         lbls = json.loads(labels)
 
         if pts and lbls:
-            mask_bytes = await asyncio.to_thread(segmentation_service.segment_with_points, contents, pts, lbls)
+            mask_bytes = await safe_to_thread(segmentation_service.segment_with_points, contents, pts, lbls)
             return Response(content=mask_bytes, media_type="image/png")
         else:
             # Auto-segment everything
-            results = await asyncio.to_thread(segmentation_service.segment_everything, contents)
+            results = await safe_to_thread(segmentation_service.segment_everything, contents)
             # Return metadata only (masks are too large for JSON)
             return {
                 "status": "success",
@@ -373,7 +380,7 @@ async def get_saliency_crop(
     try:
         import saliency_service
         contents = await file.read()
-        crop_box = await asyncio.to_thread(saliency_service.get_optimal_crop, contents, target_aspect_ratio)
+        crop_box = await safe_to_thread(saliency_service.get_optimal_crop, contents, target_aspect_ratio)
         return {"status": "success", "crop": crop_box}
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))

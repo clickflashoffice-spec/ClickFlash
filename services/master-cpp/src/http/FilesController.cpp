@@ -12,6 +12,15 @@ using namespace drogon;
 using json = nlohmann::json;
 namespace fs = std::filesystem;
 
+#define REQUIRE_AUTH(req, cb) \
+    do { \
+        const std::string auth = req->getHeader("Authorization"); \
+        if (auth.empty() || auth.rfind("Bearer ", 0) != 0) { \
+            cb(errorResp("Unauthorized", k401Unauthorized)); \
+            co_return; \
+        } \
+    } while(0)
+
 namespace cf::http {
 
 // ---------------------------------------------------------------------------
@@ -55,6 +64,7 @@ Task<> FilesController::listFiles(
     HttpRequestPtr req,
     std::function<void(const HttpResponsePtr&)> callback)
 {
+    REQUIRE_AUTH(req, callback);
     const auto albumId = req->getParameter("album_id");
     const int  page    = std::max(1, std::atoi(req->getParameter("page").c_str()));
     const int  limit   = std::clamp(std::atoi(req->getParameter("limit").c_str()), 1, 200);
@@ -108,10 +118,11 @@ Task<> FilesController::listFiles(
 // ---------------------------------------------------------------------------
 
 Task<> FilesController::getFile(
-    HttpRequestPtr /*req*/,
+    HttpRequestPtr req,
     std::function<void(const HttpResponsePtr&)> callback,
     std::string id)
 {
+    REQUIRE_AUTH(req, callback);
     try {
         auto& conn = cf::db::DatabaseManager::instance().conn();
 
@@ -158,6 +169,7 @@ Task<> FilesController::uploadFile(
     HttpRequestPtr req,
     std::function<void(const HttpResponsePtr&)> callback)
 {
+    REQUIRE_AUTH(req, callback);
     // Expect multipart upload; fall back to raw body
     MultiPartParser fileParser;
     std::string fileData;
@@ -187,6 +199,10 @@ Task<> FilesController::uploadFile(
     }
     if (albumId.empty()) {
         callback(errorResp("album_id is required", k400BadRequest));
+        co_return;
+    }
+    if (albumId.find("..") != std::string::npos || albumId.find("/") != std::string::npos || albumId.find("\\") != std::string::npos) {
+        callback(errorResp("Invalid album_id", k400BadRequest));
         co_return;
     }
 

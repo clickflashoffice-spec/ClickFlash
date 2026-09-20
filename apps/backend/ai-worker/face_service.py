@@ -27,21 +27,18 @@ def extract_all_faces(image_bytes: bytes) -> list[dict]:
     """
     Detects and extracts 512D embeddings and metadata for all faces in an image.
     """
-    nparr = np.frombuffer(image_bytes, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    
-    if img is None:
-        raise ValueError("Invalid image data")
+    import io
+    from PIL import Image
+
+    try:
+        # PIL natively enforces MAX_IMAGE_PIXELS (89MP default) against pixel bombs
+        pil_img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        img = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+    except Exception as e:
+        raise ValueError(f"Invalid image data or dimension limits exceeded: {e}")
 
     if not INSIGHTFACE_AVAILABLE or _app is None:
-        # Graceful fallback: return a deterministic 512D placeholder embedding based on color/texture
-        return [{
-            "bbox": [0, 0, img.shape[1], img.shape[0]],
-            "embedding": [0.0] * 512,
-            "det_score": 0.95,
-            "gender": 1,
-            "age": 28
-        }]
+        raise RuntimeError("InsightFace model is not available. Cannot extract face embeddings.")
 
     faces = _app.get(img)
     if not faces:

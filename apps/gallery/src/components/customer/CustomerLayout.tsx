@@ -1,6 +1,8 @@
 import { CustomerGalleryProvider } from './CustomerGalleryContext';
 
 import { logger } from '@clickflash/logger';
+import { downloadFromUrl } from '../../utils/download';
+import { useModalStore } from '../../stores/useModalStore';
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { Order, Photo, Product, GalleryConfig, AIPermission } from "../../types";
 import { cloudApiService } from "../../services/cloudApiService";
@@ -76,11 +78,23 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     tone: "success" | "warning" | "error";
     message: string;
   } | null>(null);
-  const [isPassModalOpen, setIsPassModalOpen] = useState(false);
-  const [isFaceSearchOpen, setIsFaceSearchOpen] = useState(false);
+
+  const {
+    isPassModalOpen, setIsPassModalOpen,
+    isFaceSearchOpen, setIsFaceSearchOpen,
+    is3DFigureModalOpen, setIs3DFigureModalOpen,
+    isReelModalOpen, setIsReelModalOpen,
+    isCheckoutModalOpen, setIsCheckoutModalOpen,
+    isProofingModalOpen, setIsProofingModalOpen,
+    isShareModalOpen, setIsShareModalOpen,
+    isAddToCartModalOpen, setIsAddToCartModalOpen
+  } = useModalStore();
+
   const [moneyTrashDownloads, setMoneyTrashDownloads] = useState<MoneyTrashPurchaseDownload[]>([]);
-  const [is3DFigureModalOpen, setIs3DFigureModalOpen] = useState(false);
-  const [isReelModalOpen, setIsReelModalOpen] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [activeLightboxIndex, setActiveLightboxIndex] = useState(0);
+  const [photoToAddToCart, setPhotoToAddToCart] = useState<Photo | null>(null);
+  const [photoToShare, setPhotoToShare] = useState<Photo | null>(null);
 
   useEffect(() => {
     const fetchBranding = async () => {
@@ -228,15 +242,7 @@ const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     };
   }, [trashGallery]);
 
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const [activeLightboxIndex, setActiveLightboxIndex] = useState(0);
 
-  const [isAddToCartModalOpen, setIsAddToCartModalOpen] = useState(false);
-  const [photoToAddToCart, setPhotoToAddToCart] = useState<Photo | null>(null);
-  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
-  const [isProofingModalOpen, setIsProofingModalOpen] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [photoToShare, setPhotoToShare] = useState<Photo | null>(null);
 
   const photosInOrder =
     (order?.items.map((item: any) => item.photo).filter(Boolean) as Photo[]) || [];

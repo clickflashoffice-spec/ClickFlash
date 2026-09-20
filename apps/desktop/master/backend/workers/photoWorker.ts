@@ -322,27 +322,24 @@ async function handleProcessJob(job: WorkerJob) {
       const processEdits = async () => {
         if (isAggressiveCrop) {
           logger.info(`[PhotoWorker] Aggressive crop detected for ${photoId}. Triggering AI Upscaler...`);
-          const tempCropPath = path.join(outputDir, `${photoId}_temp_crop.jpg`);
-          await applyFormatCompression(baseEditedPipeline.clone(), '.jpg', 'highres').toFile(tempCropPath);
-          
-          const scriptPath = path.join(process.cwd(), '../../backend/ai-worker/upscale_service.py');
-          const upscaledPath = path.join(outputDir, `${photoId}_temp_upscaled.jpg`);
-          
           try {
-            await execPromise(`python "${scriptPath}" -i "${tempCropPath}" -o "${upscaledPath}" -s 2`);
+            const cropBuffer = await baseEditedPipeline.clone().jpeg({ quality: 95 }).toBuffer();
+            const formData = new FormData();
+            formData.append('file', new Blob([cropBuffer]), 'crop.jpg');
+            
+            const res = await fetch(`http://127.0.0.1:8000/api/ai/upscale?scale=2`, {
+                method: 'POST',
+                body: formData
+            });
+            if (!res.ok) throw new Error(`Upscale API returned HTTP ${res.status}`);
+            const upscaledBuffer = Buffer.from(await res.arrayBuffer());
             
             // Use upscaled image for assets
-            await applyFormatCompression(sharp(upscaledPath).resize(2048, 2048, { fit: "inside", withoutEnlargement: true }), '.jpg', 'preview').toFile(previewEditedPath);
-            await applyFormatCompression(sharp(upscaledPath), '.jpg', 'highres').toFile(highresEditedPath);
-            
-            // Cleanup
-            if (fs.existsSync(tempCropPath)) fs.unlinkSync(tempCropPath);
-            if (fs.existsSync(upscaledPath)) fs.unlinkSync(upscaledPath);
+            await applyFormatCompression(sharp(upscaledBuffer).resize(2048, 2048, { fit: "inside", withoutEnlargement: true }), '.jpg', 'preview').toFile(previewEditedPath);
+            await applyFormatCompression(sharp(upscaledBuffer), '.jpg', 'highres').toFile(highresEditedPath);
             return;
           } catch (upscaleErr) {
-            logger.warn(`[PhotoWorker] AI Upscaling failed, falling back to standard crop: ${(upscaleErr as Error).message}`);
-            if (fs.existsSync(tempCropPath)) fs.unlinkSync(tempCropPath);
-            if (fs.existsSync(upscaledPath)) fs.unlinkSync(upscaledPath);
+            logger.warn(`[PhotoWorker] AI Upscaling via API failed, falling back to standard crop: ${(upscaleErr as Error).message}`);
             // Fall through to standard save
           }
         }
@@ -358,14 +355,24 @@ async function handleProcessJob(job: WorkerJob) {
     if ((autoEdits as any)?.magicShot || (job.edits as any)?.magicShot) {
       const processMagicShot = async () => {
         logger.info(`[PhotoWorker] Magic Shot requested for ${photoId}. Triggering AI Compositor...`);
-        const scriptPath = path.join(process.cwd(), '../../backend/ai-worker/magic_shot_cli.py');
         const magicShotPath = path.join(outputDir, `${photoId}_magicshot.jpg`);
         
         try {
-          await execPromise(`python "${scriptPath}" -i "${filepath}" -o "${magicShotPath}"`);
+          const fileBuffer = await fs.promises.readFile(filepath);
+          const formData = new FormData();
+          formData.append('foreground_file', new Blob([fileBuffer]), 'photo.jpg');
+          
+          const res = await fetch(`http://127.0.0.1:8000/api/ai/composite-scene`, {
+              method: 'POST',
+              body: formData
+          });
+          if (!res.ok) throw new Error(`Composite API returned HTTP ${res.status}`);
+          
+          const magicBuffer = Buffer.from(await res.arrayBuffer());
+          await fs.promises.writeFile(magicShotPath, magicBuffer);
           logger.info(`[PhotoWorker] Magic Shot successful for ${photoId}`);
         } catch (magicErr) {
-          logger.warn(`[PhotoWorker] AI Magic Shot failed: ${(magicErr as Error).message}`);
+          logger.warn(`[PhotoWorker] AI Magic Shot via API failed: ${(magicErr as Error).message}`);
         }
       };
       promises.push(processMagicShot());

@@ -8,13 +8,16 @@ CLIPPING_THRESHOLD = 0.50
 
 
 def _decode_image(image_bytes: bytes) -> np.ndarray:
+    import io
+    from PIL import Image
     if not image_bytes:
         raise ValueError("Invalid image data")
 
-    encoded = np.frombuffer(image_bytes, np.uint8)
-    image = cv2.imdecode(encoded, cv2.IMREAD_COLOR)
-    if image is None or image.size == 0:
-        raise ValueError("Invalid image data")
+    try:
+        pil_img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        image = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+    except Exception as e:
+        raise ValueError(f"Invalid image data or dimension limits exceeded: {e}")
 
     return image
 

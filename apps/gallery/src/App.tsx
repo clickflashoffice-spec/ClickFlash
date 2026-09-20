@@ -2,7 +2,8 @@ import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { GalleryConfig, GalleryTheme, Photo, Order } from '@clickflash/types';
 import { VoiceAiConcierge } from './components/VoiceAiConcierge';
 import { cloudApiService } from './services/cloudApiService';
-import { Sparkles, ShoppingBag, Box, LogIn, Radio, ShieldCheck, Loader2 } from 'lucide-react';
+import { Sparkles, ShoppingBag, Box, LogIn, Radio, ShieldCheck, Loader2, AlertTriangle } from 'lucide-react';
+import { ErrorBoundary } from '@clickflash/ui';
 import './styles/theme.css';
 
 // Lazy load route modes and spatial canvas components
@@ -224,12 +225,20 @@ export default function App() {
 
       {/* Main View Port */}
       <main className="flex-1 w-full">
-        <Suspense fallback={
-          <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-cyan-400">
-            <Loader2 className="w-8 h-8 animate-spin" />
-            <p className="text-sm font-medium text-slate-400">Loading Holographic Media Portal...</p>
+        <ErrorBoundary fallback={
+          <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-red-400 p-8 text-center bg-slate-900/50 rounded-2xl border border-red-500/20 max-w-2xl mx-auto mt-12">
+            <AlertTriangle className="w-12 h-12 text-red-500" />
+            <h3 className="text-xl font-bold text-white">Display System Error</h3>
+            <p className="text-sm text-slate-400">The holographic portal encountered a fatal rendering error. Please reload the page.</p>
+            <button onClick={() => window.location.reload()} className="mt-4 px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors">Reload Portal</button>
           </div>
         }>
+          <Suspense fallback={
+            <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-cyan-400">
+              <Loader2 className="w-8 h-8 animate-spin" />
+              <p className="text-sm font-medium text-slate-400">Loading Holographic Media Portal...</p>
+            </div>
+          }>
           {activeMode === 'ecommerce' && (
             <div className="w-full">
               <CustomerLayout
@@ -290,6 +299,7 @@ export default function App() {
             </div>
           )}
         </Suspense>
+        </ErrorBoundary>
       </main>
     </div>
   );

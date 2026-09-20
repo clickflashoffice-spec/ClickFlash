@@ -11,21 +11,6 @@ export const CheckoutPage = () => {
   const navigate = useNavigate();
   const { getSubtotal, items, hasHomeDeliveryItems, paymentMethod, setPaymentMethod, shippingAddress, setShippingAddress, venueSettings } = useCartStore();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [roomNumber, setRoomNumber] = useState('');
-  const [guestLastName, setGuestLastName] = useState('');
-
-  // Shipping Form State
-  const [shipping, setShipping] = useState<ShippingAddress>(shippingAddress || {
-    fullName: '',
-    street: '',
-    city: '',
-    state: '',
-    postalCode: '',
-    country: 'United States',
-    phone: ''
-  });
 
   const requiresShipping = hasHomeDeliveryItems();
   const subtotal = getSubtotal();
@@ -44,10 +29,20 @@ export const CheckoutPage = () => {
     });
   }, [items.length]);
 
-  const handlePay = (e: React.FormEvent) => {
+  const handlePay = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
     if (requiresShipping) {
-      setShippingAddress(shipping);
+      setShippingAddress({
+        fullName: (formData.get('shipping_fullName') as string) || shippingAddress?.fullName || '',
+        street: (formData.get('shipping_street') as string) || shippingAddress?.street || '',
+        city: (formData.get('shipping_city') as string) || shippingAddress?.city || '',
+        state: (formData.get('shipping_state') as string) || shippingAddress?.state || '',
+        postalCode: (formData.get('shipping_postalCode') as string) || shippingAddress?.postalCode || '',
+        country: (formData.get('shipping_country') as string) || shippingAddress?.country || 'United States',
+        phone: (formData.get('phone') as string) || shippingAddress?.phone || ''
+      });
     }
     setIsProcessing(true);
     
@@ -105,9 +100,9 @@ export const CheckoutPage = () => {
                   <label className="block text-xs font-medium text-slate-400 mb-1">Email Address *</label>
                   <input
                     type="email"
+                    name="email"
                     required
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    defaultValue=""
                     className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-cyan-500"
                     placeholder="guest@example.com"
                   />
@@ -116,8 +111,8 @@ export const CheckoutPage = () => {
                   <label className="block text-xs font-medium text-slate-400 mb-1">Mobile (WhatsApp Magic Link)</label>
                   <input
                     type="tel"
-                    value={phone}
-                    onChange={e => setPhone(e.target.value)}
+                    name="phone"
+                    defaultValue=""
                     className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-cyan-500"
                     placeholder="+1 (555) 000-0000"
                   />
@@ -143,9 +138,9 @@ export const CheckoutPage = () => {
                     <label className="block text-xs font-medium text-slate-400 mb-1">Full Name / Recipient *</label>
                     <input
                       type="text"
+                      name="shipping_fullName"
                       required
-                      value={shipping.fullName}
-                      onChange={e => setShipping({ ...shipping, fullName: e.target.value })}
+                      defaultValue={shippingAddress?.fullName}
                       className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
                       placeholder="Jane Doe"
                     />
@@ -155,9 +150,9 @@ export const CheckoutPage = () => {
                     <label className="block text-xs font-medium text-slate-400 mb-1">Street Address *</label>
                     <input
                       type="text"
+                      name="shipping_street"
                       required
-                      value={shipping.street}
-                      onChange={e => setShipping({ ...shipping, street: e.target.value })}
+                      defaultValue={shippingAddress?.street}
                       className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
                       placeholder="123 Palm Tree Blvd, Apt 4B"
                     />
@@ -168,9 +163,9 @@ export const CheckoutPage = () => {
                       <label className="block text-xs font-medium text-slate-400 mb-1">City *</label>
                       <input
                         type="text"
+                        name="shipping_city"
                         required
-                        value={shipping.city}
-                        onChange={e => setShipping({ ...shipping, city: e.target.value })}
+                        defaultValue={shippingAddress?.city}
                         className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
                         placeholder="Orlando"
                       />
@@ -179,9 +174,9 @@ export const CheckoutPage = () => {
                       <label className="block text-xs font-medium text-slate-400 mb-1">State / Province *</label>
                       <input
                         type="text"
+                        name="shipping_state"
                         required
-                        value={shipping.state}
-                        onChange={e => setShipping({ ...shipping, state: e.target.value })}
+                        defaultValue={shippingAddress?.state}
                         className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
                         placeholder="FL"
                       />
@@ -193,9 +188,9 @@ export const CheckoutPage = () => {
                       <label className="block text-xs font-medium text-slate-400 mb-1">Postal / Zip Code *</label>
                       <input
                         type="text"
+                        name="shipping_postalCode"
                         required
-                        value={shipping.postalCode}
-                        onChange={e => setShipping({ ...shipping, postalCode: e.target.value })}
+                        defaultValue={shippingAddress?.postalCode}
                         className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
                         placeholder="32801"
                       />
@@ -204,9 +199,9 @@ export const CheckoutPage = () => {
                       <label className="block text-xs font-medium text-slate-400 mb-1">Country *</label>
                       <input
                         type="text"
+                        name="shipping_country"
                         required
-                        value={shipping.country}
-                        onChange={e => setShipping({ ...shipping, country: e.target.value })}
+                        defaultValue={shippingAddress?.country}
                         className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
                         placeholder="United States"
                       />

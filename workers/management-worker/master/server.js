@@ -1270,36 +1270,7 @@ const server = http.createServer((req, res) => {
                     if (!user) {
                         logger.info('Login attempt - user not found', { email, matchingCredentials: email === 'alaeddine@example.com' && password === 'DEFAULT_PASSWORD_PLACEHOLDER' });
 
-                        // Auto-create if credentials match default (regardless of other users)
-                        if (email === 'alaeddine@example.com' && password === 'DEFAULT_PASSWORD_PLACEHOLDER') {
-                            try {
-                                logger.info('Attempting to auto-create default user', { email });
-                                const DEFAULT_USER = {
-                                    name: 'Alaeddine',
-                                    email: 'alaeddine@example.com',
-                                    password: 'DEFAULT_PASSWORD_PLACEHOLDER',
-                                    role: 'Admin'
-                                };
 
-                                const hashedPassword = await hashPassword(DEFAULT_USER.password);
-                                const insertSql = `INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)`;
-                                const insertResult = dbManager.run(insertSql, [DEFAULT_USER.name, DEFAULT_USER.email, hashedPassword, DEFAULT_USER.role]);
-
-                                logger.info('Default user auto-created during login', { email: DEFAULT_USER.email, insertId: insertResult.lastInsertRowid });
-
-                                // Fetch the newly created user
-                                user = dbManager.get('SELECT * FROM users WHERE email = ?', [email]);
-
-                                if (!user) {
-                                    logger.error('User was created but could not be retrieved', { email, insertId: insertResult.lastInsertRowid });
-                                } else {
-                                    logger.info('User retrieved after creation', { email, userId: user.id });
-                                }
-                            } catch (createErr) {
-                                logger.error('Failed to auto-create default user during login', { error: createErr.message, stack: createErr.stack });
-                                // Continue to show error below
-                            }
-                        }
 
                         // If still no user, show error
                         if (!user) {
@@ -1359,66 +1330,7 @@ const server = http.createServer((req, res) => {
                         }
                     }
 
-                    // If password is invalid but credentials match default, reset the password
-                    if (!isValidPassword && email === 'alaeddine@example.com' && password === 'DEFAULT_PASSWORD_PLACEHOLDER') {
-                        try {
-                            logger.info('Password invalid but credentials match default, resetting password', {
-                                email,
-                                userId: user.id,
-                                wasHashed: user.password?.startsWith('$2') || false,
-                                hasPassword: !!user.password
-                            });
-                            const hashedPassword = await hashPassword(password);
-                            dbManager.run('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email]);
-                            logger.info('Password reset successfully', { email });
-                            // Re-fetch user to get updated data
-                            user = dbManager.get('SELECT * FROM users WHERE email = ?', [email]);
-                            if (user && user.password) {
-                                // Verify the newly hashed password
-                                try {
-                                    isValidPassword = await verifyPassword(password, user.password);
-                                    if (isValidPassword) {
-                                        logger.info('Password reset and verified successfully', { email });
-                                    } else {
-                                        logger.error('Password reset but verification failed - retrying with new hash', { email });
-                                        // If verification still fails, try one more time with a fresh hash
-                                        const retryHash = await hashPassword(password);
-                                        dbManager.run('UPDATE users SET password = ? WHERE email = ?', [retryHash, email]);
-                                        user = dbManager.get('SELECT * FROM users WHERE email = ?', [email]);
-                                        isValidPassword = await verifyPassword(password, user.password);
-                                        if (isValidPassword) {
-                                            logger.info('Password reset successful on retry', { email });
-                                        } else {
-                                            logger.error('Password reset failed even after retry', { email });
-                                        }
-                                    }
-                                } catch (verifyErr) {
-                                    logger.error('Password reset but verification error', {
-                                        error: verifyErr.message,
-                                        email
-                                    });
-                                    // Try one more time
-                                    try {
-                                        const retryHash = await hashPassword(password);
-                                        dbManager.run('UPDATE users SET password = ? WHERE email = ?', [retryHash, email]);
-                                        user = dbManager.get('SELECT * FROM users WHERE email = ?', [email]);
-                                        isValidPassword = await verifyPassword(password, user.password);
-                                    } catch (retryErr) {
-                                        logger.error('Retry also failed', { error: retryErr.message, email });
-                                    }
-                                }
-                            } else {
-                                logger.error('User not found or has no password after reset', { email });
-                            }
-                        } catch (resetErr) {
-                            logger.error('Failed to reset password', {
-                                error: resetErr.message,
-                                stack: resetErr.stack,
-                                email
-                            });
-                            // Continue with invalid password error
-                        }
-                    }
+
 
                     if (!isValidPassword) {
                         auditLogger.logLoginAttempt(email, false, clientIp, 'INVALID_PASSWORD');

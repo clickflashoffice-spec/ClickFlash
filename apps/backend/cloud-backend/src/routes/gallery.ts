@@ -227,14 +227,24 @@ app.get('/photos', requireGalleryAuth, async (c) => {
     const { eventId } = getGalleryPrincipal(c);
 
     const curationStatus = c.req.query('curationStatus');
+    const cursor = c.req.query('cursor'); // id of the last seen photo
+    const limit = parseInt(c.req.query('limit') || '50', 10);
     
-    let query = `SELECT * FROM photos WHERE event_id = ? AND curation_status != 'REJECTED' ORDER BY id DESC`;
+    let query = `SELECT * FROM photos WHERE event_id = ? AND curation_status != 'REJECTED'`;
     const bindParams: any[] = [eventId];
 
     if (curationStatus) {
-      query = `SELECT * FROM photos WHERE event_id = ? AND curation_status = ? ORDER BY id DESC`;
+      query = `SELECT * FROM photos WHERE event_id = ? AND curation_status = ?`;
       bindParams.push(curationStatus);
     }
+
+    if (cursor) {
+      query += ` AND id < ?`;
+      bindParams.push(cursor);
+    }
+
+    query += ` ORDER BY id DESC LIMIT ?`;
+    bindParams.push(limit);
 
     const { results } = await c.get('DB').prepare(query).bind(...bindParams).all();
 
@@ -251,7 +261,9 @@ app.get('/photos', requireGalleryAuth, async (c) => {
       curationStatus: row.curation_status || 'PENDING'
     }));
 
-    return c.json({ success: true, photos });
+    const nextCursor = photos.length === limit ? photos[photos.length - 1].id : null;
+
+    return c.json({ success: true, photos, nextCursor });
   } catch (error: any) {
     return c.json({ error: 'Internal Server Error' }, 500);
   }

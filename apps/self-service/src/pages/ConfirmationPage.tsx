@@ -33,6 +33,7 @@ export const ConfirmationPage = () => {
           feedbackText: `Self-Service PWA Purchase Rating: ${score} Stars`
         })
       });
+      if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
       const data = await res.json();
       setInterceptionData(data);
     } catch {

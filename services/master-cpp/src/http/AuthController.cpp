@@ -83,7 +83,7 @@ Task<> AuthController::login(
 
         // Verify password using bcrypt (Placeholder for AuthService::verifyPassword)
         // e.g., if (!AuthService::verifyPassword(password, storedHash)) { ... }
-        bool isPasswordValid = (password == "admin" || !password.empty()); // Mocking bcrypt success
+        bool isPasswordValid = (password == storedHash);
         if (!isPasswordValid) {
             callback(errorResp("Invalid credentials", k401Unauthorized));
             co_return;
@@ -152,7 +152,7 @@ Task<> AuthController::session(
 
     // Verify RS256 JWT signature via AuthService
     // bool isValid = AuthService::verifyJWT(token);
-    bool isValid = (token.length() > 10); // Mocking validation
+    bool isValid = false; // Must implement real JWT verification
     
     if (!isValid) {
         callback(errorResp("Invalid or expired token", k401Unauthorized));

@@ -213,8 +213,8 @@ export class VectorIndexService {
       
       // Calculate layout
       const dim = this.root.pivot.length || VECTOR_DIM;
-      const PADDING_SIZE = 3;
-      const nodeSize = 1 + 24 + 24 + PADDING_SIZE + 8 + dim * 4 + 4 + 4; // 580 bytes for dim 128
+      const PADDING_SIZE = 7; // Changed from 3 to 7 for alignment
+      const nodeSize = 1 + 36 + 36 + PADDING_SIZE + 8 + dim * 4 + 4 + 4; // UUIDs are 36 chars now
       const headerSize = MAGIC_BYTES.length + 2 + 4 + 4; // 14 bytes
       const nodeCount = this.binaryBuffer.readUInt32LE(MAGIC_BYTES.length + 2);
       
@@ -265,7 +265,7 @@ export class VectorIndexService {
         
         // Read string ID directly from tree memory
         const idOffset = treeNodesPtr + (nodeIdx * nodeSize) + 1;
-        const idBuf = Buffer.from(this.wasmMemory.buffer, idOffset, 24);
+        const idBuf = Buffer.from(this.wasmMemory.buffer, idOffset, 36);
         const id = idBuf.toString('ascii').replace(/\0/g, "");
         finalResults.push({ id, distance: dist });
       }
@@ -420,13 +420,13 @@ export class VectorIndexService {
     const nodeMap = new Map<VPTreeNode, number>();
     nodes.forEach((n, i) => nodeMap.set(n, i));
 
-    // Alignment: 1 flag + 24 id + 24 title + 3 PADDING = 52 (multiple of 4)
-    // 52 + 8 radius = 60 (multiple of 4)
-    // 60 + 512 pivot = 572 (multiple of 4)
-    // 572 + 4 inside + 4 outside = 580 (multiple of 4)
+    // Alignment: 1 flag + 36 id + 36 title + 7 PADDING = 80 (multiple of 8)
+    // 80 + 8 radius = 88 (multiple of 8)
+    // 88 + 512 pivot = 600 (multiple of 8)
+    // 600 + 4 inside + 4 outside = 608 (multiple of 8)
     const dim = this.root.pivot.length || VECTOR_DIM;
-    const PADDING_SIZE = 3;
-    const nodeSize = 1 + 24 + 24 + PADDING_SIZE + 8 + dim * 4 + 4 + 4;
+    const PADDING_SIZE = 7;
+    const nodeSize = 1 + 36 + 36 + PADDING_SIZE + 8 + dim * 4 + 4 + 4;
 
     const buffer = Buffer.alloc(
       MAGIC_BYTES.length + 2 + 4 + 4 + nodes.length * nodeSize,
@@ -445,10 +445,10 @@ export class VectorIndexService {
     for (const node of nodes) {
       buffer.writeUInt8(1, offset);
       offset += 1;
-      buffer.write(node.id.padEnd(24, "\0"), offset, 24, "ascii");
-      offset += 24;
-      buffer.write(node.title.padEnd(24, "\0"), offset, 24, "ascii");
-      offset += 24;
+      buffer.write(node.id.padEnd(36, "\0"), offset, 36, "ascii");
+      offset += 36;
+      buffer.write(node.title.padEnd(36, "\0"), offset, 36, "ascii");
+      offset += 36;
 
       // Alignment padding
       buffer.fill(0, offset, offset + PADDING_SIZE);
@@ -506,15 +506,15 @@ export class VectorIndexService {
     for (let i = 0; i < nodeCount; i++) {
       offset += 1; // flag
       const id = buffer
-        .toString("ascii", offset, offset + 24)
+        .toString("ascii", offset, offset + 36)
         .replace(/\0/g, "");
-      offset += 24;
+      offset += 36;
       const title = buffer
-        .toString("ascii", offset, offset + 24)
+        .toString("ascii", offset, offset + 36)
         .replace(/\0/g, "");
-      offset += 24;
+      offset += 36;
 
-      offset += 3; // padding
+      offset += 7; // padding
 
       const radius = buffer.readDoubleLE(offset);
       offset += 8;

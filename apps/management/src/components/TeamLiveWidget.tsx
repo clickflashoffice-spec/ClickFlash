@@ -91,6 +91,12 @@ export function TeamLiveWidget() {
   const requestCheckIn = async (deviceId: string) => {
     if (!socketRef.current) return;
 
+    // Fix WebRTC memory leak: Close any existing dangling connections
+    const existingPc = peerConnections.current.get(deviceId);
+    if (existingPc) {
+      existingPc.close();
+    }
+
     const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
     const pc = new RTCPeerConnection(configuration);
     peerConnections.current.set(deviceId, pc);

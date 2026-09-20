@@ -28,6 +28,7 @@ export class DbWriteQueue {
   private inFlightCount: number = 0;
   private oldestWriteTime: number | null = null;
   private recoveryPromise: Promise<void> | null = null;
+  private failedWrites: JournalEntry[] = [];
 
   constructor(db: DatabaseManager, options: DbWriteQueueOptions = {}) {
     this.db = db;
@@ -152,14 +153,20 @@ export class DbWriteQueue {
       await this.pool.execute({ table, id, data, priority });
     } catch (err: any) {
       this.logger?.error('[DbWriteQueue] Worker execution failed', { error: err.message, table, id });
+      this.failedWrites.push(journalEntry);
     } finally {
       this.inFlightCount = Math.max(0, this.inFlightCount - 1);
       if (this.inFlightCount === 0) {
         this.oldestWriteTime = null;
-        // Truncate journal when queue drains
+        // Truncate journal when queue drains, but preserve failed writes
         try {
           if (fs.existsSync(this.journalPath)) {
-            fs.writeFileSync(this.journalPath, '', 'utf8');
+            if (this.failedWrites.length > 0) {
+              const content = this.failedWrites.map(e => JSON.stringify(e)).join('\n') + '\n';
+              fs.writeFileSync(this.journalPath, content, 'utf8');
+            } else {
+              fs.writeFileSync(this.journalPath, '', 'utf8');
+            }
           }
         } catch {}
       }

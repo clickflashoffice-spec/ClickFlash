@@ -53,7 +53,17 @@ export class CullingPipeline {
     const enableBypass = options.enableEmotionalBypass ?? true;
 
     // 1. Blur & Sharpness Detection
-    const blurMetrics = this.blurDetector.evaluateFromMetadata(shot.filePath || shot.photoId, shot.fileSize);
+    let blurMetrics;
+    try {
+      const sharp = require('sharp');
+      const { data, info } = await sharp(shot.filePath || shot.photoId)
+          .greyscale()
+          .raw()
+          .toBuffer({ resolveWithObject: true });
+      blurMetrics = await this.blurDetector.analyzeBuffer(data, info.width, info.height);
+    } catch {
+      blurMetrics = { blurScore: 0.5, variance: 100, isBlurred: false, processingTimeMs: 0 };
+    }
 
     // 2. Facial Landmark & Eye-Openness Evaluation
     const faces = this.simulateOrAnalyzeFaces(shot);

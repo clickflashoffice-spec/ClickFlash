@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClickFlash Support Portal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        header { text-align: center; padding: 60px 20px; border-bottom: 1px solid #334155; margin-bottom: 40px; }
+        header h1 { font-size: 3rem; margin-bottom: 16px; background: linear-gradient(135deg, #0ea5e9, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        header p { font-size: 1.2rem; color: #94a3b8; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 60px; }
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 32px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .card:hover { transform: translateY(-4px); border-color: #0ea5e9; }
+        .card-icon { font-size: 2.5rem; margin-bottom: 16px; }
+        .card h3 { font-size: 1.3rem; margin-bottom: 12px; color: #f8fafc; }
+        .card p { color: #94a3b8; margin-bottom: 20px; }
+        .card a {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #0ea5e9;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .card a:hover { background: #0284c7; }
+        .status-bar {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 40px;
+        }
+        .status-bar h2 { margin-bottom: 16px; font-size: 1.2rem; }
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+        .status-item { display: flex; align-items: center; gap: 12px; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .status-dot.online { background: #22c55e; }
+        .status-dot.maintenance { background: #f59e0b; }
+        .status-dot.offline { background: #ef4444; }
+        footer { text-align: center; padding: 40px 20px; border-top: 1px solid #334155; color: #94a3b8; }
+        .search-box {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            padding: 16px 24px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            color: #e2e8f0;
+            font-size: 1rem;
+        }
+        .search-box:focus { outline: none; border-color: #0ea5e9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔧 ClickFlash Support Portal</h1>
+            <p>Get help, check system status, and find answers fast</p>
+        </header>
+
+        <input type="text" class="search-box" placeholder="Search documentation, FAQs, or error codes...">
+
+        <div class="status-bar">
+            <h2>🟢 System Status — All Services Operational</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-dot online"></div>
+                    <span>Gallery API</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot online"></div>
+                    <span>MoneyTrash API</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot online"></div>
+                    <span>Management Hub</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot online"></div>
+                    <span>Website</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot online"></div>
+                    <span>Update Server</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot online"></div>
+                    <span>License Server</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-icon">📚</div>
+                <h3>Documentation</h3>
+                <p>Complete guides for installation, configuration, and troubleshooting.</p>
+                <a href="/docs">Browse Docs</a>
+            </div>
+            <div class="card">
+                <div class="card-icon">❓</div>
+                <h3>FAQs</h3>
+                <p>Common questions about licensing, kiosk pairing, and cloud sync.</p>
+                <a href="/faqs">View FAQs</a>
+            </div>
+            <div class="card">
+                <div class="card-icon">🎥</div>
+                <h3>Video Tutorials</h3>
+                <p>Step-by-step video guides for installation and daily use.</p>
+                <a href="/tutorials">Watch Videos</a>
+            </div>
+            <div class="card">
+                <div class="card-icon">🔑</div>
+                <h3>License Management</h3>
+                <p>Activate, transfer, or renew your ClickFlash license keys.</p>
+                <a href="/license">Manage License</a>
+            </div>
+            <div class="card">
+                <div class="card-icon">🐛</div>
+                <h3>Report a Bug</h3>
+                <p>Submit bug reports with automatic system info collection.</p>
+                <a href="/bug-report">Report Bug</a>
+            </div>
+            <div class="card">
+                <div class="card-icon">💬</div>
+                <h3>Contact Support</h3>
+                <p>Email, chat, or schedule a call with our support team.</p>
+                <a href="/contact">Get Help</a>
+            </div>
+        </div>
+
+        <footer>
+            <p>ClickFlash Studio v4.2.0 • support@clickflash.com • Response time: &lt; 24 hours</p>
+        </footer>
+    </div>
+</body>
+</html>

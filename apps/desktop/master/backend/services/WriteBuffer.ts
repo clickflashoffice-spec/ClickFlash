@@ -11,6 +11,7 @@ export class WriteBuffer<T> {
     private readonly onFlush: (items: T[]) => Promise<void>;
     private readonly logger: any;
     private readonly name: string;
+    private isFlushing = false;
 
     constructor(
         name: string,
@@ -34,7 +35,9 @@ export class WriteBuffer<T> {
         this.buffer.push(item);
 
         if (this.buffer.length >= this.batchSize) {
-            this.flush();
+            // We call flush(), but don't await it to keep add() sync.
+            // If already flushing, it will return early and the existing loop will pick up the items.
+            this.flush().catch(err => this.logger.error(`[WriteBuffer] Unhandled flush error`, err));
         } else {
             this.startTimer();
         }
@@ -46,23 +49,29 @@ export class WriteBuffer<T> {
     public async flush(): Promise<void> {
         this.stopTimer();
 
-        if (this.buffer.length === 0) return;
+        if (this.buffer.length === 0 || this.isFlushing) return;
 
-        const itemsToFlush = [...this.buffer];
-        this.buffer = [];
+        this.isFlushing = true;
 
         try {
-            await this.onFlush(itemsToFlush);
-            // this.logger.debug(`[WriteBuffer:${this.name}] Flushed ${itemsToFlush.length} items`);
-        } catch (error: any) {
-            this.logger.error(`[WriteBuffer:${this.name}] Flush failed`, error);
-            // Optional: Strategy to retry or drop? For heartbeats, dropping is usually safer than indefinite retry loop.
+            while (this.buffer.length > 0) {
+                // Take up to batchSize items to avoid excessively large single queries
+                const itemsToFlush = this.buffer.splice(0, this.batchSize);
+
+                try {
+                    await this.onFlush(itemsToFlush);
+                } catch (error: any) {
+                    this.logger.error(`[WriteBuffer:${this.name}] Flush failed`, error);
+                }
+            }
+        } finally {
+            this.isFlushing = false;
         }
     }
 
     private startTimer(): void {
-        if (!this.flushTimer) {
-            this.flushTimer = setTimeout(() => this.flush(), this.flushIntervalMs);
+        if (!this.flushTimer && !this.isFlushing) {
+            this.flushTimer = setTimeout(() => this.flush().catch(console.error), this.flushIntervalMs);
         }
     }
 

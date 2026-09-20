@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClickFlash - Maintenance Mode</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px 20px;
+        }
+        .icon {
+            font-size: 5rem;
+            margin-bottom: 24px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+        .status-box {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        .status-box h3 {
+            font-size: 1rem;
+            color: #f8fafc;
+            margin-bottom: 12px;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #334155;
+        }
+        .status-item:last-child { border-bottom: none; }
+        .status-label { color: #94a3b8; }
+        .status-value { color: #e2e8f0; font-weight: 500; }
+        .status-value.online { color: #22c55e; }
+        .status-value.maintenance { color: #f59e0b; }
+        .eta {
+            background: rgba(14, 165, 233, 0.1);
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .eta-label { font-size: 0.9rem; color: #94a3b8; margin-bottom: 4px; }
+        .eta-time { font-size: 1.3rem; font-weight: 600; color: #0ea5e9; }
+        .contact {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .contact a {
+            color: #0ea5e9;
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .contact a:hover {
+            background: #0ea5e9;
+            color: white;
+        }
+        footer {
+            margin-top: 40px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🔧</div>
+        <h1>Scheduled Maintenance</h1>
+        <p>We're performing scheduled maintenance to improve your ClickFlash experience. All services will be back online shortly.</p>
+        
+        <div class="eta">
+            <div class="eta-label">Estimated completion:</div>
+            <div class="eta-time" id="eta-time">2:00 AM UTC</div>
+        </div>
+        
+        <div class="status-box">
+            <h3>System Status</h3>
+            <div class="status-item">
+                <span class="status-label">Gallery API</span>
+                <span class="status-value maintenance">Maintenance</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">MoneyTrash API</span>
+                <span class="status-value maintenance">Maintenance</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Management Hub</span>
+                <span class="status-value maintenance">Maintenance</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Website</span>
+                <span class="status-value maintenance">Maintenance</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">License Server</span>
+                <span class="status-value online">Online</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Update Server</span>
+                <span class="status-value online">Online</span>
+            </div>
+        </div>
+        
+        <div class="contact">
+            <a href="mailto:support@clickflash.com">📧 Email Support</a>
+            <a href="https://status.clickflash.com">📊 Status Page</a>
+            <a href="https://docs.clickflash.com">📚 Documentation</a>
+        </div>
+        
+        <footer>
+            <p>ClickFlash Studio v4.2.0 • We apologize for any inconvenience</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Auto-refresh every 60 seconds to check if maintenance is complete
+        setInterval(() => {
+            fetch('/health')
+                .then(r => {
+                    if (r.ok) window.location.reload();
+                })
+                .catch(() => {});
+        }, 60000);
+        
+        // Update ETA dynamically
+        const eta = new Date();
+        eta.setHours(2, 0, 0, 0);
+        if (eta < new Date()) eta.setDate(eta.getDate() + 1);
+        document.getElementById('eta-time').textContent = eta.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            timeZoneName: 'short'
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+# ClickFlash Website - Development
+# Uses pnpm for package management
+
+FROM node:20-alpine
+
+RUN apk add --no-cache libc6-compat git
+
+WORKDIR /app
+
+# Install pnpm globally
+RUN npm install -g pnpm
+
+# Copy package files
+COPY package.json pnpm-lock.yaml* ./
+
+# Install dependencies (including devDependencies)
+RUN pnpm install
+
+# Expose ports
+EXPOSE 3000
+
+# Start Next.js development server
+CMD ["pnpm", "dev"]

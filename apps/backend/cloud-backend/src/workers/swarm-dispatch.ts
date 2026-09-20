@@ -18,7 +18,7 @@ export class SwarmDispatchAI {
     /**
      * Calculates the optimal dispatch strategy and generates HotspotPredictions.
      */
-    public calculateOptimalDispatch(locations: LocationData[], availablePhotographers: string[]): HotspotPrediction[] {
+    public async calculateOptimalDispatch(locations: LocationData[], availablePhotographers: string[]): Promise<HotspotPrediction[]> {
         console.log(`[SwarmDispatchAI] Analyzing ${locations.length} locations and ${availablePhotographers.length} idle photographers...`);
         
         const predictions: HotspotPrediction[] = [];
@@ -58,7 +58,11 @@ export class SwarmDispatchAI {
         console.log(`[SwarmDispatchAI] Generated ${predictions.length} HotspotPredictions.`);
         
         if (predictions.length > 0) {
-            this.pushPredictions(predictions).catch(err => console.error(err));
+            try {
+                await this.pushPredictions(predictions);
+            } catch (err) {
+                console.error('[SwarmDispatchAI] Failed to push predictions:', err);
+            }
         }
         
         return predictions;

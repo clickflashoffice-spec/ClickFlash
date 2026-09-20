@@ -291,19 +291,19 @@ export const CheckoutPage = () => {
                 <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <input 
-                      type="text" 
+                      type="text"
+                      name="roomNumber" 
                       required 
                       placeholder="Room / Suite #" 
-                      value={roomNumber} 
-                      onChange={e => setRoomNumber(e.target.value)}
+                      defaultValue=""
                       className="bg-transparent border-b border-slate-700 pb-2 text-sm text-white focus:outline-none focus:border-cyan-500" 
                     />
                     <input 
                       type="text" 
+                      name="guestLastName"
                       required 
                       placeholder="Guest Last Name on Reservation" 
-                      value={guestLastName} 
-                      onChange={e => setGuestLastName(e.target.value)}
+                      defaultValue=""
                       className="bg-transparent border-b border-slate-700 pb-2 text-sm text-white focus:outline-none focus:border-cyan-500" 
                     />
                   </div>

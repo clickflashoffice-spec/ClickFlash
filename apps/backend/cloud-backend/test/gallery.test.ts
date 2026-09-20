@@ -306,7 +306,7 @@ describe('gallery routes', () => {
       
       await app.request('/photos?curationStatus=APPROVED', {}, getEnv());
       expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringContaining('curation_status = ?'));
-      expect(mockBind).toHaveBeenCalledWith('1', 'APPROVED');
+      expect(mockBind).toHaveBeenCalledWith('1', 'APPROVED', 50);
     });
   });
 

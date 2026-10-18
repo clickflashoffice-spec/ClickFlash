@@ -8,7 +8,19 @@ export interface BiometricVectorResult {
 
 import { antiSpoofingEngine } from '@clickflash/ai';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import NetInfo from '@react-native-community/netinfo';
+let NetInfo: any;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  NetInfo = require('@react-native-community/netinfo');
+} catch (_err) {
+  NetInfo = {
+    addEventListener: (cb: (state: any) => void) => {
+      if (typeof window !== 'undefined' && 'addEventListener' in window) {
+        window.addEventListener('online', () => cb({ isConnected: true, isInternetReachable: true }));
+      }
+    }
+  };
+}
 
 const OFFLINE_VECTOR_QUEUE_KEY = '@ClickFlash:OfflineVectors';
 
@@ -21,7 +33,7 @@ export class BiometricSelfieService {
   }
 
   private initNetworkListener() {
-    NetInfo.addEventListener(state => {
+    NetInfo.addEventListener((state: any) => {
       if (state.isConnected && state.isInternetReachable) {
         this.syncOfflineVectors().catch(err => console.error('[BiometricService] Auto-sync failed', err));
       }

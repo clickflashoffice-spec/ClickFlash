@@ -17,9 +17,9 @@ export const useKioskInactivityGuard = ({
   const [showWarning, setShowWarning] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
 
-  const idleTimerRef = useRef<number | null>(null);
-  const warningTimerRef = useRef<number | null>(null);
-  const countdownIntervalRef = useRef<number | null>(null);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const clearAllTimers = useCallback(() => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);

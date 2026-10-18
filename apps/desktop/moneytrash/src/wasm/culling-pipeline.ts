@@ -53,7 +53,7 @@ export class CullingPipeline {
     const enableBypass = options.enableEmotionalBypass ?? true;
 
     // 1. Blur & Sharpness Detection
-    let blurMetrics;
+    let blurMetrics: any;
     try {
       const sharp = require('sharp');
       const { data, info } = await sharp(shot.filePath || shot.photoId)
@@ -62,8 +62,10 @@ export class CullingPipeline {
           .toBuffer({ resolveWithObject: true });
       blurMetrics = await this.blurDetector.analyzeBuffer(data, info.width, info.height);
     } catch {
-      blurMetrics = { blurScore: 0.5, variance: 100, isBlurred: false, processingTimeMs: 0 };
+      blurMetrics = { blurScore: 0.5, sharpnessScore: 50, variance: 100, isBlurred: false, processingTimeMs: 0 };
     }
+
+    const sharpnessScore = blurMetrics?.sharpnessScore ?? 50;
 
     // 2. Facial Landmark & Eye-Openness Evaluation
     const faces = this.simulateOrAnalyzeFaces(shot);
@@ -85,7 +87,7 @@ export class CullingPipeline {
     }
 
     const compositeQualityScore = Math.round(
-      blurMetrics.sharpnessScore * 0.35 +
+      sharpnessScore * 0.35 +
       avgEyeScore * 0.25 +
       avgFrontalityScore * 0.20 +
       avgSmileScore * 0.20
@@ -96,7 +98,7 @@ export class CullingPipeline {
       (shot.filePath || '').toLowerCase().includes('splash') ||
       (shot.filePath || '').toLowerCase().includes('coaster');
 
-    const isDefect = blurMetrics.sharpnessScore < 25 || (faces.length > 0 && anyBlink && blurMetrics.sharpnessScore < 45);
+    const isDefect = sharpnessScore < 25 || (faces.length > 0 && anyBlink && sharpnessScore < 45);
 
     let cullRecommendation: EvaluatedShot['cullRecommendation'] = 'KEEP_HERO';
     let cullReason = 'Optimal sharpness, facial alignment, and guest expression.';
@@ -110,11 +112,11 @@ export class CullingPipeline {
       cullRecommendation = 'EMOTIONAL_RESCUE';
       cullReason = 'Rescued by Emotional Intelligence: High-thrill action moment with authentic joyful smiles.';
       isHeroCandidate = true;
-    } else if (compositeQualityScore >= 85 && blurMetrics.sharpnessScore >= 75 && avgEyeScore >= minEyeOpenness && avgFrontalityScore >= minFrontality) {
+    } else if (compositeQualityScore >= 85 && sharpnessScore >= 75 && avgEyeScore >= minEyeOpenness && avgFrontalityScore >= minFrontality) {
       cullRecommendation = 'KEEP_HERO';
       cullReason = 'Top-tier hero photo: Crystal sharp focus, direct eye contact, genuine smile.';
       isHeroCandidate = true;
-    } else if (blurMetrics.sharpnessScore >= minSharpness && avgEyeScore >= 50) {
+    } else if (sharpnessScore >= minSharpness && avgEyeScore >= 50) {
       cullRecommendation = 'KEEP_SECONDARY';
       cullReason = 'Good commercial quality print candidate.';
       isHeroCandidate = false;

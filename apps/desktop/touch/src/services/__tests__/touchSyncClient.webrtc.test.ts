@@ -28,7 +28,7 @@ describe('TouchSyncClient WebRTC Transfer', () => {
     TouchSyncClient.instance = undefined; // Reset singleton
     client = (TouchSyncClient as any).getInstance();
 
-    vi.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('mock-uuid');
+    vi.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('12345678-1234-1234-1234-1234567890ab' as any);
 
     class MockWebSocket {
       static OPEN = 1;

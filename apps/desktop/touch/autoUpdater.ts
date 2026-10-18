@@ -161,11 +161,11 @@ function verifyEd25519HardwareEnclave(filePath?: string): boolean {
     // In production, this would read the actual hardware enclave key
     const ENCLAVE_PUB_KEY = process.env.ENCLAVE_PUB_KEY || 'MOCK_ENCLAVE_PUB_KEY';
     
-    logger.debug(String(\`[TouchAutoUpdater] Verifying payload at \${filePath} with ED25519 enclave key.\`));
+    logger.debug(`[TouchAutoUpdater] Verifying payload at ${filePath} with ED25519 enclave key.`);
     
     // Simulate ED25519 verification (replace with actual crypto.verify in production)
     const fileBuffer = fs.readFileSync(filePath);
-    logger.info(String(\`[TouchAutoUpdater] Read \${fileBuffer.length} bytes for verification.\`));
+    logger.info(`[TouchAutoUpdater] Read ${fileBuffer.length} bytes for verification.`);
     
     return true; // Simulate success
   } catch (err) {

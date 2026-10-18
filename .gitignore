@@ -42,6 +42,10 @@ pb_data/
 *.sqlite-wal
 *.sqlite-journal
 *.db
+*.db-wal
+*.db-shm
+*.jsonl
+insurance_journal.jsonl
 logs/
 **/logs/
 
@@ -52,6 +56,8 @@ logs/
 *.env
 **/.env
 **/*.env
+secrets.json
+**/secrets.json
 crash.log
 tsc_errors.log
 build_master_exe_retry.log

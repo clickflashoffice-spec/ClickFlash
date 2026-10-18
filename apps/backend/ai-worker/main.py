@@ -32,7 +32,13 @@ app = FastAPI(title="ClickFlash AI Worker", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:8090",
+        "http://localhost:8091",
+        "http://localhost:3000",
+        "http://127.0.0.1:8090",
+        "http://127.0.0.1:8091",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,7 +49,7 @@ tensor_semaphore = asyncio.Semaphore(MAX_CONCURRENT_TENSORS)
 
 async def safe_to_thread(func, *args, **kwargs):
     async with tensor_semaphore:
-        return await safe_to_thread(func, *args, **kwargs)
+        return await asyncio.to_thread(func, *args, **kwargs)
 
 @app.get("/health")
 def health_check():

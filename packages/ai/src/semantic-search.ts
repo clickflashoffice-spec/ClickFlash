@@ -3,7 +3,44 @@
  * Combines dense vector similarity (CLIP / ArcFace) with lexical domain tags and sharpness weighting.
  */
 import type { PhotoSemanticMetadata, HybridSearchResult } from './types.js';
-import { HierarchicalNSW } from 'hnswlib-node';
+import { createRequire } from 'module';
+
+interface IHierarchicalNSW {
+  initIndex(maxElements: number, M?: number, efConstruction?: number, randomSeed?: number): void;
+  addPoint(point: number[], id: number): void;
+  searchKnn(query: number[], k: number): { neighbors: number[]; distances: number[] };
+}
+
+class FallbackHierarchicalNSW implements IHierarchicalNSW {
+  private points: { embedding: number[]; id: number }[] = [];
+  constructor(_space?: string, _dim?: number) {}
+  initIndex(_maxElements: number, _M?: number, _efConstruction?: number, _randomSeed?: number) {}
+  addPoint(point: number[], id: number) {
+    this.points.push({ embedding: point, id });
+  }
+  searchKnn(query: number[], k: number) {
+    const scored = this.points.map(p => {
+      const sim = cosineSimilarity(query, p.embedding);
+      const dist = 1.0 - sim;
+      return { id: p.id, dist };
+    });
+    scored.sort((a, b) => a.dist - b.dist);
+    const top = scored.slice(0, k);
+    return {
+      neighbors: top.map(t => t.id),
+      distances: top.map(t => t.dist),
+    };
+  }
+}
+
+let HierarchicalNSWConstructor: any;
+try {
+  const req = createRequire(import.meta.url);
+  const hnswModule = req('hnswlib-node');
+  HierarchicalNSWConstructor = hnswModule.HierarchicalNSW || hnswModule.default?.HierarchicalNSW || FallbackHierarchicalNSW;
+} catch {
+  HierarchicalNSWConstructor = FallbackHierarchicalNSW;
+}
 
 export interface SemanticSearchOptions {
   queryText: string;
@@ -97,11 +134,11 @@ export function calculateLexicalScore(
 }
 
 export class SemanticIndex {
-  private index: HierarchicalNSW;
+  private index: IHierarchicalNSW;
   private photos: PhotoSemanticMetadata[] = [];
   
   constructor(dimensions = 512, maxElements = 100000) {
-    this.index = new HierarchicalNSW('cosine', dimensions);
+    this.index = new HierarchicalNSWConstructor('cosine', dimensions);
     this.index.initIndex(maxElements, 16, 200, 100);
   }
 

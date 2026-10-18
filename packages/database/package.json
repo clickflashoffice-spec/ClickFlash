@@ -8,6 +8,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "test": "vitest run",
     "migrate": "ts-node ./src/migrate.ts",
     "typecheck": "tsc --noEmit"
   },

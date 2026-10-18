@@ -79,7 +79,7 @@ parentPort.on("message", async (job: WorkerJob) => {
  * Phase 4: Aggressive format-specific compression for Master Kiosk ingestion.
  * Reduces disk footprint and network bandwidth while maintaining perceptual quality.
  */
-function applyFormatCompression(pipeline: sharp.Sharp, ext: string, mode: 'highres' | 'preview' | 'thumb'): sharp.Sharp {
+function applyFormatCompression(pipeline: any, ext: string, mode: 'highres' | 'preview' | 'thumb'): any {
   const normalizedExt = ext.toLowerCase();
   if (normalizedExt === '.jpg' || normalizedExt === '.jpeg') {
     if (mode === 'highres') {
@@ -486,7 +486,7 @@ async function handleProcessJob(job: WorkerJob) {
   }
 }
 
-function applyPipelineCrop(pipeline: sharp.Sharp, crop: ImageEditRecipeV1['geometry']['crop'], currentWidth: number, currentHeight: number): sharp.Sharp {
+function applyPipelineCrop(pipeline: any, crop: ImageEditRecipeV1['geometry']['crop'], currentWidth: number, currentHeight: number): any {
     if (crop && typeof crop === "object") {
       const { x, y, width, height } = crop;
       const safeLeft = Math.max(0, Math.min(currentWidth - 1, Math.round((x / 100) * currentWidth)));
@@ -499,7 +499,7 @@ function applyPipelineCrop(pipeline: sharp.Sharp, crop: ImageEditRecipeV1['geome
     return pipeline;
 }
 
-function applyPipelineEdits(pipeline: sharp.Sharp, color: ImageEditRecipeV1['color']): sharp.Sharp {
+function applyPipelineEdits(pipeline: any, color: ImageEditRecipeV1['color']): any {
     const exposureFactor = Math.pow(2, (color.exposure || 0) / 25);
     const brightnessAdjust = exposureFactor * (1.0 + (color.brightness || 0) / 100.0);
     const saturationAdjust = 1.0 + (color.saturate || 0) / 100.0;

@@ -87,7 +87,7 @@ export class EmailService {
             } : undefined,
         });
 
-        const mailOptions: nodemailer.SendMailOptions = {
+        const mailOptions: Record<string, any> = {
             from: `${this.fromName} <${this.fromEmail}>`,
             to: payload.to,
             subject: payload.subject,

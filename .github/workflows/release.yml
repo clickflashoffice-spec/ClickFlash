@@ -44,7 +44,7 @@ jobs:
 
       - name: Build Electron Installer (Windows)
         run: |
-          pnpm --filter desktop-installer run make --platform=win32
+          pnpm --filter clickflash-installer run package:installer
 
       - name: Generate GitHub Release with Changesets
         uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1

@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* apps/gallery/src/styles/theme.css */
 :root, [data-theme="CLASSIC"], [data-theme="classic"] {

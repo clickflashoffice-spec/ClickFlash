@@ -26,11 +26,23 @@ export function createDrizzleClient(options: DatabaseOptions): {
   db: ClickFlashDatabase;
   sqlite: Database.Database;
 } {
+  // Validate encryption key format (hexadecimal only) to eliminate SQL injection
+  if (options.encryptionKey) {
+    if (!/^(?:0x)?[0-9a-fA-F]+$/.test(options.encryptionKey)) {
+      throw new Error('Invalid encryption key: must be a valid hexadecimal string');
+    }
+  }
+
   const sqlite = new Database(options.path, {
     readonly: options.readonly ?? false,
     fileMustExist: options.fileMustExist ?? false,
     verbose: options.verbose,
   });
+
+  // Apply encryption key FIRST before any other PRAGMA or database operation
+  if (options.encryptionKey) {
+    sqlite.pragma(`key = '${options.encryptionKey}'`);
+  }
 
   // Enable WAL mode for high concurrency
   sqlite.pragma('journal_mode = WAL');
@@ -41,11 +53,6 @@ export function createDrizzleClient(options: DatabaseOptions): {
   sqlite.pragma('busy_timeout = 5000');
   sqlite.pragma('temp_store = MEMORY');
   sqlite.pragma('mmap_size = 268435456');
-
-  // Apply encryption key if specified
-  if (options.encryptionKey) {
-    sqlite.pragma(`key = '${options.encryptionKey}'`);
-  }
 
   const db = drizzle(sqlite, { schema });
 

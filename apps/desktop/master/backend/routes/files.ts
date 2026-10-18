@@ -217,7 +217,7 @@ export default function fileRoutes(context: FilesContext): Router {
           const stream = fs.createReadStream(filepath);
           stream.on("data", (chunk) => hash.update(chunk));
           stream.on("error", reject);
-          stream.on("end", resolve);
+          stream.on("end", () => resolve(undefined));
         });
         const contentHash = hash.digest("hex");
 

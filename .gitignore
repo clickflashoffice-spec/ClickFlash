@@ -33,6 +33,9 @@ ClickFlash_Release_*/
 **/android/.native-build/
 **/ios/build/
 **/dist-bundle/
+dist-ui/
+**/dist-ui/
+
 
 # Database and Data
 pb_data/

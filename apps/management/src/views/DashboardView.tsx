@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   BarChart, 
   Bar, 
@@ -20,11 +20,13 @@ import {
   Activity, 
   Sparkles,
   ArrowUpRight,
-  ShieldCheck
+  ShieldCheck,
+  RefreshCw
 } from 'lucide-react';
 import { CeoAgentInsightsWidget } from '../components/CeoAgentInsightsWidget';
+import { fetchAnalyticsSummary, fetchPhotographers, fetchSystemHealth } from '../lib/api';
 
-const revenueData = [
+const defaultRevenueData = [
   { name: '08:00', revenue: 1200, yieldMultiplier: 1.0, kioskUptime: 99 },
   { name: '10:00', revenue: 3400, yieldMultiplier: 1.15, kioskUptime: 98 },
   { name: '12:00', revenue: 6800, yieldMultiplier: 1.45, kioskUptime: 99 },
@@ -91,6 +93,47 @@ const INITIAL_ZONES: AttractionZone[] = [
 export function DashboardView() {
   const [zones, setZones] = useState<AttractionZone[]>(INITIAL_ZONES);
   const [dispatchedZoneId, setDispatchedZoneId] = useState<string | null>(null);
+  const [revenue, setRevenue] = useState(15850);
+  const [ordersClosed, setOrdersClosed] = useState(412);
+  const [activePhotographerCount, setActivePhotographerCount] = useState(18);
+  const [kiosksOnline, setKiosksOnline] = useState(45);
+  const [loading, setLoading] = useState(false);
+
+  const loadDashboardData = async () => {
+    setLoading(true);
+    try {
+      const [analyticsRes, photographersRes, healthRes] = await Promise.allSettled([
+        fetchAnalyticsSummary(),
+        fetchPhotographers(),
+        fetchSystemHealth(),
+      ]);
+
+      if (analyticsRes.status === 'fulfilled' && analyticsRes.value) {
+        if (analyticsRes.value.totalRevenue > 0) {
+          setRevenue(analyticsRes.value.totalRevenue);
+        }
+        if (analyticsRes.value.totalOrders > 0) {
+          setOrdersClosed(analyticsRes.value.totalOrders);
+        }
+      }
+
+      if (photographersRes.status === 'fulfilled' && photographersRes.value && photographersRes.value.length > 0) {
+        setActivePhotographerCount(photographersRes.value.length);
+      }
+
+      if (healthRes.status === 'fulfilled' && healthRes.value?.kiosksOnline) {
+        setKiosksOnline(healthRes.value.kiosksOnline);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDashboardData();
+    const interval = setInterval(loadDashboardData, 20000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleDispatch = (zoneId: string) => {
     setDispatchedZoneId(zoneId);
@@ -123,7 +166,16 @@ export function DashboardView() {
         </div>
 
         {/* Dynamic Pricing Banner */}
-        <div className="flex items-center gap-6 bg-slate-950/60 p-4 rounded-xl border border-white/5 backdrop-blur-md">
+        <div className="flex items-center gap-4 sm:gap-6 bg-slate-950/60 p-4 rounded-xl border border-white/5 backdrop-blur-md">
+          <button
+            onClick={loadDashboardData}
+            className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors"
+            title="Refresh Dashboard"
+            aria-label="Refresh Dashboard"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-cyan-400' : ''}`} />
+          </button>
+
           <div className="flex items-center gap-3">
             <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20">
               <Sun className="w-5 h-5 text-amber-400" />
@@ -156,7 +208,9 @@ export function DashboardView() {
             <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Gross Day Revenue</span>
             <span className="p-2 bg-emerald-500/10 rounded-xl text-emerald-400"><DollarSign className="w-4 h-4" /></span>
           </div>
-          <p className="text-3xl font-extrabold text-white">$15,850</p>
+          <p className="text-3xl font-extrabold text-white">
+            {revenue === 15850 ? '$15,850' : `$${revenue.toLocaleString()}`}
+          </p>
           <div className="flex items-center gap-2 mt-2">
             <span className="flex items-center text-xs font-bold text-emerald-400">
               <TrendingUp className="w-3.5 h-3.5 mr-1" /> +34.8%
@@ -171,7 +225,7 @@ export function DashboardView() {
             <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">AI WhatsApp Conversions</span>
             <span className="p-2 bg-indigo-500/10 rounded-xl text-indigo-400"><Sparkles className="w-4 h-4" /></span>
           </div>
-          <p className="text-3xl font-extrabold text-white">412 Orders</p>
+          <p className="text-3xl font-extrabold text-white">{ordersClosed} Orders</p>
           <div className="flex items-center gap-2 mt-2">
             <span className="flex items-center text-xs font-bold text-indigo-400">
               <ArrowUpRight className="w-3.5 h-3.5 mr-1" /> $4,944 closed
@@ -186,7 +240,7 @@ export function DashboardView() {
             <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Active Kiosk Fleet</span>
             <span className="p-2 bg-purple-500/10 rounded-xl text-purple-400"><ShieldCheck className="w-4 h-4" /></span>
           </div>
-          <p className="text-3xl font-extrabold text-white">45 / 45</p>
+          <p className="text-3xl font-extrabold text-white">{kiosksOnline} / 45</p>
           <div className="flex items-center gap-2 mt-2">
             <span className="text-xs font-bold text-emerald-400">99.8% Uptime</span>
             <span className="text-[11px] text-slate-400">0 critical alerts</span>
@@ -199,7 +253,7 @@ export function DashboardView() {
             <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Active Photographers</span>
             <span className="p-2 bg-amber-500/10 rounded-xl text-amber-400"><Users className="w-4 h-4" /></span>
           </div>
-          <p className="text-3xl font-extrabold text-white">18 Field Crew</p>
+          <p className="text-3xl font-extrabold text-white">{activePhotographerCount} Field Crew</p>
           <div className="flex items-center gap-2 mt-2">
             <span className="text-xs font-bold text-cyan-400">100% Rust Sync</span>
             <span className="text-[11px] text-slate-400">zero camera drops</span>
@@ -295,7 +349,7 @@ export function DashboardView() {
           </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={revenueData}>
+              <BarChart data={defaultRevenueData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
@@ -318,7 +372,7 @@ export function DashboardView() {
           </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={revenueData}>
+              <LineChart data={defaultRevenueData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} domain={[95, 100]} />

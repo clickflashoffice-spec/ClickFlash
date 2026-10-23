@@ -45,19 +45,21 @@ export class CurationWorker {
             const eyePtsRight = eyeOpennessAnalyzer.createSyntheticEyePoints(landmarks.rightEyeCenter.x, landmarks.rightEyeCenter.y, 24);
             const eyes = eyeOpennessAnalyzer.analyzeEyeLandmarks(eyePtsLeft, eyePtsRight);
 
-            const hash = photo.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-            const smileScore = Math.min(100, Math.max(30, ((hash * 19) % 70) + 30));
-            const lightingScore = Math.min(100, Math.max(40, ((hash * 23) % 60) + 40));
+            // Use actual provided scores or calculate from facial pose & image geometry
+            const aspect = (photo.width && photo.height) ? photo.width / photo.height : 1.5;
+            const isFullBodyCandidate = aspect < 0.85; // Portrait orientation candidate
+            const derivedLighting = Math.min(1.0, Math.max(0.65, 0.70 + Math.min(0.25, (photo.width * photo.height) / (4000 * 3000 * 2))));
+            const derivedSmile = pose.frontalityScore > 80 ? 0.85 : 0.65;
 
             return {
                 ...photo,
-                sharpnessScore: blur.sharpnessScore / 100,
-                smileScore: smileScore / 100,
-                eyeContactScore: pose.frontalityScore / 100,
-                eyeOpennessScore: eyes.combinedEyeScore / 100,
-                frontalityScore: pose.frontalityScore / 100,
-                isFullBody: (hash % 10) > 3, // ~60% full body candidates
-                lightingScore: lightingScore / 100,
+                sharpnessScore: photo.sharpnessScore ?? (blur.sharpnessScore / 100),
+                smileScore: photo.smileScore ?? derivedSmile,
+                eyeContactScore: photo.eyeContactScore ?? (pose.frontalityScore / 100),
+                eyeOpennessScore: photo.eyeOpennessScore ?? (eyes.combinedEyeScore / 100),
+                frontalityScore: photo.frontalityScore ?? (pose.frontalityScore / 100),
+                isFullBody: photo.isFullBody ?? isFullBodyCandidate,
+                lightingScore: photo.lightingScore ?? derivedLighting,
             };
         });
     }

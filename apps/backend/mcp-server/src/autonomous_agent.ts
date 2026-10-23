@@ -119,7 +119,10 @@ export async function handleRunAutonomousAgent(args: Record<string, unknown>) {
   if (!task || typeof task !== "string") {
     throw new Error("Invalid input: 'task' is required and must be a string.");
   }
-  const apiKey = (args.apiKey as string) || process.env.GEMINI_API_KEY || "mock-dev-key";
+  const apiKey = (args.apiKey as string) || process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY environment variable or apiKey parameter is required to dispatch the autonomous agent.");
+  }
   
   logger.info(`[AutonomousAgent] Dispatching task: ${task.substring(0, 60)}...`);
   

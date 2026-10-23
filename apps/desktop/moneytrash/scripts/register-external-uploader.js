@@ -9,7 +9,11 @@ const https = require('https');
 
 // Configuration
 const HUB_URL = process.env.HUB_URL || 'https://management-hub.clickflash-office.workers.dev';
-const MASTER_API_KEY = process.env.MASTER_API_KEY || 'master_key_for_registration';
+const MASTER_API_KEY = process.env.MASTER_API_KEY;
+if (!MASTER_API_KEY) {
+  console.error('❌ Error: MASTER_API_KEY environment variable must be set.');
+  process.exit(1);
+}
 
 // External Uploader Hotel Configuration
 const HOTEL_CONFIG = {

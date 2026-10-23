@@ -309,3 +309,11 @@ apps/master/--no-cache/
 # Prevent secrets leaking
 secrets.json
 --passWithNoTests
+
+# Storybook build outputs
+storybook-static/
+**/storybook-static/
+
+# Root patch scripts
+patch_*.py
+

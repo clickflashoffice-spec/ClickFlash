@@ -47,12 +47,12 @@ function loadKeys(): { kid: string; secret: string }[] {
                 return { kid: kid || "default", secret };
             });
     } else {
-        // Fallback: derive from JWT_SECRET (with warning)
-        const secret = process.env.SIGNED_URL_SECRET || process.env.JWT_SECRET || "dev-insecure-signed-url-secret";
+        // Fallback: derive from JWT_SECRET or generate secure runtime secret
+        const secret = process.env.SIGNED_URL_SECRET || process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
         if (!process.env.SIGNED_URL_SECRET && !process.env.SIGNED_URL_SECRETS) {
             logger.warn(
-                "[SignedUrls] WARNING: SIGNED_URL_SECRET not set. Falling back to JWT_SECRET. " +
-                "Set SIGNED_URL_SECRETS for production deployments.",
+                "[SignedUrls] WARNING: SIGNED_URL_SECRET not set. Using derived/ephemeral secret. " +
+                "Set SIGNED_URL_SECRETS in production to allow persistent signed URL verification across restarts.",
             );
         }
         cachedKeys = [{ kid: "default", secret }];

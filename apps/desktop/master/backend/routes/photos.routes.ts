@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import express, { Request, Response, Router } from "express";
 import crypto from "crypto";
 import { ALLOWED_COLUMNS } from "../config/constants";
@@ -29,10 +31,10 @@ export default function photosRoutes(context: any): Router {
         );
 
         if (!albumExists) {
-          logger.warn(`[FK] Album ${albumIdCheck} not found — returning 422 so client can retry.`);
+          logger.warn(`[FK] Album ${albumIdCheck} not found â€” returning 422 so client can retry.`);
           return res.status(422).json({
             error: "ALBUM_NOT_FOUND",
-            message: `Album '${albumIdCheck}' does not exist yet — please retry`,
+            message: `Album '${albumIdCheck}' does not exist yet â€” please retry`,
             retryable: true,
           });
         }
@@ -129,7 +131,7 @@ export default function photosRoutes(context: any): Router {
         logger.warn("[AutoCover] Failed to update album cover:", { error: _e.message });
       }
 
-      // ── Dynamic Branding / Watermark Engine ─────────────────────────────
+      // â”€â”€ Dynamic Branding / Watermark Engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       // Hook into the ingestion pipeline so that immediately after a photo is ingested,
       // if a watermark rule matches, the image is composited.
       try {
@@ -177,7 +179,7 @@ export default function photosRoutes(context: any): Router {
       } catch (wmError: any) {
         logger.error(`[WatermarkEngine] Failed to apply watermark to photo ${data.id}:`, wmError);
       }
-      // ──────────────────────────────────────────────────────────────────────
+      // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
       const auditUser = req.session?.user || req.user;
@@ -274,6 +276,66 @@ export default function photosRoutes(context: any): Router {
       res.json(saved);
     } catch (err: any) {
       logger.error("Failed to update photo", err);
+      res.status(500).json({ error: "INTERNAL_ERROR", message: err.message });
+    }
+  });
+
+  // POST /:id/auto-adjust (Canva-Grade Auto Adjust)
+  router.post("/:id/auto-adjust", async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id;
+      const existing = dbManager.get(`SELECT * FROM ${table} WHERE id = ?`, [id]);
+      if (!existing) {
+        return res.status(404).json({ error: "NOT_FOUND", message: `${table} record not found` });
+      }
+
+      const UPLOAD_DIR = path.resolve(process.cwd(), "uploads");
+      const candidates = [
+        existing.filepath,
+        path.join(UPLOAD_DIR, existing.albumId || "", "highres", `${existing.id}.jpg`),
+        path.join(UPLOAD_DIR, existing.albumId || "", "highres", existing.filename || ""),
+        path.join(UPLOAD_DIR, existing.albumId || "", existing.filename || ""),
+        path.join(UPLOAD_DIR, existing.filename || "")
+      ].filter(Boolean);
+
+      let targetPath: string | null = null;
+      for (const p of candidates) {
+        if (p && fs.existsSync(p)) {
+          targetPath = p;
+          break;
+        }
+      }
+
+      const { AutoEditEngine } = await import("../services/AutoEditEngine.ts");
+      let canvaEdits: any;
+      if (targetPath) {
+        canvaEdits = await AutoEditEngine.computeCanvaAutoAdjust(targetPath);
+      } else {
+        canvaEdits = AutoEditEngine.computeHeuristics({ luminance: 128, contrast: 50, rMean: 128, gMean: 128, bMean: 128 });
+      }
+
+      const now = new Date().toISOString();
+      const autoEditsStr = JSON.stringify(canvaEdits);
+
+      dbManager.run(
+        `UPDATE ${table} SET autoEdits = ?, autoEnhanced = 1, updated_at = ? WHERE id = ?`,
+        [autoEditsStr, now, id]
+      );
+
+      const updated = dbManager.get(`SELECT * FROM ${table} WHERE id = ?`, [id]);
+      if (realtimeService && updated) {
+        realtimeService.broadcast({ collection: table, action: "update", record: updated });
+      }
+
+      logger.info(`[CanvaAutoAdjust] Computed and recorded Canva auto-adjust for photo ${id}`);
+      res.json({
+        success: true,
+        photoId: id,
+        autoEdits: canvaEdits,
+        record: updated
+      });
+    } catch (err: any) {
+      logger.error("[CanvaAutoAdjust] Failed to compute auto adjust", err);
       res.status(500).json({ error: "INTERNAL_ERROR", message: err.message });
     }
   });

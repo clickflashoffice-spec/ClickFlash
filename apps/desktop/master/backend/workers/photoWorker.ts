@@ -225,7 +225,7 @@ async function handleProcessJob(job: WorkerJob) {
         if (contrast < 20) quality_flags.push("Flat");
       }
 
-      // 🧠 Run Deep Learning Quality Assessment
+      // ðŸ§  Run Deep Learning Quality Assessment
       const aiScores = await AICullingService.evaluateImage(filepath);
       
       if (aiScores.blurScore > 0.8) quality_flags.push("Blurred");
@@ -241,7 +241,7 @@ async function handleProcessJob(job: WorkerJob) {
     let autoEdits: any = null;
     if (imageStats) {
       try {
-        autoEdits = AutoEditEngine.computeHeuristics(imageStats);
+        autoEdits = await AutoEditEngine.computeCanvaAutoAdjust(filepath);
         const crop = await AutoEditEngine.smartCrop(filepath);
         if (crop) {
           autoEdits.crop = crop;

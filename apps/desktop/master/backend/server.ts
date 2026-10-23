@@ -15,16 +15,25 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
+import os from "os";
+import { DPAPI } from "./utils/dpapi";
 
 if (!process.env.DB_ENCRYPTION_KEY) {
   const newKey = crypto.randomBytes(32).toString("hex");
-  process.env.DB_ENCRYPTION_KEY = newKey;
-  const envPath = path.resolve(process.cwd(), ".env");
-  try {
-    fs.appendFileSync(envPath, `\nDB_ENCRYPTION_KEY=${newKey}\n`);
-    console.log("[Security] Auto-generated DB_ENCRYPTION_KEY and saved to .env");
-  } catch (err) {
-    console.error("[Security] Failed to save DB_ENCRYPTION_KEY to .env", err);
+  if (os.platform() === "win32") {
+    try {
+      const protectedKey = DPAPI.protect(newKey);
+      process.env.DB_ENCRYPTION_KEY = `DPAPI:${protectedKey}`;
+      const envPath = path.resolve(process.cwd(), ".env");
+      fs.appendFileSync(envPath, `\nDB_ENCRYPTION_KEY=DPAPI:${protectedKey}\n`);
+      console.log("[Security] Auto-generated DB_ENCRYPTION_KEY sealed with Windows DPAPI and saved to .env");
+    } catch (err) {
+      process.env.DB_ENCRYPTION_KEY = newKey;
+      console.warn("[Security] Could not seal DB_ENCRYPTION_KEY via DPAPI; using in-memory key.", err);
+    }
+  } else {
+    process.env.DB_ENCRYPTION_KEY = newKey;
+    console.warn("[Security] Non-Windows platform: using in-memory ephemeral DB_ENCRYPTION_KEY.");
   }
 }
 

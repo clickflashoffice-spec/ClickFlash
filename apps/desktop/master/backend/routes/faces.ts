@@ -1,4 +1,3 @@
-// @ts-nocheck
 import express, { Request, Response, Router, NextFunction } from "express";
 import formidable from "formidable";
 import path from "path";

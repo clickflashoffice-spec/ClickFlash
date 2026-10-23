@@ -6,6 +6,7 @@ import { DatabaseManager } from '../database/db';
 import { Logger } from '../utils/logger';
 
 import { OrderValidationService } from "../services/OrderValidationService";
+import { JWT_SECRET } from "../config/constants";
 
 export class OrderWatcher {
   private dbManager: DatabaseManager;
@@ -28,7 +29,7 @@ export class OrderWatcher {
       context.emailService,
       context.hardwareService,
       context.fulfillmentSlipService,
-      process.env.JWT_SECRET || "fallback-secret",
+      JWT_SECRET,
     );
   }
 

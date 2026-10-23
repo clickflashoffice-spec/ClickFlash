@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Camera, Printer, BatteryCharging, AlertTriangle, CheckCircle, RefreshCw, Layers } from 'lucide-react';
 import type { SerializedEquipment, DnpSublimationPrintJob } from '@clickflash/types';
+import { fetchGearAssets, fetchPrintQueue } from '../lib/api';
 
 const mockEquipment: SerializedEquipment[] = [
   {
@@ -132,8 +133,59 @@ const mockPrintJobs: DnpSublimationPrintJob[] = [
 
 export function EquipmentPrintHubView() {
   const [activeTab, setActiveTab] = useState<'equipment' | 'printQueue'>('equipment');
-  const [equipmentList] = useState<SerializedEquipment[]>(mockEquipment);
+  const [equipmentList, setEquipmentList] = useState<SerializedEquipment[]>(mockEquipment);
   const [printJobs, setPrintJobs] = useState<DnpSublimationPrintJob[]>(mockPrintJobs);
+  const [loading, setLoading] = useState(false);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [gear, jobs] = await Promise.all([
+        fetchGearAssets(),
+        fetchPrintQueue()
+      ]);
+      if (gear && gear.length > 0) {
+        setEquipmentList(gear.map(g => ({
+          id: g.id,
+          assetTag: g.asset_tag,
+          category: (g.category as any) || 'CAMERA_BODY',
+          model: g.make_model,
+          serialNumber: g.serial_number,
+          status: (g.status as any) || 'AVAILABLE',
+          conditionRating: (Math.min(5, Math.max(1, g.condition_rating || 5)) as 1 | 2 | 3 | 4 | 5),
+          assignedPhotographerName: g.assigned_to_name || undefined,
+          assignedPhotographerId: g.assigned_to_user_id || undefined,
+          lastAuditDate: new Date().toISOString().split('T')[0]
+        })));
+      }
+      if (jobs && jobs.length > 0) {
+        setPrintJobs(jobs.map(j => ({
+          id: j.id,
+          galleryId: 'gal_main',
+          photoId: j.order_id,
+          photoUrl: j.photo_url,
+          printSize: (j.paper_size as any) || '4x6',
+          copies: j.copies,
+          printerId: j.printer_name,
+          printerModel: j.printer_name,
+          paperRemainingPercent: 85,
+          ribbonRemainingPercent: 80,
+          iccProfile: 'DNP_Lustre_v2.icc',
+          cropAlignment: { x: 0.5, y: 0.5, zoom: 1.0 },
+          status: (j.status as any) || 'QUEUED',
+          submittedAt: j.submitted_at
+        })));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+    const interval = setInterval(loadData, 20000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleReprint = (jobId: string) => {
     setPrintJobs(prev =>
@@ -155,8 +207,17 @@ export function EquipmentPrintHubView() {
           </p>
         </div>
 
-        {/* Tab Toggle */}
-        <div className="flex bg-slate-900 p-1 rounded-lg border border-slate-800">
+        {/* Tab Toggle & Refresh */}
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={loadData}
+            className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors"
+            title="Refresh Equipment and Print Spooler"
+            aria-label="Refresh Equipment and Print Spooler"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
+          </button>
+          <div className="flex bg-slate-900 p-1 rounded-lg border border-slate-800">
           <button
             onClick={() => setActiveTab('equipment')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
@@ -179,6 +240,7 @@ export function EquipmentPrintHubView() {
           </button>
         </div>
       </div>
+    </div>
 
       {/* Equipment View */}
       {activeTab === 'equipment' && (

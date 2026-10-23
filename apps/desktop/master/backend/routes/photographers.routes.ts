@@ -4,6 +4,26 @@ export default function photographerRoutes(context: any): Router {
   const router = Router();
   const { dbManager, logger } = context;
 
+  // GET /api/photographers
+  // Returns all photographers and staff members from SQLite
+  router.get("/", async (_req: Request, res: Response) => {
+    try {
+      const photographers = dbManager.all(
+        `SELECT u.id, u.name, u.email, u.role, u.status, u.created_at,
+                pf.station_id as location, pf.updated_at as last_ping,
+                (SELECT COUNT(*) FROM photos WHERE photographer_id = u.id) as shoots_today
+         FROM users u
+         LEFT JOIN photographer_faces pf ON u.id = pf.photographer_id
+         WHERE u.role IN ('photographer', 'staff', 'admin')
+         ORDER BY u.name ASC`
+      );
+      return res.status(200).json({ success: true, items: photographers });
+    } catch (error: any) {
+      logger.error("[PhotographerRoutes] Error listing photographers:", error);
+      return res.status(500).json({ error: "Failed to list photographers" });
+    }
+  });
+
   // POST /api/photographers/enroll-face/proxy
   // Receives biometric face enrollment from mobile app via LAN and saves to local SQLite,
   // then attempts to sync to upstream Cloudflare.

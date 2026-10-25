@@ -33,9 +33,11 @@ class FallbackHierarchicalNSW implements IHierarchicalNSW {
   }
 }
 
-let HierarchicalNSWConstructor: any;
+let HierarchicalNSWConstructor: any = FallbackHierarchicalNSW;
 try {
-  const req = createRequire(import.meta.url);
+  const req = typeof require !== 'undefined'
+    ? require
+    : createRequire(import.meta.url);
   const hnswModule = req('hnswlib-node');
   HierarchicalNSWConstructor = hnswModule.HierarchicalNSW || hnswModule.default?.HierarchicalNSW || FallbackHierarchicalNSW;
 } catch {

@@ -28,6 +28,51 @@ export default function galleryCheckoutRoutes(
   const receiptPDFService = new ReceiptPDFService(DATA_DIR, logger);
   const router = express.Router();
 
+  const verifyItemsAndPrice = (items: any[], tipAmount: number = 0) => {
+    const verifiedItems = items.map((item: any) => {
+      let serverPrice = item.price;
+      if (item.id) {
+        try {
+          const product = dbManager.get<{ price?: number; retail_price?: number }>(
+            "SELECT price FROM products WHERE id = ?",
+            [item.id]
+          ) || dbManager.get<{ price?: number }>(
+            "SELECT price FROM packs WHERE id = ?",
+            [item.id]
+          ) || dbManager.get<{ retail_price?: number }>(
+            "SELECT retail_price as price FROM keepsake_products WHERE id = ?",
+            [item.id]
+          );
+
+          if (product) {
+            const p = (product as any).price ?? (product as any).retail_price;
+            if (typeof p === 'number' && p >= 0) {
+              serverPrice = p;
+            }
+          }
+        } catch (_) {
+          // Keep item price if lookup tables do not exist in test env
+        }
+      }
+
+      if (serverPrice < 0.50 && item.type !== 'free_preview') {
+        throw new Error(`Invalid or tampered price for item: ${item.title || item.id}`);
+      }
+
+      return {
+        ...item,
+        price: serverPrice,
+      };
+    });
+
+    const total = verifiedItems.reduce(
+      (sum: number, item: any) => sum + item.price * item.quantity,
+      0,
+    ) + (tipAmount || 0);
+
+    return { verifiedItems, total };
+  };
+
   /**
    * Create checkout session
    */
@@ -63,10 +108,7 @@ export default function galleryCheckoutRoutes(
         return res.status(404).json({ error: "Token not found" });
       }
 
-      const total = items.reduce(
-        (sum: number, item: any) => sum + item.price * item.quantity,
-        0,
-      ) + (payload.tipAmount || 0);
+      const { verifiedItems, total } = verifyItemsAndPrice(items, payload.tipAmount);
 
       // Law 12: Organized Storage & Law 02: Order Mirroring (Generate stable ID)
       const galleryOrderId = `GLY_${randomUUID().replace(/-/g, "").substring(0, 12)}`;
@@ -78,14 +120,14 @@ export default function galleryCheckoutRoutes(
           galleryOrderId,
           tokenRecord.id,
           payload.customerEmail,
-          JSON.stringify(items),
+          JSON.stringify(verifiedItems),
           total,
         ],
       );
 
       const session = await stripeService.createCheckoutSession({
         orderId: galleryOrderId,
-        items: items.map((i: any) => ({ photoId: i.id, product: i.title, quantity: i.quantity, price: i.price })),
+        items: verifiedItems.map((i: any) => ({ photoId: i.id, product: i.title, quantity: i.quantity, price: i.price })),
         customerEmail: payload.customerEmail,
         successUrl: `${FRONTEND_URL}/gallery/${token}/success`,
         cancelUrl: `${FRONTEND_URL}/gallery/${token}`,
@@ -151,10 +193,7 @@ export default function galleryCheckoutRoutes(
         return res.status(404).json({ error: "Token not found" });
       }
 
-      const total = items.reduce(
-        (sum: number, item: any) => sum + item.price * item.quantity,
-        0,
-      ) + (payload.tipAmount || 0);
+      const { verifiedItems, total } = verifyItemsAndPrice(items, payload.tipAmount);
 
       const galleryOrderId = `GLY_${randomUUID().replace(/-/g, "").substring(0, 12)}`;
 
@@ -165,7 +204,7 @@ export default function galleryCheckoutRoutes(
           galleryOrderId,
           tokenRecord.id,
           payload.customerEmail,
-          JSON.stringify(items),
+          JSON.stringify(verifiedItems),
           total,
         ],
       );
@@ -179,7 +218,7 @@ export default function galleryCheckoutRoutes(
       if (syncManager) {
           syncManager.broadcastCashPending(galleryOrderId, { 
               total, 
-              items, 
+              items: verifiedItems, 
               albumId: tokenRecord.albumId, 
               customerEmail: payload.customerEmail 
           });
@@ -314,64 +353,64 @@ export default function galleryCheckoutRoutes(
             const tipMinor = Math.round(tipAmount * 100);
             const paymentId = randomUUID();
 
-            if (tokenRecord.photographerId) {
-              photographerEventLedgerService.append({
-                schemaVersion: '1',
-                eventId: randomUUID(),
-                producer: 'GALLERY',
-                producerEventId: mainOrderId,
-                photographerId: tokenRecord.photographerId,
-                occurredAt: nowIso,
-                recordedAt: nowIso,
-                scope: { deskId: 'GALLERY_WEB', timezone: 'UTC' },
-                sourceRecordId: mainOrderId,
-                payload: {
-                  kind: 'ORDER_COMPLETED',
-                  orderId: mainOrderId,
-                  gross: { currency: 'USD', currencyExponent: 2, amountMinor: grossMinor },
-                  tips: { currency: 'USD', currencyExponent: 2, amountMinor: tipMinor },
-                  photoCount: 1, 
-                }
-              });
+            const effectivePhotographerId = tokenRecord.photographerId || "HOUSE_ACCOUNT";
 
-              photographerEventLedgerService.append({
-                schemaVersion: '1',
-                eventId: randomUUID(),
-                producer: 'GALLERY',
-                producerEventId: mainOrderId,
-                photographerId: tokenRecord.photographerId,
-                occurredAt: nowIso,
-                recordedAt: nowIso,
-                scope: { deskId: 'GALLERY_WEB', timezone: 'UTC' },
-                sourceRecordId: mainOrderId,
-                payload: {
-                  kind: 'ATTRIBUTION_ASSIGNED',
-                  orderId: mainOrderId,
-                  method: 'ALBUM_OWNER',
-                  confidenceBps: 10000,
-                }
-              });
+            photographerEventLedgerService.append({
+              schemaVersion: '1',
+              eventId: randomUUID(),
+              producer: 'GALLERY',
+              producerEventId: mainOrderId,
+              photographerId: effectivePhotographerId,
+              occurredAt: nowIso,
+              recordedAt: nowIso,
+              scope: { deskId: 'GALLERY_WEB', timezone: 'UTC' },
+              sourceRecordId: mainOrderId,
+              payload: {
+                kind: 'ORDER_COMPLETED',
+                orderId: mainOrderId,
+                gross: { currency: 'USD', currencyExponent: 2, amountMinor: grossMinor },
+                tips: { currency: 'USD', currencyExponent: 2, amountMinor: tipMinor },
+                photoCount: 1, 
+              }
+            });
 
-              photographerEventLedgerService.append({
-                schemaVersion: '1',
-                eventId: randomUUID(),
-                producer: 'GALLERY',
-                producerEventId: paymentIntentId,
-                photographerId: tokenRecord.photographerId,
-                occurredAt: nowIso,
-                recordedAt: nowIso,
-                scope: { deskId: 'GALLERY_WEB', timezone: 'UTC' },
-                sourceRecordId: mainOrderId,
-                payload: {
-                  kind: 'PAYMENT_CAPTURED',
-                  orderId: mainOrderId,
-                  paymentId: paymentId,
-                  amount: { currency: 'USD', currencyExponent: 2, amountMinor: grossMinor + tipMinor },
-                  method: 'STRIPE',
-                }
-              });
-              logger.info(`[GalleryCheckout] Appended ORDER, ATTRIBUTION, PAYMENT events for ${mainOrderId}`);
-            }
+            photographerEventLedgerService.append({
+              schemaVersion: '1',
+              eventId: randomUUID(),
+              producer: 'GALLERY',
+              producerEventId: mainOrderId,
+              photographerId: effectivePhotographerId,
+              occurredAt: nowIso,
+              recordedAt: nowIso,
+              scope: { deskId: 'GALLERY_WEB', timezone: 'UTC' },
+              sourceRecordId: mainOrderId,
+              payload: {
+                kind: 'ATTRIBUTION_ASSIGNED',
+                orderId: mainOrderId,
+                method: tokenRecord.photographerId ? 'ALBUM_OWNER' : 'HOUSE',
+                confidenceBps: 10000,
+              }
+            });
+
+            photographerEventLedgerService.append({
+              schemaVersion: '1',
+              eventId: randomUUID(),
+              producer: 'GALLERY',
+              producerEventId: paymentIntentId,
+              photographerId: effectivePhotographerId,
+              occurredAt: nowIso,
+              recordedAt: nowIso,
+              scope: { deskId: 'GALLERY_WEB', timezone: 'UTC' },
+              sourceRecordId: mainOrderId,
+              payload: {
+                kind: 'PAYMENT_CAPTURED',
+                orderId: mainOrderId,
+                paymentId: paymentId,
+                amount: { currency: 'USD', currencyExponent: 2, amountMinor: grossMinor + tipMinor },
+                method: 'STRIPE',
+              }
+            });
+            logger.info(`[GalleryCheckout] Appended ORDER, ATTRIBUTION, PAYMENT events for ${mainOrderId} (photographer: ${effectivePhotographerId})`);
 
             logger.info(
               "[GalleryCheckout] Order synced to master fulfillment",

@@ -120,14 +120,32 @@ export class DbWriteQueue {
     }
     const values = Object.values(data);
     const setClause = columns.map((col) => `${col} = ?`).join(', ');
-    const sql = `UPDATE ${table} SET ${setClause} WHERE id = ?`;
+    const updateSql = `UPDATE ${table} SET ${setClause} WHERE id = ?`;
 
+    let changes = 0;
     if (this.db && typeof (this.db as any).run === 'function') {
-      (this.db as any).run(sql, [...values, id]);
+      const res = (this.db as any).run(updateSql, [...values, id]);
+      changes = res?.changes ?? 0;
     } else if (this.db && typeof (this.db as any).getDb === 'function') {
       const raw = (this.db as any).getDb();
       if (raw && typeof raw.prepare === 'function') {
-        raw.prepare(sql).run(...values, id);
+        const res = raw.prepare(updateSql).run(...values, id);
+        changes = res?.changes ?? 0;
+      }
+    }
+
+    // Upsert recovery: if record does not exist to update, insert it
+    if (changes === 0) {
+      const allCols = ['id', ...columns];
+      const allPlaceholders = allCols.map(() => '?').join(', ');
+      const insertSql = `INSERT OR REPLACE INTO ${table} (${allCols.join(', ')}) VALUES (${allPlaceholders})`;
+      if (this.db && typeof (this.db as any).run === 'function') {
+        (this.db as any).run(insertSql, [id, ...values]);
+      } else if (this.db && typeof (this.db as any).getDb === 'function') {
+        const raw = (this.db as any).getDb();
+        if (raw && typeof raw.prepare === 'function') {
+          raw.prepare(insertSql).run(id, ...values);
+        }
       }
     }
   }
@@ -158,13 +176,13 @@ export class DbWriteQueue {
       this.inFlightCount = Math.max(0, this.inFlightCount - 1);
       if (this.inFlightCount === 0) {
         this.oldestWriteTime = null;
-        // Truncate journal when queue drains, but preserve failed writes
+        // Truncate journal only when queue is completely idle and no new writes entered
         try {
-          if (fs.existsSync(this.journalPath)) {
+          if (fs.existsSync(this.journalPath) && this.inFlightCount === 0) {
             if (this.failedWrites.length > 0) {
               const content = this.failedWrites.map(e => JSON.stringify(e)).join('\n') + '\n';
               fs.writeFileSync(this.journalPath, content, 'utf8');
-            } else {
+            } else if (this.inFlightCount === 0) {
               fs.writeFileSync(this.journalPath, '', 'utf8');
             }
           }

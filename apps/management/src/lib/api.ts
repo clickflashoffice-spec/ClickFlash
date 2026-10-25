@@ -1,4 +1,5 @@
 import { Order, Album } from '@clickflash/types';
+export type { Order, Album };
 
 const API_BASE_URL = typeof window !== 'undefined' && window.location.port === '8090'
   ? '/api'

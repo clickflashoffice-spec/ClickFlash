@@ -108,7 +108,7 @@ async function handleProcessJob(job: WorkerJob) {
   // Processing ${photoId} from ${filepath}
 
   // Phase 32: Skip processing for placeholder URLs
-  if (filepath.startsWith("http://") || filepath.startsWith("https://") || filepath.includes(":/")) {
+  if (filepath.startsWith("http://") || filepath.startsWith("https://") || /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(filepath)) {
     logger.warn(`[PhotoWorker] Skipping processing for remote/placeholder URL: ${filepath}`);
     parentPort!.postMessage({
       success: true,
@@ -654,7 +654,7 @@ async function applyRetouchActions(
 async function handleWatermarkJob(job: WorkerJob) {
   const { filepath, outputDir, photoId, overlayPath, opacity, scale, position } = job;
 
-  if (filepath.startsWith("http://") || filepath.startsWith("https://") || filepath.includes(":/")) {
+  if (filepath.startsWith("http://") || filepath.startsWith("https://") || /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(filepath)) {
     parentPort?.postMessage({ success: true, photoId, skipped: true, wmFilename: filepath });
     return;
   }
